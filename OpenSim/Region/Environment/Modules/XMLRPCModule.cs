@@ -1,30 +1,29 @@
 /*
-* Copyright (c) Contributors, http://opensimulator.org/
-* See CONTRIBUTORS.TXT for a full list of copyright holders.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*     * Redistributions of source code must retain the above copyright
-*       notice, this list of conditions and the following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright
-*       notice, this list of conditions and the following disclaimer in the
-*       documentation and/or other materials provided with the distribution.
-*     * Neither the name of the OpenSim Project nor the
-*       names of its contributors may be used to endorse or promote products
-*       derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
-* EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
-* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-* 
-*/
+ * Copyright (c) Contributors, http://opensimulator.org/
+ * See CONTRIBUTORS.TXT for a full list of copyright holders.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the OpenSim Project nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 using System;
 using System.Collections;
@@ -422,260 +421,257 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
     }
-        /**************************************************************
-         * 
-         * Class RPCRequestInfo
-         * 
-         * Holds details about incoming requests until they are picked
-         * from the queue by LSLLongCmdHandler
-         * ***********************************************************/
 
-        public class RPCRequestInfo
+    /**************************************************************
+     * 
+     * Class RPCRequestInfo
+     * 
+     * Holds details about incoming requests until they are picked
+     * from the queue by LSLLongCmdHandler
+     * ***********************************************************/
+
+    public class RPCRequestInfo
+    {
+        private string m_StrVal;
+        private string m_IntVal;
+        private bool m_processed;
+        private string m_respStr;
+        private int m_respInt;
+        private uint m_localID;
+        private LLUUID m_ItemID;
+        private LLUUID m_MessageID;
+        private LLUUID m_ChannelKey;
+
+        public RPCRequestInfo(uint localID, LLUUID itemID, LLUUID channelKey, string strVal, string intVal)
         {
-            private string m_StrVal;
-            private string m_IntVal;
-            private bool m_processed;
-            private string m_respStr;
-            private int m_respInt;
-            private uint m_localID;
-            private LLUUID m_ItemID;
-            private LLUUID m_MessageID;
-            private LLUUID m_ChannelKey;
-
-            public RPCRequestInfo(uint localID, LLUUID itemID, LLUUID channelKey, string strVal, string intVal)
-            {
-                m_localID = localID;
-                m_StrVal = strVal;
-                m_IntVal = intVal;
-                m_ItemID = itemID;
-                m_ChannelKey = channelKey;
-                m_MessageID = LLUUID.Random();
-                m_processed = false;
-                m_respStr = String.Empty;
-                m_respInt = 0;
-            }
-
-            public bool IsProcessed()
-            {
-                return m_processed;
-            }
-
-            public LLUUID GetChannelKey()
-            {
-                return m_ChannelKey;
-            }
-
-            public void SetProcessed(bool processed)
-            {
-                m_processed = processed;
-            }
-
-            public void SetStrRetval(string resp)
-            {
-                m_respStr = resp;
-            }
-
-            public string GetStrRetval()
-            {
-                return m_respStr;
-            }
-            public void SetIntRetval(int resp)
-            {
-                m_respInt = resp;
-            }
-
-            public int GetIntRetval()
-            {
-                return m_respInt;
-            }
-            public uint GetLocalID()
-            {
-                return m_localID;
-            }
-
-            public LLUUID GetItemID()
-            {
-                return m_ItemID;
-            }
-
-            public string GetStrVal()
-            {
-                return m_StrVal;
-            }
-
-            public int GetIntValue()
-            {
-                return int.Parse(m_IntVal);
-            }
-
-            public LLUUID GetMessageID()
-            {
-                return m_MessageID;
-            }
+            m_localID = localID;
+            m_StrVal = strVal;
+            m_IntVal = intVal;
+            m_ItemID = itemID;
+            m_ChannelKey = channelKey;
+            m_MessageID = LLUUID.Random();
+            m_processed = false;
+            m_respStr = String.Empty;
+            m_respInt = 0;
         }
 
-        public class RPCChannelInfo
+        public bool IsProcessed()
         {
-            private LLUUID m_itemID;
-            private uint m_localID;
-            private LLUUID m_ChannelKey;
+            return m_processed;
+        }
 
-            public RPCChannelInfo(uint localID, LLUUID itemID, LLUUID channelID)
-            {
-                m_ChannelKey = channelID;
-                m_localID = localID;
-                m_itemID = itemID;
-            }
+        public LLUUID GetChannelKey()
+        {
+            return m_ChannelKey;
+        }
 
-            public LLUUID GetItemID()
-            {
-                return m_itemID;
-            }
+        public void SetProcessed(bool processed)
+        {
+            m_processed = processed;
+        }
 
-            public LLUUID GetChannelID()
-            {
-                return m_ChannelKey;
-            }
+        public void SetStrRetval(string resp)
+        {
+            m_respStr = resp;
+        }
 
-            public uint GetLocalID()
-            {
-                return m_localID;
-            }
+        public string GetStrRetval()
+        {
+            return m_respStr;
+        }
+        public void SetIntRetval(int resp)
+        {
+            m_respInt = resp;
+        }
+
+        public int GetIntRetval()
+        {
+            return m_respInt;
+        }
+        public uint GetLocalID()
+        {
+            return m_localID;
+        }
+
+        public LLUUID GetItemID()
+        {
+            return m_ItemID;
+        }
+
+        public string GetStrVal()
+        {
+            return m_StrVal;
+        }
+
+        public int GetIntValue()
+        {
+            return int.Parse(m_IntVal);
+        }
+
+        public LLUUID GetMessageID()
+        {
+            return m_MessageID;
+        }
+    }
+
+    public class RPCChannelInfo
+    {
+        private LLUUID m_itemID;
+        private uint m_localID;
+        private LLUUID m_ChannelKey;
+
+        public RPCChannelInfo(uint localID, LLUUID itemID, LLUUID channelID)
+        {
+            m_ChannelKey = channelID;
+            m_localID = localID;
+            m_itemID = itemID;
+        }
+
+        public LLUUID GetItemID()
+        {
+            return m_itemID;
+        }
+
+        public LLUUID GetChannelID()
+        {
+            return m_ChannelKey;
+        }
+
+        public uint GetLocalID()
+        {
+            return m_localID;
+        }
+
+    }
+
+    public class SendRemoteDataRequest
+    {
+
+        public LLUUID reqID;
+        public string destURL;
+        public string channel;
+        public string sdata;
+        public int idata;
+        public bool finished;
+        public string response_sdata;
+        public int response_idata;
+        public XmlRpcRequest request;
+        private Thread httpThread;
+        public LLUUID m_itemID;
+        public uint m_localID;
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public SendRemoteDataRequest(uint localID, LLUUID itemID, string channel, string dest, int idata, string sdata)
+        {
+
+            this.channel = channel;
+            this.destURL = dest;
+            this.idata = idata;
+            this.sdata = sdata;
+            m_itemID = itemID;
+            m_localID = localID;
+
+            reqID = LLUUID.Random();
 
         }
 
-        public class SendRemoteDataRequest
+        public LLUUID process()
         {
+            httpThread = new Thread(SendRequest);
+            httpThread.Name = "HttpRequestThread";
+            httpThread.Priority = ThreadPriority.BelowNormal;
+            httpThread.IsBackground = true;
+            finished = false;
+            httpThread.Start();
+            OpenSim.Framework.ThreadTracker.Add(httpThread);
 
-            public LLUUID reqID;
-            public string destURL;
-            public string channel;
-            public string sdata;
-            public int idata;
-            public bool finished;
-            public string response_sdata;
-            public int response_idata;
-            public XmlRpcRequest request;
-            private Thread httpThread;
-            public LLUUID m_itemID;
-            public uint m_localID;
-            private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+            return reqID;
 
-            public SendRemoteDataRequest(uint localID, LLUUID itemID, string channel, string dest, int idata, string sdata)
+        }
+
+        /*
+         * TODO: More work on the response codes.  Right now
+         * returning 200 for success or 499 for exception
+         */
+
+        public void SendRequest()
+        {
+            Hashtable param = new Hashtable();
+
+            // Check if channel is an LLUUID
+            // if not, use as method name
+            LLUUID parseUID;
+            string mName = "llRemoteData";
+            if( (channel != null) && (channel != "") )
+                if( !LLUUID.TryParse(channel, out parseUID) )
+                    mName = channel;
+                else
+                    param["Channel"] = channel;
+
+            param["StringValue"] = sdata;
+            param["IntValue"] = Convert.ToString(idata);
+
+            ArrayList parameters = new ArrayList();
+            parameters.Add(param);
+            XmlRpcRequest req = new XmlRpcRequest(mName, parameters);
+            try
             {
-
-                this.channel = channel;
-                this.destURL = dest;
-                this.idata = idata;
-                this.sdata = sdata;
-                m_itemID = itemID;
-                m_localID = localID;
-
-                reqID = LLUUID.Random();
-
-            }
-
-            public LLUUID process()
-            {
-                httpThread = new Thread(SendRequest);
-                httpThread.Name = "HttpRequestThread";
-                httpThread.Priority = ThreadPriority.BelowNormal;
-                httpThread.IsBackground = true;
-                finished = false;
-                httpThread.Start();
-                OpenSim.Framework.ThreadTracker.Add(httpThread);
-
-                return reqID;
-
-            }
-
-            /*
-             * TODO: More work on the response codes.  Right now
-             * returning 200 for success or 499 for exception
-             */
-
-            public void SendRequest()
-            {
-
-                Hashtable param = new Hashtable();
-
-                // Check if channel is an LLUUID
-                // if not, use as method name
-                LLUUID parseUID;
-                string mName = "llRemoteData";
-                if( (channel != null) && (channel != "") )
-                    if( !LLUUID.TryParse(channel, out parseUID) )
-                        mName = channel;
-                    else
-                        param["Channel"] = channel;
-
-                param["StringValue"] = sdata;
-                param["IntValue"] = Convert.ToString(idata);
-
-                ArrayList parameters = new ArrayList();
-                parameters.Add(param);
-                XmlRpcRequest req = new XmlRpcRequest(mName, parameters);
-                try
+                XmlRpcResponse resp = req.Send(destURL, 30000);
+                if (resp != null)
                 {
-                    XmlRpcResponse resp = req.Send(destURL, 30000);
-                    if (resp != null)
+                    Hashtable respParms;
+                    if(resp.Value.GetType().Equals(Type.GetType("System.Collections.Hashtable"))) {
+                        respParms = (Hashtable)resp.Value;
+                    }
+                    else {
+                        ArrayList respData = (ArrayList)resp.Value;
+                        respParms = (Hashtable)respData[0];
+                    }
+                    if (respParms != null)
                     {
-                        Hashtable respParms;
-                        if(resp.Value.GetType().Equals(Type.GetType("System.Collections.Hashtable"))) {
-                            respParms = (Hashtable)resp.Value;
-                        }
-                        else {
-                            ArrayList respData = (ArrayList)resp.Value;
-                            respParms = (Hashtable)respData[0];
-                        }
-                        if (respParms != null)
+                        if (respParms.Contains("StringValue"))
                         {
-                            if (respParms.Contains("StringValue"))
-                            {
-                                sdata = (string)respParms["StringValue"];
-                            }
-                            if (respParms.Contains("IntValue"))
-                            {
-                                idata = Convert.ToInt32((string)respParms["IntValue"]);
-                            }
-                            if (respParms.Contains("faultString"))
-                            {
-                                sdata = (string)respParms["faultString"];
-                            }
-                            if (respParms.Contains("faultCode"))
-                            {
-                                idata = Convert.ToInt32(respParms["faultCode"]);
-                            }
+                            sdata = (string)respParms["StringValue"];
+                        }
+                        if (respParms.Contains("IntValue"))
+                        {
+                            idata = Convert.ToInt32((string)respParms["IntValue"]);
+                        }
+                        if (respParms.Contains("faultString"))
+                        {
+                            sdata = (string)respParms["faultString"];
+                        }
+                        if (respParms.Contains("faultCode"))
+                        {
+                            idata = Convert.ToInt32(respParms["faultCode"]);
                         }
                     }
                 }
-                catch (System.Net.WebException we)
-                {
-                    sdata = we.Message;
-                    m_log.Warn("[SendRemoteDataRequest]: Request failed");
-                    m_log.Warn(we.StackTrace);
-                }
-
-                finished = true;
-
             }
-
-            public void Stop()
+            catch (System.Net.WebException we)
             {
-                try
-                {
-                    httpThread.Abort();
-                }
-                catch (Exception)
-                {
-                }
+                sdata = we.Message;
+                m_log.Warn("[SendRemoteDataRequest]: Request failed");
+                m_log.Warn(we.StackTrace);
             }
 
-            public LLUUID GetReqID()
-            {
-                return reqID;
-            }
-
+            finished = true;
         }
 
+        public void Stop()
+        {
+            try
+            {
+                httpThread.Abort();
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        public LLUUID GetReqID()
+        {
+            return reqID;
+        }
+    }
 }

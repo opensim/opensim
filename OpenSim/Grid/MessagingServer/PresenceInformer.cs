@@ -80,7 +80,5 @@ namespace OpenSim.Grid.MessagingServer
             XmlRpcRequest RegionReq = new XmlRpcRequest("presence_update", SendParams);
             XmlRpcResponse RegionResp = RegionReq.Send(whichRegion.httpServerURI, 6000);
         }
-
-
     }
 }

@@ -11,27 +11,26 @@
   freely, subject to the following restrictions:
 
   1. The origin of this software must not be misrepresented; you must not
-     claim that you wrote the original software. If you use this software
-     in a product, an acknowledgment in the product documentation would be
-     appreciated but is not required.
+  claim that you wrote the original software. If you use this software
+  in a product, an acknowledgment in the product documentation would be
+  appreciated but is not required.
   2. Altered source versions must be plainly marked as such, and must not be
-     misrepresented as being the original software.
+  misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
 
 /*
- 
- This file contains a class TriangleIndexVertexArray. I tried using the class with the same name 
- from the BulletX implementation and found it unusable for the purpose of using triangle meshes 
- within BulletX as the implementation was painfully incomplete.
- The attempt to derive from the original class failed as viable members were hidden.
- Fiddling around with BulletX itself was not my intention.
- So I copied the class to the BulletX-plugin and modified it.
- If you want to fiddle around with it it's up to you to move all this to BulletX.
- If someone someday implements the missing functionality in BulletX, feel free to remove this class.
- It's just an ugly hack.
- 
- */
+  This file contains a class TriangleIndexVertexArray. I tried using the class with the same name 
+  from the BulletX implementation and found it unusable for the purpose of using triangle meshes 
+  within BulletX as the implementation was painfully incomplete.
+  The attempt to derive from the original class failed as viable members were hidden.
+  Fiddling around with BulletX itself was not my intention.
+  So I copied the class to the BulletX-plugin and modified it.
+  If you want to fiddle around with it it's up to you to move all this to BulletX.
+  If someone someday implements the missing functionality in BulletX, feel free to remove this class.
+  It's just an ugly hack.
+*/
+
 using System;
 using System.Collections.Generic;
 using MonoXnaCompactMaths;

@@ -1,30 +1,30 @@
 /*
-* Copyright (c) Contributors, http://opensimulator.org/
-* See CONTRIBUTORS.TXT for a full list of copyright holders.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*     * Redistributions of source code must retain the above copyright
-*       notice, this list of conditions and the following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright
-*       notice, this list of conditions and the following disclaimer in the
-*       documentation and/or other materials provided with the distribution.
-*     * Neither the name of the OpenSim Project nor the
-*       names of its contributors may be used to endorse or promote products
-*       derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
-* EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
-* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-* 
-*/
+ * Copyright (c) Contributors, http://opensimulator.org/
+ * See CONTRIBUTORS.TXT for a full list of copyright holders.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the OpenSim Project nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 using System;
 using System.IO;
 using libsecondlife;
@@ -49,7 +49,6 @@ namespace OpenSim.Framework
             }
         }
 
-
         private uint m_estateID;
 
         public uint estateID
@@ -61,7 +60,6 @@ namespace OpenSim.Framework
                 configMember.forceSetConfigurationOption("estate_id", m_estateID.ToString());
             }
         }
-
 
         private uint m_parentEstateID;
 
@@ -135,7 +133,6 @@ namespace OpenSim.Framework
             }
         }
 
-
         private Simulator.SimAccess m_simAccess;
 
         public Simulator.SimAccess simAccess
@@ -195,7 +192,6 @@ namespace OpenSim.Framework
                 configMember.forceSetConfigurationOption("use_fixed_sun", m_useFixedSun.ToString());
             }
         }
-
 
         private int m_pricePerMeter;
 
@@ -506,7 +502,6 @@ namespace OpenSim.Framework
             get {
                 // returns a condensed array of LLUUIDs
                 return GetEstateManagers();
-                
             }
             set 
             {
@@ -547,8 +542,8 @@ namespace OpenSim.Framework
                             m_estateManager9 = value[i];
                             break;
                     }
-
                 }
+
                 // Clear the rest of them..   as they're no longer valid
                 for (int j = i; j < 10; j++)
                 {
@@ -586,16 +581,14 @@ namespace OpenSim.Framework
                             break;
                     }
                 }
+
                 for (i = 0; i < 10; i++)
                 {
                    // Writes out the Estate managers to the XML file.
                    configMember.forceSetConfigurationOption("estate_manager_" + i, (GetEstateManagerAtPos(i)).ToString());
-
                 }
             }
         }
-
-        
 
         #region EstateManager Get Methods to sort out skipped spots in the XML (suser error)
 
@@ -639,6 +632,7 @@ namespace OpenSim.Framework
                     
             }
         }
+
         private LLUUID[] GetEstateManagers()
         {
             int numEstateManagers = GetNumberOfEstateManagers();
@@ -667,6 +661,7 @@ namespace OpenSim.Framework
             return i;
 
         }
+
         private int GetNumberOfEstateManagers()
         {
             // This function returns the number of estate managers set
@@ -703,6 +698,7 @@ namespace OpenSim.Framework
             estateManagers = nestateManagers;
 
         }
+
         public void RemoveEstateManager(LLUUID avatarID)
         {
             int notfoundparam = 11; // starting high so the condense routine (max ten) doesn't run if we don't find it.
@@ -859,7 +855,6 @@ namespace OpenSim.Framework
                                                 String.Empty, "00000000-0000-0000-0000-000000000000", true);
             configMember.addConfigurationOption("estate_manager_9", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
                                                 String.Empty, "00000000-0000-0000-0000-000000000000", true);
-
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
@@ -1012,7 +1007,6 @@ namespace OpenSim.Framework
                 case "estate_manager_9":
                     m_estateManager9 = (LLUUID)configuration_result;
                     break;
-                
             }
 
             return true;

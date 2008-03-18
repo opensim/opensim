@@ -45,7 +45,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsScene ps;
         private IMeshingPlugin imp;
         
-
         [SetUp]
         public void Initialize()
         {
@@ -63,8 +62,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _heightmap[i] = 21f;
             }
             ps.SetTerrain(_heightmap);
-
         }
+
         [TearDown]
         public void Terminate()
         {
@@ -72,6 +71,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             ps.Dispose();
 
         }
+
         [Test]
         public void CreateAndDropPhysicalCube()
         {
@@ -86,8 +86,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             Assert.That(oprim.m_taintadd);
 
             prim.LocalID = 5;
-
-            
 
             for (int i = 0; i < 38; i++)
             {
@@ -120,7 +118,5 @@ namespace OpenSim.Region.Physics.OdePlugin
             ps.Simulate(0.133f);
             Assert.That(oprim.Body == (IntPtr)0);
         }
-
-
     }
 }

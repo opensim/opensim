@@ -1,30 +1,30 @@
 /*
-* Copyright (c) Contributors, http://opensimulator.org/
-* See CONTRIBUTORS.TXT for a full list of copyright holders.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*     * Redistributions of source code must retain the above copyright
-*       notice, this list of conditions and the following disclaimer.
-*     * Redistributions in binary form must reproduce the above copyright
-*       notice, this list of conditions and the following disclaimer in the
-*       documentation and/or other materials provided with the distribution.
-*     * Neither the name of the OpenSim Project nor the
-*       names of its contributors may be used to endorse or promote products
-*       derived from this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
-* EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
-* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-* 
-*/
+ * Copyright (c) Contributors, http://opensimulator.org/
+ * See CONTRIBUTORS.TXT for a full list of copyright holders.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the OpenSim Project nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -60,8 +60,6 @@ namespace OpenSim.Grid.MessagingServer
         // Hashtable containing work units that need to be processed
         private Hashtable m_unProcessedWorkUnits = new Hashtable();
 
-        
-
         public MessageService(MessageServerConfig cfg)
         {
             m_cfg = cfg;
@@ -69,11 +67,9 @@ namespace OpenSim.Grid.MessagingServer
         
         #region RegionComms Methods
 
-        
         #endregion
 
         #region FriendList Methods
-
         
         /// <summary>
         /// Process Friendlist subscriptions for a user
@@ -102,8 +98,6 @@ namespace OpenSim.Grid.MessagingServer
                     SubscribeToPresenceUpdates(userpresence, friendup, uFriendList[i],i);
                 }
             }
-
-            
         }
 
         /// <summary>
@@ -118,7 +112,6 @@ namespace OpenSim.Grid.MessagingServer
         public void SubscribeToPresenceUpdates(UserPresenceData userpresence, UserPresenceData friendpresence, 
                                                 FriendListItem uFriendListItem, int uFriendListIndex)
         {
-            
             if ((uFriendListItem.FriendListOwnerPerms & (uint)FriendRights.CanSeeOnline) != 0)
             {
                 // Subscribe and Send Out updates
@@ -126,12 +119,10 @@ namespace OpenSim.Grid.MessagingServer
                 {
                     userpresence.subscriptionData.Add(friendpresence.agentData.AgentID);
                     //Send Region Notice....   
-                    
                 }
                 else
                 {
                     // we need to send out online status update, but the user is already subscribed
-                    
                 }
                 PresenceInformer friendlistupdater = new PresenceInformer();
                 friendlistupdater.presence1 = friendpresence;
@@ -141,6 +132,7 @@ namespace OpenSim.Grid.MessagingServer
 
                 //SendRegionPresenceUpdate(friendpresence, userpresence);
             }
+
             if ((uFriendListItem.FriendPerms & (uint)FriendRights.CanSeeOnline) != 0)
             {
                 if (!friendpresence.subscriptionData.Contains(userpresence.agentData.AgentID))
@@ -151,7 +143,6 @@ namespace OpenSim.Grid.MessagingServer
                 else
                 {
                     // we need to send out online status update, but the user is already subscribed
-
                 }
                 PresenceInformer friendlistupdater = new PresenceInformer();
                 friendlistupdater.presence1 = userpresence;
@@ -162,9 +153,7 @@ namespace OpenSim.Grid.MessagingServer
                 
                 //SendRegionPresenceUpdate(userpresence, friendpresence);
             }
-
         }
-
 
         /// <summary>
         /// Adds a backreference so presence specific data doesn't have to be 
@@ -214,6 +203,7 @@ namespace OpenSim.Grid.MessagingServer
                 }
             }
         }
+
         /// <summary>
         /// Logoff Processor.  Call this to clean up agent presence data and send logoff presence notifications
         /// </summary>
@@ -242,7 +232,6 @@ namespace OpenSim.Grid.MessagingServer
                     //}
                 //}
 
-
                 for (int i = 0; i < AgentsNeedingNotification.Count; i++)
                 {
                     // TODO: Do Region Notifications
@@ -254,7 +243,7 @@ namespace OpenSim.Grid.MessagingServer
                         }
                     }
 
-                        // This might need to be enumerated and checked before we try to remove it.
+                    // This might need to be enumerated and checked before we try to remove it.
                     if (friendd != null)
                     {
                         lock (friendd)
@@ -268,12 +257,12 @@ namespace OpenSim.Grid.MessagingServer
                                 {
                                     fl[j].onlinestatus = false;
                                 }
-
                             }
+
                             friendd.friendData = fl;
                             m_presences[AgentsNeedingNotification[i]] = friendd;
-
                         }
+
                         PresenceInformer friendlistupdater = new PresenceInformer();
                         friendlistupdater.presence1 = AgentData;
                         friendlistupdater.presence2 = friendd;
@@ -283,17 +272,12 @@ namespace OpenSim.Grid.MessagingServer
 
                         //SendRegionPresenceUpdate(AgentData, friendd);
 
-
                         //removeBackReference(AgentID, AgentsNeedingNotification[i]);
                     }
-
                 }
-                
             }
-            
         }
         
-
         #endregion
 
         #region UserServer Comms
@@ -330,7 +314,6 @@ namespace OpenSim.Grid.MessagingServer
                 // Return Empty list (no friends)
             }
             return buddylist;
-
         }
 
         /// <summary>
@@ -342,7 +325,6 @@ namespace OpenSim.Grid.MessagingServer
         {
             List<FriendListItem> buddylist = new List<FriendListItem>();
             int buddycount = Convert.ToInt32((string)data["avcount"]);
-
 
             for (int i = 0; i < buddycount; i++)
             {
@@ -356,9 +338,9 @@ namespace OpenSim.Grid.MessagingServer
                 buddylist.Add(buddylistitem);
             }
 
-
             return buddylist;
         }
+
         /// <summary>
         /// UserServer sends an expect_user method
         /// this handles the method and provisions the 
@@ -415,7 +397,6 @@ namespace OpenSim.Grid.MessagingServer
 
             ProcessFriendListSubscriptions(up);
 
-
             return new XmlRpcResponse();
         }
         
@@ -427,19 +408,17 @@ namespace OpenSim.Grid.MessagingServer
         /// <returns></returns>
         public XmlRpcResponse UserLoggedOff(XmlRpcRequest request)
         {
-
             Hashtable requestData = (Hashtable)request.Params[0];
             
             LLUUID AgentID = new LLUUID((string)requestData["agentid"]);
 
-
             ProcessLogOff(AgentID);
-
 
             return new XmlRpcResponse();
         }
 
         #endregion
+
         #region regioninfo gathering
 
         /// <summary>
@@ -461,6 +440,7 @@ namespace OpenSim.Grid.MessagingServer
             }
             return regionInfo;
         }
+
         /// <summary>
         /// Get RegionProfileData from the GridServer
         /// We'll Cache this information and use it for presence updates
@@ -471,7 +451,6 @@ namespace OpenSim.Grid.MessagingServer
         {   RegionProfileData regionProfile = null;
             try
             {
-                
                 Hashtable requestData = new Hashtable();
                 requestData["region_handle"] = regionHandle.ToString();
                 requestData["authkey"] = m_cfg.GridSendKey;
@@ -516,17 +495,16 @@ namespace OpenSim.Grid.MessagingServer
             catch (WebException)
             {
                 m_log.Error("[GRID]: " +
-                                       "Region lookup failed for: " + regionHandle.ToString() +
-                                       " - Is the GridServer down?");
+                            "Region lookup failed for: " + regionHandle.ToString() +
+                            " - Is the GridServer down?");
                 return null;
             }
            
-
             return regionProfile;
         }
+
         public bool registerWithUserServer ()
         {
-            
             Hashtable UserParams = new Hashtable();
             // Login / Authentication
             
@@ -542,9 +520,6 @@ namespace OpenSim.Grid.MessagingServer
             UserParams["recvkey"] = m_cfg.UserRecvKey;
             UserParams["sendkey"] = m_cfg.UserRecvKey;
             
-
-            
-
             // Package into an XMLRPC Request
             ArrayList SendParams = new ArrayList();
             SendParams.Add(UserParams);
@@ -573,12 +548,10 @@ namespace OpenSim.Grid.MessagingServer
             {
                 return false;
             }
-            
-       
         }
+
         public bool deregisterWithUserServer()
         {
-
             Hashtable UserParams = new Hashtable();
             // Login / Authentication
 
@@ -623,10 +596,8 @@ namespace OpenSim.Grid.MessagingServer
             {
                 return false;
             }
-
-
         }
+
         #endregion
     }
-
 }
