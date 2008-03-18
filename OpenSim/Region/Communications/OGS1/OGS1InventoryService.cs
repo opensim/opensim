@@ -74,7 +74,7 @@ namespace OpenSim.Region.Communications.OGS1
             try
             {
                 m_log.InfoFormat(
-                    "[INVENTORY]: Requesting inventory from {0}/GetInventory/ for user {1}",
+                    "[OGS1 INVENTORY SERVICE]: Requesting inventory from {0}/GetInventory/ for user {1}",
                     _inventoryServerUrl, userID);
 
                 RestObjectPosterResponse<InventoryCollection> requester
@@ -83,9 +83,10 @@ namespace OpenSim.Region.Communications.OGS1
 
                 requester.BeginPostObject<Guid>(_inventoryServerUrl + "/GetInventory/", userID.UUID);
             }
-            catch (Exception e)
+            catch (System.Net.WebException e)
             {
-                m_log.Error("[INVENTORY]: " + e.ToString());
+                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Request inventory operation failed, {0} {1}", 
+                     e.Source, e.Message);
             }
         }
 
@@ -98,7 +99,7 @@ namespace OpenSim.Region.Communications.OGS1
             LLUUID userID = response.UserID;
             if (m_RequestingInventory.ContainsKey(userID))
             {
-                m_log.InfoFormat("[INVENTORY]: " +
+                m_log.InfoFormat("[OGS1 INVENTORY SERVICE]: " +
                                  "Received inventory response for user {0} containing {1} folders and {2} items",
                                  userID, response.Folders.Count, response.AllItems.Count);
 
@@ -135,7 +136,7 @@ namespace OpenSim.Region.Communications.OGS1
             else
             {
                 m_log.WarnFormat(
-                    "[INVENTORY]: " +
+                    "[OGS1 INVENTORY SERVICE]: " +
                     "Received inventory response for {0} for which we do not have a record of requesting!",
                     userID);
             }
@@ -143,26 +144,58 @@ namespace OpenSim.Region.Communications.OGS1
 
         public void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder)
         {
-            SynchronousRestObjectPoster.BeginPostObject<InventoryFolderBase, bool>(
-                "POST", _inventoryServerUrl + "/NewFolder/", folder);
+            try
+            {
+                SynchronousRestObjectPoster.BeginPostObject<InventoryFolderBase, bool>(
+                    "POST", _inventoryServerUrl + "/NewFolder/", folder);
+            }
+            catch (System.Net.WebException e)
+            {
+                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Add new inventory folder operation failed, {0} {1}", 
+                     e.Source, e.Message);
+            }
         }
 
         public void MoveInventoryFolder(LLUUID userID, InventoryFolderBase folder)
         {
-            SynchronousRestObjectPoster.BeginPostObject<InventoryFolderBase, bool>(
-                "POST", _inventoryServerUrl + "/MoveFolder/", folder);
+            try
+            {            
+                SynchronousRestObjectPoster.BeginPostObject<InventoryFolderBase, bool>(
+                    "POST", _inventoryServerUrl + "/MoveFolder/", folder);
+            }
+            catch (System.Net.WebException e)
+            {
+                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Move inventory folder operation failed, {0} {1}", 
+                     e.Source, e.Message);
+            }                
         }
 
         public void AddNewInventoryItem(LLUUID userID, InventoryItemBase item)
         {
-            SynchronousRestObjectPoster.BeginPostObject<InventoryItemBase, bool>(
-                "POST", _inventoryServerUrl + "/NewItem/", item);
+            try
+            {                
+                SynchronousRestObjectPoster.BeginPostObject<InventoryItemBase, bool>(
+                    "POST", _inventoryServerUrl + "/NewItem/", item);
+            }
+            catch (System.Net.WebException e)
+            {
+                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Add new inventory item operation failed, {0} {1}", 
+                     e.Source, e.Message);
+            }                
         }
 
         public void DeleteInventoryItem(LLUUID userID, InventoryItemBase item)
         {
-            SynchronousRestObjectPoster.BeginPostObject<InventoryItemBase, bool>(
-                "POST", _inventoryServerUrl + "/DeleteItem/", item);
+            try
+            {                    
+                SynchronousRestObjectPoster.BeginPostObject<InventoryItemBase, bool>(
+                    "POST", _inventoryServerUrl + "/DeleteItem/", item);
+            }
+            catch (System.Net.WebException e)
+            {
+                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Delete inventory item operation failed, {0} {1}", 
+                     e.Source, e.Message);
+            }                
         }
 
         public bool HasInventoryForUser(LLUUID userID)
