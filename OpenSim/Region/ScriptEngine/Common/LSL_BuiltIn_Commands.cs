@@ -4295,6 +4295,11 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string llHTTPRequest(string url, LSL_Types.list parameters, string body)
         {
+            // Partial implementation: support for parameter flags needed
+            //   see http://wiki.secondlife.com/wiki/LlHTTPRequest
+            // parameter flags support are implemented in ScriptsHttpRequests.cs
+            //   in StartHttpRequest
+
             m_host.AddScriptLPS(1);
             IHttpRequests httpScriptMod =
                 m_ScriptEngine.World.RequestModuleInterface<IHttpRequests>();

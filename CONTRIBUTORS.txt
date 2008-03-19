@@ -47,6 +47,8 @@ Patches
 * brianw/Sir_Ahzz
 * ChrisDown
 * devalnor-#708
+* Diva Canto
+* krtaylor (IBM)
 
 
 LSL Devs

@@ -133,6 +133,9 @@ namespace OpenSim.Region.Environment.Modules
             LLUUID reqID = LLUUID.Random();
             HttpRequestClass htc = new HttpRequestClass();
 
+            // Partial implementation: support for parameter flags needed
+            //   see http://wiki.secondlife.com/wiki/LlHTTPRequest
+            //
             // Parameters are expected in {key, value, ... , key, value}
             if (parameters != null)
             {
