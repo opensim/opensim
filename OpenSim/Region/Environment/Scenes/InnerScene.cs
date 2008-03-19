@@ -998,7 +998,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = GetGroupByPrim(objectID);
             if (group != null)
             {
-                if (PermissionsMngr.CanEditObjectPosition(remoteClient.AgentId, group.UUID))
+                if (PermissionsMngr.CanEditObjectPosition(remoteClient.AgentId, group.UUID))// && PermissionsMngr.)
                 {
                     group.GrabMovement(offset, pos, remoteClient);
                 }

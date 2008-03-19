@@ -405,6 +405,40 @@ namespace OpenSim.Region.Environment
                     permission = false;
 
             }
+            else
+            {
+                bool locked = false;
+                if (!m_scene.Entities.ContainsKey(obj))
+                {
+                    return false;
+                }
+
+                // If it's not an object, we cant edit it.
+                if ((!(m_scene.Entities[obj] is SceneObjectGroup)))
+                {
+                    return false;
+                }
+
+
+                SceneObjectGroup group = (SceneObjectGroup)m_scene.Entities[obj];
+
+                LLUUID objectOwner = group.OwnerID;
+                locked = ((group.RootPart.OwnerMask & PERM_LOCKED) == 0);
+
+
+                // This is an exception to the generic object permission.
+                // Administrators who lock their objects should not be able to move them, 
+                // however generic object permission should return true.
+                // This keeps locked objects from being affected by random click + drag actions by accident
+                // and allows the administrator to grab or delete a locked object.
+
+                // Administrators and estate managers are still able to click+grab locked objects not 
+                // owned by them in the scene
+                // This is by design.
+
+                if (locked && (user == objectOwner))
+                    return false;
+            }
             return permission;
         }
 
