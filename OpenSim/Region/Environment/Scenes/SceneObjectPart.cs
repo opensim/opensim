@@ -1329,8 +1329,12 @@ namespace OpenSim.Region.Environment.Scenes
                         new PhysicsVector(Scale.X, Scale.Y, Scale.Z),
                         new Quaternion(RotationOffset.W, RotationOffset.X,
                                        RotationOffset.Y, RotationOffset.Z), usePhysics);
-                    PhysActor.LocalID = LocalId;
-                    DoPhysicsPropertyUpdate(usePhysics, true);
+
+                    if (PhysActor != null)
+                    {
+                        PhysActor.LocalID = LocalId;
+                        DoPhysicsPropertyUpdate(usePhysics, true);
+                    }
                 }
                 else
                 {
