@@ -2994,8 +2994,8 @@ namespace OpenSim.Region.ClientStack
                              AvatarPropertiesUpdatePacket.PropertiesDataBlock Properties = Packet.PropertiesData;
                              UserProfileData UserProfile = new UserProfileData();
                              UserProfile.UUID = AgentId;
-                             UserProfile.profileAboutText = Util.FieldToString(Properties.AboutText);
-                             UserProfile.profileFirstText = Util.FieldToString(Properties.FLAboutText);
+                             UserProfile.profileAboutText = Helpers.FieldToUTF8String(Properties.AboutText);
+                             UserProfile.profileFirstText = Helpers.FieldToUTF8String(Properties.FLAboutText);
                              UserProfile.profileFirstImage = Properties.FLImageID;
                              UserProfile.profileImage = Properties.ImageID;
 
