@@ -1288,7 +1288,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="child"></param>
         public override void AddNewClient(IClientAPI client, bool child)
         {
-            m_log.Warn("[CONNECTION DEBUGGING]: Creating new client for " + client.AgentId.ToString());
+            m_log.DebugFormat(
+                "[CONNECTION DEBUGGING]: Creating new client for {0} at {1}", 
+                client.AgentId, RegionInfo.RegionName);
+            
             SubscribeToClientEvents(client);
             ScenePresence presence = null;
 
@@ -1637,7 +1640,8 @@ namespace OpenSim.Region.Environment.Scenes
 
 
         /// <summary>
-        /// 
+        /// Do the work necessary to initiate a new user connection.
+        /// At the moment, this consists of setting up the caps infrastructure
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agent"></param>
@@ -1647,7 +1651,10 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (agent.CapsPath != String.Empty)
                 {
-                    m_log.Debug("[CONNECTION DEBUGGING]: Setting up CAPS handler for " + agent.AgentID.ToString() + " at " + agent.CapsPath.ToString());
+                    m_log.DebugFormat(
+                        "[CONNECTION DEBUGGING]: Setting up CAPS handler for avatar {0} at {1} in {2}",
+                        agent.AgentID, agent.CapsPath, RegionInfo.RegionName);
+                    
                     Caps cap =
                         new Caps(AssetCache, m_httpListener, m_regInfo.ExternalHostName, m_httpListener.Port,
                                  agent.CapsPath, agent.AgentID, m_dumpAssetsToFile);
@@ -1667,14 +1674,20 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (m_capsHandlers.ContainsKey(agent.AgentID))
                     {
-                        m_log.Debug("[CONNECTION DEBUGGING]: Caps path already in use for " + agent.AgentID.ToString());
+                        m_log.DebugFormat(
+                            "[CONNECTION DEBUGGING]: Caps path already in use for avatar {0} in region {1}", 
+                            agent.AgentID, RegionInfo.RegionName);
+                        
                         try
                         {
                             m_capsHandlers[agent.AgentID] = cap;
                         }
                         catch (KeyNotFoundException)
                         {
-                            m_log.Debug("[CONNECTION DEBUGGING]: Caught exception adding handler for " + agent.AgentID.ToString());
+                            m_log.DebugFormat(
+                                "[CONNECTION DEBUGGING]: Caught exception adding handler for avatar {0} at {1}", 
+                                agent.AgentID, RegionInfo.RegionName);
+                            
                             // Fix for a potential race condition.
                             m_capsHandlers.Add(agent.AgentID, cap);
                         }
@@ -1686,14 +1699,22 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    m_log.Warn("[CONNECTION DEBUGGING]: Skipped setting up CAPS handler for " + agent.AgentID.ToString());
+                    m_log.WarnFormat(
+                        "[CONNECTION DEBUGGING]: Skipped setting up CAPS handler for avatar {0} at {1}", 
+                        agent.AgentID, RegionInfo.RegionName);
                 }
-                m_log.Debug("[CONNECTION DEBUGGING]: Creating new circuit code (" + agent.circuitcode.ToString() + ") for " + agent.AgentID.ToString());
+                
+                m_log.DebugFormat(
+                    "[CONNECTION DEBUGGING]: Creating new circuit code ({0}) for avatar {1} at {2}",
+                    agent.circuitcode, agent.AgentID, RegionInfo.RegionName);
+                
                 m_authenticateHandler.AddNewCircuit(agent.circuitcode, agent);
             }
             else
             {
-                m_log.Warn("[CONNECTION DEBUGGING]: Skipping this region for welcoming " + agent.AgentID.ToString() + " [" + regionHandle.ToString() + "]");
+                m_log.WarnFormat(
+                    "[CONNECTION DEBUGGING]: Skipping this region for welcoming avatar {0} [{1}] at {2}", 
+                    agent.AgentID, regionHandle, RegionInfo.RegionName);
             }
         }
 
