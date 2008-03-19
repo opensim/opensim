@@ -439,16 +439,14 @@ namespace OpenSim.Framework.UserManagement
                     userAgent.agentOnline = false;
                     userAgent.logoutTime = Util.UnixTimeSinceEpoch();
                     //userAgent.sessionID = LLUUID.Zero;
-                    if (regionid != null)
+                    if (regionid != LLUUID.Zero)
                     {
                         userAgent.currentRegion = regionid;
                     }
+
                     userAgent.currentHandle = regionhandle;
-
                     userAgent.currentPos = currentPos;
-
                     userProfile.currentAgent = userAgent;
-
 
                     CommitAgent(ref userProfile);
                 }

@@ -3339,7 +3339,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             LLUUID landowner = World.GetLandOwner(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
-            if (landowner.Equals(null))
+            if (landowner == LLUUID.Zero)
             {
                 return;
             }
@@ -3355,7 +3355,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             LLUUID landowner = World.GetLandOwner(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y);
 
-            if(landowner.Equals(null))
+            if(landowner == LLUUID.Zero)
             {
                 return;
             }
@@ -4306,7 +4306,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             LLUUID reqID = httpScriptMod.
                 StartHttpRequest(m_localID, m_itemID, url, param, body);
 
-            if (!reqID.Equals(null))
+            if (reqID != LLUUID.Zero)
                 return reqID.ToString();
             else
                 return null;

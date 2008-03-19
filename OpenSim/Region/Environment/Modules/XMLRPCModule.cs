@@ -163,7 +163,7 @@ namespace OpenSim.Region.Environment.Modules
 
         public LLUUID OpenXMLRPCChannel(uint localID, LLUUID itemID)
         {
-            LLUUID channel = null;
+            LLUUID channel = new LLUUID();
 
             //Is a dupe?
             foreach (RPCChannelInfo ci in m_openChannels.Values)
@@ -176,7 +176,7 @@ namespace OpenSim.Region.Environment.Modules
                 }
             }
 
-            if ((channel.Equals(null)) || (channel.Equals(LLUUID.Zero)))
+            if (channel == LLUUID.Zero)
             {
                 channel = LLUUID.Random();
                 RPCChannelInfo rpcChanInfo = new RPCChannelInfo(localID, itemID, channel);
