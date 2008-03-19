@@ -1485,6 +1485,10 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llSetPrimitiveParams(rules);
         }
 
+        public void llSetLinkPrimitiveParams(int linknumber, LSL_Types.list rules)
+        {
+            m_LSL_Functions.llSetLinkPrimitiveParams(linknumber, rules);
+        }
         public string llStringToBase64(string str)
         {
             return m_LSL_Functions.llStringToBase64(str);

@@ -498,6 +498,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         string llMD5String(string src, int nonce);
         //wiki: llSetPrimitiveParams( list rules )
         void llSetPrimitiveParams(LSL_Types.list rules);
+        //wiki: llSetLinkPrimitiveParams(integer linknumber, list rules )
+        void llSetLinkPrimitiveParams(int linknumber, LSL_Types.list rules);
         //wiki: string llStringToBase64(string str)
         string llStringToBase64(string str);
         //wiki: string llBase64ToString(string str)

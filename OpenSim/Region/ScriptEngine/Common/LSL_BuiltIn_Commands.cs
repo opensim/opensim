@@ -3268,6 +3268,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             NotImplemented("llSetPrimitiveParams");
         }
 
+        public void llSetLinkPrimitiveParams(int linknumber, LSL_Types.list rules)
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llSetLinkPrimitiveParams");
+        }
+
         public string llStringToBase64(string str)
         {
             m_host.AddScriptLPS(1);
