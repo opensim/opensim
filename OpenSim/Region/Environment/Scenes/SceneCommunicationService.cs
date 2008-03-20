@@ -97,8 +97,7 @@ namespace OpenSim.Region.Environment.Scenes
                 regionCommsHost.OnAvatarCrossingIntoRegion += AgentCrossing;
                 regionCommsHost.OnCloseAgentConnection += CloseConnection;
                 regionCommsHost.OnRegionUp += newRegionUp;
-                regionCommsHost.OnChildAgentUpdate += ChildAgentUpdate;
-                
+                regionCommsHost.OnChildAgentUpdate += ChildAgentUpdate;                
             }
             else
             {

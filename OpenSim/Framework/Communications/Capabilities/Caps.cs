@@ -105,8 +105,8 @@ namespace OpenSim.Region.Capabilities
         /// </summary>
         public void RegisterHandlers()
         {
-            m_log.Info("[CAPS]: Registering CAPS handlers");
             string capsBase = "/CAPS/" + m_capsObjectPath;
+            
             try
             {
                 m_httpListener.AddStreamHandler(

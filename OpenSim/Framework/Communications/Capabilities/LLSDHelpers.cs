@@ -35,6 +35,9 @@ namespace OpenSim.Region.Capabilities
 {
     public class LLSDHelpers
     {
+//        private static readonly log4net.ILog m_log 
+//            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        
         public static string SerialiseLLSDReply(object obj)
         {
             StringWriter sw = new StringWriter();
@@ -44,6 +47,9 @@ namespace OpenSim.Region.Capabilities
             SerializeLLSDType(writer, obj);
             writer.WriteEndElement();
             writer.Close();
+            
+            //m_log.DebugFormat("[LLSD Helpers]: Generated serialized LLSD reply {0}", sw.ToString());
+            
             return sw.ToString();
         }
 
