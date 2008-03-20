@@ -48,7 +48,6 @@ namespace OpenSim.Region.Capabilities
         public string name;
         public string desc;
         public int created_at;
-
     }
 
     [LLSDMap]

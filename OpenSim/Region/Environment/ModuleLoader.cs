@@ -140,7 +140,7 @@ namespace OpenSim.Region.Environment
             AgentAssetTransactionModule transactionsModule = new AgentAssetTransactionModule();
             if (m_loadedSharedModules.ContainsKey(transactionsModule.Name))
             {
-                m_log.ErrorFormat("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", xmlRpcMod.Name, "XMLRPCModule");
+                m_log.ErrorFormat("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", transactionsModule.Name, "TransactionModule");
             }
             else
             {
