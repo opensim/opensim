@@ -545,6 +545,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_scene.SwapRootAgentCount(false);
             m_scene.CommsManager.UserProfileCacheService.UpdateUserInventory(m_uuid);
+            m_scene.AddCapsHandler(m_uuid);
             //if (!m_gotAllObjectsInScene)
             //{
             m_scene.SendAllSceneObjectsToClient(this);
@@ -1616,7 +1617,15 @@ namespace OpenSim.Region.Environment.Scenes
                 if (res)
                 {
                     AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
-                    string capsPath = Util.GetCapsURL(m_controllingClient.AgentId);
+
+                    // TODO Should construct this behind a method
+                    string capsPath = 
+                        "http://" + neighbourRegion.ExternalHostName + ":" + 9000
+                         + "/CAPS/" + circuitdata.CapsPath + "0000/";
+                    
+                    m_log.DebugFormat(
+                        "[CONNECTION DEBUGGING]: Sending new CAPS seed url {0} to avatar {1}", capsPath, m_uuid);
+                    
                     m_controllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint,
                                                     capsPath);
                     MakeChildAgent();

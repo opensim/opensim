@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -196,5 +197,19 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #endregion
+        
+        /// <summary>
+        /// XXX These two methods are very temporary
+        /// </summary>
+        protected Dictionary<LLUUID, String> capsPaths = new Dictionary<LLUUID, String>();
+        public string GetCapsPath(LLUUID agentId)
+        {
+            if (capsPaths.ContainsKey(agentId))
+            {
+                return capsPaths[agentId];
+            }
+            
+            return null;
+        }
     }
 }

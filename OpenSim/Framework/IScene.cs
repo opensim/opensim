@@ -63,5 +63,7 @@ namespace OpenSim.Framework
         RegionStatus Region_Status { get; set; }
 
         ClientManager ClientManager { get; }
+        
+        string GetCapsPath(LLUUID agentId);       
     }
 }

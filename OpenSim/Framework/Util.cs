@@ -45,7 +45,6 @@ namespace OpenSim.Framework
         private static Random randomClass = new Random();
         private static uint nextXferID = 5000;
         private static object XferLock = new object();
-        private static Dictionary<LLUUID, string> capsURLS = new Dictionary<LLUUID, string>();
 
         // Get a list of invalid path characters (OS dependent)
         private static string regexInvalidPathChars = "[" + new String(Path.GetInvalidPathChars()) + "]";
@@ -420,27 +419,6 @@ namespace OpenSim.Framework
         public static string logDir()
         {
             return ".";
-        }
-
-        public static string GetCapsURL(LLUUID userID)
-        {
-            if (capsURLS.ContainsKey(userID))
-            {
-                return capsURLS[userID];
-            }
-            return String.Empty;
-        }
-
-        public static void SetCapsURL(LLUUID userID, string url)
-        {
-            if (capsURLS.ContainsKey(userID))
-            {
-                capsURLS[userID] = url;
-            }
-            else
-            {
-                capsURLS.Add(userID, url);
-            }
         }
 
         // Nini (config) related Methods

@@ -70,13 +70,22 @@ namespace OpenSim.Framework.Servers
             m_port = port;
         }
 
+        /// <summary>
+        /// Add a stream handler to the http server.  If the handler already exists, then nothing happens.
+        /// </summary>
+        /// <param name="handler"></param>
         public void AddStreamHandler(IRequestHandler handler)
         {
             string httpMethod = handler.HttpMethod;
             string path = handler.Path;
 
             string handlerKey = GetHandlerKey(httpMethod, path);
-            m_streamHandlers.Add(handlerKey, handler);
+                                    
+            if (!m_streamHandlers.ContainsKey(handlerKey))
+            {
+                //m_log.DebugFormat("[BASE HTTP SERVER]: Adding handler key {0}", handlerKey);                
+                m_streamHandlers.Add(handlerKey, handler);
+            }
         }
 
         private static string GetHandlerKey(string httpMethod, string path)
@@ -289,7 +298,7 @@ namespace OpenSim.Framework.Servers
                 }
                 else
                 {
-                    System.Console.WriteLine("Handler not found for http request " + request.RawUrl);
+                    m_log.ErrorFormat("[BASE HTTP SERVER] Handler not found for http request {0}", request.RawUrl);
                     responseString = "Error";
                 }
             }
@@ -589,7 +598,11 @@ namespace OpenSim.Framework.Servers
 
         public void RemoveStreamHandler(string httpMethod, string path)
         {
-            m_streamHandlers.Remove(GetHandlerKey(httpMethod, path));
+            string handlerKey = GetHandlerKey(httpMethod, path);            
+            
+            //m_log.DebugFormat("[BASE HTTP SERVER]: Removing handler key {0}", handlerKey);
+            
+            m_streamHandlers.Remove(handlerKey);
         }
 
         public void RemoveHTTPHandler(string httpMethod, string path)

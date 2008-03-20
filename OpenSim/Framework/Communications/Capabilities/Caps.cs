@@ -62,7 +62,12 @@ namespace OpenSim.Region.Capabilities
         private string m_httpListenerHostName;
         private uint m_httpListenPort;
 
-        private string m_capsObjectPath = "00001-";
+        /// <summary>
+        /// This is the uuid portion of every CAPS path.  It is used to make capability urls private to the requester.
+        /// </summary>
+        private string m_capsObjectPath;        
+        public string CapsObjectPath { get { return m_capsObjectPath; } }
+        
         private string m_requestPath = "0000/";
         private string m_mapLayerPath = "0001/";
         private string m_newInventory = "0002/";
@@ -109,9 +114,12 @@ namespace OpenSim.Region.Capabilities
             
             try
             {
+                m_httpListener.RemoveStreamHandler("POST", capsBase + m_mapLayerPath);
                 m_httpListener.AddStreamHandler(
                     new LLSDStreamhandler<LLSDMapRequest, LLSDMapLayerResponse>("POST", capsBase + m_mapLayerPath,
                                                                                 GetMapLayer));
+                
+                m_httpListener.RemoveStreamHandler("POST", capsBase + m_newInventory);                
                 m_httpListener.AddStreamHandler(
                     new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDAssetUploadResponse>("POST",
                                                                                            capsBase + m_newInventory,
@@ -142,6 +150,7 @@ namespace OpenSim.Region.Capabilities
         private void AddLegacyCapsHandler(BaseHttpServer httpListener, string path, RestMethod restMethod)
         {
             string capsBase = "/CAPS/" + m_capsObjectPath;
+            httpListener.RemoveStreamHandler("POST", capsBase + path); 
             httpListener.AddStreamHandler(new RestStreamHandler("POST", capsBase + path, restMethod));
         }
 

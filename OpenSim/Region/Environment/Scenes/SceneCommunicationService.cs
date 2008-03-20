@@ -483,7 +483,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Try to teleport an agent to a new region.
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="RegionHandle"></param>
@@ -530,7 +530,11 @@ namespace OpenSim.Region.Environment.Scenes
                         m_commsProvider.InterRegion.ExpectAvatarCrossing(regionHandle, avatar.ControllingClient.AgentId,
                                                                      position, false);
                         AgentCircuitData circuitdata = avatar.ControllingClient.RequestClientInfo();
-                        string capsPath = Util.GetCapsURL(avatar.ControllingClient.AgentId);
+                        
+                        // TODO Should construct this behind a method
+                        string capsPath = 
+                            "http://" + reg.ExternalHostName + ":" + 9000 + "/CAPS/" + circuitdata.CapsPath + "0000/";    
+                        
                         avatar.ControllingClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4),
                                                                     capsPath);
                         avatar.MakeChildAgent();

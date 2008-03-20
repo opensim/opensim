@@ -984,7 +984,7 @@ namespace OpenSim.Region.ClientStack
             agentData.child = false;
             agentData.firstname = m_firstName;
             agentData.lastname = m_lastName;
-            agentData.CapsPath = String.Empty;
+            agentData.CapsPath = m_scene.GetCapsPath(m_agentId);
             return agentData;
         }
 
