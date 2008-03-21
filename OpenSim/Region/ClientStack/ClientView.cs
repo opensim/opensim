@@ -84,8 +84,6 @@ namespace OpenSim.Region.ClientStack
         private int m_lastPacketsReceived = 0;
         private byte[] ZeroOutBuffer = new byte[4096];
 
-        // ENCODING FAULT
-        private readonly Encoding m_encoding = Encoding.UTF8;
         private readonly LLUUID m_agentId;
         private readonly uint m_circuitCode;
         private int m_moneyBalance;
@@ -3540,7 +3538,7 @@ namespace OpenSim.Region.ClientStack
                             if (handlerObjectDescription != null)
                             {
                                 handlerObjectDescription(this, objDes.ObjectData[i].LocalID,
-                                           m_encoding.GetString(objDes.ObjectData[i].Description));
+                                           Util.FieldToString(objDes.ObjectData[i].Description));
                             }
                         }
                         break;
@@ -3554,7 +3552,7 @@ namespace OpenSim.Region.ClientStack
                             if (handlerObjectName != null)
                             {
                                 handlerObjectName(this, objName.ObjectData[i].LocalID,
-                                           m_encoding.GetString(objName.ObjectData[i].Name));
+                                           Util.FieldToString(objName.ObjectData[i].Name));
                             }
                         }
                         break;
