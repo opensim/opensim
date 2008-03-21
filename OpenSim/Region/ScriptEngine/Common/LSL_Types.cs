@@ -322,6 +322,23 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             #endregion
 
+            public static Quaternion operator +(Quaternion a, Quaternion b)
+            {
+                return new Quaternion(a.x + b.x, a.y + b.y, a.z + b.z, a.s + b.s);
+            }
+
+            public static Quaternion operator /(Quaternion a, Quaternion b)
+            {
+                Quaternion c = a * b;
+                c.s = c.s * -1;
+                return c;
+            }
+
+            public static Quaternion operator -(Quaternion a, Quaternion b)
+            {
+                return new Quaternion(a.x - b.x, a.y - b.y, a.z - b.z, a.s - b.s);
+            }
+
             public static Quaternion operator *(Quaternion a, Quaternion b)
             {
                 Quaternion c;
