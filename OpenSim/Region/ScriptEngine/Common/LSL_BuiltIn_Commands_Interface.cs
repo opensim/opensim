@@ -635,6 +635,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki list llGetParcelDetails(vector pos, list params)
         LSL_Types.list llGetParcelDetails(LSL_Types.Vector3 pos, LSL_Types.list param);
         string llStringTrim(string src, int type);
+        LSL_Types.list llGetObjectDetails(string id, LSL_Types.list args);
         //OpenSim functions
         string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams, int timer);
         string osSetDynamicTextureURLBlend(string dynamicID, string contentType, string url, string extraParams,

@@ -4532,6 +4532,86 @@ namespace OpenSim.Region.ScriptEngine.Common
             return src;
         }
 
+        public LSL_Types.list llGetObjectDetails(string id, LSL_Types.list args)
+        {
+            LSL_Types.list ret = new LSL_Types.list();
+            LLUUID key = new LLUUID();
+            if (LLUUID.TryParse(id, out key))
+            {
+                if (World.m_innerScene.ScenePresences.ContainsKey(key))
+                {
+                    ScenePresence av = World.m_innerScene.ScenePresences[key];
+                    foreach(object o in args.Data)
+                    {
+                        switch(o.ToString())
+                        {
+                            case "1":
+                                ret.Add(av.Firstname + " " + av.Lastname);
+                                break;
+                            case "2":
+                                ret.Add("");
+                                break;
+                            case "3":
+                                ret.Add(new LSL_Types.Vector3((double)av.AbsolutePosition.X, (double)av.AbsolutePosition.Y, (double)av.AbsolutePosition.Z));
+                                break;
+                            case "4":
+                                ret.Add(new LSL_Types.Quaternion((double)av.Rotation.x, (double)av.Rotation.y, (double)av.Rotation.z, (double)av.Rotation.w));
+                                break;
+                            case "5": 
+                                ret.Add(new LSL_Types.Vector3(av.Velocity.X,av.Velocity.Y,av.Velocity.Z));
+                                break;
+                            case "6":
+                                ret.Add(id);
+                                break;
+                            case "7":
+                                ret.Add(LLUUID.Zero.ToString());
+                                break;
+                            case "8":
+                                ret.Add(LLUUID.Zero.ToString());
+                                break;
+                        }
+                    }
+                    return ret;
+                }
+                SceneObjectPart obj = World.GetSceneObjectPart(key);
+                if (obj != null)
+                {
+                    foreach(object o in args.Data)
+                    {
+                        switch(o.ToString())
+                        {
+                            case "1":
+                                ret.Add(obj.Name);
+                                break;
+                            case "2":
+                                ret.Add(obj.Description);
+                                break;
+                            case "3":
+                                ret.Add(new LSL_Types.Vector3(obj.AbsolutePosition.X,obj.AbsolutePosition.Y,obj.AbsolutePosition.Z));
+                                break;
+                            case "4":
+                                ret.Add(new LSL_Types.Quaternion(obj.RotationOffset.X, obj.RotationOffset.Y, obj.RotationOffset.Z, obj.RotationOffset.W));
+                                break;
+                            case "5":
+                                ret.Add(new LSL_Types.Vector3(obj.Velocity.X, obj.Velocity.Y, obj.Velocity.Z));
+                                break;
+                            case "6":
+                                ret.Add(obj.OwnerID.ToString());
+                                break;
+                            case "7":
+                                ret.Add(obj.GroupID.ToString());
+                                break;
+                            case "8":
+                                ret.Add(obj.CreatorID.ToString());
+                                break;
+                        }
+                    }
+                    return ret;
+                }
+            }
+            return new LSL_Types.list();
+        }
+
         //
         // OpenSim functions
         //

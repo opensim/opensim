@@ -1843,6 +1843,11 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llStringTrim(src, type);
         }
 
+        public LSL_Types.list llGetObjectDetails(string id, LSL_Types.list args)
+        {
+            return m_LSL_Functions.llGetObjectDetails(id, args);
+        }
+
         //
         // OpenSim Functions
         //
@@ -2338,6 +2343,15 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public const int DEBUG_CHANNEL  = 0x7FFFFFFF;
         public const int PUBLIC_CHANNEL = 0x00000000;
+
+        public const int OBJECT_NAME = 1;
+        public const int OBJECT_DESC = 2;
+        public const int OBJECT_POS = 3;
+        public const int OBJECT_ROT = 4;
+        public const int OBJECT_VELOCITY = 5;
+        public const int OBJECT_OWNER = 6;
+        public const int OBJECT_GROUP = 7;
+        public const int OBJECT_CREATOR = 8;
 
         // Can not be public const?
         public vector ZERO_VECTOR = new vector(0.0, 0.0, 0.0);
