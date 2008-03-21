@@ -4534,6 +4534,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.list llGetObjectDetails(string id, LSL_Types.list args)
         {
+            m_host.AddScriptLPS(1);
             LSL_Types.list ret = new LSL_Types.list();
             LLUUID key = new LLUUID();
             if (LLUUID.TryParse(id, out key))
