@@ -45,7 +45,8 @@ namespace OpenSim.Region.Environment.Scenes
 
     public partial class SceneObjectGroup : EntityBase
     {
-        private Encoding enc = Encoding.ASCII;
+        // ENCODING FAULT
+        private Encoding enc = Encoding.UTF8;
 
         protected SceneObjectPart m_rootPart;
         

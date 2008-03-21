@@ -634,7 +634,8 @@ namespace OpenSim.Region.Environment
 
         public void sendRegionInfoPacket(IClientAPI remote_client)
         {
-            Encoding _enc = Encoding.ASCII;
+            // ENCODING FAULT
+            Encoding _enc = Encoding.UTF8;
 
             AgentCircuitData circuitData = remote_client.RequestClientInfo();
 

@@ -329,7 +329,7 @@ namespace OpenSim.Region.Capabilities
 
                         reader.Read();
                         FromBase64Transform b64 = new FromBase64Transform(FromBase64TransformMode.IgnoreWhiteSpaces);
-                        byte[] inp = Encoding.ASCII.GetBytes(reader.ReadString());
+                        byte[] inp = Encoding.UTF8.GetBytes(reader.ReadString());
                         ret = b64.TransformFinalBlock(inp, 0, inp.Length);
                         break;
                     }

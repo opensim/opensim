@@ -328,7 +328,7 @@ namespace OpenSim.Region.Environment.Modules
                     if (count != 0)
                     {
                         // translate from bytes to ASCII text
-                        tempString = Encoding.ASCII.GetString(buf, 0, count);
+                        tempString = Encoding.UTF8.GetString(buf, 0, count);
 
                         // continue building the string
                         sb.Append(tempString);

@@ -51,7 +51,6 @@ namespace OpenSim.Region.ScriptEngine.Common
     {
         // private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        // private ASCIIEncoding enc = new ASCIIEncoding();
         private ScriptEngineBase.ScriptEngine m_ScriptEngine;
         private SceneObjectPart m_host;
         private uint m_localID;

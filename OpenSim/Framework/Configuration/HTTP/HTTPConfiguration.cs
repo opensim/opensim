@@ -74,7 +74,7 @@ namespace OpenSim.Framework.Configuration.HTTP
                     count = resStream.Read(buf, 0, buf.Length);
                     if (count != 0)
                     {
-                        tempString = Encoding.ASCII.GetString(buf, 0, count);
+                        tempString = Encoding.UTF8.GetString(buf, 0, count);
                         sb.Append(tempString);
                     }
                 } while (count > 0);

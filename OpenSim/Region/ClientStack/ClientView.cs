@@ -84,7 +84,8 @@ namespace OpenSim.Region.ClientStack
         private int m_lastPacketsReceived = 0;
         private byte[] ZeroOutBuffer = new byte[4096];
 
-        private readonly Encoding m_encoding = Encoding.ASCII;
+        // ENCODING FAULT
+        private readonly Encoding m_encoding = Encoding.UTF8;
         private readonly LLUUID m_agentId;
         private readonly uint m_circuitCode;
         private int m_moneyBalance;
@@ -1165,7 +1166,8 @@ namespace OpenSim.Region.ClientStack
             // 6 to 7 items at a time, so let's stick with 6
             int MAX_ITEMS_PER_PACKET = 6;
 
-            Encoding enc = Encoding.ASCII;
+            // ENCODING FAULT
+            Encoding enc = Encoding.UTF8;
             uint FULL_MASK_PERMISSIONS = 2147483647;
 
             if (fetchItems)
@@ -1336,7 +1338,8 @@ namespace OpenSim.Region.ClientStack
 
         public void SendInventoryItemDetails(LLUUID ownerID, InventoryItemBase item)
         {
-            Encoding enc = Encoding.ASCII;
+            // ENCODING FAULT
+            Encoding enc = Encoding.UTF8;
             uint FULL_MASK_PERMISSIONS = (uint)PermissionMask.All;
             FetchInventoryReplyPacket inventoryReply = (FetchInventoryReplyPacket)PacketPool.Instance.GetPacket(PacketType.FetchInventoryReply);
             // TODO: don't create new blocks if recycling an old packet
@@ -1378,7 +1381,8 @@ namespace OpenSim.Region.ClientStack
         /// <see>IClientAPI.SendInventoryItemCreateUpdate(InventoryItemBase)</see>
         public void SendInventoryItemCreateUpdate(InventoryItemBase Item)
         {
-            Encoding enc = Encoding.ASCII;
+            // ENCODING FAULT
+            Encoding enc = Encoding.UTF8;
             uint FULL_MASK_PERMISSIONS = (uint)PermissionMask.All;
             UpdateCreateInventoryItemPacket InventoryReply = (UpdateCreateInventoryItemPacket)PacketPool.Instance.GetPacket(PacketType.UpdateCreateInventoryItem);
             // TODO: don't create new blocks if recycling an old packet
@@ -2213,7 +2217,8 @@ namespace OpenSim.Region.ClientStack
             {
                 objdata.TextureEntry = textureEntry;
             }
-            Encoding enc = Encoding.ASCII;
+            // ENCODING FAULT
+            Encoding enc = Encoding.UTF8;
             LLVector3 pos = new LLVector3(objdata.ObjectData, 16);
             pos.X = 100f;
             objdata.ID = 8880000;
@@ -2941,7 +2946,8 @@ namespace OpenSim.Region.ClientStack
             }
             else
             {
-                Encoding _enc = Encoding.ASCII;
+                // ENCODING FAULT
+                Encoding _enc = Encoding.UTF8;
 
                 switch (Pack.Type)
                 {
@@ -3989,7 +3995,7 @@ namespace OpenSim.Region.ClientStack
                         OutPacket(tpStart, ThrottleOutPacketType.Task);
 
                         TeleportProgressPacket tpProgress = (TeleportProgressPacket)PacketPool.Instance.GetPacket(PacketType.TeleportProgress);
-                        tpProgress.Info.Message = (new ASCIIEncoding()).GetBytes("sending_landmark");
+                        tpProgress.Info.Message = (new UTF8Encoding()).GetBytes("sending_landmark");
                         tpProgress.Info.TeleportFlags = 8;
                         tpProgress.AgentData.AgentID = tpReq.Info.AgentID;
                         OutPacket(tpProgress, ThrottleOutPacketType.Task);
