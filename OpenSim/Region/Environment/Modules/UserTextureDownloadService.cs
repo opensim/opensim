@@ -47,6 +47,11 @@ namespace OpenSim.Region.Environment.Modules
     {
         private static readonly log4net.ILog m_log 
             = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        /// <summary>
+        /// We will allow the client to request the same texture n times before dropping further requests
+        /// </summary>
+        private static readonly int MAX_ALLOWED_TEXTURE_REQUESTS = 5;
         
         /// <summary>
         /// Holds texture senders before they have received the appropriate texture from the asset cache.
@@ -116,7 +121,7 @@ namespace OpenSim.Region.Environment.Modules
                             if (requests % 20 == 0)
                             {
                                 m_log.WarnFormat(
-                                    "[USER TEXTURE DOWNLOAD SERVICE]: Received {0} requests for the missing texture {1} from client {2}", 
+                                    "[USER TEXTURE DOWNLOAD SERVICE]: Received {0} requests for the already notified missing texture {1} from {2}", 
                                     requests, e.RequestedAssetID, m_client.AgentId);
                             }
                                                         
@@ -124,22 +129,25 @@ namespace OpenSim.Region.Environment.Modules
                         }
                         else
                         {          
-                            // Warn the log if we're getting requests for textures we've already dispatched
+                            // If we keep receiving requests for textures we've already served to the client,
+                            // then stop sending them.  This is a short term approach approach to the problem
+                            // of clients which keep requesting the same texture - the long term approach
+                            // will be to treat the cause (and possibly more generally cap the request 
+                            // queues as well/instead)
                             if (dispatchedTextureRequestCounts.ContainsKey(e.RequestedAssetID))
                             {
-                                int requests = dispatchedTextureRequestCounts[e.RequestedAssetID] + 1;
+                                dispatchedTextureRequestCounts[e.RequestedAssetID] += 1;                                
                                 
-                                if (requests % 20 == 0)
+                                if (dispatchedTextureRequestCounts[e.RequestedAssetID] > MAX_ALLOWED_TEXTURE_REQUESTS)
                                 {
                                     m_log.WarnFormat(
-                                        "[USER TEXTURE DOWNLOAD SERVICE]: Received {0} requests for already dispatched texture {1} from client {2}", 
-                                        requests, e.RequestedAssetID, m_client.AgentId);
-                                }
-                                                            
-                                dispatchedTextureRequestCounts[e.RequestedAssetID] = requests;                                
+                                        "[USER TEXTURE DOWNLOAD SERVICE]: No longer sending already dispatched texture {0} to {1} since it has made more than {2} requests for it",
+                                        e.RequestedAssetID, m_client.AgentId, MAX_ALLOWED_TEXTURE_REQUESTS); 
+                                    
+                                    return;
+                                }                               
                             }
-                            
-                            //m_log.DebugFormat("[USER TEXTURE DOWNLOAD]: Adding download stat {0}", e.RequestedAssetID);                
+                
                             m_scene.AddPendingDownloads(1);
                     
                             TextureSender requestHandler = new TextureSender(m_client, e.DiscardLevel, e.PacketNumber);                        

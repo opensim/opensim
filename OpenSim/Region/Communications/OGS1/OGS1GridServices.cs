@@ -89,11 +89,7 @@ namespace OpenSim.Region.Communications.OGS1
             StartRemoting();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="regionInfo"></param>
-        /// <returns></returns>
+        // see IGridServices
         public RegionCommsListener RegisterRegion(RegionInfo regionInfo)
         {
             Hashtable GridParams = new Hashtable();
