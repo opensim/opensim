@@ -31,6 +31,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Threading;
 using System.Timers;
+using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenJPEGNet;
@@ -1079,7 +1080,37 @@ namespace OpenSim.Region.Environment.Scenes
                 if (target != null)
                 {
                     pos = target.AbsolutePosition;
-                    // TODO: Raytrace here
+                    //m_log.Info("[OBJECT_REZ]: TargetPos: " + pos.ToString() + ", RayStart: " + RayStart.ToString() + ", RayEnd: " + RayEnd.ToString() + ", Volume: " + Util.GetDistanceTo(RayStart,RayEnd).ToString() + ", mag1: " + Util.GetMagnitude(RayStart).ToString() + ", mag2: " + Util.GetMagnitude(RayEnd).ToString());
+                    //target.Scale.X
+                    if (Math.Abs(target.Scale.X - target.Scale.Y) > 4.5f 
+                        || Math.Abs(target.Scale.Y - target.Scale.Z) > 4.5f 
+                        || Math.Abs(target.Scale.Z - target.Scale.X) > 4.5f)
+                    {
+                        
+                        // for now lets use the old method here as the new method works by using the largest scale vector 
+                        // component as the radius of a sphere and produces wide results if there's a huge difference 
+                        // between the x/y/z vector components
+
+                        // If one scale component is less then .21m, it's likely being used as a thin block and therefore 
+                        // the raytracing would produce a wide result.
+                       
+                      
+                    }
+                    else
+                    {
+                        // TODO: Raytrace better here
+                        LLVector3 direction = LLVector3.Norm(RayEnd - RayStart);
+                        Vector3 AXOrigin = new Vector3(RayStart.X, RayStart.Y, RayStart.Z);
+                        Vector3 AXdirection = new Vector3(direction.X, direction.Y, direction.Z);
+                        EntityIntersection ei = m_innerScene.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection));
+                        //m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
+                        
+                        if (ei.HitTF)
+                        {
+                            pos = new LLVector3(ei.ipoint.x, ei.ipoint.y, ei.ipoint.z);
+                        } 
+                        
+                    }
                     return pos;
                 }
                 else

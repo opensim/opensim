@@ -875,6 +875,13 @@ namespace OpenSim.Region.Environment.Scenes
             if (vScale.z > radius)
                 radius = vScale.z;
 
+            // the second part of this is the default prim size
+            // once we factor in the aabb of the prim we're adding we can 
+            // change this to;
+            // radius = (radius / 2) - 0.01f;
+            //
+            radius = (radius / 2) + (0.5f / 2) - 0.1f;
+
             //radius = radius;
 
             float itestPart3 = tmVal4.x + tmVal4.y + tmVal4.z + tmVal5.x + tmVal5.y + tmVal5.z -

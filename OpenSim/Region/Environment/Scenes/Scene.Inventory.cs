@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
