@@ -2627,7 +2627,18 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llKey2Name(string id)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llKey2Name");
+            LLUUID key = new LLUUID();
+            if (LLUUID.TryParse(id,out key))
+            {
+                if (World.m_innerScene.ScenePresences.ContainsKey(key))
+                {
+                    return World.m_innerScene.ScenePresences[key].Firstname + " " + World.m_innerScene.ScenePresences[key].Lastname;
+                }
+                if (World.GetSceneObjectPart(key) != null)
+                {
+                    return World.GetSceneObjectPart(key).Name;
+                }
+            }
             return String.Empty;
         }
 
