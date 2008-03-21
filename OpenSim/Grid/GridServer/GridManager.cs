@@ -292,7 +292,7 @@ namespace OpenSim.Grid.GridServer
             catch (FormatException e)
             {
                 m_log.Info("[GRID]: Invalid login parameters, ignoring.");
-                return ErrorResponse("Wrong format in login parameters. Please verify parameters.");
+                return ErrorResponse("Wrong format in login parameters. Please verify parameters." + e.ToString() );
             }
 
             existingSim = getRegion(sim.regionHandle);

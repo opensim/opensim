@@ -89,6 +89,8 @@ namespace OpenSim.Region.Environment.Modules
                 size = Convert.ToInt32(extraParams);
             } catch (Exception e) {
 
+//Ckrinke: Add a WriteLine to remove the warning about 'e' defined but not used
+                Console.WriteLine("Problem with Draw. Please verify parameters." + e.ToString());
             }
             
             if ((size < 128) || (size > 1024))
@@ -306,7 +308,8 @@ namespace OpenSim.Region.Environment.Modules
         private Bitmap ImageHttpRequest(string url)
         {
             WebRequest request = HttpWebRequest.Create(url);
-            Stream str = null;
+//Ckrinke: Comment out for now as 'str' is unused. Bring it back into play later when it is used.
+//Ckrinke            Stream str = null;
             HttpWebResponse response = (HttpWebResponse)(request).GetResponse();
             if (response.StatusCode == HttpStatusCode.OK)
             {
