@@ -634,9 +634,6 @@ namespace OpenSim.Region.Environment
 
         public void sendRegionInfoPacket(IClientAPI remote_client)
         {
-            // ENCODING FAULT
-            Encoding _enc = Encoding.UTF8;
-
             AgentCircuitData circuitData = remote_client.RequestClientInfo();
 
             RegionInfoPacket regionInfoPacket = new RegionInfoPacket();
@@ -652,7 +649,7 @@ namespace OpenSim.Region.Environment
             regionInfoPacket.RegionInfo.RedirectGridY = m_regInfo.EstateSettings.redirectGridY;
             regionInfoPacket.RegionInfo.RegionFlags = (uint) m_regInfo.EstateSettings.regionFlags;
             regionInfoPacket.RegionInfo.SimAccess = (byte) m_regInfo.EstateSettings.simAccess;
-            regionInfoPacket.RegionInfo.SimName = _enc.GetBytes(m_regInfo.RegionName);
+            regionInfoPacket.RegionInfo.SimName = Helpers.StringToField(m_regInfo.RegionName);
             regionInfoPacket.RegionInfo.SunHour = m_regInfo.EstateSettings.sunHour;
             regionInfoPacket.RegionInfo.TerrainLowerLimit = m_regInfo.EstateSettings.terrainLowerLimit;
             regionInfoPacket.RegionInfo.TerrainRaiseLimit = m_regInfo.EstateSettings.terrainRaiseLimit;

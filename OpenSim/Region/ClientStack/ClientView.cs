@@ -1164,8 +1164,6 @@ namespace OpenSim.Region.ClientStack
             // 6 to 7 items at a time, so let's stick with 6
             int MAX_ITEMS_PER_PACKET = 6;
 
-            // ENCODING FAULT
-            Encoding enc = Encoding.UTF8;
             uint FULL_MASK_PERMISSIONS = 2147483647;
 
             if (fetchItems)
@@ -1336,8 +1334,6 @@ namespace OpenSim.Region.ClientStack
 
         public void SendInventoryItemDetails(LLUUID ownerID, InventoryItemBase item)
         {
-            // ENCODING FAULT
-            Encoding enc = Encoding.UTF8;
             uint FULL_MASK_PERMISSIONS = (uint)PermissionMask.All;
             FetchInventoryReplyPacket inventoryReply = (FetchInventoryReplyPacket)PacketPool.Instance.GetPacket(PacketType.FetchInventoryReply);
             // TODO: don't create new blocks if recycling an old packet
@@ -1379,8 +1375,6 @@ namespace OpenSim.Region.ClientStack
         /// <see>IClientAPI.SendInventoryItemCreateUpdate(InventoryItemBase)</see>
         public void SendInventoryItemCreateUpdate(InventoryItemBase Item)
         {
-            // ENCODING FAULT
-            Encoding enc = Encoding.UTF8;
             uint FULL_MASK_PERMISSIONS = (uint)PermissionMask.All;
             UpdateCreateInventoryItemPacket InventoryReply = (UpdateCreateInventoryItemPacket)PacketPool.Instance.GetPacket(PacketType.UpdateCreateInventoryItem);
             // TODO: don't create new blocks if recycling an old packet
@@ -2215,12 +2209,10 @@ namespace OpenSim.Region.ClientStack
             {
                 objdata.TextureEntry = textureEntry;
             }
-            // ENCODING FAULT
-            Encoding enc = Encoding.UTF8;
             LLVector3 pos = new LLVector3(objdata.ObjectData, 16);
             pos.X = 100f;
             objdata.ID = 8880000;
-            objdata.NameValue = enc.GetBytes("FirstName STRING RW SV Test \nLastName STRING RW SV User \0");
+            objdata.NameValue = Helpers.StringToField("FirstName STRING RW SV Test \nLastName STRING RW SV User ");
             //LLVector3 pos2 = new LLVector3(100f, 100f, 23f);
             //objdata.FullID=user.AgentId;
             byte[] pb = pos.GetBytes();
@@ -2944,9 +2936,6 @@ namespace OpenSim.Region.ClientStack
             }
             else
             {
-                // ENCODING FAULT
-                Encoding _enc = Encoding.UTF8;
-
                 switch (Pack.Type)
                 {
                     #region  Scene/Avatar
