@@ -1164,7 +1164,8 @@ namespace OpenSim.Region.ClientStack
             // 6 to 7 items at a time, so let's stick with 6
             int MAX_ITEMS_PER_PACKET = 6;
 
-            uint FULL_MASK_PERMISSIONS = 2147483647;
+//Ckrinke This variable is not used, so comment out to remove the warning from the compiler (3-21-08)
+//Ckrinke            uint FULL_MASK_PERMISSIONS = 2147483647;
 
             if (fetchItems)
             {

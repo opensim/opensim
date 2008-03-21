@@ -85,7 +85,9 @@ namespace OpenSim.Region.Environment.Scenes
         private int m_physicsMS = 0;
         private int m_imageMS = 0;
         private int m_otherMS = 0;
-        private int m_scriptMS = 0;
+
+//Ckrinke: (3-21-08) Comment out to remove a compiler warning. Bring back into play when needed.
+//Ckrinke        private int m_scriptMS = 0;
 
         private int m_rootAgents = 0;
         private int m_childAgents = 0;
@@ -272,7 +274,9 @@ namespace OpenSim.Region.Environment.Scenes
             m_physicsMS = 0;
             m_imageMS = 0;
             m_otherMS = 0;
-            m_scriptMS = 0;
+
+//Ckrinke This variable is not used, so comment to remove compiler warning until it is used.            
+//Ckrinke            m_scriptMS = 0;
         }
 
         # region methods called from Scene
