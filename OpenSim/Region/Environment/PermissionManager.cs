@@ -401,7 +401,7 @@ namespace OpenSim.Region.Environment
                     permission = true;
 
                 // Locked
-                if ((task.RootPart.OwnerMask & PERM_LOCKED) != 0)
+                if ((task.RootPart.OwnerMask & PERM_LOCKED) == 0)
                     permission = false;
 
             }

@@ -1038,6 +1038,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             m_host.UpdateRotation(new LLQuaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s));
+            // Update rotation does not move the object in the physics scene if it's a linkset.
+            m_host.ParentGroup.AbsolutePosition = m_host.ParentGroup.AbsolutePosition;
         }
 
         public LSL_Types.Quaternion llGetRot()
