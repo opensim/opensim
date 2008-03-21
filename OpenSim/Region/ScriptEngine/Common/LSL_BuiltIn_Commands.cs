@@ -2058,8 +2058,15 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llGetOwnerKey(string id)
         {
             m_host.AddScriptLPS(1);
-
-            return m_host.OwnerID.ToString();
+            LLUUID key = new LLUUID();
+            if (LLUUID.TryParse(id, out key))
+            {
+                return World.GetSceneObjectPart(World.Entities[key].LocalId).OwnerID.ToString();
+            }
+            else
+            {
+                return LLUUID.Zero.ToString();
+            }
         }
 
         public LSL_Types.Vector3 llGetCenterOfMass()
@@ -2715,9 +2722,26 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public int llOverMyLand(string id)
         {
+            
             m_host.AddScriptLPS(1);
-            NotImplemented("llOverMyLand");
-            return 0;
+            LLUUID key = new LLUUID();
+            if (LLUUID.TryParse(id,out key))
+            {
+                SceneObjectPart obj = new SceneObjectPart();
+                obj = World.GetSceneObjectPart(World.Entities[key].LocalId);
+                if (obj.OwnerID == World.GetLandOwner(obj.AbsolutePosition.X, obj.AbsolutePosition.Y))
+                {
+                    return 1;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         public string llGetLandOwnerAt(LSL_Types.Vector3 pos)
