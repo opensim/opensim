@@ -160,12 +160,14 @@ namespace OpenSim.Region.Physics.OdePlugin
         private d.Contact WaterContact;
 
 
-        private int m_randomizeWater = 200;
+//Ckrinke: Comment out until used. We declare it, initialize it, but do not use it
+//Ckrinke        private int m_randomizeWater = 200;
         private int m_physicsiterations = 10;
         private float m_SkipFramesAtms = 0.40f; // Drop frames gracefully at a 400 ms lag
         private PhysicsActor PANull = new NullPhysicsActor();
         private float step_time = 0.0f;
-        private int ms = 0;
+//Ckrinke: Comment out until used. We declare it, initialize it, but do not use it
+//Ckrinke        private int ms = 0;
         public IntPtr world;
         private bool returncollisions = false;
         private uint obj1LocalID = 0;
