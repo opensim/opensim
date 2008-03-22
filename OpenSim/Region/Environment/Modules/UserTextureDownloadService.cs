@@ -143,7 +143,7 @@ namespace OpenSim.Region.Environment.Modules
                                     if (MAX_ALLOWED_TEXTURE_REQUESTS + 1 == dispatchedTextureRequestCounts[e.RequestedAssetID])
                                     {
                                         m_log.WarnFormat(
-                                            "[USER TEXTURE DOWNLOAD SERVICE]: No longer sending already dispatched texture {0} to {1} since it has made more than {2} requests for it",
+                                            "[USER TEXTURE DOWNLOAD SERVICE]: Dropping requests for dispatched texture {0} from {1} since we have received more than {2} requests",
                                             e.RequestedAssetID, m_client.AgentId, MAX_ALLOWED_TEXTURE_REQUESTS);
                                     }
                                     
