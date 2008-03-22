@@ -502,7 +502,10 @@ namespace OpenSim
             scene.PermissionsMngr.BypassPermissions = !m_permissions;
             
             // We need to do this after we've initialized the scripting engines.
-            scene.StartScripts();            
+            scene.StartScripts();
+
+            scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
+            scene.LandChannel.performParcelPrimCountUpdate();
 
             m_sceneManager.Add(scene);                        
 

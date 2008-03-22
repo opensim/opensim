@@ -29,7 +29,7 @@ using System;
 using System.Text;
 using Axiom.Math;
 using OpenSim.Framework.Console;
-using OpenSim.Region.Environment.LandManagement;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using Key = libsecondlife.LLUUID;
 using Rotation = libsecondlife.LLQuaternion;
@@ -105,7 +105,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
         public void osAddToLandPassList(Key avatar, float hours)
         {
             Vector myPosition = Task.AbsolutePosition;
-            Land myParcel = Scene.LandManager.getLandObject(myPosition.X, myPosition.Y);
+            ILandObject myParcel = Scene.LandChannel.getLandObject(myPosition.X, myPosition.Y);
             if (myParcel == null)
             {
                 //Dont do anything!

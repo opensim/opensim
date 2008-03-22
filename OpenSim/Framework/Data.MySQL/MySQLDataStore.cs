@@ -34,7 +34,6 @@ using libsecondlife;
 using MySql.Data.MySqlClient;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Framework.Data.MySQL
@@ -416,7 +415,7 @@ namespace OpenSim.Framework.Data.MySQL
             }
         }
 
-        public void StoreLandObject(Land parcel, LLUUID regionUUID)
+        public void StoreLandObject(ILandObject parcel)
         {
             lock (m_dataSet)
             {
@@ -427,12 +426,12 @@ namespace OpenSim.Framework.Data.MySQL
                 if (landRow == null)
                 {
                     landRow = land.NewRow();
-                    fillLandRow(landRow, parcel.landData, regionUUID);
+                    fillLandRow(landRow, parcel.landData, parcel.regionUUID);
                     land.Rows.Add(landRow);
                 }
                 else
                 {
-                    fillLandRow(landRow, parcel.landData, regionUUID);
+                    fillLandRow(landRow, parcel.landData, parcel.regionUUID);
                 }
 
                 using (

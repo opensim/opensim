@@ -34,7 +34,6 @@ using Mono.Data.SqliteClient;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Framework.Data.SQLite
@@ -477,7 +476,7 @@ namespace OpenSim.Framework.Data.SQLite
             }
         }
 
-        public void StoreLandObject(Land parcel, LLUUID regionUUID)
+        public void StoreLandObject(ILandObject parcel)
         {
             lock (ds)
             {
@@ -488,12 +487,12 @@ namespace OpenSim.Framework.Data.SQLite
                 if (landRow == null)
                 {
                     landRow = land.NewRow();
-                    fillLandRow(landRow, parcel.landData, regionUUID);
+                    fillLandRow(landRow, parcel.landData, parcel.regionUUID);
                     land.Rows.Add(landRow);
                 }
                 else
                 {
-                    fillLandRow(landRow, parcel.landData, regionUUID);
+                    fillLandRow(landRow, parcel.landData, parcel.regionUUID);
                 }
 
                 // I know this caused someone issues before, but OpenSim is unusable if we leave this stuff around

@@ -35,7 +35,6 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Data;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.DataStore.MSSQL
@@ -304,7 +303,7 @@ namespace OpenSim.DataStore.MSSQL
         {
         }
 
-        public void StoreLandObject(Land parcel, LLUUID regionUUID)
+        public void StoreLandObject(ILandObject parcel)
         {
         }
 

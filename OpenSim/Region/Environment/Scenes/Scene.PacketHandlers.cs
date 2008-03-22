@@ -89,7 +89,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             ((SceneObjectGroup) ent).GetProperties(remoteClient);
                             ((SceneObjectGroup) ent).IsSelected = true;
-                            LandManager.setPrimsTainted();
+                            LandChannel.setPrimsTainted();
                         }
                         break;
                     }
@@ -115,7 +115,7 @@ namespace OpenSim.Region.Environment.Scenes
                         if (m_permissionManager.CanEditObjectPosition(remoteClient.AgentId, ((SceneObjectGroup)ent).UUID) || m_permissionManager.CanEditObject(remoteClient.AgentId, ((SceneObjectGroup)ent).UUID))
                         {
                             ((SceneObjectGroup) ent).IsSelected = false;
-                            LandManager.setPrimsTainted();
+                            LandChannel.setPrimsTainted();
                             break;
                         }
                     }

@@ -155,8 +155,6 @@ namespace OpenSim.Region.ClientStack
             }
 
             scene.LoadPrimsFromStorage(m_permissions, regionInfo.originRegionID);
-            scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
-            scene.performParcelPrimCountUpdate();
             scene.StartTimer();
             return scene;
         }

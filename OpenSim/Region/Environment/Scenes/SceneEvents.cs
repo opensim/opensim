@@ -29,7 +29,6 @@ using libsecondlife;
 using System;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.LandManagement;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -106,7 +105,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event SceneGroupGrabed OnSceneGroupGrab;
 
-        public delegate void LandObjectAdded(Land newParcel, LLUUID regionUUID);
+        public delegate void LandObjectAdded(ILandObject newParcel);
 
         public event LandObjectAdded OnLandObjectAdded;
 
@@ -352,13 +351,13 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerLandObjectAdded(Land newParcel, LLUUID regionID)
+        public void TriggerLandObjectAdded(ILandObject newParcel)
         {
             handlerLandObjectAdded = OnLandObjectAdded;
 
             if (handlerLandObjectAdded != null)
             {
-                handlerLandObjectAdded(newParcel, regionID);
+                handlerLandObjectAdded(newParcel);
             }
         }
 
@@ -371,11 +370,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerLandObjectUpdated(uint localParcelID, Land newParcel)
+        public void TriggerLandObjectUpdated(uint localParcelID, ILandObject newParcel)
         {
             //triggerLandObjectRemoved(localParcelID);
 
-            TriggerLandObjectAdded(newParcel, newParcel.m_scene.RegionInfo.RegionID);
+            TriggerLandObjectAdded(newParcel);
         }
 
         public void TriggerAvatarEnteringNewParcel(ScenePresence avatar, int localLandID, LLUUID regionID)

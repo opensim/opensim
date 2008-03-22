@@ -40,7 +40,6 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Environment.Modules;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
@@ -154,13 +153,6 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_authenticateHandler; }
         }
 
-        protected readonly LandManager m_LandManager;
-        // LandManager object instance that manages land related things.  Parcel, primcounts etc..  
-        public LandManager LandManager
-        {
-            get { return m_LandManager; }
-        }
-
         protected readonly EstateManager m_estateManager;
         // an instance to the physics plugin's Scene object.
         public PhysicsScene PhysicsScene
@@ -256,8 +248,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_eventManager = new EventManager();
 
-            m_LandManager = new LandManager(this, m_regInfo);
-
             //Bind Storage Manager functions to some land manager functions for this scene
             EventManager.OnLandObjectAdded +=
                 new EventManager.LandObjectAdded(m_storageManager.DataStore.StoreLandObject);
@@ -335,8 +325,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected virtual void RegisterDefaultSceneEvents()
         {
-            m_eventManager.OnParcelPrimCountAdd += m_LandManager.addPrimToLandPrimCounts;
-            m_eventManager.OnParcelPrimCountUpdate += addPrimsToParcelCounts;
             m_eventManager.OnPermissionError += SendPermissionAlert;
         }
 
@@ -837,10 +825,12 @@ namespace OpenSim.Region.Environment.Scenes
 
         private void UpdateLand()
         {
-            if (m_LandManager.landPrimCountTainted)
+            if (LandChannel != null)
             {
-                //Perform land update of prim count
-                performParcelPrimCountUpdate();
+                if (LandChannel.isLandPrimCountTainted())
+                {
+                    LandChannel.performParcelPrimCountUpdate();
+                }
             }
         }
 
@@ -974,12 +964,12 @@ namespace OpenSim.Region.Environment.Scenes
                 if (dGridSettings["allow_forceful_banlines"] != "TRUE")
                 {
                     m_log.Info("[GRID]: Grid is disabling forceful parcel banlists");
-                    m_LandManager.allowedForcefulBans = false;
+                    LandChannel.allowedForcefulBans = false;
                 }
                 else
                 {
                     m_log.Info("[GRID]: Grid is allowing forceful parcel banlists");
-                    m_LandManager.allowedForcefulBans = true;
+                    LandChannel.allowedForcefulBans = true;
                 }
             }
         }
@@ -1016,11 +1006,11 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (landData.Count == 0)
             {
-                m_LandManager.NoLandDataFromStorage();
+                LandChannel.NoLandDataFromStorage();
             }
             else
             {
-                m_LandManager.IncomingLandObjectsFromStorage(landData);
+                LandChannel.IncomingLandObjectsFromStorage(landData);
             }
         }
 
@@ -1196,9 +1186,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (Entities.ContainsKey(sceneObject.UUID))
             {
-                m_LandManager.removePrimFromLandPrimCounts(sceneObject);
+                LandChannel.removePrimFromLandPrimCounts(sceneObject);
                 Entities.Remove(sceneObject.UUID);
-                m_LandManager.setPrimsTainted();
+                LandChannel.setPrimsTainted();
                 m_innerScene.RemoveAPrimCount();
             }
         }
@@ -1209,7 +1199,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="prim"></param>
         public void AcknowledgeNewPrim(SceneObjectGroup prim)
         {
-            prim.OnPrimCountTainted += m_LandManager.setPrimsTainted;
+            prim.OnPrimCountTainted += LandChannel.setPrimsTainted;
         }
 
         public void LoadPrimsFromXml(string fileName, bool newIdsFlag, LLVector3 loadOffset)
@@ -1350,7 +1340,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 CreateAndAddScenePresence(client, child);
 
-                m_LandManager.sendParcelOverlay(client);
+                LandChannel.sendParcelOverlay(client);
                 CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
             }
         }
@@ -1387,17 +1377,17 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnObjectDuplicate += m_innerScene.DuplicateObject;
             client.OnUpdatePrimFlags += m_innerScene.UpdatePrimFlags;
             client.OnRequestObjectPropertiesFamily += m_innerScene.RequestObjectPropertiesFamily;
-            client.OnParcelPropertiesRequest += new ParcelPropertiesRequest(m_LandManager.handleParcelPropertiesRequest);
-            client.OnParcelDivideRequest += new ParcelDivideRequest(m_LandManager.handleParcelDivideRequest);
-            client.OnParcelJoinRequest += new ParcelJoinRequest(m_LandManager.handleParcelJoinRequest);
+            client.OnParcelPropertiesRequest += new ParcelPropertiesRequest(LandChannel.handleParcelPropertiesRequest);
+            client.OnParcelDivideRequest += new ParcelDivideRequest(LandChannel.handleParcelDivideRequest);
+            client.OnParcelJoinRequest += new ParcelJoinRequest(LandChannel.handleParcelJoinRequest);
             client.OnParcelPropertiesUpdateRequest +=
-                new ParcelPropertiesUpdateRequest(m_LandManager.handleParcelPropertiesUpdateRequest);
-            client.OnParcelSelectObjects += new ParcelSelectObjects(m_LandManager.handleParcelSelectObjectsRequest);
+                new ParcelPropertiesUpdateRequest(LandChannel.handleParcelPropertiesUpdateRequest);
+            client.OnParcelSelectObjects += new ParcelSelectObjects(LandChannel.handleParcelSelectObjectsRequest);
             client.OnParcelObjectOwnerRequest +=
-                new ParcelObjectOwnerRequest(m_LandManager.handleParcelObjectOwnersRequest);
-            client.OnParcelAccessListRequest += new ParcelAccessListRequest(m_LandManager.handleParcelAccessRequest);
+                new ParcelObjectOwnerRequest(LandChannel.handleParcelObjectOwnersRequest);
+            client.OnParcelAccessListRequest += new ParcelAccessListRequest(LandChannel.handleParcelAccessRequest);
             client.OnParcelAccessListUpdateRequest +=
-                new ParcelAccessListUpdateRequest(m_LandManager.handleParcelAccessUpdateRequest);
+                new ParcelAccessListUpdateRequest(LandChannel.handleParcelAccessUpdateRequest);
 
             client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(m_estateManager.handleEstateOwnerMessage);
             client.OnRegionInfoRequest += m_estateManager.HandleRegionInfoRequest;
@@ -1445,7 +1435,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (avatar.IsChildAgent)
             {
-                avatar.OnSignificantClientMovement += m_LandManager.handleSignificantClientMovement;
+                avatar.OnSignificantClientMovement += LandChannel.handleSignificantClientMovement;
             }
 
             return avatar;
@@ -2021,31 +2011,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             return LLUUID.Zero;
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void performParcelPrimCountUpdate()
-        {
-            m_LandManager.resetAllLandPrimCounts();
-            m_eventManager.TriggerParcelPrimCountUpdate();
-            m_LandManager.finalizeLandPrimCountUpdate();
-            m_LandManager.landPrimCountTainted = false;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void addPrimsToParcelCounts()
-        {
-            foreach (EntityBase obj in Entities.Values)
-            {
-                if (obj is SceneObjectGroup)
-                {
-                    m_eventManager.TriggerParcelPrimCountAdd((SceneObjectGroup)obj);
-                }
-            }
-        }
+        
 
         /// <summary>
         /// This method is a way for the Friends Module to create an instant 
@@ -2455,7 +2421,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public LLUUID GetLandOwner(float x, float y)
         {
-            Land land = LandManager.getLandObject(x, y);
+            ILandObject land = LandChannel.getLandObject(x, y);
             if (land == null)
             {
                 return LLUUID.Zero;
@@ -2468,12 +2434,12 @@ namespace OpenSim.Region.Environment.Scenes
 
         public LandData GetLandData(float x, float y)
         {
-            return LandManager.getLandObject(x, y).landData;
+            return LandChannel.getLandObject(x, y).landData;
         }
 
         public void SetLandMusicURL(float x, float y, string url)
         {
-            Land land = LandManager.getLandObject(x, y);
+            ILandObject land = LandChannel.getLandObject(x, y);
             if (land == null)
             {
                 return;
@@ -2487,7 +2453,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetLandMediaURL(float x, float y, string url)
         {
-            Land land = LandManager.getLandObject(x, y);
+            ILandObject land = LandChannel.getLandObject(x, y);
 
             if (land == null)
             {

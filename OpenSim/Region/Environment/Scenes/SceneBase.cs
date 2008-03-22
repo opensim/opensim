@@ -62,6 +62,8 @@ namespace OpenSim.Region.Environment.Scenes
         //public TerrainEngine Terrain;
         public ITerrainChannel Heightmap;
 
+        public ILandChannel LandChannel;
+
         protected EventManager m_eventManager;
 
         public EventManager EventManager
@@ -69,6 +71,7 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_eventManager; }
         }
 
+        
         protected string m_datastore;
 
         private uint m_nextLocalId = 8880000;

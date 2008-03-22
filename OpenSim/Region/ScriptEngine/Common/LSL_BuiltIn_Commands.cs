@@ -4311,7 +4311,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public int llGetParcelFlags(LSL_Types.Vector3 pos)
         {
             m_host.AddScriptLPS(1);
-            return (int)World.LandManager.getLandObject((float)pos.x, (float)pos.y).landData.landFlags;
+            return (int)World.LandChannel.getLandObject((float)pos.x, (float)pos.y).landData.landFlags;
         }
 
         public int llGetRegionFlags()

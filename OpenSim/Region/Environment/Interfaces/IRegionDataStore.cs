@@ -28,7 +28,6 @@
 using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Interfaces
@@ -69,7 +68,7 @@ namespace OpenSim.Region.Environment.Interfaces
         void StoreTerrain(double[,] terrain, LLUUID regionID);
         double[,] LoadTerrain(LLUUID regionID);
 
-        void StoreLandObject(Land Parcel, LLUUID regionUUID);
+        void StoreLandObject(ILandObject Parcel);
         void RemoveLandObject(LLUUID globalID);
         List<LandData> LoadLandObjects(LLUUID regionUUID);
 

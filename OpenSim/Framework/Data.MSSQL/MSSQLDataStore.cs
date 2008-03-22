@@ -35,7 +35,6 @@ using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Data;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Data.MSSQL;
 
@@ -429,7 +428,7 @@ namespace OpenSim.Framework.Data.MSSQL
             }
         }
 
-        public void StoreLandObject(Land parcel, LLUUID regionUUID)
+        public void StoreLandObject(ILandObject parcel)
         {
             // Instance.StoreLandObject(parcel, regionUUID);
 
@@ -446,12 +445,12 @@ namespace OpenSim.Framework.Data.MSSQL
                 if (landRow == null)
                 {
                     landRow = land.NewRow();
-                    fillLandRow(landRow, parcel.landData, regionUUID);
+                    fillLandRow(landRow, parcel.landData, parcel.regionUUID);
                     land.Rows.Add(landRow);
                 }
                 else
                 {
-                    fillLandRow(landRow, parcel.landData, regionUUID);
+                    fillLandRow(landRow, parcel.landData, parcel.regionUUID);
                 }
 
                 using (

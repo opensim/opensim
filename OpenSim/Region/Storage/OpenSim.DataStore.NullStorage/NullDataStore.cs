@@ -29,7 +29,6 @@ using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.LandManagement;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.DataStore.NullStorage
@@ -72,7 +71,7 @@ namespace OpenSim.DataStore.NullStorage
         {
         }
 
-        public void StoreLandObject(Land land, LLUUID regionUUID)
+        public void StoreLandObject(ILandObject land)
         {
         }
 
