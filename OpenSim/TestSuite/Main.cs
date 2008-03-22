@@ -63,7 +63,7 @@ namespace OpenSim.TestSuite
             if (config.Get("help") != null || config.Get("loginuri") == null) {
                 Help();
             } else {
-                int botcount = config.GetInt("botcount", 1);
+                // TODO: unused: int botcount = config.GetInt("botcount", 1);
                 
                 // BotManager bm = new BotManager();
                 
@@ -76,7 +76,7 @@ namespace OpenSim.TestSuite
             //Set up our nifty config..  thanks to nini
             ArgvConfigSource cs = new ArgvConfigSource(args);
             
-            cs.AddSwitch("Startup", "botcount","n");
+            // TODO: unused: cs.AddSwitch("Startup", "botcount","n");
             cs.AddSwitch("Startup", "loginuri","l");
             cs.AddSwitch("Startup", "firstname");
             cs.AddSwitch("Startup", "lastname");
@@ -93,7 +93,7 @@ namespace OpenSim.TestSuite
                                      "usage: pCampBot <-loginuri loginuri> [OPTIONS]\n" +
                                      "Spawns a set of bots to test an OpenSim region\n\n" +
                                      "  -l, -loginuri      loginuri for sim to log into (required)\n" +
-                                     "  -n, -botcount      number of bots to start (default: 1)\n" +
+                                     // TODO: unused: "  -n, -botcount      number of bots to start (default: 1)\n" +
                                      "  -firstname         first name for the bot(s) (default: random string)\n" +
                                      "  -lastname          lastname for the bot(s) (default: random string)\n" +
                                      "  -password          password for the bots(s) (default: random string)\n" +

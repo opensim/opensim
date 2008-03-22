@@ -41,7 +41,7 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
     [Serializable]
     internal class EventManager
     {
-        System.Collections.Generic.Dictionary<uint, ScriptServerInterfaces.ServerRemotingObject> remoteScript = new System.Collections.Generic.Dictionary<uint, ScriptServerInterfaces.ServerRemotingObject>();
+        // TODO: unused: System.Collections.Generic.Dictionary<uint, ScriptServerInterfaces.ServerRemotingObject> remoteScript = new System.Collections.Generic.Dictionary<uint, ScriptServerInterfaces.ServerRemotingObject>();
         TCPClient m_TCPClient;
         TRPC_Remote RPC;
         int myScriptServerID;

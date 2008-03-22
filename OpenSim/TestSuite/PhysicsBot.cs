@@ -57,7 +57,6 @@ namespace OpenSim.TestSuite
 
         protected Random somthing = new Random(System.Environment.TickCount);// We do stuff randomly here
 
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         
         //New instance of a SecondLife client
         public SecondLife client = new SecondLife();
@@ -92,7 +91,7 @@ namespace OpenSim.TestSuite
                 client.Self.Movement.AlwaysRun = false;
             }
 
-            LLVector3 pos = client.Self.SimPosition;
+            // TODO: unused: LLVector3 pos = client.Self.SimPosition;
             LLVector3 newpos = new LLVector3(somthing.Next(255), somthing.Next(255), somthing.Next(255));
             client.Self.Movement.TurnToward(newpos);
 

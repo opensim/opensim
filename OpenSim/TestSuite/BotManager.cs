@@ -186,16 +186,16 @@ namespace OpenSim.TestSuite
         /// <param name="commandParams"></param>
         /// <param name="pos"></param>
         /// <returns></returns>
-        private string CombineParams(string[] commandParams, int pos)
-        {
-            string result = String.Empty;
-            for (int i = pos; i < commandParams.Length; i++)
-            {
-                result += commandParams[i] + " ";
-            }
-            result = result.TrimEnd(' ');
-            return result;
-        }
+        // TODO: unused: private string CombineParams(string[] commandParams, int pos)
+        // TODO: unused: {
+        // TODO: unused:     string result = String.Empty;
+        // TODO: unused:     for (int i = pos; i < commandParams.Length; i++)
+        // TODO: unused:     {
+        // TODO: unused:         result += commandParams[i] + " ";
+        // TODO: unused:     }
+        // TODO: unused:     result = result.TrimEnd(' ');
+        // TODO: unused:     return result;
+        // TODO: unused: }
         
         /// <summary>
         /// Command runnint tool..  Currently use it to add bots, shutdown and (dangerous)Forcequit
