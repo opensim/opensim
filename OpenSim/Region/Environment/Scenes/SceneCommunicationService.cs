@@ -330,7 +330,11 @@ namespace OpenSim.Region.Environment.Scenes
             icon.EndInvoke(iar);
         }
 
-
+        /// <summary>
+        /// Asynchronous call to information neighbouring regions that this region is up
+        /// </summary>
+        /// <param name="region"></param>
+        /// <param name="regionhandle"></param>
         private void InformNeighboursThatRegionIsUpAsync(RegionInfo region, ulong regionhandle)
         {
             m_log.Info("[INTERGRID]: Starting to inform neighbors that I'm here");
@@ -343,7 +347,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                m_log.Info("[INTERGRID]: Failed to inform neighbors that I'm here");
+                m_log.Warn("[INTERGRID]: Failed to inform neighbors that I'm here.");
             }
         }
 
