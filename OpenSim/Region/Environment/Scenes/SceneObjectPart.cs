@@ -933,7 +933,120 @@ namespace OpenSim.Region.Environment.Scenes
 
             return returnresult;
         }
+        public EntityIntersection TestIntersectionOABB(Ray iray, Quaternion parentrot)
+        {
+            // In this case we're using a rectangular prism, which has 6 faces and therefore 6 planes
+            // This breaks down into the ray---> plane equation.
+            // TODO: Change to take shape into account
+            Vector3[] vertexes = new Vector3[8];
+            
+            Vector3[] FaceA = new Vector3[6];
+            Vector3[] FaceB = new Vector3[6];
+            Vector3[] FaceC = new Vector3[6];
+            Vector3[] FaceD = new Vector3[6];
 
+            Vector3[] normals = new Vector3[6];
+
+            Vector3 AmBa = new Vector3(0, 0, 0);
+            Vector3 AmBb = new Vector3(0, 0, 0);
+
+            LLVector3 pos = GetWorldPosition();
+            LLQuaternion rot = GetWorldRotation();
+            Quaternion AXrot = new Quaternion(rot.W,rot.X,rot.Y,rot.Z);
+
+            
+            // Get Vertexes for Faces Stick them into ABCD for each Face
+            #region ABCD Face Vertex Map Comment Diagram
+            //                   A _________ B
+            //                    |         |
+            //                    |  4 top  |
+            //                    |_________|
+            //                   C           D  
+            
+            //                   A _________ B
+            //                    |  Back   |
+            //                    |    3    |
+            //                    |_________|
+            //                   C           D   
+        
+            //   A _________ B                     B _________ A
+            //    |  Left   |                       |  Right  |
+            //    |    0    |                       |    2    |
+            //    |_________|                       |_________|
+            //   C           D                     D           C
+
+            //                   A _________ B
+            //                    |  Front  |
+            //                    |    1    |
+            //                    |_________|
+            //                   C           D           
+
+            //                   C _________ D
+            //                    |         |
+            //                    |  5 bot  |
+            //                    |_________|
+            //                   A           B   
+            #endregion
+            vertexes[0] = (AXrot * new Vector3((pos.X - m_shape.Scale.X),(pos.Y - m_shape.Scale.Y),(pos.Z + m_shape.Scale.Z)));
+
+            FaceA[0] = vertexes[0];
+            FaceA[3] = vertexes[0];
+            FaceA[4] = vertexes[0];
+
+            vertexes[1] = (AXrot * new Vector3((pos.X - m_shape.Scale.X), (pos.Y + m_shape.Scale.Y), (pos.Z + m_shape.Scale.Z)));
+
+            FaceB[0] = vertexes[1];
+            FaceA[1] = vertexes[1];
+            FaceC[4] = vertexes[1];
+
+            vertexes[2] = (AXrot * new Vector3((pos.X - m_shape.Scale.X), (pos.Y - m_shape.Scale.Y), (pos.Z - m_shape.Scale.Z)));
+
+            FaceC[0] = vertexes[2];
+            FaceC[3] = vertexes[2];
+            FaceC[5] = vertexes[2];
+
+            vertexes[3] = (AXrot * new Vector3((pos.X - m_shape.Scale.X), (pos.Y + m_shape.Scale.Y), (pos.Z - m_shape.Scale.Z)));
+
+            FaceD[0] = vertexes[3];
+            FaceC[1] = vertexes[3];
+            FaceA[5] = vertexes[3];
+
+            vertexes[4] = (AXrot * new Vector3((pos.X + m_shape.Scale.X), (pos.Y + m_shape.Scale.Y), (pos.Z + m_shape.Scale.Z)));
+
+            FaceB[1] = vertexes[4];
+            FaceA[2] = vertexes[4];
+            FaceD[4] = vertexes[4];
+
+            vertexes[5] = (AXrot * new Vector3((pos.X + m_shape.Scale.X), (pos.Y + m_shape.Scale.Y), (pos.Z - m_shape.Scale.Z)));
+
+            FaceD[1] = vertexes[5];
+            FaceC[2] = vertexes[5];
+            FaceB[5] = vertexes[5];
+
+            vertexes[6] = (AXrot * new Vector3((pos.X + m_shape.Scale.X), (pos.Y - m_shape.Scale.Y), (pos.Z + m_shape.Scale.Z)));
+
+            FaceB[2] = vertexes[6];
+            FaceB[3] = vertexes[6];
+            FaceB[4] = vertexes[6];
+
+            vertexes[7] = (AXrot * new Vector3((pos.X + m_shape.Scale.X), (pos.Y - m_shape.Scale.Y), (pos.Z - m_shape.Scale.Z)));
+
+            FaceD[2] = vertexes[7];
+            FaceD[3] = vertexes[7];
+            FaceD[5] = vertexes[7];
+
+            // Get our plane normals
+            for (int i = 0; i < 6; i++)
+            {
+                AmBa = FaceB[i] - FaceA[i];
+                AmBb = FaceC[i] - FaceA[i];
+                normals[i] = AmBa.Cross(AmBb);
+            }
+
+            EntityIntersection returnresult = new EntityIntersection();
+
+            return returnresult;
+        }
 
         /// <summary>
         /// 
