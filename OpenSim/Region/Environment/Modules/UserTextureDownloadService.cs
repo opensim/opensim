@@ -116,16 +116,19 @@ namespace OpenSim.Region.Environment.Modules
                         // requesting the same textures                        
                         if (missingTextureRequestCounts.ContainsKey(e.RequestedAssetID))
                         {
-                            int requests = missingTextureRequestCounts[e.RequestedAssetID] + 1;
+                            missingTextureRequestCounts[e.RequestedAssetID] += 1;
                             
-                            if (requests % 20 == 0)
+                            if (missingTextureRequestCounts[e.RequestedAssetID] > MAX_ALLOWED_TEXTURE_REQUESTS)
                             {
-                                m_log.WarnFormat(
-                                    "[USER TEXTURE DOWNLOAD SERVICE]: Received {0} requests for the already notified missing texture {1} from {2}", 
-                                    requests, e.RequestedAssetID, m_client.AgentId);
-                            }
-                                                        
-                            missingTextureRequestCounts[e.RequestedAssetID] = requests;                            
+                                if (MAX_ALLOWED_TEXTURE_REQUESTS + 1 == missingTextureRequestCounts[e.RequestedAssetID])
+                                {
+                                    m_log.WarnFormat(
+                                        "[USER TEXTURE DOWNLOAD SERVICE]: Dropping requests for notified missing texture {0} for {1} since we have received more than {2} requests",
+                                        e.RequestedAssetID, m_client.AgentId, MAX_ALLOWED_TEXTURE_REQUESTS);
+                                }
+                                
+                                return;
+                            }                                                         
                         }
                         else
                         {          
@@ -143,21 +146,21 @@ namespace OpenSim.Region.Environment.Modules
                                     if (MAX_ALLOWED_TEXTURE_REQUESTS + 1 == dispatchedTextureRequestCounts[e.RequestedAssetID])
                                     {
                                         m_log.WarnFormat(
-                                            "[USER TEXTURE DOWNLOAD SERVICE]: Dropping requests for dispatched texture {0} from {1} since we have received more than {2} requests",
+                                            "[USER TEXTURE DOWNLOAD SERVICE]: Dropping requests for dispatched texture {0} for {1} since we have received more than {2} requests",
                                             e.RequestedAssetID, m_client.AgentId, MAX_ALLOWED_TEXTURE_REQUESTS);
                                     }
                                     
                                     return;
                                 }                               
                             }
-                
-                            m_scene.AddPendingDownloads(1);
-                    
-                            TextureSender requestHandler = new TextureSender(m_client, e.DiscardLevel, e.PacketNumber);                        
-                            m_textureSenders.Add(e.RequestedAssetID, requestHandler);
-                            
-                            m_scene.AssetCache.GetAsset(e.RequestedAssetID, TextureCallback, true);                                                        
                         }
+                
+                        m_scene.AddPendingDownloads(1);
+                
+                        TextureSender requestHandler = new TextureSender(m_client, e.DiscardLevel, e.PacketNumber);                        
+                        m_textureSenders.Add(e.RequestedAssetID, requestHandler);
+                        
+                        m_scene.AssetCache.GetAsset(e.RequestedAssetID, TextureCallback, true);                                                        
                     }
                 }
             }
@@ -193,14 +196,18 @@ namespace OpenSim.Region.Environment.Modules
                     // this on to the TextureSender it will blow up, so just discard for now.
                     // Needs investigation.
                     if (texture == null || texture.Data == null)
-                    {
-                        m_log.DebugFormat(
-                            "[USER TEXTURE DOWNLOAD SERVICE]: Queueing TextureNotFoundSender for {0}, client {1}", 
-                            textureID, m_client.AgentId);
+                    {                        
+                        if (!missingTextureRequestCounts.ContainsKey(textureID))
+                        {
+                            missingTextureRequestCounts.Add(textureID, 1);
+
+                            m_log.DebugFormat(
+                                "[USER TEXTURE DOWNLOAD SERVICE]: Queueing first TextureNotFoundSender for {0}, client {1}", 
+                                textureID, m_client.AgentId);
+                        }
                        
                         ITextureSender textureNotFoundSender = new TextureNotFoundSender(m_client, textureID);
-                        EnqueueTextureSender(textureNotFoundSender);
-                        missingTextureRequestCounts.Add(textureID, 1);
+                        EnqueueTextureSender(textureNotFoundSender);                  
                     }
                     else
                     {
