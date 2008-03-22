@@ -122,7 +122,7 @@ namespace OpenSim.Region.Environment.Modules
                             {
                                 if (MAX_ALLOWED_TEXTURE_REQUESTS + 1 == missingTextureRequestCounts[e.RequestedAssetID])
                                 {
-                                    m_log.WarnFormat(
+                                    m_log.DebugFormat(
                                         "[USER TEXTURE DOWNLOAD SERVICE]: Dropping requests for notified missing texture {0} for {1} since we have received more than {2} requests",
                                         e.RequestedAssetID, m_client.AgentId, MAX_ALLOWED_TEXTURE_REQUESTS);
                                 }
@@ -143,12 +143,12 @@ namespace OpenSim.Region.Environment.Modules
                                 
                                 if (dispatchedTextureRequestCounts[e.RequestedAssetID] > MAX_ALLOWED_TEXTURE_REQUESTS)
                                 {
-                                    if (MAX_ALLOWED_TEXTURE_REQUESTS + 1 == dispatchedTextureRequestCounts[e.RequestedAssetID])
-                                    {
-                                        m_log.WarnFormat(
-                                            "[USER TEXTURE DOWNLOAD SERVICE]: Dropping requests for dispatched texture {0} for {1} since we have received more than {2} requests",
-                                            e.RequestedAssetID, m_client.AgentId, MAX_ALLOWED_TEXTURE_REQUESTS);
-                                    }
+//                                    if (MAX_ALLOWED_TEXTURE_REQUESTS + 1 == dispatchedTextureRequestCounts[e.RequestedAssetID])
+//                                    {
+//                                        m_log.DebugFormat(
+//                                            "[USER TEXTURE DOWNLOAD SERVICE]: Dropping further requests for dispatched/queued texture {0} for {1} since we have received more than {2} requests",
+//                                            e.RequestedAssetID, m_client.AgentId, MAX_ALLOWED_TEXTURE_REQUESTS);
+//                                    }
                                     
                                     return;
                                 }                               
