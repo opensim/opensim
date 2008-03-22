@@ -177,7 +177,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public bool RunTerrainCmdOnCurrentScene(string[] cmdparams, ref string result)
         {
-            m_log.Warn("Terrain commands have been deprecated.");
+            m_log.Warn("Old terrain commands format has been deprecated.");
+            m_log.Warn("Please enter 'script terrain' rather than 'terrain'.");
+            m_log.Warn("FOR EXAMPLE: script terrain fill 25");          
+            
             return false;
         }
 
