@@ -1559,6 +1559,15 @@ namespace OpenSim.Region.ClientStack
             OutPacket(sound, ThrottleOutPacketType.Task);
         }
 
+        public void SendAttachedSoundGainChange(LLUUID objectID, float gain)
+        {
+            AttachedSoundGainChangePacket sound = (AttachedSoundGainChangePacket)PacketPool.Instance.GetPacket(PacketType.AttachedSoundGainChange);
+            sound.DataBlock.ObjectID = objectID;
+            sound.DataBlock.Gain = gain;
+
+            OutPacket(sound, ThrottleOutPacketType.Task);
+        }
+
         public void SendSunPos(LLVector3 sunPos, LLVector3 sunVel)
         {
             SimulatorViewerTimeMessagePacket viewertime = (SimulatorViewerTimeMessagePacket)PacketPool.Instance.GetPacket(PacketType.SimulatorViewerTimeMessage);

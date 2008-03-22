@@ -411,6 +411,11 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
+        public void SendAttachedSoundGainChange(LLUUID objectID, float gain)
+        {
+
+        }
+
         public void SendAlertMessage(string message)
         {
         }

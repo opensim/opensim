@@ -635,6 +635,7 @@ namespace OpenSim.Framework
         void SendPreLoadSound(LLUUID objectID, LLUUID ownerID, LLUUID soundID);
         void SendPlayAttachedSound(LLUUID soundID, LLUUID objectID, LLUUID ownerID, float gain, byte flags);
         void SendTriggeredSound(LLUUID soundID, LLUUID ownerID, LLUUID objectID, LLUUID parentID, ulong handle, LLVector3 position, float gain);
+        void SendAttachedSoundGainChange(LLUUID objectID, float gain);
 
         void SendNameReply(LLUUID profileId, string firstname, string lastname);
         void SendAlertMessage(string message);

@@ -1739,7 +1739,21 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void SendSound(string sound, double volume, bool triggered)
+        public void AdjustSoundGain(double volume)
+        {
+            if (volume > 1)
+                volume = 1;
+            if (volume < 0)
+                volume = 0;
+
+            List<ScenePresence> avatarts = m_parentGroup.Scene.GetAvatars();
+            foreach (ScenePresence p in avatarts)
+            {
+                p.ControllingClient.SendAttachedSoundGainChange(UUID, (float)volume);
+            }
+        }
+
+        public void SendSound(string sound, double volume, bool triggered, byte flags)
         {
             if (volume > 1)
                 volume = 1;
@@ -1753,7 +1767,7 @@ namespace OpenSim.Region.Environment.Scenes
             LLVector3 position = AbsolutePosition; // region local
             ulong regionHandle = m_parentGroup.Scene.RegionInfo.RegionHandle;
 
-            byte flags = 0;
+            //byte flags = 0;
 
             if (!LLUUID.TryParse(sound, out soundID))
             {

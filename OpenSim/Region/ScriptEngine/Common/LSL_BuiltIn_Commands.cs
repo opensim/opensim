@@ -1214,13 +1214,14 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llPlaySound(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
-            m_host.SendSound(sound, volume, false);
+            m_host.SendSound(sound, volume, false, 0);
         }
 
         public void llLoopSound(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llLoopSound");
+            m_host.SendSound(sound, volume, false, 1);
+            //NotImplemented("llLoopSound");
         }
 
         public void llLoopSoundMaster(string sound, double volume)
@@ -1244,13 +1245,14 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llTriggerSound(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
-            m_host.SendSound(sound, volume, true);
+            m_host.SendSound(sound, volume, true, 0);
         }
 
         public void llStopSound()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llStopSound");
+            m_host.SendSound(LLUUID.Zero.ToString(), 1.0, false, 2);
+            //NotImplemented("llStopSound");
         }
 
         public void llPreloadSound(string sound)
@@ -2609,7 +2611,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llAdjustSoundVolume(double volume)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llAdjustSoundVolume");
+            m_host.AdjustSoundGain(volume);
+            //NotImplemented("llAdjustSoundVolume");
         }
 
         public void llSetSoundQueueing(int queue)
