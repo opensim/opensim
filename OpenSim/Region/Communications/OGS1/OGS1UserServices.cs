@@ -258,10 +258,12 @@ namespace OpenSim.Region.Communications.OGS1
         public UserProfileData SetupMasterUser(LLUUID uuid)
         {
             UserProfileData data = GetUserProfile(uuid);
+            
             if (data == null)
             {
-                throw new Exception("[OGS1 USER SERVICES]: Unknown master user UUID");
+                throw new Exception("[OGS1 USER SERVICES]: Unknown master user " + uuid);
             }
+            
             return data;
         }
 
