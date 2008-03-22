@@ -41,7 +41,15 @@ namespace OpenSim.Framework.Communications
         RegionCommsListener RegisterRegion(RegionInfo regionInfos);
         
         bool DeregisterRegion(RegionInfo regionInfo);
+
+        /// <summary>
+        /// Get information about the regions neighbouring the given co-ordinates.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         List<SimpleRegionInfo> RequestNeighbours(uint x, uint y);
+        
         RegionInfo RequestNeighbourInfo(ulong regionHandle);
         RegionInfo RequestClosestRegion(string regionName);
         Dictionary<string, string> GetGridSettings();

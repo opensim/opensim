@@ -206,11 +206,7 @@ namespace OpenSim.Region.Communications.OGS1
             return returnGridSettings;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="regionInfo"></param>
-        /// <returns></returns>
+        // see IGridServices
         public List<SimpleRegionInfo> RequestNeighbours(uint x, uint y)
         {
             Hashtable respData = MapBlockQuery((int) x - 1, (int) y - 1, (int) x + 1, (int) y + 1);
