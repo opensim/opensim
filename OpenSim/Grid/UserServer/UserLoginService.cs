@@ -174,9 +174,9 @@ namespace OpenSim.Grid.UserServer
 
                 // Update agent with target sim
 
-                m_log.Info("[LOGIN]: Telling "
-                           + SimInfo.regionName + " @ " + SimInfo.httpServerURI + "  " +
-                           SimInfo.regionLocX + "," + SimInfo.regionLocY + " to expect user connection");
+                m_log.InfoFormat(
+                    "[LOGIN]: Telling region {0} @ {1},{2} ({3}) to expect user connection", 
+                    SimInfo.regionName, response.RegionX, response.RegionY, SimInfo.httpServerURI); 
 
                 XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);                
                 XmlRpcResponse GridResp = GridReq.Send(SimInfo.httpServerURI, 6000);

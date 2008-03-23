@@ -1618,9 +1618,9 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
 
-                    // TODO Should construct this behind a method
+                    // TODO Should construct this behind a method                   
                     string capsPath = 
-                        "http://" + neighbourRegion.ExternalHostName + ":" + 9000
+                        "http://" + neighbourRegion.ExternalHostName + ":" + neighbourRegion.HttpPort
                          + "/CAPS/" + circuitdata.CapsPath + "0000/";
                     
                     m_log.DebugFormat(

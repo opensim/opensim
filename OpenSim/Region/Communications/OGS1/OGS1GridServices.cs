@@ -228,7 +228,14 @@ namespace OpenSim.Region.Communications.OGS1
 
                         string externalIpStr = Util.GetHostFromDNS(simIp).ToString();
                         SimpleRegionInfo sri = new SimpleRegionInfo(regX, regY, simIp, port);
+                        
                         sri.RemotingPort = Convert.ToUInt32(neighbourData["remoting_port"]);
+                        
+                        if (neighbourData.ContainsKey("http_port"))
+                        {
+                            sri.HttpPort = Convert.ToUInt32(neighbourData["http_port"]);
+                        }
+                        
                         sri.RegionID = new LLUUID((string) neighbourData["uuid"]);
 
                         neighbours.Add(sri);
@@ -275,6 +282,11 @@ namespace OpenSim.Region.Communications.OGS1
 
             regionInfo.RemotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
             regionInfo.RemotingAddress = internalIpStr;
+            
+            if (responseData.ContainsKey("http_port"))
+            {
+                regionInfo.HttpPort = Convert.ToUInt32((string) responseData["http_port"]);
+            }
 
             regionInfo.RegionID = new LLUUID((string) responseData["region_UUID"]);
             regionInfo.RegionName = (string) responseData["region_name"];
@@ -333,6 +345,11 @@ namespace OpenSim.Region.Communications.OGS1
 
                     regionInfo.RemotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
                     regionInfo.RemotingAddress = internalIpStr;
+                    
+                    if (responseData.ContainsKey("http_port"))
+                    {
+                        regionInfo.HttpPort = Convert.ToUInt32((string) responseData["http_port"]);
+                    }
 
                     regionInfo.RegionID = new LLUUID((string) responseData["region_UUID"]);
                     regionInfo.RegionName = (string) responseData["region_name"];
@@ -385,6 +402,11 @@ namespace OpenSim.Region.Communications.OGS1
 
                 regionInfo.RemotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
                 regionInfo.RemotingAddress = internalIpStr;
+                
+                if (responseData.ContainsKey("http_port"))
+                {
+                    regionInfo.HttpPort = Convert.ToUInt32((string) responseData["http_port"]);
+                }
 
                 regionInfo.RegionID = new LLUUID((string) responseData["region_UUID"]);
                 regionInfo.RegionName = (string) responseData["region_name"];
@@ -813,8 +835,10 @@ namespace OpenSim.Region.Communications.OGS1
                 // And, surprisingly, the reason is..  it doesn't know 
                 // it's own remoting port!  How special.
                 region = new SearializableRegionInfo(RequestNeighbourInfo(region.RegionHandle));
-                region.RemotingAddress = region.ExternalHostName;
-                region.RemotingPort = NetworkServersInfo.RemotingListenerPort;
+                region.RemotingAddress = region.ExternalHostName;                  
+                region.RemotingPort = NetworkServersInfo.RemotingListenerPort;                
+                region.HttpPort = serversInfo.HttpListenerPort;
+                    
                 if (m_localBackend.RegionUp(region, regionhandle))
                 {
                     return true;

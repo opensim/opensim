@@ -49,6 +49,7 @@ namespace OpenSim.Framework
             m_internalEndPoint = ConvertFrom.InternalEndPoint;
             m_externalHostName = ConvertFrom.ExternalHostName;
             m_remotingPort = ConvertFrom.RemotingPort;
+            m_httpPort = ConvertFrom.HttpPort;
             m_allow_alternate_ports = ConvertFrom.m_allow_alternate_ports;
             RemotingAddress = ConvertFrom.RemotingAddress;
             m_proxyUrl = ConvertFrom.proxyUrl; 
@@ -79,16 +80,28 @@ namespace OpenSim.Framework
         public Guid RegionID = LLUUID.Zero.UUID;
 
         public uint m_remotingPort;
-
         public uint RemotingPort
         {
             get { return m_remotingPort; }
             set { m_remotingPort = value; }
         }
+        
+        /// <value>
+        /// The port by which http communication occurs with the region (most noticeably, CAPS communication)
+        /// 
+        /// FIXME: Defaulting to 9000 temporarily (on the basis that this is the http port most region 
+        /// servers are running) until the revision in which this change is made propogates around grids.
+        /// </value>
+        protected uint m_httpPort = 9000;
+        public uint HttpPort
+        {
+            get { return m_httpPort; }
+            set { m_httpPort = value; }
+        }        
+        
         public bool m_allow_alternate_ports;
 
         public string RemotingAddress;
-
 
         public IPEndPoint ExternalEndPoint
         {

@@ -349,7 +349,7 @@ namespace OpenSim
                                           m_standaloneAuthenticate);
                 m_loginService.OnLoginToRegion += backendService.AddNewSession;
 
-                // XMLRPC action
+                // set up XMLRPC handler for client's initial login request message
                 m_httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
                 
                 // provides the web form login

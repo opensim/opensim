@@ -554,7 +554,8 @@ namespace OpenSim.Region.Environment.Scenes
                         
                         // TODO Should construct this behind a method
                         string capsPath = 
-                            "http://" + reg.ExternalHostName + ":" + 9000 + "/CAPS/" + circuitdata.CapsPath + "0000/";    
+                            "http://" + reg.ExternalHostName + ":" + reg.HttpPort 
+                            + "/CAPS/" + circuitdata.CapsPath + "0000/";    
                         
                         avatar.ControllingClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4),
                                                                     capsPath);

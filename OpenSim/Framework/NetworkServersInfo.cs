@@ -45,7 +45,7 @@ namespace OpenSim.Framework
 
         public string InventoryURL = String.Empty;
 
-        public static uint DefaultHttpListenerPort = 9000;
+        public static readonly uint DefaultHttpListenerPort = 9000;
         public uint HttpListenerPort = DefaultHttpListenerPort;
 
         public static uint RemotingListenerPort = 8895;

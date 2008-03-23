@@ -178,6 +178,10 @@ namespace OpenSim.Region.Communications.Local
                 _login.StartPos = new LLVector3(128, 128, 70);
                 _login.CapsPath = capsPath;
 
+                m_log.InfoFormat(
+                    "[LOGIN]: Telling region {0} @ {1},{2} ({3}:{4}) to expect user connection", 
+                    reg.RegionName, response.RegionX, response.RegionY, response.SimAddress, response.SimPort);                
+                
                 handlerLoginToRegion = OnLoginToRegion;
                 if (handlerLoginToRegion != null)
                 {

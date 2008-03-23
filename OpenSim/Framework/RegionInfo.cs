@@ -71,6 +71,7 @@ namespace OpenSim.Framework
             m_internalEndPoint = ConvertFrom.InternalEndPoint;
             m_externalHostName = ConvertFrom.ExternalHostName;
             m_remotingPort = ConvertFrom.RemotingPort;
+            m_httpPort = ConvertFrom.HttpPort;
             m_allow_alternate_ports = ConvertFrom.m_allow_alternate_ports;
             RemotingAddress = ConvertFrom.RemotingAddress;
             RegionID = LLUUID.Zero;
@@ -79,16 +80,27 @@ namespace OpenSim.Framework
 
         public LLUUID RegionID = LLUUID.Zero;
 
-        public uint m_remotingPort;
+        protected uint m_remotingPort;
 
         public uint RemotingPort
         {
             get { return m_remotingPort; }
             set { m_remotingPort = value; }
         }
+        
+        /// <value>
+        /// The port by which http communication occurs with the region (most noticeably, CAPS communication)
+        /// </value>
+        protected uint m_httpPort;
+        public uint HttpPort
+        {
+            get { return m_httpPort; }
+            set { m_httpPort = value; }
+        }
+        
         public bool m_allow_alternate_ports;
 
-        public string m_serverURI;
+        protected string m_serverURI;
         public string ServerURI
         {
             get
@@ -142,7 +154,6 @@ namespace OpenSim.Framework
         }
 
         protected string m_externalHostName;
-
         public string ExternalHostName
         {
             get { return m_externalHostName; }
