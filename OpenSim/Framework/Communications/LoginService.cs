@@ -73,7 +73,7 @@ namespace OpenSim.Framework.UserManagement
         }
 
         /// <summary>
-        /// Called when we receive the client's initial 
+        /// Called when we receive the client's initial XMLRPC login_to_simulator request message
         /// </summary>
         /// <param name="request">The XMLRPC request</param>
         /// <returns>The response to send</returns>
