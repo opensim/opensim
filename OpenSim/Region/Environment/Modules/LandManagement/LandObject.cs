@@ -763,11 +763,25 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
 
             foreach (SceneObjectGroup obj in primsOverMe)
             {
-                if (!ownersAndCount.ContainsKey(obj.OwnerID))
+                try
                 {
-                    ownersAndCount.Add(obj.OwnerID, 0);
+                    if (!ownersAndCount.ContainsKey(obj.OwnerID))
+                    {
+                        ownersAndCount.Add(obj.OwnerID, 0);
+                    }
                 }
-                ownersAndCount[obj.OwnerID] += obj.PrimCount;
+                catch (NullReferenceException)
+                {
+                    m_log.Info("[LAND]: " + "Got Null Reference when searching land owners from the parcel panel");
+                }
+                try
+                {
+                    ownersAndCount[obj.OwnerID] += obj.PrimCount;
+                }
+                catch (KeyNotFoundException)
+                {
+                    m_log.Error("[LAND]: Unable to match a prim with it's owner.");
+                }
             }
             if (ownersAndCount.Count > 0)
             {

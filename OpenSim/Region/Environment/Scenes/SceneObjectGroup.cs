@@ -161,7 +161,14 @@ namespace OpenSim.Region.Environment.Scenes
 
         public override uint LocalId
         {
-            get { return m_rootPart.LocalId; }
+            get {
+                if (m_rootPart == null)
+                {
+                    m_log.Error("[PRIMGROUP]: Unable to find the rootpart for a LocalId Request!");
+                    return 0;
+                }
+ 
+                return m_rootPart.LocalId; }
             set { m_rootPart.LocalId = value; }
         }
 
@@ -173,7 +180,12 @@ namespace OpenSim.Region.Environment.Scenes
 
         public LLUUID OwnerID
         {
-            get { return m_rootPart.OwnerID; }
+            get {
+                if (m_rootPart == null)
+                    return LLUUID.Zero;
+
+                return m_rootPart.OwnerID; 
+            }
             set { m_rootPart.OwnerID = value; }
         }
 
