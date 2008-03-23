@@ -1067,46 +1067,51 @@ namespace OpenSim.Region.Environment.Scenes
             if (RayTargetID != LLUUID.Zero)
             {
                 SceneObjectPart target = GetSceneObjectPart(RayTargetID);
+                
+                LLVector3 direction = LLVector3.Norm(RayEnd - RayStart);
+                Vector3 AXOrigin = new Vector3(RayStart.X, RayStart.Y, RayStart.Z);
+                Vector3 AXdirection = new Vector3(direction.X, direction.Y, direction.Z);
+
                 if (target != null)
                 {
                     pos = target.AbsolutePosition;
                     //m_log.Info("[OBJECT_REZ]: TargetPos: " + pos.ToString() + ", RayStart: " + RayStart.ToString() + ", RayEnd: " + RayEnd.ToString() + ", Volume: " + Util.GetDistanceTo(RayStart,RayEnd).ToString() + ", mag1: " + Util.GetMagnitude(RayStart).ToString() + ", mag2: " + Util.GetMagnitude(RayEnd).ToString());
-                    //target.Scale.X
-                    if (Math.Abs(target.Scale.X - target.Scale.Y) > 4.5f 
-                        || Math.Abs(target.Scale.Y - target.Scale.Z) > 4.5f 
-                        || Math.Abs(target.Scale.Z - target.Scale.X) > 4.5f)
-                    {
-                        
-                        // for now lets use the old method here as the new method works by using the largest scale vector 
-                        // component as the radius of a sphere and produces wide results if there's a huge difference 
-                        // between the x/y/z vector components
+                    
+                    // TODO: Raytrace better here
+                    
+                    //EntityIntersection ei = m_innerScene.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection));
+                    Ray NewRay = new Ray(AXOrigin, AXdirection);
 
-                        // If one scale component is less then .21m, it's likely being used as a thin block and therefore 
-                        // the raytracing would produce a wide result.
-                       
-                      
-                    }
-                    else
+                    // Ray Trace against target here
+                    EntityIntersection ei = target.TestIntersectionOBB(NewRay, new Quaternion(1,0,0,0));
+
+                    // Un-comment out the following line to Get Raytrace results printed to the console.
+                    //m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
+                    
+                    // If we hit something
+                    if (ei.HitTF)
                     {
-                        // TODO: Raytrace better here
-                        LLVector3 direction = LLVector3.Norm(RayEnd - RayStart);
-                        Vector3 AXOrigin = new Vector3(RayStart.X, RayStart.Y, RayStart.Z);
-                        Vector3 AXdirection = new Vector3(direction.X, direction.Y, direction.Z);
-                        EntityIntersection ei = m_innerScene.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection));
-                        //m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
+                        // Set the position to the intersection point
+                        pos = new LLVector3(ei.ipoint.x, ei.ipoint.y, ei.ipoint.z);
+                    } 
                         
-                        if (ei.HitTF)
-                        {
-                            pos = new LLVector3(ei.ipoint.x, ei.ipoint.y, ei.ipoint.z);
-                        } 
-                        
-                    }
+                    
                     return pos;
                 }
                 else
                 {
-                    // fall back to our stupid functionality
-                    pos = RayEnd;
+                    // We don't have a target here, so we're going to raytrace all the objects in the scene.
+
+                    EntityIntersection ei = m_innerScene.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection));
+
+                    // Un-comment the following line to print the raytrace results to the console.
+                    //m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
+
+                    if (ei.HitTF)
+                    {
+                        pos = new LLVector3(ei.ipoint.x, ei.ipoint.y, ei.ipoint.z);
+                    } 
+                    
                     return pos;
                 }
             }

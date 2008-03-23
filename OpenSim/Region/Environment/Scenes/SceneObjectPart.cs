@@ -933,29 +933,60 @@ namespace OpenSim.Region.Environment.Scenes
 
             return returnresult;
         }
-        public EntityIntersection TestIntersectionOABB(Ray iray, Quaternion parentrot)
+
+        public double GetDistanceTo(Vector3 a, Vector3 b)
+        {
+            float dx = a.x - b.x;
+            float dy = a.y - b.y;
+            float dz = a.z - b.z;
+            return Math.Sqrt(dx * dx + dy * dy + dz * dz);
+        }
+
+        public EntityIntersection TestIntersectionOBB(Ray iray, Quaternion parentrot)
         {
             // In this case we're using a rectangular prism, which has 6 faces and therefore 6 planes
             // This breaks down into the ray---> plane equation.
             // TODO: Change to take shape into account
             Vector3[] vertexes = new Vector3[8];
-            
-            Vector3[] FaceA = new Vector3[6];
-            Vector3[] FaceB = new Vector3[6];
-            Vector3[] FaceC = new Vector3[6];
-            Vector3[] FaceD = new Vector3[6];
 
-            Vector3[] normals = new Vector3[6];
+            float[] distance = new float[6];
+            Vector3[] FaceA = new Vector3[6]; // vertex A for Facei
+            Vector3[] FaceB = new Vector3[6]; // vertex B for Facei
+            Vector3[] FaceC = new Vector3[6]; // vertex C for Facei
+            Vector3[] FaceD = new Vector3[6]; // vertex D for Facei
 
-            Vector3 AmBa = new Vector3(0, 0, 0);
-            Vector3 AmBb = new Vector3(0, 0, 0);
+            Vector3[] normals = new Vector3[6]; // Normal for Facei
+
+            Vector3 AmBa = new Vector3(0, 0, 0); // Vertex A - Vertex B
+            Vector3 AmBb = new Vector3(0, 0, 0); // Vertex B - Vertex C
+            Vector3 cross = new Vector3();
 
             LLVector3 pos = GetWorldPosition();
             LLQuaternion rot = GetWorldRotation();
-            Quaternion AXrot = new Quaternion(rot.W,rot.X,rot.Y,rot.Z);
 
+            // Variables prefixed with AX are Axiom.Math copies of the LL variety.
+
+            Quaternion AXrot = new Quaternion(rot.W,rot.X,rot.Y,rot.Z);
+            AXrot.Normalize();
+
+            Vector3 AXpos = new Vector3(pos.X, pos.Y, pos.Z);
+
+            // tScale is the offset to derive the vertex based on the scale.
+            // it's different for each vertex because we've got to rotate it 
+            // to get the world position of the vertex to produce the Oriented Bounding Box
+
+            Vector3 tScale = new Vector3(); 
+
+            Vector3 AXscale = new Vector3(m_shape.Scale.X * 0.5f, m_shape.Scale.Y * 0.5f, m_shape.Scale.Z * 0.5f);
+
+            //Vector3 pScale = (AXscale) - (AXrot.Inverse() * (AXscale));
+            //Vector3 nScale = (AXscale * -1) - (AXrot.Inverse() * (AXscale * -1));
             
+            // rScale is the rotated offset to find a vertex based on the scale and the world rotation.
+            Vector3 rScale = new Vector3();
+
             // Get Vertexes for Faces Stick them into ABCD for each Face
+            // Form: Face<vertex>[face] that corresponds to the below diagram
             #region ABCD Face Vertex Map Comment Diagram
             //                   A _________ B
             //                    |         |
@@ -987,64 +1018,222 @@ namespace OpenSim.Region.Environment.Scenes
             //                    |_________|
             //                   A           B   
             #endregion
-            vertexes[0] = (AXrot * new Vector3((pos.X - m_shape.Scale.X),(pos.Y - m_shape.Scale.Y),(pos.Z + m_shape.Scale.Z)));
+
+            #region Plane Decomposition of Oriented Bounding Box
+            tScale = new Vector3(AXscale.x, -AXscale.y, AXscale.z);
+            rScale = ((AXrot * tScale));
+            vertexes[0] = (new Vector3((pos.X + rScale.x), (pos.Y + rScale.y), (pos.Z + rScale.z)));
+           // vertexes[0].x = pos.X + vertexes[0].x;
+            //vertexes[0].y = pos.Y + vertexes[0].y;
+            //vertexes[0].z = pos.Z + vertexes[0].z;
 
             FaceA[0] = vertexes[0];
             FaceA[3] = vertexes[0];
             FaceA[4] = vertexes[0];
 
-            vertexes[1] = (AXrot * new Vector3((pos.X - m_shape.Scale.X), (pos.Y + m_shape.Scale.Y), (pos.Z + m_shape.Scale.Z)));
+            tScale = AXscale;
+            rScale = ((AXrot * tScale));
+            vertexes[1] = (new Vector3((pos.X + rScale.x), (pos.Y + rScale.y), (pos.Z + rScale.z)));
+
+           // vertexes[1].x = pos.X + vertexes[1].x;
+           // vertexes[1].y = pos.Y + vertexes[1].y;
+            //vertexes[1].z = pos.Z + vertexes[1].z;
 
             FaceB[0] = vertexes[1];
             FaceA[1] = vertexes[1];
             FaceC[4] = vertexes[1];
 
-            vertexes[2] = (AXrot * new Vector3((pos.X - m_shape.Scale.X), (pos.Y - m_shape.Scale.Y), (pos.Z - m_shape.Scale.Z)));
+            tScale = new Vector3(AXscale.x, -AXscale.y, -AXscale.z);
+            rScale = ((AXrot * tScale));
+
+            vertexes[2] = (new Vector3((pos.X + rScale.x), (pos.Y + rScale.y), (pos.Z + rScale.z)));
+
+            //vertexes[2].x = pos.X + vertexes[2].x;
+            //vertexes[2].y = pos.Y + vertexes[2].y;
+            //vertexes[2].z = pos.Z + vertexes[2].z;
 
             FaceC[0] = vertexes[2];
             FaceC[3] = vertexes[2];
             FaceC[5] = vertexes[2];
 
-            vertexes[3] = (AXrot * new Vector3((pos.X - m_shape.Scale.X), (pos.Y + m_shape.Scale.Y), (pos.Z - m_shape.Scale.Z)));
+            tScale = new Vector3(AXscale.x, AXscale.y, -AXscale.z);
+            rScale = ((AXrot * tScale));
+            vertexes[3] = (new Vector3((pos.X + rScale.x), (pos.Y + rScale.y), (pos.Z + rScale.z)));
+
+            //vertexes[3].x = pos.X + vertexes[3].x;
+           // vertexes[3].y = pos.Y + vertexes[3].y;
+           // vertexes[3].z = pos.Z + vertexes[3].z;
 
             FaceD[0] = vertexes[3];
             FaceC[1] = vertexes[3];
             FaceA[5] = vertexes[3];
 
-            vertexes[4] = (AXrot * new Vector3((pos.X + m_shape.Scale.X), (pos.Y + m_shape.Scale.Y), (pos.Z + m_shape.Scale.Z)));
+            tScale = new Vector3(-AXscale.x, AXscale.y, AXscale.z);
+            rScale = ((AXrot * tScale));
+            vertexes[4] = (new Vector3((pos.X + rScale.x), (pos.Y + rScale.y), (pos.Z + rScale.z)));
+
+           // vertexes[4].x = pos.X + vertexes[4].x;
+           // vertexes[4].y = pos.Y + vertexes[4].y;
+           // vertexes[4].z = pos.Z + vertexes[4].z;
 
             FaceB[1] = vertexes[4];
             FaceA[2] = vertexes[4];
             FaceD[4] = vertexes[4];
 
-            vertexes[5] = (AXrot * new Vector3((pos.X + m_shape.Scale.X), (pos.Y + m_shape.Scale.Y), (pos.Z - m_shape.Scale.Z)));
+            tScale = new Vector3(-AXscale.x, AXscale.y, -AXscale.z);
+            rScale = ((AXrot * tScale));
+            vertexes[5] = (new Vector3((pos.X + rScale.x), (pos.Y + rScale.y), (pos.Z + rScale.z)));
+
+           // vertexes[5].x = pos.X + vertexes[5].x;
+           // vertexes[5].y = pos.Y + vertexes[5].y;
+           // vertexes[5].z = pos.Z + vertexes[5].z;
 
             FaceD[1] = vertexes[5];
             FaceC[2] = vertexes[5];
             FaceB[5] = vertexes[5];
 
-            vertexes[6] = (AXrot * new Vector3((pos.X + m_shape.Scale.X), (pos.Y - m_shape.Scale.Y), (pos.Z + m_shape.Scale.Z)));
+            tScale = new Vector3(-AXscale.x, -AXscale.y, AXscale.z);
+            rScale = ((AXrot * tScale));
+            vertexes[6] = (new Vector3((pos.X + rScale.x), (pos.Y + rScale.y), (pos.Z + rScale.z)));
+
+           // vertexes[6].x = pos.X + vertexes[6].x;
+           // vertexes[6].y = pos.Y + vertexes[6].y;
+           // vertexes[6].z = pos.Z + vertexes[6].z;
 
             FaceB[2] = vertexes[6];
             FaceB[3] = vertexes[6];
             FaceB[4] = vertexes[6];
 
-            vertexes[7] = (AXrot * new Vector3((pos.X + m_shape.Scale.X), (pos.Y - m_shape.Scale.Y), (pos.Z - m_shape.Scale.Z)));
+            tScale = new Vector3(-AXscale.x, -AXscale.y, -AXscale.z);
+            rScale = ((AXrot * tScale));
+            vertexes[7] = (new Vector3((pos.X + rScale.x), (pos.Y + rScale.y), (pos.Z + rScale.z)));
+
+           // vertexes[7].x = pos.X + vertexes[7].x;
+           // vertexes[7].y = pos.Y + vertexes[7].y;
+           // vertexes[7].z = pos.Z + vertexes[7].z;
 
             FaceD[2] = vertexes[7];
             FaceD[3] = vertexes[7];
             FaceD[5] = vertexes[7];
+            #endregion
 
             // Get our plane normals
             for (int i = 0; i < 6; i++)
             {
-                AmBa = FaceB[i] - FaceA[i];
-                AmBb = FaceC[i] - FaceA[i];
-                normals[i] = AmBa.Cross(AmBb);
+                //m_log.Info("[FACECALCULATION]: FaceA[" + i + "]=" + FaceA[i] + " FaceB[" + i + "]=" + FaceB[i] + " FaceC[" + i + "]=" + FaceC[i] + " FaceD[" + i + "]=" + FaceD[i]);
+                
+                // Our Plane direction
+                AmBa = FaceA[i] - FaceB[i];
+                AmBb = FaceB[i] - FaceC[i];
+                
+                cross = AmBb.Cross(AmBa);
+
+                // normalize the cross product to get the normal.
+                normals[i] = cross / cross.Length; 
+                
+                //m_log.Info("[NORMALS]: normals[ " + i + "]" + normals[i].ToString());
+                //distance[i] = (normals[i].x * AmBa.x + normals[i].y * AmBa.y + normals[i].z * AmBa.z) * -1;
             }
 
             EntityIntersection returnresult = new EntityIntersection();
+            
+            returnresult.distance = 1024;
+            float c = 0;
+            float a = 0;
+            float d = 0;
+            Vector3 q = new Vector3();
 
+            #region OBB Version 2 Experiment
+            //float fmin = 999999;
+            //float fmax = -999999;
+            //float s = 0;
+
+            //for (int i=0;i<6;i++)
+            //{
+                //s = iray.Direction.Dot(normals[i]);
+                //d = normals[i].Dot(FaceB[i]);
+
+                //if (s == 0)
+                //{
+                    //if (iray.Origin.Dot(normals[i]) > d)
+                    //{
+                        //return returnresult;
+                    //}
+                   // else 
+                    //{
+                        //continue;
+                    //}
+                //}
+                //a = (d - iray.Origin.Dot(normals[i])) / s;
+                //if ( iray.Direction.Dot(normals[i]) < 0)
+                //{
+                    //if (a > fmax)
+                    //{
+                        //if (a > fmin)
+                        //{
+                            //return returnresult;
+                        //}
+                        //fmax = a;
+                    //}
+
+                //}
+                //else 
+                //{
+                    //if (a < fmin) 
+                    //{
+                        //if (a < 0 || a < fmax)
+                        //{
+                            //return returnresult;
+                        //}
+                        //fmin = a;
+                    //}
+                //}
+            //}
+            //if (fmax > 0)
+            //    a= fmax;
+            //else
+           //     a=fmin;
+
+            //q = iray.Origin + a * iray.Direction;
+            #endregion
+
+            // Loop over faces (6 of them)
+            for (int i = 0; i < 6; i++)
+            {
+                AmBa = FaceA[i] - FaceB[i];
+                AmBb = FaceB[i] - FaceC[i];
+                d = normals[i].Dot(FaceB[i]);
+                c = iray.Direction.Dot(normals[i]);
+                if (c == 0)
+                    continue;
+
+                a = (d - iray.Origin.Dot(normals[i])) / c;
+
+                if (a < 0)
+                    continue;
+
+                // If the normal is pointing outside the object
+                if (iray.Direction.Dot(normals[i]) < 0)
+                {
+                    
+                    q = iray.Origin + a * iray.Direction;
+
+                    // Is this the closest hit to the object's origin?
+                    //float distance2 = (float)GetDistanceTo(q, iray.Origin);
+                    float distance2 = (float)GetDistanceTo(q, AXpos);
+
+                    if (distance2 < returnresult.distance)
+                    {
+                        returnresult.distance = distance2;
+                        returnresult.HitTF = true;
+                        returnresult.ipoint = q;
+                        //m_log.Info("[POINT]: " + q.ToString());
+                        returnresult.normal = 1;
+
+                    }
+                }
+
+            }
             return returnresult;
         }
 

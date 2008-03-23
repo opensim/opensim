@@ -402,7 +402,9 @@ namespace OpenSim.Region.Environment.Scenes
                         new Quaternion(GroupRotation.W, GroupRotation.X, GroupRotation.Y, GroupRotation.Z);
 
                     // Telling the prim to raytrace.
-                    EntityIntersection inter = part.TestIntersection(hRay, parentrotation);
+                    //EntityIntersection inter = part.TestIntersection(hRay, parentrotation);
+
+                    EntityIntersection inter = part.TestIntersectionOBB(hRay, parentrotation);
 
                     // This may need to be updated to the maximum draw distance possible..  
                     // We might (and probably will) be checking for prim creation from other sims
