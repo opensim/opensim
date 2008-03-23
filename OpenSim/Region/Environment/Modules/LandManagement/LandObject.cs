@@ -809,6 +809,20 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
             remote_client.OutPacket(pack, ThrottleOutPacketType.Task);
         }
 
+        public Dictionary<LLUUID, int> getLandObjectOwners()
+        {
+            Dictionary<LLUUID, int> ownersAndCount = new Dictionary<LLUUID, int>();
+            foreach (SceneObjectGroup obj in primsOverMe)
+            {
+                if (!ownersAndCount.ContainsKey(obj.OwnerID))
+                {
+                    ownersAndCount.Add(obj.OwnerID, 0);
+                }
+                ownersAndCount[obj.OwnerID] += obj.PrimCount;
+            }
+            return ownersAndCount;
+        }
+
         #endregion
 
         #region Object Returning

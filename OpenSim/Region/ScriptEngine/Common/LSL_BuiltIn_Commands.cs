@@ -40,6 +40,7 @@ using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.Common;
 using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 using OpenSim.Region.Environment;
+using OpenSim.Region.Environment.Modules.LandManagement;
 //using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL;
 
 namespace OpenSim.Region.ScriptEngine.Common
@@ -4517,8 +4518,17 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.list llGetParcelPrimOwners(LSL_Types.Vector3 pos)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetParcelPrimOwners");
-            return new LSL_Types.list();
+            LandObject land = (LandObject)World.LandChannel.getLandObject((float)pos.x, (float)pos.y);
+            LSL_Types.list ret = new LSL_Types.list();
+            if (land != null)
+            {
+                foreach (KeyValuePair<LLUUID, int> d in land.getLandObjectOwners())
+                {
+                    ret.Add(d.Key.ToString());
+                    ret.Add(d.Value);
+                }
+            }
+            return ret;
         }
 
         public int llGetObjectPrimCount(string object_id)
