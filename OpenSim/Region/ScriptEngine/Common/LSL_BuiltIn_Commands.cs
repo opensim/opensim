@@ -3102,7 +3102,19 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llAddToLandPassList(string avatar, double hours)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llAddToLandPassList");
+            LLUUID key;
+            LandData land = World.LandChannel.getLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
+            if (land.ownerID == m_host.OwnerID)
+            {
+                ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
+                if (LLUUID.TryParse(avatar, out key))
+                {
+                    entry.AgentID = key;
+                    entry.Flags = ParcelManager.AccessList.Access;
+                    entry.Time = DateTime.Now.AddHours(hours);
+                    land.parcelAccessList.Add(entry);
+                }
+            }
         }
 
         public void llSetTouchText(string text)
@@ -4240,19 +4252,64 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llAddToLandBanList(string avatar, double hours)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llAddToLandBanList");
+            LLUUID key;
+            LandData land = World.LandChannel.getLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
+            if (land.ownerID == m_host.OwnerID)
+            {
+                ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
+                if (LLUUID.TryParse(avatar, out key))
+                {
+                    entry.AgentID = key;
+                    entry.Flags = ParcelManager.AccessList.Ban;
+                    entry.Time = DateTime.Now.AddHours(hours);
+                    land.parcelAccessList.Add(entry);
+                }
+            }
+            //NotImplemented("llAddToLandBanList");
         }
 
         public void llRemoveFromLandPassList(string avatar)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRemoveFromLandPassList");
+            LLUUID key;
+            LandData land = World.LandChannel.getLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
+            if (land.ownerID == m_host.OwnerID)
+            {
+                if (LLUUID.TryParse(avatar, out key))
+                {
+                    foreach (ParcelManager.ParcelAccessEntry entry in land.parcelAccessList)
+                    {
+                        if (entry.AgentID == key && entry.Flags == ParcelManager.AccessList.Access)
+                        {
+                            land.parcelAccessList.Remove(entry);
+                            break;
+                        }
+                    }
+                }
+            }
+            //NotImplemented("llRemoveFromLandPassList");
         }
 
         public void llRemoveFromLandBanList(string avatar)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRemoveFromLandBanList");
+            LLUUID key;
+            LandData land = World.LandChannel.getLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
+            if (land.ownerID == m_host.OwnerID)
+            {
+                if (LLUUID.TryParse(avatar, out key))
+                {
+                    foreach (ParcelManager.ParcelAccessEntry entry in land.parcelAccessList)
+                    {
+                        if (entry.AgentID == key && entry.Flags == ParcelManager.AccessList.Ban)
+                        {
+                            land.parcelAccessList.Remove(entry);
+                            break;
+                        }
+                    }
+                }
+            }
+            //NotImplemented("llRemoveFromLandPassList");
         }
 
         public void llSetCameraParams(LSL_Types.list rules)
@@ -4363,13 +4420,33 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llResetLandBanList()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llResetLandBanList");
+            LandData land = World.LandChannel.getLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
+            if (land.ownerID == m_host.OwnerID)
+            {
+                foreach (ParcelManager.ParcelAccessEntry entry in land.parcelAccessList)
+                {
+                    if (entry.Flags == ParcelManager.AccessList.Ban)
+                    {
+                        land.parcelAccessList.Remove(entry);
+                    }
+                }
+            }
         }
 
         public void llResetLandPassList()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llResetLandPassList");
+            LandData land = World.LandChannel.getLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
+            if (land.ownerID == m_host.OwnerID)
+            {
+                foreach (ParcelManager.ParcelAccessEntry entry in land.parcelAccessList)
+                {
+                    if (entry.Flags == ParcelManager.AccessList.Access)
+                    {
+                        land.parcelAccessList.Remove(entry);
+                    }
+                }
+            }
         }
 
         public int llGetParcelPrimCount(LSL_Types.Vector3 pos, int category, int sim_wide)
