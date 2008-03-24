@@ -1699,6 +1699,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Add a caps handler for the given agent.  If the CAPS handler already exists for this agent,
         /// then it is replaced by a new CAPS handler.
+        /// 
+        /// FIXME: On login this is called twice, once for the login and once when the connection is made.
+        /// This is somewhat innefficient and should be fixed.
         /// </summary>
         /// <param name="agentId"></param>   
         /// <param name="capsObjectPath"></param>         
