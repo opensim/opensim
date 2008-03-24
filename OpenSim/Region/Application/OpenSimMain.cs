@@ -618,7 +618,10 @@ namespace OpenSim
         /// </summary>
         public virtual void Shutdown()
         {
-            Util.XmlRpcCommand(proxyUrl, "Stop"); 
+            if (proxyUrl.Length > 0) 
+            {
+                Util.XmlRpcCommand(proxyUrl, "Stop"); 
+            }
 
             if (m_startupCommandsFile != String.Empty)
             {
