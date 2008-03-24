@@ -536,6 +536,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void MakeRootAgent(LLVector3 pos, bool isFlying)
         {
+//            m_log.DebugFormat(
+//                 "[SCENEPRESENCE]: Upgrading child agent {0}, {1} to a root agent in {2}", 
+//                 Name, UUID, m_scene.RegionInfo.RegionName);
+            
             m_isChildAgent = false;
 
             AbsolutePosition = pos;
@@ -564,6 +568,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void MakeChildAgent()
         {
+//            m_log.DebugFormat(
+//                 "[SCENEPRESENCE]: Downgrading child agent {0}, {1} to a root agent in {2}", 
+//                 Name, UUID, m_scene.RegionInfo.RegionName);
+            
             Velocity = new LLVector3(0, 0, 0);
             m_isChildAgent = true;
             m_scene.SwapRootAgentCount(true);

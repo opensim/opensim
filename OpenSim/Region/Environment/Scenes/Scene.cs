@@ -1681,12 +1681,6 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     AddCapsHandler(agent.AgentID);
                 }
-                else
-                {
-                    m_log.WarnFormat(
-                        "[CONNECTION DEBUGGING]: Skipped setting up CAPS handler for avatar {0} at {1}", 
-                        agent.AgentID, RegionInfo.RegionName);
-                }
                 
                 m_log.DebugFormat(
                     "[CONNECTION DEBUGGING]: Creating new circuit code ({0}) for avatar {1} at {2}",
@@ -1703,18 +1697,19 @@ namespace OpenSim.Region.Environment.Scenes
         }                
 
         /// <summary>
-        /// Add a caps handler for the given agent.
+        /// Add a caps handler for the given agent.  If the CAPS handler already exists for this agent,
+        /// then it is replaced by a new CAPS handler.
         /// </summary>
         /// <param name="agentId"></param>   
-        /// <param name="capsObjectPath"></param>     
+        /// <param name="capsObjectPath"></param>         
         public void AddCapsHandler(LLUUID agentId)
-        {           
-            String capsObjectPath = GetCapsPath(agentId);            
-            
+        {                             
+            String capsObjectPath = GetCapsPath(agentId);                
+                
             m_log.DebugFormat(
                 "[CONNECTION DEBUGGING]: Setting up CAPS handler for avatar {0} at {1} in {2}",
                 agentId, capsObjectPath, RegionInfo.RegionName);
-            
+                
             Caps cap =
                 new Caps(AssetCache, m_httpListener, m_regInfo.ExternalHostName, m_httpListener.Port,
                          capsObjectPath, agentId, m_dumpAssetsToFile);
@@ -1726,31 +1721,8 @@ namespace OpenSim.Region.Environment.Scenes
             cap.TaskScriptUpdatedCall = CapsUpdateTaskInventoryScriptAsset;
             cap.CAPSFetchInventoryDescendents = CommsManager.UserProfileCacheService.HandleFetchInventoryDescendentsCAPS;
 
-            if (m_capsHandlers.ContainsKey(agentId))
-            {
-                m_log.DebugFormat(
-                    "[CONNECTION DEBUGGING]: Caps path already in use for avatar {0} in region {1}", 
-                    agentId, RegionInfo.RegionName);
-                
-                try
-                {
-                    m_capsHandlers[agentId] = cap;
-                }
-                catch (KeyNotFoundException)
-                {
-                    m_log.DebugFormat(
-                        "[CONNECTION DEBUGGING]: Caught exception adding handler for avatar {0} at {1}", 
-                        agentId, RegionInfo.RegionName);
-                    
-                    // Fix for a potential race condition.
-                    m_capsHandlers.Add(agentId, cap);
-                }
-            }
-            else
-            {
-                m_capsHandlers.Add(agentId, cap);
-            }
-        }
+            m_capsHandlers[agentId] = cap;
+        } 
 
         /// <summary>
         /// 
