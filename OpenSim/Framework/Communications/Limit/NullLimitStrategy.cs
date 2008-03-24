@@ -30,7 +30,7 @@ using System;
 namespace OpenSim.Framework.Communications.Limit
 {    
     /// <summary>
-    /// Strategy which enforces no limits
+    /// Strategy which polices no limits
     /// </summary>
     public class NullLimitStrategy<TId> : IRequestLimitStrategy<TId>
     {        
