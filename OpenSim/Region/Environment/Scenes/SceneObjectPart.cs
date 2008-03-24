@@ -1028,7 +1028,7 @@ namespace OpenSim.Region.Environment.Scenes
             //vertexes[0].z = pos.Z + vertexes[0].z;
 
             FaceA[0] = vertexes[0];
-            FaceA[3] = vertexes[0];
+            FaceB[3] = vertexes[0];
             FaceA[4] = vertexes[0];
 
             tScale = AXscale;
@@ -1053,7 +1053,7 @@ namespace OpenSim.Region.Environment.Scenes
             //vertexes[2].z = pos.Z + vertexes[2].z;
 
             FaceC[0] = vertexes[2];
-            FaceC[3] = vertexes[2];
+            FaceD[3] = vertexes[2];
             FaceC[5] = vertexes[2];
 
             tScale = new Vector3(AXscale.x, AXscale.y, -AXscale.z);
@@ -1101,7 +1101,7 @@ namespace OpenSim.Region.Environment.Scenes
            // vertexes[6].z = pos.Z + vertexes[6].z;
 
             FaceB[2] = vertexes[6];
-            FaceB[3] = vertexes[6];
+            FaceA[3] = vertexes[6];
             FaceB[4] = vertexes[6];
 
             tScale = new Vector3(-AXscale.x, -AXscale.y, -AXscale.z);
@@ -1113,7 +1113,7 @@ namespace OpenSim.Region.Environment.Scenes
            // vertexes[7].z = pos.Z + vertexes[7].z;
 
             FaceD[2] = vertexes[7];
-            FaceD[3] = vertexes[7];
+            FaceC[3] = vertexes[7];
             FaceD[5] = vertexes[7];
             #endregion
 
