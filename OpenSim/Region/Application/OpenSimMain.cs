@@ -446,6 +446,12 @@ namespace OpenSim
             return m_commsManager.AddUser(tempfirstname,templastname,tempPasswd,regX,regY);
         }
 
+        /// <summary>
+        /// Execute the region creation process.  This includes setting up scene infrastructure.
+        /// </summary>
+        /// <param name="regionInfo"></param>
+        /// <param name="portadd_flag"></param>
+        /// <returns></returns>
         public UDPServer CreateRegion(RegionInfo regionInfo, bool portadd_flag)
         {
             int port = regionInfo.InternalEndPoint.Port;
@@ -456,6 +462,9 @@ namespace OpenSim
             // set initial ServerURI
             regionInfo.ServerURI = "http://" + regionInfo.ExternalHostName 
                 + ":" + regionInfo.InternalEndPoint.Port.ToString();
+            
+            regionInfo.HttpPort = m_httpServerPort;
+            m_log.DebugFormat("[OPENSIM MAIN]: Setting http port for region {0} to {1}", regionInfo.InternalEndPoint, regionInfo.HttpPort);
 
             if ((proxyUrl.Length > 0) && (portadd_flag)) 
             {

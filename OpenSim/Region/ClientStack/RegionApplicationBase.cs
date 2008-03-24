@@ -42,7 +42,8 @@ namespace OpenSim.Region.ClientStack
 {
     public abstract class RegionApplicationBase : BaseOpenSimServer
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log 
+            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         protected AssetCache m_assetCache;
         protected Dictionary<EndPoint, uint> m_clientCircuits = new Dictionary<EndPoint, uint>();
