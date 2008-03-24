@@ -1701,7 +1701,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// then it is replaced by a new CAPS handler.
         /// 
         /// FIXME: On login this is called twice, once for the login and once when the connection is made.
-        /// This is somewhat innefficient and should be fixed.
+        /// This is somewhat innefficient and should be fixed.  The initial login creation is necessary
+        /// since the client asks for capabilities immediately after being informed of the seed.
         /// </summary>
         /// <param name="agentId"></param>   
         /// <param name="capsObjectPath"></param>         
