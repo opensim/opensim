@@ -463,8 +463,7 @@ namespace OpenSim
             regionInfo.ServerURI = "http://" + regionInfo.ExternalHostName 
                 + ":" + regionInfo.InternalEndPoint.Port.ToString();
             
-            regionInfo.HttpPort = m_httpServerPort;
-            m_log.DebugFormat("[OPENSIM MAIN]: Setting http port for region {0} to {1}", regionInfo.InternalEndPoint, regionInfo.HttpPort);
+            regionInfo.HttpPort = m_httpServerPort;            
 
             if ((proxyUrl.Length > 0) && (portadd_flag)) 
             {
