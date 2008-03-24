@@ -1793,7 +1793,23 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llGetInventoryName(int type, int number)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetInventoryName");
+            ArrayList keys = new ArrayList();
+            foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            {
+                if (inv.Value.InvType == type)
+                {
+                    keys.Add(inv.Key.ToString());
+                }
+            }
+            if (keys.Count == 0)
+            {
+                
+            }
+            keys.Sort();
+            if (keys.Count > number)
+            {
+                return m_host.TaskInventory[LLUUID.Parse((string)keys[number])].Name;
+            }
             return String.Empty;
         }
 
