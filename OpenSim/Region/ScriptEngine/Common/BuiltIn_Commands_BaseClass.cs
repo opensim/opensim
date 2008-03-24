@@ -1637,9 +1637,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llSetObjectPermMask(mask, value);
         }
 
-        public void llGetInventoryPermMask(string item, int mask)
+        public int llGetInventoryPermMask(string item, int mask)
         {
-            m_LSL_Functions.llGetInventoryPermMask(item, mask);
+            return m_LSL_Functions.llGetInventoryPermMask(item, mask);
         }
 
         public void llSetInventoryPermMask(string item, int mask, int value)

@@ -560,7 +560,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: llSetObjectPermMask(integer mask, integer value)
         void llSetObjectPermMask(int mask, int value);
         //wiki integer llGetInventoryPermMask(string item, integer mask)
-        void llGetInventoryPermMask(string item, int mask);
+        int llGetInventoryPermMask(string item, int mask);
         //wiki: llSetInventoryPermMask(string item, integer mask, integer value)
         void llSetInventoryPermMask(string item, int mask, int value);
         //wiki: key llGetInventoryCreator(string item)

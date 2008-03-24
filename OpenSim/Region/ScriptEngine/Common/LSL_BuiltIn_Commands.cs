@@ -4113,10 +4113,30 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
         }
 
-        public void llGetInventoryPermMask(string item, int mask)
+        public int llGetInventoryPermMask(string item, int mask)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetInventoryPermMask");
+            foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            {
+                if (inv.Value.Name == item)
+                {
+                    switch (mask)
+                    {
+                        case 0:
+                            return (int)inv.Value.BaseMask;
+                        case 1:
+                            return (int)inv.Value.OwnerMask;
+                        case 2:
+                            return (int)inv.Value.GroupMask;
+                        case 3:
+                            return (int)inv.Value.EveryoneMask;
+                        case 4:
+                            return (int)inv.Value.NextOwnerMask;
+                    }
+                }
+            }
+            return -1;
+            //NotImplemented("llGetInventoryPermMask");
         }
 
         public void llSetInventoryPermMask(string item, int mask, int value)
