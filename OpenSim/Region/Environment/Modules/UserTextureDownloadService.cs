@@ -32,6 +32,7 @@ using libsecondlife;
 using libsecondlife.Packets;
 
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Limit;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
@@ -54,6 +55,20 @@ namespace OpenSim.Region.Environment.Modules
         private static readonly int MAX_ALLOWED_TEXTURE_REQUESTS = 5;
         
         /// <summary>
+        /// We're going to limit repeated requests for the same missing texture.
+        /// XXX This is really a temporary solution to deal with the situation where a client continually requests
+        /// the same missing textures
+        /// </summary>        
+        private readonly IRequestLimitStrategy<LLUUID> missingTextureLimitStrategy 
+            = new RepeatLimitStrategy<LLUUID>(MAX_ALLOWED_TEXTURE_REQUESTS);        
+        
+        /// <summary>
+        /// XXX Also going to limit repeated requests for found textures.
+        /// </summary>
+        private readonly IRequestLimitStrategy<LLUUID> foundTextureLimitStrategy 
+            = new RepeatLimitStrategy<LLUUID>(MAX_ALLOWED_TEXTURE_REQUESTS);        
+        
+        /// <summary>
         /// Holds texture senders before they have received the appropriate texture from the asset cache.
         /// </summary>
         private readonly Dictionary<LLUUID, TextureSender> m_textureSenders = new Dictionary<LLUUID, TextureSender>();
@@ -63,18 +78,6 @@ namespace OpenSim.Region.Environment.Modules
         /// cache.  Another module actually invokes the send.
         /// </summary>
         private readonly BlockingQueue<ITextureSender> m_sharedSendersQueue;
-        
-        /// <summary>
-        /// We're going to record when we get a request for a particular missing texture for each client
-        /// XXX This is really a temporary solution to deal with the situation where a client continually requests
-        /// the same missing textures
-        /// </summary>
-        private readonly Dictionary<LLUUID, int> missingTextureRequestCounts = new Dictionary<LLUUID, int>();
-        
-        /// <summary>
-        /// XXX Also going to record all the textures found and dispatched
-        /// </summary>
-        private readonly Dictionary<LLUUID, int> dispatchedTextureRequestCounts = new Dictionary<LLUUID, int>();
         
         private readonly Scene m_scene;
         
@@ -109,50 +112,21 @@ namespace OpenSim.Region.Environment.Modules
                         textureSender.UpdateRequest(e.DiscardLevel, e.PacketNumber);                        
                     }
                     else
-                    {                 
-                        // If we've already told the client we're missing the texture, then don't ask the 
-                        // asset server for it again - record the fact that it's missing instead.
-                        // XXX This is to reduce (but not resolve) a current problem where some clients keep 
-                        // requesting the same textures                        
-                        if (missingTextureRequestCounts.ContainsKey(e.RequestedAssetID))
+                    {       
+                        if (!foundTextureLimitStrategy.AllowRequest(e.RequestedAssetID))
                         {
-                            missingTextureRequestCounts[e.RequestedAssetID] += 1;
-                            
-                            if (missingTextureRequestCounts[e.RequestedAssetID] > MAX_ALLOWED_TEXTURE_REQUESTS)
-                            {
-                                if (MAX_ALLOWED_TEXTURE_REQUESTS + 1 == missingTextureRequestCounts[e.RequestedAssetID])
-                                {
-                                    m_log.DebugFormat(
-                                        "[USER TEXTURE DOWNLOAD SERVICE]: Dropping requests for notified missing texture {0} for {1} since we have received more than {2} requests",
-                                        e.RequestedAssetID, m_client.AgentId, MAX_ALLOWED_TEXTURE_REQUESTS);
-                                }
-                                
-                                return;
-                            }                                                         
+                            return;
                         }
-                        else
-                        {          
-                            // If we keep receiving requests for textures we've already served to the client,
-                            // then stop sending them.  This is a short term approach approach to the problem
-                            // of clients which keep requesting the same texture - the long term approach
-                            // will be to treat the cause (and possibly more generally cap the request 
-                            // queues as well/instead)
-                            if (dispatchedTextureRequestCounts.ContainsKey(e.RequestedAssetID))
+                        else if (!missingTextureLimitStrategy.AllowRequest(e.RequestedAssetID))                      
+                        {
+                            if (missingTextureLimitStrategy.IsFirstRefusal(e.RequestedAssetID))
                             {
-                                dispatchedTextureRequestCounts[e.RequestedAssetID] += 1;                                
-                                
-                                if (dispatchedTextureRequestCounts[e.RequestedAssetID] > MAX_ALLOWED_TEXTURE_REQUESTS)
-                                {
-//                                    if (MAX_ALLOWED_TEXTURE_REQUESTS + 1 == dispatchedTextureRequestCounts[e.RequestedAssetID])
-//                                    {
-//                                        m_log.DebugFormat(
-//                                            "[USER TEXTURE DOWNLOAD SERVICE]: Dropping further requests for dispatched/queued texture {0} for {1} since we have received more than {2} requests",
-//                                            e.RequestedAssetID, m_client.AgentId, MAX_ALLOWED_TEXTURE_REQUESTS);
-//                                    }
-                                    
-                                    return;
-                                }                               
-                            }
+                                m_log.DebugFormat(
+                                    "[USER TEXTURE DOWNLOAD SERVICE]: Dropping requests for notified missing texture {0} for client {1} since we have received more than {1} requests",
+                                    e.RequestedAssetID, m_client.AgentId, MAX_ALLOWED_TEXTURE_REQUESTS);
+                            }       
+                            
+                            return;                                                        
                         }
                 
                         m_scene.AddPendingDownloads(1);
@@ -197,9 +171,9 @@ namespace OpenSim.Region.Environment.Modules
                     // Needs investigation.
                     if (texture == null || texture.Data == null)
                     {                        
-                        if (!missingTextureRequestCounts.ContainsKey(textureID))
+                        if (!missingTextureLimitStrategy.IsMonitoringRequests(textureID))
                         {
-                            missingTextureRequestCounts.Add(textureID, 1);
+                            missingTextureLimitStrategy.MonitorRequests(textureID);
 
                             m_log.DebugFormat(
                                 "[USER TEXTURE DOWNLOAD SERVICE]: Queueing first TextureNotFoundSender for {0}, client {1}", 
@@ -216,11 +190,7 @@ namespace OpenSim.Region.Environment.Modules
                             textureSender.TextureReceived(texture);
                             EnqueueTextureSender(textureSender);
                             
-                            // Record the fact that we've put this texture in for dispatch
-                            if (!dispatchedTextureRequestCounts.ContainsKey(textureID))
-                            {
-                                dispatchedTextureRequestCounts.Add(textureID, 1);
-                            }
+                            foundTextureLimitStrategy.MonitorRequests(textureID);
                         }
                     }
 
