@@ -296,7 +296,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 return;
             }
 
-            simMain.ProxyCommand(src_region.proxyUrl, "BlockClientMessages", src_url, src_port + proxyOffset);
+            Util.XmlRpcCommand(src_region.proxyUrl, "BlockClientMessages", src_url, src_port + proxyOffset);
 
             // serialization of origin region's data
             SerializeRegion(src_region, serializeDir);
@@ -313,8 +313,8 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             // import the source region's data
             dst_region = DeserializeRegion(dst_port, true, serializeDir);
 
-            simMain.ProxyCommand(dst_region.proxyUrl, "ChangeRegion", src_port + proxyOffset, src_url, dst_port + proxyOffset, dst_url);
-            simMain.ProxyCommand(dst_region.proxyUrl, "UnblockClientMessages", dst_url, dst_port + proxyOffset);
+           Util.XmlRpcCommand(dst_region.proxyUrl, "ChangeRegion", src_port + proxyOffset, src_url, dst_port + proxyOffset, dst_url);
+           Util.XmlRpcCommand(dst_region.proxyUrl, "UnblockClientMessages", dst_url, dst_port + proxyOffset);
         }
 
         private void DeserializeRegion_Clone(int src_port, int dst_port, string src_url, string dst_url)
@@ -331,11 +331,11 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             // Decide who is in charge for each section
             int[] port = new int[] { src_port, dst_port };
             string[] url = new string[] { "http://" + src_url + ":" + commandServer.Port, "http://" + dst_url + ":" + commandServer.Port };
-            for(int i=0; i<2; i++) simMain.XmlRpcCommand(url[i], "SplitRegion", i, 2, port[0], port[1], url[0], url[1]);
+            for(int i=0; i<2; i++) Util.XmlRpcCommand(url[i], "SplitRegion", i, 2, port[0], port[1], url[0], url[1]);
 
             // Enable the proxy
-            simMain.ProxyCommand(dst_region.proxyUrl, "AddRegion", src_port + proxyOffset, src_url, dst_port + proxyOffset, dst_url);
-            simMain.ProxyCommand(dst_region.proxyUrl, "UnblockClientMessages", dst_url, dst_port + proxyOffset);
+           Util.XmlRpcCommand(dst_region.proxyUrl, "AddRegion", src_port + proxyOffset, src_url, dst_port + proxyOffset, dst_url);
+           Util.XmlRpcCommand(dst_region.proxyUrl, "UnblockClientMessages", dst_url, dst_port + proxyOffset);
         }
 
         private void TerminateRegion(object param)
@@ -758,7 +758,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                             ++i;
                         }
                     }
-
+					
                     scene.splitID = myID;
                     scene.SynchronizeScene = new Scene.SynchronizeSceneHandler(SynchronizeScenes);
                     isSplit = true;
@@ -789,7 +789,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             
                 RegionInfo region = SearchRegionFromPortNum(src_port);
 
-                simMain.ProxyCommand(region.proxyUrl, "BlockClientMessages", src_url, src_port + proxyOffset);
+               Util.XmlRpcCommand(region.proxyUrl, "BlockClientMessages", src_url, src_port + proxyOffset);
 
                 Scene scene;
                 if (sceneManager.TryGetScene(region.RegionID, out scene))
@@ -815,12 +815,12 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 for(int i=1; i<sceneURL.Length; i++)
                 {
                     string url = (sceneURL[i].Split('/')[2]).Split(':')[0]; // get URL part from EP
-                    simMain.ProxyCommand(region.proxyUrl, "DeleteRegion", regionPortList[i] + proxyOffset, url);
+                   Util.XmlRpcCommand(region.proxyUrl, "DeleteRegion", regionPortList[i] + proxyOffset, url);
                     Thread.Sleep(1000);
-                    simMain.XmlRpcCommand(sceneURL[i], "TerminateRegion",  regionPortList[i]); // TODO: need + proxyOffset?
+                    Util.XmlRpcCommand(sceneURL[i], "TerminateRegion",  regionPortList[i]); // TODO: need + proxyOffset?
                 }
 
-                simMain.ProxyCommand(region.proxyUrl, "UnblockClientMessages", src_url, src_port + proxyOffset);
+               Util.XmlRpcCommand(region.proxyUrl, "UnblockClientMessages", src_url, src_port + proxyOffset);
             }
             catch (Exception e)
             {
@@ -922,10 +922,10 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                                 //                                   pre.Velocity.ToString(), pre.PhysicsActor.Flying);
 
 
-                                simMain.XmlRpcCommand(sceneURL[i], "UpdatePhysics", 
-                                                      regionPortList[i], pre.UUID.GetBytes(),
-                                                      pre.AbsolutePosition.GetBytes(), pre.Velocity.GetBytes(),
-                                                      pre.PhysicsActor.Flying);
+                                Util.XmlRpcCommand(sceneURL[i], "UpdatePhysics", 
+                                                   regionPortList[i], pre.UUID.GetBytes(),
+                                                   pre.AbsolutePosition.GetBytes(), pre.Velocity.GetBytes(),
+                                                   pre.PhysicsActor.Flying);
 
 /*
   byte[] buff = new byte[12+12+1];

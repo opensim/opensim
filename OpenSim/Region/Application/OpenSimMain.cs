@@ -461,7 +461,7 @@ namespace OpenSim
             {
                 // set proxy url to RegionInfo
                 regionInfo.proxyUrl = proxyUrl;
-                ProxyCommand(proxyUrl, "AddPort", port, port + proxyOffset, regionInfo.ExternalHostName);
+                Util.XmlRpcCommand(proxyUrl, "AddPort", port, port + proxyOffset, regionInfo.ExternalHostName);
             }
 
             UDPServer udpServer;
@@ -618,7 +618,7 @@ namespace OpenSim
         /// </summary>
         public virtual void Shutdown()
         {
-            ProxyCommand(proxyUrl, "Stop"); 
+            Util.XmlRpcCommand(proxyUrl, "Stop"); 
 
             if (m_startupCommandsFile != String.Empty)
             {
@@ -1199,39 +1199,6 @@ namespace OpenSim
         }
 
         #endregion
-
-        // TODO: remove me!! (almost same as XmlRpcCommand)
-        public object ProxyCommand(string url, string methodName, params object[] args)
-        {
-            if(proxyUrl.Length==0) return null;
-            return SendXmlRpcCommand(url, methodName, args);
-        }
-
-        public object XmlRpcCommand(uint port, string methodName, params object[] args)
-        {
-            return SendXmlRpcCommand("http://localhost:"+port, methodName, args);
-        }
-
-        public object XmlRpcCommand(string url, string methodName, params object[] args)
-        {
-            return SendXmlRpcCommand(url, methodName, args);
-        }
-
-        private object SendXmlRpcCommand(string url, string methodName, object[] args)
-        {
-            try {
-                //MainLog.Instance.Verbose("XMLRPC", "Sending command {0} to {1}", methodName, url);
-                XmlRpcRequest client = new XmlRpcRequest(methodName, args);
-                //MainLog.Instance.Verbose("XMLRPC", client.ToString());
-                XmlRpcResponse response = client.Send(url, 6000);
-                if(!response.IsFault) return response.Value;
-            }
-            catch(Exception e)
-            {
-                m_log.ErrorFormat("XMLRPC Failed to send command {0} to {1}: {2}", methodName, url, e.Message);
-            }
-            return null;
-        }
 
         /// <summary>
         /// Get the start time and up time of Region server

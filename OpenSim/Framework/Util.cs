@@ -35,6 +35,7 @@ using System.Security.Cryptography;
 using System.Text;
 using libsecondlife;
 using Nini.Config;
+using Nwc.XmlRpc;
 
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -605,5 +606,17 @@ namespace OpenSim.Framework
             }
             return returnstring;
         }
+		
+		static public XmlRpcResponse XmlRpcCommand(string url, string methodName, params object[] args)
+        {
+            return SendXmlRpcCommand(url, methodName, args);
+        }
+		
+        static public XmlRpcResponse SendXmlRpcCommand(string url, string methodName, object[] args)
+        {
+			XmlRpcRequest client = new XmlRpcRequest(methodName, args);
+            return client.Send(url, 6000);
+        }
+
     }
 }

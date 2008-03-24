@@ -48,7 +48,7 @@ namespace OpenSim.Grid.GridServer
 		protected BaseHttpServer httpServer;
         protected List<IGridPlugin> m_plugins = new List<IGridPlugin>();
 
-        public BaseHttpServer
+        public BaseHttpServer HttpServer
 		{
 			get { return httpServer; }
 		}
