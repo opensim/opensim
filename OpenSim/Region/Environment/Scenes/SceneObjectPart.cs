@@ -560,13 +560,29 @@ namespace OpenSim.Region.Environment.Scenes
         /// This is sent up to the group, which then finds the root prim
         /// and applies the force on the root prim of the group
         /// </summary>
-        /// <param name="impulse">Vector force</param>
-        public void ApplyImpulse(LLVector3 impulsei)
+        /// <param name="impulsei">Vector force</param>
+        /// <param name="localGlobalTF">true for the local frame, false for the global frame</param>
+        public void ApplyImpulse(LLVector3 impulsei, bool localGlobalTF)
         {
             PhysicsVector impulse = new PhysicsVector(impulsei.X, impulsei.Y, impulsei.Z);
-            if (m_parentGroup != null)
+            
+            if (localGlobalTF)
             {
-                m_parentGroup.applyImpulse(impulse);
+
+                LLQuaternion grot = GetWorldRotation();
+                Quaternion AXgrot = new Quaternion(grot.W,grot.X,grot.Y,grot.Z);
+                Vector3 AXimpulsei = new Vector3(impulsei.X, impulsei.Y, impulsei.Z);
+                Vector3 newimpulse = AXgrot * AXimpulsei;
+                impulse = new PhysicsVector(newimpulse.x, newimpulse.y, newimpulse.z);
+
+            }
+            else
+            {
+                
+                if (m_parentGroup != null)
+                {
+                    m_parentGroup.applyImpulse(impulse);
+                }
             }
         }
 

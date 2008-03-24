@@ -1110,20 +1110,22 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             //No energy force yet
+            
+            if (force.x > 20000)
+                    force.x = 20000;
+            if (force.y > 20000)
+                    force.y = 20000;
+            if (force.z > 20000)
+                    force.z = 20000;
+            
             if (local == 1)
             {
-                NotImplemented("llApplyImpulse Local Force");
+                m_host.ApplyImpulse(new LLVector3((float)force.x, (float)force.y, (float)force.z), true);
             }
             else
             {
-                if (force.x > 20000)
-                    force.x = 20000;
-                if (force.y > 20000)
-                    force.y = 20000;
-                if (force.z > 20000)
-                    force.z = 20000;
-
-                m_host.ApplyImpulse(new LLVector3((float)force.x,(float)force.y,(float)force.z));
+               
+                m_host.ApplyImpulse(new LLVector3((float)force.x,(float)force.y,(float)force.z), false);
             }
         }
 
