@@ -4105,7 +4105,15 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llGetInventoryCreator(string item)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetInventoryCreator");
+            foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            {
+                if (inv.Value.Name == item)
+                {
+                    return inv.Value.CreatorID.ToString();
+                }
+            }
+            llSay(0, "No item name '" + item + "'");
+            //NotImplemented("llGetInventoryCreator");
             return String.Empty;
         }
 
