@@ -4190,8 +4190,14 @@ namespace OpenSim.Region.ScriptEngine.Common
         public int llGetInventoryType(string name)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetInventoryType");
-            return 0;
+            foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            {
+                if (inv.Value.Name == name)
+                {
+                    return inv.Value.InvType;
+                }
+            }
+            return -1;
         }
 
         public void llSetPayPrice(int price, LSL_Types.list quick_pay_buttons)
