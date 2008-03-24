@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 using Nini.Config;
@@ -72,8 +73,8 @@ namespace OpenSim.Region.Environment.Modules
         private object ListLock = new object();
         private string m_name = "WorldCommModule";
         private ListenerManager m_listenerManager;
-        private Queue<ListenerInfo> m_pending;
-
+        private Queue m_pendingQ;
+        private Queue m_pending;
         public WorldCommModule()
         {
         }
@@ -84,7 +85,8 @@ namespace OpenSim.Region.Environment.Modules
             m_scene.RegisterModuleInterface<IWorldComm>(this);
             m_listenerManager = new ListenerManager();
             m_scene.EventManager.OnNewClient += NewClient;
-            m_pending = new Queue<ListenerInfo>();
+            m_pendingQ = new Queue();
+            m_pending = Queue.Synchronized(m_pendingQ);
         }
 
         public void PostInitialise()
@@ -125,27 +127,29 @@ namespace OpenSim.Region.Environment.Modules
 
         public void ListenControl(int handle, int active)
         {
-            if (active == 1)
-                m_listenerManager.Activate(handle);
-            else if (active == 0)
-                m_listenerManager.Dectivate(handle);
+            if (m_listenerManager != null)
+            {
+                if (active == 1)
+                    m_listenerManager.Activate(handle);
+                else if (active == 0)
+                    m_listenerManager.Dectivate(handle);
+            }
         }
 
         public void ListenRemove(int handle)
         {
-            m_listenerManager.Remove(handle);
+            if (m_listenerManager != null)
+            {
+                m_listenerManager.Remove(handle);
+            }
         }
 
         public void DeleteListener(LLUUID itemID)
         {
             if (m_listenerManager != null)
             {
-                lock (ListLock)
-                {
-                    m_listenerManager.DeleteListener(itemID);
-                }
+                m_listenerManager.DeleteListener(itemID);
             }
-
         }
 
         // This method scans nearby objects and determines if they are listeners,
@@ -175,87 +179,99 @@ namespace OpenSim.Region.Environment.Modules
 
                     m_scene.Entities.TryGetValue(li.GetHostID(), out sPart);
 
-                    // Dont process if this message is from itself!
-                    if (li.GetHostID().ToString().Equals(sourceItemID) ||
-                        sPart.UUID.ToString().Equals(sourceItemID))
-                        continue;
-
-                    double dis = 0;
-
-                    if (source != null)
-                        dis = Util.GetDistanceTo(sPart.AbsolutePosition, source.AbsolutePosition);
-                    else
-                        dis = Util.GetDistanceTo(sPart.AbsolutePosition, avatar.AbsolutePosition);
-
-                    switch (type)
+                    if(sPart != null)
                     {
-                        case ChatTypeEnum.Whisper:
+                        // Dont process if this message is from itself!
+                        if (li.GetHostID().ToString().Equals(sourceItemID) ||
+                            sPart.UUID.ToString().Equals(sourceItemID))
+                            continue;
 
-                            if ((dis < 10) && (dis > -10))
-                            {
-                                ListenerInfo isListener = m_listenerManager.IsListenerMatch(
-                                    sourceItemID, sPart.UUID, channel, name, msg
-                                    );
-                                if (isListener != null)
+                        double dis = 0;
+
+                        if (source != null)
+                            dis = Util.GetDistanceTo(sPart.AbsolutePosition, source.AbsolutePosition);
+                        else
+                            dis = Util.GetDistanceTo(sPart.AbsolutePosition, avatar.AbsolutePosition);
+
+                        switch (type)
+                        {
+                            case ChatTypeEnum.Whisper:
+
+                                if ((dis < 10) && (dis > -10))
                                 {
-                                    lock (CommListLock)
+                                    if (li.GetChannel() == channel)
                                     {
-                                        m_pending.Enqueue(isListener);
+                                        ListenerInfo isListener = m_listenerManager.IsListenerMatch(
+                                            sourceItemID, sPart.UUID, channel, name, msg
+                                            );
+                                        if (isListener != null)
+                                        {
+                                            lock (m_pending.SyncRoot)
+                                            {
+                                                m_pending.Enqueue(isListener);
+                                            }
+                                        }
                                     }
                                 }
-                            }
-                            break;
+                                break;
 
-                        case ChatTypeEnum.Say:
+                            case ChatTypeEnum.Say:
 
-                            if ((dis < 30) && (dis > -30))
-                            {
-                                ListenerInfo isListener = m_listenerManager.IsListenerMatch(
-                                    sourceItemID, sPart.UUID, channel, name, msg
-                                    );
-                                if (isListener != null)
+                                if ((dis < 30) && (dis > -30))
                                 {
-                                    lock (CommListLock)
+                                    if (li.GetChannel() == channel)
                                     {
-                                        m_pending.Enqueue(isListener);
+                                        ListenerInfo isListener = m_listenerManager.IsListenerMatch(
+                                            sourceItemID, sPart.UUID, channel, name, msg
+                                        );
+                                        if (isListener != null)
+                                        {
+                                            lock (m_pending.SyncRoot)
+                                            {
+                                                m_pending.Enqueue(isListener);
+                                            }
+                                        }
                                     }
                                 }
-                            }
-                            break;
+                                break;
 
-                        case ChatTypeEnum.Shout:
-                            if ((dis < 100) && (dis > -100))
-                            {
-                                ListenerInfo isListener = m_listenerManager.IsListenerMatch(
-                                    sourceItemID, sPart.UUID, channel, name, msg
-                                    );
-                                if (isListener != null)
+                            case ChatTypeEnum.Shout:
+                                if ((dis < 100) && (dis > -100))
                                 {
-                                    lock (CommListLock)
+                                    if (li.GetChannel() == channel)
                                     {
-                                        m_pending.Enqueue(isListener);
+                                        ListenerInfo isListener = m_listenerManager.IsListenerMatch(
+                                            sourceItemID, sPart.UUID, channel, name, msg
+                                        );
+                                        if (isListener != null)
+                                        {
+                                            lock (m_pending.SyncRoot)
+                                            {
+                                                m_pending.Enqueue(isListener);
+                                            }
+                                        }
                                     }
                                 }
-                            }
-                            break;
+                                break;
 
-                        case ChatTypeEnum.Broadcast:
-                            ListenerInfo isListen =
-                                m_listenerManager.IsListenerMatch(sourceItemID, li.GetItemID(), channel, name, msg);
-                            if (isListen != null)
-                            {
-                                ListenerInfo isListener = m_listenerManager.IsListenerMatch(
-                                    sourceItemID, sPart.UUID, channel, name, msg
-                                    );
-                                if (isListener != null)
+                            case ChatTypeEnum.Broadcast:
+                                ListenerInfo isListen =
+                                    m_listenerManager.IsListenerMatch(sourceItemID, li.GetItemID(), channel, name, msg);
+                                if (isListen != null)
                                 {
-                                    lock (CommListLock)
+                                    ListenerInfo isListener = m_listenerManager.IsListenerMatch(
+                                        sourceItemID, sPart.UUID, channel, name, msg
+                                        );
+                                    if (isListener != null)
                                     {
-                                        m_pending.Enqueue(isListener);
+                                        lock (m_pending.SyncRoot)
+                                        {
+                                            m_pending.Enqueue(isListener);
+                                        }
                                     }
                                 }
-                            }
-                            break;
+                                break;
+                        }
                     }
                 }
             }
@@ -273,9 +289,9 @@ namespace OpenSim.Region.Environment.Modules
         {
             ListenerInfo li = null;
 
-            lock (CommListLock)
+            lock (m_pending.SyncRoot)
             {
-                li = m_pending.Dequeue();
+                li = (ListenerInfo) m_pending.Dequeue();
             }
 
             return li;
@@ -283,12 +299,12 @@ namespace OpenSim.Region.Environment.Modules
 
         public uint PeekNextMessageLocalID()
         {
-            return m_pending.Peek().GetLocalID();
+            return ((ListenerInfo)m_pending.Peek()).GetLocalID();
         }
 
         public LLUUID PeekNextMessageItemID()
         {
-            return m_pending.Peek().GetItemID();
+            return ((ListenerInfo)m_pending.Peek()).GetItemID();
         }
  
     }
@@ -298,14 +314,10 @@ namespace OpenSim.Region.Environment.Modules
     // localID: local ID of host engine
     public class ListenerManager
     {
-        private Dictionary<int, ListenerInfo> m_listeners;
+        //private Dictionary<int, ListenerInfo> m_listeners;
+        private Hashtable m_listeners = Hashtable.Synchronized(new Hashtable());
         private object ListenersLock = new object();
         private int m_MaxListeners = 100;
-
-        public ListenerManager()
-        {
-            m_listeners = new Dictionary<int, ListenerInfo>();
-        }
 
         public int AddListener(uint localID, LLUUID itemID, LLUUID hostID, int channel, string name, string id, string msg)
         {
@@ -321,7 +333,7 @@ namespace OpenSim.Region.Environment.Modules
                     {
                         ListenerInfo li = new ListenerInfo(localID, newHandle, itemID, hostID, channel, name, id, msg);
 
-                        lock (ListenersLock)
+                        lock (m_listeners.SyncRoot)
                         {
                             m_listeners.Add(newHandle, li);
                         }
@@ -336,17 +348,30 @@ namespace OpenSim.Region.Environment.Modules
 
         public void Remove(int handle)
         {
-            m_listeners.Remove(handle);
+            lock (m_listeners.SyncRoot)
+            {
+                m_listeners.Remove(handle);
+            }
         }
 
         public void DeleteListener(LLUUID itemID)
         {
-            foreach (ListenerInfo li in m_listeners.Values)
+            ArrayList removedListeners = new ArrayList();
+
+            lock (m_listeners.SyncRoot)
             {
-                if (li.GetItemID().Equals(itemID))
+                IDictionaryEnumerator en = m_listeners.GetEnumerator();
+                while (en.MoveNext())
                 {
-                    Remove(li.GetHandle());
-                    return;
+                    ListenerInfo li = (ListenerInfo)en.Value;
+                    if (li.GetItemID().Equals(itemID))
+                    {
+                        removedListeners.Add(li.GetHandle());
+                    }
+                }
+                foreach (int handle in removedListeners)
+                {
+                    m_listeners.Remove(handle);
                 }
             }
         }
@@ -375,20 +400,23 @@ namespace OpenSim.Region.Environment.Modules
 
         public void Activate(int handle)
         {
-            ListenerInfo li;
 
-            if (m_listeners.TryGetValue(handle, out li))
+            if (m_listeners.ContainsKey(handle))
             {
-                li.Activate();
+                lock (m_listeners.SyncRoot)
+                {
+                    ListenerInfo li = (ListenerInfo)m_listeners[handle];
+                    li.Activate();
+                }
             }
         }
 
         public void Dectivate(int handle)
         {
-            ListenerInfo li;
 
-            if (m_listeners.TryGetValue(handle, out li))
+            if (m_listeners.ContainsKey(handle))
             {
+                ListenerInfo li = (ListenerInfo)m_listeners[handle];
                 li.Deactivate();
             }
         }
@@ -399,36 +427,41 @@ namespace OpenSim.Region.Environment.Modules
                                             string msg)
         {
             bool isMatch = true;
-
-            foreach (ListenerInfo li in m_listeners.Values)
+            lock (m_listeners.SyncRoot)
             {
-                if (li.GetHostID().Equals(listenerKey))
+                IDictionaryEnumerator en = m_listeners.GetEnumerator();
+                while (en.MoveNext())
                 {
-                    if (li.IsActive())
+                    ListenerInfo li = (ListenerInfo)en.Value;
+
+                    if (li.GetHostID().Equals(listenerKey))
                     {
-                        if (channel == li.GetChannel())
+                        if (li.IsActive())
                         {
-                            if ((li.GetID().ToString().Length > 0) &&
-                                (!li.GetID().Equals(LLUUID.Zero)))
+                            if (channel == li.GetChannel())
                             {
-                                if (!li.GetID().ToString().Equals(sourceItemID))
+                                if ((li.GetID().ToString().Length > 0) &&
+                                    (!li.GetID().Equals(LLUUID.Zero)))
                                 {
-                                    isMatch = false;
+                                    if (!li.GetID().ToString().Equals(sourceItemID))
+                                    {
+                                        isMatch = false;
+                                    }
                                 }
-                            }
-                            if (isMatch && (li.GetName().Length > 0))
-                            {
-                                if (li.GetName().Equals(name))
+                                if (isMatch && (li.GetName().Length > 0))
                                 {
-                                    isMatch = false;
+                                    if (li.GetName().Equals(name))
+                                    {
+                                        isMatch = false;
+                                    }
                                 }
-                            }
-                            if (isMatch)
-                            {
-                                return new ListenerInfo(
-                                    li.GetLocalID(), li.GetHandle(), li.GetItemID(), li.GetHostID(),
-                                    li.GetChannel(), name, li.GetID(), msg, new LLUUID(sourceItemID)
-                                    );
+                                if (isMatch)
+                                {
+                                    return new ListenerInfo(
+                                        li.GetLocalID(), li.GetHandle(), li.GetItemID(), li.GetHostID(),
+                                        li.GetChannel(), name, li.GetID(), msg, new LLUUID(sourceItemID)
+                                       );
+                                }
                             }
                         }
                     }
@@ -437,7 +470,7 @@ namespace OpenSim.Region.Environment.Modules
             return null;
         }
 
-        public Dictionary<int, ListenerInfo>.ValueCollection GetListeners()
+        public ICollection GetListeners()
         {
             return m_listeners.Values;
         }
