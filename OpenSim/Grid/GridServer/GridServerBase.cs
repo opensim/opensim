@@ -28,9 +28,14 @@
 using System;
 using System.IO;
 using System.Timers;
+using System.Collections;
+using System.Collections.Generic;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
+using Nwc.XmlRpc;
+using Mono.Addins;
+using Mono.Addins.Description;
 
 namespace OpenSim.Grid.GridServer
 {
@@ -40,6 +45,13 @@ namespace OpenSim.Grid.GridServer
     {
         protected GridConfig m_config;
         protected GridManager m_gridManager;
+		protected BaseHttpServer httpServer;
+        protected List<IGridPlugin> m_plugins = new List<IGridPlugin>();
+
+        public BaseHttpServer
+		{
+			get { return httpServer; }
+		}
 
         public void Work()
         {
@@ -76,7 +88,7 @@ namespace OpenSim.Grid.GridServer
             SetupGridManager();
 
             m_console.Status("[GRID]: Starting HTTP process");
-            BaseHttpServer httpServer = new BaseHttpServer(m_config.HttpPort);
+            httpServer = new BaseHttpServer(m_config.HttpPort);
             //GridManagementAgent GridManagerAgent = new GridManagementAgent(httpServer, "gridserver", m_config.SimSendKey, m_config.SimRecvKey, managercallback);
 
             httpServer.AddXmlRPCHandler("simulator_login", m_gridManager.XmlRpcSimulatorLoginMethod);
@@ -99,6 +111,8 @@ namespace OpenSim.Grid.GridServer
             //httpServer.AddRestHandler("GET", "/regions/", m_gridManager.RestGetRegionMethod);
             //httpServer.AddRestHandler("POST", "/regions/", m_gridManager.RestSetRegionMethod);
 
+            LoadGridPlugins();
+
             httpServer.Start();
 
             m_console.Status("[GRID]: Starting sim status checker");
@@ -107,6 +121,23 @@ namespace OpenSim.Grid.GridServer
             simCheckTimer.Elapsed += new ElapsedEventHandler(CheckSims);
             simCheckTimer.Enabled = true;
         }
+
+        protected void LoadGridPlugins()
+        {
+            //m_console.Status("[GRIDPLUGINS]: Looking for plugins");
+            AddinManager.Initialize(".");
+            AddinManager.Registry.Update(null);
+
+            ExtensionNodeList nodes = AddinManager.GetExtensionNodes("/OpenSim/GridServer");
+            foreach (TypeExtensionNode node in nodes)
+            {
+                m_console.Status("[GRIDPLUGINS]: Loading OpenSim plugin "+node.Path);
+                IGridPlugin plugin = (IGridPlugin) node.CreateInstance();
+                plugin.Initialise(this);
+                m_plugins.Add(plugin);
+            }
+        }
+		
 
         protected virtual void SetupGridManager()
         {
@@ -169,6 +200,7 @@ namespace OpenSim.Grid.GridServer
                     break;                                        
 
                 case "shutdown":
+                    foreach(IGridPlugin plugin in m_plugins) plugin.Close();
                     m_console.Close();
                     Environment.Exit(0);
                     break;
