@@ -1779,8 +1779,15 @@ namespace OpenSim.Region.ScriptEngine.Common
         public int llGetInventoryNumber(int type)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetInventoryNumber");
-            return 0;
+            int count = 0;
+            foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            {
+                if (inv.Value.InvType == type)
+                {
+                    count = count + 1;
+                }
+            }
+            return count;
         }
 
         public string llGetInventoryName(int type, int number)
