@@ -40,7 +40,6 @@ using OpenSim.Framework.Data.Base;
 
 namespace OpenSim.Region.Environment.Modules
 {
-    /*
     public class AvatarFactoryModule : IAvatarFactory
     {
         private Scene m_scene = null;
