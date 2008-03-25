@@ -35,9 +35,6 @@ namespace OpenSim.Framework.Communications.Limit
     /// </summary>    
     public class RepeatLimitStrategy<TId> : IRequestLimitStrategy<TId>
     {
-        private static readonly log4net.ILog m_log 
-            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        
         /// <summary>
         /// Record each asset request that we're notified about.
         /// </summary>

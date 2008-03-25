@@ -368,11 +368,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             parameters.IncludeDebugInformation = true;
 
             // Add all available assemblies
-            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                //Console.WriteLine("Adding assembly: " + asm.Location);
-                //parameters.ReferencedAssemblies.Add(asm.Location);
-            }
+//             foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+//             {
+//                 Console.WriteLine("Adding assembly: " + asm.Location);
+//                 parameters.ReferencedAssemblies.Add(asm.Location);
+//             }
 
             string rootPath = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);
             string rootPathSE = Path.GetDirectoryName(GetType().Assembly.Location);
