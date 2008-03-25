@@ -296,7 +296,10 @@ namespace OpenSim.Region.Environment.Scenes
                                                 
                         // FIXME: Okay, even though we've failed, we're still going to throw the exception on,
                         // since I don't know what will happen if we just let the client continue
-                        throw e;                        
+                        
+                        // XXX: Well, decided to swallow the exception instead for now.  Let us see how that goes.
+                        // throw e;                        
+                        
                     }                    
                 }
             }

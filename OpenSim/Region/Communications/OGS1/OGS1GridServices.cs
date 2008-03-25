@@ -226,7 +226,17 @@ namespace OpenSim.Region.Communications.OGS1
                         uint port = Convert.ToUInt32(neighbourData["sim_port"]);
                         string externalUri = (string) neighbourData["sim_uri"];
 
-                        string externalIpStr = Util.GetHostFromDNS(simIp).ToString();
+                        string externalIpStr = String.Empty;
+                        try
+                        {                            
+                            externalIpStr = Util.GetHostFromDNS(simIp).ToString();
+                        }
+                        catch (SocketException e)
+                        {
+                            m_log.WarnFormat("RequestNeighbours(): Lookup of neighbour {0} failed!  Not including in neighbours list");
+                            continue;
+                        }
+                        
                         SimpleRegionInfo sri = new SimpleRegionInfo(regX, regY, simIp, port);
                         
                         sri.RemotingPort = Convert.ToUInt32(neighbourData["remoting_port"]);
