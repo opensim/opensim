@@ -1711,9 +1711,9 @@ namespace OpenSim.Region.Environment.Scenes
         public void AddCapsHandler(LLUUID agentId)
         {                             
             String capsObjectPath = GetCapsPath(agentId);                
-                
+
             m_log.DebugFormat(
-                "[CONNECTION DEBUGGING]: Setting up CAPS handler for avatar {0} in {1}",
+                "[CAPS]: Setting up CAPS handler for root agent {0} in {1}",
                 agentId, RegionInfo.RegionName);
                 
             Caps cap =
@@ -1739,7 +1739,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_capsHandlers.ContainsKey(agentId))
             {
                 m_log.DebugFormat(
-                    "[CONNECTION DEBUGGING]: Removing CAPS handler for root agent {0} in {1}", 
+                    "[CAPS]: Removing CAPS handler for root agent {0} in {1}", 
                     agentId, RegionInfo.RegionName);
                 
                 m_capsHandlers[agentId].DeregisterHandlers();
@@ -1748,7 +1748,7 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 m_log.WarnFormat(
-                    "[CONNECTION DEBUGGING]: Received request to remove CAPS handler for root agent {0} in {1}, but no such CAPS handler found!",
+                    "[CAPS]: Received request to remove CAPS handler for root agent {0} in {1}, but no such CAPS handler found!",
                     agentId, RegionInfo.RegionName);
             }
         }

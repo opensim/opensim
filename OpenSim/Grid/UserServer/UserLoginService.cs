@@ -146,6 +146,10 @@ namespace OpenSim.Grid.UserServer
                 //Not sure if the + "/CAPS/" should in fact be +"CAPS/" depending if there is already a / as part of httpServerURI
                 string capsPath = Util.GetRandomCapsPath();
                 response.SeedCapability = SimInfo.httpServerURI + "CAPS/" + capsPath + "0000/";
+                
+                m_log.DebugFormat(
+                    "[CAPS]: Sending new CAPS seed url {0} to client {1}", 
+                    response.SeedCapability, response.AgentID);                 
 
                 // Notify the target of an incoming user
                 //CFK: The "Notifying" message always seems to appear, so subsume the data from this message into 

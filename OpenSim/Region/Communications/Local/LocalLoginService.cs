@@ -159,7 +159,11 @@ namespace OpenSim.Region.Communications.Local
 
                 response.SeedCapability = "http://" + reg.ExternalHostName + ":" +
                                           serversInfo.HttpListenerPort.ToString() + "/CAPS/" + capsPath + "0000/";
-                // response.SeedCapability = "http://" + reg.ExternalHostName + ":" + this.serversInfo.HttpListenerPort.ToString() + "/CapsSeed/" + capsPath + "0000/";
+                
+                m_log.DebugFormat(
+                    "[CAPS]: Sending new CAPS seed url {0} to client {1}", 
+                    response.SeedCapability, response.AgentID);                
+
                 theUser.currentAgent.currentRegion = reg.RegionID;
                 theUser.currentAgent.currentHandle = reg.RegionHandle;
 

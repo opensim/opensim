@@ -568,7 +568,7 @@ namespace OpenSim.Region.Environment.Scenes
                             + "/CAPS/" + circuitdata.CapsPath + "0000/";  
                         
                         m_log.DebugFormat(
-                            "[CONNECTION DEBUGGING]: Sending new CAPS seed url {0} to avatar {1}", capsPath, avatar.UUID);                        
+                            "[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, avatar.UUID);                        
                         
                         avatar.ControllingClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4),
                                                                     capsPath);
