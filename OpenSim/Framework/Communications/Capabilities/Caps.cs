@@ -68,15 +68,15 @@ namespace OpenSim.Region.Capabilities
         private string m_capsObjectPath;        
         public string CapsObjectPath { get { return m_capsObjectPath; } }
         
-        private string m_requestPath = "0000/";
-        private string m_mapLayerPath = "0001/";
-        private string m_newInventory = "0002/";
-        //private string m_requestTexture = "0003/";
-        private string m_notecardUpdatePath = "0004/";
-        private string m_notecardTaskUpdatePath = "0005/";
-        private string m_fetchInventoryPath = "0006/";
-        private string m_parcelVoiceInfoRequestPath = "0007/";
-        private string m_provisionVoiceAccountRequestPath = "0008/";
+        private static readonly string m_requestPath = "0000/";
+        private static readonly string m_mapLayerPath = "0001/";
+        private static readonly string m_newInventory = "0002/";
+        //private static readonly string m_requestTexture = "0003/";
+        private static readonly string m_notecardUpdatePath = "0004/";
+        private static readonly string m_notecardTaskUpdatePath = "0005/";
+        private static readonly string m_fetchInventoryPath = "0006/";
+        private static readonly string m_parcelVoiceInfoRequestPath = "0007/";
+        private static readonly string m_provisionVoiceAccountRequestPath = "0008/";
 
         //private string eventQueue = "0100/";
         private BaseHttpServer m_httpListener;
@@ -94,7 +94,6 @@ namespace OpenSim.Region.Capabilities
         //
         public FetchInventoryDescendentsCAPS CAPSFetchInventoryDescendents = null;
 
-
         public Caps(AssetCache assetCache, BaseHttpServer httpServer, string httpListen, uint httpPort, string capsPath,
                     LLUUID agent, bool dumpAssetsToFile)
         {
@@ -108,25 +107,23 @@ namespace OpenSim.Region.Capabilities
         }
 
         /// <summary>
-        /// 
+        /// Register all CAPS http service handlers
         /// </summary>
         public void RegisterHandlers()
         {
-            string capsBase = "/CAPS/" + m_capsObjectPath;
+            DeregisterHandlers();
+            
+            string capsBase = "/CAPS/" + m_capsObjectPath;                        
             
             try
-            {
-                m_httpListener.RemoveStreamHandler("POST", capsBase + m_mapLayerPath);
+            {                
                 m_httpListener.AddStreamHandler(
-                    new LLSDStreamhandler<LLSDMapRequest, LLSDMapLayerResponse>("POST", capsBase + m_mapLayerPath,
-                                                                                GetMapLayer));
-                
-                m_httpListener.RemoveStreamHandler("POST", capsBase + m_newInventory);                
+                    new LLSDStreamhandler<LLSDMapRequest, LLSDMapLayerResponse>("POST", capsBase + m_mapLayerPath, GetMapLayer));                
                 m_httpListener.AddStreamHandler(
                     new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDAssetUploadResponse>("POST",
                                                                                            capsBase + m_newInventory,
                                                                                            NewAgentInventoryRequest));
-
+                
                // m_httpListener.AddStreamHandler(
                  //  new LLSDStreamhandler<LLSDFetchInventoryDescendents, LLSDInventoryDescendents>("POST",
               //                                                                            capsBase + m_fetchInventory,
@@ -147,14 +144,35 @@ namespace OpenSim.Region.Capabilities
             }
         }
 
+        /// <summary>
+        /// Remove all CAPS service handlers.
+        /// 
+        /// FIXME: Would be much nicer to remove and all paths to a single list.  However, this is a little awkward
+        /// than it could be as we set up some handlers differently (legacy and non-legacy)
+        /// </summary>
+        /// <param name="httpListener"></param>
+        /// <param name="path"></param>
+        /// <param name="restMethod"></param>
+        public void DeregisterHandlers()
+        {
+            string capsBase = "/CAPS/" + m_capsObjectPath;            
+            
+            m_httpListener.RemoveStreamHandler("POST", capsBase + m_mapLayerPath);                            
+            m_httpListener.RemoveStreamHandler("POST", capsBase + m_newInventory);
+            m_httpListener.RemoveStreamHandler("POST", capsBase + m_requestPath);
+            m_httpListener.RemoveStreamHandler("POST", capsBase + m_parcelVoiceInfoRequestPath);
+            m_httpListener.RemoveStreamHandler("POST", capsBase + m_provisionVoiceAccountRequestPath);
+            m_httpListener.RemoveStreamHandler("POST", capsBase + m_notecardUpdatePath);
+            m_httpListener.RemoveStreamHandler("POST", capsBase + m_notecardTaskUpdatePath);
+            m_httpListener.RemoveStreamHandler("POST", capsBase + m_fetchInventoryPath);
+        }
 
         //[Obsolete("Use BaseHttpServer.AddStreamHandler(new LLSDStreamHandler( LLSDMethod delegate )) instead.")]
         //Commented out the obsolete as at this time the first caps request can not use the new Caps method 
         //as the sent type is a array and not a map and the deserialising doesn't deal properly with arrays.
         private void AddLegacyCapsHandler(BaseHttpServer httpListener, string path, RestMethod restMethod)
         {
-            string capsBase = "/CAPS/" + m_capsObjectPath;
-            httpListener.RemoveStreamHandler("POST", capsBase + path); 
+            string capsBase = "/CAPS/" + m_capsObjectPath; 
             httpListener.AddStreamHandler(new RestStreamHandler("POST", capsBase + path, restMethod));
         }
 

@@ -1463,7 +1463,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Remove the given presence from the scene.
+        /// Remove the given client from the scene.
         /// </summary>
         /// <param name="agentID"></param>
         public override void RemoveClient(LLUUID agentID)
@@ -1496,6 +1496,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (m_capsHandlers.ContainsKey(agentID))
                     {
+                        m_capsHandlers[agentID].DeregisterHandlers();
                         m_capsHandlers.Remove(agentID);
                     }
                 }
