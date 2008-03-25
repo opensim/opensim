@@ -1260,7 +1260,7 @@ namespace OpenSim.Region.Environment.Scenes
                         returnresult.distance = distance2;
                         returnresult.HitTF = true;
                         returnresult.ipoint = q;
-                        m_log.Info("[FACE]:" + i.ToString());
+                        //m_log.Info("[FACE]:" + i.ToString());
                         //m_log.Info("[POINT]: " + q.ToString());
                         returnresult.normal = normals[i];
 

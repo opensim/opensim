@@ -1087,7 +1087,7 @@ namespace OpenSim.Region.Environment.Scenes
                     EntityIntersection ei = target.TestIntersectionOBB(NewRay, new Quaternion(1,0,0,0));
 
                     // Un-comment out the following line to Get Raytrace results printed to the console.
-                    m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
+                   // m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
                     
                     // If we hit something
                     if (ei.HitTF)
