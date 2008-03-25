@@ -281,22 +281,22 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetDebugPacketOnCurrentScene(int newDebug)
         {
             ForEachCurrentScene(delegate(Scene scene)
-            {
-                List<ScenePresence> scenePresences = scene.GetScenePresences();
+                                {
+                                    List<ScenePresence> scenePresences = scene.GetScenePresences();
 
-                foreach (ScenePresence scenePresence in scenePresences)
-                {
-                    if (!scenePresence.IsChildAgent)
-                    {
-                        m_log.ErrorFormat("Packet debug for {0} {1} set to {2}",
-                                          scenePresence.Firstname,
-                                          scenePresence.Lastname,
-                                          newDebug);
+                                    foreach (ScenePresence scenePresence in scenePresences)
+                                    {
+                                        if (!scenePresence.IsChildAgent)
+                                        {
+                                            m_log.ErrorFormat("Packet debug for {0} {1} set to {2}",
+                                                              scenePresence.Firstname,
+                                                              scenePresence.Lastname,
+                                                              newDebug);
 
-                        scenePresence.ControllingClient.SetDebug(newDebug);
-                    }
-                }
-            });
+                                            scenePresence.ControllingClient.SetDebug(newDebug);
+                                        }
+                                    }
+                                });
         }
 
         public List<ScenePresence> GetCurrentSceneAvatars()

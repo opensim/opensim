@@ -45,13 +45,13 @@ namespace OpenSim.Grid.GridServer
     {
         protected GridConfig m_config;
         protected GridManager m_gridManager;
-		protected BaseHttpServer httpServer;
+        protected BaseHttpServer httpServer;
         protected List<IGridPlugin> m_plugins = new List<IGridPlugin>();
 
         public BaseHttpServer HttpServer
-		{
-			get { return httpServer; }
-		}
+        {
+            get { return httpServer; }
+        }
 
         public void Work()
         {
@@ -63,7 +63,7 @@ namespace OpenSim.Grid.GridServer
             }
         }
 
-        public GridServerBase( )
+        public GridServerBase()
         {
             m_console = new ConsoleBase("OpenGrid", this);
             MainConsole.Instance = m_console;
@@ -137,7 +137,6 @@ namespace OpenSim.Grid.GridServer
                 m_plugins.Add(plugin);
             }
         }
-		
 
         protected virtual void SetupGridManager()
         {

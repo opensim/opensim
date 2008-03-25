@@ -2689,7 +2689,6 @@ namespace OpenSim.Region.ClientStack
                 {
                     AddAck(Pack); // this adds the need to ack this packet later
 
-
                     if (Pack.Type != PacketType.PacketAck && Pack.Type != PacketType.LogoutRequest)
                     {
                         SetPendingAcks(ref Pack);
@@ -2727,7 +2726,7 @@ namespace OpenSim.Region.ClientStack
 
         public virtual void InPacket(Packet NewPack)
         {
-            if(!m_packetProcessingEnabled && NewPack.Type != PacketType.LogoutRequest)
+            if (!m_packetProcessingEnabled && NewPack.Type != PacketType.LogoutRequest)
             {
                 PacketPool.Instance.ReturnPacket(NewPack);
                 return;
