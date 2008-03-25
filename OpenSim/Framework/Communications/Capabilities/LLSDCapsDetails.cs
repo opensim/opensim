@@ -40,8 +40,10 @@ namespace OpenSim.Region.Capabilities
         public string UpdateNotecardAgentInventory = String.Empty;
         public string UpdateScriptAgentInventory = String.Empty;
         public string UpdateScriptTaskInventory = String.Empty;
-        // public string ParcelVoiceInfoRequest = String.Empty;
+        public string ParcelVoiceInfoRequest = String.Empty;
         public string FetchInventoryDescendents = String.Empty;
+        public string ProvisionVoiceAccountRequest = String.Empty;
+
 
         public LLSDCapsDetails()
         {

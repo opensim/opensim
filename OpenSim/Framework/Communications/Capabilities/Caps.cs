@@ -75,6 +75,8 @@ namespace OpenSim.Region.Capabilities
         private string m_notecardUpdatePath = "0004/";
         private string m_notecardTaskUpdatePath = "0005/";
         private string m_fetchInventoryPath = "0006/";
+        private string m_parcelVoiceInfoRequestPath = "0007/";
+        private string m_provisionVoiceAccountRequestPath = "0008/";
 
         //private string eventQueue = "0100/";
         private BaseHttpServer m_httpListener;
@@ -133,6 +135,8 @@ namespace OpenSim.Region.Capabilities
 
                 AddLegacyCapsHandler(m_httpListener, m_requestPath, CapsRequest);
                 //AddLegacyCapsHandler(m_httpListener, m_requestTexture , RequestTexture);
+                AddLegacyCapsHandler(m_httpListener, m_parcelVoiceInfoRequestPath, ParcelVoiceInfoRequest);
+                AddLegacyCapsHandler(m_httpListener, m_provisionVoiceAccountRequestPath, ProvisionVoiceAccountRequest);
                 AddLegacyCapsHandler(m_httpListener, m_notecardUpdatePath, NoteCardAgentInventory);
                 AddLegacyCapsHandler(m_httpListener, m_notecardTaskUpdatePath, ScriptTaskInventory);
                 AddLegacyCapsHandler(m_httpListener, m_fetchInventoryPath, FetchInventoryRequest);
@@ -184,6 +188,9 @@ namespace OpenSim.Region.Capabilities
             caps.UpdateScriptAgentInventory = capsBaseUrl + m_notecardUpdatePath;
             caps.UpdateScriptTaskInventory = capsBaseUrl + m_notecardTaskUpdatePath;
             caps.FetchInventoryDescendents = capsBaseUrl + m_fetchInventoryPath;
+            caps.ParcelVoiceInfoRequest = capsBaseUrl + m_parcelVoiceInfoRequestPath;
+            caps.ProvisionVoiceAccountRequest = capsBaseUrl + m_provisionVoiceAccountRequestPath;
+
             return caps;
         }
 
@@ -411,6 +418,98 @@ namespace OpenSim.Region.Capabilities
             return null;
         }
 
+
+        public string ParcelVoiceInfoRequest(string request, string path, string param)
+        {
+            try
+            {
+                m_log.DebugFormat("[CAPS]: request: {0}, path: {1}, param: {2}", request, path, param);
+
+                //Hashtable hash = (Hashtable)LLSD.LLSDDeserialize(Helpers.StringToField(request));
+                //LLSDTaskScriptUpdate llsdUpdateRequest = new LLSDTaskScriptUpdate();
+                //LLSDHelpers.DeserialiseLLSDMap(hash, llsdUpdateRequest);
+
+                //string capsBase = "/CAPS/" + m_capsObjectPath;
+                //string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
+
+                //TaskInventoryScriptUpdater uploader =
+                    //new TaskInventoryScriptUpdater(
+                        //llsdUpdateRequest.item_id,
+                        //llsdUpdateRequest.task_id,
+                        //llsdUpdateRequest.is_script_running,
+                        //capsBase + uploaderPath,
+                        //m_httpListener,
+                        //m_dumpAssetsToFile);
+                //uploader.OnUpLoad += TaskScriptUpdated;
+
+                //m_httpListener.AddStreamHandler(
+                    //new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
+                //string uploaderURL = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + capsBase +
+                                     //uploaderPath;
+
+                //LLSDAssetUploadResponse uploadResponse = new LLSDAssetUploadResponse();
+                //uploadResponse.uploader = uploaderURL;
+                //uploadResponse.state = "upload";
+
+                //                m_log.InfoFormat("[CAPS]: " +
+                //                                 "ScriptTaskInventory response: {0}",
+                //                                 LLSDHelpers.SerialiseLLSDReply(uploadResponse)));
+
+                return LLSDHelpers.SerialiseLLSDReply("<llsd><map><key>parcel_local_id</key><integer>16</integer><key>region_name</key><string>Limbo</string><key>voice_credentials</key><map><key>channel_uri</key><string>sip:confctl-49730-1@bhr.vivox.com</string></map></map></llsd>");
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[CAPS]: " + e.ToString());
+            }
+
+            return null;
+        }
+
+        public string ProvisionVoiceAccountRequest(string request, string path, string param)
+        {
+            try
+            {
+                m_log.DebugFormat("[CAPS]: request: {0}, path: {1}, param: {2}", request, path, param);
+
+                //Hashtable hash = (Hashtable)LLSD.LLSDDeserialize(Helpers.StringToField(request));
+                //LLSDTaskScriptUpdate llsdUpdateRequest = new LLSDTaskScriptUpdate();
+                //LLSDHelpers.DeserialiseLLSDMap(hash, llsdUpdateRequest);
+
+                //string capsBase = "/CAPS/" + m_capsObjectPath;
+                //string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
+
+                //TaskInventoryScriptUpdater uploader =
+                //new TaskInventoryScriptUpdater(
+                //llsdUpdateRequest.item_id,
+                //llsdUpdateRequest.task_id,
+                //llsdUpdateRequest.is_script_running,
+                //capsBase + uploaderPath,
+                //m_httpListener,
+                //m_dumpAssetsToFile);
+                //uploader.OnUpLoad += TaskScriptUpdated;
+
+                //m_httpListener.AddStreamHandler(
+                //new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
+                //string uploaderURL = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + capsBase +
+                //uploaderPath;
+
+                //LLSDAssetUploadResponse uploadResponse = new LLSDAssetUploadResponse();
+                //uploadResponse.uploader = uploaderURL;
+                //uploadResponse.state = "upload";
+
+                //                m_log.InfoFormat("[CAPS]: " +
+                //                                 "ScriptTaskInventory response: {0}",
+                //                                 LLSDHelpers.SerialiseLLSDReply(uploadResponse)));
+
+                return LLSDHelpers.SerialiseLLSDReply("<llsd><map><key>events</key><array><map><key>body</key><map><key>major_version</key><integer>1</integer><key>minor_version</key><integer>0</integer><key>region_name</key><string>Cathedral</string></map><key>message</key><string>RequiredVoiceVersion</string></map></array><key>id</key><integer>152477222</integer></map></llsd>");
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[CAPS]: " + e.ToString());
+            }
+
+            return null;
+        }
         /// <summary>
         /// Called by the notecard update handler.  Provides a URL to which the client can upload a new asset.
         /// </summary>
