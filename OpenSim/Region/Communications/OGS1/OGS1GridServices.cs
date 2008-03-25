@@ -233,7 +233,7 @@ namespace OpenSim.Region.Communications.OGS1
                         }
                         catch (SocketException e)
                         {
-                            m_log.WarnFormat("RequestNeighbours(): Lookup of neighbour {0} failed!  Not including in neighbours list");
+                            m_log.WarnFormat("RequestNeighbours(): Lookup of neighbour {0} failed!  Not including in neighbours list.  {1}", simIp, e);
                             continue;
                         }
                         

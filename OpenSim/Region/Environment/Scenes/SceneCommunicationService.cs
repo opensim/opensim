@@ -288,11 +288,12 @@ namespace OpenSim.Region.Environment.Scenes
                     catch (Exception e)
                     {
                         m_log.ErrorFormat(
-                            "[REGIONINFO]: Could not resolve external hostname {0} for region {1} ({2}, {3})", 
+                            "[REGIONINFO]: Could not resolve external hostname {0} for region {1} ({2}, {3}).  {4}", 
                             neighbours[i].ExternalHostName, 
                             neighbours[i].RegionHandle, 
                             neighbours[i].RegionLocX, 
-                            neighbours[i].RegionLocY);
+                            neighbours[i].RegionLocY,
+                            e);
                                                 
                         // FIXME: Okay, even though we've failed, we're still going to throw the exception on,
                         // since I don't know what will happen if we just let the client continue
