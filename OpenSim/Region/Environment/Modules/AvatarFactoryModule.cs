@@ -32,7 +32,7 @@ using libsecondlife;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Data;
+using OpenSim.Framework.Data.MySQLMapper;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Data.Base;

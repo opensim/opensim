@@ -55,8 +55,8 @@ namespace OpenSim.Region.Examples.SimpleModule
             LLVector3 pos = new LLVector3(110, 129, 27);
 
             AddCpuCounter(regionInfo, pos);
-            AddComplexObjects(regionInfo, pos);
-            AddAvatars();
+          //  AddComplexObjects(regionInfo, pos);
+           // AddAvatars();
             AddFileSystemObjects();
         }
 
@@ -79,6 +79,7 @@ namespace OpenSim.Region.Examples.SimpleModule
 
                 FileSystemObject fileObject = new FileSystemObject(m_scene, fileInfo, filePos);
                 m_scene.AddEntity(fileObject);
+                fileObject.ScheduleGroupForFullUpdate();
             }
         }
 

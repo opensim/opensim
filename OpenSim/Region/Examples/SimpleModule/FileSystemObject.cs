@@ -38,7 +38,6 @@ namespace OpenSim.Region.Examples.SimpleModule
             : base(world, world.RegionInfo.RegionHandle, LLUUID.Zero, world.NextLocalId, pos, PrimitiveBaseShape.Default)
         {
             Text = fileInfo.Name;
-            ScheduleGroupForFullUpdate();
         }
 
         protected override bool InSceneBackup

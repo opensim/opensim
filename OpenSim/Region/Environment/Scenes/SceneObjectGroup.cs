@@ -1360,8 +1360,8 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
-                part.Text = text;
-            }
+                part.SetText( text );
+            }            
         }
 
         public void SetPartText(string text, LLUUID partID)
@@ -1369,7 +1369,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = GetChildPart(partID);
             if (part != null)
             {
-                part.Text = text;
+                part.SetText( text );
             }
         }
 
@@ -1905,12 +1905,6 @@ namespace OpenSim.Region.Environment.Scenes
             return null;
         }
 
-        public void UpdateText(string text)
-        {
-            m_rootPart.Text = text;
-            m_rootPart.ScheduleTerseUpdate();
-        }
-
         public void ObjectGrabHandler(uint localId, LLVector3 offsetPos, IClientAPI remoteClient)
         {
             if (m_rootPart.LocalId == localId)
@@ -1995,6 +1989,8 @@ namespace OpenSim.Region.Environment.Scenes
                                    (int) (color.y*0xff),
                                    (int) (color.z*0xff));
             Text = text;
+
+            m_rootPart.ScheduleFullUpdate();
         }
 
         public void ApplyPhysics(bool m_physicalPrim)

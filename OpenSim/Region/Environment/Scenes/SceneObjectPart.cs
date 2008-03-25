@@ -509,7 +509,6 @@ namespace OpenSim.Region.Environment.Scenes
             set
             {
                 m_text = value;
-                ScheduleFullUpdate();
             }
         }
 
@@ -2289,13 +2288,20 @@ namespace OpenSim.Region.Environment.Scenes
         {
         }
 
+
+        public void SetText(string text)
+        {
+            Text = text;
+            ScheduleFullUpdate();
+        }
+
         public void SetText(string text, Vector3 color, double alpha)
         {
             Color = Color.FromArgb(0xff - (int) (alpha*0xff),
                                    (int) (color.x*0xff),
                                    (int) (color.y*0xff),
                                    (int) (color.z*0xff));
-            Text = text;
+            SetText( text );
         }
 
         protected SceneObjectPart(SerializationInfo info, StreamingContext context)
@@ -2411,5 +2417,6 @@ namespace OpenSim.Region.Environment.Scenes
             info.AddValue("m_shape", m_shape);
             info.AddValue("m_parentGroup", m_parentGroup);
         }
+
     }
 }

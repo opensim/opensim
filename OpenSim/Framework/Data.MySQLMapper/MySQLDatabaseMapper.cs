@@ -27,10 +27,9 @@
 
 using System.Data.Common;
 using MySql.Data.MySqlClient;
- 
-namespace OpenSim.Framework.Data.MySQL
+
+namespace OpenSim.Framework.Data.MySQLMapper
 {
-    /*
     public class MySQLDatabaseMapper : OpenSimDatabaseConnector
     {
         public MySQLDatabaseMapper(string connectionString)
@@ -48,5 +47,5 @@ namespace OpenSim.Framework.Data.MySQL
         {
             return "?" + fieldName;
         }
-    }*/
+    }
 }
