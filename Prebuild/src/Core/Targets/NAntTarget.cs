@@ -284,6 +284,11 @@ namespace Prebuild.Core.Targets
                 }
                 foreach (ConfigurationNode conf in project.Configurations)
                 {
+                    ss.Write(" warnaserror=\"{0}\"", conf.Options.WarningsAsErrors);
+                    break;
+                }
+                foreach (ConfigurationNode conf in project.Configurations)
+                {
                     ss.Write(" define=\"{0}\"", conf.Options.CompilerDefines);
                     break;
                 }

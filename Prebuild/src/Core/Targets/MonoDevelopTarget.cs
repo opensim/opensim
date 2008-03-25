@@ -245,7 +245,7 @@ namespace Prebuild.Core.Targets
 					ss.WriteLine(" />");
 					
 					ss.Write("      <Execution");
-					ss.Write(" runwithwarnings=\"True\"");
+					ss.Write(" runwithwarnings=\"{0}\"", !conf.Options.WarningsAsErrors);
 					ss.Write(" consolepause=\"True\"");
 					ss.Write(" runtime=\"{0}\"", netRuntime);
                     ss.Write(" clr-version=\"Net_2_0\"");
