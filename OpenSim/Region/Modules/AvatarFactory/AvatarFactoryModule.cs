@@ -25,7 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -38,9 +37,8 @@ using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Data.Base;
 
-namespace OpenSim.Region.Environment.Modules
+namespace OpenSim.Region.Modules.AvatarFactory
 {
-    /*
     public class AvatarFactoryModule : IAvatarFactory
     {
         private Scene m_scene = null;
@@ -336,4 +334,4 @@ namespace OpenSim.Region.Environment.Modules
             return visualParams;
         }
     }
-}*/
+}

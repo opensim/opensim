@@ -114,15 +114,15 @@ namespace OpenSim.Region.Environment
                 m_loadedSharedModules.Add(loadMod.Name, loadMod);
             }
 
-            AvatarFactoryModule avatarFactory = new AvatarFactoryModule();
-            if (m_loadedSharedModules.ContainsKey(avatarFactory.Name))
-            {
-                m_log.ErrorFormat("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", avatarFactory.Name, "AvarFactoryModule");
-            }
-            else
-            {
-                m_loadedSharedModules.Add(avatarFactory.Name, avatarFactory);
-            }
+           // AvatarFactoryModule avatarFactory = new AvatarFactoryModule();
+           // if (m_loadedSharedModules.ContainsKey(avatarFactory.Name))
+           // {
+           //     m_log.ErrorFormat("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", avatarFactory.Name, "AvarFactoryModule");
+           // }
+           // else
+           // {
+           //     m_loadedSharedModules.Add(avatarFactory.Name, avatarFactory);
+           // }
 
             XMLRPCModule xmlRpcMod = new XMLRPCModule();
             if (m_loadedSharedModules.ContainsKey(xmlRpcMod.Name))

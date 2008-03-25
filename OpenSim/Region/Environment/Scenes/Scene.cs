@@ -1461,7 +1461,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_log.Warn("[AVATAR DEBUGGING]: Couldn't fetch avatar appearance from factory, please report this to the opensim mantis");
                 byte[] visualParams;
                 AvatarWearable[] wearables;
-                AvatarFactoryModule.GetDefaultAvatarAppearance(out wearables, out visualParams);
+                GetDefaultAvatarAppearance(out wearables, out visualParams);
                 appearance = new AvatarAppearance(client.AgentId, wearables, visualParams);
             }
         }
@@ -2722,6 +2722,26 @@ namespace OpenSim.Region.Environment.Scenes
             m_httpListener.RemoveHTTPHandler(httpMethod, path);
         }
 
+        #endregion
+
+        #region Avatar Appearance Default
+
+        public static void GetDefaultAvatarAppearance(out AvatarWearable[] wearables, out byte[] visualParams)
+        {
+            visualParams = GetDefaultVisualParams();
+            wearables = AvatarWearable.DefaultWearables;
+        }
+
+        private static byte[] GetDefaultVisualParams()
+        {
+            byte[] visualParams;
+            visualParams = new byte[218];
+            for (int i = 0; i < 218; i++)
+            {
+                visualParams[i] = 100;
+            }
+            return visualParams;
+        }
         #endregion
     }
 }

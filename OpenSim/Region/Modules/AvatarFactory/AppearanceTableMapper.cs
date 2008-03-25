@@ -24,16 +24,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*using System;
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework;
 using OpenSim.Framework.Data.Base;
 
-namespace OpenSim.Region.Environment.Modules
+namespace OpenSim.Region.Modules.AvatarFactory
 {
-    /*
     public class AppearanceRowMapper : BaseRowMapper<AvatarAppearance>
     {
         public AppearanceRowMapper(BaseSchema schema, AvatarAppearance obj)
@@ -239,5 +239,4 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
     }
-     
-}*/
+}
