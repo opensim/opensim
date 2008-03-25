@@ -522,9 +522,6 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             {
                 actor.Move(timeStep);
             }
-            foreach (BulletXPrim prim in _prims.Values)
-            {
-            }
         }
 
         private void ValidateHeightForAll()

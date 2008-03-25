@@ -39,8 +39,6 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
     /// </summary>
     class Terragen : ITerrainLoader
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
         #region ITerrainLoader Members
 
         public ITerrainChannel LoadFile(string filename)

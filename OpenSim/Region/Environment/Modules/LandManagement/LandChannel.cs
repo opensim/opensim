@@ -595,7 +595,7 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
                                 byteArray = new byte[LAND_BLOCKS_PER_PACKET];
                             }
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
                             //m_log.Debug("[LAND]: Skipped Land checks because avatar is out of bounds: " + e.Message);
                         }
