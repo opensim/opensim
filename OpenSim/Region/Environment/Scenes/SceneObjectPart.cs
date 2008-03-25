@@ -953,7 +953,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             // Normal is calculated by the difference and then normalizing the result
             Vector3 normalpart = ipoint - vAbsolutePosition;
-            returnresult.normal = normalpart.Normalize();
+            returnresult.normal = normalpart / normalpart.Length;
 
             // It's funny how the LLVector3 object has a Distance function, but the Axiom.Math object doesnt.
             // I can write a function to do it..    but I like the fact that this one is Static.
@@ -1261,7 +1261,7 @@ namespace OpenSim.Region.Environment.Scenes
                         returnresult.HitTF = true;
                         returnresult.ipoint = q;
                         //m_log.Info("[POINT]: " + q.ToString());
-                        returnresult.normal = 1;
+                        returnresult.normal = normals[i];
 
                     }
                 }

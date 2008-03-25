@@ -455,7 +455,7 @@ namespace OpenSim.Region.Capabilities
                 //                                 "ScriptTaskInventory response: {0}",
                 //                                 LLSDHelpers.SerialiseLLSDReply(uploadResponse)));
 
-                return LLSDHelpers.SerialiseLLSDReply("<llsd><map><key>parcel_local_id</key><integer>16</integer><key>region_name</key><string>Limbo</string><key>voice_credentials</key><map><key>channel_uri</key><string>sip:confctl-49730-1@bhr.vivox.com</string></map></map></llsd>");
+                return LLSDHelpers.SerialiseLLSDReply("<llsd><map><key>parcel_local_id</key><integer>16</integer><key>region_name</key><string>Teravus Test</string><key>voice_credentials</key><map><key>channel_uri</key><string>sip:conference@192.168.1.127\nsip:user@192.168.1.127</string></map></map></llsd>");
             }
             catch (Exception e)
             {
@@ -501,7 +501,7 @@ namespace OpenSim.Region.Capabilities
                 //                                 "ScriptTaskInventory response: {0}",
                 //                                 LLSDHelpers.SerialiseLLSDReply(uploadResponse)));
 
-                return LLSDHelpers.SerialiseLLSDReply("<llsd><map><key>events</key><array><map><key>body</key><map><key>major_version</key><integer>1</integer><key>minor_version</key><integer>0</integer><key>region_name</key><string>Cathedral</string></map><key>message</key><string>RequiredVoiceVersion</string></map></array><key>id</key><integer>152477222</integer></map></llsd>");
+                return LLSDHelpers.SerialiseLLSDReply("<llsd><map><key>events</key><array><map><key>body</key><map><key>major_version</key><integer>1</integer><key>minor_version</key><integer>0</integer><key>region_name</key><string>Teravus Test</string></map><key>message</key><string>RequiredVoiceVersion</string></map></array><key>id</key><integer>152477222</integer></map></llsd>");
             }
             catch (Exception e)
             {

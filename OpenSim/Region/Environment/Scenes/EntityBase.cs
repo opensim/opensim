@@ -228,7 +228,7 @@ namespace OpenSim.Region.Environment.Scenes
     public class EntityIntersection
     {
         public Vector3 ipoint = new Vector3(0, 0, 0);
-        public float normal = 0;
+        public Vector3 normal = new Vector3(0, 0, 0);
         public bool HitTF = false;
         public SceneObjectPart obj;
         public float distance = 0;
@@ -237,7 +237,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
         }
 
-        public EntityIntersection(Vector3 _ipoint, float _normal, bool _HitTF)
+        public EntityIntersection(Vector3 _ipoint, Vector3 _normal, bool _HitTF)
         {
             ipoint = _ipoint;
             normal = _normal;
