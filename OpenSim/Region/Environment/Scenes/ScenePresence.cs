@@ -1618,12 +1618,17 @@ namespace OpenSim.Region.Environment.Scenes
             ulong neighbourHandle = Helpers.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
             SimpleRegionInfo neighbourRegion = m_scene.RequestNeighbouringRegionInfo(neighbourHandle);
             if (neighbourRegion != null)
-            {
+            {       
+                // When the neighbour is informed of the border crossing, it will set up CAPS handlers for the avatar
+                // This means we need to remove the current caps handler here and possibly compensate later, 
+                // in case both scenes are being hosted on the same region server.  Messy
+                m_scene.RemoveCapsHandler(UUID);                
+                
                 bool res =
                     m_scene.InformNeighbourOfCrossing(neighbourHandle, m_controllingClient.AgentId, newpos,
                                                       m_physicsActor.Flying);
                 if (res)
-                {
+                {                                        
                     AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
 
                     // TODO Should construct this behind a method                   
@@ -1632,13 +1637,17 @@ namespace OpenSim.Region.Environment.Scenes
                          + "/CAPS/" + circuitdata.CapsPath + "0000/";
                     
                     m_log.DebugFormat(
-                        "[CONNECTION DEBUGGING]: Sending new CAPS seed url {0} to avatar {1}", capsPath, m_uuid);
+                        "[CONNECTION DEBUGGING]: Sending new CAPS seed url {0} to avatar {1}", capsPath, m_uuid);                                        
                     
                     m_controllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint,
                                                     capsPath);
                     MakeChildAgent();
                     m_scene.SendKillObject(m_localId);
                     m_scene.NotifyMyCoarseLocationChange();
+                }
+                else
+                {
+                    m_scene.AddCapsHandler(UUID);
                 }
             }
         }

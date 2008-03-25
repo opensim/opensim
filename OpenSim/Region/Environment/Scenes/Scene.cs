@@ -1498,11 +1498,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     m_sceneGridService.SendCloseChildAgentConnections(agentID, childknownRegions);
 
-                    if (m_capsHandlers.ContainsKey(agentID))
-                    {
-                        m_capsHandlers[agentID].DeregisterHandlers();
-                        m_capsHandlers.Remove(agentID);
-                    }
+                    RemoveCapsHandler(agentID);
                 }
 
                 m_eventManager.TriggerClientClosed(agentID);
@@ -1717,8 +1713,8 @@ namespace OpenSim.Region.Environment.Scenes
             String capsObjectPath = GetCapsPath(agentId);                
                 
             m_log.DebugFormat(
-                "[CONNECTION DEBUGGING]: Setting up CAPS handler for avatar {0} at {1} in {2}",
-                agentId, capsObjectPath, RegionInfo.RegionName);
+                "[CONNECTION DEBUGGING]: Setting up CAPS handler for avatar {0} in {1}",
+                agentId, RegionInfo.RegionName);
                 
             Caps cap =
                 new Caps(AssetCache, m_httpListener, m_regInfo.ExternalHostName, m_httpListener.Port,
@@ -1733,6 +1729,29 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_capsHandlers[agentId] = cap;
         } 
+
+        /// <summary>
+        /// Remove the caps handler for a given agent.
+        /// </summary>
+        /// <param name="agentId"></param>
+        public void RemoveCapsHandler(LLUUID agentId)
+        {
+            if (m_capsHandlers.ContainsKey(agentId))
+            {
+                m_log.DebugFormat(
+                    "[CONNECTION DEBUGGING]: Removing CAPS handler for root agent {0} in {1}", 
+                    agentId, RegionInfo.RegionName);
+                
+                m_capsHandlers[agentId].DeregisterHandlers();
+                m_capsHandlers.Remove(agentId);
+            }
+            else
+            {
+                m_log.WarnFormat(
+                    "[CONNECTION DEBUGGING]: Received request to remove CAPS handler for root agent {0} in {1}, but no such CAPS handler found!",
+                    agentId, RegionInfo.RegionName);
+            }
+        }
 
         /// <summary>
         /// 

@@ -547,6 +547,12 @@ namespace OpenSim.Region.Environment.Scenes
                     if(destRegionUp)
                     {
                         avatar.Close();
+                        
+                        // Compared to ScenePresence.CrossToNewRegion(), there's no obvious code to handle a teleport 
+                        // failure at this point (unlike a border crossing failure).  So perhaps this can never fail
+                        // once we reach here...
+                        avatar.Scene.RemoveCapsHandler(avatar.UUID);
+                        
                         m_commsProvider.InterRegion.InformRegionOfChildAgent(regionHandle, agent);
                         m_commsProvider.InterRegion.ExpectAvatarCrossing(regionHandle, avatar.ControllingClient.AgentId,
                                                                      position, false);
@@ -555,7 +561,10 @@ namespace OpenSim.Region.Environment.Scenes
                         // TODO Should construct this behind a method
                         string capsPath = 
                             "http://" + reg.ExternalHostName + ":" + reg.HttpPort 
-                            + "/CAPS/" + circuitdata.CapsPath + "0000/";    
+                            + "/CAPS/" + circuitdata.CapsPath + "0000/";  
+                        
+                        m_log.DebugFormat(
+                            "[CONNECTION DEBUGGING]: Sending new CAPS seed url {0} to avatar {1}", capsPath, avatar.UUID);                        
                         
                         avatar.ControllingClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4),
                                                                     capsPath);
