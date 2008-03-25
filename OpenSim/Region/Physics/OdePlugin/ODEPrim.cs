@@ -46,11 +46,17 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector m_rotationalVelocity;
         private PhysicsVector _size;
         private PhysicsVector _acceleration;
+        private d.Vector3 _zeroPosition = new d.Vector3(0.0f, 0.0f, 0.0f);
         private Quaternion _orientation;
         private PhysicsVector m_taintposition;
         private PhysicsVector m_taintsize;
         private PhysicsVector m_taintVelocity = PhysicsVector.Zero;
         private Quaternion m_taintrot;
+
+        private PhysicsVector m_PIDTarget = new PhysicsVector(0, 0, 0);
+        private float m_PIDTau = 0f;
+        private bool m_usePID = false;
+
         private const CollisionCategories m_default_collisionFlags = (CollisionCategories.Geom
                                                         | CollisionCategories.Space
                                                         | CollisionCategories.Body
@@ -1079,31 +1085,138 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void Move(float timestep)
         {
+            float fx = 0;
+            float fy = 0;
+            float fz = 0;
 
             if (IsPhysical && Body != (IntPtr)0 && !m_isSelected)
             {
+                float PID_D = 2200.0f;
+                float PID_P = 900.0f;
+                
+                
                 float m_mass = CalculateMass();
+                
+                fz = 0f;
                     //m_log.Info(m_collisionFlags.ToString());
+
+               
+
+
                 if (m_buoyancy != 0)
                 {
-                    float buoyancy = 0f;
+                    
                     if (m_buoyancy > 0)
                     {
-                         buoyancy = ((9.8f * m_buoyancy) * m_mass);
+                         fz = ((9.8f * m_buoyancy) * m_mass);
                          
                         //d.Vector3 l_velocity = d.BodyGetLinearVel(Body);
                         //m_log.Info("Using Buoyancy: " + buoyancy + " G: " + (9.8f * m_buoyancy) + "mass:" + m_mass + "  Pos: " + Position.ToString());
                     }
                     else 
                     {
-                        buoyancy = (-1 * ((9.8f * (-1 * m_buoyancy)) * m_mass));
+                        fz = (-1 * ((9.8f * (-1 * m_buoyancy)) * m_mass));
                     }
-                    d.BodyAddForce(Body, 0, 0, buoyancy);
+                    
 
+                }
+
+                if (m_usePID)
+                {
+
+                    // If we're using the PID controller, then we have no gravity             
+                    fz = ((9.8f) * this.Mass );
+
+                    //  no lock; for now it's only called from within Simulate()
+
+                    // If the PID Controller isn't active then we set our force 
+                    // calculating base velocity to the current position
+                    if (System.Environment.OSVersion.Platform == PlatformID.Unix)
+                    {
+                        PID_D = 3200.0f;
+                        PID_P = 1400.0f;
+                    }
+                    else
+                    {
+                        PID_D = 2200.0f;
+                        PID_P = 900.0f;
+                    }
+                    PID_D = 1.0f;
+                    PID_P = 1.0f;
+
+                    
+                    //PidStatus = true;
+
+                    PhysicsVector vec = new PhysicsVector();
+                    d.Vector3 vel = d.BodyGetLinearVel(Body);
+                    
+
+                    d.Vector3 pos = d.BodyGetPosition(Body);
+                    _target_velocity = 
+                        new PhysicsVector(
+                            (m_PIDTarget.X - pos.X) / m_PIDTau,
+                            (m_PIDTarget.Y - pos.Y) / m_PIDTau, 
+                            (m_PIDTarget.Z - pos.Z) / m_PIDTau
+                            );
+
+
+                    //  if velocity is zero, use position control; otherwise, velocity control
+                    
+                    if (_target_velocity.IsIdentical(PhysicsVector.Zero,0.1f))
+                    {
+                        //  keep track of where we stopped.  No more slippin' & slidin'
+                        
+                       
+                        // We only want to deactivate the PID Controller if we think we want to have our surrogate
+                        // react to the physics scene by moving it's position.
+                        // Avatar to Avatar collisions
+                        // Prim to avatar collisions
+
+                        
+                        //fx = (_target_velocity.X - vel.X) * (PID_D) + (_zeroPosition.X - pos.X) * (PID_P * 2);
+                        //fy = (_target_velocity.Y - vel.Y) * (PID_D) + (_zeroPosition.Y - pos.Y) * (PID_P * 2);
+                        //fz = fz + (_target_velocity.Z - vel.Z) * (PID_D) + (_zeroPosition.Z - pos.Z) * PID_P;
+                        d.BodySetPosition(Body, m_PIDTarget.X, m_PIDTarget.Y, m_PIDTarget.Z);
+                        d.BodySetLinearVel(Body, 0, 0, 0);
+                        d.BodyAddForce(Body, 0, 0, fz);
+                        return;
+
+                    }
+                    else
+                    {
+                       
+                        _zeroFlag = false;
+                        
+                        // We're flying and colliding with something
+                        fx = ((_target_velocity.X / m_PIDTau) - vel.X) * (PID_D / 6);
+                        fy = ((_target_velocity.Y / m_PIDTau) - vel.Y) * (PID_D / 6);
+                    
+
+                   
+                        
+                       // vec.Z = (_target_velocity.Z - vel.Z) * PID_D + (_zeroPosition.Z - pos.Z) * PID_P;
+
+                        fz = fz + ((_target_velocity.Z - vel.Z) * (PID_D) * m_mass);
+                    }
+
+                } 
+
+                fx *= m_mass;
+                fy *= m_mass;
+                //fz *= m_mass;
+                
+                //m_log.Info("[OBJPID]: X:" + fx.ToString() + " Y:" + fy.ToString() + " Z:" + fz.ToString());
+                if (fx != 0 || fy != 0 || fz != 0)
+                {
+                    //m_taintdisable = true;
+                    //base.RaiseOutOfBounds(Position);
+                    //d.BodySetLinearVel(Body, fx, fy, 0f);
+                    d.BodyAddForce(Body, fx, fy, fz);
                 }
             }
             else
             {
+                _zeroPosition = d.BodyGetPosition(Body);
                 return;
             }
         }
@@ -1952,5 +2065,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override void SetMomentum(PhysicsVector momentum)
         {
         }
+        public override PhysicsVector PIDTarget { set { m_PIDTarget = value; ; } }
+        public override bool PIDActive { set { m_usePID = value; } }
+        public override float PIDTau { set { m_PIDTau = (value * 0.6f); } }
     }
 }

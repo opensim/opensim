@@ -586,6 +586,24 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void MoveToTarget(LLVector3 target, float tau)
+        {
+            if (tau > 0)
+            {
+                m_parentGroup.moveToTarget(target, tau);
+            }
+            else
+            {
+                StopMoveToTarget();
+            }
+
+        }
+
+        public void StopMoveToTarget()
+        {
+            m_parentGroup.stopMoveToTarget();
+        }
+
         public void TriggerScriptChangedEvent(Changed val)
         {
             if (m_parentGroup != null)

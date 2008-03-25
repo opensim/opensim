@@ -180,6 +180,10 @@ namespace OpenSim.Region.Physics.Manager
         public abstract PhysicsVector RotationalVelocity { get; set; }
         public abstract bool Kinematic { get; set; }
         public abstract float Buoyancy { get; set; }
+        public abstract PhysicsVector PIDTarget { set;}
+        public abstract bool PIDActive { set;}
+        public abstract float PIDTau { set; }
+
 
         public abstract void AddForce(PhysicsVector force);
         public abstract void SetMomentum(PhysicsVector momentum);
@@ -343,6 +347,7 @@ namespace OpenSim.Region.Physics.Manager
         {
         }
 
+
         public override void AddForce(PhysicsVector force)
         {
         }
@@ -352,6 +357,10 @@ namespace OpenSim.Region.Physics.Manager
             get { return PhysicsVector.Zero; }
             set { return; }
         }
+
+        public override PhysicsVector PIDTarget { set { return; } }
+        public override bool PIDActive { set { return; } }
+        public override float PIDTau { set { return; } }
 
         public override void SetMomentum(PhysicsVector momentum)
         {

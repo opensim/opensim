@@ -694,6 +694,25 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void moveToTarget(LLVector3 target, float tau)
+        {
+            SceneObjectPart rootpart = m_rootPart;
+            if (rootpart != null)
+            {
+                rootpart.PhysActor.PIDTarget = new PhysicsVector(target.X, target.Y, target.Z);
+                rootpart.PhysActor.PIDTau = tau;
+                rootpart.PhysActor.PIDActive = true;
+            }
+        }
+        public void stopMoveToTarget()
+        {
+            SceneObjectPart rootpart = m_rootPart;
+            if (rootpart != null)
+            {
+                rootpart.PhysActor.PIDActive = false;
+            }
+        }
+
         public void SetRootPartOwner(SceneObjectPart part, LLUUID cAgentID, LLUUID cGroupID)
         {
             part.LastOwnerID = part.OwnerID;
@@ -2019,5 +2038,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+
+        
     }
 }

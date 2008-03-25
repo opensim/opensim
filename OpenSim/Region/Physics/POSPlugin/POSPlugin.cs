@@ -518,6 +518,9 @@ namespace OpenSim.Region.Physics.POSPlugin
         {
 
         }
+        public override PhysicsVector PIDTarget { set { return; } }
+        public override bool PIDActive { set { return; } }
+        public override float PIDTau { set { return; } }
     }
 
     public class POSPrim : PhysicsActor
@@ -711,5 +714,8 @@ namespace OpenSim.Region.Physics.POSPlugin
         public override void CrossingFailure()
         {
         }
+        public override PhysicsVector PIDTarget { set { return; } }
+        public override bool PIDActive { set { return; } }
+        public override float PIDTau { set { return; } }
     }
 }

@@ -852,5 +852,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override void CrossingFailure()
         {
         }
+        public override PhysicsVector PIDTarget { set { return; } }
+        public override bool PIDActive { set { return; } }
+        public override float PIDTau { set { return; } }
     }
 }

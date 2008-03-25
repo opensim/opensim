@@ -1097,13 +1097,15 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llMoveToTarget(LSL_Types.Vector3 target, double tau)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llMoveToTarget");
+            m_host.MoveToTarget(new LLVector3((float)target.x, (float)target.y, (float)target.z), (float)tau);
+            //NotImplemented("llMoveToTarget");
         }
 
         public void llStopMoveToTarget()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llStopMoveToTarget");
+            m_host.StopMoveToTarget();
+            //NotImplemented("llStopMoveToTarget");
         }
 
         public void llApplyImpulse(LSL_Types.Vector3 force, int local)

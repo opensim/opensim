@@ -992,6 +992,9 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         {
 
         }
+        public override PhysicsVector PIDTarget { set { return; } }
+        public override bool PIDActive { set { return; } }
+        public override float PIDTau { set { return; } }
     }
 
     /// <summary>
