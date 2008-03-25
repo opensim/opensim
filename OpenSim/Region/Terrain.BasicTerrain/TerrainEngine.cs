@@ -310,37 +310,33 @@ namespace OpenSim.Region.Terrain
                 }
             }
 
-
             lastEdit = DateTime.Now;
 
             return;
         }
 
-        
-
-
-        /// <summary>
-        /// Checks to make sure the terrain is within baked values +/- maxRaise/minLower
-        /// </summary>
-        private void SetTerrainWithinBounds()
-        {
-            int x, y;
-            for (x = 0; x < w; x++)
-            {
-                for (y = 0; y < h; y++)
-                {
-                    if ((heightmap.Get(x, y) > revertmap.Get(x, y) + maxRaise))
-                    {
-                        heightmap.map[x, y] = revertmap.Get(x, y) + maxRaise;
-                    }
-                    if ((heightmap.Get(x, y) > revertmap.Get(x, y) - minLower))
-                    {
-                        heightmap.map[x, y] = revertmap.Get(x, y) - minLower;
-                    }
-                }
-            }
-        }
-
+// TODO: unused
+//         /// <summary>
+//         /// Checks to make sure the terrain is within baked values +/- maxRaise/minLower
+//         /// </summary>
+//         private void SetTerrainWithinBounds()
+//         {
+//             int x, y;
+//             for (x = 0; x < w; x++)
+//             {
+//                 for (y = 0; y < h; y++)
+//                 {
+//                     if ((heightmap.Get(x, y) > revertmap.Get(x, y) + maxRaise))
+//                     {
+//                         heightmap.map[x, y] = revertmap.Get(x, y) + maxRaise;
+//                     }
+//                     if ((heightmap.Get(x, y) > revertmap.Get(x, y) - minLower))
+//                     {
+//                         heightmap.map[x, y] = revertmap.Get(x, y) - minLower;
+//                     }
+//                 }
+//             }
+//         }
 
         /// <summary>
         /// Converts the heightmap to a 65536 value 1D floating point array

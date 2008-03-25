@@ -40,12 +40,13 @@ namespace libTerrain
             return ((i) + (N + 2)*(j));
         }
 
-        private static void nsSwap(ref double x0, ref double x)
-        {
-            double tmp = x0;
-            x0 = x;
-            x = tmp;
-        }
+// TODO: unused
+//         private static void nsSwap(ref double x0, ref double x)
+//         {
+//             double tmp = x0;
+//             x0 = x;
+//             x = tmp;
+//         }
 
         private static void nsSwap(ref double[] x0, ref double[] x)
         {

@@ -981,12 +981,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         #endregion
 
-        private float GetTerrainHeightAtXY(float x, float y)
-        {
-            return (float)_origheightmap[(int)y * Constants.RegionSize + (int)x];
-
-
-        }
+// TODO: unused
+//         private float GetTerrainHeightAtXY(float x, float y)
+//         {
+//             return (float)_origheightmap[(int)y * Constants.RegionSize + (int)x];
+//         }
 
         #region Add/Remove Entities
 

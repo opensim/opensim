@@ -478,38 +478,39 @@ namespace OpenSim.Framework.Data.MySQL
             return landDataForRegion;
         }
 
-        private void DisplayDataSet(DataSet ds, string title)
-        {
-            Debug.WriteLine(title);
-            //--- Loop through the DataTables
-            foreach (DataTable table in ds.Tables)
-            {
-                Debug.WriteLine("*** DataTable: " + table.TableName + "***");
-                //--- Loop through each DataTable's DataRows
-                foreach (DataRow row in table.Rows)
-                {
-                    //--- Display the original values, if there are any.
-                    if (row.HasVersion(DataRowVersion.Original))
-                    {
-                        Debug.Write("Original Row Values ===> ");
-                        foreach (DataColumn column in table.Columns)
-                            Debug.Write(column.ColumnName + " = " +
-                                        row[column, DataRowVersion.Original] + ", ");
-                        Debug.WriteLine(String.Empty);
-                    }
-                    //--- Display the current values, if there are any.
-                    if (row.HasVersion(DataRowVersion.Current))
-                    {
-                        Debug.Write("Current Row Values ====> ");
-                        foreach (DataColumn column in table.Columns)
-                            Debug.Write(column.ColumnName + " = " +
-                                        row[column, DataRowVersion.Current] + ", ");
-                        Debug.WriteLine(String.Empty);
-                    }
-                    Debug.WriteLine(String.Empty);
-                }
-            }
-        }
+// TODO: unused
+//         private void DisplayDataSet(DataSet ds, string title)
+//         {
+//             Debug.WriteLine(title);
+//             //--- Loop through the DataTables
+//             foreach (DataTable table in ds.Tables)
+//             {
+//                 Debug.WriteLine("*** DataTable: " + table.TableName + "***");
+//                 //--- Loop through each DataTable's DataRows
+//                 foreach (DataRow row in table.Rows)
+//                 {
+//                     //--- Display the original values, if there are any.
+//                     if (row.HasVersion(DataRowVersion.Original))
+//                     {
+//                         Debug.Write("Original Row Values ===> ");
+//                         foreach (DataColumn column in table.Columns)
+//                             Debug.Write(column.ColumnName + " = " +
+//                                         row[column, DataRowVersion.Original] + ", ");
+//                         Debug.WriteLine(String.Empty);
+//                     }
+//                     //--- Display the current values, if there are any.
+//                     if (row.HasVersion(DataRowVersion.Current))
+//                     {
+//                         Debug.Write("Current Row Values ====> ");
+//                         foreach (DataColumn column in table.Columns)
+//                             Debug.Write(column.ColumnName + " = " +
+//                                         row[column, DataRowVersion.Current] + ", ");
+//                         Debug.WriteLine(String.Empty);
+//                     }
+//                     Debug.WriteLine(String.Empty);
+//                 }
+//             }
+//         }
 
         public void Commit()
         {
@@ -1397,12 +1398,13 @@ namespace OpenSim.Framework.Data.MySQL
             return param;
         }
 
-        private MySqlParameter createParamWithValue(string name, Type type, Object o)
-        {
-            MySqlParameter param = createMySqlParameter(name, type);
-            param.Value = o;
-            return param;
-        }
+// TODO: unused
+//         private MySqlParameter createParamWithValue(string name, Type type, Object o)
+//         {
+//             MySqlParameter param = createMySqlParameter(name, type);
+//             param.Value = o;
+//             return param;
+//         }
 
         private void SetupPrimCommands(MySqlDataAdapter da, MySqlConnection conn)
         {

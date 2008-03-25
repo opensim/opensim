@@ -72,22 +72,23 @@ namespace OpenSim.Region.ExtensionsScriptModule.CSharp.Examples
             }*/
         }
 
-        private string processPrimitiveToString(SceneObjectPart prim)
-        {
-            /*string desc = prim.Description;
-            string name = prim.Name;
-            LLVector3 pos = prim.Pos;
-            LLQuaternion rot = new LLQuaternion(prim.Rotation.x, prim.Rotation.y, prim.Rotation.z, prim.Rotation.w);
-            LLVector3 scale = prim.Scale;
-            LLVector3 rootPos = prim.WorldPos;
+// TODO: unused
+//         private string processPrimitiveToString(SceneObjectPart prim)
+//         {
+//             /*string desc = prim.Description;
+//             string name = prim.Name;
+//             LLVector3 pos = prim.Pos;
+//             LLQuaternion rot = new LLQuaternion(prim.Rotation.x, prim.Rotation.y, prim.Rotation.z, prim.Rotation.w);
+//             LLVector3 scale = prim.Scale;
+//             LLVector3 rootPos = prim.WorldPos;
 
-            string setPrimParams = String.Empty;
+//             string setPrimParams = String.Empty;
 
-            setPrimParams += "[PRIM_SCALE, " + scale.ToString() + ", PRIM_POS, " + rootPos.ToString() + ", PRIM_ROTATION, " + rot.ToString() + "]\n";
+//             setPrimParams += "[PRIM_SCALE, " + scale.ToString() + ", PRIM_POS, " + rootPos.ToString() + ", PRIM_ROTATION, " + rot.ToString() + "]\n";
 
-            return setPrimParams;
-              */
-            return System.String.Empty;
-        }
+//             return setPrimParams;
+//               */
+//             return System.String.Empty;
+//         }
     }
 }

@@ -141,26 +141,27 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         }
 
         private static int privateThreadCount = 0;
-        private Thread StartScriptLoadUnloadThread()
-        {
-            Thread t = new Thread(ScriptLoadUnloadThreadLoop);
-            string name = "ScriptLoadUnloadThread:";
-            if (PrivateThread)
-            {
-                name += "Private:" + privateThreadCount;
-                privateThreadCount++;
-            }
-            else
-            {
-                name += "Shared";
-            }
-            t.Name = name;
-            t.IsBackground = true;
-            t.Priority = ThreadPriority.Normal;
-            t.Start();
-            OpenSim.Framework.ThreadTracker.Add(t);
-            return t;
-        }
+// TODO: unused
+//         private Thread StartScriptLoadUnloadThread()
+//         {
+//             Thread t = new Thread(ScriptLoadUnloadThreadLoop);
+//             string name = "ScriptLoadUnloadThread:";
+//             if (PrivateThread)
+//             {
+//                 name += "Private:" + privateThreadCount;
+//                 privateThreadCount++;
+//             }
+//             else
+//             {
+//                 name += "Shared";
+//             }
+//             t.Name = name;
+//             t.IsBackground = true;
+//             t.Priority = ThreadPriority.Normal;
+//             t.Start();
+//             OpenSim.Framework.ThreadTracker.Add(t);
+//             return t;
+//         }
 
         ~ScriptManager()
         {
@@ -184,26 +185,27 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         #region Load / Unload scripts (Thread loop)
 
-        private void ScriptLoadUnloadThreadLoop()
-        {
-            try
-            {
-                while (true)
-                {
-                    if (LUQueue.Count == 0)
-                        Thread.Sleep(scriptLoadUnloadThread_IdleSleepms);
-                    //if (PleaseShutdown)
-                    //    return;
-                    DoScriptLoadUnload();
-                }
-            }
-            catch (ThreadAbortException tae)
-            {
-                string a = tae.ToString();
-                a = String.Empty;
-                // Expected
-            }
-        }
+// TODO: unused
+//         private void ScriptLoadUnloadThreadLoop()
+//         {
+//             try
+//             {
+//                 while (true)
+//                 {
+//                     if (LUQueue.Count == 0)
+//                         Thread.Sleep(scriptLoadUnloadThread_IdleSleepms);
+//                     //if (PleaseShutdown)
+//                     //    return;
+//                     DoScriptLoadUnload();
+//                 }
+//             }
+//             catch (ThreadAbortException tae)
+//             {
+//                 string a = tae.ToString();
+//                 a = String.Empty;
+//                 // Expected
+//             }
+//         }
 
         public void DoScriptLoadUnload()
         {

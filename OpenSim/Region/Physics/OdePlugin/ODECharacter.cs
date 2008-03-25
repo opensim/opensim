@@ -504,26 +504,27 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
 
         }
-        private void standupStraight()
-        {
 
-            // The purpose of this routine here is to quickly stabilize the Body while it's popped up in the air.
-            // The amotor needs a few seconds to stabilize so without it, the avatar shoots up sky high when you 
-            // change appearance and when you enter the simulator
-            // After this routine is done, the amotor stabilizes much quicker
-            d.Vector3 feet;
-            d.Vector3 head;
-            d.BodyGetRelPointPos(Body, 0.0f, 0.0f, -1.0f, out feet);
-            d.BodyGetRelPointPos(Body, 0.0f, 0.0f, 1.0f, out head);
-            float posture = head.Z - feet.Z;
+// TODO: unused:
+//         private void standupStraight()
+//         {
+//             // The purpose of this routine here is to quickly stabilize the Body while it's popped up in the air.
+//             // The amotor needs a few seconds to stabilize so without it, the avatar shoots up sky high when you 
+//             // change appearance and when you enter the simulator
+//             // After this routine is done, the amotor stabilizes much quicker
+//             d.Vector3 feet;
+//             d.Vector3 head;
+//             d.BodyGetRelPointPos(Body, 0.0f, 0.0f, -1.0f, out feet);
+//             d.BodyGetRelPointPos(Body, 0.0f, 0.0f, 1.0f, out head);
+//             float posture = head.Z - feet.Z;
 
-            // restoring force proportional to lack of posture:
-            float servo = (2.5f - posture) * POSTURE_SERVO;
-            d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, servo, 0.0f, 0.0f, 1.0f);
-            d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, -servo, 0.0f, 0.0f, -1.0f);
-            //d.Matrix3 bodyrotation = d.BodyGetRotation(Body);
-            //m_log.Info("[PHYSICSAV]: Rotation: " + bodyrotation.M00 + " : " + bodyrotation.M01 + " : " + bodyrotation.M02 + " : " + bodyrotation.M10 + " : " + bodyrotation.M11 + " : " + bodyrotation.M12 + " : " + bodyrotation.M20 + " : " + bodyrotation.M21 + " : " + bodyrotation.M22);
-        }
+//             // restoring force proportional to lack of posture:
+//             float servo = (2.5f - posture) * POSTURE_SERVO;
+//             d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, servo, 0.0f, 0.0f, 1.0f);
+//             d.BodyAddForceAtRelPos(Body, 0.0f, 0.0f, -servo, 0.0f, 0.0f, -1.0f);
+//             //d.Matrix3 bodyrotation = d.BodyGetRotation(Body);
+//             //m_log.Info("[PHYSICSAV]: Rotation: " + bodyrotation.M00 + " : " + bodyrotation.M01 + " : " + bodyrotation.M02 + " : " + bodyrotation.M10 + " : " + bodyrotation.M11 + " : " + bodyrotation.M12 + " : " + bodyrotation.M20 + " : " + bodyrotation.M21 + " : " + bodyrotation.M22);
+//         }
 
         public override PhysicsVector Force
         {

@@ -195,15 +195,16 @@ namespace OpenSim.Framework.Communications
             return s.Substring(s.Length - 1, 1) == "/";
         }
 
-        /// <summary>
-        /// return a slash or blank. A slash will be returned if the string does not contain one
-        /// </summary>
-        /// <param name="s">stromg to be examined</param>
-        /// <returns>slash '/' if not already present</returns>
-        private string slash(string s)
-        {
-            return isSlashed(s) ? String.Empty : "/";
-        }
+// TODO: unused
+//         /// <summary>
+//         /// return a slash or blank. A slash will be returned if the string does not contain one
+//         /// </summary>
+//         /// <param name="s">stromg to be examined</param>
+//         /// <returns>slash '/' if not already present</returns>
+//         private string slash(string s)
+//         {
+//             return isSlashed(s) ? String.Empty : "/";
+//         }
 
         /// <summary>
         /// Build a Uri based on the initial Url, path elements and parameters
@@ -278,46 +279,48 @@ namespace OpenSim.Framework.Communications
             }
         }
 
-        /// <summary>
-        /// Async method, invoked when the initial response if received from the server
-        /// </summary>
-        /// <param name="ar"></param>
-        private void ResponseIsReadyDelegate(IAsyncResult ar)
-        {
-            try
-            {
-                // grab response
-                WebRequest wr = (WebRequest) ar.AsyncState;
-                _response = (HttpWebResponse) wr.EndGetResponse(ar);
+// TODO: unused
+//         /// <summary>
+//         /// Async method, invoked when the initial response if received from the server
+//         /// </summary>
+//         /// <param name="ar"></param>
+//         private void ResponseIsReadyDelegate(IAsyncResult ar)
+//         {
+//             try
+//             {
+//                 // grab response
+//                 WebRequest wr = (WebRequest) ar.AsyncState;
+//                 _response = (HttpWebResponse) wr.EndGetResponse(ar);
 
-                // get response stream, and setup async reading
-                Stream s = _response.GetResponseStream();
-                IAsyncResult asynchronousResult =
-                    s.BeginRead(_readbuf, 0, BufferSize, new AsyncCallback(StreamIsReadyDelegate), s);
+//                 // get response stream, and setup async reading
+//                 Stream s = _response.GetResponseStream();
+//                 IAsyncResult asynchronousResult =
+//                     s.BeginRead(_readbuf, 0, BufferSize, new AsyncCallback(StreamIsReadyDelegate), s);
 
-                // TODO! Implement timeout, without killing the server
-                // wait until completed, or we timed out
-                // ThreadPool.RegisterWaitForSingleObject(asynchronousResult.AsyncWaitHandle, new WaitOrTimerCallback(TimeoutCallback), _request, DefaultTimeout, true);
-            }
-            catch (Exception e)
-            {
-                _allDone.Set();
-                _asyncException = e;
-            }
-        }
+//                 // TODO! Implement timeout, without killing the server
+//                 // wait until completed, or we timed out
+//                 // ThreadPool.RegisterWaitForSingleObject(asynchronousResult.AsyncWaitHandle, new WaitOrTimerCallback(TimeoutCallback), _request, DefaultTimeout, true);
+//             }
+//             catch (Exception e)
+//             {
+//                 _allDone.Set();
+//                 _asyncException = e;
+//             }
+//         }
 
-        // Abort the request if the timer fires.
-        private static void TimeoutCallback(object state, bool timedOut)
-        {
-            if (timedOut)
-            {
-                HttpWebRequest request = state as HttpWebRequest;
-                if (request != null)
-                {
-                    request.Abort();
-                }
-            }
-        }
+// TODO: unused
+//         // Abort the request if the timer fires.
+//         private static void TimeoutCallback(object state, bool timedOut)
+//         {
+//             if (timedOut)
+//             {
+//                 HttpWebRequest request = state as HttpWebRequest;
+//                 if (request != null)
+//                 {
+//                     request.Abort();
+//                 }
+//             }
+//         }
 
         #endregion Async communications with server
 

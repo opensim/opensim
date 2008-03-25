@@ -790,25 +790,26 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         //Updates the time in the viewer.
-        private void UpdateInWorldTime()
-        {
-            m_timeUpdateCount++;
-            if (m_timeUpdateCount > 600)
-            {
-                List<ScenePresence> avatars = GetAvatars();
-                foreach (ScenePresence avatar in avatars)
-                {
-                    avatar.ControllingClient.SendViewerTime(m_timePhase);
-                }
+// TODO: unused
+//         private void UpdateInWorldTime()
+//         {
+//             m_timeUpdateCount++;
+//             if (m_timeUpdateCount > 600)
+//             {
+//                 List<ScenePresence> avatars = GetAvatars();
+//                 foreach (ScenePresence avatar in avatars)
+//                 {
+//                     avatar.ControllingClient.SendViewerTime(m_timePhase);
+//                 }
 
-                m_timeUpdateCount = 0;
-                m_timePhase++;
-                if (m_timePhase > 94)
-                {
-                    m_timePhase = 0;
-                }
-            }
-        }
+//                 m_timeUpdateCount = 0;
+//                 m_timePhase++;
+//                 if (m_timePhase > 94)
+//                 {
+//                     m_timePhase = 0;
+//                 }
+//             }
+//         }
 
         private void SendSimStatsPackets(SimStatsPacket pack)
         {

@@ -342,10 +342,11 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
             return false;
         }
 
-        private void IL_PopToStack(ILGenerator il)
-        {
-            IL_PopToStack(il, 1);
-        }
+// TODO: unused
+//         private void IL_PopToStack(ILGenerator il)
+//         {
+//             IL_PopToStack(il, 1);
+//         }
 
         private void IL_PopToStack(ILGenerator il, int count)
         {

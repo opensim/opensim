@@ -1351,12 +1351,13 @@ namespace OpenSim.Framework.Data.MSSQL
             return param;
         }
 
-        private SqlParameter createParamWithValue(string name, Type type, Object o)
-        {
-            SqlParameter param = createSqlParameter(name, type);
-            param.Value = o;
-            return param;
-        }
+// TODO: unused
+//         private SqlParameter createParamWithValue(string name, Type type, Object o)
+//         {
+//             SqlParameter param = createSqlParameter(name, type);
+//             param.Value = o;
+//             return param;
+//         }
 
         private void setupPrimCommands(SqlDataAdapter da, SqlConnection conn)
         {

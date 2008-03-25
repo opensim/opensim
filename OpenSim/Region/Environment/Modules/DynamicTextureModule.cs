@@ -228,10 +228,11 @@ namespace OpenSim.Region.Environment.Modules
                 part.ScheduleFullUpdate();
             }
 
-            private byte[] BlendTextures(byte[] frontImage, byte[] backImage)
-            {
-                return BlendTextures(frontImage, backImage, false, 0);
-            }
+// TODO: unused
+//             private byte[] BlendTextures(byte[] frontImage, byte[] backImage)
+//             {
+//                 return BlendTextures(frontImage, backImage, false, 0);
+//             }
 
             private byte[] BlendTextures(byte[] frontImage, byte[] backImage, bool setNewAlpha, byte newAlpha)
             {

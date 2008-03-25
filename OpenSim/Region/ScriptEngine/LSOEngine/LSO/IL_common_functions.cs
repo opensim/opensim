@@ -34,18 +34,19 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
 {
     internal partial class LSO_Parser
     {
-        private static TypeBuilder CreateType(ModuleBuilder modBuilder, string typeName)
-        {
-            TypeBuilder typeBuilder = modBuilder.DefineType(typeName,
-                                                            TypeAttributes.Public |
-                                                            TypeAttributes.Class |
-                                                            TypeAttributes.AutoClass |
-                                                            TypeAttributes.AnsiClass |
-                                                            TypeAttributes.BeforeFieldInit |
-                                                            TypeAttributes.AutoLayout,
-                                                            typeof (object),
-                                                            new Type[] {typeof (object)});
-            return typeBuilder;
-        }
+// TODO: unused:
+//         private static TypeBuilder CreateType(ModuleBuilder modBuilder, string typeName)
+//         {
+//             TypeBuilder typeBuilder = modBuilder.DefineType(typeName,
+//                                                             TypeAttributes.Public |
+//                                                             TypeAttributes.Class |
+//                                                             TypeAttributes.AutoClass |
+//                                                             TypeAttributes.AnsiClass |
+//                                                             TypeAttributes.BeforeFieldInit |
+//                                                             TypeAttributes.AutoLayout,
+//                                                             typeof (object),
+//                                                             new Type[] {typeof (object)});
+//             return typeBuilder;
+//         }
     }
 }

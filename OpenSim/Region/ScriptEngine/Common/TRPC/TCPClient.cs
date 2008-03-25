@@ -74,12 +74,13 @@ namespace OpenSim.Region.ScriptEngine.Common.TRPC
             Clients[ID].Disconnect();
         }
 
-        void asyncConnected(IAsyncResult iar)
-        {
-            Socket client = (Socket)iar.AsyncState;
-            client.EndConnect(iar);
-            ProcessConnection(client);
-        }
+// TODO: unused
+//         void asyncConnected(IAsyncResult iar)
+//         {
+//             Socket client = (Socket)iar.AsyncState;
+//             client.EndConnect(iar);
+//             ProcessConnection(client);
+//         }
 
         private int ProcessConnection(Socket client)
         {

@@ -70,48 +70,49 @@ namespace libTerrain
             Blend(flat, temp);
         }
 
-        private void FlattenFast(double rx, double ry, double size, double amount)
-        {
-            int x, y;
-            double avg = 0;
-            double div = 0;
+// TODO: unused
+//         private void FlattenFast(double rx, double ry, double size, double amount)
+//         {
+//             int x, y;
+//             double avg = 0;
+//             double div = 0;
 
-            int minX = Math.Max(0, (int) (rx - (size + 1)));
-            int maxX = Math.Min(w, (int) (rx + (size + 1)));
-            int minY = Math.Max(0, (int) (ry - (size + 1)));
-            int maxY = Math.Min(h, (int) (ry + (size + 1)));
+//             int minX = Math.Max(0, (int) (rx - (size + 1)));
+//             int maxX = Math.Min(w, (int) (rx + (size + 1)));
+//             int minY = Math.Max(0, (int) (ry - (size + 1)));
+//             int maxY = Math.Min(h, (int) (ry + (size + 1)));
 
-            for (x = minX; x < maxX; x++)
-            {
-                for (y = minY; y < maxY; y++)
-                {
-                    double z = size;
-                    z *= z;
-                    z -= ((x - rx)*(x - rx)) + ((y - ry)*(y - ry));
+//             for (x = minX; x < maxX; x++)
+//             {
+//                 for (y = minY; y < maxY; y++)
+//                 {
+//                     double z = size;
+//                     z *= z;
+//                     z -= ((x - rx)*(x - rx)) + ((y - ry)*(y - ry));
 
-                    if (z < 0)
-                        z = 0;
+//                     if (z < 0)
+//                         z = 0;
 
-                    avg += z*amount;
-                    div += z;
-                }
-            }
+//                     avg += z*amount;
+//                     div += z;
+//                 }
+//             }
 
-            double height = avg/div;
+//             double height = avg/div;
 
-            for (x = minX; x < maxX; x++)
-            {
-                for (y = minY; y < maxY; y++)
-                {
-                    double z = size;
-                    z *= z;
-                    z -= ((x - rx)*(x - rx)) + ((y - ry)*(y - ry));
+//             for (x = minX; x < maxX; x++)
+//             {
+//                 for (y = minY; y < maxY; y++)
+//                 {
+//                     double z = size;
+//                     z *= z;
+//                     z -= ((x - rx)*(x - rx)) + ((y - ry)*(y - ry));
 
-                    if (z > 0.0)
-                        Set(x, y, Tools.LinearInterpolate(map[x, y], height, z));
-                }
-            }
-        }
+//                     if (z > 0.0)
+//                         Set(x, y, Tools.LinearInterpolate(map[x, y], height, z));
+//                 }
+//             }
+//         }
 
         public void Flatten(Channel mask, double amount)
         {

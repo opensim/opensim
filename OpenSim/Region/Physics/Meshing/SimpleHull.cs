@@ -170,11 +170,12 @@ namespace OpenSim.Region.Physics.Meshing
             return result;
         }
 
-        private bool InsertVertex(Vertex v, int iAfter)
-        {
-            vertices.Insert(iAfter + 1, v);
-            return true;
-        }
+// TODO: unused
+//         private bool InsertVertex(Vertex v, int iAfter)
+//         {
+//             vertices.Insert(iAfter + 1, v);
+//             return true;
+//         }
 
         private Vertex getNextVertex(Vertex currentVertex)
         {

@@ -624,19 +624,20 @@ namespace OpenSim.Framework.Data.SQLite
             return user;
         }
 
-        private void fillFriendRow(DataRow row, LLUUID ownerID, LLUUID friendID, uint perms)
-        {
-            row["ownerID"] = ownerID.UUID.ToString();
-            row["friendID"] = friendID.UUID.ToString();
-            row["friendPerms"] = perms;
-            foreach (DataColumn col in ds.Tables["userfriends"].Columns)
-            {
-                if (row[col] == null)
-                {
-                    row[col] = String.Empty;
-                }
-            }
-        }
+// TODO: unused
+//         private void fillFriendRow(DataRow row, LLUUID ownerID, LLUUID friendID, uint perms)
+//         {
+//             row["ownerID"] = ownerID.UUID.ToString();
+//             row["friendID"] = friendID.UUID.ToString();
+//             row["friendPerms"] = perms;
+//             foreach (DataColumn col in ds.Tables["userfriends"].Columns)
+//             {
+//                 if (row[col] == null)
+//                 {
+//                     row[col] = String.Empty;
+//                 }
+//             }
+//         }
 
         private void fillUserRow(DataRow row, UserProfileData user)
         {
