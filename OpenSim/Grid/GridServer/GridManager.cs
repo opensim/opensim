@@ -127,7 +127,7 @@ namespace OpenSim.Grid.GridServer
         /// </summary>
         /// <param name="uuid">A UUID key of the region to return</param>
         /// <returns>A SimProfileData for the region</returns>
-        public RegionProfileData getRegion(LLUUID uuid)
+        public RegionProfileData GetRegion(LLUUID uuid)
         {
             foreach (KeyValuePair<string, IGridData> kvp in _plugins)
             {
@@ -137,7 +137,7 @@ namespace OpenSim.Grid.GridServer
                 }
                 catch (Exception e)
                 {
-                    m_log.Warn("[storage]: getRegion - " + e.Message);
+                    m_log.Warn("[storage]: GetRegion - " + e.Message);
                 }
             }
             return null;
@@ -148,7 +148,7 @@ namespace OpenSim.Grid.GridServer
         /// </summary>
         /// <param name="uuid">A regionHandle of the region to return</param>
         /// <returns>A SimProfileData for the region</returns>
-        public RegionProfileData getRegion(ulong handle)
+        public RegionProfileData GetRegion(ulong handle)
         {
             foreach (KeyValuePair<string, IGridData> kvp in _plugins)
             {
@@ -169,7 +169,7 @@ namespace OpenSim.Grid.GridServer
         /// </summary>
         /// <param name="regionName">A partial regionName of the region to return</param>
         /// <returns>A SimProfileData for the region</returns>
-        public RegionProfileData getRegion(string regionName)
+        public RegionProfileData GetRegion(string regionName)
         {
             foreach (KeyValuePair<string, IGridData> kvp in _plugins)
             {
@@ -185,7 +185,7 @@ namespace OpenSim.Grid.GridServer
             return null;
         }
 
-        public Dictionary<ulong, RegionProfileData> getRegions(uint xmin, uint ymin, uint xmax, uint ymax)
+        public Dictionary<ulong, RegionProfileData> GetRegions(uint xmin, uint ymin, uint xmax, uint ymax)
         {
             Dictionary<ulong, RegionProfileData> regions = new Dictionary<ulong, RegionProfileData>();
 
@@ -216,19 +216,19 @@ namespace OpenSim.Grid.GridServer
         public string GetXMLNeighbours(ulong reqhandle)
         {
             string response = String.Empty;
-            RegionProfileData central_region = getRegion(reqhandle);
+            RegionProfileData central_region = GetRegion(reqhandle);
             RegionProfileData neighbour;
             for (int x = -1; x < 2; x++)
             {
                 for (int y = -1; y < 2; y++)
                 {
                     if (
-                        getRegion(
+                        GetRegion(
                             Util.UIntsToLong((uint)((central_region.regionLocX + x) * Constants.RegionSize),
                                              (uint)(central_region.regionLocY + y) * Constants.RegionSize)) != null)
                     {
                         neighbour =
-                            getRegion(
+                            GetRegion(
                                 Util.UIntsToLong((uint)((central_region.regionLocX + x) * Constants.RegionSize),
                                                  (uint)(central_region.regionLocY + y) * Constants.RegionSize));
 
@@ -245,12 +245,29 @@ namespace OpenSim.Grid.GridServer
             return response;
         }
 
+        /// <summary>
+        /// Checks that it's valid to replace the existing region data with new data
+        /// 
+        /// Currently, this means ensure that the keys passed in by the new region 
+        /// match those in the original region.  (XXX Is this correct?  Shouldn't we simply check
+        /// against the keys in the current configuration?)
+        /// </summary>
+        /// <param name="sim"></param>
+        /// <returns></returns>        
         protected virtual bool ValidateOverwrite(RegionProfileData sim, RegionProfileData existingSim)
         {
             return (existingSim.regionRecvKey == sim.regionRecvKey &&
                     existingSim.regionSendKey == sim.regionSendKey);
         }
 
+        /// <summary>
+        /// Checks that the new region data is valid.
+        /// 
+        /// Currently, this means checking that the keys passed in by the new region 
+        /// match those in the grid server's configuration.
+        /// </summary>
+        /// <param name="sim"></param>
+        /// <returns></returns>
         protected virtual bool ValidateNewRegion(RegionProfileData sim)
         {
             return (sim.regionRecvKey == Config.SimSendKey &&
@@ -295,7 +312,7 @@ namespace OpenSim.Grid.GridServer
                 return ErrorResponse("Wrong format in login parameters. Please verify parameters." + e.ToString() );
             }
 
-            existingSim = getRegion(sim.regionHandle);
+            existingSim = GetRegion(sim.regionHandle);
 
             if (existingSim == null || existingSim.UUID == sim.UUID || sim.UUID != sim.originUUID)
             {
@@ -373,6 +390,11 @@ namespace OpenSim.Grid.GridServer
             }
         }
 
+        /// <summary>
+        /// Construct a successful response to a simulator's login attempt.
+        /// </summary>
+        /// <param name="sim"></param>
+        /// <returns></returns>
         private XmlRpcResponse CreateLoginResponse(RegionProfileData sim)
         {
             XmlRpcResponse response = new XmlRpcResponse();
@@ -432,7 +454,7 @@ namespace OpenSim.Grid.GridServer
             if (fastMode)
             {
                 Dictionary<ulong, RegionProfileData> neighbours =
-                    getRegions(sim.regionLocX - 1, sim.regionLocY - 1, sim.regionLocX + 1,
+                    GetRegions(sim.regionLocX - 1, sim.regionLocY - 1, sim.regionLocX + 1,
                                sim.regionLocY + 1);
 
                 foreach (KeyValuePair<ulong, RegionProfileData> aSim in neighbours)
@@ -458,12 +480,12 @@ namespace OpenSim.Grid.GridServer
                     for (int y = -1; y < 2; y++)
                     {
                         if (
-                            getRegion(
+                            GetRegion(
                                 Helpers.UIntsToLong((uint)((sim.regionLocX + x) * Constants.RegionSize),
                                                     (uint)(sim.regionLocY + y) * Constants.RegionSize)) != null)
                         {
                             neighbour =
-                                getRegion(
+                                GetRegion(
                                     Helpers.UIntsToLong((uint)((sim.regionLocX + x) * Constants.RegionSize),
                                                         (uint)(sim.regionLocY + y) * Constants.RegionSize));
 
@@ -483,6 +505,11 @@ namespace OpenSim.Grid.GridServer
             return SimNeighboursData;
         }
 
+        /// <summary>
+        /// Loads the grid's own RegionProfileData object with data from the XMLRPC simulator_login request from a region
+        /// </summary>
+        /// <param name="requestData"></param>
+        /// <returns></returns>
         private RegionProfileData RegionFromRequest(Hashtable requestData)
         {
             RegionProfileData sim;
@@ -562,7 +589,7 @@ namespace OpenSim.Grid.GridServer
 
             if (requestData.ContainsKey("UUID"))
             {
-                //TheSim = getRegion(new LLUUID((string) requestData["UUID"]));
+                //TheSim = GetRegion(new LLUUID((string) requestData["UUID"]));
                 uuid = requestData["UUID"].ToString();
                 Console.WriteLine("deleting region " + uuid);
                 //                logToDB((new LLUUID((string)requestData["UUID"])).ToString(),"XmlRpcDeleteRegionMethod","", 5,"Attempting delete with UUID.");
@@ -623,17 +650,17 @@ namespace OpenSim.Grid.GridServer
             RegionProfileData simData = null;
             if (requestData.ContainsKey("region_UUID"))
             {
-                simData = getRegion(new LLUUID((string)requestData["region_UUID"]));
+                simData = GetRegion(new LLUUID((string)requestData["region_UUID"]));
             }
             else if (requestData.ContainsKey("region_handle"))
             {
                 //CFK: The if/else below this makes this message redundant.
                 //CFK: Console.WriteLine("requesting data for region " + (string) requestData["region_handle"]);
-                simData = getRegion(Convert.ToUInt64((string)requestData["region_handle"]));
+                simData = GetRegion(Convert.ToUInt64((string)requestData["region_handle"]));
             }
             else if (requestData.ContainsKey("region_name_search"))
             {
-                simData = getRegion((string)requestData["region_name_search"]);
+                simData = GetRegion((string)requestData["region_name_search"]);
             }
 
             if (simData == null)
@@ -698,7 +725,7 @@ namespace OpenSim.Grid.GridServer
             if (fastMode)
             {
                 Dictionary<ulong, RegionProfileData> neighbours =
-                    getRegions((uint)xmin, (uint)ymin, (uint)xmax, (uint)ymax);
+                    GetRegions((uint)xmin, (uint)ymin, (uint)xmax, (uint)ymax);
 
                 foreach (KeyValuePair<ulong, RegionProfileData> aSim in neighbours)
                 {
@@ -735,7 +762,7 @@ namespace OpenSim.Grid.GridServer
                     for (int y = ymin; y < ymax + 1; y++)
                     {
                         ulong regHandle = Helpers.UIntsToLong((uint)(x * Constants.RegionSize), (uint)(y * Constants.RegionSize));
-                        simProfile = getRegion(regHandle);
+                        simProfile = GetRegion(regHandle);
                         if (simProfile != null)
                         {
                             Hashtable simProfileBlock = new Hashtable();
@@ -808,7 +835,7 @@ namespace OpenSim.Grid.GridServer
             LLUUID UUID;
             if (LLUUID.TryParse(param, out UUID))
             {
-                TheSim = getRegion(UUID);
+                TheSim = GetRegion(UUID);
 
                 if (!(TheSim == null))
                 {
@@ -848,7 +875,7 @@ namespace OpenSim.Grid.GridServer
         {
             Console.WriteLine("Processing region update via REST method");
             RegionProfileData theSim;
-            theSim = getRegion(new LLUUID(param));
+            theSim = GetRegion(new LLUUID(param));
             if (theSim == null)
             {
                 theSim = new RegionProfileData();
@@ -959,7 +986,7 @@ namespace OpenSim.Grid.GridServer
                     }
                     catch (Exception e)
                     {
-                        m_log.Warn("[GRID]: getRegionPlugin Handle " + kvp.Key + " unable to add new sim: " +
+                        m_log.Warn("[GRID]: GetRegionPlugin Handle " + kvp.Key + " unable to add new sim: " +
                                                       e.ToString());
                     }
                 }

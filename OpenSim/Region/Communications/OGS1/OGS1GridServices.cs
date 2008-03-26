@@ -132,7 +132,7 @@ namespace OpenSim.Region.Communications.OGS1
             try
             {
                 XmlRpcRequest GridReq = new XmlRpcRequest("simulator_login", SendParams);
-                GridResp = GridReq.Send(serversInfo.GridURL, 16000);
+                GridResp = GridReq.Send(serversInfo.GridURL, 30000);
             }
             catch (Exception ex)
             {
