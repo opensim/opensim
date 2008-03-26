@@ -133,7 +133,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (Exception ex)
             {
-                m_log.Error("Unable to connect to grid. Grid server not running?");
+                m_log.ErrorFormat("Unable to connect to grid. Grid server not running?  Exception {0}", ex);
                 throw(ex);
             }
             Hashtable GridRespData = (Hashtable)GridResp.Value;
