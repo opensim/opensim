@@ -148,8 +148,6 @@ namespace OpenSim.Region.Environment.Scenes
                 throw new System.ArgumentNullException("info");
             }
 
-            //JB m_children = (List<EntityBase>)info.GetValue("m_children", typeof(List<EntityBase>));
-//            m_scene = (Scene)info.GetValue("m_scene", typeof(Scene));
             m_uuid = new LLUUID((Guid)info.GetValue("m_uuid", typeof(Guid)));
             m_name = (string)info.GetValue("m_name", typeof(string));
 
@@ -193,9 +191,6 @@ namespace OpenSim.Region.Environment.Scenes
                 throw new System.ArgumentNullException("info");
             }
 
-            //JB info.AddValue("m_children", m_children);
-
-//            info.AddValue("m_scene", m_scene);
             info.AddValue("m_uuid", m_uuid.UUID);
             info.AddValue("m_name", m_name);
 
