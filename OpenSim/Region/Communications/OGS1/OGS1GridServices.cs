@@ -124,16 +124,18 @@ namespace OpenSim.Region.Communications.OGS1
             SendParams.Add(GridParams);
 
             // Send Request
-            XmlRpcRequest GridReq;
             XmlRpcResponse GridResp;
             try
             {
-                GridReq = new XmlRpcRequest("simulator_login", SendParams);
+                XmlRpcRequest GridReq = new XmlRpcRequest("simulator_login", SendParams);
                 GridResp = GridReq.Send(serversInfo.GridURL, 16000);
             }
             catch (Exception ex)
             {
-                m_log.ErrorFormat("Unable to connect to grid. Grid server not running?  Exception {0}", ex);
+                m_log.ErrorFormat(
+                    "Unable to connect to grid at {0}. Grid server not running?  Exception {1}", 
+                    serversInfo.GridURL, ex);
+                
                 throw(ex);
             }
             Hashtable GridRespData = (Hashtable)GridResp.Value;
@@ -143,7 +145,7 @@ namespace OpenSim.Region.Communications.OGS1
             if (GridRespData.ContainsKey("error"))
             {
                 string errorstring = (string) GridRespData["error"];
-                m_log.Error("Unable to connect to grid: " + errorstring);
+                m_log.ErrorFormat("Unable to connect to grid at {0}: {1}", serversInfo.GridURL, errorstring);
                 return null;
             }
             else
