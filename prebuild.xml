@@ -234,6 +234,32 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Framework.Data.MapperFactory" path="OpenSim/Framework/Data.MapperFactory" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Data"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Framework.Data.Base"/>
+      <Reference name="OpenSim.Framework.Data.MySQLMapper"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     <Project name="OpenSim.Framework.Configuration.XML" path="OpenSim/Framework/Configuration/XML" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -845,6 +871,7 @@
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework.Data.Base" />
       <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="OpenSim.Framework.Data.MapperFactory"/>
       <Reference name="Nini.dll" />
       <Reference name="OpenSim.Framework.Data.MySQLMapper" />
       <Files>

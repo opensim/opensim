@@ -32,10 +32,10 @@ using libsecondlife;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Data.MySQLMapper;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework.Data.Base;
+using OpenSim.Framework.Data.MapperFactory;
 
 namespace OpenSim.Region.Modules.AvatarFactory
 {
@@ -227,7 +227,7 @@ namespace OpenSim.Region.Modules.AvatarFactory
                 }
                 if (m_enablePersist)
                 {
-                    m_databaseMapper = new MySQLDatabaseMapper(m_connectionString);
+                    m_databaseMapper =  DataMapperFactory.GetDataBaseMapper(DataMapperFactory.MAPPER_TYPE.MYSQL, m_connectionString);
                     m_appearanceMapper = new AppearanceTableMapper(m_databaseMapper, "AvatarAppearance");
                 }
             }
