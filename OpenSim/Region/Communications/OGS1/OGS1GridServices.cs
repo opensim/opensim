@@ -92,6 +92,10 @@ namespace OpenSim.Region.Communications.OGS1
         // see IGridServices
         public RegionCommsListener RegisterRegion(RegionInfo regionInfo)
         {
+            m_log.DebugFormat(
+                "[OGS1 GRID SERVICES]: Attempting to register region {0} with grid at {1}", 
+                regionInfo.RegionName, serversInfo.GridURL);
+            
             Hashtable GridParams = new Hashtable();
             // Login / Authentication
 
@@ -133,7 +137,7 @@ namespace OpenSim.Region.Communications.OGS1
             catch (Exception ex)
             {
                 m_log.ErrorFormat(
-                    "Unable to connect to grid at {0}. Grid server not running?  Exception {1}", 
+                    "[OGS1 GRID SERVICES]: Unable to connect to grid at {0}. Grid server not running?  Exception {1}", 
                     serversInfo.GridURL, ex);
                 
                 throw(ex);
@@ -145,7 +149,10 @@ namespace OpenSim.Region.Communications.OGS1
             if (GridRespData.ContainsKey("error"))
             {
                 string errorstring = (string) GridRespData["error"];
-                m_log.ErrorFormat("Unable to connect to grid at {0}: {1}", serversInfo.GridURL, errorstring);
+                m_log.ErrorFormat(
+                    "[OGS1 GRID SERVICES]: Unable to connect to grid at {0}: {1}", 
+                    serversInfo.GridURL, errorstring);
+                
                 return null;
             }
             else
@@ -159,6 +166,10 @@ namespace OpenSim.Region.Communications.OGS1
                         m_queuedGridSettings.Add("allow_forceful_banlines", "FALSE");
                     }
                 }
+                
+                m_log.InfoFormat(
+                    "[OGS1 GRID SERVICES]: Region {0} successfully registered with grid at {1}", 
+                    regionInfo.RegionName, serversInfo.GridURL);
             }
             return m_localBackend.RegisterRegion(regionInfo);
         }
