@@ -3,6 +3,8 @@
 ^tailor.state.journal$
 \.csproj$
 \.csproj\.user$
+\.mdp$
+\.mds$
 \.dll\.build$
 /bin/Debug/.+\.dll$
 /bin/Debug/.+\.dll.mdb$
