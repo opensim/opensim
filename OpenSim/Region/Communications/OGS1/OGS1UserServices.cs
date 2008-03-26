@@ -106,7 +106,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             else
             {
-                m_log.Warn("[INTERGRID]: Got invalid queryID from userServer");
+                m_log.Warn("[OGS1 USER SERVICES]: Got invalid queryID from userServer");
             }
             return pickerlist;
         }
@@ -188,13 +188,18 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (WebException e)
             {
-                m_log.Warn("Error when trying to fetch Avatar Picker Response: " +
+                m_log.Warn("[OGS1 USER SERVICES]: Error when trying to fetch Avatar Picker Response: " +
                            e.Message);
                 // Return Empty picker list (no results)
             }
             return pickerlist;
         }
 
+        /// <summary>
+        /// Get a user profile from the user server
+        /// </summary>
+        /// <param name="avatarID"></param>
+        /// <returns>null if the request fails</returns>        
         public UserProfileData GetUserProfile(string name)
         {
             try
@@ -204,19 +209,26 @@ namespace OpenSim.Region.Communications.OGS1
                 IList parameters = new ArrayList();
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_user_by_name", parameters);
-                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
+                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 6000);
                 Hashtable respData = (Hashtable) resp.Value;
 
                 return ConvertXMLRPCDataToUserProfile(respData);
             }
             catch (WebException e)
             {
-                m_log.Warn("Error when trying to fetch profile data by name from remote user server: " +
-                           e.Message);
+                m_log.ErrorFormat(
+                    "[OGS1 USER SERVICES]: Error when trying to fetch profile data by name from remote user server: {0}",
+                    e);
             }
+            
             return null;
         }
 
+        /// <summary>
+        /// Get a user profile from the user server
+        /// </summary>
+        /// <param name="avatarID"></param>
+        /// <returns>null if the request fails</returns>
         public UserProfileData GetUserProfile(LLUUID avatarID)
         {
             try
@@ -226,16 +238,18 @@ namespace OpenSim.Region.Communications.OGS1
                 IList parameters = new ArrayList();
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_user_by_uuid", parameters);
-                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
+                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 6000);
                 Hashtable respData = (Hashtable) resp.Value;
 
                 return ConvertXMLRPCDataToUserProfile(respData);
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error when trying to fetch profile data by uuid from remote user server: " +
-                                  e.Message);
+                m_log.ErrorFormat(
+                    "[OGS1 USER SERVICES]: Error when trying to fetch profile data by uuid from remote user server: {0}",
+                    e);
             }
+            
             return null;
         }
 
@@ -244,24 +258,40 @@ namespace OpenSim.Region.Communications.OGS1
             // TODO: implement
         }
 
+        /// <summary>
+        /// Retrieve the user information for the given master uuid.
+        /// </summary>
+        /// <param name="uuid"></param>
+        /// <returns></returns>        
         public UserProfileData SetupMasterUser(string firstName, string lastName)
         {
             return SetupMasterUser(firstName, lastName, String.Empty);
         }
 
+        /// <summary>
+        /// Retrieve the user information for the given master uuid.
+        /// </summary>
+        /// <param name="uuid"></param>
+        /// <returns></returns>        
         public UserProfileData SetupMasterUser(string firstName, string lastName, string password)
         {
             UserProfileData profile = GetUserProfile(firstName, lastName);
             return profile;
         }
 
+        /// <summary>
+        /// Retrieve the user information for the given master uuid.
+        /// </summary>
+        /// <param name="uuid"></param>
+        /// <returns></returns>
         public UserProfileData SetupMasterUser(LLUUID uuid)
         {
             UserProfileData data = GetUserProfile(uuid);
             
             if (data == null)
             {
-                throw new Exception("[OGS1 USER SERVICES]: Unknown master user " + uuid);
+                throw new Exception(
+                    "Could not retrieve profile for master user " + uuid + ".  User server did not respond to the request.");
             }
             
             return data;
@@ -497,7 +527,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (WebException e)
             {
-                m_log.Warn("Error when trying to fetch Avatar's friends list: " +
+                m_log.Warn("[OGS1 USER SERVICES]: Error when trying to fetch Avatar's friends list: " +
                            e.Message);
                 // Return Empty list (no friends)
             }
