@@ -34,6 +34,9 @@ using System.Xml.Serialization;
 
 namespace OpenSim.Framework.Servers
 {
+    /// <summary>
+    /// Makes an asynchronous REST request which doesn't require us to do anything with the response.
+    /// </summary>
     public class RestObjectPoster
     {
         public static void BeginPostObject<TRequest>(string requestUrl, TRequest obj)

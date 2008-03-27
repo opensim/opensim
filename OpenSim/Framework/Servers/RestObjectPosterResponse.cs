@@ -36,6 +36,9 @@ namespace OpenSim.Framework.Servers
 {
     public delegate void ReturnResponse<T>(T reponse);
 
+    /// <summary>
+    /// Makes an asynchronous REST request with a callback to invoke with the response.
+    /// </summary>    
     public class RestObjectPosterResponse<TResponse>
     {
         public ReturnResponse<TResponse> ResponseCallback;
