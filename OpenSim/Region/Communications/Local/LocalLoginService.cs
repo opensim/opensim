@@ -239,7 +239,7 @@ namespace OpenSim.Region.Communications.Local
             else
             {
                 AgentInventory userInventory = new AgentInventory();
-                userInventory.CreateRootFolder(userID, false);
+                userInventory.CreateRootFolder(userID);
 
                 ArrayList AgentInventoryArray = new ArrayList();
                 Hashtable TempHash;

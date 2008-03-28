@@ -67,7 +67,7 @@ namespace OpenSim.Framework
             return (true);
         }
 
-        public void CreateRootFolder(LLUUID newAgentID, bool createTextures)
+        public void CreateRootFolder(LLUUID newAgentID)
         {
             AgentID = newAgentID;
             InventoryRoot = new InventoryFolder();
@@ -79,10 +79,6 @@ namespace OpenSim.Framework
             InventoryRoot.FolderName = "My Inventory";
             InventoryFolders.Add(InventoryRoot.FolderID, InventoryRoot);
             InventoryRoot.OwnerID = AgentID;
-            if (createTextures)
-            {
-                CreateNewFolder(LLUUID.Random(), 0, "Textures", InventoryRoot.FolderID);
-            }
         }
 
         public bool CreateNewFolder(LLUUID folderID, ushort type, string folderName)

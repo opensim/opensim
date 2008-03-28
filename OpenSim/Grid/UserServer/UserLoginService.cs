@@ -342,7 +342,7 @@ namespace OpenSim.Grid.UserServer
                            " for user ID " + userID);
 
                 AgentInventory userInventory = new AgentInventory();
-                userInventory.CreateRootFolder(userID, false);
+                userInventory.CreateRootFolder(userID);
 
                 ArrayList AgentInventoryArray = new ArrayList();
                 Hashtable TempHash;

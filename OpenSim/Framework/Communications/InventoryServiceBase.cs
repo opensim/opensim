@@ -50,7 +50,7 @@ namespace OpenSim.Framework.Communications
         {
             if (!String.IsNullOrEmpty(FileName))
             {
-                m_log.Info("[AGENTINVENTORY]: Inventorystorage: Attempting to load " + FileName);
+                m_log.Info("[AGENTINVENTORY]: Inventory storage: Attempting to load " + FileName);
                 Assembly pluginAssembly = Assembly.LoadFrom(FileName);
 
                 foreach (Type pluginType in pluginAssembly.GetTypes())

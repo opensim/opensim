@@ -757,7 +757,7 @@ namespace OpenSim.Framework.UserManagement
         protected virtual InventoryData CreateInventoryData(LLUUID userID)
         {
             AgentInventory userInventory = new AgentInventory();
-            userInventory.CreateRootFolder(userID, false);
+            userInventory.CreateRootFolder(userID);
 
             ArrayList AgentInventoryArray = new ArrayList();
             Hashtable TempHash;
