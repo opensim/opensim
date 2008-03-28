@@ -37,7 +37,7 @@ namespace OpenSim.Framework.Data.MySQL
     /// <summary>
     /// A database interface class to a user profile storage system
     /// </summary>
-    internal class MySQLUserData : IUserData
+    internal class MySQLUserData : UserDataBase
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -53,7 +53,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// <summary>
         /// Loads and initialises the MySQL storage plugin
         /// </summary>
-        public void Initialise()
+        override public void Initialise()
         {
             // Load from an INI file connection details
             // TODO: move this to XML? Yes, PLEASE!
@@ -164,7 +164,7 @@ namespace OpenSim.Framework.Data.MySQL
         #endregion
 
         // see IUserData
-        public UserProfileData GetUserByName(string user, string last)
+        override public UserProfileData GetUserByName(string user, string last)
         {
             try
             {
@@ -195,7 +195,7 @@ namespace OpenSim.Framework.Data.MySQL
 
         #region User Friends List Data
 
-        public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
+        override public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
             int dtvalue = Util.UnixTimeSinceEpoch();
 
@@ -236,7 +236,7 @@ namespace OpenSim.Framework.Data.MySQL
             }
         }
 
-        public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
+        override public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
         {
             Dictionary<string, string> param = new Dictionary<string, string>();
             param["?ownerID"] = friendlistowner.UUID.ToString();
@@ -267,7 +267,7 @@ namespace OpenSim.Framework.Data.MySQL
             }
         }
 
-        public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
+        override public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
             Dictionary<string, string> param = new Dictionary<string, string>();
             param["?ownerID"] = friendlistowner.UUID.ToString();
@@ -295,7 +295,7 @@ namespace OpenSim.Framework.Data.MySQL
             }
         }
 
-        public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
+        override public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
         {
             List<FriendListItem> Lfli = new List<FriendListItem>();
 
@@ -342,12 +342,12 @@ namespace OpenSim.Framework.Data.MySQL
 
         #endregion
 
-        public void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid)
+        override public void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid)
         {
             m_log.Info("[USER]: Stub UpdateUserCUrrentRegion called");
         }
 
-        public List<Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
+        override public List<Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
             List<Framework.AvatarPickerAvatar> returnlist = new List<Framework.AvatarPickerAvatar>();
 
@@ -427,7 +427,7 @@ namespace OpenSim.Framework.Data.MySQL
         }
 
         // see IUserData
-        public UserProfileData GetUserByUUID(LLUUID uuid)
+        override public UserProfileData GetUserByUUID(LLUUID uuid)
         {
             try
             {
@@ -460,7 +460,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// </summary>
         /// <param name="name">The account name</param>
         /// <returns>The users session</returns>
-        public UserAgentData GetAgentByName(string name)
+        override public UserAgentData GetAgentByName(string name)
         {
             return GetAgentByName(name.Split(' ')[0], name.Split(' ')[1]);
         }
@@ -471,13 +471,13 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="user">First part of the users account name</param>
         /// <param name="last">Second part of the users account name</param>
         /// <returns>The users session</returns>
-        public UserAgentData GetAgentByName(string user, string last)
+        override public UserAgentData GetAgentByName(string user, string last)
         {
             UserProfileData profile = GetUserByName(user, last);
             return GetAgentByUUID(profile.UUID);
         }
 
-        public void StoreWebLoginKey(LLUUID AgentID, LLUUID WebLoginKey)
+        override public void StoreWebLoginKey(LLUUID AgentID, LLUUID WebLoginKey)
         {
             Dictionary<string, string> param = new Dictionary<string, string>();
             param["?UUID"] = AgentID.UUID.ToString();
@@ -508,7 +508,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// </summary>
         /// <param name="uuid">The accounts UUID</param>
         /// <returns>The users session</returns>
-        public UserAgentData GetAgentByUUID(LLUUID uuid)
+        override public UserAgentData GetAgentByUUID(LLUUID uuid)
         {
             try
             {
@@ -540,7 +540,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// Creates a new users profile
         /// </summary>
         /// <param name="user">The user profile to create</param>
-        public void AddNewUserProfile(UserProfileData user)
+        override public void AddNewUserProfile(UserProfileData user)
         {
             try
             {
@@ -567,7 +567,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// Creates a new agent
         /// </summary>
         /// <param name="agent">The agent to create</param>
-        public void AddNewUserAgent(UserAgentData agent)
+        override public void AddNewUserAgent(UserAgentData agent)
         {
             try
             {
@@ -587,7 +587,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// Updates a user profile stored in the DB
         /// </summary>
         /// <param name="user">The profile data to use to update the DB</param>
-        public bool UpdateUserProfile(UserProfileData user)
+        override public bool UpdateUserProfile(UserProfileData user)
         {
             database.updateUserRow(user.UUID, user.username, user.surname, user.passwordHash, user.passwordSalt,
                                    user.homeRegion, user.homeLocation.X, user.homeLocation.Y, user.homeLocation.Z, user.homeLookAt.X,
@@ -604,7 +604,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="to">The receivers account ID</param>
         /// <param name="amount">The amount to transfer</param>
         /// <returns>Success?</returns>
-        public bool MoneyTransferRequest(LLUUID from, LLUUID to, uint amount)
+        override public bool MoneyTransferRequest(LLUUID from, LLUUID to, uint amount)
         {
             return false;
         }
@@ -617,7 +617,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="to">The receivers account ID</param>
         /// <param name="item">The item to transfer</param>
         /// <returns>Success?</returns>
-        public bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID item)
+        override public bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID item)
         {
             return false;
         }
@@ -626,7 +626,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// Database provider name
         /// </summary>
         /// <returns>Provider name</returns>
-        public string getName()
+        override public string getName()
         {
             return "MySQL Userdata Interface";
         }
@@ -635,7 +635,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// Database provider version
         /// </summary>
         /// <returns>provider version</returns>
-        public string GetVersion()
+        override public string GetVersion()
         {
             return "0.1";
         }

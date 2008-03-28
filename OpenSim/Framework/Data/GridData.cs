@@ -29,18 +29,7 @@ using System.Collections.Generic;
 using libsecondlife;
 
 namespace OpenSim.Framework.Data
-{
-    public class AvatarPickerAvatar
-    {
-        public LLUUID AvatarID;
-        public string firstName;
-        public string lastName;
-
-        public AvatarPickerAvatar()
-        {
-        }
-    }
-
+{  
     public enum DataResponse
     {
         RESPONSE_OK,

@@ -174,15 +174,4 @@ namespace OpenSim.Framework
         /// </summary>
         void Initialise();
     }
-
-    public class AvatarPickerAvatar
-    {
-        public LLUUID AvatarID;
-        public string firstName;
-        public string lastName;
-
-        public AvatarPickerAvatar()
-        {
-        }
-    }
 }

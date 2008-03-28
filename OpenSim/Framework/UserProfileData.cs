@@ -148,19 +148,7 @@ namespace OpenSim.Framework
         /// </summary>
         public UserAgentData currentAgent;
     }
-
-    /// <summary>
-    /// Minimal User Data required to service the AvatarPickerReply
-    /// </summary>
-    //public class AvatarPickerAvatar
-    //{
-    //public LLUUID AvatarID;
-    //public string firstName;
-    //public string lastName;
-    //public AvatarPickerAvatar()
-    //{
-    //}
-    //}
+   
     /// <summary>
     /// Information about a users session
     /// </summary>
