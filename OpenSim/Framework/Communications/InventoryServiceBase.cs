@@ -108,6 +108,30 @@ namespace OpenSim.Framework.Communications
 
             return inventoryList;
         }
+        
+        // See IInventoryServices
+        public List<InventoryFolderBase> GetInventorySkeleton(LLUUID userId)
+        {
+//            m_log.DebugFormat("[AGENT INVENTORY]: Getting inventory skeleton for {0}", userId);
+            
+            List<InventoryFolderBase> userFolders = new List<InventoryFolderBase>();
+            
+            InventoryFolderBase rootFolder = RequestRootFolder(userId);
+            userFolders.Add(rootFolder);
+                         
+            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+            {
+                IList<InventoryFolderBase> folders = plugin.Value.getFolderHierarchy(rootFolder.folderID);
+                userFolders.AddRange(folders);
+            }    
+            
+//            foreach (InventoryFolderBase folder in userFolders)
+//            {
+//                m_log.DebugFormat("[AGENT INVENTORY]: Got folder {0} {1}", folder.name, folder.folderID);
+//            }
+            
+            return userFolders;
+        }
 
         // See IInventoryServices
         public void MoveInventoryFolder(LLUUID userID, InventoryFolderBase folder)

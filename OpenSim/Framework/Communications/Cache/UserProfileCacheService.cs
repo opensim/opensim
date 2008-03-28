@@ -72,7 +72,7 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                     else
                     {
-                        m_log.ErrorFormat("[USERCACHE]: User profile for user {0} not found", userID);
+                        m_log.ErrorFormat("[USER CACHE]: User profile for user {0} not found", userID);
                     }
                 }
             }
@@ -244,15 +244,14 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 else
                 {
-                    m_log.ErrorFormat("[INVENTORYCACHE]: Could not find root folder for user {0}", remoteClient.Name);
+                    m_log.ErrorFormat("[INVENTORY CACHE]: Could not find root folder for user {0}", remoteClient.Name);
 
                     return;
                 }
             }
             else
             {
-                m_log.ErrorFormat("[INVENTORYCACHE]: " +
-                                  "Could not find user profile for {0} for folder {1}",
+                m_log.ErrorFormat("[INVENTORY CACHE]: Could not find user profile for {0} for folder {1}",
                                   remoteClient.Name, folderID);
 
                 return;
@@ -260,8 +259,7 @@ namespace OpenSim.Framework.Communications.Cache
 
             // If we've reached this point then we couldn't find the folder, even though the client thinks
             // it exists
-            m_log.ErrorFormat("[INVENTORYCACHE]: " +
-                              "Could not find folder {0} for user {1}",
+            m_log.ErrorFormat("[INVENTORY CACHE]: Could not find folder {0} for user {1}",
                               folderID, remoteClient.Name);
         }
 
@@ -303,14 +301,14 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                     else
                     {
-                        m_log.ErrorFormat("[INVENTORYCACHE]: Could not find root folder for user {0}", agentID.ToString());
+                        m_log.ErrorFormat("[INVENTORY CACHE]: Could not find root folder for user {0}", agentID.ToString());
 
                         return new List<InventoryItemBase>(); ;
                     }
                 }
                 else
                 {
-                    m_log.ErrorFormat("[INVENTORYCACHE]: " +
+                    m_log.ErrorFormat("[INVENTORY CACHE]: " +
                                       "Could not find user profile for {0} for folder {1}",
                                       agentID.ToString(), folderID);
                     return new List<InventoryItemBase>();
@@ -318,7 +316,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                 // If we've reached this point then we couldn't find the folder, even though the client thinks
                 // it exists
-                m_log.ErrorFormat("[INVENTORYCACHE]: " +
+                m_log.ErrorFormat("[INVENTORY CACHE]: " +
                                   "Could not find folder {0} for user {1}",
                                   folderID, agentID.ToString());
            // }

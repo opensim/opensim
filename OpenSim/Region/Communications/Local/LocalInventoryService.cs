@@ -42,7 +42,9 @@ namespace OpenSim.Region.Communications.Local
         public override void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack,
                                                      InventoryItemInfo itemCallBack)
         {
-            List<InventoryFolderBase> folders = RequestFirstLevelFolders(userID);
+            //List<InventoryFolderBase> folders = RequestFirstLevelFolders(userID);
+            List<InventoryFolderBase> folders = GetInventorySkeleton(userID);
+            
             InventoryFolderImpl rootFolder = null;
 
             //need to make sure we send root folder first

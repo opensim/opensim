@@ -652,12 +652,8 @@ namespace OpenSim.Framework.Data.MSSQL
                 folders.Add(f);
         }
 
-        /// <summary>
-        /// Returns all child folders in the hierarchy from the parent folder and down
-        /// </summary>
-        /// <param name="parentID">The folder to get subfolders for</param>
-        /// <returns>A list of inventory folders</returns>
-        protected List<InventoryFolderBase> getFolderHierarchy(LLUUID parentID)
+        // See IInventoryData
+        public List<InventoryFolderBase> getFolderHierarchy(LLUUID parentID)
         {
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
             getInventoryFolders(ref folders, parentID);

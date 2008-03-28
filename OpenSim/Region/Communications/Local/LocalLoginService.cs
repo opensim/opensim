@@ -215,7 +215,8 @@ namespace OpenSim.Region.Communications.Local
         // See LoginService        
         protected override InventoryData GetInventorySkeleton(LLUUID userID)
         {
-            List<InventoryFolderBase> folders = m_Parent.InventoryService.RequestFirstLevelFolders(userID);
+            List<InventoryFolderBase> folders = m_Parent.InventoryService.GetInventorySkeleton(userID);
+            //List<InventoryFolderBase> folders = m_Parent.InventoryService.RequestFirstLevelFolders(userID);
             if (folders.Count > 0)
             {
                 LLUUID rootID = LLUUID.Zero;

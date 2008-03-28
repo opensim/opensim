@@ -31,6 +31,9 @@ namespace OpenSim.Framework.Communications.Cache
 {
     public class CachedUserInfo
     {
+        private static readonly log4net.ILog m_log 
+            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        
         private readonly CommunicationsManager m_parentCommsManager;
         // Fields
         public InventoryFolderImpl RootFolder = null;
@@ -44,6 +47,8 @@ namespace OpenSim.Framework.Communications.Cache
         // Methods
         public void FolderReceive(LLUUID userID, InventoryFolderImpl folderInfo)
         {
+            //m_log.DebugFormat("[INVENTORY CACHE]: Received folder {0} {1} for user {2}", folderInfo.name, folderInfo.folderID, userID);
+            
             if (userID == UserProfile.UUID)
             {
                 if (RootFolder == null)
