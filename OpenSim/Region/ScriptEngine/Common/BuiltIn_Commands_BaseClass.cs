@@ -1939,12 +1939,12 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string osDrawRectangle(string drawList, int width, int height)
         {
-            return osDrawRectangle(drawList, width, height);
+            return m_LSL_Functions.osDrawRectangle(drawList, width, height);
         }
 
         public string osDrawFilledRectangle(string drawList, int width, int height)
         {
-            return osDrawFilledRectangle(drawList, width, height);
+            return m_LSL_Functions.osDrawFilledRectangle(drawList, width, height);
         }
 
         public string osSetFontSize(string drawList, int fontSize)
