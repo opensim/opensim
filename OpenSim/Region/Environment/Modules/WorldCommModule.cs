@@ -75,6 +75,7 @@ namespace OpenSim.Region.Environment.Modules
         private ListenerManager m_listenerManager;
         private Queue m_pendingQ;
         private Queue m_pending;
+
         public WorldCommModule()
         {
         }
@@ -112,6 +113,11 @@ namespace OpenSim.Region.Environment.Modules
             client.OnChatFromViewer += DeliverClientMessage;
         }
 
+        /********************************************************************
+         * 
+         * Listener Stuff
+         * 
+         * *****************************************************************/
         private void DeliverClientMessage(Object sender, ChatFromViewerArgs e)
         {
             DeliverMessage(e.Sender.AgentId.ToString(),
@@ -179,7 +185,7 @@ namespace OpenSim.Region.Environment.Modules
 
                     m_scene.Entities.TryGetValue(li.GetHostID(), out sPart);
 
-                    if(sPart != null)
+                    if (sPart != null)
                     {
                         // Dont process if this message is from itself!
                         if (li.GetHostID().ToString().Equals(sourceItemID) ||
@@ -291,7 +297,7 @@ namespace OpenSim.Region.Environment.Modules
 
             lock (m_pending.SyncRoot)
             {
-                li = (ListenerInfo) m_pending.Dequeue();
+                li = (ListenerInfo)m_pending.Dequeue();
             }
 
             return li;
@@ -306,12 +312,13 @@ namespace OpenSim.Region.Environment.Modules
         {
             return ((ListenerInfo)m_pending.Peek()).GetItemID();
         }
- 
     }
 
-    // hostID: the ID of the ScenePart
-    // itemID: the ID of the script host engine
-    // localID: local ID of host engine
+    /**********************************************************
+    * 
+    * Even more listener stuff
+    * 
+    * ********************************************************/
     public class ListenerManager
     {
         //private Dictionary<int, ListenerInfo> m_listeners;
@@ -434,9 +441,9 @@ namespace OpenSim.Region.Environment.Modules
                 {
                     ListenerInfo li = (ListenerInfo)en.Value;
 
-                    if (li.GetHostID().Equals(listenerKey))
+                    if (li.IsActive()) 
                     {
-                        if (li.IsActive())
+                        if (li.GetHostID().Equals(listenerKey))
                         {
                             if (channel == li.GetChannel())
                             {
@@ -575,4 +582,5 @@ namespace OpenSim.Region.Environment.Modules
             return m_id;
         }
     }
+
 }

@@ -57,7 +57,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         private uint m_localID;
         private LLUUID m_itemID;
         private bool throwErrorOnNotImplemented = true;
-
+        
         public LSL_BuiltIn_Commands(ScriptEngineBase.ScriptEngine ScriptEngine, SceneObjectPart host, uint localID, LLUUID itemID)
         {
             m_ScriptEngine = ScriptEngine;
@@ -1633,7 +1633,15 @@ namespace OpenSim.Region.ScriptEngine.Common
         public int llGetLinkNumber()
         {
             m_host.AddScriptLPS(1);
-            return m_host.LinkNum;
+
+            if (m_host.ParentGroup.Children.Count > 0)
+            {
+                return m_host.LinkNum + 1;
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         public void llSetLinkColor(int linknumber, LSL_Types.Vector3 color, int face)
@@ -1945,9 +1953,174 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_ScriptEngine.m_ScriptManager.ResetScript(m_localID, m_itemID);
         }
 
-        public void llMessageLinked(int linknum, int num, string str, string id)
+        public void llMessageLinked(int linknum, int num, string msg, string id)
         {
+
             m_host.AddScriptLPS(1);
+
+            uint partLocalID;
+            LLUUID partItemID;
+
+            switch ((int)linknum)
+            {
+
+                case (int)BuiltIn_Commands_BaseClass.LINK_ROOT:
+
+                    SceneObjectPart part = m_host.ParentGroup.RootPart;
+
+                    foreach (TaskInventoryItem item in part.TaskInventory.Values)
+                    {
+                        if (item.Type == 10)
+                        {
+                            partLocalID = part.LocalId;
+                            partItemID = item.ItemID;
+
+                            object[] resobj = new object[]
+                            {
+                                m_host.LinkNum, num, msg, id
+                            };
+
+                            m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                                partLocalID, partItemID, "link_message", EventQueueManager.llDetectNull, resobj
+                            );
+
+                        }
+                    }
+
+                    break;
+
+                case (int)BuiltIn_Commands_BaseClass.LINK_SET:
+
+                    Console.WriteLine("LINK_SET");
+
+                    foreach (SceneObjectPart partInst in m_host.ParentGroup.GetParts())
+                    {
+
+                        foreach (TaskInventoryItem item in partInst.TaskInventory.Values)
+                        {
+                            if (item.Type == 10)
+                            {
+                                partLocalID = partInst.LocalId;
+                                partItemID = item.ItemID;
+                                Object[] resobj = new object[]
+                                {
+                                    m_host.LinkNum, num, msg, id
+                                };
+
+                                m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                                    partLocalID, partItemID, "link_message", EventQueueManager.llDetectNull, resobj
+                                );
+                            }
+                        }
+                    }
+
+                    break;
+
+                case (int)BuiltIn_Commands_BaseClass.LINK_ALL_OTHERS:
+
+                    foreach (SceneObjectPart partInst in m_host.ParentGroup.GetParts())
+                    {
+
+                        if (partInst.LocalId != m_host.LocalId)
+                        {
+
+                            foreach (TaskInventoryItem item in partInst.TaskInventory.Values)
+                            {
+                                if (item.Type == 10)
+                                {
+                                    partLocalID = partInst.LocalId;
+                                    partItemID = item.ItemID;
+                                    Object[] resobj = new object[]
+                                    {
+                                        m_host.LinkNum, num, msg, id
+                                    };
+
+                                    m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                                        partLocalID, partItemID, "link_message", EventQueueManager.llDetectNull, resobj
+                                    );
+                                }
+                            }
+
+                        }
+                    }
+
+                    break;
+
+                case (int)BuiltIn_Commands_BaseClass.LINK_ALL_CHILDREN:
+
+                    foreach (SceneObjectPart partInst in m_host.ParentGroup.GetParts())
+                    {
+
+                        if (partInst.LocalId != m_host.ParentGroup.RootPart.LocalId)
+                        {
+
+                            foreach (TaskInventoryItem item in partInst.TaskInventory.Values)
+                            {
+                                if (item.Type == 10)
+                                {
+                                    partLocalID = partInst.LocalId;
+                                    partItemID = item.ItemID;
+                                    Object[] resobj = new object[]
+                                    {
+                                        m_host.LinkNum, num, msg, id
+                                    };
+
+                                    m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                                        partLocalID, partItemID, "link_message", EventQueueManager.llDetectNull, resobj
+                                    );
+                                }
+                            }
+
+                        }
+                    }
+
+                    break;
+
+                case (int)BuiltIn_Commands_BaseClass.LINK_THIS:
+
+                    Object[] respObjThis = new object[]
+                                {
+                                    m_host.LinkNum, num, msg, id
+                                };
+
+                    m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                        m_localID, m_itemID, "link_message", EventQueueManager.llDetectNull, respObjThis
+                    );
+
+                    break;
+
+                default:
+
+                    foreach (SceneObjectPart partInst in m_host.ParentGroup.GetParts())
+                    {
+
+                        if ((partInst.LinkNum + 1) == linknum)
+                        {
+
+                            foreach (TaskInventoryItem item in partInst.TaskInventory.Values)
+                            {
+                                if (item.Type == 10)
+                                {
+                                    partLocalID = partInst.LocalId;
+                                    partItemID = item.ItemID;
+                                    Object[] resObjDef = new object[]
+                                    {
+                                        m_host.LinkNum, num, msg, id
+                                    };
+
+                                    m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                                        partLocalID, partItemID, "link_message", EventQueueManager.llDetectNull, resObjDef
+                                    );
+                                }
+                            }
+
+                        }
+                    }
+
+                    break;
+
+            }
+
         }
 
         public void llPushObject(string target, LSL_Types.Vector3 impulse, LSL_Types.Vector3 ang_impulse, int local)
