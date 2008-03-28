@@ -416,12 +416,9 @@ namespace OpenSim.Framework.UserManagement
 
                 map["seed_capability"] = LLSD.FromString(seedCapability);
 
-                // FIXME: Need a function that will convert these ArrayLists in to LLSDArrays,
-                // and convert the data inside them to LLSD objects as well
-
-                //map["event_categories"] = eventCategories;
+                map["event_categories"] = ArrayListToLLSDArray(eventCategories);
                 //map["event_notifications"] = new LLSDArray(); // todo
-                //map["classified_categories"] = classifiedCategories;
+                map["classified_categories"] = ArrayListToLLSDArray(classifiedCategories);
 
                 #region UI Config
 
@@ -433,18 +430,19 @@ namespace OpenSim.Framework.UserManagement
 
                 #region Inventory
 
-                //map["inventory-skeleton"] = agentInventory;
-                //map["inventory-skel-lib"] = inventoryLibrary;
-                //map["inventory-root"] = inventoryRoot;
-                //map["inventory-lib-root"] = inventoryLibRoot;
-                //map["inventory-lib-owner"] = inventoryLibraryOwner;
+                map["inventory-skeleton"] = ArrayListToLLSDArray(agentInventory);
+
+                map["inventory-skel-lib"] = ArrayListToLLSDArray(inventoryLibrary);
+                map["inventory-root"] = ArrayListToLLSDArray(inventoryRoot); ;
+                map["inventory-lib-root"] = ArrayListToLLSDArray(inventoryLibRoot);
+                map["inventory-lib-owner"] = ArrayListToLLSDArray(inventoryLibraryOwner);
 
                 #endregion Inventory
 
                 map["gestures"] = new LLSDArray(); // todo
 
-                //responseData["initial-outfit"] = initialOutfit;
-                //responseData["start_location"] = startLocation;
+                map["initial-outfit"] = ArrayListToLLSDArray(initialOutfit);
+                map["start_location"] = LLSD.FromString(startLocation);
 
                 map["seed_capability"] = LLSD.FromString(seedCapability);
                 map["home"] = LLSD.FromString(home);
@@ -455,7 +453,7 @@ namespace OpenSim.Framework.UserManagement
 
                 if (m_buddyList != null)
                 {
-                    //map["buddy-list"] = m_buddyList.ToArray();
+                    map["buddy-list"] = ArrayListToLLSDArray(m_buddyList.ToArray());
                 }
 
                 map["login"] = LLSD.FromString("true");
@@ -468,6 +466,21 @@ namespace OpenSim.Framework.UserManagement
 
                 return GenerateFailureResponseLLSD("Internal Error", "Error generating Login Response", "false");
             }
+        }
+
+        public LLSDArray ArrayListToLLSDArray(ArrayList arrlst)
+        {
+            LLSDArray llsdBack = new LLSDArray();
+            foreach (Hashtable ht in arrlst)
+            {
+                LLSDMap mp = new LLSDMap();
+                foreach (DictionaryEntry deHt in ht)
+                {
+                    mp.Add((string)deHt.Key, LLSDString.FromObject(deHt.Value));
+                }
+                llsdBack.Add(mp);
+            }
+            return llsdBack;
         }
 
         private LLSDArray WrapLLSDMap(LLSDMap wrapMe)
