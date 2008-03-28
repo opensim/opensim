@@ -88,7 +88,7 @@ namespace OpenSim.Region.Communications.Local
 
         public override bool HasInventoryForUser(LLUUID userID)
         {
-            InventoryFolderBase root = RequestUsersRoot(userID);
+            InventoryFolderBase root = RequestRootFolder(userID);
             if (root == null)
             {
                 return false;

@@ -110,18 +110,9 @@ namespace OpenSim.Framework.Communications
         }
 
         // See IInventoryServices
-        public InventoryFolderBase RequestUsersRoot(LLUUID userID)
-        {
-            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
-            {
-                return plugin.Value.getUserRootFolder(userID);
-            }
-            return null;
-        }
-
-        // See IInventoryServices
         public void MoveInventoryFolder(LLUUID userID, InventoryFolderBase folder)
         {
+            // FIXME: Probably doesn't do what was originally intended - only ever queries the first plugin
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
                 plugin.Value.moveInventoryFolder(folder);
@@ -137,7 +128,12 @@ namespace OpenSim.Framework.Communications
         // See IInventoryServices
         public InventoryFolderBase RequestRootFolder(LLUUID userID)
         {
-            return RequestUsersRoot(userID);
+            // FIXME: Probably doesn't do what was originally intended - only ever queries the first plugin
+            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+            {
+                return plugin.Value.getUserRootFolder(userID);
+            }
+            return null;
         }
 
         // See IInventoryServices
@@ -149,7 +145,7 @@ namespace OpenSim.Framework.Communications
         // See IInventoryServices
         public void CreateNewUserInventory(LLUUID user)
         {
-            InventoryFolderBase existingRootFolder = RequestUsersRoot(user);
+            InventoryFolderBase existingRootFolder = RequestRootFolder(user);
             
             if (null != existingRootFolder)
             {
