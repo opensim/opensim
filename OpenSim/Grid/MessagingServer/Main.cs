@@ -44,9 +44,6 @@ namespace OpenSim.Grid.MessagingServer
 
         private MessageServerConfig Cfg;
         private MessageService msgsvc;
-
-        //public UserManager m_userManager;
-        //public UserLoginService m_loginService;
         
         private LLUUID m_lastCreatedUser = LLUUID.Random();
 
@@ -86,14 +83,14 @@ namespace OpenSim.Grid.MessagingServer
             Cfg = new MessageServerConfig("MESSAGING SERVER", (Path.Combine(Util.configDir(), "MessagingServer_Config.xml")));
 
             m_log.Info("[REGION]: Starting HTTP process");
-            BaseHttpServer httpServer = new BaseHttpServer(Cfg.HttpPort);
-            
+            m_httpServer = new BaseHttpServer(Cfg.HttpPort);
+
             msgsvc = new MessageService(Cfg);
 
             if (msgsvc.registerWithUserServer())
             {
-                httpServer.AddXmlRPCHandler("login_to_simulator", msgsvc.UserLoggedOn);
-                httpServer.AddXmlRPCHandler("logout_of_simulator", msgsvc.UserLoggedOff);
+                m_httpServer.AddXmlRPCHandler("login_to_simulator", msgsvc.UserLoggedOn);
+                m_httpServer.AddXmlRPCHandler("logout_of_simulator", msgsvc.UserLoggedOff);
                 //httpServer.AddXmlRPCHandler("get_user_by_name", m_userManager.XmlRPCGetUserMethodName);
                 //httpServer.AddXmlRPCHandler("get_user_by_uuid", m_userManager.XmlRPCGetUserMethodUUID);
                 //httpServer.AddXmlRPCHandler("get_avatar_picker_avatar", m_userManager.XmlRPCGetAvatarPickerAvatar);
@@ -106,7 +103,7 @@ namespace OpenSim.Grid.MessagingServer
                 //httpServer.AddStreamHandler(
                 //new RestStreamHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod));
 
-                httpServer.Start();
+                m_httpServer.Start();
                 m_log.Info("[SERVER]: Messageserver 0.5 - Startup complete");
             }
             else

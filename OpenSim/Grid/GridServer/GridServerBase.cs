@@ -45,13 +45,7 @@ namespace OpenSim.Grid.GridServer
     {
         protected GridConfig m_config;
         protected GridManager m_gridManager;
-        protected BaseHttpServer httpServer;
         protected List<IGridPlugin> m_plugins = new List<IGridPlugin>();
-
-        public BaseHttpServer HttpServer
-        {
-            get { return httpServer; }
-        }
 
         public void Work()
         {
@@ -88,38 +82,37 @@ namespace OpenSim.Grid.GridServer
             SetupGridManager();
 
             m_console.Status("[GRID]: Starting HTTP process");
-            httpServer = new BaseHttpServer(m_config.HttpPort);
-            //GridManagementAgent GridManagerAgent = new GridManagementAgent(httpServer, "gridserver", m_config.SimSendKey, m_config.SimRecvKey, managercallback);
+            m_httpServer = new BaseHttpServer(m_config.HttpPort);
 
-            httpServer.AddXmlRPCHandler("simulator_login", m_gridManager.XmlRpcSimulatorLoginMethod);
-            httpServer.AddXmlRPCHandler("simulator_data_request", m_gridManager.XmlRpcSimulatorDataRequestMethod);
-            httpServer.AddXmlRPCHandler("simulator_after_region_moved", m_gridManager.XmlRpcDeleteRegionMethod);
-            httpServer.AddXmlRPCHandler("map_block", m_gridManager.XmlRpcMapBlockMethod);
+            AddHttpHandlers();
 
-            // Message Server ---> Grid Server
-            httpServer.AddXmlRPCHandler("register_messageserver", m_gridManager.XmlRPCRegisterMessageServer);
-            httpServer.AddXmlRPCHandler("deregister_messageserver", m_gridManager.XmlRPCDeRegisterMessageServer);
+            LoadGridPlugins( );
 
-            httpServer.AddStreamHandler(new RestStreamHandler("GET", "/sims/", m_gridManager.RestGetSimMethod));
-            httpServer.AddStreamHandler(new RestStreamHandler("POST", "/sims/", m_gridManager.RestSetSimMethod));
-
-            httpServer.AddStreamHandler(new RestStreamHandler("GET", "/regions/", m_gridManager.RestGetRegionMethod));
-            httpServer.AddStreamHandler(new RestStreamHandler("POST", "/regions/", m_gridManager.RestSetRegionMethod));
-
-            //httpServer.AddRestHandler("GET", "/sims/", m_gridManager.RestGetSimMethod);
-            //httpServer.AddRestHandler("POST", "/sims/", m_gridManager.RestSetSimMethod);
-            //httpServer.AddRestHandler("GET", "/regions/", m_gridManager.RestGetRegionMethod);
-            //httpServer.AddRestHandler("POST", "/regions/", m_gridManager.RestSetRegionMethod);
-
-            LoadGridPlugins();
-
-            httpServer.Start();
+            m_httpServer.Start();
 
             m_console.Status("[GRID]: Starting sim status checker");
 
-            Timer simCheckTimer = new Timer(3600000*3); // 3 Hours between updates.
+            Timer simCheckTimer = new Timer(3600000 * 3); // 3 Hours between updates.
             simCheckTimer.Elapsed += new ElapsedEventHandler(CheckSims);
             simCheckTimer.Enabled = true;
+        }
+
+        protected void AddHttpHandlers()
+        {
+            m_httpServer.AddXmlRPCHandler("simulator_login", m_gridManager.XmlRpcSimulatorLoginMethod);
+            m_httpServer.AddXmlRPCHandler("simulator_data_request", m_gridManager.XmlRpcSimulatorDataRequestMethod);
+            m_httpServer.AddXmlRPCHandler("simulator_after_region_moved", m_gridManager.XmlRpcDeleteRegionMethod);
+            m_httpServer.AddXmlRPCHandler("map_block", m_gridManager.XmlRpcMapBlockMethod);
+
+            // Message Server ---> Grid Server
+            m_httpServer.AddXmlRPCHandler("register_messageserver", m_gridManager.XmlRPCRegisterMessageServer);
+            m_httpServer.AddXmlRPCHandler("deregister_messageserver", m_gridManager.XmlRPCDeRegisterMessageServer);
+
+            m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/sims/", m_gridManager.RestGetSimMethod));
+            m_httpServer.AddStreamHandler(new RestStreamHandler("POST", "/sims/", m_gridManager.RestSetSimMethod));
+
+            m_httpServer.AddStreamHandler(new RestStreamHandler("GET", "/regions/", m_gridManager.RestGetRegionMethod));
+            m_httpServer.AddStreamHandler(new RestStreamHandler("POST", "/regions/", m_gridManager.RestSetRegionMethod));
         }
 
         protected void LoadGridPlugins()
@@ -131,8 +124,8 @@ namespace OpenSim.Grid.GridServer
             ExtensionNodeList nodes = AddinManager.GetExtensionNodes("/OpenSim/GridServer");
             foreach (TypeExtensionNode node in nodes)
             {
-                m_console.Status("[GRIDPLUGINS]: Loading OpenSim plugin "+node.Path);
-                IGridPlugin plugin = (IGridPlugin) node.CreateInstance();
+                m_console.Status("[GRIDPLUGINS]: Loading OpenSim plugin " + node.Path);
+                IGridPlugin plugin = (IGridPlugin)node.CreateInstance();
                 plugin.Initialise(this);
                 m_plugins.Add(plugin);
             }
@@ -191,15 +184,15 @@ namespace OpenSim.Grid.GridServer
         public override void RunCmd(string cmd, string[] cmdparams)
         {
             base.RunCmd(cmd, cmdparams);
-            
+
             switch (cmd)
             {
                 case "help":
                     m_console.Notice("shutdown - shutdown the grid (USE CAUTION!)");
-                    break;                                        
+                    break;
 
                 case "shutdown":
-                    foreach(IGridPlugin plugin in m_plugins) plugin.Close();
+                    foreach (IGridPlugin plugin in m_plugins) plugin.Close();
                     m_console.Close();
                     Environment.Exit(0);
                     break;

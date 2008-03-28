@@ -100,35 +100,41 @@ namespace OpenSim.Grid.UserServer
             m_userManager.OnLogOffUser += NotifyMessageServersUserLoggOff;
 
             m_log.Info("[REGION]: Starting HTTP process");
-            BaseHttpServer httpServer = new BaseHttpServer(Cfg.HttpPort);
-
-            httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
-
-            httpServer.AddHTTPHandler("login", m_loginService.ProcessHTMLLogin);
             
-            httpServer.SetLLSDHandler(m_loginService.LLSDLoginMethod);
+            m_httpServer = new BaseHttpServer(Cfg.HttpPort);
+            AddHttpHandlers();
+            m_httpServer.Start();
 
-            httpServer.AddXmlRPCHandler("get_user_by_name", m_userManager.XmlRPCGetUserMethodName);
-            httpServer.AddXmlRPCHandler("get_user_by_uuid", m_userManager.XmlRPCGetUserMethodUUID);
-            httpServer.AddXmlRPCHandler("get_avatar_picker_avatar", m_userManager.XmlRPCGetAvatarPickerAvatar);
-            httpServer.AddXmlRPCHandler("add_new_user_friend", m_userManager.XmlRpcResponseXmlRPCAddUserFriend);
-            httpServer.AddXmlRPCHandler("remove_user_friend", m_userManager.XmlRpcResponseXmlRPCRemoveUserFriend);
-            httpServer.AddXmlRPCHandler("update_user_friend_perms", m_userManager.XmlRpcResponseXmlRPCUpdateUserFriendPerms);
-            httpServer.AddXmlRPCHandler("get_user_friend_list", m_userManager.XmlRpcResponseXmlRPCGetUserFriendList);
-            httpServer.AddXmlRPCHandler("logout_of_simulator", m_userManager.XmlRPCLogOffUserMethodUUID);
+            m_log.Info("[SERVER]: Userserver 0.5 - Startup complete");
+        }
+
+        protected void AddHttpHandlers()
+        {
+            m_httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
+
+            m_httpServer.AddHTTPHandler("login", m_loginService.ProcessHTMLLogin);
+            
+            m_httpServer.SetLLSDHandler(m_loginService.LLSDLoginMethod);
+
+            m_httpServer.AddXmlRPCHandler("get_user_by_name", m_userManager.XmlRPCGetUserMethodName);
+            m_httpServer.AddXmlRPCHandler("get_user_by_uuid", m_userManager.XmlRPCGetUserMethodUUID);
+            m_httpServer.AddXmlRPCHandler("get_avatar_picker_avatar", m_userManager.XmlRPCGetAvatarPickerAvatar);
+            m_httpServer.AddXmlRPCHandler("add_new_user_friend", m_userManager.XmlRpcResponseXmlRPCAddUserFriend);
+            m_httpServer.AddXmlRPCHandler("remove_user_friend", m_userManager.XmlRpcResponseXmlRPCRemoveUserFriend);
+            m_httpServer.AddXmlRPCHandler("update_user_friend_perms", m_userManager.XmlRpcResponseXmlRPCUpdateUserFriendPerms);
+            m_httpServer.AddXmlRPCHandler("get_user_friend_list", m_userManager.XmlRpcResponseXmlRPCGetUserFriendList);
+            m_httpServer.AddXmlRPCHandler("logout_of_simulator", m_userManager.XmlRPCLogOffUserMethodUUID);
            
             // Message Server ---> User Server
-            httpServer.AddXmlRPCHandler("register_messageserver", m_messagesService.XmlRPCRegisterMessageServer);
-            httpServer.AddXmlRPCHandler("agent_change_region", m_messagesService.XmlRPCUserMovedtoRegion);
-            httpServer.AddXmlRPCHandler("deregister_messageserver", m_messagesService.XmlRPCDeRegisterMessageServer);
+            m_httpServer.AddXmlRPCHandler("register_messageserver", m_messagesService.XmlRPCRegisterMessageServer);
+            m_httpServer.AddXmlRPCHandler("agent_change_region", m_messagesService.XmlRPCUserMovedtoRegion);
+            m_httpServer.AddXmlRPCHandler("deregister_messageserver", m_messagesService.XmlRPCDeRegisterMessageServer);
 
 
-            httpServer.AddStreamHandler(
+            m_httpServer.AddStreamHandler(
                 new RestStreamHandler("DELETE", "/usersessions/", m_userManager.RestDeleteUserSessionMethod));
 
-            httpServer.AddXmlRPCHandler("update_user_profile", m_userManager.XmlRpcResponseXmlRPCUpdateUserProfile);
-            httpServer.Start();
-            m_log.Info("[SERVER]: Userserver 0.5 - Startup complete");
+            m_httpServer.AddXmlRPCHandler("update_user_profile", m_userManager.XmlRpcResponseXmlRPCUpdateUserProfile);
         }
 
         public void do_create(string what)
@@ -239,28 +245,5 @@ namespace OpenSim.Grid.UserServer
             m_messagesService.TellMessageServersAboutUser( agentID, sessionID, RegionID, regionhandle, positionX,
                 positionY,  positionZ, firstname, lastname);
         }
-
-        /*private void ConfigDB(IGenericConfig configData)
-        {
-            try
-            {
-                string attri = String.Empty;
-                attri = configData.GetAttribute("DataBaseProvider");
-                if (attri == String.Empty)
-                {
-                    StorageDll = "OpenSim.Framework.Data.DB4o.dll";
-                    configData.SetAttribute("DataBaseProvider", "OpenSim.Framework.Data.DB4o.dll");
-                }
-                else
-                {
-                    StorageDll = attri;
-                }
-                configData.Commit();
-            }
-            catch
-            {
-
-            }
-        }*/
     }
 }

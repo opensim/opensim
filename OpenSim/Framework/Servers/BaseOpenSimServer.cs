@@ -37,6 +37,12 @@ namespace OpenSim.Framework.Servers
     {
         protected ConsoleBase m_console;
         protected DateTime m_startuptime;
+
+        protected BaseHttpServer m_httpServer;
+        public BaseHttpServer HttpServer
+        {
+            get { return m_httpServer; }
+        }
         
         public BaseOpenSimServer()
         {

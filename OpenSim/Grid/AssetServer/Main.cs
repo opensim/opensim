@@ -51,7 +51,7 @@ namespace OpenSim.Grid.AssetServer
         // Temporarily hardcoded - should be a plugin
         protected IAssetLoader assetLoader = new AssetLoaderFileSystem();        
         
-        private IAssetProvider m_assetProvider;    
+        private IAssetProvider m_assetProvider;
 
         [STAThread]
         public static void Main(string[] args)
@@ -94,14 +94,19 @@ namespace OpenSim.Grid.AssetServer
             LoadDefaultAssets();
 
             m_log.Info("[ASSET]: Starting HTTP process");
-            BaseHttpServer httpServer = new BaseHttpServer(m_config.HttpPort);
-            
+            m_httpServer = new BaseHttpServer(m_config.HttpPort);
+
             StatsManager.StartCollectingAssetStats();
 
-            httpServer.AddStreamHandler(new GetAssetStreamHandler(this, m_assetProvider));
-            httpServer.AddStreamHandler(new PostAssetStreamHandler(this, m_assetProvider));
+            AddHttpHandlers();
 
-            httpServer.Start();
+            m_httpServer.Start();
+        }
+
+        protected void AddHttpHandlers()
+        {
+            m_httpServer.AddStreamHandler(new GetAssetStreamHandler(this, m_assetProvider));
+            m_httpServer.AddStreamHandler(new PostAssetStreamHandler(this, m_assetProvider));
         }
 
         public byte[] GetAssetData(LLUUID assetID, bool isTexture)
