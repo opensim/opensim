@@ -289,7 +289,8 @@ namespace OpenSim.Grid.UserServer
             }
         }
 
-        protected override InventoryData CreateInventoryData(LLUUID userID)
+        // See LoginService
+        protected override InventoryData GetInventorySkeleton(LLUUID userID)
         {
             List<InventoryFolderBase> folders
                 = SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(

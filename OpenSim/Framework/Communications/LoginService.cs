@@ -41,7 +41,7 @@ using OpenSim.Framework.Statistics;
 
 namespace OpenSim.Framework.UserManagement
 {
-    public class LoginService
+    public abstract class LoginService
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -72,6 +72,20 @@ namespace OpenSim.Framework.UserManagement
             }
         }
 
+        /// <summary>
+        /// Customises the login response and fills in missing values.
+        /// </summary>
+        /// <param name="response">The existing response</param>
+        /// <param name="theUser">The user profile</param>
+        public abstract void CustomiseResponse(LoginResponse response, UserProfileData theUser, string startLocationRequest);
+        
+        /// <summary>
+        /// Get the initial login inventory skeleton (in other words, the folder structure) for the given user.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns></returns>
+        protected abstract InventoryData GetInventorySkeleton(LLUUID userID);     
+        
         /// <summary>
         /// Called when we receive the client's initial XMLRPC login_to_simulator request message
         /// </summary>
@@ -196,7 +210,7 @@ namespace OpenSim.Framework.UserManagement
                         LLUUID agentID = userProfile.UUID;
 
                         // Inventory Library Section
-                        InventoryData inventData = CreateInventoryData(agentID);
+                        InventoryData inventData = GetInventorySkeleton(agentID);
                         ArrayList AgentInventoryArray = inventData.InventoryArray;
 
                         Hashtable InventoryRootHash = new Hashtable();
@@ -338,7 +352,7 @@ namespace OpenSim.Framework.UserManagement
                         LLUUID agentID = userProfile.UUID;
 
                         // Inventory Library Section
-                        InventoryData inventData = CreateInventoryData(agentID);
+                        InventoryData inventData = GetInventorySkeleton(agentID);
                         ArrayList AgentInventoryArray = inventData.InventoryArray;
 
                         Hashtable InventoryRootHash = new Hashtable();
@@ -405,15 +419,6 @@ namespace OpenSim.Framework.UserManagement
             {
                 m_loginMutex.ReleaseMutex();
             }
-        }
-
-        /// <summary>
-        /// Customises the login response and fills in missing values.
-        /// </summary>
-        /// <param name="response">The existing response</param>
-        /// <param name="theUser">The user profile</param>
-        public virtual void CustomiseResponse(LoginResponse response, UserProfileData theUser, string startLocationRequest)
-        {
         }
 
         public Hashtable ProcessHTMLLogin(Hashtable keysvals)
@@ -752,27 +757,6 @@ namespace OpenSim.Framework.UserManagement
             ArrayList inventoryLibOwner = new ArrayList();
             inventoryLibOwner.Add(TempHash);
             return inventoryLibOwner;
-        }
-
-        protected virtual InventoryData CreateInventoryData(LLUUID userID)
-        {
-            AgentInventory userInventory = new AgentInventory();
-            userInventory.CreateRootFolder(userID);
-
-            ArrayList AgentInventoryArray = new ArrayList();
-            Hashtable TempHash;
-            foreach (InventoryFolder InvFolder in userInventory.InventoryFolders.Values)
-            {
-                TempHash = new Hashtable();
-                TempHash["name"] = InvFolder.FolderName;
-                TempHash["parent_id"] = InvFolder.ParentID.ToString();
-                TempHash["version"] = (Int32) InvFolder.Version;
-                TempHash["type_default"] = (Int32) InvFolder.DefaultType;
-                TempHash["folder_id"] = InvFolder.FolderID.ToString();
-                AgentInventoryArray.Add(TempHash);
-            }
-
-            return new InventoryData(AgentInventoryArray, userInventory.InventoryRoot.FolderID);
         }
 
         public class InventoryData

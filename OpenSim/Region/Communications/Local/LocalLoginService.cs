@@ -212,7 +212,8 @@ namespace OpenSim.Region.Communications.Local
             return buddylistreturn;
         }
 
-        protected override InventoryData CreateInventoryData(LLUUID userID)
+        // See LoginService        
+        protected override InventoryData GetInventorySkeleton(LLUUID userID)
         {
             List<InventoryFolderBase> folders = m_Parent.InventoryService.RequestFirstLevelFolders(userID);
             if (folders.Count > 0)
