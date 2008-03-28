@@ -13,10 +13,6 @@ namespace OpenSim.Framework.Data.MapperFactory
             MYSQL,
         };
 
-        public DataMapperFactory() {
-            
-        }
-
         static public BaseDatabaseConnector GetDataBaseMapper(MAPPER_TYPE type, string connectionString)
         {
             switch (type) {
