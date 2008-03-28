@@ -2265,8 +2265,14 @@ namespace OpenSim.Region.Environment.Scenes
             {
 
                 // Tell the object to do permission update
-                SceneObjectGroup chObjectGroup = GetGroupByPrim(localId);
-                chObjectGroup.UpdatePermissions(agentID, field, localId, mask, set);
+                if (localId != 0)
+                {
+                    SceneObjectGroup chObjectGroup = GetGroupByPrim(localId);
+                    if (chObjectGroup != null)
+                    {
+                        chObjectGroup.UpdatePermissions(agentID, field, localId, mask, set);
+                    }
+                }
 
             }
         }
