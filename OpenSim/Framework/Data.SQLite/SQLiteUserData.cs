@@ -37,7 +37,7 @@ namespace OpenSim.Framework.Data.SQLite
     /// <summary>
     /// A User storage interface for the SQLite database system
     /// </summary>
-    public class SQLiteUserData : SQLiteBase, IUserData
+    public class SQLiteUserData : SQLiteUtil, IUserData
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 

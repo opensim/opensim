@@ -34,7 +34,7 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Data.MySQL
 {
-    internal class MySQLAssetData : IAssetProvider
+    internal class MySQLAssetData : AssetDataBase, IPlugin
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -66,7 +66,7 @@ namespace OpenSim.Framework.Data.MySQL
             UpgradeAssetsTable(tableList["assets"]);
         }
 
-        public AssetBase FetchAsset(LLUUID assetID)
+        override public AssetBase FetchAsset(LLUUID assetID)
         {
             AssetBase asset = null;
             lock (_dbConnection)
@@ -108,7 +108,7 @@ namespace OpenSim.Framework.Data.MySQL
             return asset;
         }
 
-        public void CreateAsset(AssetBase asset)
+        override public void CreateAsset(AssetBase asset)
         {            
             lock (_dbConnection)
             {
@@ -147,12 +147,12 @@ namespace OpenSim.Framework.Data.MySQL
             }
         }
 
-        public void UpdateAsset(AssetBase asset)
+        override public void UpdateAsset(AssetBase asset)
         {
             CreateAsset(asset);
         }
 
-        public bool ExistsAsset(LLUUID uuid)
+        override public bool ExistsAsset(LLUUID uuid)
         {
             throw new Exception("The method or operation is not implemented.");
         }
@@ -160,7 +160,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// <summary>
         /// All writes are immediately commited to the database, so this is a no-op
         /// </summary>
-        public void CommitAssets()
+        override public void CommitAssets()
         {
         }
 
@@ -168,7 +168,7 @@ namespace OpenSim.Framework.Data.MySQL
 
         #region IPlugin Members
 
-        public void Initialise()
+        override public void Initialise()
         {
             IniFile GridDataMySqlFile = new IniFile("mysql_connection.ini");
             string hostname = GridDataMySqlFile.ParseFileReadValue("hostname");
@@ -183,12 +183,12 @@ namespace OpenSim.Framework.Data.MySQL
             TestTables();
         }
 
-        public string Version
+        override public string Version
         {
             get { return _dbConnection.getVersion(); }
         }
 
-        public string Name
+        override public string Name
         {
             get { return "MySQL Asset storage engine"; }
         }

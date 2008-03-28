@@ -34,7 +34,7 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Data.MSSQL
 {
-    internal class MSSQLAssetData : IAssetProvider
+    internal class MSSQLAssetData : AssetDataBase
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -66,7 +66,7 @@ namespace OpenSim.Framework.Data.MSSQL
             UpgradeAssetsTable(tableList["assets"]);
         }
 
-        public AssetBase FetchAsset(LLUUID assetID)
+        override public AssetBase FetchAsset(LLUUID assetID)
         {
             AssetBase asset = null;
 
@@ -83,7 +83,7 @@ namespace OpenSim.Framework.Data.MSSQL
             return asset;
         }
 
-        public void CreateAsset(AssetBase asset)
+        override public void CreateAsset(AssetBase asset)
         {
             if (ExistsAsset((LLUUID) asset.FullID))
             {
@@ -129,7 +129,7 @@ namespace OpenSim.Framework.Data.MSSQL
         }
 
 
-        public void UpdateAsset(AssetBase asset)
+        override public void UpdateAsset(AssetBase asset)
         {
             SqlCommand command = new SqlCommand("UPDATE assets set id = @id, " +
                                                 "name = @name, " +
@@ -169,7 +169,7 @@ namespace OpenSim.Framework.Data.MSSQL
             }
         }
 
-        public bool ExistsAsset(LLUUID uuid)
+        override public bool ExistsAsset(LLUUID uuid)
         {
             if (FetchAsset(uuid) != null)
             {
@@ -181,7 +181,7 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <summary>
         /// All writes are immediately commited to the database, so this is a no-op
         /// </summary>
-        public void CommitAssets()
+        override public void CommitAssets()
         {
         }
 
@@ -189,7 +189,7 @@ namespace OpenSim.Framework.Data.MSSQL
 
         #region IPlugin Members
 
-        public void Initialise()
+        override public void Initialise()
         {
             IniFile GridDataMySqlFile = new IniFile("mssql_connection.ini");
             string settingDataSource = GridDataMySqlFile.ParseFileReadValue("data_source");
@@ -205,13 +205,13 @@ namespace OpenSim.Framework.Data.MSSQL
             TestTables();
         }
 
-        public string Version
+        override public string Version
         {
 //            get { return database.getVersion(); } 
             get { return database.getVersion(); }
         }
 
-        public string Name
+        override public string Name
         {
             get { return "MSSQL Asset storage engine"; }
         }

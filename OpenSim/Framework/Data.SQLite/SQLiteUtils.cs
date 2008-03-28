@@ -34,17 +34,17 @@ namespace OpenSim.Framework.Data.SQLite
     /// <summary>
     /// A base class for methods needed by all SQLite database classes
     /// </summary>
-    public class SQLiteBase
+    public class SQLiteUtil
     {
         /***********************************************************************
          *
-         *  Database Definition Functions
+         *  Database Definition Helper Functions
          * 
          *  This should be db agnostic as we define them in ADO.NET terms
          *
          **********************************************************************/
 
-        protected static void createCol(DataTable dt, string name, Type type)
+        public static void createCol(DataTable dt, string name, Type type)
         {
             DataColumn col = new DataColumn(name, type);
             dt.Columns.Add(col);
@@ -60,7 +60,7 @@ namespace OpenSim.Framework.Data.SQLite
          *
          **********************************************************************/
 
-        protected static SqliteCommand createInsertCommand(string table, DataTable dt)
+        public static SqliteCommand createInsertCommand(string table, DataTable dt)
         {
             /**
              *  This is subtle enough to deserve some commentary.
@@ -95,7 +95,7 @@ namespace OpenSim.Framework.Data.SQLite
             return cmd;
         }
 
-        protected static SqliteCommand createUpdateCommand(string table, string pk, DataTable dt)
+        public static SqliteCommand createUpdateCommand(string table, string pk, DataTable dt)
         {
             string sql = "update " + table + " set ";
             string subsql = String.Empty;
@@ -123,7 +123,7 @@ namespace OpenSim.Framework.Data.SQLite
         }
 
 
-        protected static string defineTable(DataTable dt)
+        public static string defineTable(DataTable dt)
         {
             string sql = "create table " + dt.TableName + "(";
             string subsql = String.Empty;
@@ -168,7 +168,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// for us.
         ///</summary>
         ///<returns>a built sqlite parameter</returns>
-        protected static SqliteParameter createSqliteParameter(string name, Type type)
+        public static SqliteParameter createSqliteParameter(string name, Type type)
         {
             SqliteParameter param = new SqliteParameter();
             param.ParameterName = ":" + name;
@@ -184,7 +184,7 @@ namespace OpenSim.Framework.Data.SQLite
          *
          **********************************************************************/
 
-        protected static DbType dbtypeFromType(Type type)
+        public static DbType dbtypeFromType(Type type)
         {
             if (type == typeof (String))
             {
@@ -226,7 +226,7 @@ namespace OpenSim.Framework.Data.SQLite
 
         // this is something we'll need to implement for each db
         // slightly differently.
-        protected static string sqliteType(Type type)
+        public static string sqliteType(Type type)
         {
             if (type == typeof (String))
             {

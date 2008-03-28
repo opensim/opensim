@@ -35,7 +35,7 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Data.SQLite
 {
-    internal class SQLiteManager : SQLiteBase
+    internal class SQLiteManager : SQLiteUtil
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 

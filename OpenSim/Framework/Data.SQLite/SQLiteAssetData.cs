@@ -37,7 +37,7 @@ namespace OpenSim.Framework.Data.SQLite
     /// <summary>
     /// A User storage interface for the DB4o database system
     /// </summary>
-    public class SQLiteAssetData : SQLiteBase, IAssetProvider
+    public class SQLiteAssetData : AssetDataBase
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -63,7 +63,7 @@ namespace OpenSim.Framework.Data.SQLite
             return;
         }
 
-        public AssetBase FetchAsset(LLUUID uuid)
+        override public AssetBase FetchAsset(LLUUID uuid)
         {
             
             using (SqliteCommand cmd = new SqliteCommand(SelectAssetSQL, m_conn))
@@ -86,7 +86,7 @@ namespace OpenSim.Framework.Data.SQLite
             }
         }
 
-        public void CreateAsset(AssetBase asset)
+        override public void CreateAsset(AssetBase asset)
         {
             m_log.Info("[SQLITE]: Creating Asset " + Util.ToRawUuidString(asset.FullID));
             if (ExistsAsset(asset.FullID))
@@ -111,7 +111,7 @@ namespace OpenSim.Framework.Data.SQLite
             }
         }
 
-        public void UpdateAsset(AssetBase asset)
+        override public void UpdateAsset(AssetBase asset)
         {
             LogAssetLoad(asset);
             
@@ -144,7 +144,7 @@ namespace OpenSim.Framework.Data.SQLite
                                                    asset.InvType, temporary, local, assetLength));
         }
 
-        public bool ExistsAsset(LLUUID uuid)
+        override public bool ExistsAsset(LLUUID uuid)
         {
             using (SqliteCommand cmd = new SqliteCommand(SelectAssetSQL, m_conn))
             {
@@ -175,7 +175,7 @@ namespace OpenSim.Framework.Data.SQLite
             }
         }
 
-        public void CommitAssets() // force a sync to the database
+        override public void CommitAssets() // force a sync to the database
         {
             m_log.Info("[SQLITE]: Attempting commit");
             // lock (ds)
@@ -197,14 +197,14 @@ namespace OpenSim.Framework.Data.SQLite
         {
             DataTable assets = new DataTable("assets");
 
-            createCol(assets, "UUID", typeof (String));
-            createCol(assets, "Name", typeof (String));
-            createCol(assets, "Description", typeof (String));
-            createCol(assets, "Type", typeof (Int32));
-            createCol(assets, "InvType", typeof (Int32));
-            createCol(assets, "Local", typeof (Boolean));
-            createCol(assets, "Temporary", typeof (Boolean));
-            createCol(assets, "Data", typeof (Byte[]));
+            SQLiteUtil.createCol(assets, "UUID", typeof (String));
+            SQLiteUtil.createCol(assets, "Name", typeof (String));
+            SQLiteUtil.createCol(assets, "Description", typeof (String));
+            SQLiteUtil.createCol(assets, "Type", typeof (Int32));
+            SQLiteUtil.createCol(assets, "InvType", typeof (Int32));
+            SQLiteUtil.createCol(assets, "Local", typeof (Boolean));
+            SQLiteUtil.createCol(assets, "Temporary", typeof (Boolean));
+            SQLiteUtil.createCol(assets, "Data", typeof (Byte[]));
             // Add in contraints
             assets.PrimaryKey = new DataColumn[] {assets.Columns["UUID"]};
             return assets;
@@ -248,7 +248,7 @@ namespace OpenSim.Framework.Data.SQLite
 
         private void InitDB(SqliteConnection conn)
         {
-            string createAssets = defineTable(createAssetsTable());
+            string createAssets = SQLiteUtil.defineTable(createAssetsTable());
             SqliteCommand pcmd = new SqliteCommand(createAssets, conn);
             pcmd.ExecuteNonQuery();
         }
@@ -272,7 +272,7 @@ namespace OpenSim.Framework.Data.SQLite
 
         #region IPlugin interface
 
-        public string Version
+        override public string Version
         {
             get
             {
@@ -286,12 +286,12 @@ namespace OpenSim.Framework.Data.SQLite
             }
         }
 
-        public void Initialise()
+        override public void Initialise()
         {
             Initialise("AssetStorage.db", "");
         }
 
-        public string Name
+        override public string Name
         {
             get { return "SQLite Asset storage engine"; }
         }
