@@ -424,6 +424,12 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <param name="item">The inventory item</param>
         public void addInventoryItem(InventoryItemBase item)
         {
+            if (getInventoryItem(item.inventoryID) != null)
+            {
+                updateInventoryItem(item);
+                return;
+            }
+
             string sql = "INSERT INTO inventoryitems";
             sql +=
                 "([inventoryID], [assetID], [assetType], [parentFolderID], [avatarID], [inventoryName], [inventoryDescription], [inventoryNextPermissions], [inventoryCurrentPermissions], [invType], [creatorID], [inventoryBasePermissions], [inventoryEveryOnePermissions]) VALUES ";
