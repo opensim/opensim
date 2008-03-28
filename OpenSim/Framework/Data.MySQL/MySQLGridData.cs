@@ -39,7 +39,7 @@ namespace OpenSim.Framework.Data.MySQL
     /// <summary>
     /// A MySQL Interface for the Grid Server
     /// </summary>
-    public class MySQLGridData : IGridData
+    public class MySQLGridData : GridDataBase
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -51,7 +51,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// <summary>
         /// Initialises the Grid Interface
         /// </summary>
-        public void Initialise()
+        override public void Initialise()
         {
             IniFile GridDataMySqlFile = new IniFile("mysql_connection.ini");
             string settingHostname = GridDataMySqlFile.ParseFileReadValue("hostname");
@@ -113,7 +113,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// <summary>
         /// Shuts down the grid interface
         /// </summary>
-        public void Close()
+        override public void Close()
         {
             database.Close();
         }
@@ -122,7 +122,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// Returns the plugin name
         /// </summary>
         /// <returns>Plugin name</returns>
-        public string getName()
+        override public string getName()
         {
             return "MySql OpenGridData";
         }
@@ -131,7 +131,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// Returns the plugin version
         /// </summary>
         /// <returns>Plugin version</returns>
-        public string getVersion()
+        override public string getVersion()
         {
             return "0.1";
         }
@@ -144,7 +144,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="xmax">Maximum X coordinate</param>
         /// <param name="ymax">Maximum Y coordinate</param>
         /// <returns></returns>
-        public RegionProfileData[] GetProfilesInRange(uint xmin, uint ymin, uint xmax, uint ymax)
+        override public RegionProfileData[] GetProfilesInRange(uint xmin, uint ymin, uint xmax, uint ymax)
         {
             try
             {
@@ -189,7 +189,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// </summary>
         /// <param name="handle">Region location handle</param>
         /// <returns>Sim profile</returns>
-        public RegionProfileData GetProfileByHandle(ulong handle)
+        override public RegionProfileData GetProfileByHandle(ulong handle)
         {
             try
             {
@@ -221,7 +221,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// </summary>
         /// <param name="uuid">The region UUID</param>
         /// <returns>The sim profile</returns>
-        public RegionProfileData GetProfileByLLUUID(LLUUID uuid)
+        override public RegionProfileData GetProfileByLLUUID(LLUUID uuid)
         {
             try
             {
@@ -253,7 +253,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// </summary>
         /// <param name="uuid">The region name search query</param>
         /// <returns>The sim profile</returns>
-        public RegionProfileData GetProfileByString(string regionName)
+        override public RegionProfileData GetProfileByString(string regionName)
         {
             if (regionName.Length > 2)
             {
@@ -294,7 +294,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// </summary>
         /// <param name="profile">The profile to add</param>
         /// <returns>Successful?</returns>
-        public DataResponse AddProfile(RegionProfileData profile)
+        override public DataResponse AddProfile(RegionProfileData profile)
         {
             lock (database)
             {
@@ -337,7 +337,7 @@ namespace OpenSim.Framework.Data.MySQL
         /// <param name="handle">The attempted regionHandle of the challenger</param>
         /// <param name="authkey">The secret</param>
         /// <returns>Whether the secret and regionhandle match the database entry for UUID</returns>
-        public bool AuthenticateSim(LLUUID uuid, ulong handle, string authkey)
+        override public bool AuthenticateSim(LLUUID uuid, ulong handle, string authkey)
         {
             bool throwHissyFit = false; // Should be true by 1.0
 
@@ -369,7 +369,7 @@ namespace OpenSim.Framework.Data.MySQL
             return false;
         }
 
-        public ReservationData GetReservationAtPoint(uint x, uint y)
+        override public ReservationData GetReservationAtPoint(uint x, uint y)
         {
             try
             {

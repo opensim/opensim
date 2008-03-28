@@ -34,7 +34,7 @@ namespace OpenSim.Framework.Data.DB4o
     /// <summary>
     /// A grid server storage mechanism employing the DB4o database system
     /// </summary>
-    internal class DB4oGridData : IGridData
+    internal class DB4oGridData : GridDataBase
     {
         /// <summary>
         /// The database manager object
@@ -44,7 +44,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// <summary>
         /// Called when the plugin is first loaded (as constructors are not called)
         /// </summary>
-        public void Initialise()
+        override public void Initialise()
         {
             manager = new DB4oGridManager("gridserver.yap");
         }
@@ -57,7 +57,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// <param name="c">maximum X coordinate</param>
         /// <param name="d">maximum Y coordinate</param>
         /// <returns>An array of region profiles</returns>
-        public RegionProfileData[] GetProfilesInRange(uint a, uint b, uint c, uint d)
+        override public RegionProfileData[] GetProfilesInRange(uint a, uint b, uint c, uint d)
         {
             return null;
         }
@@ -67,7 +67,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// </summary>
         /// <param name="handle">The handle to search for</param>
         /// <returns>A region profile</returns>
-        public RegionProfileData GetProfileByHandle(ulong handle)
+        override public RegionProfileData GetProfileByHandle(ulong handle)
         {
             lock (manager.simProfiles)
             {
@@ -87,7 +87,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// </summary>
         /// <param name="uuid">The region ID code</param>
         /// <returns>A region profile</returns>
-        public RegionProfileData GetProfileByLLUUID(LLUUID uuid)
+        override public RegionProfileData GetProfileByLLUUID(LLUUID uuid)
         {
             lock (manager.simProfiles)
             {
@@ -98,7 +98,7 @@ namespace OpenSim.Framework.Data.DB4o
                                 "). Total Registered Regions: " + manager.simProfiles.Count);
         }
 
-        public RegionProfileData GetProfileByString(string regionName)
+        override public RegionProfileData GetProfileByString(string regionName)
         {
             throw new Exception("GetProfileByString Not supported in DB4oGridData");
             //return null;
@@ -109,7 +109,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// </summary>
         /// <param name="profile">The profile to add</param>
         /// <returns>A dataresponse enum indicating success</returns>
-        public DataResponse AddProfile(RegionProfileData profile)
+        override public DataResponse AddProfile(RegionProfileData profile)
         {
             lock (manager.simProfiles)
             {
@@ -131,7 +131,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// <param name="handle">The location the region is logging into (unused in Db4o)</param>
         /// <param name="key">The shared secret</param>
         /// <returns>Authenticated?</returns>
-        public bool AuthenticateSim(LLUUID uuid, ulong handle, string key)
+        override public bool AuthenticateSim(LLUUID uuid, ulong handle, string key)
         {
             if (manager.simProfiles[uuid].regionRecvKey == key)
                 return true;
@@ -141,7 +141,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// <summary>
         /// Shuts down the database
         /// </summary>
-        public void Close()
+        override public void Close()
         {
             manager = null;
         }
@@ -160,7 +160,7 @@ namespace OpenSim.Framework.Data.DB4o
         /// Returns the providers name
         /// </summary>
         /// <returns>The name of the storage system</returns>
-        public string getName()
+        override public string getName()
         {
             return "DB4o Grid Provider";
         }
@@ -169,12 +169,12 @@ namespace OpenSim.Framework.Data.DB4o
         /// Returns the providers version
         /// </summary>
         /// <returns>The version of the storage system</returns>
-        public string getVersion()
+        override public string getVersion()
         {
             return "0.1";
         }
 
-        public ReservationData GetReservationAtPoint(uint x, uint y)
+        override public ReservationData GetReservationAtPoint(uint x, uint y)
         {
             return null;
         }

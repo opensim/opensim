@@ -37,7 +37,7 @@ namespace OpenSim.Framework.Data.SQLite
     /// <summary>
     /// A Grid Interface to the SQLite database
     /// </summary>
-    public class SQLiteGridData : IGridData
+    public class SQLiteGridData : GridDataBase
     {
         /// <summary>
         /// A database manager
@@ -47,7 +47,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// <summary>
         /// Initialises the Grid Interface
         /// </summary>
-        public void Initialise()
+        override public void Initialise()
         {
             database = new SQLiteManager("localhost", "db", "user", "password", "false");
         }
@@ -55,7 +55,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// <summary>
         /// Shuts down the grid interface
         /// </summary>
-        public void Close()
+        override public void Close()
         {
             database.Close();
         }
@@ -64,7 +64,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// Returns the name of this grid interface
         /// </summary>
         /// <returns>A string containing the grid interface</returns>
-        public string getName()
+        override public string getName()
         {
             return "SQLite OpenGridData";
         }
@@ -73,7 +73,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// Returns the version of this grid interface
         /// </summary>
         /// <returns>A string containing the version</returns>
-        public string getVersion()
+        override public string getVersion()
         {
             return "0.1";
         }
@@ -86,7 +86,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// <param name="c">maximum X coordinate</param>
         /// <param name="d">maximum Y coordinate</param>
         /// <returns>An array of region profiles</returns>
-        public RegionProfileData[] GetProfilesInRange(uint a, uint b, uint c, uint d)
+        override public RegionProfileData[] GetProfilesInRange(uint a, uint b, uint c, uint d)
         {
             return null;
         }
@@ -96,7 +96,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// </summary>
         /// <param name="handle">Region location handle</param>
         /// <returns>Sim profile</returns>
-        public RegionProfileData GetProfileByHandle(ulong handle)
+        override public RegionProfileData GetProfileByHandle(ulong handle)
         {
             Dictionary<string, string> param = new Dictionary<string, string>();
             param["handle"] = handle.ToString();
@@ -116,7 +116,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// </summary>
         /// <param name="regionName">The region name search query</param>
         /// <returns>The sim profile</returns>
-        public RegionProfileData GetProfileByString(string regionName)
+        override public RegionProfileData GetProfileByString(string regionName)
         {
             if (regionName.Length > 2)
             {
@@ -145,7 +145,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// </summary>
         /// <param name="uuid">The region UUID</param>
         /// <returns>The sim profile</returns>
-        public RegionProfileData GetProfileByLLUUID(LLUUID uuid)
+        override public RegionProfileData GetProfileByLLUUID(LLUUID uuid)
         {
             Dictionary<string, string> param = new Dictionary<string, string>();
             param["uuid"] = uuid.ToString();
@@ -175,7 +175,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// </summary>
         /// <param name="profile">The profile to add</param>
         /// <returns>A dataresponse enum indicating success</returns>
-        public DataResponse AddProfile(RegionProfileData profile)
+        override public DataResponse AddProfile(RegionProfileData profile)
         {
             if (database.insertRow(profile))
             {
@@ -194,7 +194,7 @@ namespace OpenSim.Framework.Data.SQLite
         /// <param name="handle">The attempted regionHandle of the challenger</param>
         /// <param name="authkey">The secret</param>
         /// <returns>Whether the secret and regionhandle match the database entry for UUID</returns>
-        public bool AuthenticateSim(LLUUID uuid, ulong handle, string authkey)
+        override public bool AuthenticateSim(LLUUID uuid, ulong handle, string authkey)
         {
             bool throwHissyFit = false; // Should be true by 1.0
 
@@ -226,7 +226,7 @@ namespace OpenSim.Framework.Data.SQLite
             return false;
         }
 
-        public ReservationData GetReservationAtPoint(uint x, uint y)
+        override public ReservationData GetReservationAtPoint(uint x, uint y)
         {
             return null;
         }

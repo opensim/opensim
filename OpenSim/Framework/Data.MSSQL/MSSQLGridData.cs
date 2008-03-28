@@ -38,7 +38,7 @@ namespace OpenSim.Framework.Data.MSSQL
     /// <summary>
     /// A grid data interface for Microsoft SQL Server
     /// </summary>
-    public class MSSQLGridData : IGridData
+    public class MSSQLGridData : GridDataBase
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -52,7 +52,7 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <summary>
         /// Initialises the Grid Interface
         /// </summary>
-        public void Initialise()
+        override public void Initialise()
         {
             IniFile iniFile = new IniFile("mssql_connection.ini");
 
@@ -94,7 +94,7 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <summary>
         /// Shuts down the grid interface
         /// </summary>
-        public void Close()
+        override public void Close()
         {
             database.Close();
         }
@@ -103,7 +103,7 @@ namespace OpenSim.Framework.Data.MSSQL
         /// Returns the storage system name
         /// </summary>
         /// <returns>A string containing the storage system name</returns>
-        public string getName()
+        override public string getName()
         {
             return "Sql OpenGridData";
         }
@@ -112,7 +112,7 @@ namespace OpenSim.Framework.Data.MSSQL
         /// Returns the storage system version
         /// </summary>
         /// <returns>A string containing the storage system version</returns>
-        public string getVersion()
+        override public string getVersion()
         {
             return "0.1";
         }
@@ -125,7 +125,7 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <param name="c">maximum X coordinate</param>
         /// <param name="d">maximum Y coordinate</param>
         /// <returns>An array of region profiles</returns>
-        public RegionProfileData[] GetProfilesInRange(uint a, uint b, uint c, uint d)
+        override public RegionProfileData[] GetProfilesInRange(uint a, uint b, uint c, uint d)
         {
             return null;
         }
@@ -135,7 +135,7 @@ namespace OpenSim.Framework.Data.MSSQL
         /// </summary>
         /// <param name="handle">Region location handle</param>
         /// <returns>Sim profile</returns>
-        public RegionProfileData GetProfileByHandle(ulong handle)
+        override public RegionProfileData GetProfileByHandle(ulong handle)
         {
             IDataReader reader = null;
             try
@@ -166,7 +166,7 @@ namespace OpenSim.Framework.Data.MSSQL
         /// </summary>
         /// <param name="uuid">The region UUID</param>
         /// <returns>The sim profile</returns>
-        public RegionProfileData GetProfileByLLUUID(LLUUID uuid)
+        override public RegionProfileData GetProfileByLLUUID(LLUUID uuid)
         {
             Dictionary<string, string> param = new Dictionary<string, string>();
             param["uuid"] = uuid.ToString();
@@ -185,7 +185,7 @@ namespace OpenSim.Framework.Data.MSSQL
         /// </summary>
         /// <param name="uuid">The region name search query</param>
         /// <returns>The sim profile</returns>
-        public RegionProfileData GetProfileByString(string regionName)
+        override public RegionProfileData GetProfileByString(string regionName)
         {
             if (regionName.Length > 2)
             {
@@ -226,7 +226,7 @@ namespace OpenSim.Framework.Data.MSSQL
         /// </summary>
         /// <param name="profile">The profile to add</param>
         /// <returns>A dataresponse enum indicating success</returns>
-        public DataResponse AddProfile(RegionProfileData profile)
+        override public DataResponse AddProfile(RegionProfileData profile)
         {
             try
             {
@@ -327,7 +327,7 @@ namespace OpenSim.Framework.Data.MSSQL
         /// <param name="handle">The attempted regionHandle of the challenger</param>
         /// <param name="authkey">The secret</param>
         /// <returns>Whether the secret and regionhandle match the database entry for UUID</returns>
-        public bool AuthenticateSim(LLUUID uuid, ulong handle, string authkey)
+        override public bool AuthenticateSim(LLUUID uuid, ulong handle, string authkey)
         {
             bool throwHissyFit = false; // Should be true by 1.0
 
@@ -358,7 +358,7 @@ namespace OpenSim.Framework.Data.MSSQL
             return false;
         }
 
-        public ReservationData GetReservationAtPoint(uint x, uint y)
+        override public ReservationData GetReservationAtPoint(uint x, uint y)
         {
             return null;
         }
