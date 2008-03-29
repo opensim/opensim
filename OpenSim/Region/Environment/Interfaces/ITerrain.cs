@@ -70,4 +70,9 @@ namespace OpenSim.Region.Environment.Interfaces
         void ExportImage(string filename, string gradientmap);
         byte[] ExportJpegImage(string gradientmap);
     }
+
+    public interface ITerrainTemp
+    {
+        byte[] WriteJpegImage(string gradientmap);
+    }
 }

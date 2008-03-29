@@ -260,7 +260,7 @@ namespace OpenSim.Framework.Communications
             {
                 AddFolder(folder);
             }
-        }        
+        }
 
         private class UsersInventory
         {

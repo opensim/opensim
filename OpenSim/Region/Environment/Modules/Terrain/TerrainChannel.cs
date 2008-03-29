@@ -56,6 +56,14 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             return copy;
         }
 
+        public ITerrainChannel MakeCopy()
+        {
+            TerrainChannel copy = new TerrainChannel(false);
+            copy.map = (double[,])this.map.Clone();
+
+            return copy;
+        } 
+
         public float[] GetFloatsSerialised()
         {
             float[] heights = new float[Width * Height];

@@ -946,6 +946,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     Heightmap = new Modules.Terrain.TerrainChannel(map);
                 }
+               
             }
             catch (Exception e)
             {
@@ -981,19 +982,23 @@ namespace OpenSim.Region.Environment.Scenes
         public void CreateTerrainTexture(bool temporary)
         {
             //TODOADAM: Move this to TerrainModule
-            /*
+          
             //create a texture asset of the terrain 
-            byte[] data = Terrain.WriteJpegImage("defaultstripe.png");
-            m_regInfo.EstateSettings.terrainImageID = LLUUID.Random();
-            AssetBase asset = new AssetBase();
-            asset.FullID = m_regInfo.EstateSettings.terrainImageID;
-            asset.Data = data;
-            asset.Name = "terrainImage";
-            asset.Description = RegionInfo.RegionName;
-            asset.Type = 0;
-            asset.Temporary = temporary;
-            AssetCache.AddAsset(asset);
-            */
+            ITerrainTemp terrain = RequestModuleInterface<ITerrainTemp>();
+            if (terrain != null)
+            {
+                byte[] data = terrain.WriteJpegImage("defaultstripe.png");
+                m_regInfo.EstateSettings.terrainImageID = LLUUID.Random();
+                AssetBase asset = new AssetBase();
+                asset.FullID = m_regInfo.EstateSettings.terrainImageID;
+                asset.Data = data;
+                asset.Name = "terrainImage";
+                asset.Description = RegionInfo.RegionName;
+                asset.Type = 0;
+                asset.Temporary = temporary;
+                AssetCache.AddAsset(asset);
+            }
+            
         }
 
         #endregion

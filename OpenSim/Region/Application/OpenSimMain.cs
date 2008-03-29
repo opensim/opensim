@@ -506,6 +506,11 @@ namespace OpenSim
             m_moduleLoader.InitialiseSharedModules(scene);
             scene.SetModuleInterfaces();
 
+            //moved these here as the terrain texture has to be created after the modules are initialized
+            // and has to happen before the region is registered with the grid. 
+            scene.CreateTerrainTexture(true);
+            scene.RegisterRegionWithGrid();
+
             //Server side object editing permissions checking
             scene.PermissionsMngr.BypassPermissions = !m_permissions;
             

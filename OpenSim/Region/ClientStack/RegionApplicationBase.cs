@@ -124,7 +124,10 @@ namespace OpenSim.Region.ClientStack
             udpServer.LocalScene = scene;
 
             scene.LoadWorldMap();
-            scene.RegisterRegionWithGrid();
+
+            //moved to opensimMain as these have to happen after modules are initialised 
+           // scene.CreateTerrainTexture(true);
+           // scene.RegisterRegionWithGrid();
 
             scene.PhysicsScene = GetPhysicsScene();
             scene.PhysicsScene.SetTerrain(scene.Heightmap.GetFloatsSerialised());
