@@ -122,7 +122,7 @@ namespace OpenSim.Region.Environment.Modules
                             if (missingTextureLimitStrategy.IsFirstRefusal(e.RequestedAssetID))
                             {
                                 m_log.DebugFormat(
-                                    "[USER TEXTURE DOWNLOAD SERVICE]: Dropping requests for notified missing texture {0} for client {1} since we have received more than {1} requests",
+                                    "[USER TEXTURE DOWNLOAD SERVICE]: Dropping requests for notified missing texture {0} for client {1} since we have received more than {2} requests",
                                     e.RequestedAssetID, m_client.AgentId, MAX_ALLOWED_TEXTURE_REQUESTS);
                             }       
                             
