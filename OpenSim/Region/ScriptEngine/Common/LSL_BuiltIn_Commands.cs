@@ -3292,12 +3292,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llAvatarOnSitTarget()
         {
             m_host.AddScriptLPS(1);
-            LLUUID AVID = m_host.GetAvatarOnSitTarget();
-
-            if (AVID != LLUUID.Zero)
-                return AVID.ToString();
-            else
-                return String.Empty;
+            return m_host.GetAvatarOnSitTarget().ToString();
+            //LLUUID AVID = m_host.GetAvatarOnSitTarget();
+     
+            //if (AVID != LLUUID.Zero)
+            //    return AVID.ToString();
+            //else
+            //    return String.Empty;
         }
 
         public void llAddToLandPassList(string avatar, double hours)
