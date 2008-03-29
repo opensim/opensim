@@ -208,11 +208,6 @@ namespace OpenSim.Region.Communications.OGS1
             return null;
         }
 
-        public virtual InventoryFolderBase RequestNamedFolder(LLUUID userID, string folderName)
-        {
-            return null;
-        }
-
         public void CreateNewUserInventory(LLUUID user)
         {
         }
@@ -222,11 +217,6 @@ namespace OpenSim.Region.Communications.OGS1
         {
             m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: The GetInventorySkeleton() method here should never be called!");
             
-            return new List<InventoryFolderBase>();
-        }
-
-        public List<InventoryFolderBase> RequestFirstLevelFolders(LLUUID userID)
-        {
             return new List<InventoryFolderBase>();
         }
 

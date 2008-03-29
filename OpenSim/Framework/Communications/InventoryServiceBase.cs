@@ -74,31 +74,14 @@ namespace OpenSim.Framework.Communications
         
         #endregion
         
-        #region IInventoryServices methods
+        #region IInventoryServices methods        
 
         /// <summary>
-        /// Guid to UUID wrapper for same name IInventoryServices method
+        /// Returns the root folder plus any folders in root (so down one level in the Inventory folders tree)
+        /// for the given user.
         /// </summary>
-        /// <param name="rawUserID"></param>
+        /// <param name="userID"></param>
         /// <returns></returns>
-        public List<InventoryFolderBase> RequestFirstLevelFolders(Guid rawUserID)
-        {
-            LLUUID userID = new LLUUID(rawUserID);
-            return RequestFirstLevelFolders(userID);
-        }
-        
-        /// <summary>
-        /// Guid to UUID wrapper for same name IInventoryServices method
-        /// </summary>
-        /// <param name="rawUserID"></param>
-        /// <returns></returns>        
-        public List<InventoryFolderBase> GetInventorySkeleton(Guid rawUserID)
-        {
-            LLUUID userID = new LLUUID(rawUserID);
-            return GetInventorySkeleton(userID);
-        }        
-
-        // See IInventoryServices
         public List<InventoryFolderBase> RequestFirstLevelFolders(LLUUID userID)
         {
             List<InventoryFolderBase> inventoryList = new List<InventoryFolderBase>();
@@ -172,12 +155,6 @@ namespace OpenSim.Framework.Communications
             {
                 return plugin.Value.getUserRootFolder(userID);
             }
-            return null;
-        }
-
-        // See IInventoryServices
-        public virtual InventoryFolderBase RequestNamedFolder(LLUUID userID, string folderName)
-        {
             return null;
         }
 

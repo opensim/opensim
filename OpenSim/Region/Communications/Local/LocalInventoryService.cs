@@ -42,7 +42,6 @@ namespace OpenSim.Region.Communications.Local
         public override void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack,
                                                      InventoryItemInfo itemCallBack)
         {
-            //List<InventoryFolderBase> folders = RequestFirstLevelFolders(userID);
             List<InventoryFolderBase> folders = GetInventorySkeleton(userID);
             
             InventoryFolderImpl rootFolder = null;
@@ -99,24 +98,6 @@ namespace OpenSim.Region.Communications.Local
             {
                 return true;
             }
-        }
-
-        public override InventoryFolderBase RequestNamedFolder(LLUUID userID, string folderName)
-        {
-             List<InventoryFolderBase> folders = RequestFirstLevelFolders(userID);
-             InventoryFolderBase requestedFolder = null;
-
-            //need to make sure we send root folder first
-            foreach (InventoryFolderBase folder in folders)
-            {
-                if (folder.name == folderName)
-                {
-                    requestedFolder = folder;
-                    break;
-                }
-            }
-
-            return requestedFolder;
         }
 
         /// <summary>

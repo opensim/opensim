@@ -136,6 +136,17 @@ namespace OpenSim.Grid.InventoryServer
                         
             return invCollection;
         }
+                
+        /// <summary>
+        /// Guid to UUID wrapper for same name IInventoryServices method
+        /// </summary>
+        /// <param name="rawUserID"></param>
+        /// <returns></returns>        
+        public List<InventoryFolderBase> GetInventorySkeleton(Guid rawUserID)
+        {
+            LLUUID userID = new LLUUID(rawUserID);
+            return GetInventorySkeleton(userID);
+        }        
 
         public bool CreateUsersInventory(Guid rawUserID)
         {
