@@ -1131,8 +1131,8 @@ namespace OpenSim
 
                 case "users":
                     m_console.Notice(
-                        String.Format("{0,-16}{1,-16}{2,-37}{3,-16}{4,-22}{5,-16}", "Firstname", "Lastname",
-                                      "Agent ID", "Circuit", "IP", "Region"));
+                        String.Format("{0,-16}{1,-16}{2,-37}{3,-16}{4,-22}{5,-16}{6,-15}", "Firstname", "Lastname",
+                                      "Agent ID", "Circuit", "IP", "Region", "Status"));
 
                     foreach (ScenePresence presence in m_sceneManager.GetCurrentSceneAvatars())
                     {
@@ -1159,15 +1159,16 @@ namespace OpenSim
                         }
 
                         m_console.Notice(
-                            String.Format("{0,-16}{1,-16}{2,-37}{3,-16}{4,-22}{5,-16}",
-                                          presence.Firstname,
-                                          presence.Lastname,
-                                          presence.UUID,
-                                          presence.ControllingClient.CircuitCode,
-                                          ep,
-                                          regionName));
-                        m_console.Notice("        {0}", (((ClientView)presence.ControllingClient).PacketProcessingEnabled)?"Active client":"Standby client");
-
+                            String.Format(
+                                 "{0,-16}{1,-16}{2,-37}{3,-16}{4,-22}{5,-16}{6,-15}",
+                                 presence.Firstname,
+                                 presence.Lastname,
+                                 presence.UUID,
+                                 presence.ControllingClient.CircuitCode,
+                                 ep,
+                                 regionName,
+                                 ((((ClientView)presence.ControllingClient).PacketProcessingEnabled)
+                                     ?"Active client":"Standby client")));
                     }
 
                     break;
