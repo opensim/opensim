@@ -272,7 +272,7 @@ namespace OpenSim.Framework.UserManagement
                     }
                     catch (Exception e)
                     {
-                        m_log.Info("[LOGIN]: Login failed, exception" + e.ToString());
+                        m_log.Info("[LOGIN]: Login failed, " + e.ToString());
                     }
                 }
 

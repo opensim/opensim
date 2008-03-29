@@ -76,12 +76,27 @@ namespace OpenSim.Framework.Communications
         
         #region IInventoryServices methods
 
-        // See IInventoryServices
+        /// <summary>
+        /// Guid to UUID wrapper for same name IInventoryServices method
+        /// </summary>
+        /// <param name="rawUserID"></param>
+        /// <returns></returns>
         public List<InventoryFolderBase> RequestFirstLevelFolders(Guid rawUserID)
         {
             LLUUID userID = new LLUUID(rawUserID);
             return RequestFirstLevelFolders(userID);
         }
+        
+        /// <summary>
+        /// Guid to UUID wrapper for same name IInventoryServices method
+        /// </summary>
+        /// <param name="rawUserID"></param>
+        /// <returns></returns>        
+        public List<InventoryFolderBase> GetInventorySkeleton(Guid rawUserID)
+        {
+            LLUUID userID = new LLUUID(rawUserID);
+            return GetInventorySkeleton(userID);
+        }        
 
         // See IInventoryServices
         public List<InventoryFolderBase> RequestFirstLevelFolders(LLUUID userID)
@@ -112,7 +127,7 @@ namespace OpenSim.Framework.Communications
         // See IInventoryServices
         public List<InventoryFolderBase> GetInventorySkeleton(LLUUID userId)
         {
-//            m_log.DebugFormat("[AGENT INVENTORY]: Getting inventory skeleton for {0}", userId);
+            m_log.DebugFormat("[AGENT INVENTORY]: Getting inventory skeleton for {0}", userId);
             
             List<InventoryFolderBase> userFolders = new List<InventoryFolderBase>();
             
@@ -173,7 +188,7 @@ namespace OpenSim.Framework.Communications
             
             if (null != existingRootFolder)
             {
-                m_log.ErrorFormat("[AGENTINVENTORY]: " +
+                m_log.ErrorFormat("[AGENT INVENTORY]: " +
                                   "Did not create a new inventory for user {0} since they already have "
                                   + "a root inventory folder with id {1}", user, existingRootFolder);
             }

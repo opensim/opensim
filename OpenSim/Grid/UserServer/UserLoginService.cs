@@ -323,6 +323,8 @@ namespace OpenSim.Grid.UserServer
                 Hashtable TempHash;
                 foreach (InventoryFolderBase InvFolder in folders)
                 {
+//                    m_log.DebugFormat("[LOGIN]: Received agent inventory folder {0}", InvFolder.name);
+                    
                     if (InvFolder.parentID == LLUUID.Zero)
                     {
                         rootID = InvFolder.folderID;

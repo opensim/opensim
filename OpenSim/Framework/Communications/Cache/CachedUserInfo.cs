@@ -25,6 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.Collections.Generic;
+
 using libsecondlife;
 
 namespace OpenSim.Framework.Communications.Cache
@@ -35,50 +38,135 @@ namespace OpenSim.Framework.Communications.Cache
             = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         
         private readonly CommunicationsManager m_parentCommsManager;
-        // Fields
+
+        // FIXME: These need to be hidden behind accessors
         public InventoryFolderImpl RootFolder = null;
         public UserProfileData UserProfile = null;
+        
+        /// <summary>
+        /// Stores received folders for which we have not yet received the parents.
+        /// </summary></param>
+        private IDictionary<LLUUID, IList<InventoryFolderImpl>> pendingCategorizationFolders 
+            = new Dictionary<LLUUID, IList<InventoryFolderImpl>>();
 
         public CachedUserInfo(CommunicationsManager commsManager)
         {
             m_parentCommsManager = commsManager;
         }
-
-        // Methods
-        public void FolderReceive(LLUUID userID, InventoryFolderImpl folderInfo)
+        
+        /// <summary>
+        /// Store a folder pending categorization when its parent is received.
+        /// </summary>
+        /// <param name="folder"></param>
+        private void AddPendingFolder(InventoryFolderImpl folder)
         {
-            //m_log.DebugFormat("[INVENTORY CACHE]: Received folder {0} {1} for user {2}", folderInfo.name, folderInfo.folderID, userID);
+            LLUUID parentFolderId = folder.parentID;
             
-            if (userID == UserProfile.UUID)
+            if (pendingCategorizationFolders.ContainsKey(parentFolderId))
             {
-                if (RootFolder == null)
+                pendingCategorizationFolders[parentFolderId].Add(folder);
+            }
+            else
+            {
+                IList<InventoryFolderImpl> folders = new List<InventoryFolderImpl>();
+                folders.Add(folder);
+                
+                pendingCategorizationFolders[parentFolderId] = folders;
+            }
+        }
+        
+        /// <summary>
+        /// Add any pending folders which are children of parent
+        /// </summary>
+        /// <param name="parentId">
+        /// A <see cref="LLUUID"/>
+        /// </param>
+        private void ResolvePendingFolders(InventoryFolderImpl parent)
+        {
+            if (pendingCategorizationFolders.ContainsKey(parent.folderID))
+            {
+                foreach (InventoryFolderImpl folder in pendingCategorizationFolders[parent.folderID])
                 {
-                    if (folderInfo.parentID == LLUUID.Zero)
+//                    m_log.DebugFormat(
+//                        "[INVENTORY CACHE]: Resolving pending received folder {0} {1} into {2} {3}",
+//                        folder.name, folder.folderID, parent.name, parent.folderID);
+                    
+                    if (!parent.SubFolders.ContainsKey(folder.folderID))
                     {
-                        RootFolder = folderInfo;
-                    }
-                }
-                else if (RootFolder.folderID == folderInfo.parentID)
-                {
-                    if (!RootFolder.SubFolders.ContainsKey(folderInfo.folderID))
-                    {
-                        RootFolder.SubFolders.Add(folderInfo.folderID, folderInfo);
-                    }
-                }
-                else
-                {
-                    InventoryFolderImpl folder = RootFolder.HasSubFolder(folderInfo.parentID);
-                    if (folder != null)
-                    {
-                        if (!folder.SubFolders.ContainsKey(folderInfo.folderID))
-                        {
-                            folder.SubFolders.Add(folderInfo.folderID, folderInfo);
-                        }
-                    }
+                        parent.SubFolders.Add(folder.folderID, folder);
+                    }                    
                 }
             }
         }
 
+        /// <summary>
+        /// Callback invoked when a folder is received from an async request to the inventory service.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="folderInfo"></param>
+        public void FolderReceive(LLUUID userID, InventoryFolderImpl folderInfo)
+        {
+            // FIXME: Exceptions thrown upwards never appear on the console.  Could fix further up if these
+            // are simply being swallowed
+            try
+            {
+//                m_log.DebugFormat(
+//                    "[INVENTORY CACHE]: Received folder {0} {1} for user {2}", 
+//                    folderInfo.name, folderInfo.folderID, userID);
+                
+                if (userID == UserProfile.UUID)
+                {
+                    if (RootFolder == null)
+                    {
+                        if (folderInfo.parentID == LLUUID.Zero)
+                        {
+                            RootFolder = folderInfo;
+                        }
+                    }
+                    else if (RootFolder.folderID == folderInfo.parentID)
+                    {
+                        if (!RootFolder.SubFolders.ContainsKey(folderInfo.folderID))
+                        {
+                            RootFolder.SubFolders.Add(folderInfo.folderID, folderInfo);
+                        }
+                        else
+                        {
+                            AddPendingFolder(folderInfo);
+                        }                        
+                    }
+                    else
+                    {
+                        InventoryFolderImpl folder = RootFolder.HasSubFolder(folderInfo.parentID);
+                        if (folder != null)
+                        {
+                            if (!folder.SubFolders.ContainsKey(folderInfo.folderID))
+                            {
+                                folder.SubFolders.Add(folderInfo.folderID, folderInfo);
+                            }
+                        }
+                        else
+                        {
+                            AddPendingFolder(folderInfo);
+                        }
+                    }
+                    
+                    ResolvePendingFolders(folderInfo);
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[INVENTORY CACHE] {0}", e);
+            }
+        }
+
+        /// <summary>
+        /// Callback invoked when an item is received from an async request to the inventory service.
+        /// 
+        /// FIXME: We're assuming here that items are always received after all the folders have been
+        /// received.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="folderInfo"></param>        
         public void ItemReceive(LLUUID userID, InventoryItemBase itemInfo)
         {
             if ((userID == UserProfile.UUID) && (RootFolder != null))

@@ -108,8 +108,7 @@ namespace OpenSim.Grid.InventoryServer
         {
             LLUUID userID = new LLUUID(rawUserID);
 
-            // We get enough verbose messages later on for diagnostics
-            //m_log.Info("[INVENTORY]: Request for inventory for " + userID.ToString());            
+            m_log.Info("[GRID INVENTORY]: Request for inventory of " + userID.ToString());            
 
             InventoryCollection invCollection = new InventoryCollection();
             List<InventoryFolderBase> folders;
@@ -120,6 +119,21 @@ namespace OpenSim.Grid.InventoryServer
                 invCollection.Folders = folders;
                 invCollection.UserID = userID;
             }
+            
+//            foreach (InventoryFolderBase folder in folders)
+//            {
+//                m_log.DebugFormat(
+//                    "[GRID INVENTORY]: Sending back folder {0}, {1}", 
+//                    folder.name, folder.folderID);
+//            }
+//            
+//            foreach (InventoryItemBase item in allItems)
+//            {
+//                m_log.DebugFormat(
+//                    "[GRID INVENTORY]: Sending back item {0}, {1}, folder {2}", 
+//                    item.inventoryName, item.inventoryID, item.parentFolderID);
+//            }
+                        
             return invCollection;
         }
 

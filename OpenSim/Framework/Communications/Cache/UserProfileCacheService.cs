@@ -27,7 +27,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
+
 using libsecondlife;
+
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Communications.Cache
@@ -65,9 +68,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                     if (userInfo.UserProfile != null)
                     {
-                        // The request itself will occur when the agent finishes logging on to the region
-                        // so there's no need to do it here.
-                        //RequestInventoryForUser(userID, userInfo);
+                        // The inventory will be populated when the user actually enters the scene
                         m_userProfiles.Add(userID, userInfo);
                     }
                     else
@@ -219,10 +220,34 @@ namespace OpenSim.Framework.Communications.Cache
             CachedUserInfo userProfile;
             if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
             {
+                // XXX: When a client crosses into a scene, their entire inventory is fetched
+                // asynchronously.  However, if the client is logging on and does not have a cached root 
+                // folder, then the root folder request usually comes in *before* the async completes, leading to 
+                // inventory failure.
+                //
+                // This is a crude way of dealing with that by retrying the lookup.
+                if (userProfile.RootFolder == null)
+                {
+                    int attempts = 5;
+                    while (attempts-- > 0)
+                    {
+                        Thread.Sleep(3000);
+                        
+                        if (userProfile.RootFolder != null)
+                        {
+                            break;
+                        }
+                    }
+                }
+                
                 if (userProfile.RootFolder != null)
                 {
                     if (userProfile.RootFolder.folderID == folderID)
                     {
+//                        m_log.DebugFormat(
+//                            "[AGENT INVENTORY]: Found root folder {0} for client {1}", 
+//                            folderID, remoteClient.AgentId);
+                        
                         remoteClient.SendInventoryFolderDetails(
                             remoteClient.AgentId, folderID, userProfile.RootFolder.RequestListOfItems(),
                             userProfile.RootFolder.RequestListOfFolders(),
@@ -234,6 +259,10 @@ namespace OpenSim.Framework.Communications.Cache
                     {
                         if ((fold = userProfile.RootFolder.HasSubFolder(folderID)) != null)
                         {
+//                            m_log.DebugFormat(
+//                                "[AGENT INVENTORY]: Found folder {0} for client {1}", 
+//                                folderID, remoteClient.AgentId);
+                            
                             remoteClient.SendInventoryFolderDetails(
                                 remoteClient.AgentId, folderID, fold.RequestListOfItems(),
                                 fold.RequestListOfFolders(), fetchFolders, fetchItems);
