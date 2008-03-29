@@ -106,6 +106,11 @@ namespace OpenSim.Grid.InventoryServer
                 new RestDeserialisehandler<InventoryItemBase, bool>(
                     "POST", "/DeleteItem/", m_inventoryService.DeleteInvItem));
 
+            // WARNING: Root folders no longer just delivers the root and immediate child folders (e.g
+            // system folders such as Objects, Textures), but it now returns the entire inventory skeleton.
+            // It would have been better to rename this request, but complexities in the BaseHttpServer
+            // (e.g. any http request not found is automatically treated as an xmlrpc request) make it easier
+            // to do this for now.
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<Guid, List<InventoryFolderBase>>
                     ("POST", "/RootFolders/", m_inventoryService.GetInventorySkeleton));
