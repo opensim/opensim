@@ -253,13 +253,13 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 relatedScene._characters.TryGetValue(rb, out bxcA);
                 relatedScene._prims.TryGetValue(rb, out bxpA);
             }
-            String nameA;
-            if (bxcA != null)
-                nameA = bxcA._name;
-            else if (bxpA != null)
-                nameA = bxpA._name;
-            else
-                nameA = "null";
+//             String nameA;
+//             if (bxcA != null)
+//                 nameA = bxcA._name;
+//             else if (bxpA != null)
+//                 nameA = bxpA._name;
+//             else
+//                 nameA = "null";
 
             BulletXCharacter bxcB = null;
             BulletXPrim bxpB = null;
@@ -270,13 +270,13 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 relatedScene._characters.TryGetValue(rb, out bxcB);
                 relatedScene._prims.TryGetValue(rb, out bxpB);
             }
-            String nameB;
-            if (bxcB != null)
-                nameB = bxcB._name;
-            else if (bxpB != null)
-                nameB = bxpB._name;
-            else
-                nameB = "null";
+//             String nameB;
+//             if (bxcB != null)
+//                 nameB = bxcB._name;
+//             else if (bxpB != null)
+//                 nameB = bxpB._name;
+//             else
+//                 nameB = "null";
 
             bool needsCollision = base.NeedsCollision(bodyA, bodyB);
 
@@ -1478,8 +1478,8 @@ namespace OpenSim.Region.Physics.BulletXPlugin
     internal class BulletXPlanet
     {
         private PhysicsVector _staticPosition;
-        private PhysicsVector _staticVelocity;
-        private AxiomQuaternion _staticOrientation;
+//         private PhysicsVector _staticVelocity;
+//         private AxiomQuaternion _staticOrientation;
         private float _mass;
         private BulletXScene _parentscene;
         internal float[] _heightField;
@@ -1493,8 +1493,8 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         internal BulletXPlanet(BulletXScene parent_scene, float[] heightField)
         {
             _staticPosition = new PhysicsVector(BulletXScene.MaxXY/2, BulletXScene.MaxXY/2, 0);
-            _staticVelocity = new PhysicsVector();
-            _staticOrientation = AxiomQuaternion.Identity;
+//             _staticVelocity = new PhysicsVector();
+//             _staticOrientation = AxiomQuaternion.Identity;
             _mass = 0; //No active
             _parentscene = parent_scene;
             _heightField = heightField;
