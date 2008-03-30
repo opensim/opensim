@@ -57,6 +57,43 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
             return retval;
         }
 
+        public override string ToString()
+        {
+            return "RAW32";
+        }
+
+        public ITerrainChannel LoadFile(string filename, int fileStartX, int fileStartY, int fileWidth, int fileHeight, int sectionWidth, int sectionHeight)
+        {
+            TerrainChannel retval = new TerrainChannel(sectionWidth, sectionHeight);
+
+            FileInfo file = new FileInfo(filename);
+            FileStream s = file.Open(FileMode.Open, FileAccess.Read);
+            BinaryReader bs = new BinaryReader(s);
+
+            // Advance to our section of the file
+            if (fileStartY * sectionHeight > 0)
+                bs.ReadBytes(fileStartY * sectionHeight);
+
+            int x, y;
+            for (y = 0; y < retval.Height; y++)
+            {
+                // Advance the stream if we aren't at the start of the section in the file
+                if (fileStartX * sectionWidth > 0)
+                    bs.ReadBytes(fileStartX * sectionHeight);
+
+                for (x = 0; x < retval.Width; x++)
+                {
+                    // Read a strip and continue
+                    retval[x, y] = bs.ReadSingle();
+                }
+            }
+
+            bs.Close();
+            s.Close();
+
+            return retval;
+        }
+
         public void SaveFile(string filename, ITerrainChannel map)
         {
             FileInfo file = new FileInfo(filename);

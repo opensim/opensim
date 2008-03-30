@@ -175,16 +175,14 @@ namespace OpenSim.Region.Environment.Scenes
             CurrentOrFirstScene.LoadPrimsFromXml2(filename);
         }
 
+        [Obsolete("TODO: Remove this warning by 0.7")]
         public bool RunTerrainCmdOnCurrentScene(string[] cmdparams, ref string result)
         {
-            m_log.Warn("Old terrain commands format has been deprecated.");
-            m_log.Warn("Please enter 'script terrain' rather than 'terrain'.");
-            m_log.Warn("FOR EXAMPLE: script terrain fill 25");          
-            
+            m_log.Warn("DEPRECIATED: The terrain engine has been replaced with a new terrain plugin module. Please type 'plugin terrain help' for new commands.");            
             return false;
         }
 
-        public void SendCommandToCurrentSceneScripts(string[] cmdparams)
+        public void SendCommandToPluginModules(string[] cmdparams)
         {
             ForEachCurrentScene(delegate(Scene scene) { scene.SendCommandToPlugins(cmdparams); });
         }

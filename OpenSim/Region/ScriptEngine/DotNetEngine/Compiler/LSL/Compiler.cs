@@ -268,6 +268,24 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 l = enumCompileType.cs;
             }
 
+            // Insert additional assemblies here
+
+            //ADAM: Disabled for the moment until it's working right.
+            bool enableCommanderLSL = false;
+
+            if (enableCommanderLSL == true && l == enumCompileType.cs)
+            {
+                foreach (KeyValuePair<string, 
+                    OpenSim.Region.Environment.Interfaces.ICommander> com 
+                    in m_scriptEngine.World.GetCommanders())
+                {
+                    compileScript = com.Value.GenerateRuntimeAPI() + compileScript;
+                }
+            }
+
+            // End of insert
+
+
             switch (l)
             {
                 case enumCompileType.cs:
@@ -280,6 +298,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                     compileScript = CreateJSCompilerScript(compileScript);
                     break;
             }
+
+            Console.WriteLine("\n\n\n");
+            Console.WriteLine(compileScript);
+            Console.WriteLine("\n\n\n");
+
             return CompileFromDotNetText(compileScript, l);
         }
 

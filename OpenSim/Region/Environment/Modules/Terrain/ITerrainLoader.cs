@@ -32,6 +32,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
     public interface ITerrainLoader
     {
         ITerrainChannel LoadFile(string filename);
+        ITerrainChannel LoadFile(string filename, int fileStartX, int fileStartY, int fileWidth, int fileHeight, int sectionWidth, int sectionHeight);
         void SaveFile(string filename, ITerrainChannel map);
     }
 }

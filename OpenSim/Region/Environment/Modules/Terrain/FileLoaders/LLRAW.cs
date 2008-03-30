@@ -58,6 +58,16 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
             return retval;
         }
 
+        public override string ToString()
+        {
+            return "LL/SL RAW";
+        }
+
+        public ITerrainChannel LoadFile(string filename, int x, int y, int fileWidth, int fileHeight, int w, int h)
+        {
+            throw new NotImplementedException();
+        }
+
         public void SaveFile(string filename, ITerrainChannel map)
         {
             FileInfo file = new FileInfo(filename);

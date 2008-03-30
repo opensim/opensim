@@ -890,17 +890,8 @@ namespace OpenSim
                     }
                     break;
 
-                case "terrain":
-                    string result = String.Empty;
-            
-                    if (!m_sceneManager.RunTerrainCmdOnCurrentScene(cmdparams, ref result))
-                    {
-                        m_console.Error(result);
-                    }
-                    break;
-
-                case "script":
-                    m_sceneManager.SendCommandToCurrentSceneScripts(cmdparams);
+                case "plugin":
+                    m_sceneManager.SendCommandToPluginModules(cmdparams);
                     break;
 
                 case "command-script":
@@ -1081,14 +1072,15 @@ namespace OpenSim
                         }
                     }
 
-                    break;                    
-                    /*
-                     * Temporarily disabled but it would be good to have this - needs to be levered
-                     * in to BaseOpenSimServer (which requires a RunCmd method restrcuture probably)
+                    break;  
+
                 default:
-                    m_console.Error("Unknown command");
+                    string[] tmpPluginArgs = new string[cmdparams.Length + 1];
+                    cmdparams.CopyTo(tmpPluginArgs, 1);
+                    tmpPluginArgs[0] = command;
+
+                    m_sceneManager.SendCommandToPluginModules(tmpPluginArgs);
                     break;
-                    */
             }
         }
 

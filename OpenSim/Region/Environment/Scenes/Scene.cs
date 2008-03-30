@@ -40,10 +40,8 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Modules;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
-using OpenSim.Region.Terrain;
 using Caps = OpenSim.Region.Capabilities.Caps;
 using Image = System.Drawing.Image;
 using Timer = System.Timers.Timer;
@@ -75,7 +73,6 @@ namespace OpenSim.Region.Environment.Scenes
         private readonly Mutex _primAllocateMutex = new Mutex(false);
 
         private int m_timePhase = 24;
-        private int m_timeUpdateCount;
 
         private readonly Mutex updateLock;
         public bool m_physicalPrim;
@@ -104,6 +101,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected Dictionary<string, IRegionModule> Modules = new Dictionary<string, IRegionModule>();
         public Dictionary<Type, object> ModuleInterfaces = new Dictionary<Type, object>();
         protected Dictionary<string, object> ModuleAPIMethods = new Dictionary<string, object>();
+        public Dictionary<string, ICommander> m_moduleCommanders = new Dictionary<string, ICommander>();
 
         //API module interfaces
 
@@ -1947,6 +1945,27 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 Modules.Add(name, module);
             }
+        }
+
+        public void RegisterModuleCommander(string name, ICommander commander)
+        {
+            lock (m_moduleCommanders)
+            {
+                m_moduleCommanders.Add(name, commander);
+            }
+        }
+
+        public ICommander GetCommander(string name)
+        {
+            lock (m_moduleCommanders)
+            {
+                return m_moduleCommanders[name];
+            }
+        }
+
+        public Dictionary<string, ICommander> GetCommanders()
+        {
+            return m_moduleCommanders;
         }
 
         /// <summary>

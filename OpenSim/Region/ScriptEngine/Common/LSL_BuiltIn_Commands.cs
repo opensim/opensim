@@ -105,6 +105,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             get { return m_ScriptEngine.World; }
         }
 
+        // Extension commands use this:
+        public ICommander GetCommander(string name)
+        {
+            return World.GetCommander(name);
+        }
+
         //These are the implementations of the various ll-functions used by the LSL scripts.
         //starting out, we use the System.Math library for trig functions. - ckrinke 8-14-07
         public double llSin(double f)

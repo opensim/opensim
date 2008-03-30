@@ -146,6 +146,12 @@ namespace OpenSim.Region.ScriptEngine.Common
         //
         // They are only forwarders to LSL_BuiltIn_Commands.cs
         //
+
+        public OpenSim.Region.Environment.Interfaces.ICommander GetCommander(string name)
+        {
+            return m_LSL_Functions.GetCommander(name);
+        }
+
         public double llSin(double f)
         {
             return m_LSL_Functions.llSin(f);

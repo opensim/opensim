@@ -35,6 +35,8 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         string State { get; set; }
 
+        OpenSim.Region.Environment.Interfaces.ICommander GetCommander(string name);
+
         double llSin(double f);
         double llCos(double f);
         double llTan(double f);

@@ -41,6 +41,16 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
             throw new NotImplementedException();
         }
 
+        public ITerrainChannel LoadFile(string filename, int x, int y, int fileWidth, int fileHeight, int w, int h)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override string ToString()
+        {
+            return "JPEG";
+        }
+
         private Bitmap CreateBitmapFromMap(ITerrainChannel map)
         {
             Bitmap gradientmapLd = new Bitmap("defaultstripe.png");

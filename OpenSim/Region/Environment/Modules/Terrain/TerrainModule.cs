@@ -33,11 +33,12 @@ using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Modules.ModuleFramework;
 
 
 namespace OpenSim.Region.Environment.Modules.Terrain
 {
-    public class TerrainModule : IRegionModule , ITerrainTemp
+    public class TerrainModule : IRegionModule , ITerrainTemp, ICommandableModule
     {
         public enum StandardTerrainEffects : byte
         {
@@ -50,6 +51,8 @@ namespace OpenSim.Region.Environment.Modules.Terrain
         }
 
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        private Commander m_commander = new Commander("Terrain");
 
         private Dictionary<StandardTerrainEffects, ITerrainPaintableEffect> m_painteffects =
             new Dictionary<StandardTerrainEffects, ITerrainPaintableEffect>();
@@ -109,7 +112,44 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                 {
                     lock (m_scene)
                     {
-                        ITerrainChannel channel = loader.Value.LoadFile(filename);
+                        try
+                        {
+                            ITerrainChannel channel = loader.Value.LoadFile(filename);
+                            m_scene.Heightmap = channel;
+                            m_channel = channel;
+                            UpdateRevertMap();
+                        }
+                        catch (NotImplementedException)
+                        {
+                            m_log.Error("[TERRAIN]: Unable to load heightmap, the " + loader.Value.ToString() + " parser does not support file loading. (May be save only)");
+                            return;
+                        }
+                        catch (System.IO.FileNotFoundException)
+                        {
+                            m_log.Error("[TERRAIN]: Unable to load heightmap, file not found. (A directory permissions error may also cause this)");
+                            return;
+                        }
+                    }
+                    m_log.Info("[TERRAIN]: File (" + filename + ") loaded successfully");
+                    return;
+                }
+            }
+            m_log.Error("[TERRAIN]: Unable to load heightmap, no file loader availible for that format.");
+        }
+
+        public void LoadFromFile(string filename, int fileWidth, int fileHeight, int fileStartX, int fileStartY)
+        {
+            fileStartX -= (int)m_scene.RegionInfo.RegionLocX;
+            fileStartY -= (int)m_scene.RegionInfo.RegionLocY;
+
+            foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
+            {
+                if (filename.EndsWith(loader.Key))
+                {
+                    lock (m_scene)
+                    {
+                        ITerrainChannel channel = loader.Value.LoadFile(filename, fileStartX, fileStartY,
+                            fileWidth, fileHeight, (int)Constants.RegionSize, (int)Constants.RegionSize);
                         m_scene.Heightmap = channel;
                         m_channel = channel;
                         UpdateRevertMap();
@@ -177,46 +217,101 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             }
         }
 
+        #region Console Commands
+
+        private void InterfaceLoadFile(Object[] args)
+        {
+            LoadFromFile((string)args[0]);
+        }
+
+        private void InterfaceLoadTileFile(Object[] args)
+        {
+            LoadFromFile((string)args[0],
+                (int)args[1],
+                (int)args[2],
+                (int)args[3],
+                (int)args[4]);
+        }
+
+        private void InterfaceSaveFile(Object[] args)
+        {
+            SaveToFile((string)args[0]);
+        }
+
+        private void InterfaceFillTerrain(Object[] args)
+        {
+            int x, y;
+
+            for (x = 0; x < m_channel.Width; x++)
+                for (y = 0; y < m_channel.Height; y++)
+                    m_channel[x, y] = (double)args[0];
+            SendUpdatedLayerData();
+        }
+
+        private void InterfaceEnableExperimentalBrushes(Object[] args)
+        {
+            if ((bool)args[0])
+            {
+                m_painteffects[StandardTerrainEffects.Revert] = new PaintBrushes.WeatherSphere();
+                m_painteffects[StandardTerrainEffects.Flatten] = new PaintBrushes.OlsenSphere();
+                m_painteffects[StandardTerrainEffects.Smooth] = new PaintBrushes.ErodeSphere();
+            }
+            else
+            {
+                InstallDefaultEffects();
+            }
+        }
+
+        private void InstallInterfaces()
+        {
+            // Load / Save
+            string supportedFileExtensions = "";
+            foreach (KeyValuePair<string,ITerrainLoader> loader in m_loaders)
+                supportedFileExtensions += " " + loader.Key + " (" + loader.Value.ToString() + ")";
+
+            Command loadFromFileCommand = new Command("load", InterfaceLoadFile, "Loads a terrain from a specified file.");
+            loadFromFileCommand.AddArgument("filename", "The file you wish to load from, the file extension determines the loader to be used. Supported extensions include: " + supportedFileExtensions, "String");
+
+            Command saveToFileCommand = new Command("save", InterfaceSaveFile, "Saves the current heightmap to a specified file.");
+            saveToFileCommand.AddArgument("filename", "The destination filename for your heightmap, the file extension determines the format to save in. Supported extensions include: " + supportedFileExtensions, "String");
+
+            Command loadFromTileCommand = new Command("load-tile", InterfaceLoadTileFile, "Loads a terrain from a section of a larger file.");
+            loadFromTileCommand.AddArgument("filename", "The file you wish to load from, the file extension determines the loader to be used. Supported extensions include: " + supportedFileExtensions, "String");
+            loadFromTileCommand.AddArgument("file width", "The width of the file in tiles", "Integer");
+            loadFromTileCommand.AddArgument("file height", "The height of the file in tiles", "Integer");
+            loadFromTileCommand.AddArgument("minimum X tile", "The X region coordinate of the first section on the file", "Integer");
+            loadFromTileCommand.AddArgument("minimum Y tile", "The Y region coordinate of the first section on the file", "Integer");
+
+            // Terrain adjustments
+            Command fillRegionCommand = new Command("fill", InterfaceFillTerrain, "Fills the current heightmap with a specified value.");
+            fillRegionCommand.AddArgument("value", "The numeric value of the height you wish to set your region to.", "Double");
+
+            // Brushes
+            Command experimentalBrushesCommand = new Command("newbrushes", InterfaceEnableExperimentalBrushes, "Enables experimental brushes which replace the standard terrain brushes. WARNING: This is a debug setting and may be removed at any time.");
+            experimentalBrushesCommand.AddArgument("Enabled?", "true / false - Enable new brushes", "Boolean");
+
+            m_commander.RegisterCommand("load", loadFromFileCommand);
+            m_commander.RegisterCommand("load-tile", loadFromTileCommand);
+            m_commander.RegisterCommand("save", saveToFileCommand);
+            m_commander.RegisterCommand("fill", fillRegionCommand);
+            m_commander.RegisterCommand("newbrushes", experimentalBrushesCommand);
+
+            // Add this to our scene so scripts can call these functions
+            //TMPm_scene.RegisterModuleCommander("Terrain", m_commander);
+        }
+
+        #endregion
+
         void EventManager_OnPluginConsole(string[] args)
         {
             if (args[0] == "terrain")
             {
-                string command = args[1];
-                string param = args[2];
-
-                int x, y;
-
-                switch (command)
-                {
-                    case "load":
-                        LoadFromFile(param);
-                        SendUpdatedLayerData();
-                        break;
-                    case "save":
-                        SaveToFile(param);
-                        break;
-                    case "fill":
-                        for (x = 0; x < m_channel.Width; x++)
-                            for (y = 0; y < m_channel.Height; y++)
-                                m_channel[x, y] = Double.Parse(param);
-                        SendUpdatedLayerData();
-                        break;
-                    case "newbrushes":
-                        if (Boolean.Parse(param))
-                        {
-                            m_painteffects[StandardTerrainEffects.Revert] = new PaintBrushes.WeatherSphere();
-                            m_painteffects[StandardTerrainEffects.Flatten] = new PaintBrushes.OlsenSphere();
-                            m_painteffects[StandardTerrainEffects.Smooth] = new PaintBrushes.ErodeSphere();
-                        }
-                        else
-                        {
-                            InstallDefaultEffects();
-                        }
-                        break;
-                    default:
-                        m_log.Warn("Unknown terrain command.");
-                        break;
-                }
+                string[] tmpArgs = new string[args.Length - 2];
+                int i = 0;
+                for (i = 2; i < args.Length; i++)
+                    tmpArgs[i - 2] = args[i];
+                
+                m_commander.ProcessConsoleCommand(args[1], tmpArgs);
             }
         }
 
@@ -363,6 +458,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
         public void PostInitialise()
         {
             InstallDefaultEffects();
+            InstallInterfaces();
         }
 
         public void Close()
@@ -378,5 +474,14 @@ namespace OpenSim.Region.Environment.Modules.Terrain
         {
             get { return false; }
         }
+
+        #region ICommandable Members
+
+        public ICommander CommandInterface
+        {
+            get { return m_commander; }
+        }
+
+        #endregion
     }
 }
