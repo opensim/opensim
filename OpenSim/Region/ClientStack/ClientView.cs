@@ -3611,7 +3611,6 @@ namespace OpenSim.Region.ClientStack
                         }
 
                         break;
-                        break;
                     case PacketType.RequestObjectPropertiesFamily:
                         //This powers the little tooltip that appears when you move your mouse over an object
                         RequestObjectPropertiesFamilyPacket packToolTip = (RequestObjectPropertiesFamilyPacket)Pack;

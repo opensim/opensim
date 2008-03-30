@@ -285,10 +285,7 @@ namespace OpenSim.Framework
             RegionID = LLUUID.Zero;
             ServerURI = ConvertFrom.ServerURI; 
         }
-        public int getInternalEndPointPort()
-        {
-            return m_internalEndPoint.Port;
-        }
+        
         public void SetEndPoint(string ipaddr, int port)
         {
             IPAddress tmpIP = IPAddress.Parse(ipaddr);

@@ -1092,7 +1092,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (IsPhysical && Body != (IntPtr)0 && !m_isSelected)
             {
                 float PID_D = 2200.0f;
-                float PID_P = 900.0f;
+                //float PID_P = 900.0f;
                 
                 
                 float m_mass = CalculateMass();
@@ -1134,15 +1134,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (System.Environment.OSVersion.Platform == PlatformID.Unix)
                     {
                         PID_D = 3200.0f;
-                        PID_P = 1400.0f;
+                        //PID_P = 1400.0f;
                     }
                     else
                     {
                         PID_D = 2200.0f;
-                        PID_P = 900.0f;
+                        //PID_P = 900.0f;
                     }
                     PID_D = 1.0f;
-                    PID_P = 1.0f;
+                    //PID_P = 1.0f;
 
                     
                     //PidStatus = true;

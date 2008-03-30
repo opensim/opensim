@@ -71,7 +71,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_pidControllerActive = true;
         private float PID_D = 800.0f;
         private float PID_P = 900.0f;
-        private static float POSTURE_SERVO = 10000.0f;
+        //private static float POSTURE_SERVO = 10000.0f;
         public static float CAPSULE_RADIUS = 0.37f;
         public float CAPSULE_LENGTH = 2.140599f;
         private float m_tensor = 3800000f;
