@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using OpenSim.Framework;
-using OpenSim.Framework.Data;
 using OpenSim.Framework.Data.Base;
+using OpenSim.Framework.Data.MSSQLMapper;
 using OpenSim.Framework.Data.MySQLMapper;
 
 namespace OpenSim.Framework.Data.MapperFactory
@@ -10,16 +8,19 @@ namespace OpenSim.Framework.Data.MapperFactory
     public class DataMapperFactory
     {
         public enum MAPPER_TYPE {
-            MYSQL,
+            MySQL,
+            MSSQL,
         };
 
         static public BaseDatabaseConnector GetDataBaseMapper(MAPPER_TYPE type, string connectionString)
         {
             switch (type) {
-                case MAPPER_TYPE.MYSQL:
+                case MAPPER_TYPE.MySQL:
                     return new MySQLDatabaseMapper(connectionString);
+                case MAPPER_TYPE.MSSQL:
+                    return new MSSQLDatabaseMapper(connectionString);
                 default:
-                    return null;
+                    throw new ArgumentException("Unknown Database Mapper type [" + type + "].");
             }            
         }
     }

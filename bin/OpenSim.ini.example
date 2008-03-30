@@ -30,6 +30,7 @@ storage_prim_inventories = true
 
 ; Avatar appearance persistence
 appearance_persist = false
+appearance_database = "MySQL"
 appearance_connection_string = "Data Source=localhost;Database=avatar_appearance;User ID=root;Password=xxxx;pooling=false;"
 
 ; Select whether you want to use local or grid asset storage.

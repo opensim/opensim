@@ -220,14 +220,22 @@ namespace OpenSim.Region.Modules.AvatarFactory
                 try
                 {
                     m_enablePersist = source.Configs["Startup"].GetBoolean("appearance_persist", false);
-                    m_connectionString = source.Configs["Startup"].GetString("appearance_connection_string", "");
                 }
                 catch (Exception)
                 {
                 }
                 if (m_enablePersist)
                 {
-                    m_databaseMapper =  DataMapperFactory.GetDataBaseMapper(DataMapperFactory.MAPPER_TYPE.MYSQL, m_connectionString);
+                    m_connectionString = source.Configs["Startup"].GetString("appearance_connection_string", "");
+
+                    string mapperTypeStr = source.Configs["Startup"].GetString("appearance_database", "MYSQL");
+
+                    DataMapperFactory.MAPPER_TYPE mapperType =
+                        (DataMapperFactory.MAPPER_TYPE)
+                        Enum.Parse(typeof (DataMapperFactory.MAPPER_TYPE), mapperTypeStr);
+
+                    m_databaseMapper = DataMapperFactory.GetDataBaseMapper(mapperType, m_connectionString);
+
                     m_appearanceMapper = new AppearanceTableMapper(m_databaseMapper, "AvatarAppearance");
                 }
             }
