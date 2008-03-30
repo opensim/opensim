@@ -38,9 +38,9 @@ namespace OpenSim.Region.Communications.OGS1
 
     public delegate bool InformRegionPrimGroup(ulong regionHandle, LLUUID primID, LLVector3 Positon, bool isPhysical);
 
-    public delegate bool PrimGroupArrival(ulong regionHandle, LLUUID primID, string objData);
+    public delegate bool PrimGroupArrival(ulong regionHandle, LLUUID primID, string objData, int XMLMethod);
 
-    public delegate bool RegionUp(SearializableRegionInfo region, ulong regionhandle);
+    public delegate bool RegionUp(RegionUpData region, ulong regionhandle);
 
     public delegate bool ChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate childUpdate);
 
@@ -90,7 +90,7 @@ namespace OpenSim.Region.Communications.OGS1
             return false;
         }
 
-        public bool RegionUp(SearializableRegionInfo sregion, ulong regionhandle)
+        public bool RegionUp(RegionUpData sregion, ulong regionhandle)
         {
             handlerRegionUp = OnRegionUp;
             if (handlerRegionUp != null)
@@ -130,12 +130,12 @@ namespace OpenSim.Region.Communications.OGS1
             return false;
         }
 
-        public bool ExpectPrimCrossing(ulong regionHandle, LLUUID primID, string objData)
+        public bool ExpectPrimCrossing(ulong regionHandle, LLUUID primID, string objData, int XMLMethod)
         {
             handlerPrimGroupArrival = OnPrimGroupArrival;
             if (handlerPrimGroupArrival != null)
             {
-                return handlerPrimGroupArrival(regionHandle, primID, objData);
+                return handlerPrimGroupArrival(regionHandle, primID, objData, XMLMethod);
             }
             return false;
         }
@@ -173,7 +173,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
-        public bool RegionUp(SearializableRegionInfo region, ulong regionhandle)
+        public bool RegionUp(RegionUpData region, ulong regionhandle)
         {
             try
             {
@@ -232,11 +232,11 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
-        public bool InformRegionOfPrimCrossing(ulong regionHandle, Guid primID, string objData)
+        public bool InformRegionOfPrimCrossing(ulong regionHandle, Guid primID, string objData, int XMLMethod)
         {
             try
             {
-                return InterRegionSingleton.Instance.ExpectPrimCrossing(regionHandle, new LLUUID(primID), objData);
+                return InterRegionSingleton.Instance.ExpectPrimCrossing(regionHandle, new LLUUID(primID), objData, XMLMethod);
             }
             catch (RemotingException e)
             {

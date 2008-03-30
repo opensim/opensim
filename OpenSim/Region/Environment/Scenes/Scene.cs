@@ -1242,6 +1242,9 @@ namespace OpenSim.Region.Environment.Scenes
             m_log.Warn("Prim crossing: " + grp.UUID.ToString());
             int thisx = (int)RegionInfo.RegionLocX;
             int thisy = (int)RegionInfo.RegionLocY;
+
+            int primcrossingXMLmethod = 0;
+
             ulong newRegionHandle = 0;
             LLVector3 pos = position;
 
@@ -1279,7 +1282,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (newRegionHandle != 0)
             {
                 bool successYN = false;
-                successYN = m_sceneGridService.PrimCrossToNeighboringRegion(newRegionHandle, grp.UUID, m_sceneXmlLoader.SavePrimGroupToXML2String(grp));
+                successYN = m_sceneGridService.PrimCrossToNeighboringRegion(newRegionHandle, grp.UUID, m_sceneXmlLoader.SavePrimGroupToXML2String(grp), primcrossingXMLmethod);
                 if (successYN)
                 {
                     // We remove the object here
@@ -1306,10 +1309,18 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void IncomingInterRegionPrimGroup(ulong regionHandle, LLUUID primID, string objXMLData)
+        public bool IncomingInterRegionPrimGroup(ulong regionHandle, LLUUID primID, string objXMLData, int XMLMethod)
         {
             m_log.Warn("{[INTERREGION]: A new prim arrived from a neighbor");
-            m_sceneXmlLoader.LoadGroupFromXml2String(objXMLData);
+            if (XMLMethod == 0)
+            {
+                m_sceneXmlLoader.LoadGroupFromXml2String(objXMLData);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
 
         }
 

@@ -148,6 +148,8 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event RegionInfoRequest OnRegionInfoRequest;
         public event EstateCovenantRequest OnEstateCovenantRequest;
 
+        public event ObjectDuplicateOnRay OnObjectDuplicateOnRay;
+
         public event FriendActionDelegate OnApproveFriendRequest;
         public event FriendActionDelegate OnDenyFriendRequest;
         public event FriendshipTermination OnTerminateFriendship;

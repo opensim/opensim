@@ -168,12 +168,16 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        protected void IncomingPrimCrossing(ulong regionHandle, LLUUID primID, String objXMLData)
+        protected bool IncomingPrimCrossing(ulong regionHandle, LLUUID primID, String objXMLData, int XMLMethod)
         {
             handlerExpectPrim = OnExpectPrim;
             if (handlerExpectPrim != null)
             {
-                handlerExpectPrim(regionHandle, primID, objXMLData);
+                return handlerExpectPrim(regionHandle, primID, objXMLData, XMLMethod);
+            }
+            else
+            {
+                return false;
             }
 
         }
@@ -342,8 +346,10 @@ namespace OpenSim.Region.Environment.Scenes
         private void InformNeighboursThatRegionIsUpAsync(RegionInfo region, ulong regionhandle)
         {
             m_log.Info("[INTERGRID]: Starting to inform neighbors that I'm here");
+            //RegionUpData regiondata = new RegionUpData(region.RegionLocX, region.RegionLocY, region.ExternalHostName, region.InternalEndPoint.Port);
+
             bool regionAccepted =
-                m_commsProvider.InterRegion.RegionUp((new SearializableRegionInfo(region)), regionhandle);
+                m_commsProvider.InterRegion.RegionUp(new SearializableRegionInfo(region), regionhandle);
 
             if (regionAccepted)
             {
@@ -605,9 +611,9 @@ namespace OpenSim.Region.Environment.Scenes
             return m_commsProvider.InterRegion.ExpectAvatarCrossing(regionhandle, agentID, position, isFlying);
         }
 
-        public bool PrimCrossToNeighboringRegion(ulong regionhandle, LLUUID primID, string objData)
+        public bool PrimCrossToNeighboringRegion(ulong regionhandle, LLUUID primID, string objData, int XMLMethod)
         {
-            return m_commsProvider.InterRegion.InformRegionOfPrimCrossing(regionhandle, primID, objData);
+            return m_commsProvider.InterRegion.InformRegionOfPrimCrossing(regionhandle, primID, objData, XMLMethod);
         }
 
 

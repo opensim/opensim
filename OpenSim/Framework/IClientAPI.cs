@@ -302,6 +302,13 @@ namespace OpenSim.Framework
 
     public delegate void ObjectDuplicate(uint localID, LLVector3 offset, uint dupeFlags, LLUUID AgentID, LLUUID GroupID);
 
+    public delegate void ObjectDuplicateOnRay(uint localID, uint dupeFlags, LLUUID AgentID, LLUUID GroupID, 
+                    LLUUID RayTargetObj, LLVector3 RayEnd, LLVector3 RayStart,
+                    bool BypassRaycast, bool RayEndIsIntersection, bool CopyCenters, bool CopyRotates);
+
+                            
+                        
+
     public delegate void StatusChange(bool status);
 
     public delegate void NewAvatar(IClientAPI remoteClient, LLUUID agentID, bool status);
@@ -463,6 +470,7 @@ namespace OpenSim.Framework
         event GodKickUser OnGodKickUser;
 
         event ObjectDuplicate OnObjectDuplicate;
+        event ObjectDuplicateOnRay OnObjectDuplicateOnRay;
         event UpdateVector OnGrabObject;
         event ObjectSelect OnDeGrabObject;
         event MoveObject OnGrabUpdate;

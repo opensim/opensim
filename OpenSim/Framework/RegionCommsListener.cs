@@ -78,12 +78,12 @@ namespace OpenSim.Framework
         }
 
 
-        public virtual bool TriggerExpectPrim(ulong regionHandle, LLUUID primID, string objData)
+        public virtual bool TriggerExpectPrim(ulong regionHandle, LLUUID primID, string objData, int XMLMethod)
         {
             handlerExpectPrim = OnExpectPrim;
             if (handlerExpectPrim != null)
             {
-                handlerExpectPrim(regionHandle, primID, objData);
+                handlerExpectPrim(regionHandle, primID, objData, XMLMethod);
                 return true;
             }
             return false;

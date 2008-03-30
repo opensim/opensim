@@ -857,6 +857,8 @@ namespace OpenSim.Region.Communications.OGS1
                 // The region asking the grid services about itself..  
                 // And, surprisingly, the reason is..  it doesn't know 
                 // it's own remoting port!  How special.
+                RegionUpData regiondata = new RegionUpData(region.RegionLocX, region.RegionLocY, region.ExternalHostName, region.InternalEndPoint.Port);
+
                 region = new SearializableRegionInfo(RequestNeighbourInfo(region.RegionHandle));
                 region.RemotingAddress = region.ExternalHostName;                  
                 region.RemotingPort = NetworkServersInfo.RemotingListenerPort;                
@@ -885,7 +887,7 @@ namespace OpenSim.Region.Communications.OGS1
 
                         if (remObject != null)
                         {
-                            retValue = remObject.RegionUp(region, regionhandle);
+                            retValue = remObject.RegionUp(regiondata, regionhandle);
                         }
                         else
                         {
@@ -962,7 +964,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="regionHandle"></param>
         /// <param name="agentData"></param>
         /// <returns></returns>
-        public bool InformRegionOfPrimCrossing(ulong regionHandle, LLUUID primID, string objData)
+        public bool InformRegionOfPrimCrossing(ulong regionHandle, LLUUID primID, string objData, int XMLMethod)
         {
             int failures = 0;
             lock (m_deadRegionCache)
@@ -977,7 +979,7 @@ namespace OpenSim.Region.Communications.OGS1
                 RegionInfo regInfo = null;
                 try
                 {
-                    if (m_localBackend.InformRegionOfPrimCrossing(regionHandle, primID, objData))
+                    if (m_localBackend.InformRegionOfPrimCrossing(regionHandle, primID, objData, XMLMethod))
                     {
                         return true;
                     }
@@ -996,7 +998,7 @@ namespace OpenSim.Region.Communications.OGS1
 
                         if (remObject != null)
                         {
-                            retValue = remObject.InformRegionOfPrimCrossing(regionHandle, primID.UUID, objData);
+                            retValue = remObject.InformRegionOfPrimCrossing(regionHandle, primID.UUID, objData, XMLMethod);
                         }
                         else
                         {
@@ -1325,23 +1327,29 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
-        public bool TriggerRegionUp(SearializableRegionInfo regionData, ulong regionhandle)
+        public bool TriggerRegionUp(RegionUpData regionData, ulong regionhandle)
         {
             m_log.Info("[OGS1 GRID SERVICES]: " +
-                       gdebugRegionName + "Incoming OGS1 RegionUpReport:  " + "(" + regionData.RegionLocX +
-                       "," + regionData.RegionLocY + "). Giving this region a fresh set of 'dead' tries");
+                       gdebugRegionName + "Incoming OGS1 RegionUpReport:  " + "(" + regionData.X +
+                       "," + regionData.Y + "). Giving this region a fresh set of 'dead' tries");
+            RegionInfo nRegionInfo = new RegionInfo();
+            nRegionInfo.SetEndPoint("127.0.0.1", regionData.PORT);
+            nRegionInfo.ExternalHostName = regionData.IPADDR;
+            nRegionInfo.RegionLocX = regionData.X;
+            nRegionInfo.RegionLocY = regionData.Y;
 
+            
             try
             {
                 lock (m_deadRegionCache)
                 {
-                    if (m_deadRegionCache.ContainsKey(regionData.RegionHandle))
+                    if (m_deadRegionCache.ContainsKey(nRegionInfo.RegionHandle))
                     {
-                        m_deadRegionCache.Remove(regionData.RegionHandle);
+                        m_deadRegionCache.Remove(nRegionInfo.RegionHandle);
                     }
                 }
 
-                return m_localBackend.TriggerRegionUp(new RegionInfo(regionData), regionhandle);
+                return m_localBackend.TriggerRegionUp(nRegionInfo, regionhandle);
             }
 
             catch (RemotingException e)
@@ -1372,12 +1380,12 @@ namespace OpenSim.Region.Communications.OGS1
         /// <param name="regionHandle"></param>
         /// <param name="agentData"></param>
         /// <returns></returns>
-        public bool IncomingPrim(ulong regionHandle, LLUUID primID, string objData)
+        public bool IncomingPrim(ulong regionHandle, LLUUID primID, string objData, int XMLMethod)
         {
             // Is this necessary?   
             try
             {
-                m_localBackend.TriggerExpectPrim(regionHandle, primID, objData);
+                m_localBackend.TriggerExpectPrim(regionHandle, primID, objData, XMLMethod);
                 return true;
                 //m_localBackend.
             }

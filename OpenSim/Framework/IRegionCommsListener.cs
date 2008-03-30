@@ -32,7 +32,7 @@ namespace OpenSim.Framework
 {
     public delegate void ExpectUserDelegate(ulong regionHandle, AgentCircuitData agent);
 
-    public delegate void ExpectPrimDelegate(ulong regionHandle, LLUUID primID, string objData);
+    public delegate bool ExpectPrimDelegate(ulong regionHandle, LLUUID primID, string objData, int XMLMethod);
 
     public delegate void UpdateNeighbours(List<RegionInfo> neighbours);
 

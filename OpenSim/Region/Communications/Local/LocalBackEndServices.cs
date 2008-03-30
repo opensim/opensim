@@ -225,6 +225,12 @@ namespace OpenSim.Region.Communications.Local
         public virtual bool RegionUp(SearializableRegionInfo sregion, ulong regionhandle)
         {
             RegionInfo region = new RegionInfo(sregion);
+
+            //region.RegionLocX = sregion.X;
+            //region.RegionLocY = sregion.Y;
+            //region.SetEndPoint(sregion.IPADDR, sregion.PORT);
+
+            //sregion);
             if (m_regionListeners.ContainsKey(regionhandle))
             {
                 return m_regionListeners[regionhandle].TriggerRegionUp(region);
@@ -316,11 +322,11 @@ namespace OpenSim.Region.Communications.Local
             return false;
         }
 
-        public bool InformRegionOfPrimCrossing(ulong regionHandle, LLUUID primID, string objData)
+        public bool InformRegionOfPrimCrossing(ulong regionHandle, LLUUID primID, string objData, int XMLMethod)
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
-                m_regionListeners[regionHandle].TriggerExpectPrim(regionHandle, primID, objData);
+                m_regionListeners[regionHandle].TriggerExpectPrim(regionHandle, primID, objData, XMLMethod);
                 return true;
             }
             return false;
@@ -408,11 +414,11 @@ namespace OpenSim.Region.Communications.Local
             }
         }
 
-        public void TriggerExpectPrim(ulong regionHandle, LLUUID primID, string objData)
+        public void TriggerExpectPrim(ulong regionHandle, LLUUID primID, string objData, int XMLMethod)
         {
             if (m_regionListeners.ContainsKey(regionHandle))
             {
-                m_regionListeners[regionHandle].TriggerExpectPrim(regionHandle, primID, objData);
+                m_regionListeners[regionHandle].TriggerExpectPrim(regionHandle, primID, objData, XMLMethod);
             }
         }
 

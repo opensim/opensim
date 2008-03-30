@@ -158,6 +158,7 @@ namespace OpenSim.Region.ClientStack
         private UpdateShape handlerUpdatePrimShape = null; //null;
         private ObjectExtraParams handlerUpdateExtraParams = null; //OnUpdateExtraParams;
         private ObjectDuplicate handlerObjectDuplicate = null;
+        private ObjectDuplicateOnRay handlerObjectDuplicateOnRay = null;
         private ObjectSelect handlerObjectSelect = null;
         private ObjectDeselect handlerObjectDeselect = null;
         private UpdatePrimFlags handlerUpdatePrimFlags = null; //OnUpdatePrimFlags;
@@ -675,6 +676,7 @@ namespace OpenSim.Region.ClientStack
         public event UpdateVector OnGrabObject;
         public event ObjectSelect OnDeGrabObject;
         public event ObjectDuplicate OnObjectDuplicate;
+        public event ObjectDuplicateOnRay OnObjectDuplicateOnRay;
         public event MoveObject OnGrabUpdate;
         public event AddNewPrim OnAddPrim;
         public event RequestGodlikePowers OnRequestGodlikePowers;
@@ -3590,7 +3592,26 @@ namespace OpenSim.Region.ClientStack
                         // That means multiple object perms may be updated in a single packet.
 
                         break;
+                    case PacketType.ObjectDuplicateOnRay:
+                        ObjectDuplicateOnRayPacket dupeOnRay = (ObjectDuplicateOnRayPacket)Pack;
 
+                        handlerObjectDuplicateOnRay = null;
+
+
+                        for (int i = 0; i < dupeOnRay.ObjectData.Length; i++)
+                        {
+                            handlerObjectDuplicateOnRay = OnObjectDuplicateOnRay;
+                            if (handlerObjectDuplicateOnRay != null)
+                            {
+                                handlerObjectDuplicateOnRay(dupeOnRay.ObjectData[i].ObjectLocalID, dupeOnRay.AgentData.DuplicateFlags,
+                                       dupeOnRay.AgentData.AgentID, dupeOnRay.AgentData.GroupID, dupeOnRay.AgentData.RayTargetID, dupeOnRay.AgentData.RayEnd,
+                                       dupeOnRay.AgentData.RayStart, dupeOnRay.AgentData.BypassRaycast, dupeOnRay.AgentData.RayEndIsIntersection,
+                                       dupeOnRay.AgentData.CopyCenters, dupeOnRay.AgentData.CopyRotates);
+                            }
+                        }
+
+                        break;
+                        break;
                     case PacketType.RequestObjectPropertiesFamily:
                         //This powers the little tooltip that appears when you move your mouse over an object
                         RequestObjectPropertiesFamilyPacket packToolTip = (RequestObjectPropertiesFamilyPacket)Pack;

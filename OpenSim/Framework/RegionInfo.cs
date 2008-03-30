@@ -101,6 +101,12 @@ namespace OpenSim.Framework
         public bool m_allow_alternate_ports;
 
         protected string m_serverURI;
+
+        public int getInternalEndPointPort()
+        {
+            return m_internalEndPoint.Port;
+        }
+
         public string ServerURI
         {
             get
@@ -278,6 +284,17 @@ namespace OpenSim.Framework
             RemotingAddress = ConvertFrom.RemotingAddress;
             RegionID = LLUUID.Zero;
             ServerURI = ConvertFrom.ServerURI; 
+        }
+        public int getInternalEndPointPort()
+        {
+            return m_internalEndPoint.Port;
+        }
+        public void SetEndPoint(string ipaddr, int port)
+        {
+            IPAddress tmpIP = IPAddress.Parse(ipaddr);
+            IPEndPoint tmpEPE= new IPEndPoint(tmpIP, port);
+            m_internalEndPoint = tmpEPE;
+
         }
 
         //not in use, should swap to nini though.
