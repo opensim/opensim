@@ -297,7 +297,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             m_commander.RegisterCommand("newbrushes", experimentalBrushesCommand);
 
             // Add this to our scene so scripts can call these functions
-            //TMPm_scene.RegisterModuleCommander("Terrain", m_commander);
+            m_scene.RegisterModuleCommander("Terrain", m_commander);
         }
 
         #endregion
