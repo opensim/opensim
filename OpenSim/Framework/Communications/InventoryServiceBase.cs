@@ -75,42 +75,11 @@ namespace OpenSim.Framework.Communications
         #endregion
         
         #region IInventoryServices methods        
-
-        /// <summary>
-        /// Returns the root folder plus any folders in root (so down one level in the Inventory folders tree)
-        /// for the given user.
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <returns></returns>
-        public List<InventoryFolderBase> RequestFirstLevelFolders(LLUUID userID)
-        {
-            List<InventoryFolderBase> inventoryList = new List<InventoryFolderBase>();
-            InventoryFolderBase rootFolder = null;
-
-            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
-            {
-                rootFolder = plugin.Value.getUserRootFolder(userID);
-                if (rootFolder != null)
-                {
-                    m_log.Info(
-                        "[INVENTORY]: Found root folder for user with ID " + userID + ".  Retrieving inventory contents.");
-
-                    inventoryList = plugin.Value.getInventoryFolders(rootFolder.folderID);
-                    inventoryList.Insert(0, rootFolder);
-                    return inventoryList;
-                }
-            }
-
-            m_log.Warn(
-                "[INVENTORY]: Could not find a root folder belonging to user with ID " + userID);
-
-            return inventoryList;
-        }
         
         // See IInventoryServices
         public List<InventoryFolderBase> GetInventorySkeleton(LLUUID userId)
         {
-            m_log.DebugFormat("[AGENT INVENTORY]: Getting inventory skeleton for {0}", userId);
+            //m_log.DebugFormat("[AGENT INVENTORY]: Getting inventory skeleton for {0}", userId);
             
             List<InventoryFolderBase> userFolders = new List<InventoryFolderBase>();
             

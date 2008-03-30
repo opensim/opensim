@@ -46,22 +46,8 @@ namespace OpenSim.Grid.InventoryServer
         private bool TryGetUsersInventory(LLUUID userID, out List<InventoryFolderBase> folderList,
                                           out List<InventoryItemBase> itemsList)
         {
-            List<InventoryFolderBase> rootFolders = RequestFirstLevelFolders(userID);
+            List<InventoryFolderBase> allFolders = GetInventorySkeleton(userID);
             List<InventoryItemBase> allItems = new List<InventoryItemBase>();
-            List<InventoryFolderBase> allFolders = new List<InventoryFolderBase>();
-
-            if (rootFolders != null)
-            {
-                allFolders.InsertRange(0, rootFolders);
-                foreach (InventoryFolderBase subfolder in rootFolders)
-                {
-                    List<InventoryFolderBase> subFolders = GetAllFolders(subfolder.folderID);
-                    if (subFolders != null)
-                    {
-                        allFolders.InsertRange(0, subFolders);
-                    }
-                }
-            }
 
             foreach (InventoryFolderBase folder in allFolders)
             {
@@ -108,7 +94,7 @@ namespace OpenSim.Grid.InventoryServer
         {
             LLUUID userID = new LLUUID(rawUserID);
 
-            m_log.Info("[GRID INVENTORY]: Request for inventory of " + userID.ToString());            
+            m_log.Info("[AGENT INVENTORY]: Processing request for inventory of " + userID.ToString());            
 
             InventoryCollection invCollection = new InventoryCollection();
             List<InventoryFolderBase> folders;
@@ -123,14 +109,14 @@ namespace OpenSim.Grid.InventoryServer
 //            foreach (InventoryFolderBase folder in folders)
 //            {
 //                m_log.DebugFormat(
-//                    "[GRID INVENTORY]: Sending back folder {0}, {1}", 
+//                    "[AGENT INVENTORY]: Sending back folder {0}, {1}", 
 //                    folder.name, folder.folderID);
 //            }
 //            
 //            foreach (InventoryItemBase item in allItems)
 //            {
 //                m_log.DebugFormat(
-//                    "[GRID INVENTORY]: Sending back item {0}, {1}, folder {2}", 
+//                    "[AGENT INVENTORY]: Sending back item {0}, {1}, folder {2}", 
 //                    item.inventoryName, item.inventoryID, item.parentFolderID);
 //            }
                         
@@ -153,7 +139,7 @@ namespace OpenSim.Grid.InventoryServer
             LLUUID userID = new LLUUID(rawUserID);
 
             m_log.Info(
-                "[INVENTORY]: Creating new set of inventory folders for " + userID.ToString());
+                "[AGENT INVENTORY]: Creating new set of inventory folders for " + userID.ToString());
 
             CreateNewUserInventory(userID);
             return true;
@@ -179,7 +165,7 @@ namespace OpenSim.Grid.InventoryServer
         {
             // Right now, this actions act more like an update/insert combination than a simple create.
             m_log.Info(
-                "[INVENTORY]: " +
+                "[AGENT INVENTORY]: " +
                 "Updating in   " + folder.parentID.ToString()
                 + ", folder " + folder.name);
 
@@ -190,7 +176,7 @@ namespace OpenSim.Grid.InventoryServer
         public bool MoveInventoryFolder(InventoryFolderBase folder)
         {
             m_log.Info(
-                "[INVENTORY]: " +
+                "[AGENT INVENTORY]: " +
                 "Moving folder " + folder.folderID
                 + " to " + folder.parentID.ToString());
 
@@ -202,7 +188,7 @@ namespace OpenSim.Grid.InventoryServer
         {
             // Right now, this actions act more like an update/insert combination than a simple create.
             m_log.Info(
-                "[INVENTORY]: " +
+                "[AGENT INVENTORY]: " +
                 "Updating in   " + item.parentFolderID.ToString()
                 + ", item " + item.inventoryName);
 
@@ -214,7 +200,7 @@ namespace OpenSim.Grid.InventoryServer
         {
             // extra spaces to align with other inventory messages
             m_log.Info(
-                "[INVENTORY]: " +
+                "[AGENT INVENTORY]: " +
                 "Deleting in   " + item.parentFolderID.ToString()
                 + ", item " + item.inventoryName);
 
