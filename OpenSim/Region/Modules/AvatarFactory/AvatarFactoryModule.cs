@@ -228,7 +228,7 @@ namespace OpenSim.Region.Modules.AvatarFactory
                 {
                     m_connectionString = source.Configs["Startup"].GetString("appearance_connection_string", "");
 
-                    string mapperTypeStr = source.Configs["Startup"].GetString("appearance_database", "MYSQL");
+                    string mapperTypeStr = source.Configs["Startup"].GetString("appearance_database", "MySQL");
 
                     DataMapperFactory.MAPPER_TYPE mapperType =
                         (DataMapperFactory.MAPPER_TYPE)
