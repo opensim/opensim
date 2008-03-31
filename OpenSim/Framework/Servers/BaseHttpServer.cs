@@ -123,73 +123,85 @@ namespace OpenSim.Framework.Servers
             return true;
         }
 
+        /// <summary>
+        /// Handle an individual http request.  This method is given to a worker in the thread pool.
+        /// </summary>
+        /// <param name="stateinfo"></param>
         public virtual void HandleRequest(Object stateinfo)
         {
-            HttpListenerContext context = (HttpListenerContext) stateinfo;
-
-            HttpListenerRequest request = context.Request;
-            HttpListenerResponse response = context.Response;
-
-            response.KeepAlive = false;
-            response.SendChunked = false;
-
-            string path = request.RawUrl;
-            string handlerKey = GetHandlerKey(request.HttpMethod, path);
-
-            IRequestHandler requestHandler;
-
-            if (TryGetStreamHandler(handlerKey, out requestHandler))
+            // If we don't catch the exception here it will just disappear into the thread pool and we'll be none the wiser
+            try
             {
-                // Okay, so this is bad, but should be considered temporary until everything is IStreamHandler.
-                byte[] buffer;
-                if (requestHandler is IStreamedRequestHandler)
+                HttpListenerContext context = (HttpListenerContext) stateinfo;
+    
+                HttpListenerRequest request = context.Request;
+                HttpListenerResponse response = context.Response;
+    
+                response.KeepAlive = false;
+                response.SendChunked = false;
+    
+                string path = request.RawUrl;
+                string handlerKey = GetHandlerKey(request.HttpMethod, path);
+    
+                IRequestHandler requestHandler;
+    
+                if (TryGetStreamHandler(handlerKey, out requestHandler))
                 {
-                    IStreamedRequestHandler streamedRequestHandler = requestHandler as IStreamedRequestHandler;
-                    buffer = streamedRequestHandler.Handle(path, request.InputStream);
+                    // Okay, so this is bad, but should be considered temporary until everything is IStreamHandler.
+                    byte[] buffer;
+                    if (requestHandler is IStreamedRequestHandler)
+                    {
+                        IStreamedRequestHandler streamedRequestHandler = requestHandler as IStreamedRequestHandler;
+                        buffer = streamedRequestHandler.Handle(path, request.InputStream);
+                    }
+                    else
+                    {
+                        IStreamHandler streamHandler = (IStreamHandler) requestHandler;
+    
+                        using (MemoryStream memoryStream = new MemoryStream())
+                        {
+                            streamHandler.Handle(path, request.InputStream, memoryStream);
+                            memoryStream.Flush();
+                            buffer = memoryStream.ToArray();
+                        }
+                    }
+    
+                    request.InputStream.Close();
+                    response.ContentType = requestHandler.ContentType;
+                    response.ContentLength64 = buffer.LongLength;
+    
+                    try
+                    {
+                        response.OutputStream.Write(buffer, 0, buffer.Length);
+                        response.OutputStream.Close();
+                    }
+                    catch (HttpListenerException)
+                    {
+                        m_log.InfoFormat("[BASE HTTP SERVER] Http request abnormally terminated.");
+                    }
                 }
                 else
                 {
-                    IStreamHandler streamHandler = (IStreamHandler) requestHandler;
-
-                    using (MemoryStream memoryStream = new MemoryStream())
+                    switch (request.ContentType)
                     {
-                        streamHandler.Handle(path, request.InputStream, memoryStream);
-                        memoryStream.Flush();
-                        buffer = memoryStream.ToArray();
+                        case null:
+                        case "text/html":
+                            HandleHTTPRequest(request, response);
+                            break;
+                        case "application/xml+llsd":
+                            HandleLLSDRequests(request, response);
+                            break;
+                        case "text/xml":
+                        case "application/xml":
+                        default:
+                            HandleXmlRpcRequests(request, response);
+                            break;
                     }
                 }
-
-                request.InputStream.Close();
-                response.ContentType = requestHandler.ContentType;
-                response.ContentLength64 = buffer.LongLength;
-
-                try
-                {
-                    response.OutputStream.Write(buffer, 0, buffer.Length);
-                    response.OutputStream.Close();
-                }
-                catch (HttpListenerException)
-                {
-                    m_log.InfoFormat("[BASEHTTPSERVER] Http request abnormally terminated.");
-                }
             }
-            else
+            catch (Exception e)
             {
-                switch (request.ContentType)
-                {
-                    case null:
-                    case "text/html":
-                        HandleHTTPRequest(request, response);
-                        break;
-                    case "application/xml+llsd":
-                        HandleLLSDRequests(request, response);
-                        break;
-                    case "text/xml":
-                    case "application/xml":
-                    default:
-                        HandleXmlRpcRequests(request, response);
-                        break;
-                }
+                m_log.ErrorFormat("[BASE HTTP SERVER]: HandleRequest() threw {0}", e);
             }
         }
 
