@@ -157,6 +157,7 @@ msgformat = "PRIVMSG {0} : {3} - {1} of {2}"
 
 
 [Voice]
+; PLEASE NOTE that we don't have voice support in OpenSim quite yet - these configuration options are stubs
 enabled = false
 ; This is not supported by the SLViewer right now and 
 ; hardcoded within the SL Viewer. Maybe it will be 
