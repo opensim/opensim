@@ -55,6 +55,12 @@ namespace OpenSim.Region.Capabilities
     public delegate List<InventoryItemBase> FetchInventoryDescendentsCAPS(LLUUID agentID, LLUUID folderID, LLUUID ownerID,
                                                    bool fetchFolders, bool fetchItems, int sortOrder);
 
+    /// <summary>
+    /// FIXME This is a temporary delegate, and should disappear once the voice code is fleshed out and moved into its 
+    /// own region module.
+    /// </summary>
+    public delegate CachedUserInfo GetUserDetailsCAPS(LLUUID agentID);
+
     public class Caps
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -67,7 +73,7 @@ namespace OpenSim.Region.Capabilities
         /// </summary>
         private string m_capsObjectPath;        
         public string CapsObjectPath { get { return m_capsObjectPath; } }
-        
+
         private static readonly string m_requestPath = "0000/";
         private static readonly string m_mapLayerPath = "0001/";
         private static readonly string m_newInventory = "0002/";
@@ -93,6 +99,7 @@ namespace OpenSim.Region.Capabilities
         public TaskScriptUpdatedCallback TaskScriptUpdatedCall = null;
         //
         public FetchInventoryDescendentsCAPS CAPSFetchInventoryDescendents = null;
+        public GetUserDetailsCAPS CAPSGetUserDetails = null;
 
         public Caps(AssetCache assetCache, BaseHttpServer httpServer, string httpListen, uint httpPort, string capsPath,
                     LLUUID agent, bool dumpAssetsToFile)
@@ -436,98 +443,75 @@ namespace OpenSim.Region.Capabilities
             return null;
         }
 
-
-        public string ParcelVoiceInfoRequest(string request, string path, string param)
-        {
+         /// <summary>
+        /// Callback for a client request for ParcelVoiceInfo
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="path"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public string ParcelVoiceInfoRequest(string request, string path, string param) {
             try
             {
-                m_log.DebugFormat("[CAPS]: request: {0}, path: {1}, param: {2}", request, path, param);
+                m_log.DebugFormat("[CAPS][PARCELVOICE]: request: {0}, path: {1}, param: {2}", request, path, param);
 
-                //Hashtable hash = (Hashtable)LLSD.LLSDDeserialize(Helpers.StringToField(request));
-                //LLSDTaskScriptUpdate llsdUpdateRequest = new LLSDTaskScriptUpdate();
-                //LLSDHelpers.DeserialiseLLSDMap(hash, llsdUpdateRequest);
+                // XXX brutal hack, we need to get channel_uri, region
+                // name, and parcel_local_id from somewhere
+                Hashtable creds = new Hashtable();
 
-                //string capsBase = "/CAPS/" + m_capsObjectPath;
-                //string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
+                creds["channel_uri"] = "sip:testroom@testserver.com";
+                
+                LLSDParcelVoiceInfoResponse parcelVoiceInfo = 
+                    new LLSDParcelVoiceInfoResponse("OpenSim Test", 1, creds);
+                
+                // XXX for debugging purposes:
+                string r = LLSDHelpers.SerialiseLLSDReply(parcelVoiceInfo);
+                m_log.DebugFormat("[CAPS][PARCELVOICE]: {0}", r);
 
-                //TaskInventoryScriptUpdater uploader =
-                    //new TaskInventoryScriptUpdater(
-                        //llsdUpdateRequest.item_id,
-                        //llsdUpdateRequest.task_id,
-                        //llsdUpdateRequest.is_script_running,
-                        //capsBase + uploaderPath,
-                        //m_httpListener,
-                        //m_dumpAssetsToFile);
-                //uploader.OnUpLoad += TaskScriptUpdated;
-
-                //m_httpListener.AddStreamHandler(
-                    //new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
-                //string uploaderURL = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + capsBase +
-                                     //uploaderPath;
-
-                //LLSDAssetUploadResponse uploadResponse = new LLSDAssetUploadResponse();
-                //uploadResponse.uploader = uploaderURL;
-                //uploadResponse.state = "upload";
-
-                //                m_log.InfoFormat("[CAPS]: " +
-                //                                 "ScriptTaskInventory response: {0}",
-                //                                 LLSDHelpers.SerialiseLLSDReply(uploadResponse)));
-
-                return LLSDHelpers.SerialiseLLSDReply("<llsd><map><key>parcel_local_id</key><integer>16</integer><key>region_name</key><string>Teravus Test</string><key>voice_credentials</key><map><key>channel_uri</key><string>sip:conference@192.168.1.127\nsip:user@192.168.1.127</string></map></map></llsd>");
+                return r;
             }
             catch (Exception e)
             {
                 m_log.Error("[CAPS]: " + e.ToString());
             }
-
+            
             return null;
         }
 
-        public string ProvisionVoiceAccountRequest(string request, string path, string param)
-        {
+        /// <summary>
+        /// Callback for a client request for Voice Account Details
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="path"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public string ProvisionVoiceAccountRequest(string request, string path, string param) {
             try
             {
-                m_log.DebugFormat("[CAPS]: request: {0}, path: {1}, param: {2}", request, path, param);
+                m_log.DebugFormat("[CAPS][PROVISIONVOICE]: request: {0}, path: {1}, param: {2}", request, path, param);
 
-                //Hashtable hash = (Hashtable)LLSD.LLSDDeserialize(Helpers.StringToField(request));
-                //LLSDTaskScriptUpdate llsdUpdateRequest = new LLSDTaskScriptUpdate();
-                //LLSDHelpers.DeserialiseLLSDMap(hash, llsdUpdateRequest);
+                if (null == CAPSGetUserDetails) throw new Exception("CAPSGetUserDetails null");
 
-                //string capsBase = "/CAPS/" + m_capsObjectPath;
-                //string uploaderPath = Util.RandomClass.Next(5000, 8000).ToString("0000");
+                string voiceUser = "x" + Convert.ToBase64String(m_agentID.GetBytes());
+                voiceUser = voiceUser.Replace('+', '-').Replace('/', '_');
 
-                //TaskInventoryScriptUpdater uploader =
-                //new TaskInventoryScriptUpdater(
-                //llsdUpdateRequest.item_id,
-                //llsdUpdateRequest.task_id,
-                //llsdUpdateRequest.is_script_running,
-                //capsBase + uploaderPath,
-                //m_httpListener,
-                //m_dumpAssetsToFile);
-                //uploader.OnUpLoad += TaskScriptUpdated;
+                CachedUserInfo userInfo = CAPSGetUserDetails(m_agentID);
+                if (null == userInfo) throw new Exception("CAPSGetUserDetails returned null");
 
-                //m_httpListener.AddStreamHandler(
-                //new BinaryStreamHandler("POST", capsBase + uploaderPath, uploader.uploaderCaps));
-                //string uploaderURL = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + capsBase +
-                //uploaderPath;
-
-                //LLSDAssetUploadResponse uploadResponse = new LLSDAssetUploadResponse();
-                //uploadResponse.uploader = uploaderURL;
-                //uploadResponse.state = "upload";
-
-                //                m_log.InfoFormat("[CAPS]: " +
-                //                                 "ScriptTaskInventory response: {0}",
-                //                                 LLSDHelpers.SerialiseLLSDReply(uploadResponse)));
-
-                return LLSDHelpers.SerialiseLLSDReply("<llsd><map><key>events</key><array><map><key>body</key><map><key>major_version</key><integer>1</integer><key>minor_version</key><integer>0</integer><key>region_name</key><string>Teravus Test</string></map><key>message</key><string>RequiredVoiceVersion</string></map></array><key>id</key><integer>152477222</integer></map></llsd>");
+                LLSDVoiceAccountResponse voiceAccountResponse = 
+                    new LLSDVoiceAccountResponse(voiceUser, "$1$" + userInfo.UserProfile.passwordHash);
+                string r = LLSDHelpers.SerialiseLLSDReply(voiceAccountResponse);
+                m_log.DebugFormat("[CAPS][PROVISIONVOICE]: {0}", r);
+                return r;
             }
             catch (Exception e)
             {
-                m_log.Error("[CAPS]: " + e.ToString());
+                m_log.Error("[CAPS][PROVISIONVOICE]: " + e.ToString());
             }
 
             return null;
         }
+
         /// <summary>
         /// Called by the notecard update handler.  Provides a URL to which the client can upload a new asset.
         /// </summary>

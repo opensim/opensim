@@ -1590,6 +1590,7 @@ namespace OpenSim.Region.Environment.Scenes
             //m_log.InfoFormat("[SCENE] Memory pre  GC {0}", System.GC.GetTotalMemory(false));
             //m_log.InfoFormat("[SCENE] Memory post GC {0}", System.GC.GetTotalMemory(true));            
         }
+
         public void HandleRemoveKnownRegionsFromAvatar(LLUUID avatarID, List<ulong> regionslst)
         {
             ScenePresence av = GetScenePresence(avatarID);
@@ -1740,6 +1741,7 @@ namespace OpenSim.Region.Environment.Scenes
             cap.ItemUpdatedCall = CapsUpdateInventoryItemAsset;
             cap.TaskScriptUpdatedCall = CapsUpdateTaskInventoryScriptAsset;
             cap.CAPSFetchInventoryDescendents = CommsManager.UserProfileCacheService.HandleFetchInventoryDescendentsCAPS;
+            cap.CAPSGetUserDetails = CommsManager.UserProfileCacheService.GetUserDetails;
 
             m_capsHandlers[agentId] = cap;
         } 

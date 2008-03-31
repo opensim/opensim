@@ -155,6 +155,16 @@ msgformat = "PRIVMSG {0} : {3} - {1} of {2}"
 ;for <bot>:<message> - from <user> :
 ;msgformat = "PRIVMSG {0} : {3} - from {1}"
 
+
+[Voice]
+enabled = false
+; This is not supported by the SLViewer right now and 
+; hardcoded within the SL Viewer. Maybe it will be 
+; changed in future. :-)
+account_management_server = https://www.bhr.vivox.com/api2
+; Global SIP Server for conference calls
+sip_uri = sip:testroom@testserver.com
+
 ; Uncomment the following to control the progression of daytime
 ; in the Sim.  The defaults are what is shown below
 ;[Sun]

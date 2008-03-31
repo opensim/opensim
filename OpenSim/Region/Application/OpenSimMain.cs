@@ -240,7 +240,16 @@ namespace OpenSim
             {
                 config.Set("enabled", "false");
             }
+
+	    if (DefaultConfig.Configs["Voice"] == null)
+                DefaultConfig.AddConfig("Voice");
+            config = DefaultConfig.Configs["Voice"];
+            if (config != null)
+            {
+                config.Set("enabled", "false");
+            }
             return DefaultConfig;
+
         }
 
         protected void ReadConfigSettings()
