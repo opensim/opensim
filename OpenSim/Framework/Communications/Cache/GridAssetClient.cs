@@ -94,19 +94,22 @@ namespace OpenSim.Framework.Communications.Cache
                 // XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
                 //   xs.Serialize(s, asset);
                 //  RestClient rc = new RestClient(_assetServerUrl);
-                m_log.Info("[GRID ASSET CLIENT]: Storing asset");
+                
+                string assetUrl = _assetServerUrl + "/assets/";                
+                
                 //rc.AddResourcePath("assets");
 
                 // rc.RequestMethod = "POST";
                 //  rc.Request(s);
                 //m_log.InfoFormat("[ASSET]: Stored {0}", rc);
-                m_log.Info("[GRID ASSET CLIENT]: Sending to " + _assetServerUrl + "/assets/");
-                RestObjectPoster.BeginPostObject<AssetBase>(_assetServerUrl + "/assets/", asset);
 
+                m_log.InfoFormat("[GRID ASSET CLIENT]: Sending store request for asset {0}", asset.FullID);
+                
+                RestObjectPoster.BeginPostObject<AssetBase>(assetUrl, asset);
             }
             catch (Exception e)
             {
-                m_log.Error("[GRID ASSET CLIENT]: " + e.Message);
+                m_log.ErrorFormat("[GRID ASSET CLIENT]: {0}", e);
             }
         }
 
