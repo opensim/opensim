@@ -222,6 +222,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
         private void InterfaceLoadFile(Object[] args)
         {
             LoadFromFile((string)args[0]);
+            SendUpdatedLayerData();
         }
 
         private void InterfaceLoadTileFile(Object[] args)
@@ -231,6 +232,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                 (int)args[2],
                 (int)args[3],
                 (int)args[4]);
+            SendUpdatedLayerData();
         }
 
         private void InterfaceSaveFile(Object[] args)
