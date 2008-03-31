@@ -128,7 +128,7 @@ namespace OpenSim.Framework.UserManagement
                         string clientversion = (string)requestData["version"];
                         m_log.Info("[LOGIN]: Client version: " + clientversion);
                     }
-                    
+                     
                     if (requestData.Contains("start"))
                     {
                         startLocationRequest = (string)requestData["start"];

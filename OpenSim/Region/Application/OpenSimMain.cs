@@ -145,7 +145,7 @@ namespace OpenSim
             {
                 Directory.Delete("addin-db-000", true);
             }
-            
+             
             AddinManager.Initialize(".");
             AddinManager.Registry.Update(null);
 

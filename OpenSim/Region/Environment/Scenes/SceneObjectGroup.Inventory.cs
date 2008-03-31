@@ -166,7 +166,7 @@ namespace OpenSim.Region.Environment.Scenes
                     localID, Name, UUID);
             }
         }
-
+         
         /// <summary>
         /// Add an inventory item to a prim in this group.
         /// </summary>

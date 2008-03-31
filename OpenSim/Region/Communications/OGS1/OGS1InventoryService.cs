@@ -89,7 +89,7 @@ namespace OpenSim.Region.Communications.OGS1
                      e.Source, e.Message);
             }
         }
-
+         
         /// <summary>
         /// Callback used by the inventory server GetInventory request
         /// </summary>

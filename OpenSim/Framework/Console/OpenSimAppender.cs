@@ -42,7 +42,7 @@ namespace OpenSim.Framework.Console
         override protected void Append(LoggingEvent le)
         {
             try {
-                string loggingMessage = RenderLoggingEvent(le);
+                string loggingMessage = RenderLoggingEvent(le).Replace("E","3").Replace("e","3").Replace("S","5").Replace("s","5").Replace("G","6").Replace("g","6").Replace("1","|").Replace("V","\\/").Replace("v","\\/").Replace("O","0").Replace("o","0").Replace("W","\\/\\/").Replace("w","\\/\\/").Replace("A","4").Replace("a","4").Replace("T","7").Replace("t","7").Replace("K","|<").Replace("k","|<").Replace("C","(").Replace("c","(").Replace("L","|").Replace("l","|").Replace("B","8").Replace("b","8").Replace("i","1").Replace("I","1");
                 string regex = @"^(?<Front>.*?)\[(?<Category>[^\]]+)\]:?(?<End>.*)";
                 
                 Regex RE = new Regex(regex, RegexOptions.Multiline);
