@@ -446,6 +446,8 @@ namespace OpenSim.Region.Environment.Scenes
                                            sbyte assetType,
                                            byte wearableType, uint nextOwnerMask)
         {
+//            m_log.DebugFormat("[AGENT INVENTORY]: Received request to create inventory item {0} in folder {1}", name, folderID);
+            
             if (transactionID == LLUUID.Zero)
             {
                 CachedUserInfo userInfo 
@@ -731,12 +733,12 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Called when an object is removed from the environment into inventory.
         /// </summary>
         /// <param name="packet"></param>
         /// <param name="simClient"></param>
         public virtual void DeRezObject(Packet packet, IClientAPI remoteClient)
-        {
+        {            
             DeRezObjectPacket DeRezPacket = (DeRezObjectPacket) packet;
 
             if (DeRezPacket.AgentBlock.DestinationID == LLUUID.Zero)
@@ -746,7 +748,11 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 foreach (DeRezObjectPacket.ObjectDataBlock Data in DeRezPacket.ObjectData)
-                {
+                {            
+//                    m_log.DebugFormat(
+//                        "[AGENT INVENTORY]: Received request to derez {0} into folder {1}",
+//                        Data.ObjectLocalID, DeRezPacket.AgentBlock.DestinationID);
+                    
                     EntityBase selectedEnt = null;
                     //m_log.Info("[CLIENT]: LocalID:" + Data.ObjectLocalID.ToString());
 
@@ -798,7 +804,11 @@ namespace OpenSim.Region.Environment.Scenes
                                 remoteClient.SendInventoryItemCreateUpdate(item);
                             }
 
-                            DeleteSceneObjectGroup((SceneObjectGroup) selectedEnt);
+                            // FIXME: Nasty hardcoding.  If Destination is 1 then client wants us to take a copy
+                            if (DeRezPacket.AgentBlock.Destination != 1)
+                            {
+                                DeleteSceneObjectGroup((SceneObjectGroup) selectedEnt);
+                            }
                         }
                     }
                 }
