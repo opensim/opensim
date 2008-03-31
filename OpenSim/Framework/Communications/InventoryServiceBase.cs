@@ -79,7 +79,7 @@ namespace OpenSim.Framework.Communications
         // See IInventoryServices
         public List<InventoryFolderBase> GetInventorySkeleton(LLUUID userId)
         {
-            m_log.DebugFormat("[AGENT INVENTORY]: Getting inventory skeleton for {0}", userId);
+//            m_log.DebugFormat("[AGENT INVENTORY]: Getting inventory skeleton for {0}", userId);
                                             
             InventoryFolderBase rootFolder = RequestRootFolder(userId);
             
@@ -87,9 +87,10 @@ namespace OpenSim.Framework.Communications
             if (null == rootFolder)
             {
                 return null;                    
-            }
+            }            
             
-            List<InventoryFolderBase> userFolders = new List<InventoryFolderBase>();
+            List<InventoryFolderBase> userFolders = new List<InventoryFolderBase>();                        
+            
             userFolders.Add(rootFolder);
                          
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)

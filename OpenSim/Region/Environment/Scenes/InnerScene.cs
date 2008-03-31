@@ -1208,6 +1208,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="flags"></param>
         public void DuplicateObject(uint originalPrim, LLVector3 offset, uint flags, LLUUID AgentID, LLUUID GroupID)
         {
+            m_log.DebugFormat("[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}", originalPrim, offset, AgentID);
+            
             List<EntityBase> EntityList = GetEntities();
 
             SceneObjectGroup originPrim = null;

@@ -217,47 +217,32 @@ namespace OpenSim.Region.Communications.Local
         {
             List<InventoryFolderBase> folders = m_Parent.InventoryService.GetInventorySkeleton(userID);
 
-            if (folders.Count > 0)
+            // If we have user auth but no inventory folders for some reason, create a new set of folders.
+            if (null == folders || 0 == folders.Count)
             {
-                LLUUID rootID = LLUUID.Zero;
-                ArrayList AgentInventoryArray = new ArrayList();
-                Hashtable TempHash;
-                foreach (InventoryFolderBase InvFolder in folders)
-                {
-                    if (InvFolder.parentID == LLUUID.Zero)
-                    {
-                        rootID = InvFolder.folderID;
-                    }
-                    TempHash = new Hashtable();
-                    TempHash["name"] = InvFolder.name;
-                    TempHash["parent_id"] = InvFolder.parentID.ToString();
-                    TempHash["version"] = (Int32) InvFolder.version;
-                    TempHash["type_default"] = (Int32) InvFolder.type;
-                    TempHash["folder_id"] = InvFolder.folderID.ToString();
-                    AgentInventoryArray.Add(TempHash);
-                }
-                return new InventoryData(AgentInventoryArray, rootID);
+                m_Parent.InventoryService.CreateNewUserInventory(userID);                
+                folders = m_Parent.InventoryService.GetInventorySkeleton(userID);
             }
-            else
+            
+            LLUUID rootID = LLUUID.Zero;
+            ArrayList AgentInventoryArray = new ArrayList();
+            Hashtable TempHash;
+            foreach (InventoryFolderBase InvFolder in folders)
             {
-                AgentInventory userInventory = new AgentInventory();
-                userInventory.CreateRootFolder(userID);
-
-                ArrayList AgentInventoryArray = new ArrayList();
-                Hashtable TempHash;
-                foreach (InventoryFolder InvFolder in userInventory.InventoryFolders.Values)
+                if (InvFolder.parentID == LLUUID.Zero)
                 {
-                    TempHash = new Hashtable();
-                    TempHash["name"] = InvFolder.FolderName;
-                    TempHash["parent_id"] = InvFolder.ParentID.ToString();
-                    TempHash["version"] = (Int32) InvFolder.Version;
-                    TempHash["type_default"] = (Int32) InvFolder.DefaultType;
-                    TempHash["folder_id"] = InvFolder.FolderID.ToString();
-                    AgentInventoryArray.Add(TempHash);
+                    rootID = InvFolder.folderID;
                 }
-
-                return new InventoryData(AgentInventoryArray, userInventory.InventoryRoot.FolderID);
+                TempHash = new Hashtable();
+                TempHash["name"] = InvFolder.name;
+                TempHash["parent_id"] = InvFolder.parentID.ToString();
+                TempHash["version"] = (Int32) InvFolder.version;
+                TempHash["type_default"] = (Int32) InvFolder.type;
+                TempHash["folder_id"] = InvFolder.folderID.ToString();
+                AgentInventoryArray.Add(TempHash);
             }
+            
+            return new InventoryData(AgentInventoryArray, rootID);
         }
     }
 }

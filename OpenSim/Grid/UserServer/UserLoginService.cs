@@ -299,7 +299,7 @@ namespace OpenSim.Grid.UserServer
             // In theory, the user will only ever be missing a root folder in situations where a grid
             // which didn't previously run a grid wide inventory server is being transitioned to one 
             // which does.
-            if (null == folders | folders.Count == 0)
+            if (null == folders || folders.Count == 0)
             {
                 m_log.Warn(
                     "[LOGIN]: " +
