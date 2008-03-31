@@ -79,25 +79,41 @@ namespace OpenSim.Framework.Communications
         // See IInventoryServices
         public List<InventoryFolderBase> GetInventorySkeleton(LLUUID userId)
         {
-            //m_log.DebugFormat("[AGENT INVENTORY]: Getting inventory skeleton for {0}", userId);
-            
-            List<InventoryFolderBase> userFolders = new List<InventoryFolderBase>();
-            
-            InventoryFolderBase rootFolder = RequestRootFolder(userId);
-            userFolders.Add(rootFolder);
-                         
-            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+            try
             {
-                IList<InventoryFolderBase> folders = plugin.Value.getFolderHierarchy(rootFolder.folderID);
-                userFolders.AddRange(folders);
-            }    
+                m_log.DebugFormat("[AGENT INVENTORY]: Getting inventory skeleton for {0}", userId);
+                
+                List<InventoryFolderBase> userFolders = new List<InventoryFolderBase>();
+                
+                InventoryFolderBase rootFolder = RequestRootFolder(userId);
+                
+                // Agent is completely new and has no inventory structure yet.
+                if (null == rootFolder)
+                {
+                    return null;                    
+                }
+                
+                userFolders.Add(rootFolder);
+                             
+                foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+                {
+                    IList<InventoryFolderBase> folders = plugin.Value.getFolderHierarchy(rootFolder.folderID);
+                    userFolders.AddRange(folders);
+                }    
+                
+    //            foreach (InventoryFolderBase folder in userFolders)
+    //            {
+    //                m_log.DebugFormat("[AGENT INVENTORY]: Got folder {0} {1}", folder.name, folder.folderID);
+    //            }
+                
+                return userFolders;
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("GetInventorySkeleton() exception {0}", e);
+            }
             
-//            foreach (InventoryFolderBase folder in userFolders)
-//            {
-//                m_log.DebugFormat("[AGENT INVENTORY]: Got folder {0} {1}", folder.name, folder.folderID);
-//            }
-            
-            return userFolders;
+            return null;
         }
 
         // See IInventoryServices

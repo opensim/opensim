@@ -1201,7 +1201,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Duplicate the given object.
         /// </summary>
         /// <param name="originalPrim"></param>
         /// <param name="offset"></param>
