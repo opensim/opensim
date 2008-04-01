@@ -39,7 +39,7 @@ using OpenSim.Framework.Data.MapperFactory;
 
 namespace OpenSim.Region.Modules.AvatarFactory
 {
-    public class AvatarFactoryModule : IAvatarFactory
+    public class AvatarFactoryModule : IAvatarFactory, IRegionModule
     {
         private Scene m_scene = null;
         private readonly Dictionary<LLUUID, AvatarAppearance> m_avatarsAppearance = new Dictionary<LLUUID, AvatarAppearance>();
@@ -100,7 +100,7 @@ namespace OpenSim.Region.Modules.AvatarFactory
             }
             else
             {
-                Thread.Sleep(5000);
+                Thread.Sleep(5000); //why is this here? 
 
                 //this is the first thread to request this appearance
                 //so let it check the db and if not found then create a default appearance

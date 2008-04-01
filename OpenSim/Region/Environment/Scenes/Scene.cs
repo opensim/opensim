@@ -986,15 +986,18 @@ namespace OpenSim.Region.Environment.Scenes
             if (terrain != null)
             {
                 byte[] data = terrain.WriteJpegImage("defaultstripe.png");
-                m_regInfo.EstateSettings.terrainImageID = LLUUID.Random();
-                AssetBase asset = new AssetBase();
-                asset.FullID = m_regInfo.EstateSettings.terrainImageID;
-                asset.Data = data;
-                asset.Name = "terrainImage";
-                asset.Description = RegionInfo.RegionName;
-                asset.Type = 0;
-                asset.Temporary = temporary;
-                AssetCache.AddAsset(asset);
+                if (data != null)
+                {
+                    m_regInfo.EstateSettings.terrainImageID = LLUUID.Random();
+                    AssetBase asset = new AssetBase();
+                    asset.FullID = m_regInfo.EstateSettings.terrainImageID;
+                    asset.Data = data;
+                    asset.Name = "terrainImage";
+                    asset.Description = RegionInfo.RegionName;
+                    asset.Type = 0;
+                    asset.Temporary = temporary;
+                    AssetCache.AddAsset(asset);
+                }
             }
             
         }

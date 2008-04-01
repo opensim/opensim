@@ -62,6 +62,13 @@ namespace OpenSim.Region.Environment.Modules
         {
             lock (m_syncInit)
             {
+                if (!m_scenes.Contains(scene))
+                {
+                    m_scenes.Add(scene);
+                    scene.EventManager.OnNewClient += NewClient;
+                    scene.RegisterModuleInterface<ISimChat>(this);
+                }
+
                 // wrap this in a try block so that defaults will work if
                 // the config file doesn't specify otherwise.
                 try
@@ -80,13 +87,6 @@ namespace OpenSim.Region.Environment.Modules
                 }
                 catch (Exception)
                 {
-                }
-
-                if (!m_scenes.Contains(scene))
-                {
-                    m_scenes.Add(scene);
-                    scene.EventManager.OnNewClient += NewClient;
-                    scene.RegisterModuleInterface<ISimChat>(this);
                 }
 
                 // setup IRC Relay

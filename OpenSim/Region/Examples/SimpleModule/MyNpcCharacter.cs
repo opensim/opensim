@@ -41,6 +41,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         private short flyState = 0;
         private LLQuaternion bodyDirection = LLQuaternion.Identity;
         private short count = 0;
+        private short frame = 0;
 
 #pragma warning disable 67
 
@@ -450,49 +451,54 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         private void Update()
         {
-            if (OnAgentUpdate != null)
+            frame++;
+            if (frame > 20)
             {
-                AgentUpdatePacket pack = new AgentUpdatePacket();
-                pack.AgentData.ControlFlags = movementFlag;
-                pack.AgentData.BodyRotation = bodyDirection;
-                OnAgentUpdate(this, pack);
-            }
-            if (flyState == 0)
-            {
-                movementFlag = (uint) AgentManager.ControlFlags.AGENT_CONTROL_FLY |
-                               (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG;
-                flyState = 1;
-            }
-            else if (flyState == 1)
-            {
-                movementFlag = (uint) AgentManager.ControlFlags.AGENT_CONTROL_FLY |
-                               (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_POS;
-                flyState = 2;
-            }
-            else
-            {
-                movementFlag = (uint) AgentManager.ControlFlags.AGENT_CONTROL_FLY;
-                flyState = 0;
-            }
-
-            if (count >= 200)
-            {
-                if (OnChatFromViewer != null)
+                frame = 0;
+                if (OnAgentUpdate != null)
                 {
-                    ChatFromViewerArgs args = new ChatFromViewerArgs();
-                    args.Message = "Kinda quiet around here, isn't it?";
-                    args.Channel = 0;
-                    args.From = FirstName + " " + LastName;
-                    args.Position = new LLVector3(128, 128, 26);
-                    args.Sender = this;
-                    args.Type = ChatTypeEnum.Shout;
-
-                    OnChatFromViewer(this, args);
+                    AgentUpdatePacket pack = new AgentUpdatePacket();
+                    pack.AgentData.ControlFlags = movementFlag;
+                    pack.AgentData.BodyRotation = bodyDirection;
+                    OnAgentUpdate(this, pack);
                 }
-                count = -1;
-            }
+                if (flyState == 0)
+                {
+                    movementFlag = (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY |
+                                   (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG;
+                    flyState = 1;
+                }
+                else if (flyState == 1)
+                {
+                    movementFlag = (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY |
+                                   (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS;
+                    flyState = 2;
+                }
+                else
+                {
+                    movementFlag = (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
+                    flyState = 0;
+                }
 
-            count++;
+                if (count >= 10)
+                {
+                    if (OnChatFromViewer != null)
+                    {
+                        ChatFromViewerArgs args = new ChatFromViewerArgs();
+                        args.Message = "Kinda quiet around here, isn't it?";
+                        args.Channel = 0;
+                        args.From = FirstName + " " + LastName;
+                        args.Position = new LLVector3(128, 128, 26);
+                        args.Sender = this;
+                        args.Type = ChatTypeEnum.Shout;
+
+                        OnChatFromViewer(this, args);
+                    }
+                    count = -1;
+                }
+
+                count++;
+            }
         }
 
         public bool AddMoney(int debit)

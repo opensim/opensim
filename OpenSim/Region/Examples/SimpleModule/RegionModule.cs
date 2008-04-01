@@ -56,7 +56,7 @@ namespace OpenSim.Region.Examples.SimpleModule
 
             AddCpuCounter(regionInfo, pos);
           //  AddComplexObjects(regionInfo, pos);
-           // AddAvatars();
+            AddAvatars();
             AddFileSystemObjects();
         }
 
