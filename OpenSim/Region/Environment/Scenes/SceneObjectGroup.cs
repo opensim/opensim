@@ -386,6 +386,9 @@ namespace OpenSim.Region.Environment.Scenes
             UpdateParentIDs();
         }
 
+        /// <summary>
+        /// Hooks this object up to the backup event so that it is persisted to the database when the update thread executes.
+        /// </summary>
         private void AttachToBackup()
         {
             if (InSceneBackup)
@@ -550,7 +553,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Copying
 
         /// <summary>
-        /// 
+        /// Duplicates this object, including operations such as physics set up and attaching to the backup event.
         /// </summary>
         /// <returns></returns>
         public SceneObjectGroup Copy(LLUUID cAgentID, LLUUID cGroupID)
