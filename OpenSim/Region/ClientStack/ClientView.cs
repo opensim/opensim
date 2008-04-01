@@ -2396,11 +2396,6 @@ namespace OpenSim.Region.ClientStack
                     else
                     {
                         LLUUID partId = part.UUID;
-
-
-
-
-
                         UpdatePrimRotation handlerUpdatePrimRotation = OnUpdatePrimGroupRotation;
                         UpdatePrimGroupRotation handlerUpdatePrimGroupRotation = OnUpdatePrimGroupMouseRotation;
 

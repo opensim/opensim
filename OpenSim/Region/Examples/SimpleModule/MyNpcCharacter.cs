@@ -194,10 +194,10 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         public virtual string FirstName
         {
-            get { return "Annoying"; }
+            get { return "Only"; }
         }
 
-        private string lastName = "NPC" + Util.RandomClass.Next(1, 1000);
+        private string lastName = "Today" + Util.RandomClass.Next(1, 1000);
 
         public virtual string LastName
         {
@@ -485,7 +485,7 @@ namespace OpenSim.Region.Examples.SimpleModule
                     if (OnChatFromViewer != null)
                     {
                         ChatFromViewerArgs args = new ChatFromViewerArgs();
-                        args.Message = "Kinda quiet around here, isn't it?";
+                        args.Message = "Hey You! Get out of my Home. This is my Region";
                         args.Channel = 0;
                         args.From = FirstName + " " + LastName;
                         args.Position = new LLVector3(128, 128, 26);

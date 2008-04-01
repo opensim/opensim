@@ -54,10 +54,10 @@ namespace OpenSim.Region.Examples.SimpleModule
 
             LLVector3 pos = new LLVector3(110, 129, 27);
 
-            AddCpuCounter(regionInfo, pos);
+            //AddCpuCounter(regionInfo, pos);
           //  AddComplexObjects(regionInfo, pos);
             AddAvatars();
-            AddFileSystemObjects();
+          //  AddFileSystemObjects();
         }
 
         private void AddFileSystemObjects()
@@ -85,7 +85,7 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         private void AddAvatars()
         {
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < 1; i++)
             {
                 MyNpcCharacter m_character = new MyNpcCharacter(m_scene.EventManager);
                 m_scene.AddNewClient(m_character, false);

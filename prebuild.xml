@@ -1076,12 +1076,12 @@
     <Project name="OpenSim.Region.Examples.SimpleModule" path="OpenSim/Region/Examples/SimpleModule" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>bin/</OutputPath>
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>bin/</OutputPath>
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
 
