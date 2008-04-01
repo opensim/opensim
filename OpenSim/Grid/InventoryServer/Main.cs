@@ -134,7 +134,6 @@ namespace OpenSim.Grid.InventoryServer
             
             switch (cmd)
             {
-                case "quit":
                 case "add-user":
                     m_inventoryService.CreateUsersInventory(LLUUID.Random().UUID);
                     break;
