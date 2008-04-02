@@ -121,12 +121,13 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             {
                 for (y = 0; y < Constants.RegionSize; y++)
                 {
-                    map[x, y] = TerrainUtil.PerlinNoise2D(x, y, 3, 0.25) * 10;
-                    double spherFac = TerrainUtil.SphericalFactor(x, y, Constants.RegionSize, Constants.RegionSize, 20);
-                    if (map[x, y] < spherFac)
-                    {
-                        map[x, y] = spherFac;
-                    }
+                    //map[x, y] = TerrainUtil.PerlinNoise2D(x, y, 3, 0.25) * 10;
+                   // double spherFac = TerrainUtil.SphericalFactor(x, y, Constants.RegionSize, Constants.RegionSize, 20);
+                   // if (map[x, y] < spherFac)
+                   // {
+                   //     map[x, y] = spherFac;
+                   // }
+                    map[x, y] = 26;
                 }
             }
         }
