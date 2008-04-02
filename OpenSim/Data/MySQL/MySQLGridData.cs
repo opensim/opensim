@@ -34,7 +34,7 @@ using System.Text.RegularExpressions;
 using libsecondlife;
 using OpenSim.Framework.Console;
 
-namespace OpenSim.Framework.Data.MySQL
+namespace OpenSim.Data.MySQL
 {
     /// <summary>
     /// A MySQL Interface for the Grid Server

@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 
-namespace OpenSim.Framework.Data.Base
+namespace OpenSim.Data.Base
 {
     public abstract class BaseDatabaseConnector
     {

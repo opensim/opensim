@@ -28,9 +28,9 @@
 using System;
 using System.Data;
 using libsecondlife;
-using OpenSim.Framework.Data.Base;
+using OpenSim.Data.Base;
 
-namespace OpenSim.Framework.Data
+namespace OpenSim.Data
 {
     public class OpenSimDataReader : BaseDataReader
     {

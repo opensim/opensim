@@ -33,12 +33,12 @@ using System.IO;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Data;
+using OpenSim.Data;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Framework.Data.MSSQL;
+using OpenSim.Data.MSSQL;
 
-namespace OpenSim.Framework.Data.MSSQL
+namespace OpenSim.Data.MSSQL
 {
     public class MSSQLDataStore : IRegionDataStore
     {

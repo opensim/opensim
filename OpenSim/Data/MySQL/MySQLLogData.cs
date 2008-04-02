@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace OpenSim.Framework.Data.MySQL
+namespace OpenSim.Data.MySQL
 {
     /// <summary>
     /// An interface to the log database for MySQL

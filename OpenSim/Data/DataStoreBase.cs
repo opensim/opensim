@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace OpenSim.Framework.Data
+namespace OpenSim.Data
 {
     public abstract class DataStoreBase
     {

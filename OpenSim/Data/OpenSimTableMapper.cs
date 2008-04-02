@@ -27,9 +27,9 @@
 
 using System.Data;
 
-using OpenSim.Framework.Data.Base;
+using OpenSim.Data.Base;
 
-namespace OpenSim.Framework.Data
+namespace OpenSim.Data
 {
     public abstract class OpenSimTableMapper<TRowMapper, TPrimaryKey> : BaseTableMapper<TRowMapper, TPrimaryKey>
     {

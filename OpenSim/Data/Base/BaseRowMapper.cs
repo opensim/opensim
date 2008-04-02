@@ -25,9 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Framework.Data.Base;
+using OpenSim.Data.Base;
 
-namespace OpenSim.Framework.Data.Base
+namespace OpenSim.Data.Base
 {
     public abstract class BaseRowMapper
     {

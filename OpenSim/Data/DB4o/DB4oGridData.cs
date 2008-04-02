@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using libsecondlife;
 
-namespace OpenSim.Framework.Data.DB4o
+namespace OpenSim.Data.DB4o
 {
     /// <summary>
     /// A grid server storage mechanism employing the DB4o database system

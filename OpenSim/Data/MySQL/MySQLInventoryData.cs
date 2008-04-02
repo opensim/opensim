@@ -31,7 +31,7 @@ using libsecondlife;
 using MySql.Data.MySqlClient;
 using OpenSim.Framework.Console;
 
-namespace OpenSim.Framework.Data.MySQL
+namespace OpenSim.Data.MySQL
 {
     /// <summary>
     /// A MySQL interface for the inventory server

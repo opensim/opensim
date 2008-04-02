@@ -32,7 +32,7 @@ using System.Data.SqlClient;
 using libsecondlife;
 using OpenSim.Framework.Console;
 
-namespace OpenSim.Framework.Data.MSSQL
+namespace OpenSim.Data.MSSQL
 {
     /// <summary>
     /// A database interface class to a user profile storage system

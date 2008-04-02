@@ -32,11 +32,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly : AssemblyTitle("OpenSim.Framework.Data.MSSQL")]
+[assembly : AssemblyTitle("OpenSim.Data.MSSQL")]
 [assembly : AssemblyDescription("")]
 [assembly : AssemblyConfiguration("")]
 [assembly : AssemblyCompany("")]
-[assembly : AssemblyProduct("OpenSim.Framework.Data.MSSQL")]
+[assembly : AssemblyProduct("OpenSim.Data.MSSQL")]
 [assembly : AssemblyCopyright("Copyright (c) OpenSimulator.org Developers 2007-2008")]
 [assembly : AssemblyTrademark("")]
 [assembly : AssemblyCulture("")]

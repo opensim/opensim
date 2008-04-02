@@ -33,11 +33,11 @@ using System.Security;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly : AssemblyTitle("OpenSim.Framework.Data.Base")]
+[assembly : AssemblyTitle("OpenSim.Data.Base")]
 [assembly : AssemblyDescription("Generic Database Abstraction Layer")]
 [assembly : AssemblyConfiguration("")]
 [assembly : AssemblyCompany("OpenSim Project (www.opensimulator.org)")]
-[assembly: AssemblyProduct("OpenSim.Framework.Data.Base")]
+[assembly: AssemblyProduct("OpenSim.Data.Base")]
 [assembly: AssemblyCopyright("Copyright (c) 2007 OpenSim Project (www.opensimulator.org)")]
 [assembly : AssemblyTrademark("")]
 [assembly : AssemblyCulture("")]

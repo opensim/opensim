@@ -32,7 +32,7 @@ using libsecondlife;
 using MySql.Data.MySqlClient;
 using OpenSim.Framework.Console;
 
-namespace OpenSim.Framework.Data.MySQL
+namespace OpenSim.Data.MySQL
 {
     internal class MySQLAssetData : AssetDataBase, IPlugin
     {

@@ -28,9 +28,9 @@
 using System;
 using System.Data.Common;
 using System.Data.SqlClient;
-using OpenSim.Framework.Data;
+using OpenSim.Data;
 
-namespace OpenSim.Framework.Data.MSSQLMapper
+namespace OpenSim.Data.MSSQLMapper
 {
     public class MSSQLDatabaseMapper : OpenSimDatabaseConnector
     {

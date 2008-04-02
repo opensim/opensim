@@ -29,7 +29,7 @@ using System;
 using System.Data;
 using Mono.Data.SqliteClient;
 
-namespace OpenSim.Framework.Data.SQLite
+namespace OpenSim.Data.SQLite
 {
     /// <summary>
     /// A base class for methods needed by all SQLite database classes

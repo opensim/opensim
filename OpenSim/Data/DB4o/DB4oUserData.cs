@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.IO;
 using libsecondlife;
 
-namespace OpenSim.Framework.Data.DB4o
+namespace OpenSim.Data.DB4o
 {
     /// <summary>
     /// A User storage interface for the DB4o database system

@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using Db4objects.Db4o;
 using libsecondlife;
 
-namespace OpenSim.Framework.Data.DB4o
+namespace OpenSim.Data.DB4o
 {
     /// <summary>
     /// A Database manager for Db4o

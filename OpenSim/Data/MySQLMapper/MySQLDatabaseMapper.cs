@@ -28,10 +28,10 @@
 using System.Data;
 using System.Data.Common;
 using MySql.Data.MySqlClient;
-using OpenSim.Framework.Data;
-using OpenSim.Framework.Data.Base;
+using OpenSim.Data;
+using OpenSim.Data.Base;
 
-namespace OpenSim.Framework.Data.MySQLMapper
+namespace OpenSim.Data.MySQLMapper
 {
     public class MySQLDatabaseMapper : OpenSimDatabaseConnector
     {

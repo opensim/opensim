@@ -31,9 +31,9 @@ using System.Data.Common;
 using System.Text;
 using libsecondlife;
 
-using OpenSim.Framework.Data.Base;
+using OpenSim.Data.Base;
 
-namespace OpenSim.Framework.Data
+namespace OpenSim.Data
 {
     public class OpenSimObjectFieldMapper<TObject, TField> : ObjectField<TObject, TField>
     {

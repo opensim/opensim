@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
-using OpenSim.Framework.Data.Base;
+using OpenSim.Data.Base;
 
-namespace OpenSim.Framework.Data.MySQLMapper
+namespace OpenSim.Data.MySQLMapper
 {
     public class MySQLDataReader : OpenSimDataReader
     {

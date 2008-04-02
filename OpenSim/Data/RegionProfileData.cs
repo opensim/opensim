@@ -30,7 +30,7 @@ using System.Collections;
 using libsecondlife;
 using Nwc.XmlRpc;
 
-namespace OpenSim.Framework.Data
+namespace OpenSim.Data
 {
     /// <summary>
     /// A class which contains information known to the grid server about a region

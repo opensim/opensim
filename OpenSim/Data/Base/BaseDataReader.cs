@@ -29,7 +29,7 @@ using System;
 using System.Data;
 using System.IO;
 
-namespace OpenSim.Framework.Data.Base
+namespace OpenSim.Data.Base
 {
     public abstract class BaseDataReader
     {

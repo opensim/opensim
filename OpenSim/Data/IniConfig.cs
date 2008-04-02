@@ -33,7 +33,7 @@ using System.Text.RegularExpressions;
  http://alexpinsker.blogspot.com/2005/12/reading-ini-file-from-c_113432097333021549.html
  */
 
-namespace OpenSim.Framework.Data
+namespace OpenSim.Data
 {
     /// <summary>
     /// Parse settings from ini-like files

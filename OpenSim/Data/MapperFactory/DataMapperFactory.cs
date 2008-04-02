@@ -1,9 +1,9 @@
 ﻿using System;
-using OpenSim.Framework.Data.Base;
-using OpenSim.Framework.Data.MSSQLMapper;
-using OpenSim.Framework.Data.MySQLMapper;
+using OpenSim.Data.Base;
+using OpenSim.Data.MSSQLMapper;
+using OpenSim.Data.MySQLMapper;
 
-namespace OpenSim.Framework.Data.MapperFactory
+namespace OpenSim.Data.MapperFactory
 {
     public class DataMapperFactory
     {

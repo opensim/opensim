@@ -27,10 +27,10 @@
 
 using System;
 using OpenSim.Framework;
-using OpenSim.Framework.Data.Base;
+using OpenSim.Data.Base;
 using libsecondlife;
 
-namespace OpenSim.Framework.Data
+namespace OpenSim.Data
 {
     public class PrimitiveBaseShapeRowMapper : BaseRowMapper<PrimitiveBaseShape>
     {

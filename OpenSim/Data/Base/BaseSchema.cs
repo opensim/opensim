@@ -26,9 +26,9 @@
  */
 
 using System.Collections.Generic;
-using OpenSim.Framework.Data.Base;
+using OpenSim.Data.Base;
 
-namespace OpenSim.Framework.Data.Base
+namespace OpenSim.Data.Base
 {
     public class BaseSchema
     {

@@ -28,9 +28,9 @@
 using System;
 using System.Data;
 using System.Data.Common;
-using OpenSim.Framework.Data.Base;
+using OpenSim.Data.Base;
 
-namespace OpenSim.Framework.Data.Base
+namespace OpenSim.Data.Base
 {
     public abstract class BaseTableMapper
     {

@@ -33,7 +33,7 @@ using libsecondlife;
 using Mono.Data.SqliteClient;
 using OpenSim.Framework.Console;
 
-namespace OpenSim.Framework.Data.SQLite
+namespace OpenSim.Data.SQLite
 {
     public class SQLiteInventoryStore : SQLiteUtil, IInventoryData
     {

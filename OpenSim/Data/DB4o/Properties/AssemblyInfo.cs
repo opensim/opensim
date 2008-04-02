@@ -32,11 +32,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly : AssemblyTitle("OpenSim.Framework.Data.DB4o")]
+[assembly : AssemblyTitle("OpenSim.Data.DB4o")]
 [assembly : AssemblyDescription("")]
 [assembly : AssemblyConfiguration("")]
 [assembly : AssemblyCompany("")]
-[assembly : AssemblyProduct("OpenSim.Framework.Data.DB4o")]
+[assembly : AssemblyProduct("OpenSim.Data.DB4o")]
 [assembly : AssemblyCopyright("Copyright (c) OpenSimulator.org Developers 2007-2008")]
 [assembly : AssemblyTrademark("")]
 [assembly : AssemblyCulture("")]

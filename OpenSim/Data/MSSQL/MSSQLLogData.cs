@@ -28,7 +28,7 @@
 using System.Collections.Generic;
 using System.Data;
 
-namespace OpenSim.Framework.Data.MSSQL
+namespace OpenSim.Data.MSSQL
 {
     /// <summary>
     /// An interface to the log database for MySQL

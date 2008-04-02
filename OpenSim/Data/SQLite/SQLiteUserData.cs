@@ -32,7 +32,7 @@ using libsecondlife;
 using Mono.Data.SqliteClient;
 using OpenSim.Framework.Console;
 
-namespace OpenSim.Framework.Data.SQLite
+namespace OpenSim.Data.SQLite
 {
     /// <summary>
     /// A User storage interface for the SQLite database system

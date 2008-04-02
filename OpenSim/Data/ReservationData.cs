@@ -27,7 +27,7 @@
 
 using libsecondlife;
 
-namespace OpenSim.Framework.Data
+namespace OpenSim.Data
 {
     public class ReservationData
     {

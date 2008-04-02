@@ -32,7 +32,7 @@ using System.Security.Cryptography;
 using System.Text;
 using libsecondlife;
 
-namespace OpenSim.Framework.Data.SQLite
+namespace OpenSim.Data.SQLite
 {
     /// <summary>
     /// A Grid Interface to the SQLite database

@@ -36,7 +36,7 @@ using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Framework.Data.SQLite
+namespace OpenSim.Data.SQLite
 {
     public class SQLiteRegionData : IRegionDataStore
     {

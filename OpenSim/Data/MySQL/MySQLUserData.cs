@@ -32,7 +32,7 @@ using System.Text.RegularExpressions;
 using libsecondlife;
 using OpenSim.Framework.Console;
 
-namespace OpenSim.Framework.Data.MySQL
+namespace OpenSim.Data.MySQL
 {
     /// <summary>
     /// A database interface class to a user profile storage system

@@ -34,7 +34,7 @@ using System.Reflection;
 using libsecondlife;
 using OpenSim.Framework.Console;
 
-namespace OpenSim.Framework.Data.MSSQL
+namespace OpenSim.Data.MSSQL
 {
     /// <summary>
     /// A management class for the MS SQL Storage Engine

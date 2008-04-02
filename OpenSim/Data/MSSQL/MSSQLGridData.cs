@@ -33,7 +33,7 @@ using System.Text;
 using libsecondlife;
 using OpenSim.Framework.Console;
 
-namespace OpenSim.Framework.Data.MSSQL
+namespace OpenSim.Data.MSSQL
 {
     /// <summary>
     /// A grid data interface for Microsoft SQL Server
