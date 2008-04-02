@@ -450,10 +450,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LLUUID uuidDetectedKey(int number)
         {
             LSL_Types.list SenseList = m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.GetSensorList(m_localID, m_itemID);
-            if ((number >= 0) && (number < SenseList.Length))
+            if (SenseList != null)
             {
-                LLUUID SensedUUID = (LLUUID)SenseList.Data[number];
-                return SensedUUID;
+                if ((number >= 0) && (number < SenseList.Length))
+                {
+                    LLUUID SensedUUID = (LLUUID)SenseList.Data[number];
+                    return SensedUUID;
+                }
             }
             return LLUUID.Zero;
         }
