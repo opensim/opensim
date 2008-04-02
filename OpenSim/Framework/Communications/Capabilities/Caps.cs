@@ -401,7 +401,7 @@ namespace OpenSim.Region.Capabilities
         {
             try
             {
-//                m_log.DebugFormat("[CAPS]: request: {0}, path: {1}, param: {2}", request, path, param);
+                //m_log.DebugFormat("[CAPS]: request: {0}, path: {1}, param: {2}", request, path, param);
 
                 Hashtable hash = (Hashtable) LLSD.LLSDDeserialize(Helpers.StringToField(request));
                 LLSDTaskScriptUpdate llsdUpdateRequest = new LLSDTaskScriptUpdate();

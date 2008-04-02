@@ -1755,20 +1755,23 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agentId"></param>
         public void RemoveCapsHandler(LLUUID agentId)
         {
-            if (m_capsHandlers.ContainsKey(agentId))
+            lock (m_capsHandlers)
             {
-                m_log.DebugFormat(
-                    "[CAPS]: Removing CAPS handler for root agent {0} in {1}", 
-                    agentId, RegionInfo.RegionName);
-                
-                m_capsHandlers[agentId].DeregisterHandlers();
-                m_capsHandlers.Remove(agentId);
-            }
-            else
-            {
-                m_log.WarnFormat(
-                    "[CAPS]: Received request to remove CAPS handler for root agent {0} in {1}, but no such CAPS handler found!",
-                    agentId, RegionInfo.RegionName);
+                if (m_capsHandlers.ContainsKey(agentId))
+                {
+                    m_log.DebugFormat(
+                        "[CAPS]: Removing CAPS handler for root agent {0} in {1}", 
+                        agentId, RegionInfo.RegionName);
+                    
+                    m_capsHandlers[agentId].DeregisterHandlers();
+                    m_capsHandlers.Remove(agentId);
+                }
+                else
+                {
+                    m_log.WarnFormat(
+                        "[CAPS]: Received request to remove CAPS handler for root agent {0} in {1}, but no such CAPS handler found!",
+                        agentId, RegionInfo.RegionName);
+                }
             }
         }
 
