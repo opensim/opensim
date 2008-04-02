@@ -31,7 +31,7 @@ using System.IO;
 
 namespace OpenSim.Framework.Data.Base
 {
-    public class BaseDataReader
+    public abstract class BaseDataReader
     {
         private readonly IDataReader m_source;
 
@@ -112,17 +112,28 @@ namespace OpenSim.Framework.Data.Base
             return m_source.Read();
         }
 
-        public Guid GetGuid(string name)
+        public virtual Guid GetGuid(string name)
         {
-            string guidString = GetString(name);
-            if (String.IsNullOrEmpty(guidString))
-            {
-                return Guid.Empty;
-            }
-            else
-            {
-                return new Guid(guidString);
-            }
+            return m_source.GetGuid(m_source.GetOrdinal(name));
+        }
+
+        public UInt32 GetUInt32(string name )
+        {
+            return (UInt32)GetInt32(name);
+        }
+
+        private Int32 GetInt32(string name)
+        {
+            int ordinal = m_source.GetOrdinal(name);
+            int int32 = m_source.GetInt32(ordinal);
+            return int32;            
+        }
+
+        public Int64 GetInt64(string  name)
+        {
+            int ordinal = m_source.GetOrdinal( name );
+            long int64 = m_source.GetInt64(ordinal);
+            return int64;
         }
     }
 }

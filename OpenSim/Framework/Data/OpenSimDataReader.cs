@@ -26,11 +26,8 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Text;
 using libsecondlife;
-
 using OpenSim.Framework.Data.Base;
 
 namespace OpenSim.Framework.Data

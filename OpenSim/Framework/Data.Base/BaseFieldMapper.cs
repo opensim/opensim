@@ -108,6 +108,10 @@ namespace OpenSim.Framework.Data.Base
                 {
                     value = reader.GetUShort(m_fieldName);
                 }
+                else if (ValueType == typeof(uint))
+                {
+                    value = reader.GetUInt32(m_fieldName);
+                }
                 else if (ValueType == typeof(byte[]))
                 {
                     value = reader.GetBytes(m_fieldName);

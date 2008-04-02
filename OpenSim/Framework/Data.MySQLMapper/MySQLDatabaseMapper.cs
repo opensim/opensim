@@ -25,9 +25,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Data;
 using System.Data.Common;
 using MySql.Data.MySqlClient;
 using OpenSim.Framework.Data;
+using OpenSim.Framework.Data.Base;
 
 namespace OpenSim.Framework.Data.MySQLMapper
 {
@@ -47,6 +49,11 @@ namespace OpenSim.Framework.Data.MySQLMapper
         public override string CreateParamName(string fieldName)
         {
             return "?" + fieldName;
+        }
+
+        public override BaseDataReader CreateReader(IDataReader reader)
+        {
+            return new MySQLDataReader( reader );
         }
     }
 }

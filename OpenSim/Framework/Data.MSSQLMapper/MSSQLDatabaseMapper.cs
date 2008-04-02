@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Data.Common;
 using System.Data.SqlClient;
 using OpenSim.Framework.Data;
@@ -42,6 +43,18 @@ namespace OpenSim.Framework.Data.MSSQLMapper
         {
             SqlConnection connection = new SqlConnection(m_connectionString);
             return connection;
+        }
+
+        public override object ConvertToDbType(object value)
+        {
+            if( value is UInt32 )
+            {
+                UInt32 tmpVal = (UInt32) value;
+                Int64 result = Convert.ToInt64(tmpVal);
+                return result;
+            }
+
+            return base.ConvertToDbType(value);
         }
 
         public override string CreateParamName(string fieldName)
