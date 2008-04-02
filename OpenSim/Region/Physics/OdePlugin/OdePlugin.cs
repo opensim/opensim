@@ -290,8 +290,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         internal void waitForSpaceUnlock(IntPtr space)
         {
-            if (space != (IntPtr)0)
-                while (d.SpaceLockQuery(space)){  } // Wait and do nothing
+            //if (space != (IntPtr)0)
+                //while (d.SpaceLockQuery(space)){  } // Wait and do nothing
         }
 
         /// <summary>

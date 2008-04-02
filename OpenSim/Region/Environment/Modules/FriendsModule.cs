@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+using System;
 using System.Collections.Generic;
 using libsecondlife;
 using Nini.Config;
@@ -107,6 +107,12 @@ namespace OpenSim.Region.Environment.Modules
                     {
                         m_rootAgents[avatar.UUID] = avatar.RegionHandle;
                         m_log.Info("[FRIEND]: Claiming " + avatar.Firstname + " " + avatar.Lastname + " in region:" + avatar.RegionHandle + ".");
+                        if (avatar.JID.Length > 0)
+                        {
+                            JId avatarID = new JId(avatar.JID);
+                            // REST Post XMPP Stanzas!
+
+                        }
                         // Claim User! my user!  Mine mine mine!
                     }
                 }

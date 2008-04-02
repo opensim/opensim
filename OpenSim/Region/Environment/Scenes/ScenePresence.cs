@@ -77,6 +77,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public bool IsRestrictedToRegion = false;
 
+        public string JID = string.Empty;
+
         // Agent moves with a PID controller causing a force to be exerted.
         private bool m_newForce = false;
         private bool m_newCoarseLocations = true;
