@@ -31,6 +31,7 @@ using System.Data;
 using System.Security.Cryptography;
 using System.Text;
 using libsecondlife;
+using OpenSim.Framework;
 
 namespace OpenSim.Data.SQLite
 {

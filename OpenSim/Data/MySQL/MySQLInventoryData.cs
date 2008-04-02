@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using libsecondlife;
 using MySql.Data.MySqlClient;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Data.MySQL

@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using libsecondlife;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Data.MSSQL

@@ -32,6 +32,7 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Reflection;
 using libsecondlife;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Data.MSSQL

@@ -32,6 +32,7 @@ using System.Diagnostics;
 using System.IO;
 using libsecondlife;
 using MySql.Data.MySqlClient;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;

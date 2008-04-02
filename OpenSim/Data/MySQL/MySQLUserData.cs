@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Text.RegularExpressions;
 using libsecondlife;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Data.MySQL

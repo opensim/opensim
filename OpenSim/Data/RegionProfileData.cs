@@ -29,6 +29,7 @@ using System;
 using System.Collections;
 using libsecondlife;
 using Nwc.XmlRpc;
+using OpenSim.Framework;
 
 namespace OpenSim.Data
 {

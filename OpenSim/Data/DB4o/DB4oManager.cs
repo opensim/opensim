@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using Db4objects.Db4o;
 using libsecondlife;
+using OpenSim.Framework;
 
 namespace OpenSim.Data.DB4o
 {

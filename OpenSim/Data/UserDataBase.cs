@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using libsecondlife;
+using OpenSim.Framework;
 
 namespace OpenSim.Data
 {

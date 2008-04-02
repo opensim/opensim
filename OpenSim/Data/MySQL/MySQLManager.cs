@@ -33,6 +33,7 @@ using System.IO;
 using System.Reflection;
 using libsecondlife;
 using MySql.Data.MySqlClient;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Data.MySQL

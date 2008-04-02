@@ -30,6 +30,7 @@ using System.Data;
 using System.Reflection;
 using libsecondlife;
 using Mono.Data.SqliteClient;
+using OpenSim.Framework;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Data.SQLite

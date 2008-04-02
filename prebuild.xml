@@ -159,19 +159,18 @@
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
-          <KeyFile>OpenSim.Data.Base.snk</KeyFile>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
-          <KeyFile>OpenSim.Data.Base.snk</KeyFile>
         </Options>
       </Configuration>
 
       <ReferencePath>../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Data"/>
+      <Reference name="OpenSim.Framework"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -200,7 +199,8 @@
       <Reference name="OpenSim.Data.Base"/>
       <Reference name="log4net"/>
       <Files>
-        <Match pattern="*.cs" recurse="true"/>
+        <Match pattern="*.cs" recurse="false"/>
+        <Match pattern="Properties/*.cs" recurse="false"/>
       </Files>
     </Project>
 
