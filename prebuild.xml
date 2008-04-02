@@ -155,17 +155,17 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Framework.Data.Base" path="OpenSim/Framework/Data.Base" type="Library">
+    <Project name="OpenSim.Data.Base" path="OpenSim/Data/Base" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
-          <KeyFile>OpenSim.Framework.Data.Base.snk</KeyFile>
+          <KeyFile>OpenSim.Data.Base.snk</KeyFile>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
-          <KeyFile>OpenSim.Framework.Data.Base.snk</KeyFile>
+          <KeyFile>OpenSim.Data.Base.snk</KeyFile>
         </Options>
       </Configuration>
 
@@ -178,26 +178,26 @@
     </Project>
 
 
-    <Project name="OpenSim.Framework.Data" path="OpenSim/Framework/Data" type="Library">
+    <Project name="OpenSim.Data" path="OpenSim/Data" type="Library">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../../bin/</OutputPath>          
+          <OutputPath>../../bin/</OutputPath>          
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../../../bin/</OutputPath>
+          <OutputPath>../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-      <ReferencePath>../../../bin/</ReferencePath>
+      <ReferencePath>../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Data.Base"/>
+      <Reference name="OpenSim.Data.Base"/>
       <Reference name="log4net"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -205,7 +205,7 @@
     </Project>
 
  
-    <Project name="OpenSim.Framework.Data.MySQLMapper" path="OpenSim/Framework/Data.MySQLMapper" type="Library">
+    <Project name="OpenSim.Data.MySQLMapper" path="OpenSim/Data/MySQLMapper" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -222,8 +222,8 @@
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Data"/>
-      <Reference name="OpenSim.Framework.Data.Base"/>
+      <Reference name="OpenSim.Data"/>
+      <Reference name="OpenSim.Data.Base"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="MySql.Data.dll"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -234,7 +234,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Framework.Data.MSSQLMapper" path="OpenSim/Framework/Data.MSSQLMapper" type="Library">
+    <Project name="OpenSim.Data.MSSQLMapper" path="OpenSim/Data/MSSQLMapper" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -251,8 +251,8 @@
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Data"/>
-      <Reference name="OpenSim.Framework.Data.Base"/>
+      <Reference name="OpenSim.Data"/>
+      <Reference name="OpenSim.Data.Base"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="log4net"/>
@@ -262,7 +262,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Framework.Data.MapperFactory" path="OpenSim/Framework/Data.MapperFactory" type="Library">
+    <Project name="OpenSim.Data.MapperFactory" path="OpenSim/Data/MapperFactory" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -279,10 +279,10 @@
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Data"/>
-      <Reference name="OpenSim.Framework.Data.Base"/>
-      <Reference name="OpenSim.Framework.Data.MySQLMapper"/>
-      <Reference name="OpenSim.Framework.Data.MSSQLMapper"/>
+      <Reference name="OpenSim.Data"/>
+      <Reference name="OpenSim.Data.Base"/>
+      <Reference name="OpenSim.Data.MySQLMapper"/>
+      <Reference name="OpenSim.Data.MSSQLMapper"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -309,7 +309,7 @@
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Data"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -336,7 +336,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Configuration.XML"/>
-      <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Data"/>
       <Reference name="log4net"/>
       <Files>
         <Match pattern="*.cs" recurse="true"/>
@@ -655,7 +655,7 @@
     </Project>
 
 
-    <Project name="OpenSim.Framework.Data.DB4o" path="OpenSim/Framework/Data.DB4o" type="Library">
+    <Project name="OpenSim.Data.DB4o" path="OpenSim/Data/DB4o" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -672,7 +672,7 @@
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Data"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Db4objects.Db4o.dll"/>
       <Reference name="log4net"/>
@@ -701,7 +701,7 @@
       <Reference name="System.Web"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.AssetLoader.Filesystem"/>
-      <Reference name="OpenSim.Framework.Data" />
+      <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Statistics"/>
@@ -734,7 +734,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.Data" />
+      <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="libsecondlife.dll"/>
@@ -764,7 +764,7 @@
       <Reference name="System.Data"/>
       <Reference name="System.Runtime.Remoting"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Data" />     
+      <Reference name="OpenSim.Data" />     
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Communications" />
@@ -798,7 +798,7 @@
       <Reference name="Axiom.MathLib.dll"/>
       <Reference name="OpenSim.Region.Terrain.BasicTerrain"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Data" />
+      <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Framework.Servers"/>
@@ -806,7 +806,7 @@
       <Reference name="Microsoft.JScript"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Framework.Data.Base"/>
+      <Reference name="OpenSim.Data.Base"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net"/>
       <Files>
@@ -835,7 +835,7 @@
       <Reference name="OpenSim.Region.Terrain.BasicTerrain"/>
       <Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Communications"/>
@@ -898,11 +898,11 @@
       <Reference name="libsecondlife.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Framework.Data.Base" />
+      <Reference name="OpenSim.Data.Base" />
       <Reference name="OpenSim.Region.Environment"/>
-      <Reference name="OpenSim.Framework.Data.MapperFactory"/>
+      <Reference name="OpenSim.Data.MapperFactory"/>
       <Reference name="Nini.dll" />
-      <Reference name="OpenSim.Framework.Data.MySQLMapper" />
+      <Reference name="OpenSim.Data.MySQLMapper" />
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>
@@ -926,7 +926,7 @@
       <Reference name="System.Data"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="log4net"/>
@@ -987,7 +987,7 @@
       <Reference name="Db4objects.Db4o.dll"/>
       <Reference name="OpenSim.Region.Terrain.BasicTerrain"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Framework.Servers"/>
@@ -1098,7 +1098,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Framework.Data.MySQL" path="OpenSim/Framework/Data.MySQL" type="Library">
+    <Project name="OpenSim.Data.MySQL" path="OpenSim/Data/MySQL" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -1115,7 +1115,7 @@
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Data"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="MySql.Data.dll"/>
       <Reference name="OpenSim.Framework.Console"/>
@@ -1128,7 +1128,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Framework.Data.MSSQL" path="OpenSim/Framework/Data.MSSQL" type="Library">
+    <Project name="OpenSim.Data.MSSQL" path="OpenSim/Data/MSSQL" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -1145,7 +1145,7 @@
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Region.Environment"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="libsecondlife.dll"/>
@@ -1157,7 +1157,7 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Framework.Data.SQLite" path="OpenSim/Framework/Data.SQLite" type="Library">
+    <Project name="OpenSim.Data.SQLite" path="OpenSim/Data/SQLite" type="Library">
       <Configuration name="Debug">
         <Options>
           <OutputPath>../../../bin/</OutputPath>
@@ -1174,7 +1174,7 @@
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="System.Data.SQLite.dll"/>
-      <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Environment"/>
@@ -1210,8 +1210,8 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Data"/>
-      <Reference name="OpenSim.Framework.Data.MySQL"/>
+      <Reference name="OpenSim.Data"/>
+      <Reference name="OpenSim.Data.MySQL"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Db4objects.Db4o.dll"/>
       <Reference name="XMLRPC.dll"/>
@@ -1272,7 +1272,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="libsecondlife.dll"/>
@@ -1304,7 +1304,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="log4net"/>
@@ -1333,7 +1333,7 @@
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="XMLRPC.dll"/>
@@ -1474,7 +1474,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework.Servers"/>
-      <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Region.Environment" />
       <Reference name="OpenSim.Region.ScriptEngine.Common"/>
       <Reference name="OpenSim.Region.Terrain.BasicTerrain"/>
@@ -1567,7 +1567,7 @@
       <Reference name="OpenSim.Region.Terrain.BasicTerrain"/>
       <Reference name="OpenSim"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
@@ -1631,7 +1631,7 @@
       <Reference name="Nini.dll" />
       <Reference name="OpenSim"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.ClientStack"/>
@@ -1661,7 +1661,7 @@
       <Reference name="Nini.dll" />
       <Reference name="OpenSim"/>
       <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Data"/>
+      <Reference name="OpenSim.Data"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Environment"/>
