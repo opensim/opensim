@@ -286,12 +286,16 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_taskInventory.ContainsKey(itemID))
                 {
+//                    m_log.DebugFormat(
+//                        "[PRIM INVENTORY]: Retrieved task inventory item {0}, {1} from prim {2}, {3}", 
+//                        m_taskInventory[itemID].Name, itemID, Name, UUID);
+                    
                     return m_taskInventory[itemID];
                 }
                 else
                 {
                     m_log.ErrorFormat(
-                        "[PRIMINVENTORY]: " +
+                        "[PRIM INVENTORY]: " +
                         "Tried to retrieve item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
                         itemID, Name, UUID);
                 }
@@ -390,7 +394,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Return the name with which a client can request a xfer of this prim's inventory metadata
         /// </summary>
         /// <param name="client"></param>
         /// <param name="localID"></param>
@@ -409,6 +413,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Serialize all the metadata for the items in this prim's inventory ready for sending to the client
+        /// </summary>
+        /// <param name="xferManager"></param>
         public void RequestInventoryFile(IXfer xferManager)
         {
             byte[] fileData = new byte[0];

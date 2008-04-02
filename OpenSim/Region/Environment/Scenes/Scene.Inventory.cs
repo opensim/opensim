@@ -542,7 +542,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Request a prim (task) inventory
+        /// Send the details of a prim's inventory to the client.
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="primLocalID"></param>
