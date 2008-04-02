@@ -30,7 +30,7 @@ using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework;
-using OpenSim.Framework.Data;
+using OpenSim.Data;
 
 namespace OpenSim.Grid.MessagingServer
 {

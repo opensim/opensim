@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Text;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework;
-using OpenSim.Framework.Data.Base;
+using OpenSim.Data.Base;
 
 namespace OpenSim.Region.Modules.AvatarFactory
 {

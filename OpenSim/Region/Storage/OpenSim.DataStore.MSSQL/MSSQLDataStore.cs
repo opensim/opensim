@@ -33,7 +33,7 @@ using System.IO;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Data;
+using OpenSim.Data;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 

@@ -32,9 +32,9 @@ using NUnit.Framework;
 
 using libsecondlife;
 using OpenSim.Framework.Types;
-using OpenSim.Framework.Data;
-using OpenSim.Framework.Data.SQLite;
-using OpenSim.Framework.Data.MySQL;
+using OpenSim.Data;
+using OpenSim.Data.SQLite;
+using OpenSim.Data.MySQL;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Test.Inventory

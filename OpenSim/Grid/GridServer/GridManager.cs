@@ -34,9 +34,9 @@ using libsecondlife;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Data;
+using OpenSim.Data;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.Data.MySQL;
+using OpenSim.Data.MySQL;
 
 namespace OpenSim.Grid.GridServer
 {
@@ -602,10 +602,10 @@ namespace OpenSim.Grid.GridServer
 
             foreach (KeyValuePair<string, IGridData> kvp in _plugins)
             {
-                //OpenSim.Framework.Data.MySQL.MySQLGridData dbengine = new OpenSim.Framework.Data.MySQL.MySQLGridData();
+                //OpenSim.Data.MySQL.MySQLGridData dbengine = new OpenSim.Data.MySQL.MySQLGridData();
                 try
                 {
-                    OpenSim.Framework.Data.MySQL.MySQLGridData mysqldata = (OpenSim.Framework.Data.MySQL.MySQLGridData)(kvp.Value);
+                    OpenSim.Data.MySQL.MySQLGridData mysqldata = (OpenSim.Data.MySQL.MySQLGridData)(kvp.Value);
                     //DataResponse insertResponse = mysqldata.DeleteProfile(TheSim);
                     DataResponse insertResponse = mysqldata.DeleteProfile(uuid);
                     switch (insertResponse)
@@ -720,7 +720,7 @@ namespace OpenSim.Grid.GridServer
             IList simProfileList = new ArrayList();
 
             bool fastMode = false; // MySQL Only
-            fastMode = (Config.DatabaseProvider == "OpenSim.Framework.Data.MySQL.dll");
+            fastMode = (Config.DatabaseProvider == "OpenSim.Data.MySQL.dll");
 
             if (fastMode)
             {

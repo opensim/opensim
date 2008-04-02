@@ -191,7 +191,7 @@ namespace OpenSim
                 config.Set("physical_prim", true);
                 config.Set("see_into_this_sim_from_neighbor", true);
                 config.Set("serverside_object_permissions", false);
-                config.Set("storage_plugin", "OpenSim.Framework.Data.SQLite.dll");
+                config.Set("storage_plugin", "OpenSim.Data.SQLite.dll");
                 config.Set("storage_connection_string", "URI=file:OpenSim.db,version=3");
                 config.Set("storage_prim_inventories", true);
                 config.Set("startup_console_commands_file", String.Empty);
@@ -208,9 +208,9 @@ namespace OpenSim
             {
                 config.Set("accounts_authenticate", false);
                 config.Set("welcome_message", "Welcome to OpenSim");
-                config.Set("inventory_plugin", "OpenSim.Framework.Data.SQLite.dll");
-                config.Set("userDatabase_plugin", "OpenSim.Framework.Data.SQLite.dll");
-                config.Set("asset_plugin", "OpenSim.Framework.Data.SQLite.dll");
+                config.Set("inventory_plugin", "OpenSim.Data.SQLite.dll");
+                config.Set("userDatabase_plugin", "OpenSim.Data.SQLite.dll");
+                config.Set("asset_plugin", "OpenSim.Data.SQLite.dll");
                 config.Set("dump_assets_to_file", false);
             }
 
@@ -270,11 +270,11 @@ namespace OpenSim
 
                 m_permissions = startupConfig.GetBoolean("serverside_object_permissions", false);
 
-                m_storageDll = startupConfig.GetString("storage_plugin", "OpenSim.Framework.Data.SQLite.dll");
+                m_storageDll = startupConfig.GetString("storage_plugin", "OpenSim.Data.SQLite.dll");
                 if (m_storageDll == "OpenSim.DataStore.MonoSqlite.dll") 
                 {
-                    m_storageDll = "OpenSim.Framework.Data.SQLite.dll";
-                    Console.WriteLine("WARNING: OpenSim.DataStore.MonoSqlite.dll is deprecated. Set storage_plugin to OpenSim.Framework.Data.SQLite.dll.");
+                    m_storageDll = "OpenSim.Data.SQLite.dll";
+                    Console.WriteLine("WARNING: OpenSim.DataStore.MonoSqlite.dll is deprecated. Set storage_plugin to OpenSim.Data.SQLite.dll.");
                     Thread.Sleep(3000);
                 }
                 m_storageConnectionString
@@ -297,11 +297,11 @@ namespace OpenSim
                 m_standaloneAuthenticate = standaloneConfig.GetBoolean("accounts_authenticate", false);
                 m_standaloneWelcomeMessage = standaloneConfig.GetString("welcome_message", "Welcome to OpenSim");
                 m_standaloneInventoryPlugin =
-                    standaloneConfig.GetString("inventory_plugin", "OpenSim.Framework.Data.SQLite.dll");
+                    standaloneConfig.GetString("inventory_plugin", "OpenSim.Data.SQLite.dll");
                 m_standaloneUserPlugin =
-                    standaloneConfig.GetString("userDatabase_plugin", "OpenSim.Framework.Data.SQLite.dll");
+                    standaloneConfig.GetString("userDatabase_plugin", "OpenSim.Data.SQLite.dll");
                 m_standaloneAssetPlugin =
-                    standaloneConfig.GetString("asset_plugin", "OpenSim.Framework.Data.SQLite.dll");
+                    standaloneConfig.GetString("asset_plugin", "OpenSim.Data.SQLite.dll");
 
                 m_dumpAssetsToFile = standaloneConfig.GetBoolean("dump_assets_to_file", false);
             }

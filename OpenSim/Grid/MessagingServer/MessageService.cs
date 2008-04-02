@@ -36,7 +36,7 @@ using libsecondlife;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using OpenSim.Framework.Data;
+using OpenSim.Data;
 using OpenSim.Framework.Servers;
 using FriendRights = libsecondlife.FriendRights;
 

@@ -84,7 +84,7 @@ namespace OpenSim.Framework
                                                 "Key to expect from user server", "null", false);
 
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                "DLL for database provider", "OpenSim.Framework.Data.MySQL.dll", false);
+                                                "DLL for database provider", "OpenSim.Data.MySQL.dll", false);
             
             configMember.addConfigurationOption("region_comms_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for comms provider", "OpenSim.Region.Communications.OGS1.dll", false);
