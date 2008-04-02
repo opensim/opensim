@@ -43,6 +43,8 @@ namespace OpenSim.Framework
     public class TaskInventoryDictionary : Dictionary<LLUUID, TaskInventoryItem>, 
         ICloneable, IXmlSerializable
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);            
+        
         private static XmlSerializer tiiSerializer = new XmlSerializer(typeof(TaskInventoryItem));        
         
         // The alternative of simply serializing the list doesn't appear to work on mono, since
@@ -65,12 +67,20 @@ namespace OpenSim.Framework
         // see IXmlSerializable
         public void ReadXml(XmlReader reader)
         {
+            m_log.DebugFormat(
+                "[TASK INVENTORY]: Initial task inventory deserialization CanDeserialize() call was {0}",
+                tiiSerializer.CanDeserialize(reader));
+            
             reader.Read();
             while (tiiSerializer.CanDeserialize(reader))
             {
                 TaskInventoryItem item = (TaskInventoryItem)tiiSerializer.Deserialize(reader);
                 Add(item.ItemID, item);
+                
+                m_log.DebugFormat("[TASK INVENTORY]: Instanted prim item {0}, {1} from xml", item.Name, item.ItemID);
             }
+            
+            m_log.DebugFormat("[TASK INVENTORY]: Instantiated {0} prim items in total from xml", Count);
             
 //            reader.Read();
 //            while (reader.Name.Equals("TaskInventoryItem"))

@@ -287,7 +287,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Restore the object from its serialized xml representation.
         /// </summary>
         public SceneObjectGroup(Scene scene, ulong regionHandle, string xmlData)
         {

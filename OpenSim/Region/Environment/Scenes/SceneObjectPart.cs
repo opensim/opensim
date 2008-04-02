@@ -785,7 +785,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         /// <summary>
-        /// 
+        /// Restore this part from the serialized xml representation.
         /// </summary>
         /// <param name="xmlreader"></param>
         /// <returns></returns>
@@ -848,7 +848,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Serialize this part to xml.
         /// </summary>
         /// <param name="xmlWriter"></param>
         public void ToXml(XmlWriter xmlWriter)
