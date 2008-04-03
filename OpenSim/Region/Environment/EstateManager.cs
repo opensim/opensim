@@ -155,8 +155,8 @@ namespace OpenSim.Region.Environment
             {
                 case "getinfo":
 
-                    //m_log.Info("[ESTATE]: CLIENT--->" +  packet.ToString());
-                    sendRegionInfoPacketToAll();
+                    //System.Console.WriteLine("[ESTATE]: CLIENT--->" +  packet.ToString());
+                    //sendRegionInfoPacketToAll();
                     if (m_scene.PermissionsMngr.GenericEstatePermission(remote_client.AgentId))
                     {
                         sendDetailedEstateData(remote_client, packet);
@@ -302,7 +302,8 @@ namespace OpenSim.Region.Environment
             returnblock[8].Parameter = Helpers.StringToField("1");
 
             packet.ParamList = returnblock;
-            //m_log.Info("[ESTATE]: SIM--->" + packet.ToString());
+            packet.Header.Reliable = false;
+            //System.Console.WriteLine("[ESTATE]: SIM--->" + packet.ToString());
             remote_client.OutPacket(packet, ThrottleOutPacketType.Task);
 
             sendEstateManagerList(remote_client, packet);
@@ -330,6 +331,7 @@ namespace OpenSim.Region.Environment
                 returnblock[i] = new EstateOwnerMessagePacket.ParamListBlock();
             }
             int j = 0;
+            
             returnblock[j].Parameter = Helpers.StringToField(m_scene.RegionInfo.EstateSettings.estateID.ToString()); j++;
             returnblock[j].Parameter = Helpers.StringToField(((int)EstateAccessCodex.EstateManagers).ToString()); j++;
             returnblock[j].Parameter = Helpers.StringToField("0"); j++;
@@ -341,7 +343,8 @@ namespace OpenSim.Region.Environment
                 returnblock[j].Parameter = EstateManagers[i].GetBytes(); j++;
             }
             packet.ParamList = returnblock;
-            //m_log.Info("[ESTATE]: SIM--->" + packet.ToString());
+            packet.Header.Reliable = false;
+            //System.Console.WriteLine("[ESTATE]: SIM--->" + packet.ToString());
             remote_client.OutPacket(packet, ThrottleOutPacketType.Task);
         }
 

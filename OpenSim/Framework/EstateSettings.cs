@@ -547,7 +547,7 @@ namespace OpenSim.Framework
                 // Clear the rest of them..   as they're no longer valid
                 for (int j = i; j < 10; j++)
                 {
-                    switch (i)
+                    switch (j)
                     {
                         case 0:
                             m_estateManager0 = LLUUID.Zero;
@@ -757,10 +757,10 @@ namespace OpenSim.Framework
         {
             configMember.addConfigurationOption("billable_factor", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty,
                                                 "0.0", true);
-            configMember.addConfigurationOption("estate_id", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, String.Empty, "0",
+            configMember.addConfigurationOption("estate_id", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, String.Empty, "100",
                                                 true);
             configMember.addConfigurationOption("parent_estate_id", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
-                                                String.Empty, "0", true);
+                                                String.Empty, "1", true);
             configMember.addConfigurationOption("max_agents", ConfigurationOption.ConfigurationTypes.TYPE_BYTE, String.Empty, "40",
                                                 true);
 
