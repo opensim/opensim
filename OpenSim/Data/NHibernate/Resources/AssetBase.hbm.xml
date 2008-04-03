@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2">
+    <class name="OpenSim.Framework.AssetBase, OpenSim.Framework" table="Assets">
+        <id name="ID" column="UUID" type="String" length="36" > 
+            <generator class="assigned" /> 
+        </id> 
+<property name="Type" type="integer" />
+<property name="InvType" type="integer" />
+<property name="Name" type="String" length="50" />
+<property name="Description" type="String" length="50" />
+<property name="Local" type="boolean" />
+<property name="Temporary" type="boolean" />
+        <property name="Data" type="binary" />
+
+    </class>
+</hibernate-mapping>

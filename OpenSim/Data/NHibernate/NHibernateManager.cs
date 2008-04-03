@@ -45,17 +45,17 @@ namespace OpenSim.Data.NHibernate
         public NHibernateManager()
         {
             // This is stubbing for now, it will become dynamic later and support different db backends
-            NHibernate.Cfg.Configuration cfg = new NHibernate.Cfg.Configuration();
-            cfg.Properties[NHibernate.Cfg.Environment.ConnectionProvider] =
-                "NHibernate.Connection.DriverConnectionProvider";
-            cfg.Properties[NHibernate.Cfg.Environment.Dialect] =
-                "NHibernate.Dialect.SQLite";
-            cfg.Properties[NHibernate.Cfg.Environment.ConnectionDriver] =
-                "NHibernate.Driver.SqliteClientDriver";
-            cfg.Properties[NHibernate.Cfg.Environment.ConnectionString] =
-                "URI=file:opensim-nh.db,version=3";
+//             NHibernate.Cfg.Configuration cfg = new NHibernate.Cfg.Configuration();
+//             cfg.Properties[NHibernate.Cfg.Environment.ConnectionProvider] =
+//                 "NHibernate.Connection.DriverConnectionProvider";
+//             cfg.Properties[NHibernate.Cfg.Environment.Dialect] =
+//                 "NHibernate.Dialect.SQLite";
+//             cfg.Properties[NHibernate.Cfg.Environment.ConnectionDriver] =
+//                 "NHibernate.Driver.SqliteClientDriver";
+//             cfg.Properties[NHibernate.Cfg.Environment.ConnectionString] =
+//                 "URI=file:opensim-nh.db,version=3";
             
-            factory = cfg.BuildSessionFactory();
+//             factory = cfg.BuildSessionFactory();
         }
 
     }
