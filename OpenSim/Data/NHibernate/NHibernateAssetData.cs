@@ -47,6 +47,7 @@ namespace OpenSim.Data.NHibernate
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        private Configuration cfg;
         private ISessionFactory factory;
 
         public override void Initialise()
@@ -54,7 +55,7 @@ namespace OpenSim.Data.NHibernate
             // TODO: hard coding for sqlite based stuff to begin with, just making it easier to test
 
             // This is stubbing for now, it will become dynamic later and support different db backends
-            Configuration cfg = new Configuration();
+            cfg = new Configuration();
             cfg.SetProperty(Environment.ConnectionProvider, 
                             "NHibernate.Connection.DriverConnectionProvider");
             cfg.SetProperty(Environment.Dialect, 
@@ -65,48 +66,49 @@ namespace OpenSim.Data.NHibernate
                             "URI=file:Asset.db,version=3");
             cfg.AddAssembly("OpenSim.Data.NHibernate");
 
-            // HbmSerializer.Default.Validate = true;
+            HbmSerializer.Default.Validate = true;
 //             using ( System.IO.MemoryStream stream = 
 //                     HbmSerializer.Default.Serialize(System.Reflection.Assembly.GetExecutingAssembly()))
 //                 cfg.AddInputStream(stream);
-
+            
 //             new SchemaExport(cfg).Create(true, true);
 
-            factory = cfg.BuildSessionFactory();
-                        
+            factory  = cfg.BuildSessionFactory();
         }
 
         override public AssetBase FetchAsset(LLUUID uuid)
         {
-            return null;
+            using(ISession session = factory.OpenSession()) {
+                try {
+                    return session.Load(typeof(AssetBase), uuid.ToString()) as AssetBase;
+                } catch {
+                    return null;
+                }
+            }
         }
 
-        override public void CreateAsset(AssetBase asset)
+      override public void CreateAsset(AssetBase asset)
         {
-            ISession session = null;
-            ITransaction transaction = null;
-            try {
-                session = factory.OpenSession();
-                transaction = session.BeginTransaction();
-
-                session.SaveOrUpdate(asset);
-                // CRUD operations here (with the session)
-                transaction.Commit();
-            }
-            catch {
-                if(transaction != null)
-                    transaction.Rollback();
-                throw; // Don't trap the exception
-            }
-            finally {
-                if(session != null)
-                    session.Close();
+            if (!ExistsAsset(asset.FullID)) {
+                using(ISession session = factory.OpenSession()) {
+                    using(ITransaction transaction = session.BeginTransaction()) {
+                        session.Save(asset);
+                        transaction.Commit();
+                    }
+                }
             }
         }
 
         override public void UpdateAsset(AssetBase asset)
         {
-
+            if (ExistsAsset(asset.FullID)) {
+                using(ISession session = factory.OpenSession()) {
+                    using(ITransaction transaction = session.BeginTransaction()) {
+                        session.Update(asset);
+                        transaction.Commit();
+                    }
+                }
+            }
         }
 
         private void LogAssetLoad(AssetBase asset)
@@ -124,7 +126,7 @@ namespace OpenSim.Data.NHibernate
 
         override public bool ExistsAsset(LLUUID uuid)
         {
-            return false;
+            return (FetchAsset(uuid) != null) ? true : false;
         }
 
         public void DeleteAsset(LLUUID uuid)
