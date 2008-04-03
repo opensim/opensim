@@ -160,6 +160,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             prim_geom = (IntPtr)0;
             prev_geom = (IntPtr)0;
 
+            if (size.X <= 0) size.X = 0.01f;
+            if (size.Y <= 0) size.Y = 0.01f;
+            if (size.Z <= 0) size.Z = 0.01f;
+
             _size = size;
             m_taintsize = _size;
             _acceleration = new PhysicsVector();
@@ -1296,7 +1300,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             //}
             string oldname = _parent_scene.geom_name_map[prim_geom];
 
-            
+            if (_size.X <= 0) _size.X = 0.01f;
+            if (_size.Y <= 0) _size.Y = 0.01f;
+            if (_size.Z <= 0) _size.Z = 0.01f;
+
             // Cleanup of old prim geometry
             if (_mesh != null)
             {
@@ -1485,7 +1492,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.GeomDestroy(prim_geom);
             prim_geom = (IntPtr) 0;
             // we don't need to do space calculation because the client sends a position update also.
-
+            if (_size.X <= 0) _size.X = 0.01f;
+            if (_size.Y <= 0) _size.Y = 0.01f;
+            if (_size.Z <= 0) _size.Z = 0.01f;
             // Construction of new prim
             if (_parent_scene.needsMeshing(_pbs))
             {
@@ -1964,9 +1973,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     if (_zeroFlag)
                     {
-                        // Supposedly this is supposed to tell SceneObjectGroup that 
-                        // no more updates need to be sent..  
-                        // but it seems broken.
+
                         _velocity.X = 0.0f;
                         _velocity.Y = 0.0f;
                         _velocity.Z = 0.0f;
