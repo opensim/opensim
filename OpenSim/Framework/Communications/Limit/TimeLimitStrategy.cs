@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -31,30 +31,32 @@ using System.Collections.Generic;
 namespace OpenSim.Framework.Communications.Limit
 {
     /// <summary>
-    /// Limit requests by discarding them after they've been repeated a certain number of times.
+    /// Limit requests by discarding repeat attempts that occur within a given time period
+    /// 
+    /// XXX Don't use this for limiting texture downloading, at least not until we better handle multiple requests
+    /// for the same texture at different resolutions.
     /// </summary>    
-    public class RepeatLimitStrategy<TId> : IRequestLimitStrategy<TId>
+    public class TimeLimitStrategy<TId> : IRequestLimitStrategy<TId>
     {
         /// <summary>
-        /// Record each asset request that we're notified about.
+        /// Record the time at which an asset request occurs.
         /// </summary>
-        private readonly Dictionary<TId, int> requestCounts = new Dictionary<TId, int>();
+        private readonly Dictionary<TId, Request> requests = new Dictionary<TId, Request>();    
         
         /// <summary>
-        /// The maximum number of requests that can be made before we drop subsequent requests.
+        /// The minimum time period between which requests for the same data will be serviced.
         /// </summary>
-        private readonly int m_maxRequests;
-        public int MaxRequests
+        private readonly TimeSpan m_repeatPeriod;
+        public TimeSpan RepeatPeriod
         {
-            get { return m_maxRequests; }
+            get { return m_repeatPeriod; }
         }
-       
+
         /// <summary></summary>
-        /// <param name="maxRequests">The maximum number of requests that may be served before all further
-        /// requests are dropped.</param>
-        public RepeatLimitStrategy(int maxRequests)
+        /// <param name="repeatPeriod"></param>        
+        public TimeLimitStrategy(TimeSpan repeatPeriod)
         {
-            m_maxRequests = maxRequests;
+            m_repeatPeriod = repeatPeriod;
         }
         
         /// <summary>
@@ -62,14 +64,18 @@ namespace OpenSim.Framework.Communications.Limit
         /// </summary>
         public bool AllowRequest(TId id)
         {                 
-            if (requestCounts.ContainsKey(id))
+            if (IsMonitoringRequests(id))
             {
-                requestCounts[id] += 1;
+                DateTime now = DateTime.Now;
+                TimeSpan elapsed = now - requests[id].Time;
                 
-                if (requestCounts[id] > m_maxRequests)
-                {                    
+                if (elapsed < RepeatPeriod)
+                {
+                    requests[id].Refusals += 1;
                     return false;
-                }                                                         
+                }
+                
+                requests[id].Time = now; 
             }
             
             return true;
@@ -80,10 +86,13 @@ namespace OpenSim.Framework.Communications.Limit
         /// </summary>        
         public bool IsFirstRefusal(TId id)
         {
-            if (requestCounts.ContainsKey(id) && m_maxRequests + 1 == requestCounts[id])
+            if (IsMonitoringRequests(id))
             {
-                return true;
-            }            
+                if (1 == requests[id].Refusals)
+                {
+                    return true;
+                }
+            }           
             
             return false;
         }
@@ -95,7 +104,7 @@ namespace OpenSim.Framework.Communications.Limit
         {
             if (!IsMonitoringRequests(id))
             {
-                requestCounts.Add(id, 1);
+                requests.Add(id, new Request(System.DateTime.Now));
             }            
         }  
         
@@ -104,7 +113,28 @@ namespace OpenSim.Framework.Communications.Limit
         /// </summary>         
         public bool IsMonitoringRequests(TId id)
         {
-            return requestCounts.ContainsKey(id);
+            return requests.ContainsKey(id);
+        }      
+    }
+    
+    /// <summary>
+    /// Private request details.
+    /// </summary>
+    class Request
+    {
+        /// <summary>
+        /// Time of last request
+        /// </summary>
+        public DateTime Time;
+        
+        /// <summary>
+        /// Number of refusals associated with this request
+        /// </summary>
+        public int Refusals;
+        
+        public Request(DateTime time)
+        {
+            Time = time;
         }
     }
 }
