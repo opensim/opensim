@@ -3356,7 +3356,7 @@ namespace OpenSim.Region.ClientStack
                         handlerLinkObjects = OnLinkObjects;
                         if (handlerLinkObjects != null)
                         {
-                            handlerLinkObjects(parentprimid, childrenprims);
+                            handlerLinkObjects(this, parentprimid, childrenprims);
                         }
                         break;
                     case PacketType.ObjectDelink:

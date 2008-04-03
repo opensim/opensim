@@ -69,7 +69,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Invoked when the client selects a prim.
         /// </summary>
         /// <param name="primLocalID"></param>
         /// <param name="remoteClient"></param>
@@ -80,8 +80,7 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (EntityBase ent in EntitieList)
             {
                 if (ent is SceneObjectGroup)
-                {
-                    
+                {                    
                     if (((SceneObjectGroup) ent).LocalId == primLocalID)
                     {
                         // A prim is only tainted if it's allowed to be edited by the person clicking it.

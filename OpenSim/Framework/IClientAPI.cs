@@ -249,7 +249,7 @@ namespace OpenSim.Framework
 
     public delegate void StopAnim(IClientAPI remoteClient, LLUUID animID);
 
-    public delegate void LinkObjects(uint parent, List<uint> children);
+    public delegate void LinkObjects(IClientAPI remoteClient, uint parent, List<uint> children);
 
     public delegate void DelinkObjects(List<uint> primIds);
 

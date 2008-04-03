@@ -1081,11 +1081,12 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Initial method invoked when we receive a link objects request from the client.
         /// </summary>
+        /// <param name="client"></param>
         /// <param name="parentPrim"></param>
         /// <param name="childPrims"></param>
-        public void LinkObjects(uint parentPrim, List<uint> childPrims)
+        public void LinkObjects(IClientAPI client, uint parentPrim, List<uint> childPrims)
         {
             List<EntityBase> EntityList = GetEntities();
 
@@ -1124,6 +1125,10 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 parenPrim.LinkToGroup(sceneObj);
             }
+            
+            // We need to explicitly resend the newly link prim's object properties since no other actions
+            // occur on link to invoke this elsewhere (such as object selection)
+            parenPrim.GetProperties(client);
         }
 
         /// <summary>

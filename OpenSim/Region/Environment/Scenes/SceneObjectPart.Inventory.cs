@@ -399,7 +399,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="client"></param>
         /// <param name="localID"></param>
         public bool GetInventoryFileName(IClientAPI client, uint localID)
-        {
+        {                        
             if (m_inventorySerial > 0)
             {
                 client.SendTaskInventory(m_uuid, (short)m_inventorySerial,

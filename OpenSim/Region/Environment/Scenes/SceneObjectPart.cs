@@ -2150,9 +2150,10 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Sends a full update to the client
         /// </summary>
         /// <param name="remoteClient"></param>
+        /// <param name="clientFlags"></param>
         public void SendFullUpdateToClient(IClientAPI remoteClient, uint clientflags)
         {
             LLVector3 lPos;
@@ -2160,6 +2161,12 @@ namespace OpenSim.Region.Environment.Scenes
             SendFullUpdateToClient(remoteClient, lPos, clientflags);
         }
    
+        /// <summary>
+        /// Sends a full update to the client
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="lPos"></param>
+        /// <param name="clientFlags"></param>
         public void SendFullUpdateToClient(IClientAPI remoteClient, LLVector3 lPos, uint clientFlags)
         {
             LLQuaternion lRot;

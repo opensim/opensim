@@ -547,7 +547,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         /// <param name="primLocalID"></param>
         public void RequestTaskInventory(IClientAPI remoteClient, uint primLocalID)
-        {
+        {    
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
             if (group != null)
             {
