@@ -29,6 +29,7 @@ using libsecondlife;
 using System;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
+using Caps = OpenSim.Region.Capabilities.Caps;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -136,6 +137,19 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event OnNewPresenceDelegate OnMakeChildAgent;
 
+        /// <summary>
+        /// RegisterCapsEvent is called by Scene after the Caps object
+        /// has been instantiated and before it is return to the
+        /// client and provides region modules to add their caps.
+        /// </summary>
+        public delegate void RegisterCapsEvent(LLUUID agentID, Caps caps);
+        public event RegisterCapsEvent OnRegisterCaps;
+        /// <summary>
+        /// DeregisterCapsEvent is called by Scene when the caps
+        /// handler for an agent are removed.
+        /// </summary>
+        public delegate void DeregisterCapsEvent(LLUUID agentID, Caps caps);
+        public event DeregisterCapsEvent OnDeregisterCaps;
 
         public class MoneyTransferArgs : System.EventArgs 
         {
@@ -191,6 +205,8 @@ namespace OpenSim.Region.Environment.Scenes
         private ClientClosed handlerClientClosed = null; //OnClientClosed;
         private OnNewPresenceDelegate handlerMakeChildAgent = null; //OnMakeChildAgent;
         private OnTerrainTickDelegate handlerTerrainTick = null; // OnTerainTick;
+        private RegisterCapsEvent handlerRegisterCaps = null; // OnRegisterCaps;
+        private DeregisterCapsEvent handlerDeregisterCaps = null; // OnDeregisterCaps;
 
         public void TriggerOnScriptChangedEvent(uint localID, uint change)
         {
@@ -426,6 +442,24 @@ namespace OpenSim.Region.Environment.Scenes
             if (handlerMakeChildAgent != null)
             {
                 handlerMakeChildAgent(presence);
+            }
+        }
+
+        public void TriggerOnRegisterCaps(LLUUID agentID, Caps caps) 
+        {
+            handlerRegisterCaps = OnRegisterCaps;
+            if (handlerRegisterCaps != null)
+            {
+                handlerRegisterCaps(agentID, caps);
+            }
+        }
+
+        public void TriggerOnDeregisterCaps(LLUUID agentID, Caps caps) 
+        {
+            handlerDeregisterCaps = OnDeregisterCaps;
+            if (handlerDeregisterCaps != null)
+            {
+                handlerDeregisterCaps(agentID, caps);
             }
         }
     }

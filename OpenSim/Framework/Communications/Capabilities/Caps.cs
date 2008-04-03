@@ -55,24 +55,21 @@ namespace OpenSim.Region.Capabilities
     public delegate List<InventoryItemBase> FetchInventoryDescendentsCAPS(LLUUID agentID, LLUUID folderID, LLUUID ownerID,
                                                    bool fetchFolders, bool fetchItems, int sortOrder);
 
-    /// <summary>
-    /// FIXME This is a temporary delegate, and should disappear once the voice code is fleshed out and moved into its 
-    /// own region module.
-    /// </summary>
-    public delegate CachedUserInfo GetUserDetailsCAPS(LLUUID agentID);
-
     public class Caps
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
+        private static readonly log4net.ILog m_log = 
+            log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        
         private string m_httpListenerHostName;
         private uint m_httpListenPort;
-
+        
         /// <summary>
         /// This is the uuid portion of every CAPS path.  It is used to make capability urls private to the requester.
         /// </summary>
         private string m_capsObjectPath;        
         public string CapsObjectPath { get { return m_capsObjectPath; } }
+
+        private CapsHandlers m_capsHandlers;
 
         private static readonly string m_requestPath = "0000/";
         private static readonly string m_mapLayerPath = "0001/";
@@ -99,7 +96,6 @@ namespace OpenSim.Region.Capabilities
         public TaskScriptUpdatedCallback TaskScriptUpdatedCall = null;
         //
         public FetchInventoryDescendentsCAPS CAPSFetchInventoryDescendents = null;
-        public GetUserDetailsCAPS CAPSGetUserDetails = null;
 
         public Caps(AssetCache assetCache, BaseHttpServer httpServer, string httpListen, uint httpPort, string capsPath,
                     LLUUID agent, bool dumpAssetsToFile)
@@ -111,6 +107,7 @@ namespace OpenSim.Region.Capabilities
             m_httpListenPort = httpPort;
             m_agentID = agent;
             m_dumpAssetsToFile = dumpAssetsToFile;
+            m_capsHandlers = new CapsHandlers(httpServer, httpListen, httpPort);
         }
 
         /// <summary>
@@ -123,27 +120,31 @@ namespace OpenSim.Region.Capabilities
             string capsBase = "/CAPS/" + m_capsObjectPath;                        
             
             try
-            {                
-                m_httpListener.AddStreamHandler(
-                    new LLSDStreamhandler<LLSDMapRequest, LLSDMapLayerResponse>("POST", capsBase + m_mapLayerPath, GetMapLayer));                
-                m_httpListener.AddStreamHandler(
+            {
+                // the root of all evil
+                m_capsHandlers["SEED"] = new RestStreamHandler("POST", capsBase + m_requestPath, CapsRequest);
+                m_capsHandlers["MapLayer"] = 
+                    new LLSDStreamhandler<LLSDMapRequest, LLSDMapLayerResponse>("POST", 
+                                                                                capsBase + m_mapLayerPath, 
+                                                                                GetMapLayer);
+                m_capsHandlers["NewFileAgentInventory"] =  
                     new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDAssetUploadResponse>("POST",
                                                                                            capsBase + m_newInventory,
-                                                                                           NewAgentInventoryRequest));
-                
-               // m_httpListener.AddStreamHandler(
-                 //  new LLSDStreamhandler<LLSDFetchInventoryDescendents, LLSDInventoryDescendents>("POST",
-              //                                                                            capsBase + m_fetchInventory,
-              //                                                                            FetchInventory));
-
-
-                AddLegacyCapsHandler(m_httpListener, m_requestPath, CapsRequest);
-                //AddLegacyCapsHandler(m_httpListener, m_requestTexture , RequestTexture);
-                AddLegacyCapsHandler(m_httpListener, m_parcelVoiceInfoRequestPath, ParcelVoiceInfoRequest);
-                AddLegacyCapsHandler(m_httpListener, m_provisionVoiceAccountRequestPath, ProvisionVoiceAccountRequest);
-                AddLegacyCapsHandler(m_httpListener, m_notecardUpdatePath, NoteCardAgentInventory);
-                AddLegacyCapsHandler(m_httpListener, m_notecardTaskUpdatePath, ScriptTaskInventory);
-                AddLegacyCapsHandler(m_httpListener, m_fetchInventoryPath, FetchInventoryRequest);
+                                                                                           NewAgentInventoryRequest);
+                m_capsHandlers["UpdateNotecardAgentInventory"] = 
+                    new RestStreamHandler("POST", capsBase + m_notecardUpdatePath, NoteCardAgentInventory);
+                m_capsHandlers["UpdateScriptAgentInventory"] = m_capsHandlers["UpdateNotecardAgentInventory"];
+                m_capsHandlers["UpdateScriptTaskInventory"] = 
+                    new RestStreamHandler("POST", capsBase + m_notecardTaskUpdatePath, ScriptTaskInventory);
+                m_capsHandlers["FetchInventoryDescendents"] = 
+                    new RestStreamHandler("POST", capsBase + m_fetchInventoryPath, FetchInventoryRequest);
+                // m_capsHandlers["FetchInventoryDescendents"] = 
+                //     new LLSDStreamhandler<LLSDFetchInventoryDescendents, LLSDInventoryDescendents>("POST",
+                //                                                                                    capsBase + m_fetchInventory,
+                //                                                                                    FetchInventory));
+                // m_capsHandlers["RequestTextureDownload"] = new RestStreamHandler("POST",
+                //                                                                  capsBase + m_requestTexture, 
+                //                                                                  RequestTexture);
             }
             catch (Exception e)
             {
@@ -152,35 +153,29 @@ namespace OpenSim.Region.Capabilities
         }
 
         /// <summary>
+        /// Register a handler.  This allows modules to register handlers.
+        /// </summary>
+        /// <param name="capName"></param>
+        /// <param name="handler"></param>
+        public void RegisterHandler(string capName, IRequestHandler handler) 
+        {
+            m_capsHandlers[capName] = handler;
+            m_log.DebugFormat("[CAPS]: Registering handler for \"{0}\": path {1}", capName, handler.Path);
+        }
+
+        /// <summary>
         /// Remove all CAPS service handlers.
         /// 
-        /// FIXME: Would be much nicer to remove and all paths to a single list.  However, this is a little awkward
-        /// than it could be as we set up some handlers differently (legacy and non-legacy)
         /// </summary>
         /// <param name="httpListener"></param>
         /// <param name="path"></param>
         /// <param name="restMethod"></param>
         public void DeregisterHandlers()
         {
-            string capsBase = "/CAPS/" + m_capsObjectPath;            
-            
-            m_httpListener.RemoveStreamHandler("POST", capsBase + m_mapLayerPath);                            
-            m_httpListener.RemoveStreamHandler("POST", capsBase + m_newInventory);
-            m_httpListener.RemoveStreamHandler("POST", capsBase + m_requestPath);
-            m_httpListener.RemoveStreamHandler("POST", capsBase + m_parcelVoiceInfoRequestPath);
-            m_httpListener.RemoveStreamHandler("POST", capsBase + m_provisionVoiceAccountRequestPath);
-            m_httpListener.RemoveStreamHandler("POST", capsBase + m_notecardUpdatePath);
-            m_httpListener.RemoveStreamHandler("POST", capsBase + m_notecardTaskUpdatePath);
-            m_httpListener.RemoveStreamHandler("POST", capsBase + m_fetchInventoryPath);
-        }
-
-        //[Obsolete("Use BaseHttpServer.AddStreamHandler(new LLSDStreamHandler( LLSDMethod delegate )) instead.")]
-        //Commented out the obsolete as at this time the first caps request can not use the new Caps method 
-        //as the sent type is a array and not a map and the deserialising doesn't deal properly with arrays.
-        private void AddLegacyCapsHandler(BaseHttpServer httpListener, string path, RestMethod restMethod)
-        {
-            string capsBase = "/CAPS/" + m_capsObjectPath; 
-            httpListener.AddStreamHandler(new RestStreamHandler("POST", capsBase + path, restMethod));
+            foreach(string capsName in m_capsHandlers.Caps) 
+            {
+                m_capsHandlers.Remove(capsName);
+            }
         }
 
         /// <summary>
@@ -193,31 +188,12 @@ namespace OpenSim.Region.Capabilities
         public string CapsRequest(string request, string path, string param)
         {
             //Console.WriteLine("caps request " + request);
-            string result = LLSDHelpers.SerialiseLLSDReply(GetCapabilities());
+            string result = LLSDHelpers.SerialiseLLSDReply(m_capsHandlers.CapsDetails);
             return result;
         }
 
-        /// <summary>
-        /// Return an LLSDCapsDetails listing all the capabilities this server can provide
-        /// </summary>
-        /// <returns></returns>
-        protected LLSDCapsDetails GetCapabilities()
-        {
-            LLSDCapsDetails caps = new LLSDCapsDetails();
-            string capsBaseUrl = "http://" + m_httpListenerHostName + ":" + m_httpListenPort.ToString() + "/CAPS/" +
-                                 m_capsObjectPath;
-            caps.MapLayer = capsBaseUrl + m_mapLayerPath;
-            // caps.RequestTextureDownload = capsBaseUrl + m_requestTexture;
-            caps.NewFileAgentInventory = capsBaseUrl + m_newInventory;
-            caps.UpdateNotecardAgentInventory = capsBaseUrl + m_notecardUpdatePath;
-            caps.UpdateScriptAgentInventory = capsBaseUrl + m_notecardUpdatePath;
-            caps.UpdateScriptTaskInventory = capsBaseUrl + m_notecardTaskUpdatePath;
-            caps.FetchInventoryDescendents = capsBaseUrl + m_fetchInventoryPath;
-            caps.ParcelVoiceInfoRequest = capsBaseUrl + m_parcelVoiceInfoRequestPath;
-            caps.ProvisionVoiceAccountRequest = capsBaseUrl + m_provisionVoiceAccountRequestPath;
-
-            return caps;
-        }
+        // FIXME: these all should probably go into the respective region
+        // modules
 
         public string FetchInventoryRequest(string request, string path, string param)
         {
@@ -438,75 +414,6 @@ namespace OpenSim.Region.Capabilities
             catch (Exception e)
             {
                 m_log.Error("[CAPS]: " + e.ToString());
-            }
-
-            return null;
-        }
-
-         /// <summary>
-        /// Callback for a client request for ParcelVoiceInfo
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="path"></param>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        public string ParcelVoiceInfoRequest(string request, string path, string param) {
-            try
-            {
-                m_log.DebugFormat("[CAPS][PARCELVOICE]: request: {0}, path: {1}, param: {2}", request, path, param);
-
-                // XXX brutal hack, we need to get channel_uri, region
-                // name, and parcel_local_id from somewhere
-                Hashtable creds = new Hashtable();
-
-                creds["channel_uri"] = "sip:testroom@testserver.com";
-                
-                LLSDParcelVoiceInfoResponse parcelVoiceInfo = 
-                    new LLSDParcelVoiceInfoResponse("OpenSim Test", 1, creds);
-                
-                // XXX for debugging purposes:
-                string r = LLSDHelpers.SerialiseLLSDReply(parcelVoiceInfo);
-                m_log.DebugFormat("[CAPS][PARCELVOICE]: {0}", r);
-
-                return r;
-            }
-            catch (Exception e)
-            {
-                m_log.Error("[CAPS]: " + e.ToString());
-            }
-            
-            return null;
-        }
-
-        /// <summary>
-        /// Callback for a client request for Voice Account Details
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="path"></param>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        public string ProvisionVoiceAccountRequest(string request, string path, string param) {
-            try
-            {
-                m_log.DebugFormat("[CAPS][PROVISIONVOICE]: request: {0}, path: {1}, param: {2}", request, path, param);
-
-                if (null == CAPSGetUserDetails) throw new Exception("CAPSGetUserDetails null");
-
-                string voiceUser = "x" + Convert.ToBase64String(m_agentID.GetBytes());
-                voiceUser = voiceUser.Replace('+', '-').Replace('/', '_');
-
-                CachedUserInfo userInfo = CAPSGetUserDetails(m_agentID);
-                if (null == userInfo) throw new Exception("CAPSGetUserDetails returned null");
-
-                LLSDVoiceAccountResponse voiceAccountResponse = 
-                    new LLSDVoiceAccountResponse(voiceUser, "$1$" + userInfo.UserProfile.passwordHash);
-                string r = LLSDHelpers.SerialiseLLSDReply(voiceAccountResponse);
-                m_log.DebugFormat("[CAPS][PROVISIONVOICE]: {0}", r);
-                return r;
-            }
-            catch (Exception e)
-            {
-                m_log.Error("[CAPS][PROVISIONVOICE]: " + e.ToString());
             }
 
             return null;

@@ -1737,14 +1737,14 @@ namespace OpenSim.Region.Environment.Scenes
             Caps cap =
                 new Caps(AssetCache, m_httpListener, m_regInfo.ExternalHostName, m_httpListener.Port,
                          capsObjectPath, agentId, m_dumpAssetsToFile);
-
             cap.RegisterHandlers();
+            
+            EventManager.TriggerOnRegisterCaps(agentId, cap);
 
             cap.AddNewInventoryItem = AddInventoryItem;
             cap.ItemUpdatedCall = CapsUpdateInventoryItemAsset;
             cap.TaskScriptUpdatedCall = CapsUpdateTaskInventoryScriptAsset;
             cap.CAPSFetchInventoryDescendents = CommsManager.UserProfileCacheService.HandleFetchInventoryDescendentsCAPS;
-            cap.CAPSGetUserDetails = CommsManager.UserProfileCacheService.GetUserDetails;
 
             m_capsHandlers[agentId] = cap;
         } 
@@ -1764,6 +1764,8 @@ namespace OpenSim.Region.Environment.Scenes
                         agentId, RegionInfo.RegionName);
                     
                     m_capsHandlers[agentId].DeregisterHandlers();
+                    EventManager.TriggerOnDeregisterCaps(agentId, m_capsHandlers[agentId]);
+
                     m_capsHandlers.Remove(agentId);
                 }
                 else

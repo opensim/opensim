@@ -164,7 +164,7 @@ enabled = false
 ; changed in future. :-)
 account_management_server = https://www.bhr.vivox.com/api2
 ; Global SIP Server for conference calls
-sip_uri = sip:testroom@testserver.com
+sip_domain = testserver.com
 
 ; Uncomment the following to control the progression of daytime
 ; in the Sim.  The defaults are what is shown below
