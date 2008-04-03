@@ -50,7 +50,7 @@ namespace OpenSim.Region.Environment.Modules
             = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// We will allow the client to request the same missing texture n times before dropping further requests
+        /// We will allow the client to request the same texture n times before dropping further requests
         /// 
         /// This number includes repeated requests for the same texture at different resolutions (which we don't
         /// currently handle properly as far as I know).  However, this situation should be handled in a more
