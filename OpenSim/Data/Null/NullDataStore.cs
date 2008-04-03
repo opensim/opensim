@@ -25,41 +25,63 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using libsecondlife;
+using OpenSim.Framework;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Scenes;
 
-// General Information about an assembly is controlled through the following 
-// set of attributes. Change these attribute values to modify the information
-// associated with an assembly.
+namespace OpenSim.Data.Null
+{
+    public class NullDataStore : IRegionDataStore
+    {
+        public void Initialise(string dbfile, bool persistPrimInventories)
+        {
+            return;
+        }
 
-[assembly : AssemblyTitle("OpenSim.DataStore.NullStorage")]
-[assembly : AssemblyDescription("")]
-[assembly : AssemblyConfiguration("")]
-[assembly : AssemblyCompany("")]
-[assembly : AssemblyProduct("OpenSim.DataStore.NullStorage")]
-[assembly : AssemblyCopyright("Copyright (c) OpenSimulator.org Developers 2007-2008")]
-[assembly : AssemblyTrademark("")]
-[assembly : AssemblyCulture("")]
+        public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
+        {
+        }
 
-// Setting ComVisible to false makes the types in this assembly not visible 
-// to COM components.  If you need to access a type in this assembly from 
-// COM, set the ComVisible attribute to true on that type.
+        public void RemoveObject(LLUUID obj, LLUUID regionUUID)
+        {
+        }
+        
+        // see IRegionDatastore
+        public void StorePrimInventory(LLUUID primID, ICollection<TaskInventoryItem> items)
+        {
+        }        
 
-[assembly : ComVisible(false)]
+        public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
+        {
+            return new List<SceneObjectGroup>();
+        }
 
-// The following GUID is for the ID of the typelib if this project is exposed to COM
+        public void StoreTerrain(double[,] ter, LLUUID regionID)
+        {
+        }
 
-[assembly : Guid("b4a1656d-de22-4080-a970-fd8166acbf16")]
+        public double[,] LoadTerrain(LLUUID regionID)
+        {
+            return null;
+        }
 
-// Version information for an assembly consists of the following four values:
-//
-//      Major Version
-//      Minor Version 
-//      Build Number
-//      Revision
-//
-// You can specify all the values or you can default the Revision and Build Numbers 
-// by using the '*' as shown below:
+        public void RemoveLandObject(LLUUID globalID)
+        {
+        }
 
-[assembly : AssemblyVersion("1.0.0.0")]
-[assembly : AssemblyFileVersion("1.0.0.0")]
+        public void StoreLandObject(ILandObject land)
+        {
+        }
+
+        public List<LandData> LoadLandObjects(LLUUID regionUUID)
+        {
+            return new List<LandData>();
+        }
+
+        public void Shutdown()
+        {
+        }
+    }
+}

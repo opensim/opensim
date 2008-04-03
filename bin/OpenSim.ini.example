@@ -7,7 +7,7 @@ gridmode = false
 
 ; *** Prim Storage - only leave one storage_plugin uncommented ***
 ; --- The NullStorage stores nothing - effectively disabling persistence:
-storage_plugin = "OpenSim.DataStore.NullStorage.dll"
+storage_plugin = "OpenSim.Data.Null.dll"
 
 ; --- To use sqlite as region storage:
 ;storage_plugin = "OpenSim.Data.SQLite.dll"
