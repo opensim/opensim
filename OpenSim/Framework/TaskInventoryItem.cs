@@ -82,6 +82,10 @@ namespace OpenSim.Framework
             
             m_log.DebugFormat("[TASK INVENTORY]: Instantiated {0} prim items in total from xml", Count);
             
+            reader.Read();
+            
+            m_log.DebugFormat("[TASK INVENTORY]: Current node {0}", reader.Name);
+            
 //            reader.Read();
 //            while (reader.Name.Equals("TaskInventoryItem"))
 //            {
