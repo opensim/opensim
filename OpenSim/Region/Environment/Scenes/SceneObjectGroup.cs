@@ -302,7 +302,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_rootPart = SceneObjectPart.FromXml(reader);
             AddPart(m_rootPart);
             
-            m_log.DebugFormat("[SCENE OBJECT GROUP]: Current node {0}", reader.Name);            
+//            m_log.DebugFormat("[SCENE OBJECT GROUP]: Current node {0}", reader.Name);            
             
             reader.ReadEndElement();
 
