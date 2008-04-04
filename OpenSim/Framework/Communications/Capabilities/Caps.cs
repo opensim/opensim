@@ -197,16 +197,53 @@ namespace OpenSim.Region.Capabilities
 
         public string FetchInventoryRequest(string request, string path, string param)
         {
-            request = request.Replace("<llsd><map><key>folders</key><array>", "<llsd>");
-            request = request.Replace("\n", "");
-            request = request.Replace("</map></array></map>", "</map>");
+            string unmodifiedRequest = request.ToString();
 
-            //Console.WriteLine("inventory request " + request);
-            Hashtable hash = (Hashtable)LLSD.LLSDDeserialize(Helpers.StringToField(request));
-            LLSDFetchInventoryDescendents llsdRequest = new LLSDFetchInventoryDescendents();
-            LLSDHelpers.DeserialiseLLSDMap(hash, llsdRequest);
-            LLSDInventoryDescendents reply = FetchInventory(llsdRequest);
-            string response = LLSDHelpers.SerialiseLLSDReply(reply);
+           
+            Hashtable hash = new Hashtable();
+            try
+            {
+
+                hash = (Hashtable)LLSD.LLSDDeserialize(Helpers.StringToField(request));
+            }
+            catch (LLSD.LLSDParseException pe)
+            {
+                m_log.Error("[INVENTORY]: Fetch error: " + pe.Message);
+                m_log.Error("Request:" + request.ToString());
+                m_log.Error("OriginalRequest:" + unmodifiedRequest.ToString());
+            }
+            //LLSDArray llsdFolderRequest = LLSDHelpers.
+            ArrayList foldersrequested = (ArrayList)hash["folders"];
+
+            string response = "";
+
+            for (int i = 0; i < foldersrequested.Count; i++)
+            {
+                string inventoryitemstr = "";
+                Hashtable inventoryhash = (Hashtable)foldersrequested[i];
+
+                LLSDFetchInventoryDescendents llsdRequest = new LLSDFetchInventoryDescendents();
+                LLSDHelpers.DeserialiseLLSDMap(inventoryhash, llsdRequest);
+                LLSDInventoryDescendents reply = FetchInventory(llsdRequest);
+
+                inventoryitemstr = LLSDHelpers.SerialiseLLSDReply(reply);
+                inventoryitemstr = inventoryitemstr.Replace("<llsd><map><key>folders</key><array>", "");
+                inventoryitemstr = inventoryitemstr.Replace("</array></map></llsd>", "");
+                response += inventoryitemstr;
+            }
+            if (response.Length == 0)
+            {
+                // Ter-guess: If requests fail a lot, the client seems to stop requesting descendants.
+                // Therefore, I'm concluding that the client only has so many threads available to do requests
+                // and when a thread stalls..   is stays stalled.  
+                // Therefore we need to return something valid
+                response = "<llsd><map><key>folders</key><array /></map></llsd>";
+            }
+            else
+            {
+                response = "<llsd><map><key>folders</key><array>" + response + "</array></map></llsd>";
+            }
+
             return response;
         }
 
