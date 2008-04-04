@@ -1188,6 +1188,38 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Data.NHibernate" path="OpenSim/Data/NHibernate" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Data"/>
+      <Reference name="OpenSim.Data"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="NHibernate.dll"/>
+      <Reference name="NHibernate.Mapping.Attributes.dll"/>
+      <Reference name="log4net"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+        <Match path="Resources" pattern="*.xml" buildAction="EmbeddedResource"/>
+      </Files>
+    </Project>
+
+
     <!-- OGS projects -->
 
     <Project name="OpenSim.Grid.GridServer" path="OpenSim/Grid/GridServer" type="Exe">
