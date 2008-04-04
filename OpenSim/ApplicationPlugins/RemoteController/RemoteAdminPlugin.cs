@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Net;
+using System.IO;
 using System.Timers;
 using libsecondlife;
 using Mono.Addins;
@@ -233,104 +234,228 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             m_app.Shutdown();
         }
 
+        /// <summary>
+        /// Create a new region.
+        /// <summary>
+        /// <param name="request">incoming XML RPC request</param>
+        /// <remarks>
+        /// XmlRpcCreateRegionMethod takes the following XMLRPC
+        /// parameters
+        /// <list type="table">
+        /// <listheader><term>parameter name</term><description>description</description></listheader>
+        /// <item><term>password</term>
+        ///       <description>admin password as set in OpenSim.ini</description></item>
+        /// <item><term>region_name</term>
+        ///       <description>desired region name</description></item>
+        /// <item><term>region_id</term>
+        ///       <description>(optional) desired region UUID</description></item>
+        /// <item><term>region_x</term>
+        ///       <description>desired region X coordinate</description></item>
+        /// <item><term>region_y</term>
+        ///       <description>desired region Y coordinate</description></item>
+        /// <item><term>region_master_first</term>
+        ///       <description>firstname of region master</description></item>
+        /// <item><term>region_master_last</term>
+        ///       <description>lastname of region master</description></item>
+        /// <item><term>listen_ip</term>
+        ///       <description>internal IP address</description></item>
+        /// <item><term>listen_port</term>
+        ///       <description>internal port</description></item>
+        /// <item><term>external_address</term>
+        ///       <description>external IP address</description></item>
+        /// <item><term>datastore</term>
+        ///       <description>datastore parameter (?)</description></item>
+        /// </list>
+        /// 
+        /// XmlRpcCreateRegionMethod returns
+        /// <list type="table">
+        /// <listheader><term>name</term><description>description</description></listheader>
+        /// <item><term>success</term>
+        ///       <description>true or false</description></item>
+        /// <item><term>error</term>
+        ///       <description>error message if success is false</description></item>
+        /// <item><term>region_uuid</term>
+        ///       <description>UUID of the newly created region</description></item>
+        /// <item><term>region_name</term>
+        ///       <description>name of the newly created region</description></item>
+        /// </list>
+        /// </remarks>
         public XmlRpcResponse XmlRpcCreateRegionMethod(XmlRpcRequest request)
         {
             m_log.Info("[RADMIN]: Received Create Region Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
-            if (requiredPassword != System.String.Empty &&
-                (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
-            {
-                responseData["created"] = "false";
+
+            try {
+                // check completeness
+                foreach (string p in new string[] { "password", 
+                                                    "region_name", "region_x", "region_y", 
+                                                    "region_master_first", "region_master_last",
+                                                    "listen_ip", "listen_port", "external_address"})
+                {
+                    if (!requestData.Contains(p)) 
+                        throw new Exception(String.Format("missing parameter {0}", p));
+                }
+
+                // check password
+                if (!String.IsNullOrEmpty(requiredPassword) &&
+                    (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
+
+                // bool persist = Convert.ToBoolean((string)requestData["persist"]);
+                RegionInfo region = null;
+                // if (!persist) 
+                // {
+                //     region = new RegionInfo();
+                // }
+                // else 
+                // {
+                //     region = new RegionInfo("DEFAULT REGION CONFIG", 
+                //                                    Path.Combine(regionConfigPath, "default.xml"), false);
+                // }
+                region = new RegionInfo();
+
+                
+                if (requestData.ContainsKey("region_id") && 
+                    !String.IsNullOrEmpty((string) requestData["region_id"])) 
+                {
+                    // FIXME: need to check whether region_id already
+                    // in use
+                    region.RegionID = (string) requestData["region_id"];
+                } 
+                else 
+                {
+                    region.RegionID = LLUUID.Random();
+                }
+
+                // FIXME: need to check whether region_name already
+                // in use
+                region.RegionName = (string) requestData["region_name"];
+                region.RegionLocX = Convert.ToUInt32((Int32) requestData["region_x"]);
+                region.RegionLocY = Convert.ToUInt32((Int32) requestData["region_y"]);
+                
+                // Security risk
+                if (requestData.ContainsKey("datastore"))
+                    region.DataStore = (string) requestData["datastore"];
+
+                region.InternalEndPoint = 
+                    new IPEndPoint(IPAddress.Parse((string) requestData["listen_ip"]), 0);
+                
+                // FIXME: need to check whether listen_port already in use!
+                region.InternalEndPoint.Port = (Int32) requestData["listen_port"];
+                region.ExternalHostName = (string) requestData["external_address"];
+                    
+                region.MasterAvatarFirstName = (string) requestData["region_master_first"];
+                region.MasterAvatarLastName = (string) requestData["region_master_last"];
+                
+                m_app.CreateRegion(region, true);
+
+                responseData["success"]     = "true";
+                responseData["region_name"] = region.RegionName;
+                responseData["region_uuid"] = region.RegionID.ToString();
+
                 response.Value = responseData;
             }
-            else
+            catch (Exception e)
             {
-                RegionInfo newRegionData = new RegionInfo();
+                responseData["success"] = "false";
+                responseData["error"] = e.Message;
 
-                try
-                {
-                    newRegionData.RegionID = (string) requestData["region_id"];
-                    newRegionData.RegionName = (string) requestData["region_name"];
-                    newRegionData.RegionLocX = Convert.ToUInt32((Int32) requestData["region_x"]);
-                    newRegionData.RegionLocY = Convert.ToUInt32((Int32) requestData["region_y"]);
-
-                    // Security risk
-                    newRegionData.DataStore = (string) requestData["datastore"];
-
-                    newRegionData.InternalEndPoint = new IPEndPoint(
-                        IPAddress.Parse((string) requestData["listen_ip"]), 0);
-
-                    newRegionData.InternalEndPoint.Port = (Int32) requestData["listen_port"];
-                    newRegionData.ExternalHostName = (string) requestData["external_address"];
-
-                    newRegionData.MasterAvatarFirstName = (string) requestData["region_master_first"];
-                    newRegionData.MasterAvatarLastName = (string) requestData["region_master_last"];
-
-                    m_app.CreateRegion(newRegionData, true);
-
-                    responseData["created"] = "true";
-                    response.Value = responseData;
-                }
-                catch (Exception e)
-                {
-                    responseData["created"] = "false";
-                    responseData["error"] = e.ToString();
-                    response.Value = responseData;
-                }
+                response.Value = responseData;
             }
 
             return response;
         }
 
+        /// <summary>
+        /// Create a new user account.
+        /// <summary>
+        /// <param name="request">incoming XML RPC request</param>
+        /// <remarks>
+        /// XmlRpcCreateUserMethod takes the following XMLRPC
+        /// parameters
+        /// <list type="table">
+        /// <listheader><term>parameter name</term><description>description</description></listheader>
+        /// <item><term>password</term>
+        ///       <description>admin password as set in OpenSim.ini</description></item>
+        /// <item><term>user_firstname</term>
+        ///       <description>avatar's first name</description></item>
+        /// <item><term>user_lastname</term>
+        ///       <description>avatar's last name</description></item>
+        /// <item><term>user_password</term>
+        ///       <description>avatar's password</description></item>
+        /// <item><term>start_region_x</term>
+        ///       <description>avatar's start region coordinates, X value</description></item>
+        /// <item><term>start_region_y</term>
+        ///       <description>avatar's start region coordinates, Y value</description></item>
+        /// </list>
+        /// 
+        /// XmlRpcCreateUserMethod returns
+        /// <list type="table">
+        /// <listheader><term>name</term><description>description</description></listheader>
+        /// <item><term>success</term>
+        ///       <description>true or false</description></item>
+        /// <item><term>error</term>
+        ///       <description>error message if success is false</description></item>
+        /// <item><term>avatar_uuid</term>
+        ///       <description>UUID of the newly created avatar
+        ///                    account; LLUUID.Zero if failed.
+        ///       </description></item>
+        /// </list>
+        /// </remarks>
         public XmlRpcResponse XmlRpcCreateUserMethod(XmlRpcRequest request)
         {
             m_log.Info("[RADMIN]: Received Create User Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
-            if (requiredPassword != System.String.Empty &&
-                (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
+
+            try 
             {
-                responseData["created"] = "false";
+                // check completeness
+                foreach (string p in new string[] { "password", 
+                                                    "user_firstname", "user_lastname", "user_password",
+                                                    "start_region_x", "start_region_y" })
+                {
+                    if (!requestData.Contains(p)) 
+                        throw new Exception(String.Format("missing parameter {0}", p));
+                }
+
+                // check password
+                if (!String.IsNullOrEmpty(requiredPassword) &&
+                    (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
+
+                // do the job
+                string firstname = (string) requestData["user_firstname"];
+                string lastname  = (string) requestData["user_lastname"];
+                string passwd    = (string) requestData["user_password"];
+                uint   regX      = Convert.ToUInt32((Int32)requestData["start_region_x"]);
+                uint   regY      = Convert.ToUInt32((Int32)requestData["start_region_y"]);
+                
+                // FIXME: need to check whether "firstname lastname"
+                // already exists!
+                LLUUID userID = m_app.CreateUser(firstname, lastname, passwd, regX, regY);
+                
+                if (userID == LLUUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
+                                                                             firstname, lastname));
+                
+                responseData["success"]     = "true";
+                responseData["avatar_uuid"] = userID.ToString();
+
                 response.Value = responseData;
+
+                m_log.InfoFormat("[RADMIN]: User {0} {1} created, UUID {2}", firstname, lastname, userID);
             }
-            else
+            catch (Exception e) 
             {
-                try
-                {
-                    string tempfirstname = (string) requestData["user_firstname"];
-                    string templastname  = (string) requestData["user_lastname"];
-                    string tempPasswd    = (string) requestData["user_password"];
-                    uint   regX          = Convert.ToUInt32((Int32) requestData["start_region_x"]);
-                    uint   regY          = Convert.ToUInt32((Int32) requestData["start_region_y"]);
+                m_log.ErrorFormat("[RADMIN] create user: failed: {0}", e.Message);
+                m_log.DebugFormat("[RADMIN] create user: failed: {0}", e.ToString());
 
-                    LLUUID tempuserID = m_app.CreateUser(tempfirstname, templastname, tempPasswd, regX, regY);
+                responseData["success"]     = "false";
+                responseData["avatar_uuid"] = LLUUID.Zero.ToString();
+                responseData["error"]       = e.Message;
 
-                    if (tempuserID == LLUUID.Zero)
-                    {
-                        responseData["created"]     = "false";
-                        responseData["error"]       = "Error creating user";
-                        responseData["avatar_uuid"] = LLUUID.Zero;
-                        response.Value              = responseData;
-                        m_log.Error("[RADMIN]: Error creating user (" + tempfirstname + " " + templastname + ") :");
-                    }
-                    else
-                    {
-                        responseData["created"]     = "true";
-                        responseData["avatar_uuid"] = tempuserID;
-                        response.Value              = responseData;
-                        m_log.Info("[RADMIN]: User " + tempfirstname + " " + templastname + " created. Userid " + tempuserID + " assigned.");
-                    }  
-                }
-                catch (Exception e)
-                {
-                    responseData["created"] = "false";
-                    responseData["error"]   = e.ToString();
-                    responseData["avatar_uuid"] = LLUUID.Zero;
-                    response.Value          = responseData;
-                }
+                response.Value = responseData;
             }
 
             return response;
@@ -342,42 +467,45 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
-            if (requiredPassword != System.String.Empty &&
-                (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
+
+            try 
             {
-                responseData["loaded"] = "false";
-                responseData["switched"] = "false";
-                response.Value = responseData;
+                // check completeness
+                foreach (string p in new string[] { "password", 
+                                                    "region_name", "filename" })
+                {
+                    if (!requestData.Contains(p)) 
+                        throw new Exception(String.Format("missing parameter {0}", p));
+                }
+                
+                // check password
+                if (!String.IsNullOrEmpty(requiredPassword) &&
+                    (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
+                
+                string region_name = (string)requestData["region_name"];
+                string filename    = (string)requestData["filename"];
+                
+                if (!m_app.SceneManager.TrySetCurrentScene(region_name)) 
+                    throw new Exception(String.Format("failed to switch to region {0}", region_name));
+                m_log.InfoFormat("[RADMIN] Switched to region {0}");
+
+                responseData["switched"] = "true";
+
+                m_app.SceneManager.LoadCurrentSceneFromXml(filename, true, new LLVector3(0, 0, 0));
+                responseData["loaded"]   = "true";
+                
+                response.Value           = responseData;
             }
-            else
+            catch (Exception e)
             {
-                try
-                {
-                    string region_name     = (string) requestData["region_name"];
-                    string filename        = (string) requestData["filename"];
-                    
-                    if (m_app.SceneManager.TrySetCurrentScene(region_name))
-                    {
-                        m_log.Info("[RADMIN] Switched to region "+region_name);
-                        responseData["switched"] = "true";
-                        m_app.SceneManager.LoadCurrentSceneFromXml(filename, true, new LLVector3(0, 0, 0));
-                        responseData["loaded"]   = "true";
-                        response.Value           = responseData;
-                    }
-                    else
-                    {
-                        m_log.Info("[RADMIN] Failed to switch to region "+region_name);
-                        responseData["loaded"] = "false";
-                        responseData["switched"] = "false";
-                        response.Value = responseData;
-                    }
-                }
-                catch (Exception e)
-                {
-                    responseData["loaded"]  = "false";
-                    responseData["error"]   = e.ToString();
-                    response.Value          = responseData;
-                }
+                m_log.InfoFormat("[RADMIN] LoadXml: {0}", e.Message);
+                m_log.DebugFormat("[RADMIN] LoadXML {0}: {1}", e.ToString());
+
+                responseData["loaded"]  = "false";
+                responseData["switched"] = "false";
+                responseData["error"]   = e.Message;
+                
+                response.Value          = responseData;
             }
             
             return response;
