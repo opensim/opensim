@@ -29,7 +29,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+
 using libsecondlife;
+
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
@@ -213,20 +215,20 @@ namespace OpenSim.Region.Capabilities
         public string FetchInventoryRequest(string request, string path, string param)
         {
             string unmodifiedRequest = request.ToString();
-
+            
+            //m_log.DebugFormat("[AGENT INVENTORY]: Received CAPS fetch inventory request {0}", unmodifiedRequest);
            
             Hashtable hash = new Hashtable();
             try
             {
-
                 hash = (Hashtable)LLSD.LLSDDeserialize(Helpers.StringToField(request));
             }
             catch (LLSD.LLSDParseException pe)
             {
-                m_log.Error("[INVENTORY]: Fetch error: " + pe.Message);
-                m_log.Error("Request:" + request.ToString());
+                m_log.Error("[AGENT INVENTORY]: Fetch error: " + pe.Message);
+                m_log.Error("Request: " + request.ToString());
             }
-            //LLSDArray llsdFolderRequest = LLSDHelpers.
+            
             ArrayList foldersrequested = (ArrayList)hash["folders"];
 
             string response = "";
@@ -257,6 +259,8 @@ namespace OpenSim.Region.Capabilities
             {
                 response = "<llsd><map><key>folders</key><array>" + response + "</array></map></llsd>";
             }
+
+            //m_log.DebugFormat("[AGENT INVENTORY]: Replying to CAPS fetch inventory request {0}", response);
 
             return response;
         }
@@ -297,7 +301,16 @@ namespace OpenSim.Region.Capabilities
             llsdItem.item_id = invItem.inventoryID;
             llsdItem.name = invItem.inventoryName;
             llsdItem.parent_id = invItem.parentFolderID;
-            llsdItem.type = Enum.GetName(typeof(AssetType), invItem.assetType).ToLower();
+            llsdItem.type = Enum.GetName(typeof(AssetType), invItem.assetType).ToLower();                        
+            
+            // XXX Temporary fix for 'objects not appearing in inventory' problem.  The asset type from libsecondlife is
+            // returning "primitive" when it should returning "object"!  It looks like this is fixed in the latest libsecondlife,
+            // but our own libsl1550 doesn't have it either!
+            if ("primitive".Equals(llsdItem.type))
+            {
+                llsdItem.type = "object";
+            }
+            
             llsdItem.inv_type = Enum.GetName(typeof(InventoryType), invItem.invType).ToLower();
             llsdItem.permissions = new LLSDPermissions();
             llsdItem.permissions.creator_id = invItem.creatorsID;
