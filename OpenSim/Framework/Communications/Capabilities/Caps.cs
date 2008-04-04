@@ -78,8 +78,11 @@ namespace OpenSim.Region.Capabilities
         private static readonly string m_notecardUpdatePath = "0004/";
         private static readonly string m_notecardTaskUpdatePath = "0005/";
         private static readonly string m_fetchInventoryPath = "0006/";
-        private static readonly string m_parcelVoiceInfoRequestPath = "0007/";
-        private static readonly string m_provisionVoiceAccountRequestPath = "0008/";
+
+        // The following two entries are in a module, however, there also here so that we don't re-assign
+        // the path to another cap by mistake.
+        private static readonly string m_parcelVoiceInfoRequestPath = "0007/"; // This is in a module. 
+        private static readonly string m_provisionVoiceAccountRequestPath = "0008/";// This is in a module.
 
         //private string eventQueue = "0100/";
         private BaseHttpServer m_httpListener;
@@ -195,6 +198,18 @@ namespace OpenSim.Region.Capabilities
         // FIXME: these all should probably go into the respective region
         // modules
 
+        // Request is like: 
+        //<llsd>
+        //   <map><key>folders</key>
+        //       <array>
+        //            <map>
+        //                <key>fetch-folders</key><boolean>1</boolean><key>fetch-items</key><boolean>1</boolean><key>folder-id</key><uuid>8e1e3a30-b9bf-11dc-95ff-0800200c9a66</uuid><key>owner-id</key><uuid>11111111-1111-0000-0000-000100bba000</uuid><key>sort-order</key><integer>1</integer>
+        //            </map>
+        //       </array>
+        //   </map>
+        //</llsd>
+        //
+        // multiple fetch-folder maps are allowed within the larger folders map. 
         public string FetchInventoryRequest(string request, string path, string param)
         {
             string unmodifiedRequest = request.ToString();
@@ -210,7 +225,6 @@ namespace OpenSim.Region.Capabilities
             {
                 m_log.Error("[INVENTORY]: Fetch error: " + pe.Message);
                 m_log.Error("Request:" + request.ToString());
-                m_log.Error("OriginalRequest:" + unmodifiedRequest.ToString());
             }
             //LLSDArray llsdFolderRequest = LLSDHelpers.
             ArrayList foldersrequested = (ArrayList)hash["folders"];
