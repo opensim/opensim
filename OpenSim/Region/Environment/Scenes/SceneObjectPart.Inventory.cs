@@ -384,7 +384,7 @@ namespace OpenSim.Region.Environment.Scenes
                 else
                 {
                     m_log.ErrorFormat(
-                        "[PRIMINVENTORY]: " +
+                        "[PRIM INVENTORY]: " +
                         "Tried to remove item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
                         itemID, Name, UUID);
                 }
@@ -400,6 +400,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public bool GetInventoryFileName(IClientAPI client, uint localID)
         {                        
+//            m_log.DebugFormat(
+//                 "[PRIM INVENTORY]: Received request from client {0} for inventory file name of {1}, {2}",
+//                 client.AgentId, Name, UUID);
+            
             if (m_inventorySerial > 0)
             {
                 client.SendTaskInventory(m_uuid, (short)m_inventorySerial,
@@ -455,8 +459,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             fileData = Helpers.StringToField(invString.BuildString);
 
-            //            m_log.InfoFormat(
-            //                "[PRIMINVENTORY]: RequestInventoryFile fileData: {0}", Helpers.FieldToUTF8String(fileData));
+//            m_log.DebugFormat(
+//                "[PRIM INVENTORY]: RequestInventoryFile fileData: {0}", Helpers.FieldToUTF8String(fileData));
 
             if (fileData.Length > 2)
             {

@@ -241,9 +241,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// If the asset was not found this is still called with the asset UUID but with a null asset data reference</param>
         public void GetAsset(LLUUID assetId, AssetRequestCallback callback, bool isTexture)
         {
-#if DEBUG
             //m_log.DebugFormat("[ASSET CACHE]: Requesting {0} {1}", isTexture ? "texture" : "asset", assetId);
-#endif
 
             AssetBase asset;
 

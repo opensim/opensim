@@ -376,7 +376,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.SenseOnce(m_localID, m_itemID, name, keyID, type, range, arc, m_host);
 
             return;
-            // NotImplemented("llSensor");
        }
 
         public void llSensorRepeat(string name, string id, int type, double range, double arc, double rate)
@@ -393,7 +392,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.SetSenseRepeatEvent(m_localID, m_itemID, name, keyID, type, range, arc, rate, m_host);
             return;
-            // NotImplemented("llSensorRepeat");
        }
 
         public void llSensorRemove()
@@ -401,7 +399,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.UnSetSenseRepeaterEvents(m_localID, m_itemID);
             return;
-           // NotImplemented("llSensorRemove");
         }
 
         public string resolveName(LLUUID objecUUID)
@@ -444,7 +441,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
             else
                 return String.Empty;
-             //NotImplemented("llDetectedName");
        }
 
         public LLUUID uuidDetectedKey(int number)
@@ -532,8 +528,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return new LSL_Types.Vector3(0, 0, 0);
                
             return new LSL_Types.Vector3(SensedObject.AbsolutePosition.X,SensedObject.AbsolutePosition.Y,SensedObject.AbsolutePosition.Z);
-
-            //NotImplemented("llDetectedPos");
         }
 
         public LSL_Types.Vector3 llDetectedVel(int number)
@@ -544,7 +538,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return new LSL_Types.Vector3(0, 0, 0);
 
             return new LSL_Types.Vector3(SensedObject.Velocity.X, SensedObject.Velocity.Y, SensedObject.Velocity.Z);
-           // NotImplemented("llDetectedVel");
            // return new LSL_Types.Vector3();
         }
 
@@ -1107,14 +1100,12 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             m_host.MoveToTarget(new LLVector3((float)target.x, (float)target.y, (float)target.z), (float)tau);
-            //NotImplemented("llMoveToTarget");
         }
 
         public void llStopMoveToTarget()
         {
             m_host.AddScriptLPS(1);
             m_host.StopMoveToTarget();
-            //NotImplemented("llStopMoveToTarget");
         }
 
         public void llApplyImpulse(LSL_Types.Vector3 force, int local)
@@ -1235,7 +1226,6 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             m_host.SendSound(sound, volume, false, 1);
-            //NotImplemented("llLoopSound");
         }
 
         public void llLoopSoundMaster(string sound, double volume)
@@ -1266,7 +1256,6 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             m_host.SendSound(LLUUID.Zero.ToString(), 1.0, false, 2);
-            //NotImplemented("llStopSound");
         }
 
         public void llPreloadSound(string sound)
@@ -1603,7 +1592,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AngularVelocity = new LLVector3((float)(axis.x * spinrate), (float)(axis.y * spinrate), (float)(axis.z * spinrate));
             m_host.ScheduleTerseUpdate();
             m_host.SendTerseUpdateToAllClients();
-            //NotImplemented("llTargetOmega");
         }
 
         public int llGetStartParameter()
@@ -2822,7 +2810,6 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             m_host.AdjustSoundGain(volume);
-            //NotImplemented("llAdjustSoundVolume");
         }
 
         public void llSetSoundQueueing(int queue)
@@ -3389,7 +3376,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                 buts[i] = buttons.Data[i].ToString();
             }
             World.SendDialogToUser(av, m_host.Name, m_host.UUID, m_host.OwnerID, message, new LLUUID("00000000-0000-2222-3333-100000001000"), chat_channel, buts);
-            //NotImplemented("llDialog");
         }
 
         public void llVolumeDetect(int detect)
@@ -4323,7 +4309,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
             }
             return -1;
-            //NotImplemented("llGetInventoryPermMask");
         }
 
         public void llSetInventoryPermMask(string item, int mask, int value)
@@ -4343,7 +4328,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
             }
             llSay(0, "No item name '" + item + "'");
-            //NotImplemented("llGetInventoryCreator");
             return String.Empty;
         }
 
@@ -4510,7 +4494,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                     land.parcelAccessList.Add(entry);
                 }
             }
-            //NotImplemented("llAddToLandBanList");
         }
 
         public void llRemoveFromLandPassList(string avatar)
@@ -4532,7 +4515,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                     }
                 }
             }
-            //NotImplemented("llRemoveFromLandPassList");
         }
 
         public void llRemoveFromLandBanList(string avatar)
@@ -4554,7 +4536,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                     }
                 }
             }
-            //NotImplemented("llRemoveFromLandPassList");
         }
 
         public void llSetCameraParams(LSL_Types.list rules)
@@ -4754,8 +4735,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                     }
                 }
             }
-
-            //NotImplemented("llGetParcelPrimCount");
             return 0;
         }
 
