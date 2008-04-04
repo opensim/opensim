@@ -198,6 +198,7 @@ namespace OpenSim.Region.Capabilities
         public string FetchInventoryRequest(string request, string path, string param)
         {
             request = request.Replace("<llsd><map><key>folders</key><array>", "<llsd>");
+            request = request.Replace("\n", "");
             request = request.Replace("</map></array></map>", "</map>");
 
             //Console.WriteLine("inventory request " + request);
@@ -249,7 +250,7 @@ namespace OpenSim.Region.Capabilities
             llsdItem.inv_type = Enum.GetName(typeof(InventoryType), invItem.invType).ToLower();
             llsdItem.permissions = new LLSDPermissions();
             llsdItem.permissions.creator_id = invItem.creatorsID;
-            llsdItem.permissions.base_mask = (int)invItem.inventoryBasePermissions;
+            llsdItem.permissions.base_mask = (int)invItem.inventoryCurrentPermissions;
             llsdItem.permissions.everyone_mask = (int)invItem.inventoryEveryOnePermissions;
             llsdItem.permissions.group_id = LLUUID.Zero;
             llsdItem.permissions.group_mask = 0;
