@@ -1700,6 +1700,16 @@ namespace OpenSim.Region.Environment.Scenes
                 if (!agent.child)
                 {
                     AddCapsHandler(agent.AgentID);
+
+                    // Honor parcel landing type and position.
+                    ILandObject land = LandChannel.getLandObject(agent.startpos.X, agent.startpos.Y);
+                    if (land != null)
+                    {
+                        if (land.landData.landingType == (byte)1 && land.landData.userLocation != LLVector3.Zero)
+                        {
+                            agent.startpos = land.landData.userLocation;
+                        }
+                    }
                 }
                 
                 m_log.DebugFormat(
