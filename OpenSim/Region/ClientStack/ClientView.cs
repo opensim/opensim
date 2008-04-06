@@ -73,6 +73,8 @@ namespace OpenSim.Region.ClientStack
         private int m_cachedTextureSerial = 0;
         private Timer m_clientPingTimer;
 
+        private bool m_clientBlocked = false;
+
         private int m_packetsReceived = 0;
         private int m_lastPacketsReceivedSentToScene = 0;
         private int m_unAckedBytes = 0;
@@ -569,8 +571,9 @@ namespace OpenSim.Region.ClientStack
             if (m_packetsReceived == m_lastPacketsReceived)
             {
                 m_probesWithNoIngressPackets++;
-                if (m_probesWithNoIngressPackets > 30)
+                if ((m_probesWithNoIngressPackets > 30 && !m_clientBlocked) || (m_probesWithNoIngressPackets > 90 && m_clientBlocked))
                 {
+
                     if (OnConnectionClosed != null)
                     {
                         OnConnectionClosed(this);
@@ -3336,6 +3339,18 @@ namespace OpenSim.Region.ClientStack
                         m_packetQueue.SetThrottleFromClient(atpack.Throttle.Throttles);
                         break;
 
+                    case PacketType.AgentPause:
+                        m_probesWithNoIngressPackets = 0;
+                        m_clientBlocked = true;
+                        break;
+
+                    case PacketType.AgentResume:
+                        m_probesWithNoIngressPackets = 0;
+                        m_clientBlocked = false;
+                        SendStartPingCheck(0);
+                        
+                        break;
+
                     #endregion
 
                     #region Objects/m_sceneObjects
@@ -4316,14 +4331,14 @@ namespace OpenSim.Region.ClientStack
                         // TODO: handle this packet
                         m_log.Warn("[CLIENT]: unhandled MapItemRequest packet");
                         break;
-                    case PacketType.AgentResume:
+                    //case PacketType.AgentResume:
                         // TODO: handle this packet
-                        m_log.Warn("[CLIENT]: unhandled AgentResume packet");
-                        break;
-                    case PacketType.AgentPause:
+                        //m_log.Warn("[CLIENT]: unhandled AgentResume packet");
+                        //break;
+                    //case PacketType.AgentPause:
                         // TODO: handle this packet
-                        m_log.Warn("[CLIENT]: unhandled AgentPause packet");
-                        break;
+                        //m_log.Warn("[CLIENT]: unhandled AgentPause packet");
+                        //break;
                     case PacketType.TransferAbort:
                         // TODO: handle this packet
                         m_log.Warn("[CLIENT]: unhandled TransferAbort packet");
