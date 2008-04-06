@@ -1537,11 +1537,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 
                 while (step_time > 0.0f)
                 {
-                    lock (ode)
-                    {
-                        if (!ode.lockquery())
-                        { 
-                            ode.dlock(world);
+                    //lock (ode)
+                    //{
+                        //if (!ode.lockquery())
+                        //{ 
+                           // ode.dlock(world);
                             try
                             {
                                 lock (_characters)
@@ -1605,12 +1605,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 
                             step_time -= ODE_STEPSIZE;
                             i++;
-                        }
-                        else
-                        {
-                            fps = 0;
-                        }
-                    }
+                        //}
+                        //else
+                        //{
+                            //fps = 0;
+                        //}
+                    //}
                 }
 
                 lock (_characters)

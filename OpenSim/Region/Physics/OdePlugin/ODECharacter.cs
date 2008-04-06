@@ -704,7 +704,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _zeroFlag = false;
                 if (m_iscolliding && !flying)
                 {
-                    // We're flying and colliding with something
+                    // We're standing on something
                     vec.X = ((_target_velocity.X / movementdivisor) - vel.X) * (PID_D);
                     vec.Y = ((_target_velocity.Y / movementdivisor) - vel.Y) * (PID_D);
                 }
@@ -716,7 +716,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 else if (!m_iscolliding && flying)
                 {
-                    // We're flying and colliding with something
+                    // we're in mid air suspended
                     vec.X = ((_target_velocity.X / movementdivisor) - vel.X) * (PID_D/6);
                     vec.Y = ((_target_velocity.Y / movementdivisor) - vel.Y) * (PID_D/6);
                 }
