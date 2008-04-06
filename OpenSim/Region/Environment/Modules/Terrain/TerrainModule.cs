@@ -35,10 +35,9 @@ using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Modules.ModuleFramework;
 
-
 namespace OpenSim.Region.Environment.Modules.Terrain
 {
-    public class TerrainModule : IRegionModule , ITerrainTemp, ICommandableModule
+    public class TerrainModule : IRegionModule, ICommandableModule
     {
         public enum StandardTerrainEffects : byte
         {
@@ -47,7 +46,12 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             Lower = 2,
             Smooth = 3,
             Noise = 4,
-            Revert = 5
+            Revert = 5,
+
+            // Extended brushes
+            Erode = 255,
+            Weather = 254,
+            Olsen = 253
         }
 
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -74,6 +78,9 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             m_painteffects[StandardTerrainEffects.Noise]    = new PaintBrushes.NoiseSphere();
             m_painteffects[StandardTerrainEffects.Flatten]  = new PaintBrushes.FlattenSphere();
             m_painteffects[StandardTerrainEffects.Revert]   = new PaintBrushes.RevertSphere(m_revert);
+            m_painteffects[StandardTerrainEffects.Erode] = new PaintBrushes.ErodeSphere();
+            m_painteffects[StandardTerrainEffects.Weather] = new PaintBrushes.WeatherSphere();
+            m_painteffects[StandardTerrainEffects.Olsen] = new PaintBrushes.OlsenSphere();
 
             // Area of effect selection effects
             m_floodeffects[StandardTerrainEffects.Raise]    = new FloodBrushes.RaiseArea();
@@ -90,6 +97,11 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             m_loaders[".raw"] = new FileLoaders.LLRAW();
             m_loaders[".jpg"] = new FileLoaders.JPEG();
             m_loaders[".jpeg"] = m_loaders[".jpg"];
+            m_loaders[".bmp"] = new FileLoaders.BMP();
+            m_loaders[".png"] = new FileLoaders.PNG();
+            m_loaders[".gif"] = new FileLoaders.GIF();
+            m_loaders[".tif"] = new FileLoaders.TIFF();
+            m_loaders[".tiff"] = m_loaders[".tif"];
         }
 
         public void UpdateRevertMap()
@@ -139,22 +151,26 @@ namespace OpenSim.Region.Environment.Modules.Terrain
 
         public void LoadFromFile(string filename, int fileWidth, int fileHeight, int fileStartX, int fileStartY)
         {
-            fileStartX -= (int)m_scene.RegionInfo.RegionLocX;
-            fileStartY -= (int)m_scene.RegionInfo.RegionLocY;
+            int offsetX = (int)m_scene.RegionInfo.RegionLocX - fileStartX;
+            int offsetY = (int)m_scene.RegionInfo.RegionLocY - fileStartY;
 
-            foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
+            if (offsetX >= 0 && offsetX < fileWidth && offsetY >= 0 && offsetY < fileHeight)
             {
-                if (filename.EndsWith(loader.Key))
+                // this region is included in the tile request
+                foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
                 {
-                    lock (m_scene)
+                    if (filename.EndsWith(loader.Key))
                     {
-                        ITerrainChannel channel = loader.Value.LoadFile(filename, fileStartX, fileStartY,
-                            fileWidth, fileHeight, (int)Constants.RegionSize, (int)Constants.RegionSize);
-                        m_scene.Heightmap = channel;
-                        m_channel = channel;
-                        UpdateRevertMap();
+                        lock (m_scene)
+                        {
+                            ITerrainChannel channel = loader.Value.LoadFile(filename, offsetX, offsetY,
+                                fileWidth, fileHeight, (int)Constants.RegionSize, (int)Constants.RegionSize);
+                            m_scene.Heightmap = channel;
+                            m_channel = channel;
+                            UpdateRevertMap();
+                        }
+                        return;
                     }
-                    return;
                 }
             }
         }
@@ -181,7 +197,6 @@ namespace OpenSim.Region.Environment.Modules.Terrain
         public void Initialise(Scene scene, IConfigSource config)
         {
             m_scene = scene;
-            m_scene.RegisterModuleInterface<ITerrainTemp>(this);
             m_gConfig = config;
 
             // Install terrain module in the simulator
@@ -222,7 +237,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
         private void InterfaceLoadFile(Object[] args)
         {
             LoadFromFile((string)args[0]);
-            SendUpdatedLayerData();
+            CheckForTerrainUpdates();
         }
 
         private void InterfaceLoadTileFile(Object[] args)
@@ -232,12 +247,54 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                 (int)args[2],
                 (int)args[3],
                 (int)args[4]);
-            SendUpdatedLayerData();
+            CheckForTerrainUpdates();
         }
 
         private void InterfaceSaveFile(Object[] args)
         {
             SaveToFile((string)args[0]);
+        }
+
+        private void InterfaceBakeTerrain(Object[] args)
+        {
+            UpdateRevertMap();
+        }
+
+        private void InterfaceRevertTerrain(Object[] args)
+        {
+            int x, y;
+            for (x = 0; x < m_channel.Width; x++)
+                for (y = 0; y < m_channel.Height; y++)
+                    m_channel[x, y] = m_revert[x, y];
+
+            CheckForTerrainUpdates();
+        }
+
+        private void InterfaceElevateTerrain(Object[] args)
+        {
+            int x, y;
+            for (x = 0; x < m_channel.Width; x++)
+                for (y = 0; y < m_channel.Height; y++)
+                    m_channel[x, y] += (double)args[0];
+            CheckForTerrainUpdates();
+        }
+
+        private void InterfaceMultiplyTerrain(Object[] args)
+        {
+            int x, y;
+            for (x = 0; x < m_channel.Width; x++)
+                for (y = 0; y < m_channel.Height; y++)
+                    m_channel[x, y] *= (double)args[0];
+            CheckForTerrainUpdates();
+        }
+
+        private void InterfaceLowerTerrain(Object[] args)
+        {
+            int x, y;
+            for (x = 0; x < m_channel.Width; x++)
+                for (y = 0; y < m_channel.Height; y++)
+                    m_channel[x, y] -= (double)args[0];
+            CheckForTerrainUpdates();
         }
 
         private void InterfaceFillTerrain(Object[] args)
@@ -247,7 +304,33 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             for (x = 0; x < m_channel.Width; x++)
                 for (y = 0; y < m_channel.Height; y++)
                     m_channel[x, y] = (double)args[0];
-            SendUpdatedLayerData();
+            CheckForTerrainUpdates();
+        }
+
+        private void InterfaceShowDebugStats(Object[] args)
+        {
+            double max = Double.MinValue;
+            double min = double.MaxValue;
+            double avg = 0;
+            double sum = 0;
+
+            int x, y;
+            for (x = 0; x < m_channel.Width; x++)
+            {
+                for (y = 0; y < m_channel.Height; y++)
+                {
+                    sum += m_channel[x, y];
+                    if (max < m_channel[x, y])
+                        max = m_channel[x, y];
+                    if (min > m_channel[x, y])
+                        min = m_channel[x, y];
+                }
+            }
+
+            avg = sum / (m_channel.Height * m_channel.Width);
+
+            m_log.Info("Channel " + m_channel.Width + "x" + m_channel.Height);
+            m_log.Info("max/min/avg/sum: " + max + "/" + min + "/" + avg + "/" + sum);
         }
 
         private void InterfaceEnableExperimentalBrushes(Object[] args)
@@ -262,6 +345,12 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             {
                 InstallDefaultEffects();
             }
+        }
+
+        private void InterfacePerformEffectTest(Object[] args)
+        {
+            Effects.CookieCutter cookie = new OpenSim.Region.Environment.Modules.Terrain.Effects.CookieCutter();
+            cookie.RunEffect(m_channel);
         }
 
         private void InstallInterfaces()
@@ -288,15 +377,39 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             Command fillRegionCommand = new Command("fill", InterfaceFillTerrain, "Fills the current heightmap with a specified value.");
             fillRegionCommand.AddArgument("value", "The numeric value of the height you wish to set your region to.", "Double");
 
-            // Brushes
+            Command elevateCommand = new Command("elevate", InterfaceElevateTerrain, "Raises the current heightmap by the specified amount.");
+            elevateCommand.AddArgument("amount", "The amount of height to add to the terrain in meters.", "Double");
+
+            Command lowerCommand = new Command("lower", InterfaceLowerTerrain, "Lowers the current heightmap by the specified amount.");
+            lowerCommand.AddArgument("amount", "The amount of height to remove from the terrain in meters.", "Double");
+
+            Command multiplyCommand = new Command("multiply", InterfaceMultiplyTerrain, "Multiplies the heightmap by the value specified.");
+            multiplyCommand.AddArgument("value", "The value to multiply the heightmap by.", "Double");
+
+            Command bakeRegionCommand = new Command("bake", InterfaceBakeTerrain, "Saves the current terrain into the regions revert map.");
+            Command revertRegionCommand = new Command("revert", InterfaceRevertTerrain, "Loads the revert map terrain into the regions heightmap.");
+
+            // Debug
+            Command showDebugStatsCommand = new Command("stats", InterfaceShowDebugStats, "Shows some information about the regions heightmap for debugging purposes.");
+
             Command experimentalBrushesCommand = new Command("newbrushes", InterfaceEnableExperimentalBrushes, "Enables experimental brushes which replace the standard terrain brushes. WARNING: This is a debug setting and may be removed at any time.");
             experimentalBrushesCommand.AddArgument("Enabled?", "true / false - Enable new brushes", "Boolean");
+
+            // Effects
+            Command effectsTestCommand = new Command("test", InterfacePerformEffectTest, "Performs an effects module test");
 
             m_commander.RegisterCommand("load", loadFromFileCommand);
             m_commander.RegisterCommand("load-tile", loadFromTileCommand);
             m_commander.RegisterCommand("save", saveToFileCommand);
             m_commander.RegisterCommand("fill", fillRegionCommand);
+            m_commander.RegisterCommand("elevate", elevateCommand);
+            m_commander.RegisterCommand("lower", lowerCommand);
+            m_commander.RegisterCommand("multiply", multiplyCommand);
+            m_commander.RegisterCommand("bake", bakeRegionCommand);
+            m_commander.RegisterCommand("revert", revertRegionCommand);
             m_commander.RegisterCommand("newbrushes", experimentalBrushesCommand);
+            m_commander.RegisterCommand("test", effectsTestCommand);
+            m_commander.RegisterCommand("stats", showDebugStatsCommand);
 
             // Add this to our scene so scripts can call these functions
             m_scene.RegisterModuleCommander("Terrain", m_commander);
@@ -322,7 +435,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             client.OnModifyTerrain += client_OnModifyTerrain;
         }
 
-        void SendUpdatedLayerData()
+        void CheckForTerrainUpdates()
         {
             bool shouldTaint = false;
             float[] serialised = m_channel.GetFloatsSerialised();
@@ -333,10 +446,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                 {
                     if (m_channel.Tainted(x, y))
                     {
-                        m_scene.ForEachClient(delegate(IClientAPI controller)
-                        {
-                            controller.SendLayerData(x / Constants.TerrainPatchSize, y / Constants.TerrainPatchSize, serialised);
-                        });
+                        SendToClients(serialised, x, y);
                         shouldTaint = true;
                     }
                 }
@@ -345,6 +455,14 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             {
                 m_tainted = true;
             }
+        }
+
+        private void SendToClients(float[] serialised, int x, int y)
+        {
+            m_scene.ForEachClient(delegate(IClientAPI controller)
+            {
+                controller.SendLayerData(x / Constants.TerrainPatchSize, y / Constants.TerrainPatchSize, serialised);
+            });
         }
 
         void client_OnModifyTerrain(float height, float seconds, byte size, byte action, float north, float west, float south, float east, IClientAPI remoteClient)
@@ -364,7 +482,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
 
                         if (usingTerrainModule)
                         {
-                            SendUpdatedLayerData();
+                            CheckForTerrainUpdates();
                         }
                     }
                     else
@@ -401,7 +519,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
 
                         if (usingTerrainModule)
                         {
-                            SendUpdatedLayerData();
+                            CheckForTerrainUpdates();
                         }
                     }
                     else
@@ -410,51 +528,6 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                     }
                 }
             }
-        }
-
-        public byte[] WriteJpegImage(string gradientmap)
-        {
-            byte[] imageData = null;
-            try
-            {
-                Bitmap bmp = TerrainToBitmap(gradientmap);
-
-                imageData = OpenJPEGNet.OpenJPEG.EncodeFromImage(bmp, true);
-                
-            }
-            catch (Exception e) // LEGIT: Catching problems caused by OpenJPEG p/invoke
-            {
-                Console.WriteLine("Failed generating terrain map: " + e.ToString());
-            }
-
-            return imageData;
-        }
-
-        private Bitmap TerrainToBitmap(string gradientmap)
-        {
-            Bitmap gradientmapLd = new Bitmap(gradientmap);
-
-            int pallete = gradientmapLd.Height;
-
-            Bitmap bmp = new Bitmap(m_channel.Width, m_channel.Height);
-            Color[] colours = new Color[pallete];
-
-            for (int i = 0; i < pallete; i++)
-            {
-                colours[i] = gradientmapLd.GetPixel(0, i);
-            }
-
-            TerrainChannel copy =(TerrainChannel) m_channel.MakeCopy();
-            for (int y = 0; y < copy.Height; y++)
-            {
-                for (int x = 0; x < copy.Width; x++)
-                {
-                    // 512 is the largest possible height before colours clamp
-                    int colorindex = (int)(Math.Max(Math.Min(1.0, copy[x, y] / 512.0), 0.0) * (pallete - 1));
-                    bmp.SetPixel(x, copy.Height - y - 1, colours[colorindex]);
-                }
-            }
-            return bmp;
         }
 
         public void PostInitialise()

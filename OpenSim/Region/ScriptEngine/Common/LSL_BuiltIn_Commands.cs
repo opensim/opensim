@@ -5119,6 +5119,25 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
         }
 
+        // Adam's super super custom animation functions
+        public void osAvatarPlayAnimation(string avatar, string animation)
+        {
+            if (World.Entities.ContainsKey(avatar) && World.Entities[avatar] is ScenePresence)
+            {
+                ScenePresence target = (ScenePresence)World.Entities[avatar];
+                target.AddAnimation(avatar, 0);
+            }
+        }
+
+        public void osAvatarStopAnimation(string avatar, string animation)
+        {
+            if (World.Entities.ContainsKey(avatar) && World.Entities[avatar] is ScenePresence)
+            {
+                ScenePresence target = (ScenePresence)World.Entities[avatar];
+                target.RemoveAnimation(animation);
+            }
+        }
+
         //Texture draw functions 
         public string osMovePen(string drawList, int x, int y)
         {

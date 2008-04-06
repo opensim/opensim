@@ -31,6 +31,6 @@ namespace OpenSim.Region.Environment.Modules.Terrain
 {
     public interface ITerrainEffect
     {
-        void RunEffect(ITerrainChannel map, double strength);
+        void RunEffect(ITerrainChannel map);
     }
 }

@@ -1916,6 +1916,19 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.osSetPrimFloatOnWater(floatYN);
         }
 
+        // Animation Functions
+
+        public void osAvatarPlayAnimation(string avatar, string animation)
+        {
+            m_LSL_Functions.osAvatarPlayAnimation(avatar, animation);
+        }
+
+        public void osAvatarStopAnimation(string avatar, string animation)
+        {
+            m_LSL_Functions.osAvatarStopAnimation(avatar, animation);
+        }
+
+
         //Texture Draw functions
 
         public string osMovePen(string drawList, int x, int y)

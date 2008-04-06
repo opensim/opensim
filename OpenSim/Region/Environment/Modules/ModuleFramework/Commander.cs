@@ -249,7 +249,7 @@ namespace OpenSim.Region.Environment.Modules.ModuleFramework
         {
             if (m_commands.ContainsKey(function))
             {
-                if (args[0] == "help")
+                if (args.Length > 0 && args[0] == "help")
                 {
                     m_commands[function].ShowConsoleHelp();
                 }

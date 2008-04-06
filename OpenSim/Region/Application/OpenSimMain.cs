@@ -946,6 +946,7 @@ namespace OpenSim
                     }
                     break;
 
+                case "exit":
                 case "quit":
                 case "shutdown":
                     Shutdown();
