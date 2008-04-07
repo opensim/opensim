@@ -128,7 +128,8 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if( m_rootPart == null )
                 {
-                    throw new NullReferenceException(string.Format("Object {0} has no root part.", m_uuid));
+                    throw new NullReferenceException(
+                        string.Format("[SCENE OBJECT GROUP]: Object {0} has no root part.", m_uuid));
                 }
 
                 return m_rootPart.GroupPosition;
@@ -164,7 +165,7 @@ namespace OpenSim.Region.Environment.Scenes
             get {
                 if (m_rootPart == null)
                 {
-                    m_log.Error("[PRIMGROUP]: Unable to find the rootpart for a LocalId Request!");
+                    m_log.Error("[SCENE OBJECT GROUP]: Unable to find the rootpart for a LocalId Request!");
                     return 0;
                 }
  
@@ -1948,7 +1949,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Completely delete this group and tell all the scene presences about that deletion.
         /// </summary>
         public void DeleteGroup()
-        {
+        {            
             DetachFromBackup(this);
             
             lock (m_parts)

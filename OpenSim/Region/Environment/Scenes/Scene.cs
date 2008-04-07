@@ -2676,7 +2676,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="group"></param>
         public void DeleteSceneObjectGroup(SceneObjectGroup group)
-        {
+        {           
             SceneObjectPart rootPart = (group).GetChildPart(group.UUID);
             if (rootPart.PhysActor != null)
             {
@@ -2693,6 +2693,14 @@ namespace OpenSim.Region.Environment.Scenes
                 m_innerScene.RemoveAPrimCount();
             }
             group.DeleteParts();
+            
+            // In case anybody else retains a reference to this group, signal deletion by changing the name
+            // to null.  We can't zero out the UUID because this is taken from the root part, which has already
+            // been removed.
+            // FIXME: This is a really poor temporary solution, since it still leaves plenty of scope for race
+            // conditions where a user deletes an entity while it is being stored.  Really, the update
+            // code needs a redesign.
+            group.Name = null;          
         }        
 
         /// <summary>
