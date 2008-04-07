@@ -77,7 +77,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary> 
         protected TaskInventoryDictionary m_taskInventory = new TaskInventoryDictionary();
 
-        [XmlIgnore]
         public TaskInventoryDictionary TaskInventory
         {
             get { return m_taskInventory; }

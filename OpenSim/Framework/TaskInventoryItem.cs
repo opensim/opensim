@@ -67,41 +67,31 @@ namespace OpenSim.Framework
         // see IXmlSerializable
         public void ReadXml(XmlReader reader)
         {
-            m_log.DebugFormat(
-                "[TASK INVENTORY]: Initial task inventory deserialization CanDeserialize() call was {0}",
-                tiiSerializer.CanDeserialize(reader));
-            
-            reader.Read();
-            while (tiiSerializer.CanDeserialize(reader))
+            m_log.DebugFormat("[TASK INVENTORY]: ReadXml current node before actions, {0}", reader.Name);           
+
+            if (!reader.IsEmptyElement)
             {
-                TaskInventoryItem item = (TaskInventoryItem)tiiSerializer.Deserialize(reader);
-                Add(item.ItemID, item);
+                reader.Read();
+                while (tiiSerializer.CanDeserialize(reader))
+                {
+                    TaskInventoryItem item = (TaskInventoryItem)tiiSerializer.Deserialize(reader);
+                    Add(item.ItemID, item);
+                    
+                    m_log.DebugFormat("[TASK INVENTORY]: Instanted prim item {0}, {1} from xml", item.Name, item.ItemID);
+                }
                 
-//                m_log.DebugFormat("[TASK INVENTORY]: Instanted prim item {0}, {1} from xml", item.Name, item.ItemID);
+                m_log.DebugFormat("[TASK INVENTORY]: Instantiated {0} prim items in total from xml", Count);
             }
-            
-//            m_log.DebugFormat("[TASK INVENTORY]: Instantiated {0} prim items in total from xml", Count);
+            else
+            {
+                m_log.DebugFormat("[TASK INVENTORY]: Skipping empty element {0}", reader.Name);
+            }
             
             // For some .net implementations, this last read is necessary so that we advance beyond the end tag 
             // of the element wrapping this object so that the rest of the serialization can complete normally.
             reader.Read();
             
-//            m_log.DebugFormat("[TASK INVENTORY]: Current node {0}", reader.Name);
-            
-//            reader.Read();
-//            while (reader.Name.Equals("TaskInventoryItem"))
-//            {
-//                TaskInventoryItem item = (TaskInventoryItem)tiiSerializer.Deserialize(reader);
-//                Add(item.ItemID, item);
-//            }    
-
-//            ICollection<TaskInventoryItem> items 
-//                = (ICollection<TaskInventoryItem>)tiiSerializer.Deserialize(reader);
-//            
-//            foreach (TaskInventoryItem item in items)
-//            {
-//                Add(item.ItemID, item);
-//            }
+            m_log.DebugFormat("[TASK INVENTORY]: ReadXml Current node after actions, {0}", reader.Name);            
         }
         
         // see IXmlSerializable

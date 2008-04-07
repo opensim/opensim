@@ -296,36 +296,46 @@ namespace OpenSim.Region.Environment.Scenes
             
             StringReader sr = new StringReader(xmlData);
             XmlTextReader reader = new XmlTextReader(sr);
-            reader.Read();
-            reader.ReadStartElement("SceneObjectGroup");
-            reader.ReadStartElement("RootPart");
-            m_rootPart = SceneObjectPart.FromXml(reader);
-            AddPart(m_rootPart);
-            
-//            m_log.DebugFormat("[SCENE OBJECT GROUP]: Current node {0}", reader.Name);            
-            
-            reader.ReadEndElement();
-
-            while (reader.Read())
+            try
             {
-                switch (reader.NodeType)
+                reader.Read();
+                reader.ReadStartElement("SceneObjectGroup");
+                reader.ReadStartElement("RootPart");
+                m_rootPart = SceneObjectPart.FromXml(reader);
+                AddPart(m_rootPart);
+                
+                m_log.DebugFormat("[SCENE OBJECT GROUP]: Current node {0}", reader.Name);            
+                
+                reader.ReadEndElement();
+    
+                while (reader.Read())
                 {
-                    case XmlNodeType.Element:
-                        if (reader.Name == "Part")
-                        {
-                            reader.Read();
-                            SceneObjectPart part = SceneObjectPart.FromXml(reader);
-                            part.LocalId = m_scene.PrimIDAllocate();
-                            AddPart(part);
-                            part.RegionHandle = m_regionHandle;
-
-                            part.TrimPermissions();
-                        }
-                        break;
-                    case XmlNodeType.EndElement:
-                        break;
+                    switch (reader.NodeType)
+                    {
+                        case XmlNodeType.Element:
+                            if (reader.Name == "Part")
+                            {
+                                reader.Read();
+                                SceneObjectPart part = SceneObjectPart.FromXml(reader);
+                                part.LocalId = m_scene.PrimIDAllocate();
+                                AddPart(part);
+                                part.RegionHandle = m_regionHandle;
+    
+                                part.TrimPermissions();
+                            }
+                            break;
+                        case XmlNodeType.EndElement:
+                            break;
+                    }
                 }
             }
+            catch (XmlException e)
+            {
+                m_log.ErrorFormat("[SCENE OBJECT GROUP]: Deserialization of following xml failed, {0}", xmlData);
+                
+                // Let's see if carrying on does anything for us
+            }
+            
             reader.Close();
             sr.Close();
 
