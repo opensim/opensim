@@ -126,7 +126,7 @@ namespace OpenSim.Data.SQLite
             row["inventoryEveryOnePermissions"] = item.inventoryEveryOnePermissions;
         }
 
-        private void addFolder(InventoryFolderBase folder)
+        private void addFolder(InventoryFolderBase folder, bool add)
         {
             lock (ds)
             {
@@ -135,12 +135,18 @@ namespace OpenSim.Data.SQLite
                 DataRow inventoryRow = inventoryFolderTable.Rows.Find(Util.ToRawUuidString(folder.folderID));
                 if (inventoryRow == null)
                 {
+                    if (! add)
+                        m_log.ErrorFormat("Interface Misuse: Attempting to Update non-existant inventory folder: {0}", folder.folderID);
+
                     inventoryRow = inventoryFolderTable.NewRow();
                     fillFolderRow(inventoryRow, folder);
                     inventoryFolderTable.Rows.Add(inventoryRow);
                 }
                 else
                 {
+                    if (add)
+                        m_log.ErrorFormat("Interface Misuse: Attempting to Add inventory folder that already exists: {0}", folder.folderID);
+
                     fillFolderRow(inventoryRow, folder);
                 }
 
@@ -170,7 +176,7 @@ namespace OpenSim.Data.SQLite
             }
         }
 
-        private void addItem(InventoryItemBase item)
+        private void addItem(InventoryItemBase item, bool add)
         {
             lock (ds)
             {
@@ -179,12 +185,18 @@ namespace OpenSim.Data.SQLite
                 DataRow inventoryRow = inventoryItemTable.Rows.Find(Util.ToRawUuidString(item.inventoryID));
                 if (inventoryRow == null)
                 {
+                    if (! add)
+                        m_log.ErrorFormat("Interface Misuse: Attempting to Update non-existant inventory item: {0}", item.inventoryID);
+
                     inventoryRow = inventoryItemTable.NewRow();
                     fillItemRow(inventoryRow, item);
                     inventoryItemTable.Rows.Add(inventoryRow);
                 }
                 else
                 {
+                    if (add)
+                        m_log.ErrorFormat("Interface Misuse: Attempting to Add inventory item that already exists: {0}", item.inventoryID);
+                    
                     fillItemRow(inventoryRow, item);
                 }
                 invItemsDa.Update(ds, "inventoryitems");
@@ -385,7 +397,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="item">The item to be created</param>
         public void addInventoryItem(InventoryItemBase item)
         {
-            addItem(item);
+            addItem(item, true);
         }
 
         /// <summary>
@@ -394,7 +406,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="item">The updated item</param>
         public void updateInventoryItem(InventoryItemBase item)
         {
-            addItem(item);
+            addItem(item, false);
         }
 
         /// <summary>
@@ -436,7 +448,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="folder">The inventory folder</param>
         public void addInventoryFolder(InventoryFolderBase folder)
         {
-            addFolder(folder);
+            addFolder(folder, true);
         }
 
         /// <summary>
@@ -445,7 +457,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="folder">The inventory folder</param>
         public void updateInventoryFolder(InventoryFolderBase folder)
         {
-            addFolder(folder);
+            addFolder(folder, false);
         }
 
         /// <summary>
