@@ -7,7 +7,7 @@ gridmode = false
 
 ; *** Prim Storage - only leave one storage_plugin uncommented ***
 ; --- The NullStorage stores nothing - effectively disabling persistence:
-storage_plugin = "OpenSim.Data.Null.dll"
+storage_plugin = "OpenSim.DataStore.NullStorage.dll"
 
 ; --- To use sqlite as region storage:
 ;storage_plugin = "OpenSim.Data.SQLite.dll"
@@ -285,3 +285,19 @@ CleanUpOldScriptsOnStartup=true
 [LL-Functions]
 ; Set the following to true to allow administrator owned scripts to execute console commands
 AllowosConsoleCommand=false
+
+[DataSnapshot]
+; The following set of configs pertains to search.
+; Set index_sims to true to enable search engines to index your searchable data
+; If false, no data will be exposed, DataSnapshot module will be off, and you can ignore the rest of these search-related configs
+index_sims = false
+; If search is on, change this to your grid name; will be ignored for standalones
+gridname = "OSGrid"
+; Period between data snapshots, in seconds. 20 minutes, for starters, so that you see the initial changes fast.
+; Later, you may want to increase this to 3600 (1 hour) or more
+default_snapshot_period = 1200
+; This will be created in bin, if it doesn't exist already. It will hold the data snapshots.
+snapshot_cache_directory = "DataSnapshot"
+; This semicolon-separated string serves to notify specific data services
+; about the existence of this sim.
+data_services="http://metaverseink.com/cgi-bin/register.py"
