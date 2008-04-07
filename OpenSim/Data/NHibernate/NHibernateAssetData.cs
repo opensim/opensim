@@ -87,7 +87,7 @@ namespace OpenSim.Data.NHibernate
             }
         }
 
-      override public void CreateAsset(AssetBase asset)
+        override public void CreateAsset(AssetBase asset)
         {
             if (!ExistsAsset(asset.FullID)) {
                 using(ISession session = factory.OpenSession()) {
