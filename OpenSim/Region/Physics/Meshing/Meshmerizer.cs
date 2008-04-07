@@ -57,7 +57,7 @@ namespace OpenSim.Region.Physics.Meshing
         // Setting baseDir to a path will enable the dumping of raw files
         // raw files can be imported by blender so a visual inspection of the results can be done
         //        const string baseDir = "rawFiles";
-        private const string baseDir = null; //"rawFiles";
+        private const string baseDir = null; // "rawFiles";
 
 // TODO: unused
 //         private static void IntersectionParameterPD(PhysicsVector p1, PhysicsVector r1, PhysicsVector p2,
@@ -734,17 +734,21 @@ namespace OpenSim.Region.Physics.Meshing
             Extruder extr = new Extruder();
 
             extr.size = size;
+
+            //System.Console.WriteLine("taperFactorX: " + taperX.ToString());
+            //System.Console.WriteLine("taperFactorY: " + taperY.ToString());
+
             if (taperX != 100)
             {
                 if (taperX > 100)
                 {
-                    extr.taperTopFactorX = 1.0f - ((float)taperX / 200);
-                    //m_log.Warn("taperTopFactorX: " + extr.taperTopFactorX.ToString());
+                    extr.taperTopFactorX = 1.0f - ((float)(taperX - 100) / 100);
+                    //System.Console.WriteLine("taperTopFactorX: " + extr.taperTopFactorX.ToString());
                 }
                 else
                 {
                     extr.taperBotFactorX = 1.0f - ((100 - (float)taperX) / 100);
-                    //m_log.Warn("taperBotFactorX: " + extr.taperBotFactorX.ToString());
+                    //System.Console.WriteLine("taperBotFactorX: " + extr.taperBotFactorX.ToString());
                 }
 
             }
@@ -753,13 +757,13 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 if (taperY > 100)
                 {
-                    extr.taperTopFactorY = 1.0f - ((float)taperY / 200);
-                    //m_log.Warn("taperTopFactorY: " + extr.taperTopFactorY.ToString());
+                    extr.taperTopFactorY = 1.0f - ((float)(taperY - 100) / 200);
+                   // System.Console.WriteLine("taperTopFactorY: " + extr.taperTopFactorY.ToString());
                 }
                 else
                 {
                     extr.taperBotFactorY = 1.0f - ((100 - (float)taperY) / 100);
-                    //m_log.Warn("taperBotFactorY: " + extr.taperBotFactorY.ToString());
+                    //System.Console.WriteLine("taperBotFactorY: " + extr.taperBotFactorY.ToString());
                 }
             }
 
@@ -925,12 +929,12 @@ namespace OpenSim.Region.Physics.Meshing
                 if (taperX > 100)
                 {
                     extr.taperTopFactorX = 1.0f - ((float)taperX / 200);
-                    //m_log.Warn("taperTopFactorX: " + extr.taperTopFactorX.ToString());
+                    //System.Console.WriteLine("taperTopFactorX: " + extr.taperTopFactorX.ToString());
                 }
                 else
                 {
                     extr.taperBotFactorX = 1.0f - ((100 - (float)taperX) / 100);
-                    //m_log.Warn("taperBotFactorX: " + extr.taperBotFactorX.ToString());
+                    //System.Console.WriteLine("taperBotFactorX: " + extr.taperBotFactorX.ToString());
                 }
             }
 
@@ -939,12 +943,12 @@ namespace OpenSim.Region.Physics.Meshing
                 if (taperY > 100)
                 {
                     extr.taperTopFactorY = 1.0f - ((float)taperY / 200);
-                    //m_log.Warn("taperTopFactorY: " + extr.taperTopFactorY.ToString());
+                    //System.Console.WriteLine("taperTopFactorY: " + extr.taperTopFactorY.ToString());
                 }
                 else
                 {
                     extr.taperBotFactorY = 1.0f - ((100 - (float)taperY) / 100);
-                    //m_log.Warn("taperBotFactorY: " + extr.taperBotFactorY.ToString());
+                    //System.Console.WriteLine("taperBotFactorY: " + extr.taperBotFactorY.ToString());
                 }
             }
 
