@@ -34,20 +34,47 @@ namespace OpenSim.Framework
 {
     public class InventoryCollection
     {
-        public List<InventoryFolderBase> Folders;
-        public List<InventoryItemBase> AllItems;
-        public LLUUID UserID;
+        public List<InventoryFolderBase> _folders;
+        public List<InventoryItemBase> _allItems;
+        public LLUUID _userID;
+        
+        public List<InventoryFolderBase> Folders {
+        	get {
+        		return _folders;
+        	}
+        	set {
+        		_folders = value;
+        	}
+        }
+
+        public List<InventoryItemBase> AllItems {
+        	get {
+        		return _allItems;
+        	}
+        	set {
+        		_allItems = value;
+        	}
+        }
+
+        public LLUUID UserID {
+        	get {
+        		return _userID;
+        	}
+        	set {
+        		_userID = value;
+        	}
+        }
 
         public InventoryCollection()
         {
-            Folders = new List<InventoryFolderBase>();
-            AllItems = new List<InventoryItemBase>();
+            _folders = new List<InventoryFolderBase>();
+            _allItems = new List<InventoryItemBase>();
         }
 
         public InventoryCollection(List<InventoryFolderBase> folders, List<InventoryItemBase> allItems)
         {
-            Folders = folders;
-            AllItems = allItems;
+            _folders = folders;
+            _allItems = allItems;
         }
     }
 }
