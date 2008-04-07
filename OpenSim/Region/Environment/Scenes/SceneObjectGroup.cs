@@ -293,7 +293,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_scene = scene;
             m_regionHandle = regionHandle;
-
+            
             StringReader sr = new StringReader(xmlData);
             XmlTextReader reader = new XmlTextReader(sr);
             reader.Read();
