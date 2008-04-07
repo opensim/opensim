@@ -91,7 +91,7 @@ namespace OpenSim.Framework
             // of the element wrapping this object so that the rest of the serialization can complete normally.
             reader.Read();
             
-            m_log.DebugFormat("[TASK INVENTORY]: ReadXml Current node after actions, {0}", reader.Name);            
+            m_log.DebugFormat("[TASK INVENTORY]: ReadXml current node after actions, {0}", reader.Name);            
         }
         
         // see IXmlSerializable
