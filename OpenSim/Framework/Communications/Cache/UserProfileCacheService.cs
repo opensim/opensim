@@ -105,7 +105,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 if (userProfile.RootFolder != null)
                 {
-                    if (userProfile.RootFolder.folderID == parentID)
+                    if (userProfile.RootFolder.ID == parentID)
                     {
                         InventoryFolderImpl createdFolder =
                             userProfile.RootFolder.CreateNewSubFolder(folderID, folderName, folderType);
@@ -113,12 +113,12 @@ namespace OpenSim.Framework.Communications.Cache
                         if (createdFolder != null)
                         {
                             InventoryFolderBase createdBaseFolder = new InventoryFolderBase();
-                            createdBaseFolder.agentID = createdFolder.agentID;
-                            createdBaseFolder.folderID = createdFolder.folderID;
-                            createdBaseFolder.name = createdFolder.name;
-                            createdBaseFolder.parentID = createdFolder.parentID;
-                            createdBaseFolder.type = createdFolder.type;
-                            createdBaseFolder.version = createdFolder.version;
+                            createdBaseFolder.AgentID = createdFolder.AgentID;
+                            createdBaseFolder.ID = createdFolder.ID;
+                            createdBaseFolder.Name = createdFolder.Name;
+                            createdBaseFolder.ParentID = createdFolder.ParentID;
+                            createdBaseFolder.Type = createdFolder.Type;
+                            createdBaseFolder.Version = createdFolder.Version;
                             m_parent.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, createdBaseFolder);
                         }
                     }
@@ -156,12 +156,12 @@ namespace OpenSim.Framework.Communications.Cache
                 if (userProfile.RootFolder != null)
                 {
                     InventoryFolderBase baseFolder = new InventoryFolderBase();
-                    baseFolder.agentID = remoteClient.AgentId;
-                    baseFolder.folderID = folderID;
-                    baseFolder.name = name;
-                    baseFolder.parentID = parentID;
-                    baseFolder.type = (short) type;
-                    baseFolder.version = userProfile.RootFolder.version;
+                    baseFolder.AgentID = remoteClient.AgentId;
+                    baseFolder.ID = folderID;
+                    baseFolder.Name = name;
+                    baseFolder.ParentID = parentID;
+                    baseFolder.Type = (short) type;
+                    baseFolder.Version = userProfile.RootFolder.Version;
                     m_parent.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, baseFolder);
                 }
             }
@@ -176,9 +176,9 @@ namespace OpenSim.Framework.Communications.Cache
                 if (userProfile.RootFolder != null)
                 {
                     InventoryFolderBase baseFolder = new InventoryFolderBase();
-                    baseFolder.agentID = remoteClient.AgentId;
-                    baseFolder.folderID = folderID;
-                    baseFolder.parentID = parentID;
+                    baseFolder.AgentID = remoteClient.AgentId;
+                    baseFolder.ID = folderID;
+                    baseFolder.ParentID = parentID;
                     m_parent.InventoryService.MoveInventoryFolder(remoteClient.AgentId, baseFolder);
                 }
             }
@@ -199,10 +199,10 @@ namespace OpenSim.Framework.Communications.Cache
             // XXX We're not handling sortOrder yet!
 
             InventoryFolderImpl fold = null;
-            if (folderID == libraryRoot.folderID)
+            if (folderID == libraryRoot.ID)
             {
                 remoteClient.SendInventoryFolderDetails(
-                    libraryRoot.agentID, libraryRoot.folderID, libraryRoot.RequestListOfItems(),
+                    libraryRoot.AgentID, libraryRoot.ID, libraryRoot.RequestListOfItems(),
                     libraryRoot.RequestListOfFolders(), fetchFolders, fetchItems);
 
                 return;
@@ -211,7 +211,7 @@ namespace OpenSim.Framework.Communications.Cache
             if ((fold = libraryRoot.HasSubFolder(folderID)) != null)
             {
                 remoteClient.SendInventoryFolderDetails(
-                    libraryRoot.agentID, folderID, fold.RequestListOfItems(),
+                    libraryRoot.AgentID, folderID, fold.RequestListOfItems(),
                     fold.RequestListOfFolders(), fetchFolders, fetchItems);
 
                 return;
@@ -242,7 +242,7 @@ namespace OpenSim.Framework.Communications.Cache
                 
                 if (userProfile.RootFolder != null)
                 {
-                    if (userProfile.RootFolder.folderID == folderID)
+                    if (userProfile.RootFolder.ID == folderID)
                     {
 //                        m_log.DebugFormat(
 //                            "[AGENT INVENTORY]: Found root folder {0} for client {1}", 
@@ -301,7 +301,7 @@ namespace OpenSim.Framework.Communications.Cache
            // if (fetchItems)
            // {
                 InventoryFolderImpl fold = null;
-                if (folderID == libraryRoot.folderID)
+                if (folderID == libraryRoot.ID)
                 {
                     return libraryRoot.RequestListOfItems();
                 }
@@ -316,7 +316,7 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     if (userProfile.RootFolder != null)
                     {
-                        if (userProfile.RootFolder.folderID == folderID)
+                        if (userProfile.RootFolder.ID == folderID)
                         {
                             return userProfile.RootFolder.RequestListOfItems();
                         }
@@ -377,7 +377,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void HandleFetchInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID ownerID)
         {
-            if (ownerID == libraryRoot.agentID)
+            if (ownerID == libraryRoot.AgentID)
             {
                 //Console.WriteLine("request info for library item");
 

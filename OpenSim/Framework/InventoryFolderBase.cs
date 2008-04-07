@@ -40,31 +40,85 @@ namespace OpenSim.Framework
         /// <summary>
         /// The name of the folder (64 characters or less)
         /// </summary>
-        public string name;
+        private string _name;
 
         /// <summary>
         /// The agent who's inventory this is contained by
         /// </summary>
-        public LLUUID agentID;
+        private LLUUID _agentID;
 
         /// <summary>
         /// The folder this folder is contained in 
         /// </summary>
-        public LLUUID parentID;
+        private LLUUID _parentID;
 
         /// <summary>
         /// The UUID for this folder
         /// </summary>
-        public LLUUID folderID;
+        private LLUUID _id;
 
         /// <summary>
         /// Type of items normally stored in this folder
         /// </summary>
-        public short type;
+        private short _type;
 
         /// <summary>
         /// 
         /// </summary>
-        public ushort version;
+        private ushort _version;
+        
+        public string Name {
+        	get {
+        		return _name;
+        	}
+        	set {
+        		_name = value;
+        	}
+        }
+
+        public LLUUID AgentID {
+        	get {
+        		return _agentID;
+        	}
+        	set {
+        		_agentID = value;
+        	}
+        }
+
+        public LLUUID ParentID {
+        	get {
+        		return _parentID;
+        	}
+        	set {
+        		_parentID = value;
+        	}
+        }
+
+        public LLUUID ID {
+        	get {
+        		return _id;
+        	}
+        	set {
+        		_id = value;
+        	}
+        }
+
+        public short Type {
+        	get {
+        		return _type;
+        	}
+        	set {
+        		_type = value;
+        	}
+        }
+
+        public ushort Version {
+        	get {
+        		return _version;
+        	}
+        	set {
+        		_version = value;
+        	}
+        }
     }
 }

@@ -56,14 +56,14 @@ namespace OpenSim.Framework.Communications.Cache
         {
             m_log.Info("[LIBRARY INVENTORY]: Loading library inventory");
             
-            agentID = libOwner;
-            folderID = new LLUUID("00000112-000f-0000-0000-000100bba000");
-            name = "OpenSim Library";
-            parentID = LLUUID.Zero;
-            type = (short) 8;
-            version = (ushort) 1;
+            AgentID = libOwner;
+            ID = new LLUUID("00000112-000f-0000-0000-000100bba000");
+            Name = "OpenSim Library";
+            ParentID = LLUUID.Zero;
+            Type = (short) 8;
+            Version = (ushort) 1;
             
-            libraryFolders.Add(folderID, this);
+            libraryFolders.Add(ID, this);
             
             LoadLibraries(Path.Combine(Util.inventoryDir(), "Libraries.xml"));
 
@@ -172,20 +172,20 @@ namespace OpenSim.Framework.Communications.Cache
         {                        
             InventoryFolderImpl folderInfo = new InventoryFolderImpl();
             
-            folderInfo.folderID = new LLUUID(config.GetString("folderID", folderID.ToString()));
-            folderInfo.name = config.GetString("name", "unknown");                
-            folderInfo.parentID = new LLUUID(config.GetString("parentFolderID", folderID.ToString()));
-            folderInfo.type = (short)config.GetInt("type", 8);
+            folderInfo.ID = new LLUUID(config.GetString("folderID", ID.ToString()));
+            folderInfo.Name = config.GetString("name", "unknown");                
+            folderInfo.ParentID = new LLUUID(config.GetString("parentFolderID", ID.ToString()));
+            folderInfo.Type = (short)config.GetInt("type", 8);
             
-            folderInfo.agentID = libOwner;                
-            folderInfo.version = 1;                
+            folderInfo.AgentID = libOwner;                
+            folderInfo.Version = 1;                
             
-            if (libraryFolders.ContainsKey(folderInfo.parentID))
+            if (libraryFolders.ContainsKey(folderInfo.ParentID))
             {                
-                InventoryFolderImpl parentFolder = libraryFolders[folderInfo.parentID];
+                InventoryFolderImpl parentFolder = libraryFolders[folderInfo.ParentID];
                 
-                libraryFolders.Add(folderInfo.folderID, folderInfo);
-                parentFolder.SubFolders.Add(folderInfo.folderID, folderInfo);
+                libraryFolders.Add(folderInfo.ID, folderInfo);
+                parentFolder.SubFolders.Add(folderInfo.ID, folderInfo);
 
 //                 m_log.InfoFormat("[LIBRARY INVENTORY]: Adding folder {0} ({1})", folderInfo.name, folderInfo.folderID);
             }
@@ -193,7 +193,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 m_log.WarnFormat(
                     "[LIBRARY INVENTORY]: Couldn't add folder {0} ({1}) since parent folder with ID {2} does not exist!",
-                    folderInfo.name, folderInfo.folderID, folderInfo.parentID);
+                    folderInfo.Name, folderInfo.ID, folderInfo.ParentID);
             }
         }
 
@@ -206,9 +206,9 @@ namespace OpenSim.Framework.Communications.Cache
             InventoryItemBase item = new InventoryItemBase();
             item.Owner = libOwner;
             item.Creator = libOwner;
-            item.ID = new LLUUID(config.GetString("inventoryID", folderID.ToString()));
+            item.ID = new LLUUID(config.GetString("inventoryID", ID.ToString()));
             item.AssetID = new LLUUID(config.GetString("assetID", LLUUID.Random().ToString()));
-            item.Folder = new LLUUID(config.GetString("folderID", folderID.ToString()));
+            item.Folder = new LLUUID(config.GetString("folderID", ID.ToString()));
             item.Description = config.GetString("description", System.String.Empty);
             item.Name = config.GetString("name", System.String.Empty);
             item.AssetType = config.GetInt("assetType", 0);

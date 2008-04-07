@@ -104,25 +104,25 @@ namespace OpenSim.Grid.InventoryServer
             bool modified = false;
 
             // ensure we have a valid folder id
-            if (f.folderID == LLUUID.Zero)
+            if (f.ID == LLUUID.Zero)
             {
-                f.folderID = LLUUID.Random();
+                f.ID = LLUUID.Random();
                 modified = true;
             }
 
             // ensure we have  valid agent id 
-            if (f.agentID == LLUUID.Zero)
+            if (f.AgentID == LLUUID.Zero)
             {
                 if (parent != null)
-                    f.agentID = parent.agentID;
+                    f.AgentID = parent.AgentID;
                 else
-                    f.agentID = f.folderID;
+                    f.AgentID = f.ID;
                 modified = true;
             }
 
-            if (f.parentID == LLUUID.Zero && parent != null)
+            if (f.ParentID == LLUUID.Zero && parent != null)
             {
-                f.parentID = parent.folderID;
+                f.ParentID = parent.ID;
                 modified = true;
             }
 

@@ -325,16 +325,16 @@ namespace OpenSim.Grid.UserServer
                 {
 //                    m_log.DebugFormat("[LOGIN]: Received agent inventory folder {0}", InvFolder.name);
                     
-                    if (InvFolder.parentID == LLUUID.Zero)
+                    if (InvFolder.ParentID == LLUUID.Zero)
                     {
-                        rootID = InvFolder.folderID;
+                        rootID = InvFolder.ID;
                     }
                     TempHash = new Hashtable();
-                    TempHash["name"] = InvFolder.name;
-                    TempHash["parent_id"] = InvFolder.parentID.ToString();
-                    TempHash["version"] = (Int32) InvFolder.version;
-                    TempHash["type_default"] = (Int32) InvFolder.type;
-                    TempHash["folder_id"] = InvFolder.folderID.ToString();
+                    TempHash["name"] = InvFolder.Name;
+                    TempHash["parent_id"] = InvFolder.ParentID.ToString();
+                    TempHash["version"] = (Int32) InvFolder.Version;
+                    TempHash["type_default"] = (Int32) InvFolder.Type;
+                    TempHash["folder_id"] = InvFolder.ID.ToString();
                     AgentInventoryArray.Add(TempHash);
                 }
                 return new InventoryData(AgentInventoryArray, rootID);

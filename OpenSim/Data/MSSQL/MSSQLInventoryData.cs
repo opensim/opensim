@@ -370,12 +370,12 @@ namespace OpenSim.Data.MSSQL
             try
             {
                 InventoryFolderBase folder = new InventoryFolderBase();
-                folder.agentID = new LLUUID((string) reader["agentID"]);
-                folder.parentID = new LLUUID((string) reader["parentFolderID"]);
-                folder.folderID = new LLUUID((string) reader["folderID"]);
-                folder.name = (string) reader["folderName"];
-                folder.type = (short) reader["type"];
-                folder.version = (ushort) ((int) reader["version"]);
+                folder.AgentID = new LLUUID((string) reader["agentID"]);
+                folder.ParentID = new LLUUID((string) reader["parentFolderID"]);
+                folder.ID = new LLUUID((string) reader["folderID"]);
+                folder.Name = (string) reader["folderName"];
+                folder.Type = (short) reader["type"];
+                folder.Version = (ushort) ((int) reader["version"]);
                 return folder;
             }
             catch (Exception e)
@@ -557,12 +557,12 @@ namespace OpenSim.Data.MSSQL
 
 
             Dictionary<string, string> param = new Dictionary<string, string>();
-            param["folderID"] = folder.folderID.ToString();
-            param["agentID"] = folder.agentID.ToString();
-            param["parentFolderID"] = folder.parentID.ToString();
-            param["folderName"] = folder.name;
-            param["type"] = Convert.ToString(folder.type);
-            param["version"] = Convert.ToString(folder.version);
+            param["folderID"] = folder.ID.ToString();
+            param["agentID"] = folder.AgentID.ToString();
+            param["parentFolderID"] = folder.ParentID.ToString();
+            param["folderName"] = folder.Name;
+            param["type"] = Convert.ToString(folder.Type);
+            param["version"] = Convert.ToString(folder.Version);
 
             try
             {
@@ -589,13 +589,13 @@ namespace OpenSim.Data.MSSQL
                                                 "type = @type," +
                                                 "version = @version where " +
                                                 "folderID = @keyFolderID;", database.getConnection());
-            SqlParameter param1 = new SqlParameter("@folderID", folder.folderID.ToString());
-            SqlParameter param2 = new SqlParameter("@agentID", folder.agentID.ToString());
-            SqlParameter param3 = new SqlParameter("@parentFolderID", folder.parentID.ToString());
-            SqlParameter param4 = new SqlParameter("@folderName", folder.name);
-            SqlParameter param5 = new SqlParameter("@type", folder.type);
-            SqlParameter param6 = new SqlParameter("@version", folder.version);
-            SqlParameter param7 = new SqlParameter("@keyFolderID", folder.folderID.ToString());
+            SqlParameter param1 = new SqlParameter("@folderID", folder.ID.ToString());
+            SqlParameter param2 = new SqlParameter("@agentID", folder.AgentID.ToString());
+            SqlParameter param3 = new SqlParameter("@parentFolderID", folder.ParentID.ToString());
+            SqlParameter param4 = new SqlParameter("@folderName", folder.Name);
+            SqlParameter param5 = new SqlParameter("@type", folder.Type);
+            SqlParameter param6 = new SqlParameter("@version", folder.Version);
+            SqlParameter param7 = new SqlParameter("@keyFolderID", folder.ID.ToString());
             command.Parameters.Add(param1);
             command.Parameters.Add(param2);
             command.Parameters.Add(param3);
@@ -623,9 +623,9 @@ namespace OpenSim.Data.MSSQL
             SqlCommand command = new SqlCommand("UPDATE inventoryfolders set folderID = @folderID, " +
                                                 "parentFolderID = @parentFolderID," +
                                                 "folderID = @keyFolderID;", database.getConnection());
-            SqlParameter param1 = new SqlParameter("@folderID", folder.folderID.ToString());
-            SqlParameter param2 = new SqlParameter("@parentFolderID", folder.parentID.ToString());
-            SqlParameter param3 = new SqlParameter("@keyFolderID", folder.folderID.ToString());
+            SqlParameter param1 = new SqlParameter("@folderID", folder.ID.ToString());
+            SqlParameter param2 = new SqlParameter("@parentFolderID", folder.ParentID.ToString());
+            SqlParameter param3 = new SqlParameter("@keyFolderID", folder.ID.ToString());
             command.Parameters.Add(param1);
             command.Parameters.Add(param2);
             command.Parameters.Add(param3);
@@ -660,7 +660,7 @@ namespace OpenSim.Data.MSSQL
             getInventoryFolders(ref folders, parentID);
 
             for (int i = 0; i < folders.Count; i++)
-                getInventoryFolders(ref folders, folders[i].folderID);
+                getInventoryFolders(ref folders, folders[i].ID);
 
             return folders;
         }
@@ -716,8 +716,8 @@ namespace OpenSim.Data.MSSQL
                 //Delete all sub-folders
                 foreach (InventoryFolderBase f in subFolders)
                 {
-                    deleteOneFolder(f.folderID);
-                    deleteItemsInFolder(f.folderID);
+                    deleteOneFolder(f.ID);
+                    deleteItemsInFolder(f.ID);
                 }
 
                 //Delete the actual row

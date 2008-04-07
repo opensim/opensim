@@ -1307,10 +1307,10 @@ namespace OpenSim.Region.ClientStack
                 foreach (InventoryFolderBase folder in folders)
                 {
                     descend.FolderData[i] = new InventoryDescendentsPacket.FolderDataBlock();
-                    descend.FolderData[i].FolderID = folder.folderID;
-                    descend.FolderData[i].Name = Helpers.StringToField(folder.name);
-                    descend.FolderData[i].ParentID = folder.parentID;
-                    descend.FolderData[i].Type = (sbyte) folder.type;
+                    descend.FolderData[i].FolderID = folder.ID;
+                    descend.FolderData[i].Name = Helpers.StringToField(folder.Name);
+                    descend.FolderData[i].ParentID = folder.ParentID;
+                    descend.FolderData[i].Type = (sbyte) folder.Type;
 
                     i++;
                     count++;

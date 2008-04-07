@@ -60,7 +60,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="folder"></param>
         private void AddPendingFolder(InventoryFolderImpl folder)
         {
-            LLUUID parentFolderId = folder.parentID;
+            LLUUID parentFolderId = folder.ParentID;
             
             if (pendingCategorizationFolders.ContainsKey(parentFolderId))
             {
@@ -83,17 +83,17 @@ namespace OpenSim.Framework.Communications.Cache
         /// </param>
         private void ResolvePendingFolders(InventoryFolderImpl parent)
         {
-            if (pendingCategorizationFolders.ContainsKey(parent.folderID))
+            if (pendingCategorizationFolders.ContainsKey(parent.ID))
             {
-                foreach (InventoryFolderImpl folder in pendingCategorizationFolders[parent.folderID])
+                foreach (InventoryFolderImpl folder in pendingCategorizationFolders[parent.ID])
                 {
 //                    m_log.DebugFormat(
 //                        "[INVENTORY CACHE]: Resolving pending received folder {0} {1} into {2} {3}",
 //                        folder.name, folder.folderID, parent.name, parent.folderID);
                     
-                    if (!parent.SubFolders.ContainsKey(folder.folderID))
+                    if (!parent.SubFolders.ContainsKey(folder.ID))
                     {
-                        parent.SubFolders.Add(folder.folderID, folder);
+                        parent.SubFolders.Add(folder.ID, folder);
                     }                    
                 }
             }
@@ -118,16 +118,16 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     if (RootFolder == null)
                     {
-                        if (folderInfo.parentID == LLUUID.Zero)
+                        if (folderInfo.ParentID == LLUUID.Zero)
                         {
                             RootFolder = folderInfo;
                         }
                     }
-                    else if (RootFolder.folderID == folderInfo.parentID)
+                    else if (RootFolder.ID == folderInfo.ParentID)
                     {
-                        if (!RootFolder.SubFolders.ContainsKey(folderInfo.folderID))
+                        if (!RootFolder.SubFolders.ContainsKey(folderInfo.ID))
                         {
-                            RootFolder.SubFolders.Add(folderInfo.folderID, folderInfo);
+                            RootFolder.SubFolders.Add(folderInfo.ID, folderInfo);
                         }
                         else
                         {
@@ -136,12 +136,12 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                     else
                     {
-                        InventoryFolderImpl folder = RootFolder.HasSubFolder(folderInfo.parentID);
+                        InventoryFolderImpl folder = RootFolder.HasSubFolder(folderInfo.ParentID);
                         if (folder != null)
                         {
-                            if (!folder.SubFolders.ContainsKey(folderInfo.folderID))
+                            if (!folder.SubFolders.ContainsKey(folderInfo.ID))
                             {
-                                folder.SubFolders.Add(folderInfo.folderID, folderInfo);
+                                folder.SubFolders.Add(folderInfo.ID, folderInfo);
                             }
                         }
                         else
@@ -171,7 +171,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             if ((userID == UserProfile.UUID) && (RootFolder != null))
             {
-                if (itemInfo.Folder == RootFolder.folderID)
+                if (itemInfo.Folder == RootFolder.ID)
                 {
                     if (!RootFolder.Items.ContainsKey(itemInfo.ID))
                     {

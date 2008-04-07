@@ -107,7 +107,7 @@ namespace OpenSim.Region.Communications.OGS1
                 InventoryRequest request = m_RequestingInventory[userID];
                 foreach (InventoryFolderBase folder in response.Folders)
                 {
-                    if (folder.parentID == LLUUID.Zero)
+                    if (folder.ParentID == LLUUID.Zero)
                     {
                         InventoryFolderImpl newfolder = new InventoryFolderImpl(folder);
                         rootFolder = newfolder;
@@ -119,7 +119,7 @@ namespace OpenSim.Region.Communications.OGS1
                 {
                     foreach (InventoryFolderBase folder in response.Folders)
                     {
-                        if (folder.folderID != rootFolder.folderID)
+                        if (folder.ID != rootFolder.ID)
                         {
                             InventoryFolderImpl newfolder = new InventoryFolderImpl(folder);
                             request.FolderCallBack(userID, newfolder);

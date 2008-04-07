@@ -132,11 +132,11 @@ namespace OpenSim.Data.SQLite
             {
                 DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
 
-                DataRow inventoryRow = inventoryFolderTable.Rows.Find(Util.ToRawUuidString(folder.folderID));
+                DataRow inventoryRow = inventoryFolderTable.Rows.Find(Util.ToRawUuidString(folder.ID));
                 if (inventoryRow == null)
                 {
                     if (! add)
-                        m_log.ErrorFormat("Interface Misuse: Attempting to Update non-existant inventory folder: {0}", folder.folderID);
+                        m_log.ErrorFormat("Interface Misuse: Attempting to Update non-existant inventory folder: {0}", folder.ID);
 
                     inventoryRow = inventoryFolderTable.NewRow();
                     fillFolderRow(inventoryRow, folder);
@@ -145,7 +145,7 @@ namespace OpenSim.Data.SQLite
                 else
                 {
                     if (add)
-                        m_log.ErrorFormat("Interface Misuse: Attempting to Add inventory folder that already exists: {0}", folder.folderID);
+                        m_log.ErrorFormat("Interface Misuse: Attempting to Add inventory folder that already exists: {0}", folder.ID);
 
                     fillFolderRow(inventoryRow, folder);
                 }
@@ -160,7 +160,7 @@ namespace OpenSim.Data.SQLite
             {
                 DataTable inventoryFolderTable = ds.Tables["inventoryfolders"];
 
-                DataRow inventoryRow = inventoryFolderTable.Rows.Find(Util.ToRawUuidString(folder.folderID));
+                DataRow inventoryRow = inventoryFolderTable.Rows.Find(Util.ToRawUuidString(folder.ID));
                 if (inventoryRow == null)
                 {
                     inventoryRow = inventoryFolderTable.NewRow();
@@ -339,7 +339,7 @@ namespace OpenSim.Data.SQLite
             getInventoryFolders(ref folders, Util.ToRawUuidString(parentID));
 
             for (int i = 0; i < folders.Count; i++)
-                getInventoryFolders(ref folders, Util.ToRawUuidString(folders[i].folderID));
+                getInventoryFolders(ref folders, Util.ToRawUuidString(folders[i].ID));
 
             return folders;
         }
@@ -488,10 +488,10 @@ namespace OpenSim.Data.SQLite
                 //Delete all sub-folders
                 foreach (InventoryFolderBase f in subFolders)
                 {
-                    inventoryRow = inventoryFolderTable.Rows.Find(Util.ToRawUuidString(f.folderID));
+                    inventoryRow = inventoryFolderTable.Rows.Find(Util.ToRawUuidString(f.ID));
                     if (inventoryRow != null)
                     {
-                        deleteItemsInFolder(Util.ToRawUuidString(f.folderID));
+                        deleteItemsInFolder(Util.ToRawUuidString(f.ID));
                         inventoryRow.Delete();
                     }
                 }
@@ -590,29 +590,29 @@ namespace OpenSim.Data.SQLite
         private InventoryFolderBase buildFolder(DataRow row)
         {
             InventoryFolderBase folder = new InventoryFolderBase();
-            folder.folderID = new LLUUID((string) row["UUID"]);
-            folder.name = (string) row["name"];
-            folder.agentID = new LLUUID((string) row["agentID"]);
-            folder.parentID = new LLUUID((string) row["parentID"]);
-            folder.type = Convert.ToInt16(row["type"]);
-            folder.version = Convert.ToUInt16(row["version"]);
+            folder.ID = new LLUUID((string) row["UUID"]);
+            folder.Name = (string) row["name"];
+            folder.AgentID = new LLUUID((string) row["agentID"]);
+            folder.ParentID = new LLUUID((string) row["parentID"]);
+            folder.Type = Convert.ToInt16(row["type"]);
+            folder.Version = Convert.ToUInt16(row["version"]);
             return folder;
         }
 
         private void fillFolderRow(DataRow row, InventoryFolderBase folder)
         {
-            row["UUID"] = Util.ToRawUuidString(folder.folderID);
-            row["name"] = folder.name;
-            row["agentID"] = Util.ToRawUuidString(folder.agentID);
-            row["parentID"] = Util.ToRawUuidString(folder.parentID);
-            row["type"] = folder.type;
-            row["version"] = folder.version;
+            row["UUID"] = Util.ToRawUuidString(folder.ID);
+            row["name"] = folder.Name;
+            row["agentID"] = Util.ToRawUuidString(folder.AgentID);
+            row["parentID"] = Util.ToRawUuidString(folder.ParentID);
+            row["type"] = folder.Type;
+            row["version"] = folder.Version;
         }
 
         private void moveFolderRow(DataRow row, InventoryFolderBase folder)
         {
-            row["UUID"] = Util.ToRawUuidString(folder.folderID);
-            row["parentID"] = Util.ToRawUuidString(folder.parentID);
+            row["UUID"] = Util.ToRawUuidString(folder.ID);
+            row["parentID"] = Util.ToRawUuidString(folder.ParentID);
         }
 
         /***********************************************************************

@@ -381,12 +381,12 @@ namespace OpenSim.Data.MySQL
             try
             {
                 InventoryFolderBase folder = new InventoryFolderBase();
-                folder.agentID = new LLUUID((string) reader["agentID"]);
-                folder.parentID = new LLUUID((string) reader["parentFolderID"]);
-                folder.folderID = new LLUUID((string) reader["folderID"]);
-                folder.name = (string) reader["folderName"];
-                folder.type = (short) reader["type"];
-                folder.version = (ushort) ((int) reader["version"]);
+                folder.AgentID = new LLUUID((string) reader["agentID"]);
+                folder.ParentID = new LLUUID((string) reader["parentFolderID"]);
+                folder.ID = new LLUUID((string) reader["folderID"]);
+                folder.Name = (string) reader["folderName"];
+                folder.Type = (short) reader["type"];
+                folder.Version = (ushort) ((int) reader["version"]);
                 return folder;
             }
             catch (Exception e)
@@ -507,12 +507,12 @@ namespace OpenSim.Data.MySQL
             sql += "(?folderID, ?agentID, ?parentFolderID, ?folderName, ?type, ?version)";
 
             MySqlCommand cmd = new MySqlCommand(sql, database.Connection);
-            cmd.Parameters.AddWithValue("?folderID", folder.folderID.ToString());
-            cmd.Parameters.AddWithValue("?agentID", folder.agentID.ToString());
-            cmd.Parameters.AddWithValue("?parentFolderID", folder.parentID.ToString());
-            cmd.Parameters.AddWithValue("?folderName", folder.name);
-            cmd.Parameters.AddWithValue("?type", (short) folder.type);
-            cmd.Parameters.AddWithValue("?version", folder.version);
+            cmd.Parameters.AddWithValue("?folderID", folder.ID.ToString());
+            cmd.Parameters.AddWithValue("?agentID", folder.AgentID.ToString());
+            cmd.Parameters.AddWithValue("?parentFolderID", folder.ParentID.ToString());
+            cmd.Parameters.AddWithValue("?folderName", folder.Name);
+            cmd.Parameters.AddWithValue("?type", (short) folder.Type);
+            cmd.Parameters.AddWithValue("?version", folder.Version);
 
             try
             {
@@ -545,8 +545,8 @@ namespace OpenSim.Data.MySQL
                 "UPDATE inventoryfolders SET parentFolderID=?parentFolderID WHERE folderID=?folderID";
 
             MySqlCommand cmd = new MySqlCommand(sql, database.Connection);
-            cmd.Parameters.AddWithValue("?folderID", folder.folderID.ToString());
-            cmd.Parameters.AddWithValue("?parentFolderID", folder.parentID.ToString());
+            cmd.Parameters.AddWithValue("?folderID", folder.ID.ToString());
+            cmd.Parameters.AddWithValue("?parentFolderID", folder.ParentID.ToString());
 
             try
             {
@@ -581,7 +581,7 @@ namespace OpenSim.Data.MySQL
             getInventoryFolders(ref folders, parentID);
 
             for (int i = 0; i < folders.Count; i++)
-                getInventoryFolders(ref folders, folders[i].folderID);
+                getInventoryFolders(ref folders, folders[i].ID);
 
             return folders;
         }
@@ -637,8 +637,8 @@ namespace OpenSim.Data.MySQL
             //Delete all sub-folders
             foreach (InventoryFolderBase f in subFolders)
             {
-                deleteOneFolder(f.folderID);
-                deleteItemsInFolder(f.folderID);
+                deleteOneFolder(f.ID);
+                deleteItemsInFolder(f.ID);
             }
 
             //Delete the actual row

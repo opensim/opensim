@@ -180,7 +180,7 @@ namespace OpenSim.Data.NHibernate
         /// <param name="folder">The folder to be created</param>
         public void addInventoryFolder(InventoryFolderBase folder)
         {
-            if (!ExistsFolder(folder.folderID)) {
+            if (!ExistsFolder(folder.ID)) {
                 using(ISession session = factory.OpenSession()) {
                     using(ITransaction transaction = session.BeginTransaction()) {
                         session.Save(folder);
@@ -188,7 +188,7 @@ namespace OpenSim.Data.NHibernate
                     }
                 }
             } else {
-                m_log.ErrorFormat("Attempted to add Inventory Folder {0} that already exists, updating instead", folder.folderID);
+                m_log.ErrorFormat("Attempted to add Inventory Folder {0} that already exists, updating instead", folder.ID);
                 updateInventoryFolder(folder);
             }
         }
@@ -199,7 +199,7 @@ namespace OpenSim.Data.NHibernate
         /// <param name="folder">The updated folder</param>
         public void updateInventoryFolder(InventoryFolderBase folder)
         {
-            if (ExistsFolder(folder.folderID)) {
+            if (ExistsFolder(folder.ID)) {
                 using(ISession session = factory.OpenSession()) {
                     using(ITransaction transaction = session.BeginTransaction()) {
                         session.Update(folder);
@@ -207,7 +207,7 @@ namespace OpenSim.Data.NHibernate
                     }
                 }
             } else {
-                m_log.ErrorFormat("Attempted to add Inventory Folder {0} that already exists", folder.folderID);
+                m_log.ErrorFormat("Attempted to add Inventory Folder {0} that already exists", folder.ID);
             }
         }
 
@@ -375,7 +375,7 @@ namespace OpenSim.Data.NHibernate
             getInventoryFolders(ref folders, Util.ToRawUuidString(parentID));
 
             for (int i = 0; i < folders.Count; i++)
-                getInventoryFolders(ref folders, Util.ToRawUuidString(folders[i].folderID));
+                getInventoryFolders(ref folders, Util.ToRawUuidString(folders[i].ID));
 
             return folders;
         }

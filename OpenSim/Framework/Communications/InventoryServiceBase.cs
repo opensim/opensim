@@ -95,7 +95,7 @@ namespace OpenSim.Framework.Communications
                          
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
-                IList<InventoryFolderBase> folders = plugin.Value.getFolderHierarchy(rootFolder.folderID);
+                IList<InventoryFolderBase> folders = plugin.Value.getFolderHierarchy(rootFolder.ID);
                 userFolders.AddRange(folders);
             }    
             
@@ -190,7 +190,7 @@ namespace OpenSim.Framework.Communications
         protected void AddFolder(InventoryFolderBase folder)
         {
             m_log.DebugFormat(
-                "[INVENTORY SERVICE BASE]: Adding folder {0}, {1} to {2}", folder.name, folder.folderID, folder.parentID);
+                "[INVENTORY SERVICE BASE]: Adding folder {0}, {1} to {2}", folder.Name, folder.ID, folder.ParentID);
             
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
@@ -239,141 +239,141 @@ namespace OpenSim.Framework.Communications
             {
                 InventoryFolderBase folder = new InventoryFolderBase();
 
-                folder.parentID = LLUUID.Zero;
-                folder.agentID = user;
-                folder.folderID = LLUUID.Random();
-                folder.name = "My Inventory";
-                folder.type = (short)AssetType.Folder;
-                folder.version = 1;
-                Folders.Add(folder.folderID, folder);
+                folder.ParentID = LLUUID.Zero;
+                folder.AgentID = user;
+                folder.ID = LLUUID.Random();
+                folder.Name = "My Inventory";
+                folder.Type = (short)AssetType.Folder;
+                folder.Version = 1;
+                Folders.Add(folder.ID, folder);
 
-                LLUUID rootFolder = folder.folderID;
-
-                folder = new InventoryFolderBase();
-                folder.parentID = rootFolder;
-                folder.agentID = user;
-                folder.folderID = LLUUID.Random();
-                folder.name = "Animations";
-                folder.type = (short)AssetType.Animation;
-                folder.version = 1;
-                Folders.Add(folder.folderID, folder);
+                LLUUID rootFolder = folder.ID;
 
                 folder = new InventoryFolderBase();
-                folder.parentID = rootFolder;
-                folder.agentID = user;
-                folder.folderID = LLUUID.Random();
-                folder.name = "Body Parts";
-                folder.type = (short)AssetType.Bodypart;
-                folder.version = 1;
-                Folders.Add(folder.folderID, folder);
+                folder.ParentID = rootFolder;
+                folder.AgentID = user;
+                folder.ID = LLUUID.Random();
+                folder.Name = "Animations";
+                folder.Type = (short)AssetType.Animation;
+                folder.Version = 1;
+                Folders.Add(folder.ID, folder);
+
+                folder = new InventoryFolderBase();
+                folder.ParentID = rootFolder;
+                folder.AgentID = user;
+                folder.ID = LLUUID.Random();
+                folder.Name = "Body Parts";
+                folder.Type = (short)AssetType.Bodypart;
+                folder.Version = 1;
+                Folders.Add(folder.ID, folder);
                 
                 folder = new InventoryFolderBase();
-                folder.parentID = rootFolder;
-                folder.agentID = user;
-                folder.folderID = LLUUID.Random();
-                folder.name = "Calling Cards";
-                folder.type = (short)AssetType.CallingCard;
-                folder.version = 1;
-                Folders.Add(folder.folderID, folder);                
+                folder.ParentID = rootFolder;
+                folder.AgentID = user;
+                folder.ID = LLUUID.Random();
+                folder.Name = "Calling Cards";
+                folder.Type = (short)AssetType.CallingCard;
+                folder.Version = 1;
+                Folders.Add(folder.ID, folder);                
 
                 folder = new InventoryFolderBase();
-                folder.parentID = rootFolder;
-                folder.agentID = user;
-                folder.folderID = LLUUID.Random();
-                folder.name = "Clothing";
-                folder.type = (short)AssetType.Clothing;
-                folder.version = 1;
-                Folders.Add(folder.folderID, folder);
+                folder.ParentID = rootFolder;
+                folder.AgentID = user;
+                folder.ID = LLUUID.Random();
+                folder.Name = "Clothing";
+                folder.Type = (short)AssetType.Clothing;
+                folder.Version = 1;
+                Folders.Add(folder.ID, folder);
 
                 folder = new InventoryFolderBase();
-                folder.parentID = rootFolder;
-                folder.agentID = user;
-                folder.folderID = LLUUID.Random();
-                folder.name = "Gestures";
-                folder.type = (short)AssetType.Gesture;
-                folder.version = 1;
-                Folders.Add(folder.folderID, folder);
+                folder.ParentID = rootFolder;
+                folder.AgentID = user;
+                folder.ID = LLUUID.Random();
+                folder.Name = "Gestures";
+                folder.Type = (short)AssetType.Gesture;
+                folder.Version = 1;
+                Folders.Add(folder.ID, folder);
 
                 folder = new InventoryFolderBase();
-                folder.parentID = rootFolder;
-                folder.agentID = user;
-                folder.folderID = LLUUID.Random();
-                folder.name = "Landmarks";
-                folder.type = (short)AssetType.Landmark;
-                folder.version = 1;
-                Folders.Add(folder.folderID, folder);
+                folder.ParentID = rootFolder;
+                folder.AgentID = user;
+                folder.ID = LLUUID.Random();
+                folder.Name = "Landmarks";
+                folder.Type = (short)AssetType.Landmark;
+                folder.Version = 1;
+                Folders.Add(folder.ID, folder);
 
                 folder = new InventoryFolderBase();
-                folder.parentID = rootFolder;
-                folder.agentID = user;
-                folder.folderID = LLUUID.Random();
-                folder.name = "Lost And Found";
-                folder.type = (short)AssetType.LostAndFoundFolder;
-                folder.version = 1;
-                Folders.Add(folder.folderID, folder);
+                folder.ParentID = rootFolder;
+                folder.AgentID = user;
+                folder.ID = LLUUID.Random();
+                folder.Name = "Lost And Found";
+                folder.Type = (short)AssetType.LostAndFoundFolder;
+                folder.Version = 1;
+                Folders.Add(folder.ID, folder);
 
                 folder = new InventoryFolderBase();
-                folder.parentID = rootFolder;
-                folder.agentID = user;
-                folder.folderID = LLUUID.Random();
-                folder.name = "Notecards";
-                folder.type = (short)AssetType.Notecard;
-                folder.version = 1;
-                Folders.Add(folder.folderID, folder);
+                folder.ParentID = rootFolder;
+                folder.AgentID = user;
+                folder.ID = LLUUID.Random();
+                folder.Name = "Notecards";
+                folder.Type = (short)AssetType.Notecard;
+                folder.Version = 1;
+                Folders.Add(folder.ID, folder);
 
                 folder = new InventoryFolderBase();
-                folder.parentID = rootFolder;
-                folder.agentID = user;
-                folder.folderID = LLUUID.Random();
-                folder.name = "Objects";
-                folder.type = (short)AssetType.Primitive;
-                folder.version = 1;
-                Folders.Add(folder.folderID, folder);
+                folder.ParentID = rootFolder;
+                folder.AgentID = user;
+                folder.ID = LLUUID.Random();
+                folder.Name = "Objects";
+                folder.Type = (short)AssetType.Primitive;
+                folder.Version = 1;
+                Folders.Add(folder.ID, folder);
 
                 folder = new InventoryFolderBase();
-                folder.parentID = rootFolder;
-                folder.agentID = user;
-                folder.folderID = LLUUID.Random();
-                folder.name = "Photo Album";
-                folder.type = (short)AssetType.SnapshotFolder;
-                folder.version = 1;
-                Folders.Add(folder.folderID, folder);
+                folder.ParentID = rootFolder;
+                folder.AgentID = user;
+                folder.ID = LLUUID.Random();
+                folder.Name = "Photo Album";
+                folder.Type = (short)AssetType.SnapshotFolder;
+                folder.Version = 1;
+                Folders.Add(folder.ID, folder);
 
                 folder = new InventoryFolderBase();
-                folder.parentID = rootFolder;
-                folder.agentID = user;
-                folder.folderID = LLUUID.Random();
-                folder.name = "Scripts";
-                folder.type = (short)AssetType.LSLText;
-                folder.version = 1;
-                Folders.Add(folder.folderID, folder);
+                folder.ParentID = rootFolder;
+                folder.AgentID = user;
+                folder.ID = LLUUID.Random();
+                folder.Name = "Scripts";
+                folder.Type = (short)AssetType.LSLText;
+                folder.Version = 1;
+                Folders.Add(folder.ID, folder);
 
                 folder = new InventoryFolderBase();
-                folder.parentID = rootFolder;
-                folder.agentID = user;
-                folder.folderID = LLUUID.Random();
-                folder.name = "Sounds";
-                folder.type = (short)AssetType.Sound;
-                folder.version = 1;
-                Folders.Add(folder.folderID, folder);
+                folder.ParentID = rootFolder;
+                folder.AgentID = user;
+                folder.ID = LLUUID.Random();
+                folder.Name = "Sounds";
+                folder.Type = (short)AssetType.Sound;
+                folder.Version = 1;
+                Folders.Add(folder.ID, folder);
 
                 folder = new InventoryFolderBase();
-                folder.parentID = rootFolder;
-                folder.agentID = user;
-                folder.folderID = LLUUID.Random();
-                folder.name = "Textures";
-                folder.type = (short)AssetType.Texture;
-                folder.version = 1;
-                Folders.Add(folder.folderID, folder);
+                folder.ParentID = rootFolder;
+                folder.AgentID = user;
+                folder.ID = LLUUID.Random();
+                folder.Name = "Textures";
+                folder.Type = (short)AssetType.Texture;
+                folder.Version = 1;
+                Folders.Add(folder.ID, folder);
 
                 folder = new InventoryFolderBase();
-                folder.parentID = rootFolder;
-                folder.agentID = user;
-                folder.folderID = LLUUID.Random();
-                folder.name = "Trash";
-                folder.type = (short)AssetType.TrashFolder;
-                folder.version = 1;
-                Folders.Add(folder.folderID, folder);
+                folder.ParentID = rootFolder;
+                folder.AgentID = user;
+                folder.ID = LLUUID.Random();
+                folder.Name = "Trash";
+                folder.Type = (short)AssetType.TrashFolder;
+                folder.Version = 1;
+                Folders.Add(folder.ID, folder);
             }
         }
     }

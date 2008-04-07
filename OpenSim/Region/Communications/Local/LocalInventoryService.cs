@@ -49,7 +49,7 @@ namespace OpenSim.Region.Communications.Local
             //need to make sure we send root folder first
             foreach (InventoryFolderBase folder in folders)
             {
-                if (folder.parentID == LLUUID.Zero)
+                if (folder.ParentID == LLUUID.Zero)
                 {
                     rootFolder = RequestInventoryFolder(userID, folder, folderCallBack, itemCallBack);
                 }
@@ -59,7 +59,7 @@ namespace OpenSim.Region.Communications.Local
             {
                 foreach (InventoryFolderBase folder in folders)
                 {
-                    if (folder.folderID != rootFolder.folderID)
+                    if (folder.ID != rootFolder.ID)
                     {
                         RequestInventoryFolder(userID, folder, folderCallBack, itemCallBack);
                     }
@@ -112,7 +112,7 @@ namespace OpenSim.Region.Communications.Local
             InventoryFolderImpl newFolder = new InventoryFolderImpl(folder);
             folderCallBack(userID, newFolder);
 
-            List<InventoryItemBase> items = RequestFolderItems(newFolder.folderID);
+            List<InventoryItemBase> items = RequestFolderItems(newFolder.ID);
             foreach (InventoryItemBase item in items)
             {
                 itemCallBack(userID, item);

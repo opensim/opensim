@@ -327,7 +327,7 @@ namespace OpenSim.Region.Environment.Scenes
                         itemCopy.Name = item.Name;
                         itemCopy.AssetType = item.AssetType;
                         itemCopy.InvType = item.InvType;
-                        itemCopy.Folder = recipientUserInfo.RootFolder.folderID;
+                        itemCopy.Folder = recipientUserInfo.RootFolder.ID;
                         itemCopy.CurrentPermissions = 2147483647;
                         itemCopy.NextPermissions = 2147483647;
                         itemCopy.EveryOnePermissions = item.EveryOnePermissions;

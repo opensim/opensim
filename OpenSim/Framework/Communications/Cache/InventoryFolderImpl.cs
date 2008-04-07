@@ -45,12 +45,12 @@ namespace OpenSim.Framework.Communications.Cache
         // Constructors
         public InventoryFolderImpl(InventoryFolderBase folderbase)
         {
-            agentID = folderbase.agentID;
-            folderID = folderbase.folderID;
-            name = folderbase.name;
-            parentID = folderbase.parentID;
-            type = folderbase.type;
-            version = folderbase.version;
+            AgentID = folderbase.AgentID;
+            ID = folderbase.ID;
+            Name = folderbase.Name;
+            ParentID = folderbase.ParentID;
+            Type = folderbase.Type;
+            Version = folderbase.Version;
         }
 
         public InventoryFolderImpl()
@@ -63,12 +63,12 @@ namespace OpenSim.Framework.Communications.Cache
             if (!SubFolders.ContainsKey(folderID))
             {
                 InventoryFolderImpl subFold = new InventoryFolderImpl();
-                subFold.name = folderName;
-                subFold.folderID = folderID;
-                subFold.type = (short) type;
-                subFold.parentID = this.folderID;
-                subFold.agentID = agentID;
-                SubFolders.Add(subFold.folderID, subFold);
+                subFold.Name = folderName;
+                subFold.ID = folderID;
+                subFold.Type = (short) type;
+                subFold.ParentID = this.ID;
+                subFold.AgentID = AgentID;
+                SubFolders.Add(subFold.ID, subFold);
                 return subFold;
             }
             return null;

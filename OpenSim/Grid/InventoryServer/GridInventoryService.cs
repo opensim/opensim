@@ -51,7 +51,7 @@ namespace OpenSim.Grid.InventoryServer
 
             foreach (InventoryFolderBase folder in allFolders)
             {
-                List<InventoryItemBase> items = RequestFolderItems(folder.folderID);
+                List<InventoryItemBase> items = RequestFolderItems(folder.ID);
                 if (items != null)
                 {
                     allItems.InsertRange(0, items);
@@ -79,7 +79,7 @@ namespace OpenSim.Grid.InventoryServer
                 allFolders.InsertRange(0, folders);
                 foreach (InventoryFolderBase subfolder in folders)
                 {
-                    List<InventoryFolderBase> subFolders = GetAllFolders(subfolder.folderID);
+                    List<InventoryFolderBase> subFolders = GetAllFolders(subfolder.ID);
                     if (subFolders != null)
                     {
                         allFolders.InsertRange(0, subFolders);
@@ -166,10 +166,10 @@ namespace OpenSim.Grid.InventoryServer
             // Right now, this actions act more like an update/insert combination than a simple create.
             m_log.Info(
                 "[AGENT INVENTORY]: " +
-                "Updating in   " + folder.parentID.ToString()
-                + ", folder " + folder.name);
+                "Updating in   " + folder.ParentID.ToString()
+                + ", folder " + folder.Name);
 
-            AddNewInventoryFolder(folder.agentID, folder);
+            AddNewInventoryFolder(folder.AgentID, folder);
             return true;
         }
 
@@ -177,8 +177,8 @@ namespace OpenSim.Grid.InventoryServer
         {
             m_log.Info(
                 "[AGENT INVENTORY]: " +
-                "Moving folder " + folder.folderID
-                + " to " + folder.parentID.ToString());
+                "Moving folder " + folder.ID
+                + " to " + folder.ParentID.ToString());
 
             MoveExistingInventoryFolder(folder);
             return true;
