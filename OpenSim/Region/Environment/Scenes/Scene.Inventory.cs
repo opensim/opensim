@@ -894,11 +894,29 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Rez an object into a scene
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"></param>
+        /// <param name="RayEnd"></param>
+        /// <param name="RayStart"></param>
+        /// <param name="RayTargetID"></param>
+        /// <param name="BypassRayCast"></param>
+        /// <param name="RayEndIsIntersection"></param>
+        /// <param name="EveryoneMask"></param>
+        /// <param name="GroupMask"></param>
+        /// <param name="NextOwnerMask"></param>
+        /// <param name="ItemFlags"></param>
+        /// <param name="RezSelected"></param>
+        /// <param name="RemoveItem"></param>
+        /// <param name="fromTaskID"></param>
         public virtual void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 RayEnd, LLVector3 RayStart,
                                     LLUUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                                     uint EveryoneMask, uint GroupMask, uint NextOwnerMask, uint ItemFlags,
                                     bool RezSelected, bool RemoveItem, LLUUID fromTaskID)
         {
+            // Work out position details
             byte bRayEndIsIntersection = (byte)0;
 
             if (RayEndIsIntersection)
@@ -910,12 +928,12 @@ namespace OpenSim.Region.Environment.Scenes
                 bRayEndIsIntersection = (byte)0;
             }
 
-            LLVector3 pos = GetNewRezLocation(RayStart, RayEnd, RayTargetID, new LLQuaternion(0, 0, 0, 1), BypassRayCast, bRayEndIsIntersection);
-            RezObject(remoteClient, itemID, pos);
-        }
-
-        public virtual void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 pos)
-        {
+            LLVector3 pos
+                = GetNewRezLocation(
+                      RayStart, RayEnd, RayTargetID, new LLQuaternion(0, 0, 0, 1), 
+                      BypassRayCast, bRayEndIsIntersection);
+            
+            // Rez object
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
             if (userInfo != null)
             {
@@ -928,9 +946,41 @@ namespace OpenSim.Region.Environment.Scenes
 
                         if (rezAsset != null)
                         {
-                            AddRezObject(Helpers.FieldToUTF8String(rezAsset.Data), pos);
-                            //userInfo.DeleteItem(remoteClient.AgentId, item);
-                            //remoteClient.SendRemoveInventoryItem(itemID);
+                            string xmlData = Helpers.FieldToUTF8String(rezAsset.Data);                            
+                            SceneObjectGroup group = new SceneObjectGroup(this, m_regionHandle, xmlData);
+                            group.ResetIDs();
+                            AddEntity(group);
+                            group.AbsolutePosition = pos;
+                            SceneObjectPart rootPart = group.GetChildPart(group.UUID);
+                            
+                            // Since renaming the item in the inventory does not affect the name stored
+                            // in the serialization, transfer the correct name from the inventory to the
+                            // object itself before we rez.
+                            rootPart.Name = item.inventoryName;
+                            rootPart.Description = item.inventoryDescription;
+                            
+                            rootPart.TrimPermissions();
+                            group.ApplyPhysics(m_physicalPrim);
+                            group.StartScripts();
+
+                            //bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0)&& m_physicalPrim);
+                            //if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
+                            //{
+                            //PrimitiveBaseShape pbs = rootPart.Shape;
+                            //rootPart.PhysActor = PhysicsScene.AddPrimShape(
+                            //rootPart.Name,
+                            //pbs,
+                            //new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y,
+                            //                  rootPart.AbsolutePosition.Z),
+                            //new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
+                            //new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
+                            //               rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
+
+                            // rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
+
+                            // }
+                            //
+                            rootPart.ScheduleFullUpdate();
                         }
                     }
                 }
@@ -941,37 +991,6 @@ namespace OpenSim.Region.Environment.Scenes
                                     uint ItemFlags, uint NextOwnerMask)
         {
             System.Console.WriteLine("RezSingleAttachment: unimplemented yet");
-        }
-
-        private void AddRezObject(string xmlData, LLVector3 pos)
-        {
-            SceneObjectGroup group = new SceneObjectGroup(this, m_regionHandle, xmlData);
-            group.ResetIDs();
-            AddEntity(group);
-            group.AbsolutePosition = pos;
-            SceneObjectPart rootPart = group.GetChildPart(group.UUID);
-            rootPart.TrimPermissions();
-            group.ApplyPhysics(m_physicalPrim);
-            group.StartScripts();
-
-            //bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0)&& m_physicalPrim);
-            //if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
-            //{
-            //PrimitiveBaseShape pbs = rootPart.Shape;
-            //rootPart.PhysActor = PhysicsScene.AddPrimShape(
-            //rootPart.Name,
-            //pbs,
-            //new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y,
-            //                  rootPart.AbsolutePosition.Z),
-            //new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
-            //new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
-            //               rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
-
-            // rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
-
-            // }
-            //
-            rootPart.ScheduleFullUpdate();
         }
     }
 }
