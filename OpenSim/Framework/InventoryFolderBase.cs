@@ -33,73 +33,38 @@ using libsecondlife;
 namespace OpenSim.Framework
 {
     /// <summary>
-    /// Inventory Item - contains all the properties associated with an individual inventory piece.
+    /// A Class for folders which contain users inventory
     /// </summary>
-    public class InventoryItemBase
+    public class InventoryFolderBase
     {
         /// <summary>
-        /// A UUID containing the ID for the inventory item itself
+        /// The name of the folder (64 characters or less)
         /// </summary>
-        public LLUUID inventoryID;
+        public string name;
 
         /// <summary>
-        /// The UUID of the associated asset on the asset server
+        /// The agent who's inventory this is contained by
         /// </summary>
-        public LLUUID assetID;
+        public LLUUID agentID;
 
         /// <summary>
-        /// This is an enumerated value determining the type of asset (eg Notecard, Sound, Object, etc)
+        /// The folder this folder is contained in 
         /// </summary>
-        public int assetType;
+        public LLUUID parentID;
 
         /// <summary>
-        /// The type of inventory item. (Can be slightly different to the asset type
+        /// The UUID for this folder
         /// </summary>
-        public int invType;
+        public LLUUID folderID;
 
         /// <summary>
-        /// The folder this item is contained in 
+        /// Type of items normally stored in this folder
         /// </summary>
-        public LLUUID parentFolderID;
-
-        /// <summary>
-        /// The owner of this inventory item
-        /// </summary>
-        public LLUUID avatarID;
-
-        /// <summary>
-        /// The creator of this item
-        /// </summary>
-        public LLUUID creatorsID;
-
-        /// <summary>
-        /// The name of the inventory item (must be less than 64 characters)
-        /// </summary>
-        public string inventoryName;
-
-        /// <summary>
-        /// The description of the inventory item (must be less than 64 characters)
-        /// </summary>
-        public string inventoryDescription;
-
-        /// <summary>
-        /// A mask containing the permissions for the next owner (cannot be enforced)
-        /// </summary>
-        public uint inventoryNextPermissions;
-
-        /// <summary>
-        /// A mask containing permissions for the current owner (cannot be enforced)
-        /// </summary>
-        public uint inventoryCurrentPermissions;
+        public short type;
 
         /// <summary>
         /// 
         /// </summary>
-        public uint inventoryBasePermissions;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public uint inventoryEveryOnePermissions;
+        public ushort version;
     }
 }
