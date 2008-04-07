@@ -286,10 +286,89 @@ namespace OpenSim.Region.Environment.Scenes
                     "[AGENT INVENTORY]: Agent ID " + remoteClient.AgentId + " not found for an inventory item update.");
             }
         }
+        
+        /// <summary>
+        /// Give an inventory item from one avatar to another
+        /// </summary>
+        /// <param name="recipientClient"></param>
+        /// <param name="sender"></param>
+        /// <param name="itemId"></param>
+        public void GiveInventoryItem(IClientAPI recipientClient, LLUUID senderId, LLUUID itemId)
+        {
+            // Retrieve the item from the sender
+            CachedUserInfo senderUserInfo = CommsManager.UserProfileCacheService.GetUserDetails(senderId);            
+            
+            if (senderUserInfo == null)
+            {
+                m_log.ErrorFormat(
+                     "[AGENT INVENTORY]: Failed to find sending user {0} for item {1}", senderId, itemId);
+                
+                return;
+            }
+
+            if (senderUserInfo.RootFolder != null)
+            {
+                InventoryItemBase item = senderUserInfo.RootFolder.HasItem(itemId);
+                if (item != null)
+                {             
+                    // TODO get recipient's root folder
+                    CachedUserInfo recipientUserInfo 
+                        = CommsManager.UserProfileCacheService.GetUserDetails(recipientClient.AgentId);                    
+                    
+                    if (recipientUserInfo != null)
+                    {
+                        // Insert a copy of the item into the recipient                    
+                        InventoryItemBase itemCopy = new InventoryItemBase();
+                        itemCopy.avatarID = recipientClient.AgentId;
+                        itemCopy.creatorsID = recipientClient.AgentId;
+                        itemCopy.inventoryID = LLUUID.Random();
+                        itemCopy.assetID = item.assetID;
+                        itemCopy.inventoryDescription = item.inventoryDescription;
+                        itemCopy.inventoryName = item.inventoryName;
+                        itemCopy.assetType = item.assetType;
+                        itemCopy.invType = item.invType;
+                        itemCopy.parentFolderID = recipientUserInfo.RootFolder.folderID;
+                        itemCopy.inventoryCurrentPermissions = 2147483647;
+                        itemCopy.inventoryNextPermissions = 2147483647;
+                        itemCopy.inventoryEveryOnePermissions = item.inventoryEveryOnePermissions;
+                        itemCopy.inventoryBasePermissions = item.inventoryBasePermissions;
+                        itemCopy.inventoryCurrentPermissions = item.inventoryCurrentPermissions;
+
+                        recipientUserInfo.AddItem(recipientClient.AgentId, itemCopy);
+                        
+                        // Let the recipient client know about this new item
+                        recipientClient.SendBulkUpdateInventory(itemCopy);                         
+                    }
+                    else
+                    {
+                        m_log.ErrorFormat(
+                            "[AGENT INVENTORY]: Could not find userinfo for recipient user {0}, {1} of item {2}, {3} from {4}", 
+                            recipientClient.Name, recipientClient.AgentId, item.inventoryName, 
+                            item.inventoryID, senderId);
+                    }
+                }
+                else
+                {
+                    m_log.ErrorFormat(
+                        "[AGENT INVENTORY]: Failed to find item {0} to give to {1}", itemId, senderId);
+                    
+                    return;
+                }
+            }
+            else
+            {
+                m_log.Error("[AGENT INVENTORY]: Failed to find item " + itemId.ToString() + ", no root folder");
+                return;
+            }                       
+        }
 
         public void CopyInventoryItem(IClientAPI remoteClient, uint callbackID, LLUUID oldAgentID, LLUUID oldItemID,
                                       LLUUID newFolderID, string newName)
         {
+            m_log.DebugFormat(
+                "[AGENT INVENTORY]: CopyInventoryItem received by {0} with oldAgentID {1}, oldItemID {2}, new FolderID {3}, newName {4}",
+                remoteClient.AgentId, oldAgentID, oldItemID, newFolderID, newName);
+            
             InventoryItemBase item = CommsManager.UserProfileCacheService.libraryRoot.HasItem(oldItemID);
             if (item == null)
             {
@@ -349,9 +428,8 @@ namespace OpenSim.Region.Environment.Scenes
         public void MoveInventoryItem(IClientAPI remoteClient, LLUUID folderID, LLUUID itemID, int length,
                                       string newName)
         {
-            m_log.Info(
-                "[AGENT INVENTORY]: " +
-                "Moving item for " + remoteClient.AgentId.ToString());
+            m_log.DebugFormat(
+                "[AGENT INVENTORY]: Moving item {0} to {1} for {2}", itemID, folderID, remoteClient.AgentId);
 
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
             if (userInfo == null)
@@ -429,7 +507,8 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Create a new inventory item.
+        /// Create a new inventory item.  Called when the client creates a new item directly within their
+        /// inventory (e.g. by selecting a context inventory menu option).
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="transactionID"></param>

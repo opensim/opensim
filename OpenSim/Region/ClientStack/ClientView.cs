@@ -482,6 +482,11 @@ namespace OpenSim.Region.ClientStack
             return result;
         }
 
+        /// <summary>
+        /// Try to process a packet using registered packet handlers
+        /// </summary>
+        /// <param name="packet"></param>
+        /// <returns>True if a handler was found which successfully processed the packet.</returns>
         protected virtual bool ProcessPacketMethod(Packet packet)
         {
             bool result = false;
@@ -865,14 +870,30 @@ namespace OpenSim.Region.ClientStack
         }
 
         /// <summary>
-        /// 
+        /// Send an instant message to this client
         /// </summary>
         /// <param name="message"></param>
         /// <param name="target"></param>
         public void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent,
                                        LLUUID imSessionID, string fromName, byte dialog, uint timeStamp)
         {
-            ImprovedInstantMessagePacket msg = (ImprovedInstantMessagePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedInstantMessage);
+            SendInstantMessage(
+                fromAgent, fromAgentSession, message, toAgent, 
+                imSessionID, fromName, dialog, timeStamp, new byte[0]);
+        }
+            
+        /// <summary>
+        /// Send an instant message to this client
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="target"></param>
+        public void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent,
+                                       LLUUID imSessionID, string fromName, byte dialog, uint timeStamp, 
+                                       byte[] binaryBucket)
+        {
+            ImprovedInstantMessagePacket msg 
+                = (ImprovedInstantMessagePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedInstantMessage);
+            
             msg.AgentData.AgentID = fromAgent;
             msg.AgentData.SessionID = fromAgentSession;
             msg.MessageBlock.FromAgentName = Helpers.StringToField(fromName);
@@ -886,7 +907,7 @@ namespace OpenSim.Region.ClientStack
             msg.MessageBlock.Timestamp = timeStamp;
             msg.MessageBlock.ToAgentID = toAgent;
             msg.MessageBlock.Message = Helpers.StringToField(message);
-            msg.MessageBlock.BinaryBucket = new byte[0];
+            msg.MessageBlock.BinaryBucket = binaryBucket;
 
             OutPacket(msg, ThrottleOutPacketType.Task);
         }
@@ -1374,12 +1395,67 @@ namespace OpenSim.Region.ClientStack
 
             OutPacket(inventoryReply, ThrottleOutPacketType.Asset);
         }
+        
+        /// <see>IClientAPI.SendBulkUpdateInventory(InventoryItemBase)</see>
+        public void SendBulkUpdateInventory(InventoryItemBase item) 
+        {            
+            uint FULL_MASK_PERMISSIONS = (uint)PermissionMask.All;
+            
+            BulkUpdateInventoryPacket bulkUpdate 
+                = (BulkUpdateInventoryPacket)PacketPool.Instance.GetPacket(PacketType.BulkUpdateInventory);
+            
+            bulkUpdate.AgentData.AgentID = AgentId;
+            bulkUpdate.AgentData.TransactionID = LLUUID.Random();  
+            
+            bulkUpdate.FolderData = new BulkUpdateInventoryPacket.FolderDataBlock[1];
+            bulkUpdate.FolderData[0] = new BulkUpdateInventoryPacket.FolderDataBlock();
+            bulkUpdate.FolderData[0].FolderID = LLUUID.Zero;
+            bulkUpdate.FolderData[0].ParentID = LLUUID.Zero;
+            bulkUpdate.FolderData[0].Type = -1;
+            bulkUpdate.FolderData[0].Name = new byte[0];
+            
+            bulkUpdate.ItemData = new BulkUpdateInventoryPacket.ItemDataBlock[1];
+            bulkUpdate.ItemData[0] = new BulkUpdateInventoryPacket.ItemDataBlock();            
+            bulkUpdate.ItemData[0].ItemID = item.inventoryID;
+            bulkUpdate.ItemData[0].AssetID = item.assetID;
+            bulkUpdate.ItemData[0].CreatorID = item.creatorsID;
+            bulkUpdate.ItemData[0].BaseMask = item.inventoryBasePermissions;
+            bulkUpdate.ItemData[0].CreationDate = 1000;
+            bulkUpdate.ItemData[0].Description = Helpers.StringToField(item.inventoryDescription);
+            bulkUpdate.ItemData[0].EveryoneMask = item.inventoryEveryOnePermissions;
+            bulkUpdate.ItemData[0].Flags = 0;
+            bulkUpdate.ItemData[0].FolderID = item.parentFolderID;
+            bulkUpdate.ItemData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
+            bulkUpdate.ItemData[0].GroupMask = 0;
+            bulkUpdate.ItemData[0].InvType = (sbyte)item.invType;
+            bulkUpdate.ItemData[0].Name = Helpers.StringToField(item.inventoryName);
+            bulkUpdate.ItemData[0].NextOwnerMask = item.inventoryNextPermissions;
+            bulkUpdate.ItemData[0].OwnerID = item.avatarID;
+            bulkUpdate.ItemData[0].OwnerMask = item.inventoryCurrentPermissions;
+            bulkUpdate.ItemData[0].SalePrice = 100;
+            bulkUpdate.ItemData[0].SaleType = 0;
+            bulkUpdate.ItemData[0].Type = (sbyte)item.assetType;
+            bulkUpdate.ItemData[0].CRC =
+                Helpers.InventoryCRC(1000, 0, bulkUpdate.ItemData[0].InvType,
+                                     bulkUpdate.ItemData[0].Type, bulkUpdate.ItemData[0].AssetID,
+                                     bulkUpdate.ItemData[0].GroupID, 100,
+                                     bulkUpdate.ItemData[0].OwnerID, bulkUpdate.ItemData[0].CreatorID,
+                                     bulkUpdate.ItemData[0].ItemID, bulkUpdate.ItemData[0].FolderID,
+                                     FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS,
+                                     FULL_MASK_PERMISSIONS);
+            
+            OutPacket(bulkUpdate, ThrottleOutPacketType.Asset);
+        }
 
         /// <see>IClientAPI.SendInventoryItemCreateUpdate(InventoryItemBase)</see>
         public void SendInventoryItemCreateUpdate(InventoryItemBase Item)
         {
             uint FULL_MASK_PERMISSIONS = (uint)PermissionMask.All;
-            UpdateCreateInventoryItemPacket InventoryReply = (UpdateCreateInventoryItemPacket)PacketPool.Instance.GetPacket(PacketType.UpdateCreateInventoryItem);
+            
+            UpdateCreateInventoryItemPacket InventoryReply 
+                = (UpdateCreateInventoryItemPacket)PacketPool.Instance.GetPacket(
+                    PacketType.UpdateCreateInventoryItem);
+                
             // TODO: don't create new blocks if recycling an old packet
             InventoryReply.AgentData.AgentID = AgentId;
             InventoryReply.AgentData.SimApproved = true;

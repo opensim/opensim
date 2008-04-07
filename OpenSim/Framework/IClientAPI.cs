@@ -576,6 +576,9 @@ namespace OpenSim.Framework
 
         void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent,
                                 LLUUID imSessionID, string fromName, byte dialog, uint timeStamp);
+        void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent,
+                                LLUUID imSessionID, string fromName, byte dialog, uint timeStamp, 
+                                byte[] binaryBucket);        
 
         void SendLayerData(float[] map);
         void SendLayerData(int px, int py, float[] map);
@@ -620,7 +623,7 @@ namespace OpenSim.Framework
 
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
                                  LLQuaternion rotation, LLVector3 velocity, LLVector3 rotationalvelocity);
-
+        
         void SendInventoryFolderDetails(LLUUID ownerID, LLUUID folderID, List<InventoryItemBase> items,
                                         List<InventoryFolderBase> folders, bool fetchFolders,
                                         bool fetchItems);
@@ -635,6 +638,14 @@ namespace OpenSim.Framework
 
         void SendRemoveInventoryItem(LLUUID itemID);
         void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName);
+        
+        /// <summary>
+        /// Used by the server to inform the client of a new inventory item.  Used when transferring items
+        /// between avatars, possibly among other things.
+        /// </summary>
+        /// <param name="item"></param>
+        void SendBulkUpdateInventory(InventoryItemBase item);
+        
         void SendXferPacket(ulong xferID, uint packet, byte[] data);
         void SendAvatarPickerReply(AvatarPickerReplyPacket Pack);
 

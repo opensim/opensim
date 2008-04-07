@@ -70,13 +70,17 @@ namespace OpenSim.Region.Environment.Modules
                                       uint ParentEstateID, LLVector3 Position, LLUUID RegionID, 
                                       byte[] binaryBucket)
         {
-            bool FriendDialog = ((dialog == (byte)38) || (dialog == (byte)39) || (dialog == (byte)40));
+            bool dialogHandledElsewhere 
+                = ((dialog == (byte)38) || (dialog == (byte)39) || (dialog == (byte)40)
+                   || dialog == (byte)InstantMessageDialog.InventoryOffered
+                   || dialog == (byte)InstantMessageDialog.InventoryAccepted
+                   || dialog == (byte)InstantMessageDialog.InventoryDeclined);
 
             // IM dialogs need to be pre-processed and have their sessionID filled by the server
             // so the sim can match the transaction on the return packet.
             
             // Don't send a Friend Dialog IM with a LLUUID.Zero session.
-            if (!(FriendDialog && imSessionID == LLUUID.Zero))
+            if (!(dialogHandledElsewhere && imSessionID == LLUUID.Zero))
             {
                 foreach (Scene scene in m_scenes)
                 {

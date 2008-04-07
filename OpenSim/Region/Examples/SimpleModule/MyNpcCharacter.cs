@@ -270,6 +270,12 @@ namespace OpenSim.Region.Examples.SimpleModule
                                                LLUUID imSessionID, string fromName, byte dialog, uint timeStamp)
         {
         }
+        
+        public virtual void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent,
+                                               LLUUID imSessionID, string fromName, byte dialog, uint timeStamp,
+                                               byte[] binaryBucket)
+        {
+        }        
 
         public virtual void SendLayerData(float[] map)
         {
@@ -387,6 +393,11 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         public virtual void SendRemoveInventoryItem(LLUUID itemID)
         {
+        }
+        
+        /// <see>IClientAPI.SendBulkUpdateInventory(InventoryItemBase)</see>
+        public virtual void SendBulkUpdateInventory(InventoryItemBase item) 
+        {        
         }
 
         public virtual void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName)
