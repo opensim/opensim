@@ -178,7 +178,7 @@ namespace OpenSim.Region.Environment.Scenes
         public bool AddInventoryItem(IClientAPI remoteClient, uint localID, 
                                      InventoryItemBase item, LLUUID copyItemID)
         {
-            LLUUID newItemId = (copyItemID != LLUUID.Zero) ? copyItemID : item.inventoryID;
+            LLUUID newItemId = (copyItemID != LLUUID.Zero) ? copyItemID : item.ID;
 
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
@@ -186,13 +186,13 @@ namespace OpenSim.Region.Environment.Scenes
                 TaskInventoryItem taskItem = new TaskInventoryItem();
                 
                 taskItem.ItemID = newItemId;                
-                taskItem.AssetID = item.assetID;
-                taskItem.Name = item.inventoryName;
-                taskItem.Description = item.inventoryDescription;
-                taskItem.OwnerID = item.avatarID;
-                taskItem.CreatorID = item.creatorsID;
-                taskItem.Type = item.assetType;
-                taskItem.InvType = item.invType;
+                taskItem.AssetID = item.AssetID;
+                taskItem.Name = item.Name;
+                taskItem.Description = item.Description;
+                taskItem.OwnerID = item.Owner;
+                taskItem.CreatorID = item.Creator;
+                taskItem.Type = item.AssetType;
+                taskItem.InvType = item.InvType;
                 part.AddInventoryItem(taskItem);
                 
                 return true;

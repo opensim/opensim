@@ -232,7 +232,7 @@ namespace OpenSim.Region.Environment.Modules
         {
             m_log.DebugFormat(
                "[TRANSACTIONS MANAGER] Called HandleItemUpdateFromTransaction with item {0}",
-                item.inventoryName);
+                item.Name);
 
             AgentAssetTransactions transactions
                 = GetUserTransactions(remoteClient.AgentId);

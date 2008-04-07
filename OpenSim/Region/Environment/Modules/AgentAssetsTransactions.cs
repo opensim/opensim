@@ -342,7 +342,7 @@ namespace OpenSim.Region.Environment.Modules
                         
                         AssetBase asset
                             = m_userTransactions.Manager.MyScene.CommsManager.AssetCache.GetAsset(
-                                assetID, (item.assetType == (int) AssetType.Texture ? true : false));
+                                assetID, (item.AssetType == (int) AssetType.Texture ? true : false));
                         
                         if (asset == null)
                         {
@@ -351,11 +351,11 @@ namespace OpenSim.Region.Environment.Modules
 
                         if (asset != null && asset.FullID == assetID)
                         {
-                            asset.Name = item.inventoryName;
-                            asset.Description = item.inventoryDescription;
-                            asset.InvType = (sbyte) item.invType;
-                            asset.Type = (sbyte) item.assetType;
-                            item.assetID = asset.FullID;
+                            asset.Name = item.Name;
+                            asset.Description = item.Description;
+                            asset.InvType = (sbyte) item.InvType;
+                            asset.Type = (sbyte) item.AssetType;
+                            item.AssetID = asset.FullID;
 
                             m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(Asset);
                         }      
@@ -374,18 +374,18 @@ namespace OpenSim.Region.Environment.Modules
                 if (userInfo != null)
                 {
                     InventoryItemBase item = new InventoryItemBase();
-                    item.avatarID = ourClient.AgentId;
-                    item.creatorsID = ourClient.AgentId;
-                    item.inventoryID = LLUUID.Random();
-                    item.assetID = Asset.FullID;
-                    item.inventoryDescription = m_description;
-                    item.inventoryName = m_name;
-                    item.assetType = type;
-                    item.invType = invType;
-                    item.parentFolderID = InventFolder;
-                    item.inventoryBasePermissions = 2147483647;
-                    item.inventoryCurrentPermissions = 2147483647;
-                    item.inventoryNextPermissions = nextPerm;
+                    item.Owner = ourClient.AgentId;
+                    item.Creator = ourClient.AgentId;
+                    item.ID = LLUUID.Random();
+                    item.AssetID = Asset.FullID;
+                    item.Description = m_description;
+                    item.Name = m_name;
+                    item.AssetType = type;
+                    item.InvType = invType;
+                    item.Folder = InventFolder;
+                    item.BasePermissions = 2147483647;
+                    item.CurrentPermissions = 2147483647;
+                    item.NextPermissions = nextPerm;
 
                     userInfo.AddItem(ourClient.AgentId, item);
                     ourClient.SendInventoryItemCreateUpdate(item);

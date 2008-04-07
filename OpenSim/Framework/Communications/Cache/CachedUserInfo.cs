@@ -171,21 +171,21 @@ namespace OpenSim.Framework.Communications.Cache
         {
             if ((userID == UserProfile.UUID) && (RootFolder != null))
             {
-                if (itemInfo.parentFolderID == RootFolder.folderID)
+                if (itemInfo.Folder == RootFolder.folderID)
                 {
-                    if (!RootFolder.Items.ContainsKey(itemInfo.inventoryID))
+                    if (!RootFolder.Items.ContainsKey(itemInfo.ID))
                     {
-                        RootFolder.Items.Add(itemInfo.inventoryID, itemInfo);
+                        RootFolder.Items.Add(itemInfo.ID, itemInfo);
                     }
                 }
                 else
                 {
-                    InventoryFolderImpl folder = RootFolder.HasSubFolder(itemInfo.parentFolderID);
+                    InventoryFolderImpl folder = RootFolder.HasSubFolder(itemInfo.Folder);
                     if (folder != null)
                     {
-                        if (!folder.Items.ContainsKey(itemInfo.inventoryID))
+                        if (!folder.Items.ContainsKey(itemInfo.ID))
                         {
-                            folder.Items.Add(itemInfo.inventoryID, itemInfo);
+                            folder.Items.Add(itemInfo.ID, itemInfo);
                         }
                     }
                 }
@@ -214,7 +214,7 @@ namespace OpenSim.Framework.Communications.Cache
             bool result = false;
             if ((userID == UserProfile.UUID) && (RootFolder != null))
             {
-                result = RootFolder.DeleteItem(item.inventoryID);
+                result = RootFolder.DeleteItem(item.ID);
                 if (result)
                 {
                     m_parentCommsManager.InventoryService.DeleteInventoryItem(userID, item);

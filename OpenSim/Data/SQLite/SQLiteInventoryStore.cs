@@ -91,39 +91,39 @@ namespace OpenSim.Data.SQLite
         public InventoryItemBase buildItem(DataRow row)
         {
             InventoryItemBase item = new InventoryItemBase();
-            item.inventoryID = new LLUUID((string) row["UUID"]);
-            item.assetID = new LLUUID((string) row["assetID"]);
-            item.assetType = Convert.ToInt32(row["assetType"]);
-            item.invType = Convert.ToInt32(row["invType"]);
-            item.parentFolderID = new LLUUID((string) row["parentFolderID"]);
-            item.avatarID = new LLUUID((string) row["avatarID"]);
-            item.creatorsID = new LLUUID((string) row["creatorsID"]);
-            item.inventoryName = (string) row["inventoryName"];
-            item.inventoryDescription = (string) row["inventoryDescription"];
+            item.ID = new LLUUID((string) row["UUID"]);
+            item.AssetID = new LLUUID((string) row["assetID"]);
+            item.AssetType = Convert.ToInt32(row["assetType"]);
+            item.InvType = Convert.ToInt32(row["invType"]);
+            item.Folder = new LLUUID((string) row["parentFolderID"]);
+            item.Owner = new LLUUID((string) row["avatarID"]);
+            item.Creator = new LLUUID((string) row["creatorsID"]);
+            item.Name = (string) row["inventoryName"];
+            item.Description = (string) row["inventoryDescription"];
 
-            item.inventoryNextPermissions = Convert.ToUInt32(row["inventoryNextPermissions"]);
-            item.inventoryCurrentPermissions = Convert.ToUInt32(row["inventoryCurrentPermissions"]);
-            item.inventoryBasePermissions = Convert.ToUInt32(row["inventoryBasePermissions"]);
-            item.inventoryEveryOnePermissions = Convert.ToUInt32(row["inventoryEveryOnePermissions"]);
+            item.NextPermissions = Convert.ToUInt32(row["inventoryNextPermissions"]);
+            item.CurrentPermissions = Convert.ToUInt32(row["inventoryCurrentPermissions"]);
+            item.BasePermissions = Convert.ToUInt32(row["inventoryBasePermissions"]);
+            item.EveryOnePermissions = Convert.ToUInt32(row["inventoryEveryOnePermissions"]);
             return item;
         }
 
         private void fillItemRow(DataRow row, InventoryItemBase item)
         {
-            row["UUID"] = Util.ToRawUuidString(item.inventoryID);
-            row["assetID"] = Util.ToRawUuidString(item.assetID);
-            row["assetType"] = item.assetType;
-            row["invType"] = item.invType;
-            row["parentFolderID"] = Util.ToRawUuidString(item.parentFolderID);
-            row["avatarID"] = Util.ToRawUuidString(item.avatarID);
-            row["creatorsID"] = Util.ToRawUuidString(item.creatorsID);
-            row["inventoryName"] = item.inventoryName;
-            row["inventoryDescription"] = item.inventoryDescription;
+            row["UUID"] = Util.ToRawUuidString(item.ID);
+            row["assetID"] = Util.ToRawUuidString(item.AssetID);
+            row["assetType"] = item.AssetType;
+            row["invType"] = item.InvType;
+            row["parentFolderID"] = Util.ToRawUuidString(item.Folder);
+            row["avatarID"] = Util.ToRawUuidString(item.Owner);
+            row["creatorsID"] = Util.ToRawUuidString(item.Creator);
+            row["inventoryName"] = item.Name;
+            row["inventoryDescription"] = item.Description;
 
-            row["inventoryNextPermissions"] = item.inventoryNextPermissions;
-            row["inventoryCurrentPermissions"] = item.inventoryCurrentPermissions;
-            row["inventoryBasePermissions"] = item.inventoryBasePermissions;
-            row["inventoryEveryOnePermissions"] = item.inventoryEveryOnePermissions;
+            row["inventoryNextPermissions"] = item.NextPermissions;
+            row["inventoryCurrentPermissions"] = item.CurrentPermissions;
+            row["inventoryBasePermissions"] = item.BasePermissions;
+            row["inventoryEveryOnePermissions"] = item.EveryOnePermissions;
         }
 
         private void addFolder(InventoryFolderBase folder, bool add)
@@ -182,11 +182,11 @@ namespace OpenSim.Data.SQLite
             {
                 DataTable inventoryItemTable = ds.Tables["inventoryitems"];
 
-                DataRow inventoryRow = inventoryItemTable.Rows.Find(Util.ToRawUuidString(item.inventoryID));
+                DataRow inventoryRow = inventoryItemTable.Rows.Find(Util.ToRawUuidString(item.ID));
                 if (inventoryRow == null)
                 {
                     if (! add)
-                        m_log.ErrorFormat("Interface Misuse: Attempting to Update non-existant inventory item: {0}", item.inventoryID);
+                        m_log.ErrorFormat("Interface Misuse: Attempting to Update non-existant inventory item: {0}", item.ID);
 
                     inventoryRow = inventoryItemTable.NewRow();
                     fillItemRow(inventoryRow, item);
@@ -195,7 +195,7 @@ namespace OpenSim.Data.SQLite
                 else
                 {
                     if (add)
-                        m_log.ErrorFormat("Interface Misuse: Attempting to Add inventory item that already exists: {0}", item.inventoryID);
+                        m_log.ErrorFormat("Interface Misuse: Attempting to Add inventory item that already exists: {0}", item.ID);
                     
                     fillItemRow(inventoryRow, item);
                 }
@@ -439,7 +439,7 @@ namespace OpenSim.Data.SQLite
             List<InventoryItemBase> items = getInventoryInFolder(Util.ToRawUuidString(folderId));
 
             foreach (InventoryItemBase i in items)
-                deleteInventoryItem(Util.ToRawUuidString(i.inventoryID));
+                deleteInventoryItem(Util.ToRawUuidString(i.ID));
         }
 
         /// <summary>

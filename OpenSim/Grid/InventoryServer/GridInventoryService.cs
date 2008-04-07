@@ -189,10 +189,10 @@ namespace OpenSim.Grid.InventoryServer
             // Right now, this actions act more like an update/insert combination than a simple create.
             m_log.Info(
                 "[AGENT INVENTORY]: " +
-                "Updating in   " + item.parentFolderID.ToString()
-                + ", item " + item.inventoryName);
+                "Updating in   " + item.Folder.ToString()
+                + ", item " + item.Name);
 
-            AddNewInventoryItem(item.avatarID, item);
+            AddNewInventoryItem(item.Owner, item);
             return true;
         }
 
@@ -201,15 +201,15 @@ namespace OpenSim.Grid.InventoryServer
             // extra spaces to align with other inventory messages
             m_log.Info(
                 "[AGENT INVENTORY]: " +
-                "Deleting in   " + item.parentFolderID.ToString()
-                + ", item " + item.inventoryName);
+                "Deleting in   " + item.Folder.ToString()
+                + ", item " + item.Name);
 
             DeleteItem(item);
         }
 
         public bool DeleteInvItem(InventoryItemBase item)
         {
-            DeleteInventoryItem(item.avatarID, item);
+            DeleteInventoryItem(item.Owner, item);
             return true;
         }
     }

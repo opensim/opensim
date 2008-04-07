@@ -116,19 +116,19 @@ namespace OpenSim.Framework.Communications.Cache
                                             int assetType, int invType, LLUUID parentFolderID)
         {
             InventoryItemBase item = new InventoryItemBase();
-            item.avatarID = libOwner;
-            item.creatorsID = libOwner;
-            item.inventoryID = inventoryID;
-            item.assetID = assetID;
-            item.inventoryDescription = description;
-            item.inventoryName = name;
-            item.assetType = assetType;
-            item.invType = invType;
-            item.parentFolderID = parentFolderID;
-            item.inventoryBasePermissions = 0x7FFFFFFF;
-            item.inventoryEveryOnePermissions = 0x7FFFFFFF;
-            item.inventoryCurrentPermissions = 0x7FFFFFFF;
-            item.inventoryNextPermissions = 0x7FFFFFFF;
+            item.Owner = libOwner;
+            item.Creator = libOwner;
+            item.ID = inventoryID;
+            item.AssetID = assetID;
+            item.Description = description;
+            item.Name = name;
+            item.AssetType = assetType;
+            item.InvType = invType;
+            item.Folder = parentFolderID;
+            item.BasePermissions = 0x7FFFFFFF;
+            item.EveryOnePermissions = 0x7FFFFFFF;
+            item.CurrentPermissions = 0x7FFFFFFF;
+            item.NextPermissions = 0x7FFFFFFF;
             return item;
         }
         
@@ -204,31 +204,31 @@ namespace OpenSim.Framework.Communications.Cache
         private void ReadItemFromConfig(IConfig config)
         {
             InventoryItemBase item = new InventoryItemBase();
-            item.avatarID = libOwner;
-            item.creatorsID = libOwner;
-            item.inventoryID = new LLUUID(config.GetString("inventoryID", folderID.ToString()));
-            item.assetID = new LLUUID(config.GetString("assetID", LLUUID.Random().ToString()));
-            item.parentFolderID = new LLUUID(config.GetString("folderID", folderID.ToString()));
-            item.inventoryDescription = config.GetString("description", System.String.Empty);
-            item.inventoryName = config.GetString("name", System.String.Empty);
-            item.assetType = config.GetInt("assetType", 0);
-            item.invType = config.GetInt("inventoryType", 0);
-            item.inventoryCurrentPermissions = (uint)config.GetLong("currentPermissions", 0x7FFFFFFF);
-            item.inventoryNextPermissions = (uint)config.GetLong("nextPermissions", 0x7FFFFFFF);
-            item.inventoryEveryOnePermissions = (uint)config.GetLong("everyonePermissions", 0x7FFFFFFF);
-            item.inventoryBasePermissions = (uint)config.GetLong("basePermissions", 0x7FFFFFFF);
+            item.Owner = libOwner;
+            item.Creator = libOwner;
+            item.ID = new LLUUID(config.GetString("inventoryID", folderID.ToString()));
+            item.AssetID = new LLUUID(config.GetString("assetID", LLUUID.Random().ToString()));
+            item.Folder = new LLUUID(config.GetString("folderID", folderID.ToString()));
+            item.Description = config.GetString("description", System.String.Empty);
+            item.Name = config.GetString("name", System.String.Empty);
+            item.AssetType = config.GetInt("assetType", 0);
+            item.InvType = config.GetInt("inventoryType", 0);
+            item.CurrentPermissions = (uint)config.GetLong("currentPermissions", 0x7FFFFFFF);
+            item.NextPermissions = (uint)config.GetLong("nextPermissions", 0x7FFFFFFF);
+            item.EveryOnePermissions = (uint)config.GetLong("everyonePermissions", 0x7FFFFFFF);
+            item.BasePermissions = (uint)config.GetLong("basePermissions", 0x7FFFFFFF);
             
-            if (libraryFolders.ContainsKey(item.parentFolderID))
+            if (libraryFolders.ContainsKey(item.Folder))
             {
-                InventoryFolderImpl parentFolder = libraryFolders[item.parentFolderID];
+                InventoryFolderImpl parentFolder = libraryFolders[item.Folder];
                 
-                parentFolder.Items.Add(item.inventoryID, item);
+                parentFolder.Items.Add(item.ID, item);
             }
             else
             {
                 m_log.WarnFormat(
                     "[LIBRARY INVENTORY]: Couldn't add item {0} ({1}) since parent folder with ID {2} does not exist!",
-                    item.inventoryName, item.inventoryID, item.parentFolderID);
+                    item.Name, item.ID, item.Folder);
             }                
         }
                 

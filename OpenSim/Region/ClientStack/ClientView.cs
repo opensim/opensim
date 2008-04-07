@@ -1219,25 +1219,25 @@ namespace OpenSim.Region.ClientStack
                 foreach (InventoryItemBase item in items)
                 {
                     descend.ItemData[i] = new InventoryDescendentsPacket.ItemDataBlock();
-                    descend.ItemData[i].ItemID = item.inventoryID;
-                    descend.ItemData[i].AssetID = item.assetID;
-                    descend.ItemData[i].CreatorID = item.creatorsID;
-                    descend.ItemData[i].BaseMask = item.inventoryBasePermissions;
+                    descend.ItemData[i].ItemID = item.ID;
+                    descend.ItemData[i].AssetID = item.AssetID;
+                    descend.ItemData[i].CreatorID = item.Creator;
+                    descend.ItemData[i].BaseMask = item.BasePermissions;
                     descend.ItemData[i].CreationDate = 1000;
-                    descend.ItemData[i].Description = Helpers.StringToField(item.inventoryDescription);
-                    descend.ItemData[i].EveryoneMask = item.inventoryEveryOnePermissions;
+                    descend.ItemData[i].Description = Helpers.StringToField(item.Description);
+                    descend.ItemData[i].EveryoneMask = item.EveryOnePermissions;
                     descend.ItemData[i].Flags = 1;
-                    descend.ItemData[i].FolderID = item.parentFolderID;
+                    descend.ItemData[i].FolderID = item.Folder;
                     descend.ItemData[i].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
                     descend.ItemData[i].GroupMask = 0;
-                    descend.ItemData[i].InvType = (sbyte) item.invType;
-                    descend.ItemData[i].Name = Helpers.StringToField(item.inventoryName);
-                    descend.ItemData[i].NextOwnerMask = item.inventoryNextPermissions;
-                    descend.ItemData[i].OwnerID = item.avatarID;
-                    descend.ItemData[i].OwnerMask = item.inventoryCurrentPermissions;
+                    descend.ItemData[i].InvType = (sbyte) item.InvType;
+                    descend.ItemData[i].Name = Helpers.StringToField(item.Name);
+                    descend.ItemData[i].NextOwnerMask = item.NextPermissions;
+                    descend.ItemData[i].OwnerID = item.Owner;
+                    descend.ItemData[i].OwnerMask = item.CurrentPermissions;
                     descend.ItemData[i].SalePrice = 0;
                     descend.ItemData[i].SaleType = 0;
-                    descend.ItemData[i].Type = (sbyte) item.assetType;
+                    descend.ItemData[i].Type = (sbyte) item.AssetType;
                     descend.ItemData[i].CRC =
                         Helpers.InventoryCRC(descend.ItemData[i].CreationDate, descend.ItemData[i].SaleType,
                                              descend.ItemData[i].InvType, descend.ItemData[i].Type,
@@ -1247,7 +1247,7 @@ namespace OpenSim.Region.ClientStack
                                              descend.ItemData[i].ItemID, descend.ItemData[i].FolderID,
                                              descend.ItemData[i].EveryoneMask,
                                              descend.ItemData[i].Flags, descend.ItemData[i].OwnerMask,
-                                             descend.ItemData[i].GroupMask, item.inventoryCurrentPermissions);
+                                             descend.ItemData[i].GroupMask, item.CurrentPermissions);
 
                     i++;
                     count++;
@@ -1364,26 +1364,26 @@ namespace OpenSim.Region.ClientStack
             inventoryReply.AgentData.AgentID = AgentId;
             inventoryReply.InventoryData = new FetchInventoryReplyPacket.InventoryDataBlock[1];
             inventoryReply.InventoryData[0] = new FetchInventoryReplyPacket.InventoryDataBlock();
-            inventoryReply.InventoryData[0].ItemID = item.inventoryID;
-            inventoryReply.InventoryData[0].AssetID = item.assetID;
-            inventoryReply.InventoryData[0].CreatorID = item.creatorsID;
-            inventoryReply.InventoryData[0].BaseMask = item.inventoryBasePermissions;
+            inventoryReply.InventoryData[0].ItemID = item.ID;
+            inventoryReply.InventoryData[0].AssetID = item.AssetID;
+            inventoryReply.InventoryData[0].CreatorID = item.Creator;
+            inventoryReply.InventoryData[0].BaseMask = item.BasePermissions;
             inventoryReply.InventoryData[0].CreationDate =
                 (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-            inventoryReply.InventoryData[0].Description = Helpers.StringToField(item.inventoryDescription);
-            inventoryReply.InventoryData[0].EveryoneMask = item.inventoryEveryOnePermissions;
+            inventoryReply.InventoryData[0].Description = Helpers.StringToField(item.Description);
+            inventoryReply.InventoryData[0].EveryoneMask = item.EveryOnePermissions;
             inventoryReply.InventoryData[0].Flags = 0;
-            inventoryReply.InventoryData[0].FolderID = item.parentFolderID;
+            inventoryReply.InventoryData[0].FolderID = item.Folder;
             inventoryReply.InventoryData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
             inventoryReply.InventoryData[0].GroupMask = 0;
-            inventoryReply.InventoryData[0].InvType = (sbyte)item.invType;
-            inventoryReply.InventoryData[0].Name = Helpers.StringToField(item.inventoryName);
-            inventoryReply.InventoryData[0].NextOwnerMask = item.inventoryNextPermissions;
-            inventoryReply.InventoryData[0].OwnerID = item.avatarID;
-            inventoryReply.InventoryData[0].OwnerMask = item.inventoryCurrentPermissions;
+            inventoryReply.InventoryData[0].InvType = (sbyte)item.InvType;
+            inventoryReply.InventoryData[0].Name = Helpers.StringToField(item.Name);
+            inventoryReply.InventoryData[0].NextOwnerMask = item.NextPermissions;
+            inventoryReply.InventoryData[0].OwnerID = item.Owner;
+            inventoryReply.InventoryData[0].OwnerMask = item.CurrentPermissions;
             inventoryReply.InventoryData[0].SalePrice = 0;
             inventoryReply.InventoryData[0].SaleType = 0;
-            inventoryReply.InventoryData[0].Type = (sbyte)item.assetType;
+            inventoryReply.InventoryData[0].Type = (sbyte)item.AssetType;
             inventoryReply.InventoryData[0].CRC =
                 Helpers.InventoryCRC(1000, 0, inventoryReply.InventoryData[0].InvType,
                                      inventoryReply.InventoryData[0].Type, inventoryReply.InventoryData[0].AssetID,
@@ -1416,25 +1416,25 @@ namespace OpenSim.Region.ClientStack
             
             bulkUpdate.ItemData = new BulkUpdateInventoryPacket.ItemDataBlock[1];
             bulkUpdate.ItemData[0] = new BulkUpdateInventoryPacket.ItemDataBlock();            
-            bulkUpdate.ItemData[0].ItemID = item.inventoryID;
-            bulkUpdate.ItemData[0].AssetID = item.assetID;
-            bulkUpdate.ItemData[0].CreatorID = item.creatorsID;
-            bulkUpdate.ItemData[0].BaseMask = item.inventoryBasePermissions;
+            bulkUpdate.ItemData[0].ItemID = item.ID;
+            bulkUpdate.ItemData[0].AssetID = item.AssetID;
+            bulkUpdate.ItemData[0].CreatorID = item.Creator;
+            bulkUpdate.ItemData[0].BaseMask = item.BasePermissions;
             bulkUpdate.ItemData[0].CreationDate = 1000;
-            bulkUpdate.ItemData[0].Description = Helpers.StringToField(item.inventoryDescription);
-            bulkUpdate.ItemData[0].EveryoneMask = item.inventoryEveryOnePermissions;
+            bulkUpdate.ItemData[0].Description = Helpers.StringToField(item.Description);
+            bulkUpdate.ItemData[0].EveryoneMask = item.EveryOnePermissions;
             bulkUpdate.ItemData[0].Flags = 0;
-            bulkUpdate.ItemData[0].FolderID = item.parentFolderID;
+            bulkUpdate.ItemData[0].FolderID = item.Folder;
             bulkUpdate.ItemData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
             bulkUpdate.ItemData[0].GroupMask = 0;
-            bulkUpdate.ItemData[0].InvType = (sbyte)item.invType;
-            bulkUpdate.ItemData[0].Name = Helpers.StringToField(item.inventoryName);
-            bulkUpdate.ItemData[0].NextOwnerMask = item.inventoryNextPermissions;
-            bulkUpdate.ItemData[0].OwnerID = item.avatarID;
-            bulkUpdate.ItemData[0].OwnerMask = item.inventoryCurrentPermissions;
+            bulkUpdate.ItemData[0].InvType = (sbyte)item.InvType;
+            bulkUpdate.ItemData[0].Name = Helpers.StringToField(item.Name);
+            bulkUpdate.ItemData[0].NextOwnerMask = item.NextPermissions;
+            bulkUpdate.ItemData[0].OwnerID = item.Owner;
+            bulkUpdate.ItemData[0].OwnerMask = item.CurrentPermissions;
             bulkUpdate.ItemData[0].SalePrice = 100;
             bulkUpdate.ItemData[0].SaleType = 0;
-            bulkUpdate.ItemData[0].Type = (sbyte)item.assetType;
+            bulkUpdate.ItemData[0].Type = (sbyte)item.AssetType;
             bulkUpdate.ItemData[0].CRC =
                 Helpers.InventoryCRC(1000, 0, bulkUpdate.ItemData[0].InvType,
                                      bulkUpdate.ItemData[0].Type, bulkUpdate.ItemData[0].AssetID,
@@ -1461,25 +1461,25 @@ namespace OpenSim.Region.ClientStack
             InventoryReply.AgentData.SimApproved = true;
             InventoryReply.InventoryData = new UpdateCreateInventoryItemPacket.InventoryDataBlock[1];
             InventoryReply.InventoryData[0] = new UpdateCreateInventoryItemPacket.InventoryDataBlock();
-            InventoryReply.InventoryData[0].ItemID = Item.inventoryID;
-            InventoryReply.InventoryData[0].AssetID = Item.assetID;
-            InventoryReply.InventoryData[0].CreatorID = Item.creatorsID;
-            InventoryReply.InventoryData[0].BaseMask = Item.inventoryBasePermissions;
+            InventoryReply.InventoryData[0].ItemID = Item.ID;
+            InventoryReply.InventoryData[0].AssetID = Item.AssetID;
+            InventoryReply.InventoryData[0].CreatorID = Item.Creator;
+            InventoryReply.InventoryData[0].BaseMask = Item.BasePermissions;
             InventoryReply.InventoryData[0].CreationDate = 1000;
-            InventoryReply.InventoryData[0].Description = Helpers.StringToField(Item.inventoryDescription);
-            InventoryReply.InventoryData[0].EveryoneMask = Item.inventoryEveryOnePermissions;
+            InventoryReply.InventoryData[0].Description = Helpers.StringToField(Item.Description);
+            InventoryReply.InventoryData[0].EveryoneMask = Item.EveryOnePermissions;
             InventoryReply.InventoryData[0].Flags = 0;
-            InventoryReply.InventoryData[0].FolderID = Item.parentFolderID;
+            InventoryReply.InventoryData[0].FolderID = Item.Folder;
             InventoryReply.InventoryData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
             InventoryReply.InventoryData[0].GroupMask = 0;
-            InventoryReply.InventoryData[0].InvType = (sbyte)Item.invType;
-            InventoryReply.InventoryData[0].Name = Helpers.StringToField(Item.inventoryName);
-            InventoryReply.InventoryData[0].NextOwnerMask = Item.inventoryNextPermissions;
-            InventoryReply.InventoryData[0].OwnerID = Item.avatarID;
-            InventoryReply.InventoryData[0].OwnerMask = Item.inventoryCurrentPermissions;
+            InventoryReply.InventoryData[0].InvType = (sbyte)Item.InvType;
+            InventoryReply.InventoryData[0].Name = Helpers.StringToField(Item.Name);
+            InventoryReply.InventoryData[0].NextOwnerMask = Item.NextPermissions;
+            InventoryReply.InventoryData[0].OwnerID = Item.Owner;
+            InventoryReply.InventoryData[0].OwnerMask = Item.CurrentPermissions;
             InventoryReply.InventoryData[0].SalePrice = 100;
             InventoryReply.InventoryData[0].SaleType = 0;
-            InventoryReply.InventoryData[0].Type = (sbyte)Item.assetType;
+            InventoryReply.InventoryData[0].Type = (sbyte)Item.AssetType;
             InventoryReply.InventoryData[0].CRC =
                 Helpers.InventoryCRC(1000, 0, InventoryReply.InventoryData[0].InvType,
                                      InventoryReply.InventoryData[0].Type, InventoryReply.InventoryData[0].AssetID,

@@ -303,7 +303,7 @@ namespace OpenSim.Region.Modules.AvatarFactory
                                     InventoryItemBase baseItem = profile.RootFolder.HasItem(wear.ItemID);
                                     if (baseItem != null)
                                     {
-                                        assetId = baseItem.assetID;
+                                        assetId = baseItem.AssetID;
                                         avatAppearance.Wearables[wear.Type].AssetID = assetId;
                                         avatAppearance.Wearables[wear.Type].ItemID = wear.ItemID;
 

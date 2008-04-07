@@ -312,19 +312,19 @@ namespace OpenSim.Data.MySQL
             {
                 InventoryItemBase item = new InventoryItemBase();
 
-                item.inventoryID = new LLUUID((string) reader["inventoryID"]);
-                item.assetID = new LLUUID((string) reader["assetID"]);
-                item.assetType = (int) reader["assetType"];
-                item.parentFolderID = new LLUUID((string) reader["parentFolderID"]);
-                item.avatarID = new LLUUID((string) reader["avatarID"]);
-                item.inventoryName = (string) reader["inventoryName"];
-                item.inventoryDescription = (string) reader["inventoryDescription"];
-                item.inventoryNextPermissions = (uint) reader["inventoryNextPermissions"];
-                item.inventoryCurrentPermissions = (uint) reader["inventoryCurrentPermissions"];
-                item.invType = (int) reader["invType"];
-                item.creatorsID = new LLUUID((string) reader["creatorID"]);
-                item.inventoryBasePermissions = (uint) reader["inventoryBasePermissions"];
-                item.inventoryEveryOnePermissions = (uint) reader["inventoryEveryOnePermissions"];
+                item.ID = new LLUUID((string) reader["inventoryID"]);
+                item.AssetID = new LLUUID((string) reader["assetID"]);
+                item.AssetType = (int) reader["assetType"];
+                item.Folder = new LLUUID((string) reader["parentFolderID"]);
+                item.Owner = new LLUUID((string) reader["avatarID"]);
+                item.Name = (string) reader["inventoryName"];
+                item.Description = (string) reader["inventoryDescription"];
+                item.NextPermissions = (uint) reader["inventoryNextPermissions"];
+                item.CurrentPermissions = (uint) reader["inventoryCurrentPermissions"];
+                item.InvType = (int) reader["invType"];
+                item.Creator = new LLUUID((string) reader["creatorID"]);
+                item.BasePermissions = (uint) reader["inventoryBasePermissions"];
+                item.EveryOnePermissions = (uint) reader["inventoryEveryOnePermissions"];
                 return item;
             }
             catch (MySqlException e)
@@ -444,20 +444,20 @@ namespace OpenSim.Data.MySQL
             try
             {
                 MySqlCommand result = new MySqlCommand(sql, database.Connection);
-                result.Parameters.AddWithValue("?inventoryID", item.inventoryID.ToString());
-                result.Parameters.AddWithValue("?assetID", item.assetID.ToString());
-                result.Parameters.AddWithValue("?assetType", item.assetType.ToString());
-                result.Parameters.AddWithValue("?parentFolderID", item.parentFolderID.ToString());
-                result.Parameters.AddWithValue("?avatarID", item.avatarID.ToString());
-                result.Parameters.AddWithValue("?inventoryName", item.inventoryName);
-                result.Parameters.AddWithValue("?inventoryDescription", item.inventoryDescription);
-                result.Parameters.AddWithValue("?inventoryNextPermissions", item.inventoryNextPermissions.ToString());
+                result.Parameters.AddWithValue("?inventoryID", item.ID.ToString());
+                result.Parameters.AddWithValue("?assetID", item.AssetID.ToString());
+                result.Parameters.AddWithValue("?assetType", item.AssetType.ToString());
+                result.Parameters.AddWithValue("?parentFolderID", item.Folder.ToString());
+                result.Parameters.AddWithValue("?avatarID", item.Owner.ToString());
+                result.Parameters.AddWithValue("?inventoryName", item.Name);
+                result.Parameters.AddWithValue("?inventoryDescription", item.Description);
+                result.Parameters.AddWithValue("?inventoryNextPermissions", item.NextPermissions.ToString());
                 result.Parameters.AddWithValue("?inventoryCurrentPermissions",
-                                               item.inventoryCurrentPermissions.ToString());
-                result.Parameters.AddWithValue("?invType", item.invType);
-                result.Parameters.AddWithValue("?creatorID", item.creatorsID.ToString());
-                result.Parameters.AddWithValue("?inventoryBasePermissions", item.inventoryBasePermissions);
-                result.Parameters.AddWithValue("?inventoryEveryOnePermissions", item.inventoryEveryOnePermissions);
+                                               item.CurrentPermissions.ToString());
+                result.Parameters.AddWithValue("?invType", item.InvType);
+                result.Parameters.AddWithValue("?creatorID", item.Creator.ToString());
+                result.Parameters.AddWithValue("?inventoryBasePermissions", item.BasePermissions);
+                result.Parameters.AddWithValue("?inventoryEveryOnePermissions", item.EveryOnePermissions);
                 result.ExecuteNonQuery();
                 result.Dispose();
             }

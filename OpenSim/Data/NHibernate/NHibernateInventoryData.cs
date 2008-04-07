@@ -112,7 +112,7 @@ namespace OpenSim.Data.NHibernate
         /// <param name="item">The item to be created</param>
         public void addInventoryItem(InventoryItemBase item)
         {
-            if (!ExistsItem(item.inventoryID)) {
+            if (!ExistsItem(item.ID)) {
                 using(ISession session = factory.OpenSession()) {
                     using(ITransaction transaction = session.BeginTransaction()) {
                         session.Save(item);
@@ -120,7 +120,7 @@ namespace OpenSim.Data.NHibernate
                     }
                 }
             } else {
-                m_log.ErrorFormat("Attempted to add Inventory Item {0} that already exists, updating instead", item.inventoryID);
+                m_log.ErrorFormat("Attempted to add Inventory Item {0} that already exists, updating instead", item.ID);
                 updateInventoryItem(item);
             }
         }
@@ -131,7 +131,7 @@ namespace OpenSim.Data.NHibernate
         /// <param name="item">The updated item</param>
         public void updateInventoryItem(InventoryItemBase item)
         {
-            if (ExistsItem(item.inventoryID)) {
+            if (ExistsItem(item.ID)) {
                 using(ISession session = factory.OpenSession()) {
                     using(ITransaction transaction = session.BeginTransaction()) {
                         session.Update(item);
@@ -139,7 +139,7 @@ namespace OpenSim.Data.NHibernate
                     }
                 }
             } else {
-                m_log.ErrorFormat("Attempted to add Inventory Item {0} that already exists", item.inventoryID);
+                m_log.ErrorFormat("Attempted to add Inventory Item {0} that already exists", item.ID);
             }
         }
 

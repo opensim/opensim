@@ -294,14 +294,14 @@ namespace OpenSim.Region.Capabilities
         private LLSDInventoryItem ConvertInventoryItem(InventoryItemBase invItem)
         {
             LLSDInventoryItem llsdItem = new LLSDInventoryItem();
-            llsdItem.asset_id = invItem.assetID;
+            llsdItem.asset_id = invItem.AssetID;
             llsdItem.created_at = 1000;
-            llsdItem.desc = invItem.inventoryDescription;
+            llsdItem.desc = invItem.Description;
             llsdItem.flags = 0;
-            llsdItem.item_id = invItem.inventoryID;
-            llsdItem.name = invItem.inventoryName;
-            llsdItem.parent_id = invItem.parentFolderID;
-            llsdItem.type = Enum.GetName(typeof(AssetType), invItem.assetType).ToLower();                        
+            llsdItem.item_id = invItem.ID;
+            llsdItem.name = invItem.Name;
+            llsdItem.parent_id = invItem.Folder;
+            llsdItem.type = Enum.GetName(typeof(AssetType), invItem.AssetType).ToLower();                        
             
             // XXX Temporary fix for 'objects not appearing in inventory' problem.  The asset type from libsecondlife is
             // returning "primitive" when it should returning "object"!  It looks like this is fixed in the latest libsecondlife,
@@ -311,17 +311,17 @@ namespace OpenSim.Region.Capabilities
                 llsdItem.type = "object";
             }
             
-            llsdItem.inv_type = Enum.GetName(typeof(InventoryType), invItem.invType).ToLower();
+            llsdItem.inv_type = Enum.GetName(typeof(InventoryType), invItem.InvType).ToLower();
             llsdItem.permissions = new LLSDPermissions();
-            llsdItem.permissions.creator_id = invItem.creatorsID;
-            llsdItem.permissions.base_mask = (int)invItem.inventoryCurrentPermissions;
-            llsdItem.permissions.everyone_mask = (int)invItem.inventoryEveryOnePermissions;
+            llsdItem.permissions.creator_id = invItem.Creator;
+            llsdItem.permissions.base_mask = (int)invItem.CurrentPermissions;
+            llsdItem.permissions.everyone_mask = (int)invItem.EveryOnePermissions;
             llsdItem.permissions.group_id = LLUUID.Zero;
             llsdItem.permissions.group_mask = 0;
             llsdItem.permissions.is_owner_group = false;
-            llsdItem.permissions.next_owner_mask = (int)invItem.inventoryNextPermissions;
+            llsdItem.permissions.next_owner_mask = (int)invItem.NextPermissions;
             llsdItem.permissions.owner_id = m_agentID; // FixMe
-            llsdItem.permissions.owner_mask = (int)invItem.inventoryCurrentPermissions;
+            llsdItem.permissions.owner_mask = (int)invItem.CurrentPermissions;
             llsdItem.sale_info = new LLSDSaleInfo();
             llsdItem.sale_info.sale_price = 10;
             llsdItem.sale_info.sale_type = "not";
@@ -587,17 +587,17 @@ namespace OpenSim.Region.Capabilities
             m_assetCache.AddAsset(asset);
 
             InventoryItemBase item = new InventoryItemBase();
-            item.avatarID = m_agentID;
-            item.creatorsID = m_agentID;
-            item.inventoryID = inventoryItem;
-            item.assetID = asset.FullID;
-            item.inventoryDescription = assetDescription;
-            item.inventoryName = assetName;
-            item.assetType = assType;
-            item.invType = inType;
-            item.parentFolderID = parentFolder;
-            item.inventoryCurrentPermissions = 2147483647;
-            item.inventoryNextPermissions = 2147483647;
+            item.Owner = m_agentID;
+            item.Creator = m_agentID;
+            item.ID = inventoryItem;
+            item.AssetID = asset.FullID;
+            item.Description = assetDescription;
+            item.Name = assetName;
+            item.AssetType = assType;
+            item.InvType = inType;
+            item.Folder = parentFolder;
+            item.CurrentPermissions = 2147483647;
+            item.NextPermissions = 2147483647;
 
             if (AddNewInventoryItem != null)
             {
