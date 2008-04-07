@@ -291,7 +291,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Give an inventory item from one avatar to another
         /// </summary>
         /// <param name="recipientClient"></param>
-        /// <param name="sender"></param>
+        /// <param name="senderId">ID of the sender of the item</param>
         /// <param name="itemId"></param>
         public void GiveInventoryItem(IClientAPI recipientClient, LLUUID senderId, LLUUID itemId)
         {
@@ -320,7 +320,7 @@ namespace OpenSim.Region.Environment.Scenes
                         // Insert a copy of the item into the recipient                    
                         InventoryItemBase itemCopy = new InventoryItemBase();
                         itemCopy.avatarID = recipientClient.AgentId;
-                        itemCopy.creatorsID = recipientClient.AgentId;
+                        itemCopy.creatorsID = senderId;
                         itemCopy.inventoryID = LLUUID.Random();
                         itemCopy.assetID = item.assetID;
                         itemCopy.inventoryDescription = item.inventoryDescription;
