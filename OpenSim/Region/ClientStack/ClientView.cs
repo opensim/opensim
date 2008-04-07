@@ -3391,7 +3391,6 @@ namespace OpenSim.Region.ClientStack
                         if (handlerUserInfoRequest != null)
                         {
                             handlerUserInfoRequest(this, avUserInfoRequestPacket.AgentData.AgentID, avUserInfoRequestPacket.AgentData.SessionID);
-
                         }
                         break;
 
@@ -4407,14 +4406,6 @@ namespace OpenSim.Region.ClientStack
                         // TODO: handle this packet
                         m_log.Warn("[CLIENT]: unhandled MapItemRequest packet");
                         break;
-                    //case PacketType.AgentResume:
-                        // TODO: handle this packet
-                        //m_log.Warn("[CLIENT]: unhandled AgentResume packet");
-                        //break;
-                    //case PacketType.AgentPause:
-                        // TODO: handle this packet
-                        //m_log.Warn("[CLIENT]: unhandled AgentPause packet");
-                        //break;
                     case PacketType.TransferAbort:
                         // TODO: handle this packet
                         m_log.Warn("[CLIENT]: unhandled TransferAbort packet");
@@ -4447,10 +4438,6 @@ namespace OpenSim.Region.ClientStack
                         // TODO: handle this packet
                         m_log.Warn("[CLIENT]: unhandled SoundTrigger packet");
                         break;
-                    //case PacketType.UserInfoRequest:
-                    // TODO: handle this packet
-                    //m_log.Warn("[CLIENT]: unhandled UserInfoRequest packet");
-                    //break;
                     case PacketType.InventoryDescendents:
                         // TODO: handle this packet
                         m_log.Warn("[CLIENT]: unhandled InventoryDescent packet");
