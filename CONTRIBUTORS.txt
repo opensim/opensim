@@ -49,6 +49,7 @@ Patches
 * devalnor-#708
 * Diva Canto
 * krtaylor (IBM)
+* A_Biondi
 
 
 LSL Devs

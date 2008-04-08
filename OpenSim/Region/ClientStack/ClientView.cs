@@ -1351,7 +1351,7 @@ namespace OpenSim.Region.ClientStack
             descend.AgentData.AgentID = AgentId;
             descend.AgentData.OwnerID = ownerID;
             descend.AgentData.FolderID = folderID;
-            descend.AgentData.Version = 0;
+            descend.AgentData.Version = 1;
 
             return descend;
         }
