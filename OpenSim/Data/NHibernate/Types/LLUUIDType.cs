@@ -57,6 +57,7 @@ namespace OpenSim.Data.NHibernate
         {
             LLUUID UUID = (LLUUID)obj;
             ((IDataParameter)cmd.Parameters[index]).Value = UUID.ToString();
+            System.Console.WriteLine("Setting UUID {0}", UUID.ToString());
         }
 
         public object Replace(object original, object target, object owner)
@@ -71,8 +72,7 @@ namespace OpenSim.Data.NHibernate
 
         public SqlType[] SqlTypes
         {
-            // I think we're up to 36
-            get { return new SqlType [] { SqlTypeFactory.GetString(36) }; }
+            get { return new SqlType [] { SqlTypeFactory.GetString(32) }; }
         }
     }
 }

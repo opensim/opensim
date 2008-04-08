@@ -67,11 +67,11 @@ namespace OpenSim.Data.NHibernate
             cfg.AddAssembly("OpenSim.Data.NHibernate");
 
             HbmSerializer.Default.Validate = true;
-//             using ( System.IO.MemoryStream stream = 
-//                     HbmSerializer.Default.Serialize(System.Reflection.Assembly.GetExecutingAssembly()))
-//                 cfg.AddInputStream(stream);
+            using ( System.IO.MemoryStream stream = 
+                    HbmSerializer.Default.Serialize(System.Reflection.Assembly.GetExecutingAssembly()))
+                cfg.AddInputStream(stream);
             
-//             new SchemaExport(cfg).Create(true, true);
+            // new SchemaExport(cfg).Create(true, true);
 
             factory  = cfg.BuildSessionFactory();
         }
@@ -80,7 +80,7 @@ namespace OpenSim.Data.NHibernate
         {
             using(ISession session = factory.OpenSession()) {
                 try {
-                    return session.Load(typeof(AssetBase), uuid.ToString()) as AssetBase;
+                    return session.Load(typeof(AssetBase), uuid) as AssetBase;
                 } catch {
                     return null;
                 }
