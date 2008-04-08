@@ -45,7 +45,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// The agent who's inventory this is contained by
         /// </summary>
-        private LLUUID _agentID;
+        private LLUUID _owner;
 
         /// <summary>
         /// The folder this folder is contained in 
@@ -76,12 +76,12 @@ namespace OpenSim.Framework
         	}
         }
 
-        public LLUUID AgentID {
+        public LLUUID Owner {
         	get {
-        		return _agentID;
+        		return _owner;
         	}
         	set {
-        		_agentID = value;
+        		_owner = value;
         	}
         }
 

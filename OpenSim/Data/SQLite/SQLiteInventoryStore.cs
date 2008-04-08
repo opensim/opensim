@@ -592,7 +592,7 @@ namespace OpenSim.Data.SQLite
             InventoryFolderBase folder = new InventoryFolderBase();
             folder.ID = new LLUUID((string) row["UUID"]);
             folder.Name = (string) row["name"];
-            folder.AgentID = new LLUUID((string) row["agentID"]);
+            folder.Owner = new LLUUID((string) row["agentID"]);
             folder.ParentID = new LLUUID((string) row["parentID"]);
             folder.Type = Convert.ToInt16(row["type"]);
             folder.Version = Convert.ToUInt16(row["version"]);
@@ -603,7 +603,7 @@ namespace OpenSim.Data.SQLite
         {
             row["UUID"] = Util.ToRawUuidString(folder.ID);
             row["name"] = folder.Name;
-            row["agentID"] = Util.ToRawUuidString(folder.AgentID);
+            row["agentID"] = Util.ToRawUuidString(folder.Owner);
             row["parentID"] = Util.ToRawUuidString(folder.ParentID);
             row["type"] = folder.Type;
             row["version"] = folder.Version;

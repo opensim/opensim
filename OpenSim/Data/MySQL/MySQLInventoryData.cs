@@ -381,7 +381,7 @@ namespace OpenSim.Data.MySQL
             try
             {
                 InventoryFolderBase folder = new InventoryFolderBase();
-                folder.AgentID = new LLUUID((string) reader["agentID"]);
+                folder.Owner = new LLUUID((string) reader["agentID"]);
                 folder.ParentID = new LLUUID((string) reader["parentFolderID"]);
                 folder.ID = new LLUUID((string) reader["folderID"]);
                 folder.Name = (string) reader["folderName"];
@@ -508,7 +508,7 @@ namespace OpenSim.Data.MySQL
 
             MySqlCommand cmd = new MySqlCommand(sql, database.Connection);
             cmd.Parameters.AddWithValue("?folderID", folder.ID.ToString());
-            cmd.Parameters.AddWithValue("?agentID", folder.AgentID.ToString());
+            cmd.Parameters.AddWithValue("?agentID", folder.Owner.ToString());
             cmd.Parameters.AddWithValue("?parentFolderID", folder.ParentID.ToString());
             cmd.Parameters.AddWithValue("?folderName", folder.Name);
             cmd.Parameters.AddWithValue("?type", (short) folder.Type);

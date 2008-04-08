@@ -56,7 +56,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             m_log.Info("[LIBRARY INVENTORY]: Loading library inventory");
             
-            AgentID = libOwner;
+            Owner = libOwner;
             ID = new LLUUID("00000112-000f-0000-0000-000100bba000");
             Name = "OpenSim Library";
             ParentID = LLUUID.Zero;
@@ -177,7 +177,7 @@ namespace OpenSim.Framework.Communications.Cache
             folderInfo.ParentID = new LLUUID(config.GetString("parentFolderID", ID.ToString()));
             folderInfo.Type = (short)config.GetInt("type", 8);
             
-            folderInfo.AgentID = libOwner;                
+            folderInfo.Owner = libOwner;                
             folderInfo.Version = 1;                
             
             if (libraryFolders.ContainsKey(folderInfo.ParentID))

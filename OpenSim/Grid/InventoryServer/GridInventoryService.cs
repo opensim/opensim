@@ -169,7 +169,7 @@ namespace OpenSim.Grid.InventoryServer
                 "Updating in   " + folder.ParentID.ToString()
                 + ", folder " + folder.Name);
 
-            AddNewInventoryFolder(folder.AgentID, folder);
+            AddNewInventoryFolder(folder.Owner, folder);
             return true;
         }
 

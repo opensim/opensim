@@ -45,7 +45,7 @@ namespace OpenSim.Framework.Communications.Cache
         // Constructors
         public InventoryFolderImpl(InventoryFolderBase folderbase)
         {
-            AgentID = folderbase.AgentID;
+            Owner = folderbase.Owner;
             ID = folderbase.ID;
             Name = folderbase.Name;
             ParentID = folderbase.ParentID;
@@ -67,7 +67,7 @@ namespace OpenSim.Framework.Communications.Cache
                 subFold.ID = folderID;
                 subFold.Type = (short) type;
                 subFold.ParentID = this.ID;
-                subFold.AgentID = AgentID;
+                subFold.Owner = Owner;
                 SubFolders.Add(subFold.ID, subFold);
                 return subFold;
             }

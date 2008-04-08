@@ -370,7 +370,7 @@ namespace OpenSim.Data.MSSQL
             try
             {
                 InventoryFolderBase folder = new InventoryFolderBase();
-                folder.AgentID = new LLUUID((string) reader["agentID"]);
+                folder.Owner = new LLUUID((string) reader["agentID"]);
                 folder.ParentID = new LLUUID((string) reader["parentFolderID"]);
                 folder.ID = new LLUUID((string) reader["folderID"]);
                 folder.Name = (string) reader["folderName"];
@@ -558,7 +558,7 @@ namespace OpenSim.Data.MSSQL
 
             Dictionary<string, string> param = new Dictionary<string, string>();
             param["folderID"] = folder.ID.ToString();
-            param["agentID"] = folder.AgentID.ToString();
+            param["agentID"] = folder.Owner.ToString();
             param["parentFolderID"] = folder.ParentID.ToString();
             param["folderName"] = folder.Name;
             param["type"] = Convert.ToString(folder.Type);
@@ -590,7 +590,7 @@ namespace OpenSim.Data.MSSQL
                                                 "version = @version where " +
                                                 "folderID = @keyFolderID;", database.getConnection());
             SqlParameter param1 = new SqlParameter("@folderID", folder.ID.ToString());
-            SqlParameter param2 = new SqlParameter("@agentID", folder.AgentID.ToString());
+            SqlParameter param2 = new SqlParameter("@agentID", folder.Owner.ToString());
             SqlParameter param3 = new SqlParameter("@parentFolderID", folder.ParentID.ToString());
             SqlParameter param4 = new SqlParameter("@folderName", folder.Name);
             SqlParameter param5 = new SqlParameter("@type", folder.Type);

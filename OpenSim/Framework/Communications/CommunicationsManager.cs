@@ -240,7 +240,7 @@ namespace OpenSim.Framework.Communications
 
         public void HandleUUIDNameRequest(LLUUID uuid, IClientAPI remote_client)
         {
-            if (uuid == m_userProfileCacheService.libraryRoot.AgentID)
+            if (uuid == m_userProfileCacheService.libraryRoot.Owner)
             {
                 remote_client.SendNameReply(uuid, "Mr", "OpenSim");
             }

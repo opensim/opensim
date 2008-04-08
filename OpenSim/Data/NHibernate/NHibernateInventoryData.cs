@@ -73,11 +73,11 @@ namespace OpenSim.Data.NHibernate
             cfg.AddAssembly("OpenSim.Data.NHibernate");
 
             HbmSerializer.Default.Validate = true;
-            //             using ( System.IO.MemoryStream stream = 
-            //                     HbmSerializer.Default.Serialize(System.Reflection.Assembly.GetExecutingAssembly()))
-            //                 cfg.AddInputStream(stream);
+            using ( System.IO.MemoryStream stream = 
+                    HbmSerializer.Default.Serialize(System.Reflection.Assembly.GetExecutingAssembly()))
+                cfg.AddInputStream(stream);
             
-            //             new SchemaExport(cfg).Create(true, true);
+            new SchemaExport(cfg).Create(true, true);
 
             factory  = cfg.BuildSessionFactory();
         }

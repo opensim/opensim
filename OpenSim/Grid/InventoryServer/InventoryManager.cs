@@ -111,12 +111,12 @@ namespace OpenSim.Grid.InventoryServer
             }
 
             // ensure we have  valid agent id 
-            if (f.AgentID == LLUUID.Zero)
+            if (f.Owner == LLUUID.Zero)
             {
                 if (parent != null)
-                    f.AgentID = parent.AgentID;
+                    f.Owner = parent.Owner;
                 else
-                    f.AgentID = f.ID;
+                    f.Owner = f.ID;
                 modified = true;
             }
 
