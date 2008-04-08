@@ -280,8 +280,9 @@ namespace OpenSim.Framework.Communications.Cache
             }
             else
             {
-                m_log.ErrorFormat("[INVENTORY CACHE]: Could not find user profile for {0} for folder {1}",
-                                  remoteClient.Name, folderID);
+                m_log.ErrorFormat(
+                     "[USER CACHE]: HandleFetchInventoryDescendents() could not find user profile {0}, {1}",
+                     remoteClient.Name, remoteClient.AgentId);
 
                 return;
             }
@@ -337,9 +338,10 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 else
                 {
-                    m_log.ErrorFormat("[INVENTORY CACHE]: " +
-                                      "Could not find user profile for {0} for folder {1}",
-                                      agentID.ToString(), folderID);
+                    m_log.ErrorFormat(
+                         "[USER CACHE]: HandleFetchInventoryDescendentsCAPS() Could not find user profile for {0}",
+                         agentID);
+                
                     return new List<InventoryItemBase>();
                 }
 
