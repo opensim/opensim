@@ -39,6 +39,83 @@ public class Vertex : PhysicsVector, IComparable<Vertex>
     {
     }
 
+    public float length()
+    {
+        return (float)Math.Sqrt(X * X + Y * Y + Z * Z);
+    }
+
+    public Vertex normalize()
+    {
+        float tlength = length();
+        if (tlength != 0)
+        {
+            return new Vertex(X / tlength, Y / tlength, Z / tlength);
+        }
+        else
+        {
+            return new Vertex(0, 0, 0);
+        }
+    }
+
+    public Vertex cross(Vertex v)
+    {
+        return new Vertex(Y * v.Z - Z * v.Y, Z * v.X - X * v.Z, X * v.Y - Y * v.X);
+    }
+
+    public static Vertex operator +(Vertex v1, Vertex v2)
+    {
+        return new Vertex(v1.X + v2.X, v1.Y + v2.Y, v1.Z + v2.Z);
+    }
+
+    public static Vertex operator -(Vertex v1, Vertex v2)
+    {
+        return new Vertex(v1.X - v2.X, v1.Y - v2.Y, v1.Z - v2.Z);
+    }
+
+    public static Vertex operator *(Vertex v1, Vertex v2)
+    {
+        return new Vertex(v1.X * v2.X, v1.Y * v2.Y, v1.Z * v2.Z);
+    }
+
+    public static Vertex operator +(Vertex v1, float am)
+    {
+        v1.X += am;
+        v1.Y += am;
+        v1.Z += am;
+        return v1;
+    }
+    public static Vertex operator -(Vertex v1, float am)
+    {
+        v1.X -= am;
+        v1.Y -= am;
+        v1.Z -= am;
+        return v1;
+    }
+    public static Vertex operator *(Vertex v1, float am)
+    {
+        v1.X *= am;
+        v1.Y *= am;
+        v1.Z *= am;
+        return v1;
+    }
+    public static Vertex operator /(Vertex v1, float am)
+    {
+        if (am == 0f)
+        {
+            return new Vertex(0f,0f,0f);
+        }
+        v1.X /= am;
+        v1.Y /= am;
+        v1.Z /= am;
+        return v1;
+    }
+
+
+    public float dot(Vertex v)
+    {
+        return X * v.X + Y * v.Y + Z * v.Z;
+    }
+
     public Vertex(PhysicsVector v)
         : base(v.X, v.Y, v.Z)
     {

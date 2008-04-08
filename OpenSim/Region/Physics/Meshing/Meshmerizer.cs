@@ -989,8 +989,17 @@ namespace OpenSim.Region.Physics.Meshing
             return result;
         }
         private static Mesh CreateSphereMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
-        // Builds the z (+ and -) surfaces of a box shaped prim
         {
+            // Builds an icosahedral geodesic sphere
+            // based on an article by Paul Bourke
+            // http://local.wasp.uwa.edu.au/~pbourke/
+            // articles:
+            // http://local.wasp.uwa.edu.au/~pbourke/geometry/polygonmesh/
+            // and
+            // http://local.wasp.uwa.edu.au/~pbourke/geometry/polyhedra/index.html
+
+            // Still have more to do here.
+
             UInt16 hollowFactor = primShape.ProfileHollow;
             UInt16 profileBegin = primShape.ProfileBegin;
             UInt16 profileEnd = primShape.ProfileEnd;
@@ -999,13 +1008,17 @@ namespace OpenSim.Region.Physics.Meshing
             UInt16 pathShearX = primShape.PathShearX;
             UInt16 pathShearY = primShape.PathShearY;
             Mesh m = new Mesh();
-            float radius = 0.6f;
+
+            float LOD = 0.2f;
+            float diameter = 0.5f;// Our object will result in -0.5 to 0.5
             float sq5 = (float) Math.Sqrt(5.0);
             float phi = (1 + sq5) * 0.5f;
             float rat = (float) Math.Sqrt(10f + (2f * sq5)) / (4f * phi);
-            float a = (radius / rat) * 0.5f;
-            float b = (radius / rat) / (2.0f * phi);
+            float a = (diameter / rat) * 0.5f;
+            float b = (diameter / rat) / (2.0f * phi);
 
+
+            // 12 Icosahedron vertexes
             Vertex v1 = new Vertex(0f, b, -a);
             Vertex v2 = new Vertex(b, a, 0f);
             Vertex v3 = new Vertex(-b, a, 0f);
@@ -1018,72 +1031,47 @@ namespace OpenSim.Region.Physics.Meshing
             Vertex v10 = new Vertex(-a, 0f, -b);
             Vertex v11 = new Vertex(b, -a, 0);
             Vertex v12 = new Vertex(-b, -a, 0);
-            m.Add(v1);
-            m.Add(v2);
-            m.Add(v3);
-            m.Add(v4);
-            m.Add(v5);
-            m.Add(v6);
-            m.Add(v7);
-            m.Add(v8);
-            m.Add(v9);
-            m.Add(v10);
-            m.Add(v11);
-            m.Add(v12);
 
-            Triangle t1 = new Triangle(v1, v2, v3);
-            Triangle t2 = new Triangle(v4, v3, v2);
-            Triangle t3 = new Triangle(v4, v5, v6);
-            Triangle t4 = new Triangle(v4, v9, v5);
-            Triangle t5 = new Triangle(v1, v7, v8);
-            Triangle t6 = new Triangle(v1, v10, v7);
-            Triangle t7 = new Triangle(v5, v11, v12);
-            Triangle t8 = new Triangle(v7, v12, v11);
-            Triangle t9 = new Triangle(v3, v6, v10);
-            Triangle t10 = new Triangle(v12, v10, v6);
-            Triangle t11 = new Triangle(v2, v8, v9);
-            Triangle t12 = new Triangle(v11, v9, v8);
-            Triangle t13 = new Triangle(v4, v6, v3);
-            Triangle t14 = new Triangle(v4, v2, v9);
-            Triangle t15 = new Triangle(v1, v3, v10);
-            Triangle t16 = new Triangle(v1, v8, v2);
-            Triangle t17 = new Triangle(v7, v10, v12);
-            Triangle t18 = new Triangle(v7, v11, v8);
-            Triangle t19 = new Triangle(v5, v12, v6);
-            Triangle t20 = new Triangle(v5, v9, v11);
-            m.Add(t1);
-            m.Add(t2);
-            m.Add(t3);
-            m.Add(t4);
-            m.Add(t5);
-            m.Add(t6);
-            m.Add(t7);
-            m.Add(t8);
-            m.Add(t9);
-            m.Add(t10);
-            m.Add(t11);
-            m.Add(t12);
-            m.Add(t13);
-            m.Add(t14);
-            m.Add(t15);
-            m.Add(t16);
-            m.Add(t17);
-            m.Add(t18);
-            m.Add(t19);
-            m.Add(t20);
 
-            // strechy!
+
+            // Base Faces of the Icosahedron (20)
+            SphereLODTriangle(v1, v2, v3, diameter, LOD, m); 
+            SphereLODTriangle(v4, v3, v2, diameter, LOD, m);
+            SphereLODTriangle(v4, v5, v6, diameter, LOD, m);
+            SphereLODTriangle(v4, v9, v5, diameter, LOD, m);
+            SphereLODTriangle(v1, v7, v8, diameter, LOD, m);
+            SphereLODTriangle(v1, v10, v7, diameter, LOD, m);
+            SphereLODTriangle(v5, v11, v12, diameter, LOD, m);
+            SphereLODTriangle(v7, v12, v11, diameter, LOD, m);
+            SphereLODTriangle(v3, v6, v10, diameter, LOD, m);
+            SphereLODTriangle(v12, v10, v6, diameter, LOD, m);
+            SphereLODTriangle(v2, v8, v9, diameter, LOD, m);
+            SphereLODTriangle(v11, v9, v8, diameter, LOD, m);
+            SphereLODTriangle(v4, v6, v3, diameter, LOD, m);
+            SphereLODTriangle(v4, v2, v9, diameter, LOD, m);
+            SphereLODTriangle(v1, v3, v10, diameter, LOD, m);
+            SphereLODTriangle(v1, v8, v2, diameter, LOD, m);
+            SphereLODTriangle(v7, v10, v12, diameter, LOD, m);
+            SphereLODTriangle(v7, v11, v8, diameter, LOD, m);
+            SphereLODTriangle(v5, v12, v6, diameter, LOD, m);
+            SphereLODTriangle(v5, v9, v11, diameter, LOD, m);
+
+            // Scale the mesh based on our prim scale
             foreach (Vertex v in m.vertices)
             {
                 v.X *= size.X;
                 v.Y *= size.Y;
                 v.Z *= size.Z;
             }
+
+            // This was built with the normals pointing inside.. 
+            // therefore we have to invert the normals
             foreach (Triangle t in m.triangles)
             {
                 t.invertNormal();
             }
-            m.DumpRaw(baseDir, primName, "Z extruded");
+            // Dump the faces for visualization in blender.
+            m.DumpRaw(baseDir, primName, "Icosahedron");
 
             return m;
         }
@@ -1146,6 +1134,49 @@ namespace OpenSim.Region.Physics.Meshing
                 mesh.normals[i + 2] = nz;
 
                 i += 3;
+            }
+        }
+
+        public static Vertex midUnitRadialPoint(Vertex a, Vertex b, float radius)
+        {
+            Vertex midpoint = new Vertex(a + b) * 0.5f;
+            return  (midpoint.normalize() * radius);
+        }
+
+        public static void SphereLODTriangle(Vertex a, Vertex b, Vertex c, float diameter, float LOD, Mesh m)
+        {
+            Vertex aa = a - b;
+            Vertex ba = b - c;
+            Vertex da = c - a;
+
+            if (((aa.length() < LOD) && (ba.length() < LOD) && (da.length() < LOD)))
+            {
+                // We don't want duplicate verticies.  Duplicates cause the scale algorithm to produce a spikeball
+                // spikes are novel, but we want ellipsoids.
+
+                if (!m.vertices.Contains(a))
+                    m.Add(a);
+                if (!m.vertices.Contains(b))
+                    m.Add(b);
+                if (!m.vertices.Contains(c))
+                    m.Add(c);
+
+                // Add the triangle to the mesh
+                Triangle t = new Triangle(a, b, c);
+                m.Add(t);
+            }
+            else
+            {
+                Vertex ab = midUnitRadialPoint(a, b, diameter);
+                Vertex bc = midUnitRadialPoint(b, c, diameter);
+                Vertex ca = midUnitRadialPoint(c, a, diameter);
+
+                // Recursive!  Splits the triangle up into 4 smaller triangles
+                SphereLODTriangle(a, ab, ca, diameter, LOD, m);
+                SphereLODTriangle(ab, b, bc, diameter, LOD, m);
+                SphereLODTriangle(ca, bc, c, diameter, LOD, m);
+                SphereLODTriangle(ab, bc, ca, diameter, LOD, m);
+
             }
         }
 
