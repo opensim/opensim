@@ -63,7 +63,9 @@ namespace OpenSim.Framework
         private short _type;
 
         /// <summary>
-        /// 
+        /// This is used to denote the version of the client, needed
+        /// because of the changes clients have with inventory from
+        /// time to time (1.19.1 caused us some fits there).
         /// </summary>
         private ushort _version;
         
