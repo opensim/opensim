@@ -301,16 +301,7 @@ namespace OpenSim.Region.Capabilities
             llsdItem.item_id = invItem.ID;
             llsdItem.name = invItem.Name;
             llsdItem.parent_id = invItem.Folder;
-            llsdItem.type = Enum.GetName(typeof(AssetType), invItem.AssetType).ToLower();                        
-            
-            // XXX Temporary fix for 'objects not appearing in inventory' problem.  The asset type from libsecondlife is
-            // returning "primitive" when it should returning "object"!  It looks like this is fixed in the latest libsecondlife,
-            // but our own libsl1550 doesn't have it either!
-            if ("primitive".Equals(llsdItem.type))
-            {
-                llsdItem.type = "object";
-            }
-            
+            llsdItem.type = Enum.GetName(typeof(AssetType), invItem.AssetType).ToLower();                                
             llsdItem.inv_type = Enum.GetName(typeof(InventoryType), invItem.InvType).ToLower();
             llsdItem.permissions = new LLSDPermissions();
             llsdItem.permissions.creator_id = invItem.Creator;

@@ -326,7 +326,7 @@ namespace OpenSim.Framework.Communications
                 folder.AgentID = user;
                 folder.ID = LLUUID.Random();
                 folder.Name = "Objects";
-                folder.Type = (short)AssetType.Primitive;
+                folder.Type = (short)AssetType.Object;
                 folder.Version = 1;
                 Folders.Add(folder.ID, folder);
 

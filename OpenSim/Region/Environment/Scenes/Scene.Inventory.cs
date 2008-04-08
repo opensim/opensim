@@ -858,7 +858,7 @@ namespace OpenSim.Region.Environment.Scenes
                                     ((SceneObjectGroup) selectedEnt).GetPartName(selectedEnt.LocalId),
                                     ((SceneObjectGroup) selectedEnt).GetPartDescription(selectedEnt.LocalId),
                                     (sbyte) InventoryType.Object,
-                                    (sbyte) AssetType.Primitive,
+                                    (sbyte) AssetType.Object,
                                     Helpers.StringToField(sceneObjectXml));
                                 AssetCache.AddAsset(asset);
 
