@@ -1132,11 +1132,15 @@ namespace OpenSim
                     break;
 
                 case "users":
+                    IList agents = m_sceneManager.GetCurrentSceneAvatars();
+                
+                    m_console.Notice(String.Format("\nAgents connected: {0}\n", agents.Count));
+                                 
                     m_console.Notice(
                         String.Format("{0,-16}{1,-16}{2,-37}{3,-16}{4,-22}{5,-16}{6,-15}", "Firstname", "Lastname",
                                       "Agent ID", "Circuit", "IP", "Region", "Status"));
 
-                    foreach (ScenePresence presence in m_sceneManager.GetCurrentSceneAvatars())
+                    foreach (ScenePresence presence in agents)
                     {
                         RegionInfo regionInfo = m_sceneManager.GetRegionInfo(presence.RegionHandle);
                         string regionName;
@@ -1172,6 +1176,8 @@ namespace OpenSim
                                  ((((ClientView)presence.ControllingClient).PacketProcessingEnabled)
                                      ?"Active client":"Standby client")));
                     }
+                
+                    m_console.Notice("");
 
                     break;
                 case "modules":
