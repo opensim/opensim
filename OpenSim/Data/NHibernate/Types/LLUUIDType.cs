@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using NHibernate;
 using NHibernate.SqlTypes;
 using NHibernate.UserTypes;
 using libsecondlife;
@@ -7,14 +8,14 @@ using libsecondlife;
 namespace OpenSim.Data.NHibernate
 {
     [Serializable]
-    public class LLUUIDString : IUserType 
+    public class LLUUIDUserType: IUserType 
     {
         public object Assemble(object cached, object owner)
         {
             return cached;
         }
 
-        bool IUserType.Equals(object uuid1, object uuid2)
+        public bool IUserType.Equals(object uuid1, object uuid2)
         {
             return uuid1.Equals(uuid2);
         }
@@ -55,9 +56,8 @@ namespace OpenSim.Data.NHibernate
 
         public void NullSafeSet(System.Data.IDbCommand cmd, object obj, int index)
         {
-            LLUUID UUID = (LLUUID)obj;
-            ((IDataParameter)cmd.Parameters[index]).Value = UUID.ToString();
-            System.Console.WriteLine("Setting UUID {0}", UUID.ToString());
+            LLUUID uuid = (LLUUID)obj;
+            ((IDataParameter)cmd.Parameters[index]).Value = uuid.ToString();
         }
 
         public object Replace(object original, object target, object owner)
@@ -72,7 +72,7 @@ namespace OpenSim.Data.NHibernate
 
         public SqlType[] SqlTypes
         {
-            get { return new SqlType [] { SqlTypeFactory.GetString(32) }; }
+            get { return new SqlType [] { NHibernateUtil.String.SqlType }; }
         }
     }
 }

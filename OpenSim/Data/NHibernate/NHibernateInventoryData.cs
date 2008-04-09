@@ -99,8 +99,9 @@ namespace OpenSim.Data.NHibernate
         {
             using(ISession session = factory.OpenSession()) {
                 try {
-                    return session.Load(typeof(InventoryItemBase), item.ToString()) as InventoryItemBase;
+                    return session.Load(typeof(InventoryItemBase), item) as InventoryItemBase;
                 } catch {
+                    m_log.ErrorFormat("Couldn't find inventory item: {0}", item);
                     return null;
                 }
             }
@@ -151,7 +152,7 @@ namespace OpenSim.Data.NHibernate
         {
             using(ISession session = factory.OpenSession()) {
                 using(ITransaction transaction = session.BeginTransaction()) {
-                    session.Delete(itemID.ToString());
+                    session.Delete(itemID);
                     transaction.Commit();
                 }
             }
@@ -167,8 +168,9 @@ namespace OpenSim.Data.NHibernate
         {
             using(ISession session = factory.OpenSession()) {
                 try {
-                    return session.Load(typeof(InventoryFolderBase), folder.ToString()) as InventoryFolderBase;
+                    return session.Load(typeof(InventoryFolderBase), folder) as InventoryFolderBase;
                 } catch {
+                    m_log.ErrorFormat("Couldn't find inventory item: {0}", folder);
                     return null;
                 }
             }
@@ -296,8 +298,8 @@ namespace OpenSim.Data.NHibernate
         {
             using(ISession session = factory.OpenSession()) {
                 try {
-                    IQuery query = session.CreateQuery("from InventoryItems i where i.parentFolderID = :parent");
-                    query.SetString("parent", folderID.ToString());
+                    IQuery query = session.CreateQuery("from InventoryItems i where i.Folder = :folder");
+                    query.SetString("folder", folderID.ToString());
                     List<InventoryItemBase> list = new List<InventoryItemBase>();
                     foreach (InventoryItemBase item in query.List())
                     {
@@ -318,21 +320,21 @@ namespace OpenSim.Data.NHibernate
         // see InventoryItemBase.getUserRootFolder
         public InventoryFolderBase getUserRootFolder(LLUUID user)
         {
-//             using(ISession session = factory.OpenSession()) {
-//                 try {
-//                     IQuery query = session.CreateQuery("from InventoryItems i where i.parentFolderID = :parent");
-//                     query.SetString("parent", folderID.ToString());
-//                     List<InventoryItemBase> list = new List<InventoryItemBase>();
-//                     foreach (InventoryItemBase item in query.List())
-//                     {
-//                         list.Add(item);
-//                     }
-//                     return list;
-//                 } catch {
-//                     return new List<InventoryItemBase>();
-//                 }
-//            }
-            return new InventoryFolderBase();
+            using(ISession session = factory.OpenSession()) {
+                try {
+                    IQuery query = session.CreateQuery("from InventoryFolders i where i.ParentID = :parent and i.Owner = :owner");
+                    query.SetParameter("parent", LLUUID.Zero, NHibernateUtil.Custom(typeof(LLUUIDUserType)));
+                    query.SetParameter("owner", user, NHibernateUtil.Custom(typeof(LLUUIDUserType)));
+                    foreach (InventoryFolderBase folder in query.List())
+                    {
+                        return folder;
+                    }
+                    m_log.ErrorFormat("No Inventory Root Folder Found for: {0}", user);
+                    return new InventoryFolderBase();
+                } catch {
+                    return new InventoryFolderBase();
+                }
+            }
         }
         
         /// <summary>
@@ -340,19 +342,19 @@ namespace OpenSim.Data.NHibernate
         /// </summary>
         /// <param name="folders">list where folders will be appended</param>
         /// <param name="parentID">ID of parent</param>
-        protected void getInventoryFolders(ref List<InventoryFolderBase> folders, LLUUID parentID)
+        private void getInventoryFolders(ref List<InventoryFolderBase> folders, LLUUID parentID)
         {
             using(ISession session = factory.OpenSession()) {
-                try {
-                    IQuery query = session.CreateQuery("from InventoryFolders i where i.parentFolderID = :parent");
-                    query.SetString("parent", parentID.ToString());
+                // try {
+                    IQuery query = session.CreateQuery("from InventoryFolders i where i.ParentID = :parent");
+                    query.SetParameter("parent", parentID, NHibernateUtil.Custom(typeof(LLUUIDUserType)));
                     foreach (InventoryFolderBase item in query.List())
                     {
                         folders.Add(item);
                     }
-                } catch {
-                    
-                }
+                    //                } catch {
+                    // m_log.ErrorFormat("Can't run getInventoryFolders for Folder ID: {0}", parentID);
+                    //  }
             }
         }
 
@@ -364,7 +366,7 @@ namespace OpenSim.Data.NHibernate
         public List<InventoryFolderBase> getInventoryFolders(LLUUID parentID)
         {
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
-            getInventoryFolders(ref folders, Util.ToRawUuidString(parentID));
+            getInventoryFolders(ref folders, parentID);
             return folders;
         }
 
@@ -372,11 +374,11 @@ namespace OpenSim.Data.NHibernate
         public List<InventoryFolderBase> getFolderHierarchy(LLUUID parentID)
         {
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
-            getInventoryFolders(ref folders, Util.ToRawUuidString(parentID));
+            getInventoryFolders(ref folders, parentID);
 
             for (int i = 0; i < folders.Count; i++)
-                getInventoryFolders(ref folders, Util.ToRawUuidString(folders[i].ID));
-
+                getInventoryFolders(ref folders, folders[i].ID);
+            
             return folders;
         }
     }
