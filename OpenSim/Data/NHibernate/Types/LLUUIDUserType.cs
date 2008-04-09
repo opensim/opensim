@@ -67,7 +67,7 @@ namespace OpenSim.Data.NHibernate
 
         public Type ReturnedType
         {
-            get { return typeof(LLUUID); }
+            get { return typeof(Guid); }
         }
 
         public SqlType[] SqlTypes
