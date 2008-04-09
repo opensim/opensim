@@ -15,7 +15,7 @@ namespace OpenSim.Data.NHibernate
             return cached;
         }
 
-        public bool IUserType.Equals(object uuid1, object uuid2)
+        bool IUserType.Equals(object uuid1, object uuid2)
         {
             return uuid1.Equals(uuid2);
         }
