@@ -4442,6 +4442,9 @@ namespace OpenSim.Region.ClientStack
                         // TODO: handle this packet
                         m_log.Warn("[CLIENT]: unhandled InventoryDescent packet");
                         break;
+                    case PacketType.GetScriptRunning:
+                        m_log.Warn("[CLIENT]: unhandled GetScriptRunning packet");
+                        break;
                     default:
                         m_log.Warn("[CLIENT]: unhandled packet " + Pack.ToString());
                         break;

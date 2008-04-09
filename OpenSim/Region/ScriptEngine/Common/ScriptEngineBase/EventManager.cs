@@ -90,7 +90,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public void touch_start(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
-            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_start", EventQueueManager.llDetectNull, new object[] { (int)1 });
+            EventQueueManager.Queue_llDetectParams_Struct detstruct = new EventQueueManager.Queue_llDetectParams_Struct();
+            detstruct._key = new LSL_Types.key[1];
+            detstruct._key[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
+            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_start", detstruct, new object[] { (int)1 });
         }
 
         public void OnRezScript(uint localID, LLUUID itemID, string script)

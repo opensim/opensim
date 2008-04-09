@@ -454,6 +454,19 @@ namespace OpenSim.Region.ScriptEngine.Common
                     return SensedUUID;
                 }
             }
+            else
+            {
+                ScriptManager sm;
+                IScript script = null;
+
+                if ((sm = m_ScriptEngine.m_ScriptManager) != null)
+                    if (sm.Scripts.ContainsKey(m_localID))
+                        if ((script = sm.GetScript(m_localID, m_itemID)) != null)
+                            if (script.llDetectParams._key[0] != null)
+                                return new LLUUID(
+                                        script.llDetectParams._key[0]
+                                    );
+            }
             return LLUUID.Zero;
         }
 
@@ -1974,7 +1987,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                             object[] resobj = new object[]
                             {
-                                m_host.LinkNum, num, msg, id
+                                m_host.LinkNum + 1, num, msg, id
                             };
 
                             m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
@@ -2001,7 +2014,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                                 partItemID = item.ItemID;
                                 Object[] resobj = new object[]
                                 {
-                                    m_host.LinkNum, num, msg, id
+                                    m_host.LinkNum + 1, num, msg, id
                                 };
 
                                 m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
@@ -2029,7 +2042,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                                     partItemID = item.ItemID;
                                     Object[] resobj = new object[]
                                     {
-                                        m_host.LinkNum, num, msg, id
+                                        m_host.LinkNum + 1, num, msg, id
                                     };
 
                                     m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
@@ -2059,7 +2072,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                                     partItemID = item.ItemID;
                                     Object[] resobj = new object[]
                                     {
-                                        m_host.LinkNum, num, msg, id
+                                        m_host.LinkNum + 1, num, msg, id
                                     };
 
                                     m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
@@ -2077,7 +2090,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                     Object[] respObjThis = new object[]
                                 {
-                                    m_host.LinkNum, num, msg, id
+                                    m_host.LinkNum + 1, num, msg, id
                                 };
 
                     m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
@@ -2102,7 +2115,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                                     partItemID = item.ItemID;
                                     Object[] resObjDef = new object[]
                                     {
-                                        m_host.LinkNum, num, msg, id
+                                        m_host.LinkNum + 1, num, msg, id
                                     };
 
                                     m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
