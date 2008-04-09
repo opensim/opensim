@@ -31,6 +31,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using libsecondlife;
 using NHibernate;
+using NHibernate.Expression;
 using NHibernate.Cfg;
 using NHibernate.Tool.hbm2ddl;
 using NHibernate.Mapping.Attributes;
@@ -298,10 +299,10 @@ namespace OpenSim.Data.NHibernate
         {
             using(ISession session = factory.OpenSession()) {
                 try {
-                    IQuery query = session.CreateQuery("from InventoryItems i where i.Folder = :folder");
-                    query.SetString("folder", folderID.ToString());
+                    ICriteria criteria = session.CreateCriteria(typeof(InventoryItemBase));
+                    criteria.Add(Expression.Eq("Folder", folderID) );
                     List<InventoryItemBase> list = new List<InventoryItemBase>();
-                    foreach (InventoryItemBase item in query.List())
+                    foreach (InventoryItemBase item in criteria.List())
                     {
                         list.Add(item);
                     }
@@ -322,10 +323,10 @@ namespace OpenSim.Data.NHibernate
         {
             using(ISession session = factory.OpenSession()) {
                 try {
-                    IQuery query = session.CreateQuery("from InventoryFolders i where i.ParentID = :parent and i.Owner = :owner");
-                    query.SetParameter("parent", LLUUID.Zero, NHibernateUtil.Custom(typeof(LLUUIDUserType)));
-                    query.SetParameter("owner", user, NHibernateUtil.Custom(typeof(LLUUIDUserType)));
-                    foreach (InventoryFolderBase folder in query.List())
+                    ICriteria criteria = session.CreateCriteria(typeof(InventoryFolderBase));
+                    criteria.Add(Expression.Eq("ParentID", LLUUID.Zero) );
+                    criteria.Add(Expression.Eq("Owner", user) );
+                    foreach (InventoryFolderBase folder in criteria.List())
                     {
                         return folder;
                     }
