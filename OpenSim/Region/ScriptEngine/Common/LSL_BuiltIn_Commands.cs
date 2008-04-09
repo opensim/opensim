@@ -460,12 +460,18 @@ namespace OpenSim.Region.ScriptEngine.Common
                 IScript script = null;
 
                 if ((sm = m_ScriptEngine.m_ScriptManager) != null)
+                {
                     if (sm.Scripts.ContainsKey(m_localID))
+                    {
                         if ((script = sm.GetScript(m_localID, m_itemID)) != null)
+                        {
                             if (script.llDetectParams._key[0] != null)
-                                return new LLUUID(
-                                        script.llDetectParams._key[0]
-                                    );
+                            {
+                                return new LLUUID(script.llDetectParams._key[0]);
+                            }
+                        }
+                    }
+                }
             }
             return LLUUID.Zero;
         }
