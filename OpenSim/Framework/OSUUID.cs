@@ -10,10 +10,12 @@ using libsecondlife;
 namespace OpenSim.Framework
 {
     [Serializable]
-    public struct OSUUID: IComparable
+    public class OSUUID: IComparable
     {
         public Guid UUID;
 	
+        public OSUUID() {}
+
         /* Constructors */
         public OSUUID(string s)
         {
@@ -39,7 +41,7 @@ namespace OpenSim.Framework
         }
 
         // out conversion
-        public string ToString()
+        public override string ToString()
         {
             return UUID.ToString();
         }
