@@ -298,7 +298,7 @@ namespace OpenSim.Data.NHibernate
         public List<InventoryItemBase> getInventoryInFolder(LLUUID folderID)
         {
             using(ISession session = factory.OpenSession()) {
-                try {
+                // try {
                     ICriteria criteria = session.CreateCriteria(typeof(InventoryItemBase));
                     criteria.Add(Expression.Eq("Folder", folderID) );
                     List<InventoryItemBase> list = new List<InventoryItemBase>();
@@ -307,9 +307,9 @@ namespace OpenSim.Data.NHibernate
                         list.Add(item);
                     }
                     return list;
-                } catch {
-                    return new List<InventoryItemBase>();
-                }
+//                 } catch {
+//                     return new List<InventoryItemBase>();
+//                 }
             }
         }
 
@@ -322,7 +322,7 @@ namespace OpenSim.Data.NHibernate
         public InventoryFolderBase getUserRootFolder(LLUUID user)
         {
             using(ISession session = factory.OpenSession()) {
-                try {
+                //                try {
                     ICriteria criteria = session.CreateCriteria(typeof(InventoryFolderBase));
                     criteria.Add(Expression.Eq("ParentID", LLUUID.Zero) );
                     criteria.Add(Expression.Eq("Owner", user) );
@@ -332,9 +332,9 @@ namespace OpenSim.Data.NHibernate
                     }
                     m_log.ErrorFormat("No Inventory Root Folder Found for: {0}", user);
                     return new InventoryFolderBase();
-                } catch {
-                    return new InventoryFolderBase();
-                }
+//                 } catch {
+//                     return new InventoryFolderBase();
+//                 }
             }
         }
         
@@ -347,9 +347,9 @@ namespace OpenSim.Data.NHibernate
         {
             using(ISession session = factory.OpenSession()) {
                 // try {
-                    IQuery query = session.CreateQuery("from InventoryFolders i where i.ParentID = :parent");
-                    query.SetParameter("parent", parentID, NHibernateUtil.Custom(typeof(LLUUIDUserType)));
-                    foreach (InventoryFolderBase item in query.List())
+                    ICriteria criteria = session.CreateCriteria(typeof(InventoryFolderBase));
+                    criteria.Add(Expression.Eq("ParentID", parentID) );
+                    foreach (InventoryFolderBase item in criteria.List())
                     {
                         folders.Add(item);
                     }
