@@ -1213,7 +1213,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             // This function has been deprecated
             // see http://www.lslwiki.net/lslwiki/wakka.php?wakka=llSound
-            NotImplemented("llSound");
+            Deprecated("llSound");
         }
 
         public void llPlaySound(string sound, double volume)
@@ -3449,7 +3449,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llRemoteLoadScript()
         {
             m_host.AddScriptLPS(1);
-            ShoutError("llRemoteLoadScript: deprecated");
+            Deprecated("llRemoteLoadScript");
         }
 
         public void llSetRemoteScriptAccessPin(int pin)
@@ -3559,7 +3559,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llXorBase64Strings()
         {
             m_host.AddScriptLPS(1);
-            throw new Exception("Command deprecated! Use llXorBase64StringsCorrect instead.");
+            Deprecated("llXorBase64Strings");
         }
 
         public void llRemoteDataSetRegion()
@@ -5210,6 +5210,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             if (throwErrorOnNotImplemented)
                 throw new NotImplementedException("Command not implemented: " + command);
+        }
+
+        private void Deprecated(string command)
+        {
+            m_host.AddScriptLPS(1);
+            throw new Exception("Command deprecated: " + command);
         }
 
         private void LSLError(string msg)
