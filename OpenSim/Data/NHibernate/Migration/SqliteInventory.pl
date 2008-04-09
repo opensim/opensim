@@ -25,15 +25,19 @@ my $items = "INSERT INTO InventoryItems(ID, AssetID, AssetType, InvType, Folder,
 my $folders = "INSERT INTO InventoryFolders(ID, Name, Owner, ParentID, Type, Version) ";
 
 open(SQLITE, "sqlite3 inventoryStore.db .dump |") or die "can't open the database for migration";
+open(WRITE,"| sqlite3 Inventory.db");
 
 while(my $line = <SQLITE>) {
     $line =~ s/([0-9a-f]{8})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{12})/$1-$2-$3-$4-$5/g;
     if($line =~ s/(INSERT INTO "inventoryitems")/$items/) {
         print $line;
+        print WRITE $line;
     }
     if($line =~ s/(INSERT INTO "inventoryfolders")/$folders/) {
         print $line;
-    }
-    
+        print WRITE $line;
+    }    
 }
 
+close(WRITE);
+close(SQLITE);

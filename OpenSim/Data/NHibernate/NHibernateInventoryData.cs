@@ -77,7 +77,7 @@ namespace OpenSim.Data.NHibernate
                     HbmSerializer.Default.Serialize(System.Reflection.Assembly.GetExecutingAssembly()))
                 cfg.AddInputStream(stream);
             
-            new SchemaExport(cfg).Create(true, true);
+            // new SchemaExport(cfg).Create(true, true);
 
             factory  = cfg.BuildSessionFactory();
         }
