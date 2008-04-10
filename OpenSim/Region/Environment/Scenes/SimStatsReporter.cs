@@ -100,6 +100,8 @@ namespace OpenSim.Region.Environment.Scenes
         private int m_pendingUploads = 0;
         private int m_activeScripts = 0;
         private int m_scriptLinesPerSecond = 0;
+
+        private int objectCapacity = 45000;
        
 
         SimStatsPacket.StatBlock[] sb = new SimStatsPacket.StatBlock[21];
@@ -152,7 +154,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 statpack.Region.RegionFlags = (uint) 0;
             }
-            statpack.Region.ObjectCapacity = (uint) 45000;
+            statpack.Region.ObjectCapacity = (uint) objectCapacity;
 
             #region various statistic googly moogly
 
@@ -387,6 +389,11 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetActiveScripts(int count)
         {
             m_activeScripts = count;
+        }
+
+        public void SetObjectCapacity(int objects)
+        {
+            objectCapacity = objects;
         }
 
         #endregion

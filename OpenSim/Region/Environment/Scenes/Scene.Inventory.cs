@@ -73,6 +73,17 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 userInfo.AddItem(remoteClient.AgentId, item);
                 remoteClient.SendInventoryItemCreateUpdate(item);
+
+                int userlevel = 0;
+                if (PermissionsMngr.IsEstateManager(remoteClient.AgentId))
+                {
+                    userlevel = 1;
+                }
+                if (m_regInfo.MasterAvatarAssignedUUID == remoteClient.AgentId)
+                {
+                    userlevel = 2;
+                }
+                EventManager.TriggerOnNewInventoryItemUploadComplete(remoteClient.AgentId, item.AssetID, item.Name, userlevel);
             }
         }
 

@@ -155,6 +155,8 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event FriendActionDelegate OnDenyFriendRequest;
         public event FriendshipTermination OnTerminateFriendship;
         public event PacketStats OnPacketStats;
+
+        public event EconomyDataRequest OnEconomyDataRequest;
         public event MoneyBalanceRequest OnMoneyBalanceRequest;
         public event UpdateAvatarProperties OnUpdateAvatarProperties;
 
@@ -408,6 +410,13 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
+        public virtual void SendEconomyData(float EnergyEfficiency, int ObjectCapacity, int ObjectCount, int PriceEnergyUnit,
+            int PriceGroupCreate, int PriceObjectClaim, float PriceObjectRent, float PriceObjectScaleFactor,
+            int PriceParcelClaim, float PriceParcelClaimFactor, int PriceParcelRent, int PricePublicObjectDecay,
+            int PricePublicObjectDelete, int PriceRentLight, int PriceUpload, int TeleportMinPrice, float TeleportPriceExponent)
+        {
+
+        }
         public virtual void SendNameReply(LLUUID profileId, string firstname, string lastname)
         {
         }

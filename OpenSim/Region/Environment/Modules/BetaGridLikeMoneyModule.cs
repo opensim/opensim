@@ -56,10 +56,39 @@ namespace OpenSim.Region.Environment.Modules
 
         private bool gridmode = false;
 
+        private float EnergyEfficiency = 0f;
+        private int ObjectCapacity = 45000;
+        private int ObjectCount = 0;
+        private int PriceEnergyUnit = 0;
+        private int PriceGroupCreate = 0;
+        private int PriceObjectClaim = 0;
+        private float PriceObjectRent = 0f;
+        private float PriceObjectScaleFactor = 0f;
+        private int PriceParcelClaim = 0;
+        private float PriceParcelClaimFactor = 0f;
+        private int PriceParcelRent = 0;
+        private int PricePublicObjectDecay = 0;
+        private int PricePublicObjectDelete = 0;
+        private int PriceRentLight = 0;
+        private int PriceUpload = 0;
+        private int TeleportMinPrice = 0;
+        private int UserLevelPaysFees = 2;
+
+        float TeleportPriceExponent = 0f;
+
+        LLUUID EconomyBaseAccount = LLUUID.Zero;
+
         public void Initialise(Scene scene, IConfigSource config)
         {
             m_gConfig = config;
-            ReadConfigAndPopulate();
+            
+            IConfig startupConfig = m_gConfig.Configs["Startup"];
+            IConfig economyConfig = m_gConfig.Configs["Economy"];
+            
+            
+            
+            ReadConfigAndPopulate(scene, startupConfig, "Startup");
+            ReadConfigAndPopulate(scene, economyConfig, "Economy");
 
             if (m_enabled)
             {
@@ -79,14 +108,47 @@ namespace OpenSim.Region.Environment.Modules
                 scene.EventManager.OnNewClient += OnNewClient;
                 scene.EventManager.OnMoneyTransfer += MoneyTransferAction;
                 scene.EventManager.OnClientClosed += ClientClosed;
+                scene.EventManager.OnNewInventoryItemUploadComplete += NewInventoryItemEconomyHandler;
+                
             }
         }
 
-        private void ReadConfigAndPopulate()
+        private void ReadConfigAndPopulate(Scene scene, IConfig startupConfig, string config)
         {
-            IConfig startupConfig = m_gConfig.Configs["Startup"];
-            gridmode = startupConfig.GetBoolean("gridmode", false);
-            m_enabled = (startupConfig.GetString("moneymodule", "BetaGridLikeMoneyModule") == "BetaGridLikeMoneyModule");
+            if (config == "Startup")
+            {
+                gridmode = startupConfig.GetBoolean("gridmode", false);
+                m_enabled = (startupConfig.GetString("economymodule", "BetaGridLikeMoneyModule") == "BetaGridLikeMoneyModule");
+            }
+
+            if (config == "Economy")
+            {    
+                ObjectCapacity = startupConfig.GetInt("ObjectCapacity", 45000);
+                PriceEnergyUnit = startupConfig.GetInt("PriceEnergyUnit", 100);
+                PriceObjectClaim = startupConfig.GetInt("PriceObjectClaim", 10);
+                PricePublicObjectDecay = startupConfig.GetInt("PricePublicObjectDecay", 4);
+                PricePublicObjectDelete = startupConfig.GetInt("PricePublicObjectDelete", 4);
+                PriceParcelClaim = startupConfig.GetInt("PriceParcelClaim", 1);
+                PriceParcelClaimFactor = startupConfig.GetFloat("PriceParcelClaimFactor", 1f);
+                PriceUpload = startupConfig.GetInt("PriceUpload", 0);
+                PriceRentLight = startupConfig.GetInt("PriceRentLight", 5);
+                TeleportMinPrice = startupConfig.GetInt("TeleportMinPrice", 2);
+                TeleportPriceExponent = startupConfig.GetFloat("TeleportPriceExponent", 2f);
+                EnergyEfficiency = startupConfig.GetFloat("EnergyEfficiency", 1);
+                PriceObjectRent = startupConfig.GetFloat("PriceObjectRent", 1);
+                PriceObjectScaleFactor = startupConfig.GetFloat("PriceObjectScaleFactor", 10);
+                PriceParcelRent = startupConfig.GetInt("PriceParcelRent", 1);
+                PriceGroupCreate = startupConfig.GetInt("PriceGroupCreate", -1);
+                string EBA = startupConfig.GetString("EconomyBaseAccount", LLUUID.Zero.ToString());
+                Helpers.TryParse(EBA,out EconomyBaseAccount);
+                UserLevelPaysFees = startupConfig.GetInt("UserLevelPaysFees", -1);
+                m_stipend = startupConfig.GetInt("UserStipend", 500);
+                m_minFundsBeforeRefresh = startupConfig.GetInt("IssueStipendWhenClientIsBelowAmount", 10);
+                m_keepMoneyAcrossLogins = startupConfig.GetBoolean("KeepMoneyAcrossLogins", true);
+            }
+            
+            // Send ObjectCapacity to Scene..  Which sends it to the SimStatsReporter.
+            scene.SetObjectCapacity(ObjectCapacity);
         }
 
         private void OnNewClient(IClientAPI client)
@@ -105,8 +167,11 @@ namespace OpenSim.Region.Environment.Modules
             }
             
             // Subscribe to Money messages
+            client.OnEconomyDataRequest += EconomyDataRequestHandler;
             client.OnMoneyBalanceRequest += SendMoneyBalance;
             client.OnLogout += ClientClosed;
+            
+
         }
 
         public void ClientClosed(LLUUID AgentID)
@@ -116,6 +181,16 @@ namespace OpenSim.Region.Environment.Modules
                 if (!m_keepMoneyAcrossLogins)
                     m_KnownClientFunds.Remove(AgentID);
             }
+        }
+
+        public void EconomyDataRequestHandler(LLUUID agentId)
+        {
+            IClientAPI user = LocateClientObject(agentId);
+
+            user.SendEconomyData(EnergyEfficiency, ObjectCapacity, ObjectCount, PriceEnergyUnit, PriceGroupCreate,
+                PriceObjectClaim, PriceObjectRent, PriceObjectScaleFactor, PriceParcelClaim, PriceParcelClaimFactor,
+                PriceParcelRent, PricePublicObjectDecay, PricePublicObjectDelete, PriceRentLight, PriceUpload,
+                TeleportMinPrice, TeleportPriceExponent);
         }
 
         private void MoneyTransferAction (Object osender, MoneyTransferArgs e)
@@ -148,6 +223,22 @@ namespace OpenSim.Region.Environment.Modules
             {
                 m_log.Warn("[MONEY]: Potential Fraud Warning, got money transfer request for avatar that isn't in this simulator - Details; Sender:" + e.sender.ToString() + " Reciver: " + e.reciever.ToString() + " Amount: " + e.amount.ToString());
             }
+        }
+
+        private void NewInventoryItemEconomyHandler(LLUUID Uploader, LLUUID AssetID, String AssetName, int userlevel)
+        {
+            // Presumably a normal grid would actually send this information to a server somewhere.
+            // We're going to apply the UploadCost here.
+            if (m_enabled)
+            {
+                // Only make users that are below the UserLevelPaysFees value pay.
+                // Use this to exclude Region Owners (2), Estate Managers(1), Users (0), Disabled(-1)
+                if (PriceUpload > 0 && userlevel <= UserLevelPaysFees)
+                {
+                    doMoneyTranfer(Uploader, EconomyBaseAccount, PriceUpload);
+                }
+            }
+
         }
 
         private bool doMoneyTranfer(LLUUID Sender, LLUUID Receiver, int amount)

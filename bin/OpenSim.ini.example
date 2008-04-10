@@ -301,3 +301,53 @@ snapshot_cache_directory = "DataSnapshot"
 ; This semicolon-separated string serves to notify specific data services
 ; about the existence of this sim.
 data_services="http://metaverseink.com/cgi-bin/register.py"
+
+[Economy]
+; These economy values get used in the BetaGridLikeMoneyModule
+
+; 45000 is the highest value that the sim could possibly report because of protocol constraints
+ObjectCapacity = 45000
+
+; Money Unit fee to upload textures, animations etc
+PriceUpload = 0
+
+; Money Unit fee to create groups
+PriceGroupCreate = 0
+
+; This is the account Money goes to for fees.  Remember, economy requires that money circulates somewhere... even if it's an upload fee
+EconomyBaseAccount = 00000000-0000-0000-0000-000000000000
+
+; This is the type of user that will pay fees.  
+; Set this to 2 for users, estate managers and Estate Owners
+; Set this to 1 for Users and Estate Managers
+; Set this to 0 for Users only.   
+; -1 disables
+UserLevelPaysFees = -1
+
+; Amount to give to user as a stipend
+UserStipend = 1000
+
+; When a user gets low on money units and logs off, then logs back on, issue a new stipend if they have less money units then this 
+; amount. Be aware that the account money isn't stored anywhere so users will get a stipend if you restart the simulator
+IssueStipendWhenClientIsBelowAmount = 10
+
+; If this is true, the simulator will remember account balances until the simulator is shutdown or restarted.
+KeepMoneyAcrossLogins = true
+
+; We don't really know what the rest of these values do.  These get sent to the client
+; These taken from Agni at a Public Telehub.  Change at your own risk.
+ObjectCount = 0
+PriceEnergyUnit = 100
+PriceObjectClaim = 10
+PricePublicObjectDecay = 4
+PricePublicObjectDelete = 4
+PriceParcelClaim = 1
+PriceParcelClaimFactor = 1
+
+PriceRentLight = 5
+TeleportMinPrice = 2
+TeleportPriceExponent = 2
+EnergyEfficiency = 1
+PriceObjectRent = 1
+PriceObjectScaleFactor = 10
+PriceParcelRent = 1

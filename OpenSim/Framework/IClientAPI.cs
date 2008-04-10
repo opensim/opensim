@@ -430,6 +430,8 @@ namespace OpenSim.Framework
 
     public delegate void ObjectPermissions(IClientAPI controller, LLUUID agentID, LLUUID sessionID, byte field, uint localId, uint mask, byte set);
 
+    public delegate void EconomyDataRequest(LLUUID agentID);
+
     public interface IClientAPI
     {
         event ImprovedInstantMessage OnInstantMessage;
@@ -538,9 +540,11 @@ namespace OpenSim.Framework
 
         // Financial packets
         event MoneyTransferRequest OnMoneyTransferRequest;
+        event EconomyDataRequest OnEconomyDataRequest;
 
         event MoneyBalanceRequest OnMoneyBalanceRequest;
         event UpdateAvatarProperties OnUpdateAvatarProperties;
+
 
          
         LLVector3 StartPos { get; set; }
@@ -647,6 +651,12 @@ namespace OpenSim.Framework
         void SendBulkUpdateInventory(InventoryItemBase item);
         
         void SendXferPacket(ulong xferID, uint packet, byte[] data);
+
+        void SendEconomyData(float EnergyEfficiency, int ObjectCapacity, int ObjectCount, int PriceEnergyUnit,
+            int PriceGroupCreate, int PriceObjectClaim, float PriceObjectRent, float PriceObjectScaleFactor,
+            int PriceParcelClaim, float PriceParcelClaimFactor, int PriceParcelRent, int PricePublicObjectDecay,
+            int PricePublicObjectDelete, int PriceRentLight, int PriceUpload, int TeleportMinPrice, float TeleportPriceExponent);
+
         void SendAvatarPickerReply(AvatarPickerReplyPacket Pack);
 
         void SendAgentDataUpdate(LLUUID agentid, LLUUID activegroupid, string firstname, string lastname, ulong grouppowers, string groupname, string grouptitle);

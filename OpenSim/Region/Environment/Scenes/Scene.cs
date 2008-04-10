@@ -219,6 +219,8 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_innerScene.RestorePresences = value; }
         }
 
+        public int objectCapacity = 45000;
+
         #endregion
 
         #region Constructors
@@ -299,6 +301,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_statsReporter = new SimStatsReporter(regInfo);
             m_statsReporter.OnSendStatsResult += SendSimStatsPackets;
+
+            m_statsReporter.SetObjectCapacity(objectCapacity);
+
             string OSString = "";
 
             if (System.Environment.OSVersion.Platform != PlatformID.Unix)
@@ -2014,6 +2019,15 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 return default(T);
             }
+        }
+
+        public void SetObjectCapacity(int objects)
+        {
+            if (m_statsReporter != null)
+            {
+                m_statsReporter.SetObjectCapacity(objects);
+            }
+            objectCapacity = objects;
         }
 
         #endregion

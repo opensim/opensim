@@ -137,6 +137,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event OnNewPresenceDelegate OnMakeChildAgent;
 
+        public delegate void NewInventoryItemUploadComplete(LLUUID avatarID, LLUUID assetID, string name, int userlevel);
+
+        public event NewInventoryItemUploadComplete OnNewInventoryItemUploadComplete;
+
         /// <summary>
         /// RegisterCapsEvent is called by Scene after the Caps object
         /// has been instantiated and before it is return to the
@@ -207,6 +211,7 @@ namespace OpenSim.Region.Environment.Scenes
         private OnTerrainTickDelegate handlerTerrainTick = null; // OnTerainTick;
         private RegisterCapsEvent handlerRegisterCaps = null; // OnRegisterCaps;
         private DeregisterCapsEvent handlerDeregisterCaps = null; // OnDeregisterCaps;
+        private NewInventoryItemUploadComplete handlerNewInventoryItemUpdateComplete = null;
 
         public void TriggerOnScriptChangedEvent(uint localID, uint change)
         {
@@ -460,6 +465,15 @@ namespace OpenSim.Region.Environment.Scenes
             if (handlerDeregisterCaps != null)
             {
                 handlerDeregisterCaps(agentID, caps);
+            }
+        }
+
+        public void TriggerOnNewInventoryItemUploadComplete(LLUUID agentID, LLUUID AssetID, String AssetName, int userlevel)
+        {
+            handlerNewInventoryItemUpdateComplete = OnNewInventoryItemUploadComplete;
+            if (handlerNewInventoryItemUpdateComplete != null)
+            {
+                handlerNewInventoryItemUpdateComplete(agentID, AssetID, AssetName, userlevel);
             }
         }
     }

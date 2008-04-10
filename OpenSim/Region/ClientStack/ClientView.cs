@@ -214,6 +214,8 @@ namespace OpenSim.Region.ClientStack
         private ViewerEffectEventHandler handlerViewerEffect = null; //OnViewerEffect;
         private Action<IClientAPI> handlerLogout = null; //OnLogout;
         private MoneyTransferRequest handlerMoneyTransferRequest = null; //OnMoneyTransferRequest;
+        private EconomyDataRequest handlerEconomoyDataRequest = null;
+
         private UpdateVector handlerUpdatePrimSinglePosition = null; //OnUpdatePrimSinglePosition;
         private UpdatePrimSingleRotation handlerUpdatePrimSingleRotation = null; //OnUpdatePrimSingleRotation;
         private UpdateVector handlerUpdatePrimScale = null; //OnUpdatePrimScale;
@@ -222,6 +224,7 @@ namespace OpenSim.Region.ClientStack
         private UpdatePrimGroupRotation handlerUpdatePrimGroupRotation = null; //OnUpdatePrimGroupMouseRotation;
         private PacketStats handlerPacketStats = null; // OnPacketStats;#
         private RequestAsset handlerRequestAsset = null; // OnRequestAsset;
+
 
         /* Properties */
 
@@ -763,6 +766,7 @@ namespace OpenSim.Region.ClientStack
         public event PacketStats OnPacketStats;
 
         public event MoneyTransferRequest OnMoneyTransferRequest;
+        public event EconomyDataRequest OnEconomyDataRequest;
 
         public event MoneyBalanceRequest OnMoneyBalanceRequest;
 
@@ -1521,6 +1525,34 @@ namespace OpenSim.Region.ClientStack
             sendXfer.XferID.Packet = packet;
             sendXfer.DataPacket.Data = data;
             OutPacket(sendXfer, ThrottleOutPacketType.Task);
+        }
+
+        public void SendEconomyData(float EnergyEfficiency, int ObjectCapacity, int ObjectCount, int PriceEnergyUnit,
+            int PriceGroupCreate, int PriceObjectClaim, float PriceObjectRent, float PriceObjectScaleFactor,
+            int PriceParcelClaim, float PriceParcelClaimFactor, int PriceParcelRent, int PricePublicObjectDecay,
+            int PricePublicObjectDelete, int PriceRentLight, int PriceUpload, int TeleportMinPrice, float TeleportPriceExponent)
+        {
+            EconomyDataPacket economyData = (EconomyDataPacket)PacketPool.Instance.GetPacket(PacketType.EconomyData);
+            economyData.Info.EnergyEfficiency = EnergyEfficiency;
+            economyData.Info.ObjectCapacity = ObjectCapacity;
+            economyData.Info.ObjectCount = ObjectCount;
+            economyData.Info.PriceEnergyUnit = PriceEnergyUnit;
+            economyData.Info.PriceGroupCreate = PriceGroupCreate;
+            economyData.Info.PriceObjectClaim = PriceObjectClaim;
+            economyData.Info.PriceObjectRent = PriceObjectRent;
+            economyData.Info.PriceObjectScaleFactor = PriceObjectScaleFactor;
+            economyData.Info.PriceParcelClaim = PriceParcelClaim;
+            economyData.Info.PriceParcelClaimFactor = PriceParcelClaimFactor;
+            economyData.Info.PriceParcelRent = PriceParcelRent;
+            economyData.Info.PricePublicObjectDecay = PricePublicObjectDecay;
+            economyData.Info.PricePublicObjectDelete = PricePublicObjectDelete;
+            economyData.Info.PriceRentLight = PriceRentLight;
+            economyData.Info.PriceUpload = PriceUpload;
+            economyData.Info.TeleportMinPrice = TeleportMinPrice;
+            economyData.Info.TeleportPriceExponent = TeleportPriceExponent;
+            economyData.Header.Reliable = true;
+            OutPacket(economyData, ThrottleOutPacketType.Unknown);
+
         }
 
         public void SendAvatarPickerReply(AvatarPickerReplyPacket replyPacket)
@@ -4155,17 +4187,7 @@ namespace OpenSim.Region.ClientStack
 
                     #endregion
 
-                    case PacketType.MoneyBalanceRequest:
-                        MoneyBalanceRequestPacket moneybalancerequestpacket = (MoneyBalanceRequestPacket)Pack;
-
-                        handlerMoneyBalanceRequest = OnMoneyBalanceRequest;
-
-                        if (handlerMoneyBalanceRequest != null)
-                        {
-                            handlerMoneyBalanceRequest(this, moneybalancerequestpacket.AgentData.AgentID, moneybalancerequestpacket.AgentData.SessionID, moneybalancerequestpacket.MoneyData.TransactionID);
-                        }
-
-                        break;
+                    
                     case PacketType.UUIDNameRequest:
                         UUIDNameRequestPacket incoming = (UUIDNameRequestPacket)Pack;
                         foreach (UUIDNameRequestPacket.UUIDNameBlockBlock UUIDBlock in incoming.UUIDNameBlock)
@@ -4373,6 +4395,32 @@ namespace OpenSim.Region.ClientStack
 
                     #endregion
 
+                    #region Economy/Transaction Packets
+
+                    case PacketType.MoneyBalanceRequest:
+                        MoneyBalanceRequestPacket moneybalancerequestpacket = (MoneyBalanceRequestPacket)Pack;
+
+                        handlerMoneyBalanceRequest = OnMoneyBalanceRequest;
+
+                        if (handlerMoneyBalanceRequest != null)
+                        {
+                            handlerMoneyBalanceRequest(this, moneybalancerequestpacket.AgentData.AgentID, moneybalancerequestpacket.AgentData.SessionID, moneybalancerequestpacket.MoneyData.TransactionID);
+                        }
+
+                        break;
+                    case PacketType.EconomyDataRequest:
+
+                        handlerEconomoyDataRequest = OnEconomyDataRequest;
+                        if (handlerEconomoyDataRequest != null)
+                        {
+                            handlerEconomoyDataRequest(AgentId);
+                        }
+                        // TODO: handle this packet
+                        //m_log.Warn("[CLIENT]: unhandled EconomyDataRequest packet");
+                        break;
+
+                    #endregion
+
                     #region unimplemented handlers
 
                     case PacketType.StartPingCheck:
@@ -4422,10 +4470,7 @@ namespace OpenSim.Region.ClientStack
                         // TODO: Don't display this one, we handle it at a lower level
                         //m_log.Warn("[CLIENT]: unhandled UseCircuitCode packet");
                         break;
-                    case PacketType.EconomyDataRequest:
-                        // TODO: handle this packet
-                        m_log.Warn("[CLIENT]: unhandled EconomyDataRequest packet");
-                        break;
+                    
                     case PacketType.AgentHeightWidth:
                         // TODO: handle this packet
                         m_log.Warn("[CLIENT]: unhandled AgentHeightWidth packet");
