@@ -115,14 +115,14 @@ namespace OpenSim.Region.Environment.Modules
 
         private void ReadConfigAndPopulate(Scene scene, IConfig startupConfig, string config)
         {
-            if (config == "Startup")
+            if (config == "Startup" && startupConfig != null)
             {
                 gridmode = startupConfig.GetBoolean("gridmode", false);
                 m_enabled = (startupConfig.GetString("economymodule", "BetaGridLikeMoneyModule") == "BetaGridLikeMoneyModule");
             }
 
-            if (config == "Economy")
-            {    
+            if (config == "Economy" && startupConfig != null)
+            {   
                 ObjectCapacity = startupConfig.GetInt("ObjectCapacity", 45000);
                 PriceEnergyUnit = startupConfig.GetInt("PriceEnergyUnit", 100);
                 PriceObjectClaim = startupConfig.GetInt("PriceObjectClaim", 10);
