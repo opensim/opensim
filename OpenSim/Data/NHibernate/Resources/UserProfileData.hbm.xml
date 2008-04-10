@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2">
+    <class name="OpenSim.Framework.UserProfileData, OpenSim.Framework" table="Users" lazy="false">
+        <id name="ID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
+            <generator class="assigned" /> 
+        </id>
+        <property name="FirstName" type="String" length="32" />
+        <property name="SurName" type="String" length="32" />
+        <property name="PasswordHash" type="String" length="32" />
+        <property name="PasswordSalt" type="String" length="32" />
+        <property name="WebLoginKey" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
+        <property name="HomeRegionX" type="UInt32" />
+        <property name="HomeLocationX" type="Float" />
+        <property name="HomeLocationY" type="Float" />
+        <property name="HomeLocationZ" type="Float" />
+        <property name="HomeLookAtX" type="Float" />
+        <property name="HomeLookAtY" type="Float" />
+        <property name="HomeLookAtZ" type="Float" />
+        <property name="Created" type="int" />
+        <property name="LastLogin" type="int" />
+        <property name="RootInventoryFolderID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
+        <property name="UserInventoryURI" type="String" length="255"/>
+        <property name="UserAssetURI" type="String" length="255"/>
+        <property name="Image" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
+        <property name="FirstLifeImage" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
+        <property name="AboutText" type="String" length="255" />
+        <property name="FirstLifeAboutText" type="String" length="255" />
+    </class>
+</hibernate-mapping>
