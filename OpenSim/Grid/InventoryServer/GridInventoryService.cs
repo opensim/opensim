@@ -89,7 +89,11 @@ namespace OpenSim.Grid.InventoryServer
             return allFolders;
         }
 
-
+        /// <summary>
+        /// Return a user's entire inventory
+        /// </summary>
+        /// <param name="rawUserID"></param>
+        /// <returns></returns>
         public InventoryCollection GetUserInventory(Guid rawUserID)
         {
             LLUUID userID = new LLUUID(rawUserID);
@@ -134,6 +138,11 @@ namespace OpenSim.Grid.InventoryServer
             return GetInventorySkeleton(userID);
         }        
 
+        /// <summary>
+        /// Create an inventory for the given user.
+        /// </summary>
+        /// <param name="rawUserID"></param>
+        /// <returns></returns>
         public bool CreateUsersInventory(Guid rawUserID)
         {
             LLUUID userID = new LLUUID(rawUserID);
