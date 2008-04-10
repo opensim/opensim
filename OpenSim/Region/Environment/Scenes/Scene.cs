@@ -988,6 +988,114 @@ namespace OpenSim.Region.Environment.Scenes
           
             //create a texture asset of the terrain 
             ITerrainTemp terrain = RequestModuleInterface<ITerrainTemp>();
+
+            if (Heightmap != null)
+            {
+                Bitmap mapbmp = new Bitmap(256, 256);
+                double[,] hm = Heightmap.GetDoubles();
+
+                float heightvalue = 0;
+
+                Color water = Color.FromArgb(0, 0, 255);
+                Color prim = Color.FromArgb(120, 120, 120);
+                LLVector3 RayEnd = new LLVector3(0, 0, 0);
+                LLVector3 RayStart = new LLVector3(0, 0, 0);
+                LLVector3 direction = new LLVector3(0, 0, -1);
+                Vector3 AXOrigin = new Vector3();
+                Vector3 AXdirection = new Vector3();
+                Ray testRay = new Ray();
+                EntityIntersection rt = new EntityIntersection();
+
+                float low = 255;
+                float high = 0;
+                for (int x = 0; x < 256; x++)
+                {
+                    for (int y = 0; y < 256; y++)
+                    {
+                        float hmval = (float)hm[x, y];
+                        if (hmval < low)
+                            low = hmval;
+                        if (hmval > high)
+                            high = hmval;
+                    }
+                }
+
+                float mid = (high + low) * 0.5f;
+                for (int x = 0; x < 256; x++)
+                {
+                    //int tc = System.Environment.TickCount;
+                    for (int y = 0; y < 256; y++)
+                    {
+                        //RayEnd = new LLVector3(x, y, 0);
+                        //RayStart = new LLVector3(x, y, 255);
+
+                        //direction = LLVector3.Norm(RayEnd - RayStart);
+                        //AXOrigin = new Vector3(RayStart.X, RayStart.Y, RayStart.Z);
+                        //AXdirection = new Vector3(direction.X, direction.Y, direction.Z);
+
+                        //testRay = new Ray(AXOrigin, AXdirection);
+                        //rt = m_innerScene.GetClosestIntersectingPrim(testRay);
+
+                        //if (rt.HitTF)
+                        //{
+                            //mapbmp.SetPixel(x, y, prim);
+                        //}
+                        //else
+                        //{
+                            //float tmpval = (float)hm[x, y];
+                            heightvalue = (float)hm[x, y];
+
+                            if ((float)heightvalue > m_regInfo.EstateSettings.waterHeight)
+                            {
+                                // scale height value
+                                heightvalue = low + mid * (heightvalue - low) / mid;
+
+                                if (heightvalue > 255)
+                                    heightvalue = 255;
+
+                                if (heightvalue < 0)
+                                    heightvalue = 0;
+                                
+                            
+                                Color green = Color.FromArgb((int)heightvalue, 100, (int)heightvalue);
+                                
+                                // Y flip the cordinates
+                                mapbmp.SetPixel(x, (256 - y) - 1, green);
+                            }
+                            else
+                            {
+                                // Y flip the cordinates
+                                mapbmp.SetPixel(x, (256 - y) - 1, water);
+                            }
+                        //}
+
+
+                    }
+                    //tc = System.Environment.TickCount - tc;
+                    //m_log.Info("[MAPTILE]: Completed One row in " + tc + " ms");
+                }
+                byte[] data;
+                try
+                {
+                    data = OpenJPEGNet.OpenJPEG.EncodeFromImage(mapbmp, false);
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+                
+                m_regInfo.EstateSettings.terrainImageID = LLUUID.Random();
+                AssetBase asset = new AssetBase();
+                asset.FullID = m_regInfo.EstateSettings.terrainImageID;
+                asset.Data = data;
+                asset.Name = "terrainImage";
+                asset.Description = RegionInfo.RegionName;
+                asset.Type = 0;
+                asset.Temporary = temporary;
+                AssetCache.AddAsset(asset);
+                
+            }
+
             if (terrain != null)
             {
                 byte[] data = terrain.WriteJpegImage("defaultstripe.png");
