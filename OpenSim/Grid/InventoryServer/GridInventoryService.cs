@@ -27,7 +27,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
+
 using libsecondlife;
+
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Console;
@@ -103,6 +106,9 @@ namespace OpenSim.Grid.InventoryServer
         /// <returns>The user's inventory.  If an inventory cannot be found then an empty collection is returned.</returns>
         public InventoryCollection GetUserInventory(Guid rawUserID)
         {
+            // uncomment me to simulate an overloaded inventory server
+            //Thread.Sleep(40000);
+            
             LLUUID userID = new LLUUID(rawUserID);
 
             m_log.InfoFormat("[AGENT INVENTORY]: Processing request for inventory of {0}", userID);            

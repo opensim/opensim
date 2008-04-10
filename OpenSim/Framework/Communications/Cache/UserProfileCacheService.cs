@@ -293,64 +293,73 @@ namespace OpenSim.Framework.Communications.Cache
                               folderID, remoteClient.Name);
         }
 
+        /// <summary>
+        /// Handle the caps inventory descendents fetch.
+        /// 
+        /// Since the folder structure is sent to the client on login, I believe we only need to handle items.
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="folderID"></param>
+        /// <param name="ownerID"></param>
+        /// <param name="fetchFolders"></param>
+        /// <param name="fetchItems"></param>
+        /// <param name="sortOrder"></param>
+        /// <returns></returns>
         public List<InventoryItemBase> HandleFetchInventoryDescendentsCAPS(LLUUID agentID, LLUUID folderID, LLUUID ownerID,
                                                    bool fetchFolders, bool fetchItems, int sortOrder)
         {
             // XXX We're not handling sortOrder yet!
-            // with CAPS we are only return items in the folders at the moment
-            // need to find the format that sub folder details are sent in 
-           // if (fetchItems)
-           // {
-                InventoryFolderImpl fold = null;
-                if (folderID == libraryRoot.ID)
-                {
-                    return libraryRoot.RequestListOfItems();
-                }
 
-                if ((fold = libraryRoot.HasSubFolder(folderID)) != null)
-                {
-                    return fold.RequestListOfItems();
-                }
+            InventoryFolderImpl fold = null;
+            if (folderID == libraryRoot.ID)
+            {
+                return libraryRoot.RequestListOfItems();
+            }
 
-                CachedUserInfo userProfile;
-                if (m_userProfiles.TryGetValue(agentID, out userProfile))
+            if ((fold = libraryRoot.HasSubFolder(folderID)) != null)
+            {
+                return fold.RequestListOfItems();
+            }
+
+            CachedUserInfo userProfile;
+            if (m_userProfiles.TryGetValue(agentID, out userProfile))
+            {
+                if (userProfile.RootFolder != null)
                 {
-                    if (userProfile.RootFolder != null)
+                    if (userProfile.RootFolder.ID == folderID)
                     {
-                        if (userProfile.RootFolder.ID == folderID)
-                        {
-                            return userProfile.RootFolder.RequestListOfItems();
-                        }
-                        else
-                        {
-                            if ((fold = userProfile.RootFolder.HasSubFolder(folderID)) != null)
-                            {
-                                return fold.RequestListOfItems();
-                            }
-                        }
+                        return userProfile.RootFolder.RequestListOfItems();
                     }
                     else
                     {
-                        m_log.ErrorFormat("[INVENTORY CACHE]: Could not find root folder for user {0}", agentID.ToString());
-
-                        return new List<InventoryItemBase>(); ;
+                        if ((fold = userProfile.RootFolder.HasSubFolder(folderID)) != null)
+                        {
+                            return fold.RequestListOfItems();
+                        }
                     }
                 }
                 else
                 {
-                    m_log.ErrorFormat(
-                         "[USER CACHE]: HandleFetchInventoryDescendentsCAPS() Could not find user profile for {0}",
-                         agentID);
-                
-                    return new List<InventoryItemBase>();
-                }
+                    m_log.ErrorFormat("[INVENTORY CACHE]: Could not find root folder for user {0}", agentID.ToString());
 
-                // If we've reached this point then we couldn't find the folder, even though the client thinks
-                // it exists
-                m_log.ErrorFormat("[INVENTORY CACHE]: " +
-                                  "Could not find folder {0} for user {1}",
-                                  folderID, agentID.ToString());
-           // }
+                    return new List<InventoryItemBase>(); ;
+                }
+            }
+            else
+            {
+                m_log.ErrorFormat(
+                     "[USER CACHE]: HandleFetchInventoryDescendentsCAPS() Could not find user profile for {0}",
+                     agentID);
+            
+                return new List<InventoryItemBase>();
+            }
+
+            // If we've reached this point then we couldn't find the folder, even though the client thinks
+            // it exists
+            m_log.ErrorFormat("[INVENTORY CACHE]: " +
+                              "Could not find folder {0} for user {1}",
+                              folderID, agentID.ToString());
+
             return new List<InventoryItemBase>();
         }
 
@@ -400,6 +409,11 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
+        /// <summary>
+        /// Request the inventory data for the given user.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="userInfo"></param>
         private void RequestInventoryForUser(LLUUID userID, CachedUserInfo userInfo)
         {
             m_parent.InventoryService.RequestInventoryForUser(userID, userInfo.FolderReceive, userInfo.ItemReceive);
