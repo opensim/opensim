@@ -2145,7 +2145,14 @@ namespace OpenSim.Region.Environment.Scenes
                 m_statsReporter.SetObjectCapacity(objects);
             }
             objectCapacity = objects;
+            
         }
+
+        public List<FriendListItem> GetFriendList(LLUUID avatarID)
+        {
+            return CommsManager.GetUserFriendList(avatarID);
+        }
+        
 
         #endregion
 

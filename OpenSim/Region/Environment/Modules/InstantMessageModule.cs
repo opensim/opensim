@@ -82,6 +82,7 @@ namespace OpenSim.Region.Environment.Modules
             // Don't send a Friend Dialog IM with a LLUUID.Zero session.
             if (!(dialogHandledElsewhere && imSessionID == LLUUID.Zero))
             {
+                // Try root avatar only first
                 foreach (Scene scene in m_scenes)
                 {
                     if (scene.Entities.ContainsKey(toAgentID) && scene.Entities[toAgentID] is ScenePresence)
@@ -98,7 +99,26 @@ namespace OpenSim.Region.Environment.Modules
                         }
                     }
                 }
+
+                // try child avatar second
+                foreach (Scene scene in m_scenes)
+                {
+                    if (scene.Entities.ContainsKey(toAgentID) && scene.Entities[toAgentID] is ScenePresence)
+                    {
+                        // Local message
+                        ScenePresence user = (ScenePresence)scene.Entities[toAgentID];
+                        
+                        user.ControllingClient.SendInstantMessage(fromAgentID, fromAgentSession, message,
+                                                                  toAgentID, imSessionID, fromAgentName, dialog,
+                                                                  timestamp);
+                        // Message sent
+                        return;
+                        
+                    }
+                }
+
             }
+
 
             // Still here, try send via Grid
             // TODO
