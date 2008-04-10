@@ -674,18 +674,18 @@ namespace OpenSim.Data.SQLite
         {
             UserAgentData ua = new UserAgentData();
 
-            ua.UUID = new LLUUID((String) row["UUID"]);
-            ua.agentIP = (String) row["agentIP"];
-            ua.agentPort = Convert.ToUInt32(row["agentPort"]);
-            ua.agentOnline = Convert.ToBoolean(row["agentOnline"]);
-            ua.sessionID = new LLUUID((String) row["sessionID"]);
-            ua.secureSessionID = new LLUUID((String) row["secureSessionID"]);
-            ua.regionID = new LLUUID((String) row["regionID"]);
-            ua.loginTime = Convert.ToInt32(row["loginTime"]);
-            ua.logoutTime = Convert.ToInt32(row["logoutTime"]);
-            ua.currentRegion = new LLUUID((String) row["currentRegion"]);
-            ua.currentHandle = Convert.ToUInt64(row["currentHandle"]);
-            ua.currentPos = new LLVector3(
+            ua.ProfileID = new LLUUID((String) row["UUID"]);
+            ua.AgentIP = (String) row["agentIP"];
+            ua.AgentPort = Convert.ToUInt32(row["agentPort"]);
+            ua.AgentOnline = Convert.ToBoolean(row["agentOnline"]);
+            ua.SessionID = new LLUUID((String) row["sessionID"]);
+            ua.SecureSessionID = new LLUUID((String) row["secureSessionID"]);
+            ua.RegionID = new LLUUID((String) row["regionID"]);
+            ua.LoginTime = Convert.ToInt32(row["loginTime"]);
+            ua.LogoutTime = Convert.ToInt32(row["logoutTime"]);
+            ua.CurrentRegion = new LLUUID((String) row["currentRegion"]);
+            ua.CurrentHandle = Convert.ToUInt64(row["currentHandle"]);
+            ua.CurrentPos = new LLVector3(
                 Convert.ToSingle(row["currentPosX"]),
                 Convert.ToSingle(row["currentPosY"]),
                 Convert.ToSingle(row["currentPosZ"])
@@ -695,21 +695,21 @@ namespace OpenSim.Data.SQLite
 
         private static void fillUserAgentRow(DataRow row, UserAgentData ua)
         {
-            row["UUID"] = ua.UUID;
-            row["agentIP"] = ua.agentIP;
-            row["agentPort"] = ua.agentPort;
-            row["agentOnline"] = ua.agentOnline;
-            row["sessionID"] = ua.sessionID;
-            row["secureSessionID"] = ua.secureSessionID;
-            row["regionID"] = ua.regionID;
-            row["loginTime"] = ua.loginTime;
-            row["logoutTime"] = ua.logoutTime;
-            row["currentRegion"] = ua.currentRegion;
-            row["currentHandle"] = ua.currentHandle.ToString();
+            row["UUID"] = ua.ProfileID;
+            row["agentIP"] = ua.AgentIP;
+            row["agentPort"] = ua.AgentPort;
+            row["agentOnline"] = ua.AgentOnline;
+            row["sessionID"] = ua.SessionID;
+            row["secureSessionID"] = ua.SecureSessionID;
+            row["regionID"] = ua.RegionID;
+            row["loginTime"] = ua.LoginTime;
+            row["logoutTime"] = ua.LogoutTime;
+            row["currentRegion"] = ua.CurrentRegion;
+            row["currentHandle"] = ua.CurrentHandle.ToString();
             // vectors
-            row["currentPosX"] = ua.currentPos.X;
-            row["currentPosY"] = ua.currentPos.Y;
-            row["currentPosZ"] = ua.currentPos.Z;
+            row["currentPosX"] = ua.CurrentPos.X;
+            row["currentPosY"] = ua.CurrentPos.Y;
+            row["currentPosZ"] = ua.CurrentPos.Z;
         }
 
         /***********************************************************************

@@ -295,10 +295,24 @@ namespace OpenSim.Data.MySQL
             if (reader.Read())
             {
                 // Region Main gotta-have-or-we-return-null parts
-                if (!UInt64.TryParse(reader["regionHandle"].ToString(), out retval.regionHandle))
+                UInt64 tmp64;
+                if (!UInt64.TryParse(reader["regionHandle"].ToString(), out tmp64))
+                { 
                     return null;
-                if (!LLUUID.TryParse((string)reader["uuid"], out retval.UUID))
+                }
+                else
+                {
+                    retval.regionHandle = tmp64;
+                }
+                LLUUID tmp_uuid;
+                if (!LLUUID.TryParse((string)reader["uuid"], out tmp_uuid)) 
+                {
                     return null;
+                }
+                else
+                {
+                    retval.UUID = tmp_uuid;
+                }
 
                 // non-critical parts
                 retval.regionName = (string)reader["regionName"];
@@ -369,7 +383,9 @@ namespace OpenSim.Data.MySQL
                 retval.reservationMinY = Convert.ToInt32(reader["resYMin"].ToString());
                 retval.reservationName = (string) reader["resName"];
                 retval.status = Convert.ToInt32(reader["status"].ToString()) == 1;
-                LLUUID.TryParse((string) reader["userUUID"], out retval.userUUID);
+                LLUUID tmp;
+                LLUUID.TryParse((string) reader["userUUID"], out tmp);
+                retval.userUUID = tmp;
             }
             else
             {
@@ -390,24 +406,32 @@ namespace OpenSim.Data.MySQL
             if (reader.Read())
             {
                 // Agent IDs
-                if (!LLUUID.TryParse((string)reader["UUID"], out retval.UUID))
+                LLUUID tmp;
+                if (!LLUUID.TryParse((string)reader["UUID"], out tmp))
                     return null;
-                LLUUID.TryParse((string) reader["sessionID"], out retval.sessionID);
-                LLUUID.TryParse((string)reader["secureSessionID"], out retval.secureSessionID);
+                retval.ProfileID = tmp;
+
+                LLUUID.TryParse((string) reader["sessionID"], out tmp);
+                retval.SessionID = tmp;
+                
+                LLUUID.TryParse((string)reader["secureSessionID"], out tmp);
+                retval.SecureSessionID = tmp;
 
                 // Agent Who?
-                retval.agentIP = (string) reader["agentIP"];
-                retval.agentPort = Convert.ToUInt32(reader["agentPort"].ToString());
-                retval.agentOnline = Convert.ToBoolean(Convert.ToInt16(reader["agentOnline"].ToString()));
+                retval.AgentIP = (string) reader["agentIP"];
+                retval.AgentPort = Convert.ToUInt32(reader["agentPort"].ToString());
+                retval.AgentOnline = Convert.ToBoolean(Convert.ToInt16(reader["agentOnline"].ToString()));
 
                 // Login/Logout times (UNIX Epoch)
-                retval.loginTime = Convert.ToInt32(reader["loginTime"].ToString());
-                retval.logoutTime = Convert.ToInt32(reader["logoutTime"].ToString());
+                retval.LoginTime = Convert.ToInt32(reader["loginTime"].ToString());
+                retval.LogoutTime = Convert.ToInt32(reader["logoutTime"].ToString());
 
                 // Current position
-                retval.currentRegion = new LLUUID((string)reader["currentRegion"]);
-                retval.currentHandle = Convert.ToUInt64(reader["currentHandle"].ToString());
-                LLVector3.TryParse((string) reader["currentPos"], out retval.currentPos);
+                retval.CurrentRegion = new LLUUID((string)reader["currentRegion"]);
+                retval.CurrentHandle = Convert.ToUInt64(reader["currentHandle"].ToString());
+                LLVector3 tmp_v;
+                LLVector3.TryParse((string) reader["currentPos"], out tmp_v);
+                retval.CurrentPos = tmp_v;
             }
             else
             {
@@ -883,17 +907,17 @@ namespace OpenSim.Data.MySQL
             sql += "(?UUID, ?sessionID, ?secureSessionID, ?agentIP, ?agentPort, ?agentOnline, ?loginTime, ?logoutTime, ?currentRegion, ?currentHandle, ?currentPos);";
             Dictionary<string, string> parameters = new Dictionary<string, string>();
 
-            parameters["?UUID"] = agentdata.UUID.ToString();
-            parameters["?sessionID"] = agentdata.sessionID.ToString();
-            parameters["?secureSessionID"] = agentdata.secureSessionID.ToString();
-            parameters["?agentIP"] = agentdata.agentIP.ToString();
-            parameters["?agentPort"] = agentdata.agentPort.ToString();
-            parameters["?agentOnline"] = (agentdata.agentOnline == true) ? "1" : "0";
-            parameters["?loginTime"] = agentdata.loginTime.ToString();
-            parameters["?logoutTime"] = agentdata.logoutTime.ToString();
-            parameters["?currentRegion"] = agentdata.currentRegion.ToString();
-            parameters["?currentHandle"] = agentdata.currentHandle.ToString();
-            parameters["?currentPos"] = "<" + ((int)agentdata.currentPos.X).ToString() + "," + ((int)agentdata.currentPos.Y).ToString() + "," + ((int)agentdata.currentPos.Z).ToString() + ">";
+            parameters["?UUID"] = agentdata.ProfileID.ToString();
+            parameters["?sessionID"] = agentdata.SessionID.ToString();
+            parameters["?secureSessionID"] = agentdata.SecureSessionID.ToString();
+            parameters["?agentIP"] = agentdata.AgentIP.ToString();
+            parameters["?agentPort"] = agentdata.AgentPort.ToString();
+            parameters["?agentOnline"] = (agentdata.AgentOnline == true) ? "1" : "0";
+            parameters["?loginTime"] = agentdata.LoginTime.ToString();
+            parameters["?logoutTime"] = agentdata.LogoutTime.ToString();
+            parameters["?currentRegion"] = agentdata.CurrentRegion.ToString();
+            parameters["?currentHandle"] = agentdata.CurrentHandle.ToString();
+            parameters["?currentPos"] = "<" + ((int)agentdata.CurrentPos.X).ToString() + "," + ((int)agentdata.CurrentPos.Y).ToString() + "," + ((int)agentdata.CurrentPos.Z).ToString() + ">";
 
             bool returnval = false;
 

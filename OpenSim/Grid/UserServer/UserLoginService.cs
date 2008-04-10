@@ -85,7 +85,7 @@ namespace OpenSim.Grid.UserServer
                 {
                     SimInfo =
                         RegionProfileData.RequestSimProfileData(
-                            theUser.CurrentAgent.currentHandle, m_config.GridServerURL,
+                            theUser.CurrentAgent.CurrentHandle, m_config.GridServerURL,
                             m_config.GridSendKey, m_config.GridRecvKey);
                 }
                 else if (startLocationRequest == "home")
@@ -104,7 +104,7 @@ namespace OpenSim.Grid.UserServer
                         // TODO: Parse out startlocationrequest string in the format; 'uri:RegionName&X&Y&Z'
                         SimInfo =
                             RegionProfileData.RequestSimProfileData(
-                                theUser.CurrentAgent.currentHandle, m_config.GridServerURL,
+                                theUser.CurrentAgent.CurrentHandle, m_config.GridServerURL,
                                 m_config.GridSendKey, m_config.GridRecvKey);
                     }
                     else
@@ -164,25 +164,24 @@ namespace OpenSim.Grid.UserServer
                 //CFK: m_log.Info("[LOGIN]: " + SimInfo.regionName + " (" + SimInfo.serverURI + ")  " + 
                 //CFK:    SimInfo.regionLocX + "," + SimInfo.regionLocY);
 
-                theUser.CurrentAgent.currentRegion = SimInfo.UUID;
-                theUser.CurrentAgent.currentHandle = SimInfo.regionHandle;
+                theUser.CurrentAgent.CurrentRegion = SimInfo.UUID;
+                theUser.CurrentAgent.CurrentHandle = SimInfo.regionHandle;
                 if (start_x >= 0 && start_y >= 0 && start_z >= 0) {
-                    theUser.CurrentAgent.currentPos.X = start_x;
-                    theUser.CurrentAgent.currentPos.Y = start_y;
-                    theUser.CurrentAgent.currentPos.Z = start_z;
+                    LLVector3 tmp_v = new LLVector3(start_x, start_y, start_z);
+                    theUser.CurrentAgent.CurrentPos = tmp_v;
                 }
                 // Prepare notification
                 Hashtable SimParams = new Hashtable();
-                SimParams["session_id"] = theUser.CurrentAgent.sessionID.ToString();
-                SimParams["secure_session_id"] = theUser.CurrentAgent.secureSessionID.ToString();
+                SimParams["session_id"] = theUser.CurrentAgent.SessionID.ToString();
+                SimParams["secure_session_id"] = theUser.CurrentAgent.SecureSessionID.ToString();
                 SimParams["firstname"] = theUser.FirstName;
                 SimParams["lastname"] = theUser.SurName;
                 SimParams["agent_id"] = theUser.ID.ToString();
                 SimParams["circuit_code"] = (Int32) Convert.ToUInt32(response.CircuitCode);
-                SimParams["startpos_x"] = theUser.CurrentAgent.currentPos.X.ToString();
-                SimParams["startpos_y"] = theUser.CurrentAgent.currentPos.Y.ToString();
-                SimParams["startpos_z"] = theUser.CurrentAgent.currentPos.Z.ToString();
-                SimParams["regionhandle"] = theUser.CurrentAgent.currentHandle.ToString();
+                SimParams["startpos_x"] = theUser.CurrentAgent.CurrentPos.X.ToString();
+                SimParams["startpos_y"] = theUser.CurrentAgent.CurrentPos.Y.ToString();
+                SimParams["startpos_z"] = theUser.CurrentAgent.CurrentPos.Z.ToString();
+                SimParams["regionhandle"] = theUser.CurrentAgent.CurrentHandle.ToString();
                 SimParams["caps_path"] = capsPath;
                 ArrayList SendParams = new ArrayList();
                 SendParams.Add(SimParams);
@@ -206,8 +205,8 @@ namespace OpenSim.Grid.UserServer
                 if (handlerUserLoggedInAtLocation != null)
                 {
                     m_log.Info("[LOGIN]: Letting other objects know about login");
-                    handlerUserLoggedInAtLocation(theUser.ID, theUser.CurrentAgent.sessionID, theUser.CurrentAgent.currentRegion, 
-                        theUser.CurrentAgent.currentHandle, theUser.CurrentAgent.currentPos.X,theUser.CurrentAgent.currentPos.Y,theUser.CurrentAgent.currentPos.Z,
+                    handlerUserLoggedInAtLocation(theUser.ID, theUser.CurrentAgent.SessionID, theUser.CurrentAgent.CurrentRegion, 
+                        theUser.CurrentAgent.CurrentHandle, theUser.CurrentAgent.CurrentPos.X,theUser.CurrentAgent.CurrentPos.Y,theUser.CurrentAgent.CurrentPos.Z,
                         theUser.FirstName,theUser.SurName);
                 }
             }
@@ -259,21 +258,21 @@ namespace OpenSim.Grid.UserServer
                     m_log.Info("[LOGIN]: Notifying " + SimInfo.regionName + " (" + SimInfo.serverURI + ")");
 
                     // Update agent with target sim
-                    theUser.CurrentAgent.currentRegion = SimInfo.UUID;
-                    theUser.CurrentAgent.currentHandle = SimInfo.regionHandle;
+                    theUser.CurrentAgent.CurrentRegion = SimInfo.UUID;
+                    theUser.CurrentAgent.CurrentHandle = SimInfo.regionHandle;
 
                     // Prepare notification
                     Hashtable SimParams = new Hashtable();
-                    SimParams["session_id"] = theUser.CurrentAgent.sessionID.ToString();
-                    SimParams["secure_session_id"] = theUser.CurrentAgent.secureSessionID.ToString();
+                    SimParams["session_id"] = theUser.CurrentAgent.SessionID.ToString();
+                    SimParams["secure_session_id"] = theUser.CurrentAgent.SecureSessionID.ToString();
                     SimParams["firstname"] = theUser.FirstName;
                     SimParams["lastname"] = theUser.SurName;
                     SimParams["agent_id"] = theUser.ID.ToString();
                     SimParams["circuit_code"] = (Int32) Convert.ToUInt32(response.CircuitCode);
-                    SimParams["startpos_x"] = theUser.CurrentAgent.currentPos.X.ToString();
-                    SimParams["startpos_y"] = theUser.CurrentAgent.currentPos.Y.ToString();
-                    SimParams["startpos_z"] = theUser.CurrentAgent.currentPos.Z.ToString();
-                    SimParams["regionhandle"] = theUser.CurrentAgent.currentHandle.ToString();
+                    SimParams["startpos_x"] = theUser.CurrentAgent.CurrentPos.X.ToString();
+                    SimParams["startpos_y"] = theUser.CurrentAgent.CurrentPos.Y.ToString();
+                    SimParams["startpos_z"] = theUser.CurrentAgent.CurrentPos.Z.ToString();
+                    SimParams["regionhandle"] = theUser.CurrentAgent.CurrentHandle.ToString();
                     SimParams["caps_path"] = capsPath;
                     ArrayList SendParams = new ArrayList();
                     SendParams.Add(SimParams);
@@ -286,8 +285,8 @@ namespace OpenSim.Grid.UserServer
                     if (handlerUserLoggedInAtLocation != null)
                     {
                         m_log.Info("[LOGIN]: Letting other objects know about login");
-                        handlerUserLoggedInAtLocation(theUser.ID, theUser.CurrentAgent.sessionID, theUser.CurrentAgent.currentRegion,
-                        theUser.CurrentAgent.currentHandle, theUser.CurrentAgent.currentPos.X, theUser.CurrentAgent.currentPos.Y, theUser.CurrentAgent.currentPos.Z,
+                        handlerUserLoggedInAtLocation(theUser.ID, theUser.CurrentAgent.SessionID, theUser.CurrentAgent.CurrentRegion,
+                        theUser.CurrentAgent.CurrentHandle, theUser.CurrentAgent.CurrentPos.X, theUser.CurrentAgent.CurrentPos.Y, theUser.CurrentAgent.CurrentPos.Z,
                         theUser.FirstName, theUser.SurName);
                     }
                 }

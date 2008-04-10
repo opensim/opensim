@@ -352,23 +352,26 @@ namespace OpenSim.Data.MSSQL
             if (reader.Read())
             {
                 // Agent IDs
-                retval.UUID = new LLUUID((string)reader["UUID"]);
-                retval.sessionID = new LLUUID((string)reader["sessionID"]);
-                retval.secureSessionID = new LLUUID((string)reader["secureSessionID"]);
+                retval.ProfileID = new LLUUID((string)reader["UUID"]);
+                retval.SessionID = new LLUUID((string)reader["sessionID"]);
+                retval.SecureSessionID = new LLUUID((string)reader["secureSessionID"]);
 
                 // Agent Who?
-                retval.agentIP = (string)reader["agentIP"];
-                retval.agentPort = Convert.ToUInt32(reader["agentPort"].ToString());
-                retval.agentOnline = Convert.ToBoolean(reader["agentOnline"].ToString());
+                retval.AgentIP = (string)reader["agentIP"];
+                retval.AgentPort = Convert.ToUInt32(reader["agentPort"].ToString());
+                retval.AgentOnline = Convert.ToBoolean(reader["agentOnline"].ToString());
 
                 // Login/Logout times (UNIX Epoch)
-                retval.loginTime = Convert.ToInt32(reader["loginTime"].ToString());
-                retval.logoutTime = Convert.ToInt32(reader["logoutTime"].ToString());
+                retval.LoginTime = Convert.ToInt32(reader["loginTime"].ToString());
+                retval.LogoutTime = Convert.ToInt32(reader["logoutTime"].ToString());
 
                 // Current position
-                retval.currentRegion = (string)reader["currentRegion"];
-                retval.currentHandle = Convert.ToUInt64(reader["currentHandle"].ToString());
-                LLVector3.TryParse((string)reader["currentPos"], out retval.currentPos);
+                retval.CurrentRegion = (string)reader["currentRegion"];
+                retval.CurrentHandle = Convert.ToUInt64(reader["currentHandle"].ToString());
+                LLVector3 tmp_v;
+                LLVector3.TryParse((string)reader["currentPos"], out tmp_v);
+                retval.CurrentPos = tmp_v;
+
             }
             else
             {

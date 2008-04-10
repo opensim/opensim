@@ -184,13 +184,13 @@ namespace OpenSim.Framework.UserManagement
                 else
                 {
                     // If we already have a session...
-                    if (userProfile.CurrentAgent != null && userProfile.CurrentAgent.agentOnline)
+                    if (userProfile.CurrentAgent != null && userProfile.CurrentAgent.AgentOnline)
                     {
                         //TODO: The following statements can cause trouble:
                         //      If agentOnline could not turn from true back to false normally
                         //      because of some problem, for instance, the crashment of server or client,
                         //      the user cannot log in any longer.
-                        userProfile.CurrentAgent.agentOnline = false;
+                        userProfile.CurrentAgent.AgentOnline = false;
                         m_userManager.CommitAgent(ref userProfile);
 
                         // Reject the login
@@ -225,8 +225,8 @@ namespace OpenSim.Framework.UserManagement
                         logResponse.Lastname = userProfile.SurName;
                         logResponse.Firstname = userProfile.FirstName;
                         logResponse.AgentID = agentID.ToString();
-                        logResponse.SessionID = userProfile.CurrentAgent.sessionID.ToString();
-                        logResponse.SecureSessionID = userProfile.CurrentAgent.secureSessionID.ToString();
+                        logResponse.SessionID = userProfile.CurrentAgent.SessionID.ToString();
+                        logResponse.SecureSessionID = userProfile.CurrentAgent.SecureSessionID.ToString();
                         logResponse.InventoryRoot = InventoryRoot;
                         logResponse.InventorySkeleton = AgentInventoryArray;
                         logResponse.InventoryLibrary = GetInventoryLibrary();
@@ -334,7 +334,7 @@ namespace OpenSim.Framework.UserManagement
                 else
                 {
                     // If we already have a session...
-                    if (userProfile.CurrentAgent != null && userProfile.CurrentAgent.agentOnline)
+                    if (userProfile.CurrentAgent != null && userProfile.CurrentAgent.AgentOnline)
                     {
                         userProfile.CurrentAgent = null;
                         m_userManager.CommitAgent(ref userProfile);
@@ -367,8 +367,8 @@ namespace OpenSim.Framework.UserManagement
                         logResponse.Lastname = userProfile.SurName;
                         logResponse.Firstname = userProfile.FirstName;
                         logResponse.AgentID = agentID.ToString();
-                        logResponse.SessionID = userProfile.CurrentAgent.sessionID.ToString();
-                        logResponse.SecureSessionID = userProfile.CurrentAgent.secureSessionID.ToString();
+                        logResponse.SessionID = userProfile.CurrentAgent.SessionID.ToString();
+                        logResponse.SecureSessionID = userProfile.CurrentAgent.SecureSessionID.ToString();
                         logResponse.InventoryRoot = InventoryRoot;
                         logResponse.InventorySkeleton = AgentInventoryArray;
                         logResponse.InventoryLibrary = GetInventoryLibrary();

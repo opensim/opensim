@@ -38,62 +38,171 @@ namespace OpenSim.Framework
         /// <summary>
         /// The UUID of the users avatar (not the agent!)
         /// </summary>
-        public LLUUID UUID;
+        private LLUUID UUID;
 
         /// <summary>
         /// The IP address of the user
         /// </summary>
-        public string agentIP = String.Empty;
+        private string agentIP = String.Empty;
 
         /// <summary>
         /// The port of the user
+        
         /// </summary>
-        public uint agentPort;
+        private uint agentPort;
 
         /// <summary>
         /// Is the user online?
         /// </summary>
-        public bool agentOnline;
+        private bool agentOnline;
 
         /// <summary>
         /// The session ID for the user (also the agent ID)
         /// </summary>
-        public LLUUID sessionID;
+        private LLUUID sessionID;
 
         /// <summary>
         /// The "secure" session ID for the user
         /// </summary>
         /// <remarks>Not very secure. Dont rely on it for anything more than Linden Lab does.</remarks>
-        public LLUUID secureSessionID;
+        private LLUUID secureSessionID;
 
         /// <summary>
         /// The region the user logged into initially
         /// </summary>
-        public LLUUID regionID;
+        private LLUUID regionID;
 
         /// <summary>
         /// A unix timestamp from when the user logged in
         /// </summary>
-        public int loginTime;
+        private int loginTime;
 
         /// <summary>
         /// When this agent expired and logged out, 0 if still online
         /// </summary>
-        public int logoutTime;
+        private int logoutTime;
 
         /// <summary>
         /// Current region the user is logged into
         /// </summary>
-        public LLUUID currentRegion;
+        private LLUUID currentRegion;
 
         /// <summary>
         /// Region handle of the current region the user is in
         /// </summary>
-        public ulong currentHandle;
+        private ulong currentHandle;
 
         /// <summary>
         /// The position of the user within the region
         /// </summary>
-        public LLVector3 currentPos;
+        private LLVector3 currentPos;
+        
+        public LLUUID ProfileID {
+            get {
+                return UUID;
+            }
+            set {
+                UUID = value;
+            }
+        }
+
+        public string AgentIP {
+            get {
+                return agentIP;
+            }
+            set {
+                agentIP = value;
+            }
+        }
+
+        public uint AgentPort {
+            get {
+                return agentPort;
+            }
+            set {
+                agentPort = value;
+            }
+        }
+
+        public bool AgentOnline {
+            get {
+                return agentOnline;
+            }
+            set {
+                agentOnline = value;
+            }
+        }
+
+        public LLUUID SessionID {
+            get {
+                return sessionID;
+            }
+            set {
+                sessionID = value;
+            }
+        }
+
+        public LLUUID SecureSessionID {
+            get {
+                return secureSessionID;
+            }
+            set {
+                secureSessionID = value;
+            }
+        }
+
+        public LLUUID RegionID {
+            get {
+                return regionID;
+            }
+            set {
+                regionID = value;
+            }
+        }
+
+        public int LoginTime {
+            get {
+                return loginTime;
+            }
+            set {
+                loginTime = value;
+            }
+        }
+
+        public int LogoutTime {
+            get {
+                return logoutTime;
+            }
+            set {
+                logoutTime = value;
+            }
+        }
+
+        public LLUUID CurrentRegion {
+            get {
+                return currentRegion;
+            }
+            set {
+                currentRegion = value;
+            }
+        }
+
+        public ulong CurrentHandle {
+            get {
+                return currentHandle;
+            }
+            set {
+                currentHandle = value;
+            }
+        }
+
+        public LLVector3 CurrentPos {
+            get {
+                return currentPos;
+            }
+            set {
+                currentPos = value;
+            }
+        }
     }
 }
