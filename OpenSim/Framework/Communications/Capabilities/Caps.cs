@@ -567,6 +567,19 @@ namespace OpenSim.Region.Capabilities
                 inType = 19;
                 assType = 20;
             }
+            else if (inventoryType == "wearable")
+            {
+                inType = 18;
+                switch (assetType)
+                {
+                    case "bodypart":
+                        assType = 13;
+                        break;
+                    case "clothing":
+                        assType = 5;
+                        break;
+                }
+            }
 
             AssetBase asset;
             asset = new AssetBase();
