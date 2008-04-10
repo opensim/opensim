@@ -33,7 +33,7 @@
     </Configuration>
 
     <!-- Core OpenSim Projects -->
-
+<!--
     <Project name="OpenSim.Model" path="OpenSim/Model" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -53,7 +53,7 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
-
+-->
     <Project name="OpenSim.Framework.Console" path="OpenSim/Framework/Console" type="Library">
       <Configuration name="Debug">
         <Options>
