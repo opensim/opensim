@@ -208,8 +208,9 @@ namespace OpenSim.Region.Communications.OGS1
             return null;
         }
 
-        public void CreateNewUserInventory(LLUUID user)
+        public bool CreateNewUserInventory(LLUUID user)
         {
+            return false;
         }
         
         // See IInventoryServices

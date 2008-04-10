@@ -66,10 +66,11 @@ namespace OpenSim.Framework.Communications
         void DeleteInventoryItem(LLUUID userID, InventoryItemBase item);
         
         /// <summary>
-        /// Create a new inventory for the given user
+        /// Create a new inventory for the given user.
         /// </summary>
         /// <param name="user"></param>
-        void CreateNewUserInventory(LLUUID user);
+        /// <returns>true if the inventory was successfully created, false otherwise</returns>
+        bool CreateNewUserInventory(LLUUID user);
         
         bool HasInventoryForUser(LLUUID userID);
 
