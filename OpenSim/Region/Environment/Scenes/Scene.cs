@@ -996,7 +996,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 float heightvalue = 0;
 
-                Color water = Color.FromArgb(0, 0, 255);
+                
                 Color prim = Color.FromArgb(120, 120, 120);
                 LLVector3 RayEnd = new LLVector3(0, 0, 0);
                 LLVector3 RayStart = new LLVector3(0, 0, 0);
@@ -1042,7 +1042,7 @@ namespace OpenSim.Region.Environment.Scenes
                         //}
                         //else
                         //{
-                            //float tmpval = (float)hm[x, y];
+                            float tmpval = (float)hm[x, y];
                             heightvalue = (float)hm[x, y];
 
                             if ((float)heightvalue > m_regInfo.EstateSettings.waterHeight)
@@ -1065,6 +1065,15 @@ namespace OpenSim.Region.Environment.Scenes
                             else
                             {
                                 // Y flip the cordinates
+                                heightvalue = m_regInfo.EstateSettings.waterHeight - heightvalue;
+                                if (heightvalue > 19)
+                                    heightvalue = 19;
+                                if (heightvalue < 0)
+                                    heightvalue = 0;
+
+                                heightvalue = 100 - (heightvalue * 100) / 19;
+                                
+                                Color water = Color.FromArgb((int)heightvalue, (int)heightvalue, 255);
                                 mapbmp.SetPixel(x, (256 - y) - 1, water);
                             }
                         //}
