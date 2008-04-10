@@ -58,6 +58,7 @@ namespace OpenSim.Region.Physics.Meshing
         // raw files can be imported by blender so a visual inspection of the results can be done
         //        const string baseDir = "rawFiles";
         private const string baseDir = null; //"rawFiles";
+        private const float DEG_TO_RAD = 0.01745329238f;
 
 // TODO: unused
 //         private static void IntersectionParameterPD(PhysicsVector p1, PhysicsVector r1, PhysicsVector p2,
@@ -195,6 +196,7 @@ namespace OpenSim.Region.Physics.Meshing
 
                     break;
 
+                case ProfileShape.HalfCircle:
                 case ProfileShape.Circle:
                     if (pbs.PathCurve == (byte)Extrusion.Straight)
                     {
@@ -359,6 +361,8 @@ namespace OpenSim.Region.Physics.Meshing
             UInt16 taperY = primShape.PathScaleY;
             UInt16 pathShearX = primShape.PathShearX;
             UInt16 pathShearY = primShape.PathShearY;
+            Int16 twistTop = primShape.PathTwistBegin;
+            Int16 twistBot = primShape.PathTwist;
             
 
             //m_log.Error("pathShear:" + primShape.PathShearX.ToString() + "," + primShape.PathShearY.ToString());
@@ -531,7 +535,42 @@ namespace OpenSim.Region.Physics.Meshing
                     //m_log.Warn("pushY: " + extr.pushY);
                 }
             }
-            
+
+            if (twistTop != 0)
+            {
+                extr.twistTop = 180 * ((float)twistTop / 100);
+                if (extr.twistTop > 0)
+                {
+                    extr.twistTop = 360 - (-1 * extr.twistTop);
+
+                }
+                
+
+                extr.twistTop = (float)(extr.twistTop * DEG_TO_RAD);
+            }
+
+            float twistMid = ((twistTop + twistBot) * 0.5f);
+
+            if (twistMid != 0)
+            {
+                extr.twistMid = 180 * ((float)twistMid / 100);
+                if (extr.twistMid > 0)
+                {
+                    extr.twistMid = 360 - (-1 * extr.twistMid);
+                }
+                extr.twistMid = (float)(extr.twistMid * DEG_TO_RAD);
+            }
+
+            if (twistBot != 0)
+            {
+                extr.twistBot = 180 * ((float)twistBot / 100);
+                if (extr.twistBot > 0)
+                {
+                    extr.twistBot = 360 - (-1 * extr.twistBot);
+                }
+                extr.twistBot = (float)(extr.twistBot * DEG_TO_RAD);
+            }
+
             Mesh result = extr.Extrude(m);
             result.DumpRaw(baseDir, primName, "Z extruded");
             return result;
@@ -540,6 +579,7 @@ namespace OpenSim.Region.Physics.Meshing
         private static Mesh CreateCyllinderMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
         // Builds the z (+ and -) surfaces of a box shaped prim
         {
+
             UInt16 hollowFactor = primShape.ProfileHollow;
             UInt16 profileBegin = primShape.ProfileBegin;
             UInt16 profileEnd = primShape.ProfileEnd;
@@ -547,6 +587,9 @@ namespace OpenSim.Region.Physics.Meshing
             UInt16 taperY = primShape.PathScaleY;
             UInt16 pathShearX = primShape.PathShearX;
             UInt16 pathShearY = primShape.PathShearY;
+            Int16 twistBot = primShape.PathTwist;
+            Int16 twistTop = primShape.PathTwistBegin;
+            
 
             // Procedure: This is based on the fact that the upper (plus) and lower (minus) Z-surface
             // of a block are basically the same
@@ -797,8 +840,45 @@ namespace OpenSim.Region.Physics.Meshing
                     extr.pushY = (float)pathShearY / 100;
                     //m_log.Warn("pushY: " + extr.pushY);
                 }
+                
             }
 
+            if (twistTop != 0)
+            {
+                extr.twistTop = 180 * ((float)twistTop / 100);
+                if (extr.twistTop > 0)
+                {
+                    extr.twistTop = 360 - (-1 * extr.twistTop);
+                    
+                }
+                
+
+                extr.twistTop = (float)(extr.twistTop * DEG_TO_RAD);
+            }
+
+            float twistMid = ((twistTop + twistBot) * 0.5f);
+
+            if (twistMid != 0)
+            {
+                extr.twistMid = 180 * ((float)twistMid / 100);
+                if (extr.twistMid > 0)
+                {
+                    extr.twistMid = 360 - (-1 * extr.twistMid);
+                }
+                extr.twistMid = (float)(extr.twistMid * DEG_TO_RAD);
+            }
+            
+            if (twistBot != 0)
+            {
+                extr.twistBot = 180 * ((float)twistBot / 100);
+                if (extr.twistBot > 0)
+                {
+                    extr.twistBot = 360 - (-1 * extr.twistBot);
+                }
+                extr.twistBot = (float)(extr.twistBot * DEG_TO_RAD);
+            }
+
+            //System.Console.WriteLine("[MESH]: twistTop = " + twistTop.ToString() + "|" + extr.twistTop.ToString() + ", twistMid = " + twistMid.ToString() + "|" + extr.twistMid.ToString() + ", twistbot = " + twistBot.ToString() + "|" + extr.twistBot.ToString());
             Mesh result = extr.Extrude(m);
             result.DumpRaw(baseDir, primName, "Z extruded");
             return result;
@@ -815,6 +895,8 @@ namespace OpenSim.Region.Physics.Meshing
             UInt16 pathShearX = primShape.PathShearX;
             UInt16 pathShearY = primShape.PathShearY;
 
+            Int16 twistTop = primShape.PathTwistBegin;
+            Int16 twistBot = primShape.PathTwist;
             //m_log.Error("pathShear:" + primShape.PathShearX.ToString() + "," + primShape.PathShearY.ToString());
             //m_log.Error("pathTaper:" + primShape.PathTaperX.ToString() + "," + primShape.PathTaperY.ToString());
             //m_log.Error("ProfileBegin:" + primShape.ProfileBegin.ToString() + "," + primShape.ProfileBegin.ToString());
@@ -982,6 +1064,41 @@ namespace OpenSim.Region.Physics.Meshing
                     extr.pushY = (float)pathShearY / 100;
                     //m_log.Warn("pushY: " + extr.pushY);
                 }
+            }
+
+            if (twistTop != 0)
+            {
+                extr.twistTop = 180 * ((float)twistTop / 100);
+                if (extr.twistTop > 0)
+                {
+                    extr.twistTop = 360 - (-1 * extr.twistTop);
+
+                }
+                
+
+                extr.twistTop = (float)(extr.twistTop * DEG_TO_RAD);
+            }
+
+            float twistMid = ((twistTop + twistBot) * 0.5f);
+
+            if (twistMid != 0)
+            {
+                extr.twistMid = 180 * ((float)twistMid / 100);
+                if (extr.twistMid > 0)
+                {
+                    extr.twistMid = 360 - (-1 * extr.twistMid);
+                }
+                extr.twistMid = (float)(extr.twistMid * DEG_TO_RAD);
+            }
+
+            if (twistBot != 0)
+            {
+                extr.twistBot = 180 * ((float)twistBot / 100);
+                if (extr.twistBot > 0)
+                {
+                    extr.twistBot = 360 - (-1 * extr.twistBot);
+                }
+                extr.twistBot = (float)(extr.twistBot * DEG_TO_RAD);
             }
 
             Mesh result = extr.Extrude(m);

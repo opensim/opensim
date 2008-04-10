@@ -1438,6 +1438,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (pbs.ProfileHollow != 0)
                 return true;
 
+            if (((Int16)pbs.PathTwistBegin != 0) || ((Int16)pbs.PathTwist != 0))
+                return true;
+
             if ((pbs.ProfileBegin != 0) || pbs.ProfileEnd != 0)
                 return true;
 

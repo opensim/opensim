@@ -152,7 +152,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 statpack.Region.RegionFlags = (uint) 0;
             }
-            statpack.Region.ObjectCapacity = (uint) 15000;
+            statpack.Region.ObjectCapacity = (uint) 45000;
 
             #region various statistic googly moogly
 
