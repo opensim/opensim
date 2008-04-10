@@ -3100,11 +3100,11 @@ namespace OpenSim.Region.ClientStack
                          {
                              AvatarPropertiesUpdatePacket.PropertiesDataBlock Properties = Packet.PropertiesData;
                              UserProfileData UserProfile = new UserProfileData();
-                             UserProfile.Id = AgentId;
-                             UserProfile.ProfileAboutText = Helpers.FieldToUTF8String(Properties.AboutText);
-                             UserProfile.ProfileFirstText = Helpers.FieldToUTF8String(Properties.FLAboutText);
-                             UserProfile.ProfileFirstImage = Properties.FLImageID;
-                             UserProfile.ProfileImage = Properties.ImageID;
+                             UserProfile.ID = AgentId;
+                             UserProfile.AboutText = Helpers.FieldToUTF8String(Properties.AboutText);
+                             UserProfile.FirstLifeAboutText = Helpers.FieldToUTF8String(Properties.FLAboutText);
+                             UserProfile.FirstLifeImage = Properties.FLImageID;
+                             UserProfile.Image = Properties.ImageID;
 
                              handlerUpdateAvatarProperties(this, UserProfile);
                          }

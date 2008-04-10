@@ -431,7 +431,7 @@ namespace OpenSim.Data.MySQL
                 if (!LLUUID.TryParse((string)reader["UUID"], out id))
                     return null;
 
-                retval.Id = id;
+                retval.ID = id;
                 retval.FirstName = (string) reader["username"];
                 retval.SurName = (string) reader["lastname"];
 
@@ -454,33 +454,33 @@ namespace OpenSim.Data.MySQL
                 retval.UserInventoryURI = (string) reader["userInventoryURI"];
                 retval.UserAssetURI = (string) reader["userAssetURI"];
 
-                retval.ProfileCanDoMask = Convert.ToUInt32(reader["profileCanDoMask"].ToString());
-                retval.ProfileWantDoMask = Convert.ToUInt32(reader["profileWantDoMask"].ToString());
+                retval.CanDoMask = Convert.ToUInt32(reader["profileCanDoMask"].ToString());
+                retval.WantDoMask = Convert.ToUInt32(reader["profileWantDoMask"].ToString());
 
                 if (reader.IsDBNull(reader.GetOrdinal("profileAboutText")))
-                    retval.ProfileAboutText = "";
+                    retval.AboutText = "";
                 else 
-                    retval.ProfileAboutText = (string) reader["profileAboutText"];
+                    retval.AboutText = (string) reader["profileAboutText"];
 
                 if (reader.IsDBNull(reader.GetOrdinal("profileFirstText")))
-                    retval.ProfileFirstText = "";
+                    retval.FirstLifeAboutText = "";
                 else
-                    retval.ProfileFirstText = (string)reader["profileFirstText"];
+                    retval.FirstLifeAboutText = (string)reader["profileFirstText"];
 
                 if (reader.IsDBNull(reader.GetOrdinal("profileImage")))
-                    retval.ProfileImage = LLUUID.Zero;
+                    retval.Image = LLUUID.Zero;
                 else {
                     LLUUID tmp;
                     LLUUID.TryParse((string)reader["profileImage"], out tmp);
-                    retval.ProfileImage = tmp;
+                    retval.Image = tmp;
                 }
 
                 if (reader.IsDBNull(reader.GetOrdinal("profileFirstImage")))
-                    retval.ProfileFirstImage = LLUUID.Zero;
+                    retval.FirstLifeImage = LLUUID.Zero;
                 else {
                     LLUUID tmp;
                     LLUUID.TryParse((string)reader["profileFirstImage"], out tmp);
-                    retval.ProfileFirstImage = tmp;
+                    retval.FirstLifeImage = tmp;
                 }
                 
                 if(reader.IsDBNull(reader.GetOrdinal("webLoginKey")))

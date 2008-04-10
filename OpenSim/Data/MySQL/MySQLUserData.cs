@@ -475,7 +475,7 @@ namespace OpenSim.Data.MySQL
         override public UserAgentData GetAgentByName(string user, string last)
         {
             UserProfileData profile = GetUserByName(user, last);
-            return GetAgentByUUID(profile.Id);
+            return GetAgentByUUID(profile.ID);
         }
 
         override public void StoreWebLoginKey(LLUUID AgentID, LLUUID WebLoginKey)
@@ -547,14 +547,14 @@ namespace OpenSim.Data.MySQL
             {
                 lock (database)
                 {
-                    database.insertUserRow(user.Id, user.FirstName, user.SurName, user.PasswordHash, user.PasswordSalt,
+                    database.insertUserRow(user.ID, user.FirstName, user.SurName, user.PasswordHash, user.PasswordSalt,
                                            user.HomeRegion, user.HomeLocation.X, user.HomeLocation.Y,
                                            user.HomeLocation.Z,
                                            user.HomeLookAt.X, user.HomeLookAt.Y, user.HomeLookAt.Z, user.Created,
                                            user.LastLogin, user.UserInventoryURI, user.UserAssetURI,
-                                           user.ProfileCanDoMask, user.ProfileWantDoMask,
-                                           user.ProfileAboutText, user.ProfileFirstText, user.ProfileImage,
-                                           user.ProfileFirstImage, user.WebLoginKey);
+                                           user.CanDoMask, user.WantDoMask,
+                                           user.AboutText, user.FirstLifeAboutText, user.Image,
+                                           user.FirstLifeImage, user.WebLoginKey);
                 }
             }
             catch (Exception e)
@@ -590,11 +590,11 @@ namespace OpenSim.Data.MySQL
         /// <param name="user">The profile data to use to update the DB</param>
         override public bool UpdateUserProfile(UserProfileData user)
         {
-            database.updateUserRow(user.Id, user.FirstName, user.SurName, user.PasswordHash, user.PasswordSalt,
+            database.updateUserRow(user.ID, user.FirstName, user.SurName, user.PasswordHash, user.PasswordSalt,
                                    user.HomeRegion, user.HomeLocation.X, user.HomeLocation.Y, user.HomeLocation.Z, user.HomeLookAt.X,
                                    user.HomeLookAt.Y, user.HomeLookAt.Z, user.Created, user.LastLogin, user.UserInventoryURI,
-                                   user.UserAssetURI, user.ProfileCanDoMask, user.ProfileWantDoMask, user.ProfileAboutText,
-                                   user.ProfileFirstText, user.ProfileImage, user.ProfileFirstImage, user.WebLoginKey);
+                                   user.UserAssetURI, user.CanDoMask, user.WantDoMask, user.AboutText,
+                                   user.FirstLifeAboutText, user.Image, user.FirstLifeImage, user.WebLoginKey);
             return true;
         }
 

@@ -164,9 +164,9 @@ namespace OpenSim.Framework.Communications
             }
             else
             {
-                m_inventoryService.CreateNewUserInventory(userProf.Id);
+                m_inventoryService.CreateNewUserInventory(userProf.ID);
                 m_log.Info("[USERS]: Created new inventory set for " + firstName + " " + lastName);
-                return userProf.Id;
+                return userProf.ID;
             }
         }
 
@@ -249,7 +249,7 @@ namespace OpenSim.Framework.Communications
                 UserProfileData profileData = m_userService.GetUserProfile(uuid);
                 if (profileData != null)
                 {
-                    LLUUID profileId = profileData.Id;
+                    LLUUID profileId = profileData.ID;
                     string firstname = profileData.FirstName;
                     string lastname = profileData.SurName;
 

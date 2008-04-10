@@ -207,7 +207,7 @@ namespace OpenSim.Framework.UserManagement
 
                     try
                     {
-                        LLUUID agentID = userProfile.Id;
+                        LLUUID agentID = userProfile.ID;
 
                         // Inventory Library Section
                         InventoryData inventData = GetInventorySkeleton(agentID);
@@ -349,7 +349,7 @@ namespace OpenSim.Framework.UserManagement
 
                     try
                     {
-                        LLUUID agentID = userProfile.Id;
+                        LLUUID agentID = userProfile.ID;
 
                         // Inventory Library Section
                         InventoryData inventData = GetInventorySkeleton(agentID);
@@ -491,7 +491,7 @@ namespace OpenSim.Framework.UserManagement
                 if (goodweblogin)
                 {
                     LLUUID webloginkey = LLUUID.Random();
-                    m_userManager.StoreWebLoginKey(user.Id, webloginkey);
+                    m_userManager.StoreWebLoginKey(user.ID, webloginkey);
                     statuscode = 301;
 
                     string redirectURL = "about:blank?redirect-http-hack=" +
@@ -639,7 +639,7 @@ namespace OpenSim.Framework.UserManagement
         public virtual bool AuthenticateUser(UserProfileData profile, string password)
         {
             bool passwordSuccess = false;
-            m_log.InfoFormat("[LOGIN]: Authenticating {0} {1} ({2})", profile.FirstName, profile.SurName, profile.Id);
+            m_log.InfoFormat("[LOGIN]: Authenticating {0} {1} ({2})", profile.FirstName, profile.SurName, profile.ID);
 
             // Web Login method seems to also occasionally send the hashed password itself
 
@@ -664,7 +664,7 @@ namespace OpenSim.Framework.UserManagement
         public virtual bool AuthenticateUser(UserProfileData profile, LLUUID webloginkey)
         {
             bool passwordSuccess = false;
-            m_log.InfoFormat("[LOGIN]: Authenticating {0} {1} ({2})", profile.FirstName, profile.SurName, profile.Id);
+            m_log.InfoFormat("[LOGIN]: Authenticating {0} {1} ({2})", profile.FirstName, profile.SurName, profile.ID);
 
             // Match web login key unless it's the default weblogin key LLUUID.Zero
             passwordSuccess = ((profile.WebLoginKey==webloginkey) && profile.WebLoginKey != LLUUID.Zero);

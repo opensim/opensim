@@ -135,7 +135,7 @@ namespace OpenSim.Data.SQLite
                 if (rows.Length > 0)
                 {
                     UserProfileData user = buildUserProfile(rows[0]);
-                    DataRow row = ds.Tables["useragents"].Rows.Find(Util.ToRawUuidString(user.Id));
+                    DataRow row = ds.Tables["useragents"].Rows.Find(Util.ToRawUuidString(user.ID));
                     if (row != null)
                     {
                         user.CurrentAgent = buildUserAgent(row);
@@ -365,7 +365,7 @@ namespace OpenSim.Data.SQLite
             DataTable users = ds.Tables["users"];
             lock (ds)
             {
-                DataRow row = users.Rows.Find(Util.ToRawUuidString(user.Id));
+                DataRow row = users.Rows.Find(Util.ToRawUuidString(user.ID));
                 if (row == null)
                 {
                     row = users.NewRow();
@@ -384,7 +384,7 @@ namespace OpenSim.Data.SQLite
                 if (user.CurrentAgent != null)
                 {
                     DataTable ua = ds.Tables["useragents"];
-                    row = ua.Rows.Find(Util.ToRawUuidString(user.Id));
+                    row = ua.Rows.Find(Util.ToRawUuidString(user.ID));
                     if (row == null)
                     {
                         row = ua.NewRow();
@@ -401,7 +401,7 @@ namespace OpenSim.Data.SQLite
                     // I just added this to help the standalone login situation.  
                     //It still needs to be looked at by a Database guy
                     DataTable ua = ds.Tables["useragents"];
-                    row = ua.Rows.Find(Util.ToRawUuidString(user.Id));
+                    row = ua.Rows.Find(Util.ToRawUuidString(user.ID));
 
                     if (row == null)
                     {
@@ -593,7 +593,7 @@ namespace OpenSim.Data.SQLite
             UserProfileData user = new UserProfileData();
             LLUUID tmp;
             LLUUID.TryParse((String)row["UUID"], out tmp);
-            user.Id = tmp;
+            user.ID = tmp;
             user.FirstName = (String) row["username"];
             user.SurName = (String) row["surname"];
             user.PasswordHash = (String) row["passwordHash"];
@@ -616,14 +616,14 @@ namespace OpenSim.Data.SQLite
             user.RootInventoryFolderID = new LLUUID((String) row["rootInventoryFolderID"]);
             user.UserInventoryURI = (String) row["userInventoryURI"];
             user.UserAssetURI = (String) row["userAssetURI"];
-            user.ProfileCanDoMask = Convert.ToUInt32(row["profileCanDoMask"]);
-            user.ProfileWantDoMask = Convert.ToUInt32(row["profileWantDoMask"]);
-            user.ProfileAboutText = (String) row["profileAboutText"];
-            user.ProfileFirstText = (String) row["profileFirstText"];
+            user.CanDoMask = Convert.ToUInt32(row["profileCanDoMask"]);
+            user.WantDoMask = Convert.ToUInt32(row["profileWantDoMask"]);
+            user.AboutText = (String) row["profileAboutText"];
+            user.FirstLifeAboutText = (String) row["profileFirstText"];
             LLUUID.TryParse((String)row["profileImage"], out tmp);
-            user.ProfileImage = tmp;
+            user.Image = tmp;
             LLUUID.TryParse((String)row["profileFirstImage"], out tmp);
-            user.ProfileFirstImage = tmp;
+            user.FirstLifeImage = tmp;
             user.WebLoginKey = new LLUUID((String) row["webLoginKey"]);
 
             return user;
@@ -631,7 +631,7 @@ namespace OpenSim.Data.SQLite
 
         private void fillUserRow(DataRow row, UserProfileData user)
         {
-            row["UUID"] = Util.ToRawUuidString(user.Id);
+            row["UUID"] = Util.ToRawUuidString(user.ID);
             row["username"] = user.FirstName;
             row["surname"] = user.SurName;
             row["passwordHash"] = user.PasswordHash;
@@ -652,12 +652,12 @@ namespace OpenSim.Data.SQLite
             row["rootInventoryFolderID"] = user.RootInventoryFolderID;
             row["userInventoryURI"] = user.UserInventoryURI;
             row["userAssetURI"] = user.UserAssetURI;
-            row["profileCanDoMask"] = user.ProfileCanDoMask;
-            row["profileWantDoMask"] = user.ProfileWantDoMask;
-            row["profileAboutText"] = user.ProfileAboutText;
-            row["profileFirstText"] = user.ProfileFirstText;
-            row["profileImage"] = user.ProfileImage;
-            row["profileFirstImage"] = user.ProfileFirstImage;
+            row["profileCanDoMask"] = user.CanDoMask;
+            row["profileWantDoMask"] = user.WantDoMask;
+            row["profileAboutText"] = user.AboutText;
+            row["profileFirstText"] = user.FirstLifeAboutText;
+            row["profileImage"] = user.Image;
+            row["profileFirstImage"] = user.FirstLifeImage;
             row["webLoginKey"] = user.WebLoginKey;
 
             // ADO.NET doesn't handle NULL very well

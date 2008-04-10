@@ -127,17 +127,17 @@ namespace OpenSim.Grid.UserServer
             // Account information
             responseData["firstname"] = profile.FirstName;
             responseData["lastname"] = profile.SurName;
-            responseData["uuid"] = profile.Id.ToString();
+            responseData["uuid"] = profile.ID.ToString();
             // Server Information
             responseData["server_inventory"] = profile.UserInventoryURI;
             responseData["server_asset"] = profile.UserAssetURI;
             // Profile Information
-            responseData["profile_about"] = profile.ProfileAboutText;
-            responseData["profile_firstlife_about"] = profile.ProfileFirstText;
-            responseData["profile_firstlife_image"] = profile.ProfileFirstImage.ToString();
-            responseData["profile_can_do"] = profile.ProfileCanDoMask.ToString();
-            responseData["profile_want_do"] = profile.ProfileWantDoMask.ToString();
-            responseData["profile_image"] = profile.ProfileImage.ToString();
+            responseData["profile_about"] = profile.AboutText;
+            responseData["profile_firstlife_about"] = profile.FirstLifeAboutText;
+            responseData["profile_firstlife_image"] = profile.FirstLifeImage.ToString();
+            responseData["profile_can_do"] = profile.CanDoMask.ToString();
+            responseData["profile_want_do"] = profile.WantDoMask.ToString();
+            responseData["profile_image"] = profile.Image.ToString();
             responseData["profile_created"] = profile.Created.ToString();
             responseData["profile_lastlogin"] = profile.LastLogin.ToString();
             // Home region information
@@ -341,11 +341,11 @@ namespace OpenSim.Grid.UserServer
             }
             if (requestData.Contains("FLImageID"))
             {
-                userProfile.ProfileFirstImage = new LLUUID((string)requestData["FLImageID"]);
+                userProfile.FirstLifeImage = new LLUUID((string)requestData["FLImageID"]);
             }
             if (requestData.Contains("ImageID"))
             {
-                userProfile.ProfileImage = new LLUUID((string)requestData["ImageID"]);
+                userProfile.Image = new LLUUID((string)requestData["ImageID"]);
             }
             // dont' know how yet
             if (requestData.Contains("MaturePublish"))
@@ -353,11 +353,11 @@ namespace OpenSim.Grid.UserServer
             }
             if (requestData.Contains("AboutText"))
             {
-                userProfile.ProfileAboutText = (string)requestData["AboutText"];
+                userProfile.AboutText = (string)requestData["AboutText"];
             }
             if (requestData.Contains("FLAboutText"))
             {
-                userProfile.ProfileFirstText = (string)requestData["FLAboutText"];
+                userProfile.FirstLifeAboutText = (string)requestData["FLAboutText"];
             }
             // not in DB yet.
             if (requestData.Contains("ProfileURL"))

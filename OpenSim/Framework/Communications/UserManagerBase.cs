@@ -96,7 +96,7 @@ namespace OpenSim.Framework.UserManagement
 
                 if (profile != null)
                 {
-                    profile.CurrentAgent = getUserAgent(profile.Id);
+                    profile.CurrentAgent = getUserAgent(profile.ID);
                     return profile;
                 }
             }
@@ -113,7 +113,7 @@ namespace OpenSim.Framework.UserManagement
 
                 if (null != profile)
                 {
-                    profile.CurrentAgent = getUserAgent(profile.Id);
+                    profile.CurrentAgent = getUserAgent(profile.ID);
                     return profile;
                 }
             }
@@ -355,7 +355,7 @@ namespace OpenSim.Framework.UserManagement
             agent.sessionID = new LLUUID(randDataS, 0);
 
             // Profile UUID
-            agent.UUID = profile.Id;
+            agent.UUID = profile.ID;
 
             // Current position (from Home)
             agent.currentHandle = profile.HomeRegion;
@@ -481,7 +481,7 @@ namespace OpenSim.Framework.UserManagement
             agent.sessionID = new LLUUID(randDataS, 0);
 
             // Profile UUID
-            agent.UUID = profile.Id;
+            agent.UUID = profile.ID;
 
             // Current position (from Home)
             agent.currentHandle = profile.HomeRegion;
@@ -523,7 +523,7 @@ namespace OpenSim.Framework.UserManagement
         {
             UserProfileData user = new UserProfileData();
             user.HomeLocation = new LLVector3(128, 128, 100);
-            user.Id = LLUUID.Random();
+            user.ID = LLUUID.Random();
             user.FirstName = firstName;
             user.SurName = lastName;
             user.PasswordHash = pass;
@@ -545,14 +545,14 @@ namespace OpenSim.Framework.UserManagement
                 }
             }
 
-            return user.Id;
+            return user.ID;
         }
 
         public bool UpdateUserProfileProperties(UserProfileData UserProfile)
         {
-            if (null == GetUserProfile(UserProfile.Id))
+            if (null == GetUserProfile(UserProfile.ID))
             {
-                m_log.Info("[USERSTORAGE]: Failed to find User by UUID " + UserProfile.Id.ToString());
+                m_log.Info("[USERSTORAGE]: Failed to find User by UUID " + UserProfile.ID.ToString());
                 return false;
             }
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
@@ -563,7 +563,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to update user " + UserProfile.Id.ToString()
+                    m_log.Info("[USERSTORAGE]: Unable to update user " + UserProfile.ID.ToString()
                         + " via " + plugin.Key + "(" + e.ToString() + ")");
                     return false;
                 }

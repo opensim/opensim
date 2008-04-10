@@ -453,7 +453,7 @@ namespace OpenSim.Data.MSSQL
         override public UserAgentData GetAgentByName(string user, string last)
         {
             UserProfileData profile = GetUserByName(user, last);
-            return GetAgentByUUID(profile.Id);
+            return GetAgentByUUID(profile.ID);
         }
 
         /// <summary>
@@ -505,14 +505,14 @@ namespace OpenSim.Data.MSSQL
             {
                 lock (database)
                 {
-                    InsertUserRow(user.Id, user.FirstName, user.SurName, user.PasswordHash, user.PasswordSalt,
+                    InsertUserRow(user.ID, user.FirstName, user.SurName, user.PasswordHash, user.PasswordSalt,
                                            user.HomeRegion, user.HomeLocation.X, user.HomeLocation.Y,
                                            user.HomeLocation.Z,
                                            user.HomeLookAt.X, user.HomeLookAt.Y, user.HomeLookAt.Z, user.Created,
                                            user.LastLogin, user.UserInventoryURI, user.UserAssetURI,
-                                           user.ProfileCanDoMask, user.ProfileWantDoMask,
-                                           user.ProfileAboutText, user.ProfileFirstText, user.ProfileImage,
-                                           user.ProfileFirstImage, user.WebLoginKey);
+                                           user.CanDoMask, user.WantDoMask,
+                                           user.AboutText, user.FirstLifeAboutText, user.Image,
+                                           user.FirstLifeImage, user.WebLoginKey);
                 }
             }
             catch (Exception e)
@@ -651,7 +651,7 @@ namespace OpenSim.Data.MSSQL
                                                 "profileFirstImage = @profileFirstImage, " +
                                                 "webLoginKey = @webLoginKey  where " +
                                                 "UUID = @keyUUUID;", database.getConnection());
-            SqlParameter param1 = new SqlParameter("@uuid", user.Id.ToString());
+            SqlParameter param1 = new SqlParameter("@uuid", user.ID.ToString());
             SqlParameter param2 = new SqlParameter("@username", user.FirstName);
             SqlParameter param3 = new SqlParameter("@lastname", user.SurName);
             SqlParameter param4 = new SqlParameter("@passwordHash", user.PasswordHash);
@@ -667,13 +667,13 @@ namespace OpenSim.Data.MSSQL
             SqlParameter param14 = new SqlParameter("@lastLogin", Convert.ToInt32(user.LastLogin));
             SqlParameter param15 = new SqlParameter("@userInventoryURI", user.UserInventoryURI);
             SqlParameter param16 = new SqlParameter("@userAssetURI", user.UserAssetURI);
-            SqlParameter param17 = new SqlParameter("@profileCanDoMask", Convert.ToInt32(user.ProfileCanDoMask));
-            SqlParameter param18 = new SqlParameter("@profileWantDoMask", Convert.ToInt32(user.ProfileWantDoMask));
-            SqlParameter param19 = new SqlParameter("@profileAboutText", user.ProfileAboutText);
-            SqlParameter param20 = new SqlParameter("@profileFirstText", user.ProfileFirstText);
-            SqlParameter param21 = new SqlParameter("@profileImage", user.ProfileImage.ToString());
-            SqlParameter param22 = new SqlParameter("@profileFirstImage", user.ProfileFirstImage.ToString());
-            SqlParameter param23 = new SqlParameter("@keyUUUID", user.Id.ToString());
+            SqlParameter param17 = new SqlParameter("@profileCanDoMask", Convert.ToInt32(user.CanDoMask));
+            SqlParameter param18 = new SqlParameter("@profileWantDoMask", Convert.ToInt32(user.WantDoMask));
+            SqlParameter param19 = new SqlParameter("@profileAboutText", user.AboutText);
+            SqlParameter param20 = new SqlParameter("@profileFirstText", user.FirstLifeAboutText);
+            SqlParameter param21 = new SqlParameter("@profileImage", user.Image.ToString());
+            SqlParameter param22 = new SqlParameter("@profileFirstImage", user.FirstLifeImage.ToString());
+            SqlParameter param23 = new SqlParameter("@keyUUUID", user.ID.ToString());
             SqlParameter param24 = new SqlParameter("@webLoginKey", user.WebLoginKey.UUID.ToString());
             command.Parameters.Add(param1);
             command.Parameters.Add(param2);

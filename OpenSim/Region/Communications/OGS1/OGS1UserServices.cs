@@ -62,15 +62,15 @@ namespace OpenSim.Region.Communications.OGS1
             UserProfileData userData = new UserProfileData();
             userData.FirstName = (string) data["firstname"];
             userData.SurName = (string) data["lastname"];
-            userData.Id = new LLUUID((string) data["uuid"]);
+            userData.ID = new LLUUID((string) data["uuid"]);
             userData.UserInventoryURI = (string) data["server_inventory"];
             userData.UserAssetURI = (string) data["server_asset"];
-            userData.ProfileFirstText = (string) data["profile_firstlife_about"];
-            userData.ProfileFirstImage = new LLUUID((string) data["profile_firstlife_image"]);
-            userData.ProfileCanDoMask = Convert.ToUInt32((string) data["profile_can_do"]);
-            userData.ProfileWantDoMask = Convert.ToUInt32(data["profile_want_do"]);
-            userData.ProfileAboutText = (string)data["profile_about"];
-            userData.ProfileImage = new LLUUID((string) data["profile_image"]);
+            userData.FirstLifeAboutText = (string) data["profile_firstlife_about"];
+            userData.FirstLifeImage = new LLUUID((string) data["profile_firstlife_image"]);
+            userData.CanDoMask = Convert.ToUInt32((string) data["profile_can_do"]);
+            userData.WantDoMask = Convert.ToUInt32(data["profile_want_do"]);
+            userData.AboutText = (string)data["profile_about"];
+            userData.Image = new LLUUID((string) data["profile_image"]);
             userData.LastLogin = Convert.ToInt32((string) data["profile_lastlogin"]);
             userData.HomeRegion = Convert.ToUInt64((string) data["home_region"]);
             userData.HomeLocation =
@@ -306,13 +306,13 @@ namespace OpenSim.Region.Communications.OGS1
         {
             m_log.Debug("[OGS1 USER SERVICES]: Asking UserServer to update profile.");
             Hashtable param = new Hashtable();
-            param["avatar_uuid"] = UserProfile.Id.ToString();
+            param["avatar_uuid"] = UserProfile.ID.ToString();
             //param["AllowPublish"] = UserProfile.ToString();
-            param["FLImageID"] = UserProfile.ProfileFirstImage.ToString();
-            param["ImageID"] = UserProfile.ProfileImage.ToString();
+            param["FLImageID"] = UserProfile.FirstLifeImage.ToString();
+            param["ImageID"] = UserProfile.Image.ToString();
             //param["MaturePublish"] = MaturePublish.ToString();
-            param["AboutText"] = UserProfile.ProfileAboutText;
-            param["FLAboutText"] = UserProfile.ProfileFirstText;
+            param["AboutText"] = UserProfile.AboutText;
+            param["FLAboutText"] = UserProfile.FirstLifeAboutText;
             //param["ProfileURL"] = UserProfile.ProfileURL.ToString();
             IList parameters = new ArrayList();
             parameters.Add(param);

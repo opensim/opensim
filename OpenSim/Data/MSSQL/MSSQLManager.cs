@@ -300,7 +300,7 @@ namespace OpenSim.Data.MSSQL
 
             if (reader.Read())
             {
-                retval.Id = new LLUUID((string)reader["UUID"]);
+                retval.ID = new LLUUID((string)reader["UUID"]);
                 retval.FirstName = (string)reader["username"];
                 retval.SurName = (string)reader["lastname"];
 
@@ -323,14 +323,14 @@ namespace OpenSim.Data.MSSQL
                 retval.UserInventoryURI = (string)reader["userInventoryURI"];
                 retval.UserAssetURI = (string)reader["userAssetURI"];
 
-                retval.ProfileCanDoMask = Convert.ToUInt32(reader["profileCanDoMask"].ToString());
-                retval.ProfileWantDoMask = Convert.ToUInt32(reader["profileWantDoMask"].ToString());
+                retval.CanDoMask = Convert.ToUInt32(reader["profileCanDoMask"].ToString());
+                retval.WantDoMask = Convert.ToUInt32(reader["profileWantDoMask"].ToString());
 
-                retval.ProfileAboutText = (string)reader["profileAboutText"];
-                retval.ProfileFirstText = (string)reader["profileFirstText"];
+                retval.AboutText = (string)reader["profileAboutText"];
+                retval.FirstLifeAboutText = (string)reader["profileFirstText"];
 
-                retval.ProfileImage = new LLUUID((string)reader["profileImage"]);
-                retval.ProfileFirstImage = new LLUUID((string)reader["profileFirstImage"]);
+                retval.Image = new LLUUID((string)reader["profileImage"]);
+                retval.FirstLifeImage = new LLUUID((string)reader["profileFirstImage"]);
                 retval.WebLoginKey = new LLUUID((string)reader["webLoginKey"]);
             }
             else

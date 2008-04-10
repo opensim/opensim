@@ -177,7 +177,7 @@ namespace OpenSim.Grid.UserServer
                 SimParams["secure_session_id"] = theUser.CurrentAgent.secureSessionID.ToString();
                 SimParams["firstname"] = theUser.FirstName;
                 SimParams["lastname"] = theUser.SurName;
-                SimParams["agent_id"] = theUser.Id.ToString();
+                SimParams["agent_id"] = theUser.ID.ToString();
                 SimParams["circuit_code"] = (Int32) Convert.ToUInt32(response.CircuitCode);
                 SimParams["startpos_x"] = theUser.CurrentAgent.currentPos.X.ToString();
                 SimParams["startpos_y"] = theUser.CurrentAgent.currentPos.Y.ToString();
@@ -206,7 +206,7 @@ namespace OpenSim.Grid.UserServer
                 if (handlerUserLoggedInAtLocation != null)
                 {
                     m_log.Info("[LOGIN]: Letting other objects know about login");
-                    handlerUserLoggedInAtLocation(theUser.Id, theUser.CurrentAgent.sessionID, theUser.CurrentAgent.currentRegion, 
+                    handlerUserLoggedInAtLocation(theUser.ID, theUser.CurrentAgent.sessionID, theUser.CurrentAgent.currentRegion, 
                         theUser.CurrentAgent.currentHandle, theUser.CurrentAgent.currentPos.X,theUser.CurrentAgent.currentPos.Y,theUser.CurrentAgent.currentPos.Z,
                         theUser.FirstName,theUser.SurName);
                 }
@@ -268,7 +268,7 @@ namespace OpenSim.Grid.UserServer
                     SimParams["secure_session_id"] = theUser.CurrentAgent.secureSessionID.ToString();
                     SimParams["firstname"] = theUser.FirstName;
                     SimParams["lastname"] = theUser.SurName;
-                    SimParams["agent_id"] = theUser.Id.ToString();
+                    SimParams["agent_id"] = theUser.ID.ToString();
                     SimParams["circuit_code"] = (Int32) Convert.ToUInt32(response.CircuitCode);
                     SimParams["startpos_x"] = theUser.CurrentAgent.currentPos.X.ToString();
                     SimParams["startpos_y"] = theUser.CurrentAgent.currentPos.Y.ToString();
@@ -286,7 +286,7 @@ namespace OpenSim.Grid.UserServer
                     if (handlerUserLoggedInAtLocation != null)
                     {
                         m_log.Info("[LOGIN]: Letting other objects know about login");
-                        handlerUserLoggedInAtLocation(theUser.Id, theUser.CurrentAgent.sessionID, theUser.CurrentAgent.currentRegion,
+                        handlerUserLoggedInAtLocation(theUser.ID, theUser.CurrentAgent.sessionID, theUser.CurrentAgent.currentRegion,
                         theUser.CurrentAgent.currentHandle, theUser.CurrentAgent.currentPos.X, theUser.CurrentAgent.currentPos.Y, theUser.CurrentAgent.currentPos.Z,
                         theUser.FirstName, theUser.SurName);
                     }

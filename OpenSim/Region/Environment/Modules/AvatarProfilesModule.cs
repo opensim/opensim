@@ -90,10 +90,10 @@ namespace OpenSim.Region.Environment.Modules
             UserProfileData profile = m_scene.CommsManager.UserService.GetUserProfile(avatarID);
             if (null != profile)
             {
-                remoteClient.SendAvatarProperties(profile.Id, profile.ProfileAboutText,
+                remoteClient.SendAvatarProperties(profile.ID, profile.AboutText,
                     Util.ToDateTime(profile.Created).ToString(),
-                    System.String.Empty, profile.ProfileFirstText, profile.ProfileCanDoMask,
-                    profile.ProfileFirstImage, profile.ProfileImage, System.String.Empty, partner);
+                    System.String.Empty, profile.FirstLifeAboutText, profile.CanDoMask,
+                    profile.FirstLifeImage, profile.Image, System.String.Empty, partner);
             }
             else
             {
@@ -103,15 +103,15 @@ namespace OpenSim.Region.Environment.Modules
 
         public void UpdateAvatarProperties(IClientAPI remoteClient, UserProfileData newProfile)
         {
-            UserProfileData Profile = m_scene.CommsManager.UserService.GetUserProfile(newProfile.Id);
+            UserProfileData Profile = m_scene.CommsManager.UserService.GetUserProfile(newProfile.ID);
            
             // if it's the profile of the user requesting the update, then we change only a few things.
-            if (remoteClient.AgentId.CompareTo(Profile.Id) == 0)
+            if (remoteClient.AgentId.CompareTo(Profile.ID) == 0)
             {
-                Profile.ProfileImage = newProfile.ProfileImage;
-                Profile.ProfileFirstImage = newProfile.ProfileFirstImage;
-                Profile.ProfileAboutText = newProfile.ProfileAboutText;
-                Profile.ProfileFirstText = newProfile.ProfileFirstText;
+                Profile.Image = newProfile.Image;
+                Profile.FirstLifeImage = newProfile.FirstLifeImage;
+                Profile.AboutText = newProfile.AboutText;
+                Profile.FirstLifeAboutText = newProfile.FirstLifeAboutText;
             }
             else
             {
@@ -119,7 +119,7 @@ namespace OpenSim.Region.Environment.Modules
             }
             if (m_scene.CommsManager.UserService.UpdateUserProfileProperties(Profile))
             {
-                RequestAvatarProperty(remoteClient, newProfile.Id);
+                RequestAvatarProperty(remoteClient, newProfile.ID);
             }
         }
     }

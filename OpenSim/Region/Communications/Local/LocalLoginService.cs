@@ -87,7 +87,7 @@ namespace OpenSim.Region.Communications.Local
                 profile = m_userManager.GetUserProfile(firstname, lastname);
                 if (profile != null)
                 {
-                    m_Parent.InventoryService.CreateNewUserInventory(profile.Id);
+                    m_Parent.InventoryService.CreateNewUserInventory(profile.ID);
                 }
 
                 return profile;
@@ -169,7 +169,7 @@ namespace OpenSim.Region.Communications.Local
 
                 LoginResponse.BuddyList buddyList = new LoginResponse.BuddyList();
 
-                response.BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(theUser.Id)); 
+                response.BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(theUser.ID)); 
 
                 Login _login = new Login();
                 //copy data to login object
