@@ -78,6 +78,9 @@ namespace OpenSim.Grid.UserServer
             try
             {
                 RegionProfileData SimInfo = null;
+                int start_x = -1;
+                int start_y = -1;
+                int start_z = -1;
                 if (startLocationRequest == "last")
                 {
                     SimInfo =
@@ -119,6 +122,10 @@ namespace OpenSim.Grid.UserServer
                                 RegionProfileData.RequestSimProfileData(
                                     theUser.homeRegion, m_config.GridServerURL,
                                     m_config.GridSendKey, m_config.GridRecvKey);
+                        } else {
+                            start_x = Convert.ToInt32(startLocationRequestParsed[1]);
+                            start_y = Convert.ToInt32(startLocationRequestParsed[2]);
+                            start_z = Convert.ToInt32(startLocationRequestParsed[3]);
                         }
                     }
                 }
@@ -159,7 +166,11 @@ namespace OpenSim.Grid.UserServer
 
                 theUser.currentAgent.currentRegion = SimInfo.UUID;
                 theUser.currentAgent.currentHandle = SimInfo.regionHandle;
-                
+                if (start_x >= 0 && start_y >= 0 && start_z >= 0) {
+                    theUser.currentAgent.currentPos.X = start_x;
+                    theUser.currentAgent.currentPos.Y = start_y;
+                    theUser.currentAgent.currentPos.Z = start_z;
+                }
                 // Prepare notification
                 Hashtable SimParams = new Hashtable();
                 SimParams["session_id"] = theUser.currentAgent.sessionID.ToString();
