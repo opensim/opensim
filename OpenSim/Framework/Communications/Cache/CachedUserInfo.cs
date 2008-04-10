@@ -114,7 +114,7 @@ namespace OpenSim.Framework.Communications.Cache
 //                    "[INVENTORY CACHE]: Received folder {0} {1} for user {2}", 
 //                    folderInfo.name, folderInfo.folderID, userID);
                 
-                if (userID == UserProfile.UUID)
+                if (userID == UserProfile.Id)
                 {
                     if (RootFolder == null)
                     {
@@ -169,7 +169,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="folderInfo"></param>        
         public void ItemReceive(LLUUID userID, InventoryItemBase itemInfo)
         {
-            if ((userID == UserProfile.UUID) && (RootFolder != null))
+            if ((userID == UserProfile.Id) && (RootFolder != null))
             {
                 if (itemInfo.Folder == RootFolder.ID)
                 {
@@ -194,7 +194,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void AddItem(LLUUID userID, InventoryItemBase itemInfo)
         {
-            if ((userID == UserProfile.UUID) && (RootFolder != null))
+            if ((userID == UserProfile.Id) && (RootFolder != null))
             {
                 ItemReceive(userID, itemInfo);
                 m_parentCommsManager.InventoryService.AddNewInventoryItem(userID, itemInfo);
@@ -203,7 +203,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void UpdateItem(LLUUID userID, InventoryItemBase itemInfo)
         {
-            if ((userID == UserProfile.UUID) && (RootFolder != null))
+            if ((userID == UserProfile.Id) && (RootFolder != null))
             {
                 m_parentCommsManager.InventoryService.AddNewInventoryItem(userID, itemInfo);
             }
@@ -212,7 +212,7 @@ namespace OpenSim.Framework.Communications.Cache
         public bool DeleteItem(LLUUID userID, InventoryItemBase item)
         {
             bool result = false;
-            if ((userID == UserProfile.UUID) && (RootFolder != null))
+            if ((userID == UserProfile.Id) && (RootFolder != null))
             {
                 result = RootFolder.DeleteItem(item.ID);
                 if (result)

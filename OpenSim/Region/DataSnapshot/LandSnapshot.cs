@@ -223,7 +223,7 @@ namespace OpenSim.Region.DataSnapshot
                             {
                                 XmlNode username = nodeFactory.CreateNode(XmlNodeType.Element, "name", "");
                                 UserProfileData userProfile = m_scene.CommsManager.UserService.GetUserProfile(userOwnerUUID);
-                                username.InnerText = userProfile.username + " " + userProfile.surname;
+                                username.InnerText = userProfile.FirstName + " " + userProfile.SurName;
                                 userblock.AppendChild(username);
                             }
                             catch (Exception)

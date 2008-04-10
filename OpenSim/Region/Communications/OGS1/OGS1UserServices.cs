@@ -60,24 +60,24 @@ namespace OpenSim.Region.Communications.OGS1
             }
 
             UserProfileData userData = new UserProfileData();
-            userData.username = (string) data["firstname"];
-            userData.surname = (string) data["lastname"];
-            userData.UUID = new LLUUID((string) data["uuid"]);
-            userData.userInventoryURI = (string) data["server_inventory"];
-            userData.userAssetURI = (string) data["server_asset"];
-            userData.profileFirstText = (string) data["profile_firstlife_about"];
-            userData.profileFirstImage = new LLUUID((string) data["profile_firstlife_image"]);
-            userData.profileCanDoMask = Convert.ToUInt32((string) data["profile_can_do"]);
-            userData.profileWantDoMask = Convert.ToUInt32(data["profile_want_do"]);
-            userData.profileAboutText = (string)data["profile_about"];
-            userData.profileImage = new LLUUID((string) data["profile_image"]);
-            userData.lastLogin = Convert.ToInt32((string) data["profile_lastlogin"]);
-            userData.homeRegion = Convert.ToUInt64((string) data["home_region"]);
-            userData.homeLocation =
+            userData.FirstName = (string) data["firstname"];
+            userData.SurName = (string) data["lastname"];
+            userData.Id = new LLUUID((string) data["uuid"]);
+            userData.UserInventoryURI = (string) data["server_inventory"];
+            userData.UserAssetURI = (string) data["server_asset"];
+            userData.ProfileFirstText = (string) data["profile_firstlife_about"];
+            userData.ProfileFirstImage = new LLUUID((string) data["profile_firstlife_image"]);
+            userData.ProfileCanDoMask = Convert.ToUInt32((string) data["profile_can_do"]);
+            userData.ProfileWantDoMask = Convert.ToUInt32(data["profile_want_do"]);
+            userData.ProfileAboutText = (string)data["profile_about"];
+            userData.ProfileImage = new LLUUID((string) data["profile_image"]);
+            userData.LastLogin = Convert.ToInt32((string) data["profile_lastlogin"]);
+            userData.HomeRegion = Convert.ToUInt64((string) data["home_region"]);
+            userData.HomeLocation =
                 new LLVector3((float) Convert.ToDecimal((string) data["home_coordinates_x"]),
                               (float) Convert.ToDecimal((string) data["home_coordinates_y"]),
                               (float) Convert.ToDecimal((string) data["home_coordinates_z"]));
-            userData.homeLookAt =
+            userData.HomeLookAt =
                 new LLVector3((float) Convert.ToDecimal((string) data["home_look_x"]),
                               (float) Convert.ToDecimal((string) data["home_look_y"]),
                               (float) Convert.ToDecimal((string) data["home_look_z"]));
@@ -306,13 +306,13 @@ namespace OpenSim.Region.Communications.OGS1
         {
             m_log.Debug("[OGS1 USER SERVICES]: Asking UserServer to update profile.");
             Hashtable param = new Hashtable();
-            param["avatar_uuid"] = UserProfile.UUID.ToString();
+            param["avatar_uuid"] = UserProfile.Id.ToString();
             //param["AllowPublish"] = UserProfile.ToString();
-            param["FLImageID"] = UserProfile.profileFirstImage.ToString();
-            param["ImageID"] = UserProfile.profileImage.ToString();
+            param["FLImageID"] = UserProfile.ProfileFirstImage.ToString();
+            param["ImageID"] = UserProfile.ProfileImage.ToString();
             //param["MaturePublish"] = MaturePublish.ToString();
-            param["AboutText"] = UserProfile.profileAboutText;
-            param["FLAboutText"] = UserProfile.profileFirstText;
+            param["AboutText"] = UserProfile.ProfileAboutText;
+            param["FLAboutText"] = UserProfile.ProfileFirstText;
             //param["ProfileURL"] = UserProfile.ProfileURL.ToString();
             IList parameters = new ArrayList();
             parameters.Add(param);

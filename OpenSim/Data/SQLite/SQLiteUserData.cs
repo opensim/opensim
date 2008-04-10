@@ -114,7 +114,7 @@ namespace OpenSim.Data.SQLite
                     row = ds.Tables["useragents"].Rows.Find(Util.ToRawUuidString(uuid));
                     if (row != null)
                     {
-                        user.currentAgent = buildUserAgent(row);
+                        user.CurrentAgent = buildUserAgent(row);
                     }
                     return user;
                 }
@@ -135,10 +135,10 @@ namespace OpenSim.Data.SQLite
                 if (rows.Length > 0)
                 {
                     UserProfileData user = buildUserProfile(rows[0]);
-                    DataRow row = ds.Tables["useragents"].Rows.Find(Util.ToRawUuidString(user.UUID));
+                    DataRow row = ds.Tables["useragents"].Rows.Find(Util.ToRawUuidString(user.Id));
                     if (row != null)
                     {
-                        user.currentAgent = buildUserAgent(row);
+                        user.CurrentAgent = buildUserAgent(row);
                     }
                     return user;
                 }
@@ -297,7 +297,7 @@ namespace OpenSim.Data.SQLite
         {
             try
             {
-                return GetUserByUUID(uuid).currentAgent;
+                return GetUserByUUID(uuid).CurrentAgent;
             }
             catch (Exception)
             {
@@ -325,7 +325,7 @@ namespace OpenSim.Data.SQLite
         {
             try
             {
-                return GetUserByName(fname, lname).currentAgent;
+                return GetUserByName(fname, lname).CurrentAgent;
             }
             catch (Exception)
             {
@@ -347,7 +347,7 @@ namespace OpenSim.Data.SQLite
                 else
                 {
                     UserProfileData user = GetUserByUUID(AgentID);
-                    user.webLoginKey = WebLoginKey;
+                    user.WebLoginKey = WebLoginKey;
                     fillUserRow(row, user);
                     da.Update(ds, "users");
 
@@ -365,7 +365,7 @@ namespace OpenSim.Data.SQLite
             DataTable users = ds.Tables["users"];
             lock (ds)
             {
-                DataRow row = users.Rows.Find(Util.ToRawUuidString(user.UUID));
+                DataRow row = users.Rows.Find(Util.ToRawUuidString(user.Id));
                 if (row == null)
                 {
                     row = users.NewRow();
@@ -381,19 +381,19 @@ namespace OpenSim.Data.SQLite
                 // useragents table once the useragent is null
                 //
                 // A database guy should look at this and figure out the best way to clear the useragents table.
-                if (user.currentAgent != null)
+                if (user.CurrentAgent != null)
                 {
                     DataTable ua = ds.Tables["useragents"];
-                    row = ua.Rows.Find(Util.ToRawUuidString(user.UUID));
+                    row = ua.Rows.Find(Util.ToRawUuidString(user.Id));
                     if (row == null)
                     {
                         row = ua.NewRow();
-                        fillUserAgentRow(row, user.currentAgent);
+                        fillUserAgentRow(row, user.CurrentAgent);
                         ua.Rows.Add(row);
                     }
                     else
                     {
-                        fillUserAgentRow(row, user.currentAgent);
+                        fillUserAgentRow(row, user.CurrentAgent);
                     }
                 }
                 else
@@ -401,7 +401,7 @@ namespace OpenSim.Data.SQLite
                     // I just added this to help the standalone login situation.  
                     //It still needs to be looked at by a Database guy
                     DataTable ua = ds.Tables["useragents"];
-                    row = ua.Rows.Find(Util.ToRawUuidString(user.UUID));
+                    row = ua.Rows.Find(Util.ToRawUuidString(user.Id));
 
                     if (row == null)
                     {
@@ -591,70 +591,74 @@ namespace OpenSim.Data.SQLite
             // interesting has to be done to actually get these values
             // back out.  Not enough time to figure it out yet.
             UserProfileData user = new UserProfileData();
-            LLUUID.TryParse((String)row["UUID"], out user.UUID);
-            user.username = (String) row["username"];
-            user.surname = (String) row["surname"];
-            user.passwordHash = (String) row["passwordHash"];
-            user.passwordSalt = (String) row["passwordSalt"];
+            LLUUID tmp;
+            LLUUID.TryParse((String)row["UUID"], out tmp);
+            user.Id = tmp;
+            user.FirstName = (String) row["username"];
+            user.SurName = (String) row["surname"];
+            user.PasswordHash = (String) row["passwordHash"];
+            user.PasswordSalt = (String) row["passwordSalt"];
 
-            user.homeRegionX = Convert.ToUInt32(row["homeRegionX"]);
-            user.homeRegionY = Convert.ToUInt32(row["homeRegionY"]);
-            user.homeLocation = new LLVector3(
+            user.HomeRegionX = Convert.ToUInt32(row["homeRegionX"]);
+            user.HomeRegionY = Convert.ToUInt32(row["homeRegionY"]);
+            user.HomeLocation = new LLVector3(
                 Convert.ToSingle(row["homeLocationX"]),
                 Convert.ToSingle(row["homeLocationY"]),
                 Convert.ToSingle(row["homeLocationZ"])
                 );
-            user.homeLookAt = new LLVector3(
+            user.HomeLookAt = new LLVector3(
                 Convert.ToSingle(row["homeLookAtX"]),
                 Convert.ToSingle(row["homeLookAtY"]),
                 Convert.ToSingle(row["homeLookAtZ"])
                 );
-            user.created = Convert.ToInt32(row["created"]);
-            user.lastLogin = Convert.ToInt32(row["lastLogin"]);
-            user.rootInventoryFolderID = new LLUUID((String) row["rootInventoryFolderID"]);
-            user.userInventoryURI = (String) row["userInventoryURI"];
-            user.userAssetURI = (String) row["userAssetURI"];
-            user.profileCanDoMask = Convert.ToUInt32(row["profileCanDoMask"]);
-            user.profileWantDoMask = Convert.ToUInt32(row["profileWantDoMask"]);
-            user.profileAboutText = (String) row["profileAboutText"];
-            user.profileFirstText = (String) row["profileFirstText"];
-            LLUUID.TryParse((String)row["profileImage"], out user.profileImage);
-            LLUUID.TryParse((String)row["profileFirstImage"], out user.profileFirstImage);
-            user.webLoginKey = new LLUUID((String) row["webLoginKey"]);
+            user.Created = Convert.ToInt32(row["created"]);
+            user.LastLogin = Convert.ToInt32(row["lastLogin"]);
+            user.RootInventoryFolderID = new LLUUID((String) row["rootInventoryFolderID"]);
+            user.UserInventoryURI = (String) row["userInventoryURI"];
+            user.UserAssetURI = (String) row["userAssetURI"];
+            user.ProfileCanDoMask = Convert.ToUInt32(row["profileCanDoMask"]);
+            user.ProfileWantDoMask = Convert.ToUInt32(row["profileWantDoMask"]);
+            user.ProfileAboutText = (String) row["profileAboutText"];
+            user.ProfileFirstText = (String) row["profileFirstText"];
+            LLUUID.TryParse((String)row["profileImage"], out tmp);
+            user.ProfileImage = tmp;
+            LLUUID.TryParse((String)row["profileFirstImage"], out tmp);
+            user.ProfileFirstImage = tmp;
+            user.WebLoginKey = new LLUUID((String) row["webLoginKey"]);
 
             return user;
         }
 
         private void fillUserRow(DataRow row, UserProfileData user)
         {
-            row["UUID"] = Util.ToRawUuidString(user.UUID);
-            row["username"] = user.username;
-            row["surname"] = user.surname;
-            row["passwordHash"] = user.passwordHash;
-            row["passwordSalt"] = user.passwordSalt;
+            row["UUID"] = Util.ToRawUuidString(user.Id);
+            row["username"] = user.FirstName;
+            row["surname"] = user.SurName;
+            row["passwordHash"] = user.PasswordHash;
+            row["passwordSalt"] = user.PasswordSalt;
 
 
-            row["homeRegionX"] = user.homeRegionX;
-            row["homeRegionY"] = user.homeRegionY;
-            row["homeLocationX"] = user.homeLocation.X;
-            row["homeLocationY"] = user.homeLocation.Y;
-            row["homeLocationZ"] = user.homeLocation.Z;
-            row["homeLookAtX"] = user.homeLookAt.X;
-            row["homeLookAtY"] = user.homeLookAt.Y;
-            row["homeLookAtZ"] = user.homeLookAt.Z;
+            row["homeRegionX"] = user.HomeRegionX;
+            row["homeRegionY"] = user.HomeRegionY;
+            row["homeLocationX"] = user.HomeLocation.X;
+            row["homeLocationY"] = user.HomeLocation.Y;
+            row["homeLocationZ"] = user.HomeLocation.Z;
+            row["homeLookAtX"] = user.HomeLookAt.X;
+            row["homeLookAtY"] = user.HomeLookAt.Y;
+            row["homeLookAtZ"] = user.HomeLookAt.Z;
 
-            row["created"] = user.created;
-            row["lastLogin"] = user.lastLogin;
-            row["rootInventoryFolderID"] = user.rootInventoryFolderID;
-            row["userInventoryURI"] = user.userInventoryURI;
-            row["userAssetURI"] = user.userAssetURI;
-            row["profileCanDoMask"] = user.profileCanDoMask;
-            row["profileWantDoMask"] = user.profileWantDoMask;
-            row["profileAboutText"] = user.profileAboutText;
-            row["profileFirstText"] = user.profileFirstText;
-            row["profileImage"] = user.profileImage;
-            row["profileFirstImage"] = user.profileFirstImage;
-            row["webLoginKey"] = user.webLoginKey;
+            row["created"] = user.Created;
+            row["lastLogin"] = user.LastLogin;
+            row["rootInventoryFolderID"] = user.RootInventoryFolderID;
+            row["userInventoryURI"] = user.UserInventoryURI;
+            row["userAssetURI"] = user.UserAssetURI;
+            row["profileCanDoMask"] = user.ProfileCanDoMask;
+            row["profileWantDoMask"] = user.ProfileWantDoMask;
+            row["profileAboutText"] = user.ProfileAboutText;
+            row["profileFirstText"] = user.ProfileFirstText;
+            row["profileImage"] = user.ProfileImage;
+            row["profileFirstImage"] = user.ProfileFirstImage;
+            row["webLoginKey"] = user.WebLoginKey;
 
             // ADO.NET doesn't handle NULL very well
             foreach (DataColumn col in ds.Tables["users"].Columns)

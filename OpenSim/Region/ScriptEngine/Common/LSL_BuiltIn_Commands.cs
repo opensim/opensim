@@ -407,7 +407,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             UserProfileData profile = World.CommsManager.UserService.GetUserProfile(objecUUID);
             if (profile != null)
             {
-                string avatarname = profile.username + " " + profile.surname;
+                string avatarname = profile.FirstName + " " + profile.SurName;
                 return avatarname;
             }
             // try an scene object

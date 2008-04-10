@@ -125,10 +125,10 @@ namespace OpenSim.Data.DB4o
             IObjectSet result = database.Get(typeof (UserProfileData));
             foreach (UserProfileData row in result)
             {
-                if (userProfiles.ContainsKey(row.UUID))
-                    userProfiles[row.UUID] = row;
+                if (userProfiles.ContainsKey(row.Id))
+                    userProfiles[row.Id] = row;
                 else
-                    userProfiles.Add(row.UUID, row);
+                    userProfiles.Add(row.Id, row);
             }
             database.Close();
         }
@@ -145,13 +145,13 @@ namespace OpenSim.Data.DB4o
         /// <returns>true on success, false on fail to persist to db</returns>
         public bool UpdateRecord(UserProfileData record)
         {
-            if (userProfiles.ContainsKey(record.UUID))
+            if (userProfiles.ContainsKey(record.Id))
             {
-                userProfiles[record.UUID] = record;
+                userProfiles[record.Id] = record;
             }
             else
             {
-                userProfiles.Add(record.UUID, record);
+                userProfiles.Add(record.Id, record);
             }
 
             try

@@ -475,7 +475,7 @@ namespace OpenSim.Data.MySQL
         override public UserAgentData GetAgentByName(string user, string last)
         {
             UserProfileData profile = GetUserByName(user, last);
-            return GetAgentByUUID(profile.UUID);
+            return GetAgentByUUID(profile.Id);
         }
 
         override public void StoreWebLoginKey(LLUUID AgentID, LLUUID WebLoginKey)
@@ -547,14 +547,14 @@ namespace OpenSim.Data.MySQL
             {
                 lock (database)
                 {
-                    database.insertUserRow(user.UUID, user.username, user.surname, user.passwordHash, user.passwordSalt,
-                                           user.homeRegion, user.homeLocation.X, user.homeLocation.Y,
-                                           user.homeLocation.Z,
-                                           user.homeLookAt.X, user.homeLookAt.Y, user.homeLookAt.Z, user.created,
-                                           user.lastLogin, user.userInventoryURI, user.userAssetURI,
-                                           user.profileCanDoMask, user.profileWantDoMask,
-                                           user.profileAboutText, user.profileFirstText, user.profileImage,
-                                           user.profileFirstImage, user.webLoginKey);
+                    database.insertUserRow(user.Id, user.FirstName, user.SurName, user.PasswordHash, user.PasswordSalt,
+                                           user.HomeRegion, user.HomeLocation.X, user.HomeLocation.Y,
+                                           user.HomeLocation.Z,
+                                           user.HomeLookAt.X, user.HomeLookAt.Y, user.HomeLookAt.Z, user.Created,
+                                           user.LastLogin, user.UserInventoryURI, user.UserAssetURI,
+                                           user.ProfileCanDoMask, user.ProfileWantDoMask,
+                                           user.ProfileAboutText, user.ProfileFirstText, user.ProfileImage,
+                                           user.ProfileFirstImage, user.WebLoginKey);
                 }
             }
             catch (Exception e)
@@ -590,11 +590,11 @@ namespace OpenSim.Data.MySQL
         /// <param name="user">The profile data to use to update the DB</param>
         override public bool UpdateUserProfile(UserProfileData user)
         {
-            database.updateUserRow(user.UUID, user.username, user.surname, user.passwordHash, user.passwordSalt,
-                                   user.homeRegion, user.homeLocation.X, user.homeLocation.Y, user.homeLocation.Z, user.homeLookAt.X,
-                                   user.homeLookAt.Y, user.homeLookAt.Z, user.created, user.lastLogin, user.userInventoryURI,
-                                   user.userAssetURI, user.profileCanDoMask, user.profileWantDoMask, user.profileAboutText,
-                                   user.profileFirstText, user.profileImage, user.profileFirstImage, user.webLoginKey);
+            database.updateUserRow(user.Id, user.FirstName, user.SurName, user.PasswordHash, user.PasswordSalt,
+                                   user.HomeRegion, user.HomeLocation.X, user.HomeLocation.Y, user.HomeLocation.Z, user.HomeLookAt.X,
+                                   user.HomeLookAt.Y, user.HomeLookAt.Z, user.Created, user.LastLogin, user.UserInventoryURI,
+                                   user.UserAssetURI, user.ProfileCanDoMask, user.ProfileWantDoMask, user.ProfileAboutText,
+                                   user.ProfileFirstText, user.ProfileImage, user.ProfileFirstImage, user.WebLoginKey);
             return true;
         }
 

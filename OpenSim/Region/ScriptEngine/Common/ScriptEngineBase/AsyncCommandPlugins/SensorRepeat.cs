@@ -272,7 +272,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                             UserProfileData profile = m_CmdManager.m_ScriptEngine.World.CommsManager.UserService.GetUserProfile(ent.UUID);
                             if (profile != null)
                             {
-                               avatarname = profile.username + " " + profile.surname;
+                               avatarname = profile.FirstName + " " + profile.SurName;
                             }
                             // try an scene object
                             SceneObjectPart SOP = m_CmdManager.m_ScriptEngine.World.GetSceneObjectPart(ent.UUID);

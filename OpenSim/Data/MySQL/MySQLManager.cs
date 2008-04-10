@@ -427,60 +427,71 @@ namespace OpenSim.Data.MySQL
 
             if (reader.Read())
             {
-                if (!LLUUID.TryParse((string)reader["UUID"], out retval.UUID))
+                LLUUID id;
+                if (!LLUUID.TryParse((string)reader["UUID"], out id))
                     return null;
-                retval.username = (string) reader["username"];
-                retval.surname = (string) reader["lastname"];
 
-                retval.passwordHash = (string) reader["passwordHash"];
-                retval.passwordSalt = (string) reader["passwordSalt"];
+                retval.Id = id;
+                retval.FirstName = (string) reader["username"];
+                retval.SurName = (string) reader["lastname"];
 
-                retval.homeRegion = Convert.ToUInt64(reader["homeRegion"].ToString());
-                retval.homeLocation = new LLVector3(
+                retval.PasswordHash = (string) reader["passwordHash"];
+                retval.PasswordSalt = (string) reader["passwordSalt"];
+
+                retval.HomeRegion = Convert.ToUInt64(reader["homeRegion"].ToString());
+                retval.HomeLocation = new LLVector3(
                     Convert.ToSingle(reader["homeLocationX"].ToString()),
                     Convert.ToSingle(reader["homeLocationY"].ToString()),
                     Convert.ToSingle(reader["homeLocationZ"].ToString()));
-                retval.homeLookAt = new LLVector3(
+                retval.HomeLookAt = new LLVector3(
                     Convert.ToSingle(reader["homeLookAtX"].ToString()),
                     Convert.ToSingle(reader["homeLookAtY"].ToString()),
                     Convert.ToSingle(reader["homeLookAtZ"].ToString()));
 
-                retval.created = Convert.ToInt32(reader["created"].ToString());
-                retval.lastLogin = Convert.ToInt32(reader["lastLogin"].ToString());
+                retval.Created = Convert.ToInt32(reader["created"].ToString());
+                retval.LastLogin = Convert.ToInt32(reader["lastLogin"].ToString());
 
-                retval.userInventoryURI = (string) reader["userInventoryURI"];
-                retval.userAssetURI = (string) reader["userAssetURI"];
+                retval.UserInventoryURI = (string) reader["userInventoryURI"];
+                retval.UserAssetURI = (string) reader["userAssetURI"];
 
-                retval.profileCanDoMask = Convert.ToUInt32(reader["profileCanDoMask"].ToString());
-                retval.profileWantDoMask = Convert.ToUInt32(reader["profileWantDoMask"].ToString());
+                retval.ProfileCanDoMask = Convert.ToUInt32(reader["profileCanDoMask"].ToString());
+                retval.ProfileWantDoMask = Convert.ToUInt32(reader["profileWantDoMask"].ToString());
 
                 if (reader.IsDBNull(reader.GetOrdinal("profileAboutText")))
-                    retval.profileAboutText = "";
+                    retval.ProfileAboutText = "";
                 else 
-                    retval.profileAboutText = (string) reader["profileAboutText"];
+                    retval.ProfileAboutText = (string) reader["profileAboutText"];
 
                 if (reader.IsDBNull(reader.GetOrdinal("profileFirstText")))
-                    retval.profileFirstText = "";
+                    retval.ProfileFirstText = "";
                 else
-                    retval.profileFirstText = (string)reader["profileFirstText"];
+                    retval.ProfileFirstText = (string)reader["profileFirstText"];
 
                 if (reader.IsDBNull(reader.GetOrdinal("profileImage")))
-                    retval.profileImage = LLUUID.Zero;
-                else 
-                    LLUUID.TryParse((string)reader["profileImage"], out retval.profileImage);
+                    retval.ProfileImage = LLUUID.Zero;
+                else {
+                    LLUUID tmp;
+                    LLUUID.TryParse((string)reader["profileImage"], out tmp);
+                    retval.ProfileImage = tmp;
+                }
 
                 if (reader.IsDBNull(reader.GetOrdinal("profileFirstImage")))
-                    retval.profileFirstImage = LLUUID.Zero;
-                else 
-                    LLUUID.TryParse((string)reader["profileFirstImage"], out retval.profileFirstImage);
+                    retval.ProfileFirstImage = LLUUID.Zero;
+                else {
+                    LLUUID tmp;
+                    LLUUID.TryParse((string)reader["profileFirstImage"], out tmp);
+                    retval.ProfileFirstImage = tmp;
+                }
                 
                 if(reader.IsDBNull(reader.GetOrdinal("webLoginKey")))
                 {
-                    retval.webLoginKey = LLUUID.Zero;
+                    retval.WebLoginKey = LLUUID.Zero;
                 }
                 else
                 {
-                    LLUUID.TryParse((string)reader["webLoginKey"], out retval.webLoginKey);
+                    LLUUID tmp;
+                    LLUUID.TryParse((string)reader["webLoginKey"], out tmp);
+                    retval.WebLoginKey = tmp;
                 }
             }
             else

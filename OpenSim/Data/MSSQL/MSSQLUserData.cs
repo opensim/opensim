@@ -453,7 +453,7 @@ namespace OpenSim.Data.MSSQL
         override public UserAgentData GetAgentByName(string user, string last)
         {
             UserProfileData profile = GetUserByName(user, last);
-            return GetAgentByUUID(profile.UUID);
+            return GetAgentByUUID(profile.Id);
         }
 
         /// <summary>
@@ -491,7 +491,7 @@ namespace OpenSim.Data.MSSQL
         override public void StoreWebLoginKey(LLUUID AgentID, LLUUID WebLoginKey)
         {
             UserProfileData user = GetUserByUUID(AgentID);
-            user.webLoginKey = WebLoginKey;
+            user.WebLoginKey = WebLoginKey;
             UpdateUserProfile(user);
 
         }
@@ -505,14 +505,14 @@ namespace OpenSim.Data.MSSQL
             {
                 lock (database)
                 {
-                    InsertUserRow(user.UUID, user.username, user.surname, user.passwordHash, user.passwordSalt,
-                                           user.homeRegion, user.homeLocation.X, user.homeLocation.Y,
-                                           user.homeLocation.Z,
-                                           user.homeLookAt.X, user.homeLookAt.Y, user.homeLookAt.Z, user.created,
-                                           user.lastLogin, user.userInventoryURI, user.userAssetURI,
-                                           user.profileCanDoMask, user.profileWantDoMask,
-                                           user.profileAboutText, user.profileFirstText, user.profileImage,
-                                           user.profileFirstImage, user.webLoginKey);
+                    InsertUserRow(user.Id, user.FirstName, user.SurName, user.PasswordHash, user.PasswordSalt,
+                                           user.HomeRegion, user.HomeLocation.X, user.HomeLocation.Y,
+                                           user.HomeLocation.Z,
+                                           user.HomeLookAt.X, user.HomeLookAt.Y, user.HomeLookAt.Z, user.Created,
+                                           user.LastLogin, user.UserInventoryURI, user.UserAssetURI,
+                                           user.ProfileCanDoMask, user.ProfileWantDoMask,
+                                           user.ProfileAboutText, user.ProfileFirstText, user.ProfileImage,
+                                           user.ProfileFirstImage, user.WebLoginKey);
                 }
             }
             catch (Exception e)
@@ -651,30 +651,30 @@ namespace OpenSim.Data.MSSQL
                                                 "profileFirstImage = @profileFirstImage, " +
                                                 "webLoginKey = @webLoginKey  where " +
                                                 "UUID = @keyUUUID;", database.getConnection());
-            SqlParameter param1 = new SqlParameter("@uuid", user.UUID.ToString());
-            SqlParameter param2 = new SqlParameter("@username", user.username);
-            SqlParameter param3 = new SqlParameter("@lastname", user.surname);
-            SqlParameter param4 = new SqlParameter("@passwordHash", user.passwordHash);
-            SqlParameter param5 = new SqlParameter("@passwordSalt", user.passwordSalt);
-            SqlParameter param6 = new SqlParameter("@homeRegion", Convert.ToInt64(user.homeRegion));
-            SqlParameter param7 = new SqlParameter("@homeLocationX", user.homeLocation.X);
-            SqlParameter param8 = new SqlParameter("@homeLocationY", user.homeLocation.Y);
-            SqlParameter param9 = new SqlParameter("@homeLocationZ", user.homeLocation.Y);
-            SqlParameter param10 = new SqlParameter("@homeLookAtX", user.homeLookAt.X);
-            SqlParameter param11 = new SqlParameter("@homeLookAtY", user.homeLookAt.Y);
-            SqlParameter param12 = new SqlParameter("@homeLookAtZ", user.homeLookAt.Z);
-            SqlParameter param13 = new SqlParameter("@created", Convert.ToInt32(user.created));
-            SqlParameter param14 = new SqlParameter("@lastLogin", Convert.ToInt32(user.lastLogin));
-            SqlParameter param15 = new SqlParameter("@userInventoryURI", user.userInventoryURI);
-            SqlParameter param16 = new SqlParameter("@userAssetURI", user.userAssetURI);
-            SqlParameter param17 = new SqlParameter("@profileCanDoMask", Convert.ToInt32(user.profileCanDoMask));
-            SqlParameter param18 = new SqlParameter("@profileWantDoMask", Convert.ToInt32(user.profileWantDoMask));
-            SqlParameter param19 = new SqlParameter("@profileAboutText", user.profileAboutText);
-            SqlParameter param20 = new SqlParameter("@profileFirstText", user.profileFirstText);
-            SqlParameter param21 = new SqlParameter("@profileImage", user.profileImage.ToString());
-            SqlParameter param22 = new SqlParameter("@profileFirstImage", user.profileFirstImage.ToString());
-            SqlParameter param23 = new SqlParameter("@keyUUUID", user.UUID.ToString());
-            SqlParameter param24 = new SqlParameter("@webLoginKey", user.webLoginKey.UUID.ToString());
+            SqlParameter param1 = new SqlParameter("@uuid", user.Id.ToString());
+            SqlParameter param2 = new SqlParameter("@username", user.FirstName);
+            SqlParameter param3 = new SqlParameter("@lastname", user.SurName);
+            SqlParameter param4 = new SqlParameter("@passwordHash", user.PasswordHash);
+            SqlParameter param5 = new SqlParameter("@passwordSalt", user.PasswordSalt);
+            SqlParameter param6 = new SqlParameter("@homeRegion", Convert.ToInt64(user.HomeRegion));
+            SqlParameter param7 = new SqlParameter("@homeLocationX", user.HomeLocation.X);
+            SqlParameter param8 = new SqlParameter("@homeLocationY", user.HomeLocation.Y);
+            SqlParameter param9 = new SqlParameter("@homeLocationZ", user.HomeLocation.Y);
+            SqlParameter param10 = new SqlParameter("@homeLookAtX", user.HomeLookAt.X);
+            SqlParameter param11 = new SqlParameter("@homeLookAtY", user.HomeLookAt.Y);
+            SqlParameter param12 = new SqlParameter("@homeLookAtZ", user.HomeLookAt.Z);
+            SqlParameter param13 = new SqlParameter("@created", Convert.ToInt32(user.Created));
+            SqlParameter param14 = new SqlParameter("@lastLogin", Convert.ToInt32(user.LastLogin));
+            SqlParameter param15 = new SqlParameter("@userInventoryURI", user.UserInventoryURI);
+            SqlParameter param16 = new SqlParameter("@userAssetURI", user.UserAssetURI);
+            SqlParameter param17 = new SqlParameter("@profileCanDoMask", Convert.ToInt32(user.ProfileCanDoMask));
+            SqlParameter param18 = new SqlParameter("@profileWantDoMask", Convert.ToInt32(user.ProfileWantDoMask));
+            SqlParameter param19 = new SqlParameter("@profileAboutText", user.ProfileAboutText);
+            SqlParameter param20 = new SqlParameter("@profileFirstText", user.ProfileFirstText);
+            SqlParameter param21 = new SqlParameter("@profileImage", user.ProfileImage.ToString());
+            SqlParameter param22 = new SqlParameter("@profileFirstImage", user.ProfileFirstImage.ToString());
+            SqlParameter param23 = new SqlParameter("@keyUUUID", user.Id.ToString());
+            SqlParameter param24 = new SqlParameter("@webLoginKey", user.WebLoginKey.UUID.ToString());
             command.Parameters.Add(param1);
             command.Parameters.Add(param2);
             command.Parameters.Add(param3);

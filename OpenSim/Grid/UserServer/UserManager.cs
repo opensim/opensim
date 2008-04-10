@@ -125,31 +125,31 @@ namespace OpenSim.Grid.UserServer
             Hashtable responseData = new Hashtable();
 
             // Account information
-            responseData["firstname"] = profile.username;
-            responseData["lastname"] = profile.surname;
-            responseData["uuid"] = profile.UUID.ToString();
+            responseData["firstname"] = profile.FirstName;
+            responseData["lastname"] = profile.SurName;
+            responseData["uuid"] = profile.Id.ToString();
             // Server Information
-            responseData["server_inventory"] = profile.userInventoryURI;
-            responseData["server_asset"] = profile.userAssetURI;
+            responseData["server_inventory"] = profile.UserInventoryURI;
+            responseData["server_asset"] = profile.UserAssetURI;
             // Profile Information
-            responseData["profile_about"] = profile.profileAboutText;
-            responseData["profile_firstlife_about"] = profile.profileFirstText;
-            responseData["profile_firstlife_image"] = profile.profileFirstImage.ToString();
-            responseData["profile_can_do"] = profile.profileCanDoMask.ToString();
-            responseData["profile_want_do"] = profile.profileWantDoMask.ToString();
-            responseData["profile_image"] = profile.profileImage.ToString();
-            responseData["profile_created"] = profile.created.ToString();
-            responseData["profile_lastlogin"] = profile.lastLogin.ToString();
+            responseData["profile_about"] = profile.ProfileAboutText;
+            responseData["profile_firstlife_about"] = profile.ProfileFirstText;
+            responseData["profile_firstlife_image"] = profile.ProfileFirstImage.ToString();
+            responseData["profile_can_do"] = profile.ProfileCanDoMask.ToString();
+            responseData["profile_want_do"] = profile.ProfileWantDoMask.ToString();
+            responseData["profile_image"] = profile.ProfileImage.ToString();
+            responseData["profile_created"] = profile.Created.ToString();
+            responseData["profile_lastlogin"] = profile.LastLogin.ToString();
             // Home region information
-            responseData["home_coordinates_x"] = profile.homeLocation.X.ToString();
-            responseData["home_coordinates_y"] = profile.homeLocation.Y.ToString();
-            responseData["home_coordinates_z"] = profile.homeLocation.Z.ToString();
+            responseData["home_coordinates_x"] = profile.HomeLocation.X.ToString();
+            responseData["home_coordinates_y"] = profile.HomeLocation.Y.ToString();
+            responseData["home_coordinates_z"] = profile.HomeLocation.Z.ToString();
 
-            responseData["home_region"] = profile.homeRegion.ToString();
+            responseData["home_region"] = profile.HomeRegion.ToString();
 
-            responseData["home_look_x"] = profile.homeLookAt.X.ToString();
-            responseData["home_look_y"] = profile.homeLookAt.Y.ToString();
-            responseData["home_look_z"] = profile.homeLookAt.Z.ToString();
+            responseData["home_look_x"] = profile.HomeLookAt.X.ToString();
+            responseData["home_look_y"] = profile.HomeLookAt.Y.ToString();
+            responseData["home_look_z"] = profile.HomeLookAt.Z.ToString();
             response.Value = responseData;
 
             return response;
@@ -341,11 +341,11 @@ namespace OpenSim.Grid.UserServer
             }
             if (requestData.Contains("FLImageID"))
             {
-                userProfile.profileFirstImage = new LLUUID((string)requestData["FLImageID"]);
+                userProfile.ProfileFirstImage = new LLUUID((string)requestData["FLImageID"]);
             }
             if (requestData.Contains("ImageID"))
             {
-                userProfile.profileImage = new LLUUID((string)requestData["ImageID"]);
+                userProfile.ProfileImage = new LLUUID((string)requestData["ImageID"]);
             }
             // dont' know how yet
             if (requestData.Contains("MaturePublish"))
@@ -353,11 +353,11 @@ namespace OpenSim.Grid.UserServer
             }
             if (requestData.Contains("AboutText"))
             {
-                userProfile.profileAboutText = (string)requestData["AboutText"];
+                userProfile.ProfileAboutText = (string)requestData["AboutText"];
             }
             if (requestData.Contains("FLAboutText"))
             {
-                userProfile.profileFirstText = (string)requestData["FLAboutText"];
+                userProfile.ProfileFirstText = (string)requestData["FLAboutText"];
             }
             // not in DB yet.
             if (requestData.Contains("ProfileURL"))

@@ -96,7 +96,7 @@ namespace OpenSim.Framework.UserManagement
 
                 if (profile != null)
                 {
-                    profile.currentAgent = getUserAgent(profile.UUID);
+                    profile.CurrentAgent = getUserAgent(profile.Id);
                     return profile;
                 }
             }
@@ -113,7 +113,7 @@ namespace OpenSim.Framework.UserManagement
 
                 if (null != profile)
                 {
-                    profile.currentAgent = getUserAgent(profile.UUID);
+                    profile.CurrentAgent = getUserAgent(profile.Id);
                     return profile;
                 }
             }
@@ -298,7 +298,7 @@ namespace OpenSim.Framework.UserManagement
         public void clearUserAgent(LLUUID agentID)
         {
             UserProfileData profile = GetUserProfile(agentID);
-            profile.currentAgent = null;
+            profile.CurrentAgent = null;
 
             setUserProfile(profile);
         }
@@ -355,28 +355,28 @@ namespace OpenSim.Framework.UserManagement
             agent.sessionID = new LLUUID(randDataS, 0);
 
             // Profile UUID
-            agent.UUID = profile.UUID;
+            agent.UUID = profile.Id;
 
             // Current position (from Home)
-            agent.currentHandle = profile.homeRegion;
-            agent.currentPos = profile.homeLocation;
+            agent.currentHandle = profile.HomeRegion;
+            agent.currentPos = profile.HomeLocation;
 
             // If user specified additional start, use that
             if (requestData.ContainsKey("start"))
             {
                 string startLoc = ((string)requestData["start"]).Trim();
-                if (("last" == startLoc) && (profile.currentAgent != null))
+                if (("last" == startLoc) && (profile.CurrentAgent != null))
                 {
-                    if ((profile.currentAgent.currentPos.X > 0)
-                        && (profile.currentAgent.currentPos.Y > 0)
-                        && (profile.currentAgent.currentPos.Z > 0)
+                    if ((profile.CurrentAgent.currentPos.X > 0)
+                        && (profile.CurrentAgent.currentPos.Y > 0)
+                        && (profile.CurrentAgent.currentPos.Z > 0)
                        )
                     {
                         // TODO: Right now, currentRegion has not been used in GridServer for requesting region.
                         // TODO: It is only using currentHandle.
-                        agent.currentRegion = profile.currentAgent.currentRegion;
-                        agent.currentHandle = profile.currentAgent.currentHandle;
-                        agent.currentPos = profile.currentAgent.currentPos;
+                        agent.currentRegion = profile.CurrentAgent.currentRegion;
+                        agent.currentHandle = profile.CurrentAgent.currentHandle;
+                        agent.currentPos = profile.CurrentAgent.currentPos;
                     }
                 }
 
@@ -406,7 +406,7 @@ namespace OpenSim.Framework.UserManagement
             agent.regionID = LLUUID.Zero; // Fill in later
             agent.currentRegion = LLUUID.Zero; // Fill in later
 
-            profile.currentAgent = agent;
+            profile.CurrentAgent = agent;
         }
         
         /// <summary>
@@ -432,9 +432,9 @@ namespace OpenSim.Framework.UserManagement
             if (userProfile != null)
             {
                 // This line needs to be in side the above if statement or the UserServer will crash on some logouts.
-                m_log.Info("[LOGOUT]: " + userProfile.username + " " + userProfile.surname + " from " + regionhandle + "(" + posx + "," + posy + "," + posz + ")");
+                m_log.Info("[LOGOUT]: " + userProfile.FirstName + " " + userProfile.SurName + " from " + regionhandle + "(" + posx + "," + posy + "," + posz + ")");
                 
-                userAgent = userProfile.currentAgent;
+                userAgent = userProfile.CurrentAgent;
                 if (userAgent != null)
                 {
                     userAgent.agentOnline = false;
@@ -447,7 +447,7 @@ namespace OpenSim.Framework.UserManagement
 
                     userAgent.currentHandle = regionhandle;
                     userAgent.currentPos = currentPos;
-                    userProfile.currentAgent = userAgent;
+                    userProfile.CurrentAgent = userAgent;
 
                     CommitAgent(ref userProfile);
                 }
@@ -481,11 +481,11 @@ namespace OpenSim.Framework.UserManagement
             agent.sessionID = new LLUUID(randDataS, 0);
 
             // Profile UUID
-            agent.UUID = profile.UUID;
+            agent.UUID = profile.Id;
 
             // Current position (from Home)
-            agent.currentHandle = profile.homeRegion;
-            agent.currentPos = profile.homeLocation;
+            agent.currentHandle = profile.HomeRegion;
+            agent.currentPos = profile.HomeLocation;
 
             // What time did the user login?
             agent.loginTime = Util.UnixTimeSinceEpoch();
@@ -495,7 +495,7 @@ namespace OpenSim.Framework.UserManagement
             agent.regionID = LLUUID.Zero; // Fill in later
             agent.currentRegion = LLUUID.Zero; // Fill in later
 
-            profile.currentAgent = agent;
+            profile.CurrentAgent = agent;
         }
 
         /// <summary>
@@ -508,7 +508,7 @@ namespace OpenSim.Framework.UserManagement
             // TODO: how is this function different from setUserProfile?  -> Add AddUserAgent() here and commit both tables "users" and "agents"
             // TODO: what is the logic should be?
             bool ret = false;
-            ret = AddUserAgent(profile.currentAgent);
+            ret = AddUserAgent(profile.CurrentAgent);
             ret = ret & setUserProfile(profile);
             return ret;
         }
@@ -522,16 +522,16 @@ namespace OpenSim.Framework.UserManagement
         public LLUUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY)
         {
             UserProfileData user = new UserProfileData();
-            user.homeLocation = new LLVector3(128, 128, 100);
-            user.UUID = LLUUID.Random();
-            user.username = firstName;
-            user.surname = lastName;
-            user.passwordHash = pass;
-            user.passwordSalt = String.Empty;
-            user.created = Util.UnixTimeSinceEpoch();
-            user.homeLookAt = new LLVector3(100, 100, 100);
-            user.homeRegionX = regX;
-            user.homeRegionY = regY;
+            user.HomeLocation = new LLVector3(128, 128, 100);
+            user.Id = LLUUID.Random();
+            user.FirstName = firstName;
+            user.SurName = lastName;
+            user.PasswordHash = pass;
+            user.PasswordSalt = String.Empty;
+            user.Created = Util.UnixTimeSinceEpoch();
+            user.HomeLookAt = new LLVector3(100, 100, 100);
+            user.HomeRegionX = regX;
+            user.HomeRegionY = regY;
 
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
             {
@@ -545,14 +545,14 @@ namespace OpenSim.Framework.UserManagement
                 }
             }
 
-            return user.UUID;
+            return user.Id;
         }
 
         public bool UpdateUserProfileProperties(UserProfileData UserProfile)
         {
-            if (null == GetUserProfile(UserProfile.UUID))
+            if (null == GetUserProfile(UserProfile.Id))
             {
-                m_log.Info("[USERSTORAGE]: Failed to find User by UUID " + UserProfile.UUID.ToString());
+                m_log.Info("[USERSTORAGE]: Failed to find User by UUID " + UserProfile.Id.ToString());
                 return false;
             }
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
@@ -563,7 +563,7 @@ namespace OpenSim.Framework.UserManagement
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to update user " + UserProfile.UUID.ToString()
+                    m_log.Info("[USERSTORAGE]: Unable to update user " + UserProfile.Id.ToString()
                         + " via " + plugin.Key + "(" + e.ToString() + ")");
                     return false;
                 }

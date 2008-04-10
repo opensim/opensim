@@ -38,37 +38,37 @@ namespace OpenSim.Framework
         /// <summary>
         /// The ID value for this user
         /// </summary>
-        public LLUUID UUID;
+        private LLUUID _id;
 
         /// <summary>
         /// The last used Web_login_key
         /// </summary>
-        public LLUUID webLoginKey;
+        private LLUUID webLoginKey;
         /// <summary>
         /// The first component of a users account name
         /// </summary>
-        public string username;
+        private string username;
 
         /// <summary>
         /// The second component of a users account name
         /// </summary>
-        public string surname;
+        private string surname;
 
         /// <summary>
         /// A salted hash containing the users password, in the format md5(md5(password) + ":" + salt)
         /// </summary>
         /// <remarks>This is double MD5'd because the client sends an unsalted MD5 to the loginserver</remarks>
-        public string passwordHash;
+        private string passwordHash;
 
         /// <summary>
         /// The salt used for the users hash, should be 32 bytes or longer
         /// </summary>
-        public string passwordSalt;
+        private string passwordSalt;
 
         /// <summary>
         /// The regionhandle of the users preffered home region. If multiple sims occupy the same spot, the grid may decide which region the user logs into
         /// </summary>
-        public ulong homeRegion
+        public ulong HomeRegion
         {
             get { return Helpers.UIntsToLong((homeRegionX * (uint)Constants.RegionSize), (homeRegionY * (uint)Constants.RegionSize)); }
             set
@@ -78,74 +78,272 @@ namespace OpenSim.Framework
             }
         }
 
-        public uint homeRegionX;
-        public uint homeRegionY;
+        public LLUUID Id {
+            get {
+                return _id;
+            }
+            set {
+                _id = value;
+            }
+        }
+
+        public LLUUID WebLoginKey {
+            get {
+                return webLoginKey;
+            }
+            set {
+                webLoginKey = value;
+            }
+        }
+
+        public string FirstName {
+            get {
+                return username;
+            }
+            set {
+                username = value;
+            }
+        }
+
+        public string SurName {
+            get {
+                return surname;
+            }
+            set {
+                surname = value;
+            }
+        }
+
+        public string PasswordHash {
+            get {
+                return passwordHash;
+            }
+            set {
+                passwordHash = value;
+            }
+        }
+
+        public string PasswordSalt {
+            get {
+                return passwordSalt;
+            }
+            set {
+                passwordSalt = value;
+            }
+        }
+
+        public uint HomeRegionX {
+            get {
+                return homeRegionX;
+            }
+            set {
+                homeRegionX = value;
+            }
+        }
+
+        public uint HomeRegionY {
+            get {
+                return homeRegionY;
+            }
+            set {
+                homeRegionY = value;
+            }
+        }
+
+        public LLVector3 HomeLocation {
+            get {
+                return homeLocation;
+            }
+            set {
+                homeLocation = value;
+            }
+        }
+
+        public LLVector3 HomeLookAt {
+            get {
+                return homeLookAt;
+            }
+            set {
+                homeLookAt = value;
+            }
+        }
+
+        public int Created {
+            get {
+                return created;
+            }
+            set {
+                created = value;
+            }
+        }
+
+        public int LastLogin {
+            get {
+                return lastLogin;
+            }
+            set {
+                lastLogin = value;
+            }
+        }
+
+        public LLUUID RootInventoryFolderID {
+            get {
+                return rootInventoryFolderID;
+            }
+            set {
+                rootInventoryFolderID = value;
+            }
+        }
+
+        public string UserInventoryURI {
+            get {
+                return userInventoryURI;
+            }
+            set {
+                userInventoryURI = value;
+            }
+        }
+
+        public string UserAssetURI {
+            get {
+                return userAssetURI;
+            }
+            set {
+                userAssetURI = value;
+            }
+        }
+
+        public uint ProfileCanDoMask {
+            get {
+                return profileCanDoMask;
+            }
+            set {
+                profileCanDoMask = value;
+            }
+        }
+
+        public uint ProfileWantDoMask {
+            get {
+                return profileWantDoMask;
+            }
+            set {
+                profileWantDoMask = value;
+            }
+        }
+
+        public string ProfileAboutText {
+            get {
+                return profileAboutText;
+            }
+            set {
+                profileAboutText = value;
+            }
+        }
+
+        public string ProfileFirstText {
+            get {
+                return profileFirstText;
+            }
+            set {
+                profileFirstText = value;
+            }
+        }
+
+        public LLUUID ProfileImage {
+            get {
+                return profileImage;
+            }
+            set {
+                profileImage = value;
+            }
+        }
+
+        public LLUUID ProfileFirstImage {
+            get {
+                return profileFirstImage;
+            }
+            set {
+                profileFirstImage = value;
+            }
+        }
+
+        public UserAgentData CurrentAgent {
+            get {
+                return currentAgent;
+            }
+            set {
+                currentAgent = value;
+            }
+        }
+
+        private uint homeRegionX;
+        private uint homeRegionY;
 
         /// <summary>
         /// The coordinates inside the region of the home location
         /// </summary>
-        public LLVector3 homeLocation;
+        private LLVector3 homeLocation;
 
         /// <summary>
         /// Where the user will be looking when they rez.
         /// </summary>
-        public LLVector3 homeLookAt;
+        private LLVector3 homeLookAt;
 
         /// <summary>
         /// A UNIX Timestamp (seconds since epoch) for the users creation
         /// </summary>
-        public int created;
+        private int created;
 
         /// <summary>
         /// A UNIX Timestamp for the users last login date / time
         /// </summary>
-        public int lastLogin;
+        private int lastLogin;
 
-        public LLUUID rootInventoryFolderID;
+        private LLUUID rootInventoryFolderID;
 
         /// <summary>
         /// A URI to the users inventory server, used for foreigners and large grids
         /// </summary>
-        public string userInventoryURI = String.Empty;
+        private string userInventoryURI = String.Empty;
 
         /// <summary>
         /// A URI to the users asset server, used for foreigners and large grids.
         /// </summary>
-        public string userAssetURI = String.Empty;
+        private string userAssetURI = String.Empty;
 
         /// <summary>
         /// A uint mask containing the "I can do" fields of the users profile
         /// </summary>
-        public uint profileCanDoMask;
+        private uint profileCanDoMask;
 
         /// <summary>
         /// A uint mask containing the "I want to do" part of the users profile
         /// </summary>
-        public uint profileWantDoMask; // Profile window "I want to" mask
+        private uint profileWantDoMask; // Profile window "I want to" mask
 
         /// <summary>
         /// The about text listed in a users profile.
         /// </summary>
-        public string profileAboutText = String.Empty;
+        private string profileAboutText = String.Empty;
 
         /// <summary>
         /// The first life about text listed in a users profile
         /// </summary>
-        public string profileFirstText = String.Empty;
+        private string profileFirstText = String.Empty;
 
         /// <summary>
         /// The profile image for an avatar stored on the asset server
         /// </summary>
-        public LLUUID profileImage;
+        private LLUUID profileImage;
 
         /// <summary>
         /// The profile image for the users first life tab
         /// </summary>
-        public LLUUID profileFirstImage;
+        private LLUUID profileFirstImage;
 
         /// <summary>
         /// The users last registered agent (filled in on the user server)
         /// </summary>
-        public UserAgentData currentAgent;
+        private UserAgentData currentAgent;
     }
 }

@@ -184,13 +184,13 @@ namespace OpenSim.Framework.UserManagement
                 else
                 {
                     // If we already have a session...
-                    if (userProfile.currentAgent != null && userProfile.currentAgent.agentOnline)
+                    if (userProfile.CurrentAgent != null && userProfile.CurrentAgent.agentOnline)
                     {
                         //TODO: The following statements can cause trouble:
                         //      If agentOnline could not turn from true back to false normally
                         //      because of some problem, for instance, the crashment of server or client,
                         //      the user cannot log in any longer.
-                        userProfile.currentAgent.agentOnline = false;
+                        userProfile.CurrentAgent.agentOnline = false;
                         m_userManager.CommitAgent(ref userProfile);
 
                         // Reject the login
@@ -207,7 +207,7 @@ namespace OpenSim.Framework.UserManagement
 
                     try
                     {
-                        LLUUID agentID = userProfile.UUID;
+                        LLUUID agentID = userProfile.Id;
 
                         // Inventory Library Section
                         InventoryData inventData = GetInventorySkeleton(agentID);
@@ -217,16 +217,16 @@ namespace OpenSim.Framework.UserManagement
                         InventoryRootHash["folder_id"] = inventData.RootFolderID.ToString();
                         ArrayList InventoryRoot = new ArrayList();
                         InventoryRoot.Add(InventoryRootHash);
-                        userProfile.rootInventoryFolderID = inventData.RootFolderID;
+                        userProfile.RootInventoryFolderID = inventData.RootFolderID;
 
                         // Circuit Code
                         uint circode = (uint) (Util.RandomClass.Next());
 
-                        logResponse.Lastname = userProfile.surname;
-                        logResponse.Firstname = userProfile.username;
+                        logResponse.Lastname = userProfile.SurName;
+                        logResponse.Firstname = userProfile.FirstName;
                         logResponse.AgentID = agentID.ToString();
-                        logResponse.SessionID = userProfile.currentAgent.sessionID.ToString();
-                        logResponse.SecureSessionID = userProfile.currentAgent.secureSessionID.ToString();
+                        logResponse.SessionID = userProfile.CurrentAgent.sessionID.ToString();
+                        logResponse.SecureSessionID = userProfile.CurrentAgent.secureSessionID.ToString();
                         logResponse.InventoryRoot = InventoryRoot;
                         logResponse.InventorySkeleton = AgentInventoryArray;
                         logResponse.InventoryLibrary = GetInventoryLibrary();
@@ -334,9 +334,9 @@ namespace OpenSim.Framework.UserManagement
                 else
                 {
                     // If we already have a session...
-                    if (userProfile.currentAgent != null && userProfile.currentAgent.agentOnline)
+                    if (userProfile.CurrentAgent != null && userProfile.CurrentAgent.agentOnline)
                     {
-                        userProfile.currentAgent = null;
+                        userProfile.CurrentAgent = null;
                         m_userManager.CommitAgent(ref userProfile);
 
                         // Reject the login
@@ -349,7 +349,7 @@ namespace OpenSim.Framework.UserManagement
 
                     try
                     {
-                        LLUUID agentID = userProfile.UUID;
+                        LLUUID agentID = userProfile.Id;
 
                         // Inventory Library Section
                         InventoryData inventData = GetInventorySkeleton(agentID);
@@ -359,16 +359,16 @@ namespace OpenSim.Framework.UserManagement
                         InventoryRootHash["folder_id"] = inventData.RootFolderID.ToString();
                         ArrayList InventoryRoot = new ArrayList();
                         InventoryRoot.Add(InventoryRootHash);
-                        userProfile.rootInventoryFolderID = inventData.RootFolderID;
+                        userProfile.RootInventoryFolderID = inventData.RootFolderID;
 
                         // Circuit Code
                         uint circode = (uint)(Util.RandomClass.Next());
 
-                        logResponse.Lastname = userProfile.surname;
-                        logResponse.Firstname = userProfile.username;
+                        logResponse.Lastname = userProfile.SurName;
+                        logResponse.Firstname = userProfile.FirstName;
                         logResponse.AgentID = agentID.ToString();
-                        logResponse.SessionID = userProfile.currentAgent.sessionID.ToString();
-                        logResponse.SecureSessionID = userProfile.currentAgent.secureSessionID.ToString();
+                        logResponse.SessionID = userProfile.CurrentAgent.sessionID.ToString();
+                        logResponse.SecureSessionID = userProfile.CurrentAgent.secureSessionID.ToString();
                         logResponse.InventoryRoot = InventoryRoot;
                         logResponse.InventorySkeleton = AgentInventoryArray;
                         logResponse.InventoryLibrary = GetInventoryLibrary();
@@ -491,7 +491,7 @@ namespace OpenSim.Framework.UserManagement
                 if (goodweblogin)
                 {
                     LLUUID webloginkey = LLUUID.Random();
-                    m_userManager.StoreWebLoginKey(user.UUID, webloginkey);
+                    m_userManager.StoreWebLoginKey(user.Id, webloginkey);
                     statuscode = 301;
 
                     string redirectURL = "about:blank?redirect-http-hack=" +
@@ -639,7 +639,7 @@ namespace OpenSim.Framework.UserManagement
         public virtual bool AuthenticateUser(UserProfileData profile, string password)
         {
             bool passwordSuccess = false;
-            m_log.InfoFormat("[LOGIN]: Authenticating {0} {1} ({2})", profile.username, profile.surname, profile.UUID);
+            m_log.InfoFormat("[LOGIN]: Authenticating {0} {1} ({2})", profile.FirstName, profile.SurName, profile.Id);
 
             // Web Login method seems to also occasionally send the hashed password itself
 
@@ -650,13 +650,13 @@ namespace OpenSim.Framework.UserManagement
 
             password = password.Remove(0, 3); //remove $1$
             
-            string s = Util.Md5Hash(password + ":" + profile.passwordSalt);
+            string s = Util.Md5Hash(password + ":" + profile.PasswordSalt);
             // Testing...    
             //m_log.Info("[LOGIN]: SubHash:" + s + " userprofile:" + profile.passwordHash);
             //m_log.Info("[LOGIN]: userprofile:" + profile.passwordHash + " SubCT:" + password);
 
-            passwordSuccess = (profile.passwordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase) 
-                            || profile.passwordHash.Equals(password, StringComparison.InvariantCultureIgnoreCase));
+            passwordSuccess = (profile.PasswordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase) 
+                            || profile.PasswordHash.Equals(password, StringComparison.InvariantCultureIgnoreCase));
 
             return passwordSuccess;
         }
@@ -664,10 +664,10 @@ namespace OpenSim.Framework.UserManagement
         public virtual bool AuthenticateUser(UserProfileData profile, LLUUID webloginkey)
         {
             bool passwordSuccess = false;
-            m_log.InfoFormat("[LOGIN]: Authenticating {0} {1} ({2})", profile.username, profile.surname, profile.UUID);
+            m_log.InfoFormat("[LOGIN]: Authenticating {0} {1} ({2})", profile.FirstName, profile.SurName, profile.Id);
 
             // Match web login key unless it's the default weblogin key LLUUID.Zero
-            passwordSuccess = ((profile.webLoginKey==webloginkey) && profile.webLoginKey != LLUUID.Zero);
+            passwordSuccess = ((profile.WebLoginKey==webloginkey) && profile.WebLoginKey != LLUUID.Zero);
 
             return passwordSuccess;
         }

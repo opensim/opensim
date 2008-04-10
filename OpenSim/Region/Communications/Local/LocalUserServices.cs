@@ -84,7 +84,7 @@ namespace OpenSim.Region.Communications.Local
             }
             else
             {
-                m_inventoryService.CreateNewUserInventory(profile.UUID);
+                m_inventoryService.CreateNewUserInventory(profile.Id);
             }
 
             return profile;

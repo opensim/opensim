@@ -87,7 +87,7 @@ namespace OpenSim.Region.Communications.Local
                 profile = m_userManager.GetUserProfile(firstname, lastname);
                 if (profile != null)
                 {
-                    m_Parent.InventoryService.CreateNewUserInventory(profile.UUID);
+                    m_Parent.InventoryService.CreateNewUserInventory(profile.Id);
                 }
 
                 return profile;
@@ -107,17 +107,17 @@ namespace OpenSim.Region.Communications.Local
             else
             {
                 m_log.Info(
-                    "[LOGIN]: Authenticating " + profile.username + " " + profile.surname);
+                    "[LOGIN]: Authenticating " + profile.FirstName + " " + profile.SurName);
                
                 if (!password.StartsWith("$1$"))
                     password = "$1$" + Util.Md5Hash(password);
 
                 password = password.Remove(0, 3); //remove $1$
 
-                string s = Util.Md5Hash(password + ":" + profile.passwordSalt);
+                string s = Util.Md5Hash(password + ":" + profile.PasswordSalt);
 
-                bool loginresult = (profile.passwordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase)
-                            || profile.passwordHash.Equals(password, StringComparison.InvariantCultureIgnoreCase));
+                bool loginresult = (profile.PasswordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase)
+                            || profile.PasswordHash.Equals(password, StringComparison.InvariantCultureIgnoreCase));
                 return loginresult;
             }
         }
@@ -127,18 +127,18 @@ namespace OpenSim.Region.Communications.Local
             ulong currentRegion = 0;
             if (startLocationRequest == "last")
             {
-                currentRegion = theUser.currentAgent.currentHandle;
+                currentRegion = theUser.CurrentAgent.currentHandle;
             }
             else if (startLocationRequest == "home")
             {
-                currentRegion = theUser.homeRegion;
+                currentRegion = theUser.HomeRegion;
             }
             else
             {
                 m_log.Info("[LOGIN]: Got Custom Login URL, but can't process it");
                 // LocalBackEndServices can't possibly look up a region by name :(
                 // TODO: Parse string in the following format: 'uri:RegionName&X&Y&Z'
-                currentRegion = theUser.currentAgent.currentHandle;
+                currentRegion = theUser.CurrentAgent.currentHandle;
             }
 
             RegionInfo reg = m_Parent.GridService.RequestNeighbourInfo(currentRegion);
@@ -147,10 +147,10 @@ namespace OpenSim.Region.Communications.Local
             {
                 response.Home = "{'region_handle':[r" + (reg.RegionLocX * Constants.RegionSize).ToString() + ",r" +
                                 (reg.RegionLocY * Constants.RegionSize).ToString() + "], " +
-                                "'position':[r" + theUser.homeLocation.X.ToString() + ",r" +
-                                theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "], " +
-                                "'look_at':[r" + theUser.homeLocation.X.ToString() + ",r" +
-                                theUser.homeLocation.Y.ToString() + ",r" + theUser.homeLocation.Z.ToString() + "]}";
+                                "'position':[r" + theUser.HomeLocation.X.ToString() + ",r" +
+                                theUser.HomeLocation.Y.ToString() + ",r" + theUser.HomeLocation.Z.ToString() + "], " +
+                                "'look_at':[r" + theUser.HomeLocation.X.ToString() + ",r" +
+                                theUser.HomeLocation.Y.ToString() + ",r" + theUser.HomeLocation.Z.ToString() + "]}";
                 string capsPath = Util.GetRandomCapsPath();
                 response.SimAddress = reg.ExternalEndPoint.Address.ToString();
                 response.SimPort = (uint) reg.ExternalEndPoint.Port;
@@ -164,12 +164,12 @@ namespace OpenSim.Region.Communications.Local
                     "[CAPS]: Sending new CAPS seed url {0} to client {1}", 
                     response.SeedCapability, response.AgentID);                
 
-                theUser.currentAgent.currentRegion = reg.RegionID;
-                theUser.currentAgent.currentHandle = reg.RegionHandle;
+                theUser.CurrentAgent.currentRegion = reg.RegionID;
+                theUser.CurrentAgent.currentHandle = reg.RegionHandle;
 
                 LoginResponse.BuddyList buddyList = new LoginResponse.BuddyList();
 
-                response.BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(theUser.UUID)); 
+                response.BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(theUser.Id)); 
 
                 Login _login = new Login();
                 //copy data to login object

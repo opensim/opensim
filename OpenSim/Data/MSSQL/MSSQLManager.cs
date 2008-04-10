@@ -300,38 +300,38 @@ namespace OpenSim.Data.MSSQL
 
             if (reader.Read())
             {
-                retval.UUID = new LLUUID((string)reader["UUID"]);
-                retval.username = (string)reader["username"];
-                retval.surname = (string)reader["lastname"];
+                retval.Id = new LLUUID((string)reader["UUID"]);
+                retval.FirstName = (string)reader["username"];
+                retval.SurName = (string)reader["lastname"];
 
-                retval.passwordHash = (string)reader["passwordHash"];
-                retval.passwordSalt = (string)reader["passwordSalt"];
+                retval.PasswordHash = (string)reader["passwordHash"];
+                retval.PasswordSalt = (string)reader["passwordSalt"];
 
-                retval.homeRegion = Convert.ToUInt64(reader["homeRegion"].ToString());
-                retval.homeLocation = new LLVector3(
+                retval.HomeRegion = Convert.ToUInt64(reader["homeRegion"].ToString());
+                retval.HomeLocation = new LLVector3(
                     Convert.ToSingle(reader["homeLocationX"].ToString()),
                     Convert.ToSingle(reader["homeLocationY"].ToString()),
                     Convert.ToSingle(reader["homeLocationZ"].ToString()));
-                retval.homeLookAt = new LLVector3(
+                retval.HomeLookAt = new LLVector3(
                     Convert.ToSingle(reader["homeLookAtX"].ToString()),
                     Convert.ToSingle(reader["homeLookAtY"].ToString()),
                     Convert.ToSingle(reader["homeLookAtZ"].ToString()));
 
-                retval.created = Convert.ToInt32(reader["created"].ToString());
-                retval.lastLogin = Convert.ToInt32(reader["lastLogin"].ToString());
+                retval.Created = Convert.ToInt32(reader["created"].ToString());
+                retval.LastLogin = Convert.ToInt32(reader["lastLogin"].ToString());
 
-                retval.userInventoryURI = (string)reader["userInventoryURI"];
-                retval.userAssetURI = (string)reader["userAssetURI"];
+                retval.UserInventoryURI = (string)reader["userInventoryURI"];
+                retval.UserAssetURI = (string)reader["userAssetURI"];
 
-                retval.profileCanDoMask = Convert.ToUInt32(reader["profileCanDoMask"].ToString());
-                retval.profileWantDoMask = Convert.ToUInt32(reader["profileWantDoMask"].ToString());
+                retval.ProfileCanDoMask = Convert.ToUInt32(reader["profileCanDoMask"].ToString());
+                retval.ProfileWantDoMask = Convert.ToUInt32(reader["profileWantDoMask"].ToString());
 
-                retval.profileAboutText = (string)reader["profileAboutText"];
-                retval.profileFirstText = (string)reader["profileFirstText"];
+                retval.ProfileAboutText = (string)reader["profileAboutText"];
+                retval.ProfileFirstText = (string)reader["profileFirstText"];
 
-                retval.profileImage = new LLUUID((string)reader["profileImage"]);
-                retval.profileFirstImage = new LLUUID((string)reader["profileFirstImage"]);
-                retval.webLoginKey = new LLUUID((string)reader["webLoginKey"]);
+                retval.ProfileImage = new LLUUID((string)reader["profileImage"]);
+                retval.ProfileFirstImage = new LLUUID((string)reader["profileFirstImage"]);
+                retval.WebLoginKey = new LLUUID((string)reader["webLoginKey"]);
             }
             else
             {

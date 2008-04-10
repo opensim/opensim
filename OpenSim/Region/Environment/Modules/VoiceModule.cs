@@ -180,7 +180,7 @@ namespace OpenSim.Region.Environment.Modules
                 if (null == userInfo) throw new Exception("cannot get user details");
 
                 LLSDVoiceAccountResponse voiceAccountResponse = 
-                    new LLSDVoiceAccountResponse(voiceUser, "$1$" + userInfo.UserProfile.passwordHash);
+                    new LLSDVoiceAccountResponse(voiceUser, "$1$" + userInfo.UserProfile.PasswordHash);
                 string r = LLSDHelpers.SerialiseLLSDReply(voiceAccountResponse);
                 m_log.DebugFormat("[CAPS][PROVISIONVOICE]: {0}", r);
                 return r;
