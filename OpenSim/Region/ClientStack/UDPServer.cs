@@ -208,9 +208,13 @@ namespace OpenSim.Region.ClientStack
                     // Stupid I know..  
                     // but Flusing the buffer would be even more stupid...  so, we're stuck with this ugly method.
                 }
+
                 catch (SocketException e2)
                 {
                     m_log.Error("[UDPSERVER]: " + e2.ToString());
+                }
+                catch (ObjectDisposedException)
+                {
                 }
                 //return;
             }
@@ -263,6 +267,9 @@ namespace OpenSim.Region.ClientStack
                 {
                     m_log.Error("[UDPSERVER]: " + e5.ToString());
                 }
+            }
+            catch (ObjectDisposedException)
+            {
             }
 
             if (packet != null)

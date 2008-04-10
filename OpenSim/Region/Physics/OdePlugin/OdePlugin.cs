@@ -2064,10 +2064,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     RemovePrim(prm);
                 }
 
-                foreach (OdeCharacter act in _characters)
-                {
-                    RemoveAvatar(act);
-                }
+                //foreach (OdeCharacter act in _characters)
+                //{
+                    //RemoveAvatar(act);
+                //}
                 d.WorldDestroy(world);
                 //d.CloseODE();
             }
