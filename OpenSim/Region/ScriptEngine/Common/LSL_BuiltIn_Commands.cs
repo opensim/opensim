@@ -509,11 +509,21 @@ namespace OpenSim.Region.ScriptEngine.Common
             EntityBase SensedObject = entityDetectedKey(number);
             if (SensedObject ==null)
                 return String.Empty;
-            //return SensedObject.O  .Name; // What is the owner of the object ?
-            //EntityBase SensedObject = World.GetScenePresence(SensedUUID);
             LLUUID SensedUUID = uuidDetectedKey(number);
-            SceneObjectPart SOP = World.GetSceneObjectPart(SensedUUID);
-            if (SOP != null) { return SOP.ObjectOwner.ToString(); }
+            if (World.GetScenePresence(SensedUUID) == null)
+            {
+                // sensed object is not an avatar
+                // so get the owner of the sensed object
+                SceneObjectPart SOP = World.GetSceneObjectPart(SensedUUID);
+                if (SOP != null) { return SOP.ObjectOwner.ToString(); }
+            }
+            else
+            {
+                // sensed object is an avatar, and so must be its own owner
+                return SensedUUID.ToString();
+            }
+
+
             return String.Empty;
                
        }
