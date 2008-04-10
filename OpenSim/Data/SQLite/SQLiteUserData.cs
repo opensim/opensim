@@ -680,12 +680,12 @@ namespace OpenSim.Data.SQLite
             ua.AgentOnline = Convert.ToBoolean(row["agentOnline"]);
             ua.SessionID = new LLUUID((String) row["sessionID"]);
             ua.SecureSessionID = new LLUUID((String) row["secureSessionID"]);
-            ua.RegionID = new LLUUID((String) row["regionID"]);
+            ua.InitialRegion = new LLUUID((String) row["regionID"]);
             ua.LoginTime = Convert.ToInt32(row["loginTime"]);
             ua.LogoutTime = Convert.ToInt32(row["logoutTime"]);
-            ua.CurrentRegion = new LLUUID((String) row["currentRegion"]);
-            ua.CurrentHandle = Convert.ToUInt64(row["currentHandle"]);
-            ua.CurrentPos = new LLVector3(
+            ua.Region = new LLUUID((String) row["currentRegion"]);
+            ua.Handle = Convert.ToUInt64(row["currentHandle"]);
+            ua.Position = new LLVector3(
                 Convert.ToSingle(row["currentPosX"]),
                 Convert.ToSingle(row["currentPosY"]),
                 Convert.ToSingle(row["currentPosZ"])
@@ -701,15 +701,15 @@ namespace OpenSim.Data.SQLite
             row["agentOnline"] = ua.AgentOnline;
             row["sessionID"] = ua.SessionID;
             row["secureSessionID"] = ua.SecureSessionID;
-            row["regionID"] = ua.RegionID;
+            row["regionID"] = ua.InitialRegion;
             row["loginTime"] = ua.LoginTime;
             row["logoutTime"] = ua.LogoutTime;
-            row["currentRegion"] = ua.CurrentRegion;
-            row["currentHandle"] = ua.CurrentHandle.ToString();
+            row["currentRegion"] = ua.Region;
+            row["currentHandle"] = ua.Handle.ToString();
             // vectors
-            row["currentPosX"] = ua.CurrentPos.X;
-            row["currentPosY"] = ua.CurrentPos.Y;
-            row["currentPosZ"] = ua.CurrentPos.Z;
+            row["currentPosX"] = ua.Position.X;
+            row["currentPosY"] = ua.Position.Y;
+            row["currentPosZ"] = ua.Position.Z;
         }
 
         /***********************************************************************

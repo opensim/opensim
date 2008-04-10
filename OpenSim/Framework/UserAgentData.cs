@@ -151,7 +151,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLUUID RegionID {
+        public LLUUID InitialRegion {
             get {
                 return regionID;
             }
@@ -178,7 +178,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLUUID CurrentRegion {
+        public LLUUID Region {
             get {
                 return currentRegion;
             }
@@ -187,7 +187,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public ulong CurrentHandle {
+        public ulong Handle {
             get {
                 return currentHandle;
             }
@@ -196,7 +196,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public LLVector3 CurrentPos {
+        public LLVector3 Position {
             get {
                 return currentPos;
             }

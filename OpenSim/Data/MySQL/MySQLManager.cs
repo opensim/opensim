@@ -427,11 +427,11 @@ namespace OpenSim.Data.MySQL
                 retval.LogoutTime = Convert.ToInt32(reader["logoutTime"].ToString());
 
                 // Current position
-                retval.CurrentRegion = new LLUUID((string)reader["currentRegion"]);
-                retval.CurrentHandle = Convert.ToUInt64(reader["currentHandle"].ToString());
+                retval.Region = new LLUUID((string)reader["currentRegion"]);
+                retval.Handle = Convert.ToUInt64(reader["currentHandle"].ToString());
                 LLVector3 tmp_v;
                 LLVector3.TryParse((string) reader["currentPos"], out tmp_v);
-                retval.CurrentPos = tmp_v;
+                retval.Position = tmp_v;
             }
             else
             {
@@ -915,9 +915,9 @@ namespace OpenSim.Data.MySQL
             parameters["?agentOnline"] = (agentdata.AgentOnline == true) ? "1" : "0";
             parameters["?loginTime"] = agentdata.LoginTime.ToString();
             parameters["?logoutTime"] = agentdata.LogoutTime.ToString();
-            parameters["?currentRegion"] = agentdata.CurrentRegion.ToString();
-            parameters["?currentHandle"] = agentdata.CurrentHandle.ToString();
-            parameters["?currentPos"] = "<" + ((int)agentdata.CurrentPos.X).ToString() + "," + ((int)agentdata.CurrentPos.Y).ToString() + "," + ((int)agentdata.CurrentPos.Z).ToString() + ">";
+            parameters["?currentRegion"] = agentdata.Region.ToString();
+            parameters["?currentHandle"] = agentdata.Handle.ToString();
+            parameters["?currentPos"] = "<" + ((int)agentdata.Position.X).ToString() + "," + ((int)agentdata.Position.Y).ToString() + "," + ((int)agentdata.Position.Z).ToString() + ">";
 
             bool returnval = false;
 

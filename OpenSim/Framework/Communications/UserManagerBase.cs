@@ -358,8 +358,8 @@ namespace OpenSim.Framework.UserManagement
             agent.ProfileID = profile.ID;
 
             // Current position (from Home)
-            agent.CurrentHandle = profile.HomeRegion;
-            agent.CurrentPos = profile.HomeLocation;
+            agent.Handle = profile.HomeRegion;
+            agent.Position = profile.HomeLocation;
 
             // If user specified additional start, use that
             if (requestData.ContainsKey("start"))
@@ -367,16 +367,16 @@ namespace OpenSim.Framework.UserManagement
                 string startLoc = ((string)requestData["start"]).Trim();
                 if (("last" == startLoc) && (profile.CurrentAgent != null))
                 {
-                    if ((profile.CurrentAgent.CurrentPos.X > 0)
-                        && (profile.CurrentAgent.CurrentPos.Y > 0)
-                        && (profile.CurrentAgent.CurrentPos.Z > 0)
+                    if ((profile.CurrentAgent.Position.X > 0)
+                        && (profile.CurrentAgent.Position.Y > 0)
+                        && (profile.CurrentAgent.Position.Z > 0)
                        )
                     {
                         // TODO: Right now, currentRegion has not been used in GridServer for requesting region.
                         // TODO: It is only using currentHandle.
-                        agent.CurrentRegion = profile.CurrentAgent.CurrentRegion;
-                        agent.CurrentHandle = profile.CurrentAgent.CurrentHandle;
-                        agent.CurrentPos = profile.CurrentAgent.CurrentPos;
+                        agent.Region = profile.CurrentAgent.Region;
+                        agent.Handle = profile.CurrentAgent.Handle;
+                        agent.Position = profile.CurrentAgent.Position;
                     }
                 }
 
@@ -403,8 +403,8 @@ namespace OpenSim.Framework.UserManagement
             agent.LogoutTime = 0;
 
             // Current location
-            agent.RegionID = LLUUID.Zero; // Fill in later
-            agent.CurrentRegion = LLUUID.Zero; // Fill in later
+            agent.InitialRegion = LLUUID.Zero; // Fill in later
+            agent.Region = LLUUID.Zero; // Fill in later
 
             profile.CurrentAgent = agent;
         }
@@ -442,11 +442,11 @@ namespace OpenSim.Framework.UserManagement
                     //userAgent.sessionID = LLUUID.Zero;
                     if (regionid != LLUUID.Zero)
                     {
-                        userAgent.CurrentRegion = regionid;
+                        userAgent.Region = regionid;
                     }
 
-                    userAgent.CurrentHandle = regionhandle;
-                    userAgent.CurrentPos = currentPos;
+                    userAgent.Handle = regionhandle;
+                    userAgent.Position = currentPos;
                     userProfile.CurrentAgent = userAgent;
 
                     CommitAgent(ref userProfile);
@@ -484,16 +484,16 @@ namespace OpenSim.Framework.UserManagement
             agent.ProfileID = profile.ID;
 
             // Current position (from Home)
-            agent.CurrentHandle = profile.HomeRegion;
-            agent.CurrentPos = profile.HomeLocation;
+            agent.Handle = profile.HomeRegion;
+            agent.Position = profile.HomeLocation;
 
             // What time did the user login?
             agent.LoginTime = Util.UnixTimeSinceEpoch();
             agent.LogoutTime = 0;
 
             // Current location
-            agent.RegionID = LLUUID.Zero; // Fill in later
-            agent.CurrentRegion = LLUUID.Zero; // Fill in later
+            agent.InitialRegion = LLUUID.Zero; // Fill in later
+            agent.Region = LLUUID.Zero; // Fill in later
 
             profile.CurrentAgent = agent;
         }

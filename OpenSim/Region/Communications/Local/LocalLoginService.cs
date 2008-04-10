@@ -127,7 +127,7 @@ namespace OpenSim.Region.Communications.Local
             ulong currentRegion = 0;
             if (startLocationRequest == "last")
             {
-                currentRegion = theUser.CurrentAgent.CurrentHandle;
+                currentRegion = theUser.CurrentAgent.Handle;
             }
             else if (startLocationRequest == "home")
             {
@@ -138,7 +138,7 @@ namespace OpenSim.Region.Communications.Local
                 m_log.Info("[LOGIN]: Got Custom Login URL, but can't process it");
                 // LocalBackEndServices can't possibly look up a region by name :(
                 // TODO: Parse string in the following format: 'uri:RegionName&X&Y&Z'
-                currentRegion = theUser.CurrentAgent.CurrentHandle;
+                currentRegion = theUser.CurrentAgent.Handle;
             }
 
             RegionInfo reg = m_Parent.GridService.RequestNeighbourInfo(currentRegion);
@@ -164,8 +164,8 @@ namespace OpenSim.Region.Communications.Local
                     "[CAPS]: Sending new CAPS seed url {0} to client {1}", 
                     response.SeedCapability, response.AgentID);                
 
-                theUser.CurrentAgent.CurrentRegion = reg.RegionID;
-                theUser.CurrentAgent.CurrentHandle = reg.RegionHandle;
+                theUser.CurrentAgent.Region = reg.RegionID;
+                theUser.CurrentAgent.Handle = reg.RegionHandle;
 
                 LoginResponse.BuddyList buddyList = new LoginResponse.BuddyList();
 

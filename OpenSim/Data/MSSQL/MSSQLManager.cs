@@ -366,11 +366,11 @@ namespace OpenSim.Data.MSSQL
                 retval.LogoutTime = Convert.ToInt32(reader["logoutTime"].ToString());
 
                 // Current position
-                retval.CurrentRegion = (string)reader["currentRegion"];
-                retval.CurrentHandle = Convert.ToUInt64(reader["currentHandle"].ToString());
+                retval.Region = (string)reader["currentRegion"];
+                retval.Handle = Convert.ToUInt64(reader["currentHandle"].ToString());
                 LLVector3 tmp_v;
                 LLVector3.TryParse((string)reader["currentPos"], out tmp_v);
-                retval.CurrentPos = tmp_v;
+                retval.Position = tmp_v;
 
             }
             else
