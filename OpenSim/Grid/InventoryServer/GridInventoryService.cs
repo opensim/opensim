@@ -43,7 +43,14 @@ namespace OpenSim.Grid.InventoryServer
         {
         }
 
-        private bool TryGetUsersInventory(LLUUID userID, out List<InventoryFolderBase> folderList,
+        /// <summary>
+        /// Get a user's inventory.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="folderList"></param>
+        /// <param name="itemsList"></param>
+        /// <returns>true if the inventory was retrieved, false otherwise</returns>
+        private bool GetUsersInventory(LLUUID userID, out List<InventoryFolderBase> folderList,
                                           out List<InventoryItemBase> itemsList)
         {
             List<InventoryFolderBase> allFolders = GetInventorySkeleton(userID);
@@ -93,22 +100,39 @@ namespace OpenSim.Grid.InventoryServer
         /// Return a user's entire inventory
         /// </summary>
         /// <param name="rawUserID"></param>
-        /// <returns></returns>
+        /// <returns>The user's inventory.  If an inventory cannot be found then an empty collection is returned.</returns>
         public InventoryCollection GetUserInventory(Guid rawUserID)
         {
             LLUUID userID = new LLUUID(rawUserID);
 
-            m_log.Info("[AGENT INVENTORY]: Processing request for inventory of " + userID.ToString());            
+            m_log.InfoFormat("[AGENT INVENTORY]: Processing request for inventory of {0}", userID);            
 
             InventoryCollection invCollection = new InventoryCollection();
-            List<InventoryFolderBase> folders;
-            List<InventoryItemBase> allItems;
-            if (TryGetUsersInventory(userID, out folders, out allItems))
+            
+            List<InventoryFolderBase> allFolders = GetInventorySkeleton(userID);
+            
+            if (null == allFolders)
             {
-                invCollection.AllItems = allItems;
-                invCollection.Folders = folders;
-                invCollection.UserID = userID;
+                m_log.WarnFormat("[AGENT INVENTORY]: No inventory found for user {0}", rawUserID);
+                
+                return invCollection;
             }
+            
+            List<InventoryItemBase> allItems = new List<InventoryItemBase>();
+
+            foreach (InventoryFolderBase folder in allFolders)
+            {
+                List<InventoryItemBase> items = RequestFolderItems(folder.ID);
+                
+                if (items != null)
+                {
+                    allItems.InsertRange(0, items);
+                }
+            }
+
+            invCollection.AllItems = allItems;
+            invCollection.Folders = allFolders;
+            invCollection.UserID = userID;
             
 //            foreach (InventoryFolderBase folder in folders)
 //            {
