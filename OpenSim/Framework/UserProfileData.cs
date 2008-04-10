@@ -65,6 +65,76 @@ namespace OpenSim.Framework
         /// </summary>
         private string _passwordSalt;
 
+        private uint _homeRegionX;
+        private uint _homeRegionY;
+
+        /// <summary>
+        /// The coordinates inside the region of the home location
+        /// </summary>
+        private LLVector3 _homeLocation;
+
+        /// <summary>
+        /// Where the user will be looking when they rez.
+        /// </summary>
+        private LLVector3 _homeLookAt;
+
+        /// <summary>
+        /// A UNIX Timestamp (seconds since epoch) for the users creation
+        /// </summary>
+        private int _created;
+
+        /// <summary>
+        /// A UNIX Timestamp for the users last login date / time
+        /// </summary>
+        private int _lastLogin;
+
+        private LLUUID _rootInventoryFolderID;
+
+        /// <summary>
+        /// A URI to the users inventory server, used for foreigners and large grids
+        /// </summary>
+        private string _userInventoryURI = String.Empty;
+
+        /// <summary>
+        /// A URI to the users asset server, used for foreigners and large grids.
+        /// </summary>
+        private string _userAssetURI = String.Empty;
+
+        /// <summary>
+        /// A uint mask containing the "I can do" fields of the users profile
+        /// </summary>
+        private uint _profileCanDoMask;
+
+        /// <summary>
+        /// A uint mask containing the "I want to do" part of the users profile
+        /// </summary>
+        private uint _profileWantDoMask; // Profile window "I want to" mask
+
+        /// <summary>
+        /// The about text listed in a users profile.
+        /// </summary>
+        private string _profileAboutText = String.Empty;
+
+        /// <summary>
+        /// The first life about text listed in a users profile
+        /// </summary>
+        private string _profileFirstText = String.Empty;
+
+        /// <summary>
+        /// The profile image for an avatar stored on the asset server
+        /// </summary>
+        private LLUUID _profileImage;
+
+        /// <summary>
+        /// The profile image for the users first life tab
+        /// </summary>
+        private LLUUID _profileFirstImage;
+
+        /// <summary>
+        /// The users last registered agent (filled in on the user server)
+        /// </summary>
+        private UserAgentData _currentAgent;
+
         /// <summary>
         /// The regionhandle of the users preffered home region. If multiple sims occupy the same spot, the grid may decide which region the user logs into
         /// </summary>
@@ -78,6 +148,7 @@ namespace OpenSim.Framework
             }
         }
 
+        // Property wrappers
         public LLUUID ID {
             get {
                 return _id;
@@ -159,6 +230,21 @@ namespace OpenSim.Framework
             }
         }
 
+        // for handy serialization
+        public float HomeLocationX {
+            get { return _homeLocation.X; }
+            set { _homeLocation.X = value; }
+        }
+        public float HomeLocationY {
+            get { return _homeLocation.Y; }
+            set { _homeLocation.Y = value; }
+        }
+        public float HomeLocationZ {
+            get { return _homeLocation.Z; }
+            set { _homeLocation.Z = value; }
+        }
+
+
         public LLVector3 HomeLookAt {
             get {
                 return _homeLookAt;
@@ -166,6 +252,20 @@ namespace OpenSim.Framework
             set {
                 _homeLookAt = value;
             }
+        }
+        
+        // for handy serialization
+        public float HomeLookAtX {
+            get { return _homeLookAt.X; }
+            set { _homeLookAt.X = value; }
+        }
+        public float HomeLookAtY {
+            get { return _homeLookAt.Y; }
+            set { _homeLookAt.Y = value; }
+        }
+        public float HomeLookAtZ {
+            get { return _homeLookAt.Z; }
+            set { _homeLookAt.Z = value; }
         }
 
         public int Created {
@@ -276,74 +376,5 @@ namespace OpenSim.Framework
             }
         }
 
-        private uint _homeRegionX;
-        private uint _homeRegionY;
-
-        /// <summary>
-        /// The coordinates inside the region of the home location
-        /// </summary>
-        private LLVector3 _homeLocation;
-
-        /// <summary>
-        /// Where the user will be looking when they rez.
-        /// </summary>
-        private LLVector3 _homeLookAt;
-
-        /// <summary>
-        /// A UNIX Timestamp (seconds since epoch) for the users creation
-        /// </summary>
-        private int _created;
-
-        /// <summary>
-        /// A UNIX Timestamp for the users last login date / time
-        /// </summary>
-        private int _lastLogin;
-
-        private LLUUID _rootInventoryFolderID;
-
-        /// <summary>
-        /// A URI to the users inventory server, used for foreigners and large grids
-        /// </summary>
-        private string _userInventoryURI = String.Empty;
-
-        /// <summary>
-        /// A URI to the users asset server, used for foreigners and large grids.
-        /// </summary>
-        private string _userAssetURI = String.Empty;
-
-        /// <summary>
-        /// A uint mask containing the "I can do" fields of the users profile
-        /// </summary>
-        private uint _profileCanDoMask;
-
-        /// <summary>
-        /// A uint mask containing the "I want to do" part of the users profile
-        /// </summary>
-        private uint _profileWantDoMask; // Profile window "I want to" mask
-
-        /// <summary>
-        /// The about text listed in a users profile.
-        /// </summary>
-        private string _profileAboutText = String.Empty;
-
-        /// <summary>
-        /// The first life about text listed in a users profile
-        /// </summary>
-        private string _profileFirstText = String.Empty;
-
-        /// <summary>
-        /// The profile image for an avatar stored on the asset server
-        /// </summary>
-        private LLUUID _profileImage;
-
-        /// <summary>
-        /// The profile image for the users first life tab
-        /// </summary>
-        private LLUUID _profileFirstImage;
-
-        /// <summary>
-        /// The users last registered agent (filled in on the user server)
-        /// </summary>
-        private UserAgentData _currentAgent;
     }
 }
