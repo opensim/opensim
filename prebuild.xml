@@ -34,6 +34,26 @@
 
     <!-- Core OpenSim Projects -->
 
+    <Project name="OpenSim.Model" path="OpenSim/Model" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Xml" localCopy="false"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     <Project name="OpenSim.Framework.Console" path="OpenSim/Framework/Console" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -53,7 +73,7 @@
         <Match pattern="*.cs" recurse="true"/>
       </Files>
     </Project>
-    
+
     <Project name="OpenSim.Framework" path="OpenSim/Framework" type="Library">
       <Configuration name="Debug">
         <Options>
