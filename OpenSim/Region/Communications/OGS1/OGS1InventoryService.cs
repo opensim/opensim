@@ -94,7 +94,7 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 m_log.InfoFormat("[OGS1 INVENTORY SERVICE]: " +
                                  "Received inventory response for user {0} containing {1} folders and {2} items",
-                                 userID, response.Folders.Count, response.AllItems.Count);
+                                 userID, response.Folders.Count, response.Items.Count);
 
                 InventoryFolderImpl rootFolder = null;
                 InventoryRequest request = m_RequestingInventory[userID];
@@ -108,6 +108,8 @@ namespace OpenSim.Region.Communications.OGS1
                     {
                         rootFolder = new InventoryFolderImpl(folder);
                         folders.Add(rootFolder);
+                        
+                        break;
                     }
                 }
 
@@ -121,10 +123,14 @@ namespace OpenSim.Region.Communications.OGS1
                         }
                     }
 
-                    foreach (InventoryItemBase item in response.AllItems)
+                    foreach (InventoryItemBase item in response.Items)
                     {
                         items.Add(item);
                     }
+                }
+                else
+                {
+                    m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Did not get back an inventory containing a root folder for user {0}", userID);
                 }
                 
                 request.Callback(userID, folders, items);

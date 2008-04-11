@@ -37,9 +37,13 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Grid.InventoryServer
 {
+    /// <summary>
+    /// Used on a grid server to satisfy external inventory requests
+    /// </summary>
     public class GridInventoryService : InventoryServiceBase
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log 
+            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public override void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback)
         {
@@ -110,7 +114,7 @@ namespace OpenSim.Grid.InventoryServer
             
             LLUUID userID = new LLUUID(rawUserID);
 
-            m_log.InfoFormat("[AGENT INVENTORY]: Processing request for inventory of {0}", userID);            
+            m_log.InfoFormat("[GRID AGENT INVENTORY]: Processing request for inventory of {0}", userID);            
 
             InventoryCollection invCollection = new InventoryCollection();
             
@@ -118,7 +122,7 @@ namespace OpenSim.Grid.InventoryServer
             
             if (null == allFolders)
             {
-                m_log.WarnFormat("[AGENT INVENTORY]: No inventory found for user {0}", rawUserID);
+                m_log.WarnFormat("[GRID AGENT INVENTORY]: No inventory found for user {0}", rawUserID);
                 
                 return invCollection;
             }
@@ -135,23 +139,23 @@ namespace OpenSim.Grid.InventoryServer
                 }
             }
 
-            invCollection.AllItems = allItems;
-            invCollection.Folders = allFolders;
             invCollection.UserID = userID;
+            invCollection.Folders = allFolders;            
+            invCollection.Items = allItems;            
             
-//            foreach (InventoryFolderBase folder in folders)
+//            foreach (InventoryFolderBase folder in invCollection.Folders)
 //            {
-//                m_log.DebugFormat(
-//                    "[AGENT INVENTORY]: Sending back folder {0}, {1}", 
-//                    folder.name, folder.folderID);
+//                m_log.DebugFormat("[GRID AGENT INVENTORY]: Sending back folder {0} {1}", folder.Name, folder.ID);
 //            }
 //            
-//            foreach (InventoryItemBase item in allItems)
+//            foreach (InventoryItemBase item in invCollection.Items)
 //            {
-//                m_log.DebugFormat(
-//                    "[AGENT INVENTORY]: Sending back item {0}, {1}, folder {2}", 
-//                    item.inventoryName, item.inventoryID, item.parentFolderID);
+//                m_log.DebugFormat("[GRID AGENT INVENTORY]: Sending back item {0} {1}, folder {2}", item.Name, item.ID, item.Folder);
 //            }
+            
+            m_log.InfoFormat(
+                "[GRID AGENT INVENTORY]: Sending back inventory response to user {0} containing {1} folders and {2} items",
+                invCollection.UserID, invCollection.Folders.Count, invCollection.Items.Count);            
                         
             return invCollection;
         }
@@ -176,8 +180,7 @@ namespace OpenSim.Grid.InventoryServer
         {
             LLUUID userID = new LLUUID(rawUserID);
 
-            m_log.Info(
-                "[AGENT INVENTORY]: Creating new set of inventory folders for " + userID.ToString());
+            m_log.InfoFormat("[GRID AGENT INVENTORY]: Creating new set of inventory folders for user {0}", userID);
 
             CreateNewUserInventory(userID);
             return true;
@@ -202,10 +205,7 @@ namespace OpenSim.Grid.InventoryServer
         public bool AddInventoryFolder(InventoryFolderBase folder)
         {
             // Right now, this actions act more like an update/insert combination than a simple create.
-            m_log.Info(
-                "[AGENT INVENTORY]: " +
-                "Updating in   " + folder.ParentID.ToString()
-                + ", folder " + folder.Name);
+            m_log.InfoFormat("[GRID AGENT INVENTORY]: Creating folder {0} {1} in folder {2}", folder.Name, folder.ID, folder.ParentID);
 
             AddNewInventoryFolder(folder.Owner, folder);
             return true;
@@ -213,10 +213,7 @@ namespace OpenSim.Grid.InventoryServer
 
         public bool MoveInventoryFolder(InventoryFolderBase folder)
         {
-            m_log.Info(
-                "[AGENT INVENTORY]: " +
-                "Moving folder " + folder.ID
-                + " to " + folder.ParentID.ToString());
+            m_log.InfoFormat("[GRID AGENT INVENTORY]: Moving folder {0} {1} to folder {2}", folder.Name, folder.ID, folder.ParentID);
 
             MoveExistingInventoryFolder(folder);
             return true;
@@ -225,10 +222,7 @@ namespace OpenSim.Grid.InventoryServer
         public bool AddInventoryItem(InventoryItemBase item)
         {
             // Right now, this actions act more like an update/insert combination than a simple create.
-            m_log.Info(
-                "[AGENT INVENTORY]: " +
-                "Updating in   " + item.Folder.ToString()
-                + ", item " + item.Name);
+            m_log.InfoFormat("[GRID AGENT INVENTORY]: Adding item {0} {1} to folder {2}", item.Name, item.ID, item.Folder);
 
             AddNewInventoryItem(item.Owner, item);
             return true;
@@ -236,15 +230,16 @@ namespace OpenSim.Grid.InventoryServer
 
         public override void DeleteInventoryItem(LLUUID userID, InventoryItemBase item)
         {
-            // extra spaces to align with other inventory messages
-            m_log.Info(
-                "[AGENT INVENTORY]: " +
-                "Deleting in   " + item.Folder.ToString()
-                + ", item " + item.Name);
+            m_log.InfoFormat("[GRID AGENT INVENTORY]: Deleting item {0} {1} from folder {2}", item.Name, item.ID, item.Folder);
 
             DeleteItem(item);
         }
 
+        /// <summary>
+        /// FIXME: Get DeleteInventoryItem to return a bool
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
         public bool DeleteInvItem(InventoryItemBase item)
         {
             DeleteInventoryItem(item.Owner, item);
