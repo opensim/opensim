@@ -38,8 +38,8 @@ namespace OpenSim.Framework
     [Serializable]
     public class SimpleRegionInfo
     {
-//        private static readonly log4net.ILog m_log 
-//            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+       // private static readonly log4net.ILog m_log 
+       //     = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         
         public SimpleRegionInfo()
         {
@@ -200,6 +200,9 @@ namespace OpenSim.Framework
 
     public class RegionInfo : SimpleRegionInfo
     {
+       // private static readonly log4net.ILog m_log 
+       //     = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public string RegionName = String.Empty;
 
         public string DataStore = String.Empty;
@@ -341,6 +344,60 @@ namespace OpenSim.Framework
             {
                 // a error 
             }
+        }
+
+        public bool ignoreIncomingConfiguration(string configuration_key, object configuration_result)
+        {
+            return true;
+        }
+
+        public void SaveRegionToFile(string description, string filename) {
+            configMember = new ConfigurationMember(filename, description, loadConfigurationOptionsFromMe, 
+                                                   ignoreIncomingConfiguration, false);
+            configMember.performConfigurationRetrieve();
+        }
+
+        public void loadConfigurationOptionsFromMe()
+        {
+            configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                                                "UUID of Region (Default is recommended, random UUID)",
+                                                RegionID.ToString(), true);
+            configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
+                                                "Region Name", RegionName, true);
+            configMember.addConfigurationOption("sim_location_x", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Grid Location (X Axis)", m_regionLocX.ToString(), true);
+            configMember.addConfigurationOption("sim_location_y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                                                "Grid Location (Y Axis)", m_regionLocY.ToString(), true);
+            //configMember.addConfigurationOption("datastore", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, "Filename for local storage", "OpenSim.db", false);
+            configMember.addConfigurationOption("internal_ip_address",
+                                                ConfigurationOption.ConfigurationTypes.TYPE_IP_ADDRESS,
+                                                "Internal IP Address for incoming UDP client connections", 
+                                                m_internalEndPoint.Address.ToString(),
+                                                true);
+            configMember.addConfigurationOption("internal_ip_port", ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+                                                "Internal IP Port for incoming UDP client connections",
+                                                m_internalEndPoint.Port.ToString(), true);
+            configMember.addConfigurationOption("allow_alternate_ports", 
+                                                ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
+                                                "Allow sim to find alternate UDP ports when ports are in use?",
+                                                m_allow_alternate_ports.ToString(), true);
+            configMember.addConfigurationOption("external_host_name",
+                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
+                                                "External Host Name", m_externalHostName, true);
+            configMember.addConfigurationOption("master_avatar_uuid", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                                                "Master Avatar UUID", MasterAvatarAssignedUUID.ToString(), true);
+            configMember.addConfigurationOption("estate_covanant_uuid",
+                                                ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, "Estate Covenant",
+                                                CovenantID.ToString(), true);
+            configMember.addConfigurationOption("master_avatar_first",
+                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
+                                                "First Name of Master Avatar", MasterAvatarFirstName, true);
+            configMember.addConfigurationOption("master_avatar_last",
+                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
+                                                "Last Name of Master Avatar", MasterAvatarLastName, true);
+            configMember.addConfigurationOption("master_avatar_pass", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                "(Sandbox Mode Only)Password for Master Avatar account", 
+                                                MasterAvatarSandboxPassword, true);
         }
 
         public void loadConfigurationOptions()

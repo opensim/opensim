@@ -282,7 +282,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
         /// </remarks>
         public XmlRpcResponse XmlRpcCreateRegionMethod(XmlRpcRequest request)
         {
-            m_log.Info("[RADMIN]: Received Create Region Administrator Request");
+            m_log.Info("[RADMIN]: CreateRegion: new request");
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
@@ -291,7 +291,8 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 // check completeness
                 foreach (string p in new string[] { "password", 
                                                     "region_name", "region_x", "region_y", 
-                                                    "region_master_first", "region_master_last",
+                                                    "region_master_first", "region_master_last", 
+                                                    "region_master_password",
                                                     "listen_ip", "listen_port", "external_address"})
                 {
                     if (!requestData.Contains(p)) 
@@ -302,51 +303,79 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 if (!String.IsNullOrEmpty(requiredPassword) &&
                     (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
 
-                // bool persist = Convert.ToBoolean((string)requestData["persist"]);
-                RegionInfo region = null;
-                // if (!persist) 
-                // {
-                //     region = new RegionInfo();
-                // }
-                // else 
-                // {
-                //     region = new RegionInfo("DEFAULT REGION CONFIG", 
-                //                                    Path.Combine(regionConfigPath, "default.xml"), false);
-                // }
-                region = new RegionInfo();
-
-                
+                // extract or generate region ID now
+                Scene scene = null;
+                LLUUID regionID = LLUUID.Zero;
                 if (requestData.ContainsKey("region_id") && 
-                    !String.IsNullOrEmpty((string) requestData["region_id"])) 
+                    !String.IsNullOrEmpty((string)requestData["region_id"])) 
                 {
-                    // FIXME: need to check whether region_id already
-                    // in use
-                    region.RegionID = (string) requestData["region_id"];
+                    regionID = (string) requestData["region_id"];
+                    if (m_app.SceneManager.TryGetScene(regionID, out scene)) 
+                        throw new Exception(String.Format("region UUID already in use by region {0}, UUID {1}, <{2},{3}>",
+                                                          scene.RegionInfo.RegionName, scene.RegionInfo.RegionID,
+                                                          scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY));
                 } 
                 else 
                 {
-                    region.RegionID = LLUUID.Random();
+                    regionID = LLUUID.Random();
+                    m_log.DebugFormat("[RADMIN] CreateRegion: new region UUID {0}", regionID);
                 }
 
-                // FIXME: need to check whether region_name already
-                // in use
+                // create volatile or persistent region info
+                RegionInfo region = new RegionInfo();
+
+                region.RegionID = regionID;
                 region.RegionName = (string) requestData["region_name"];
                 region.RegionLocX = Convert.ToUInt32((Int32) requestData["region_x"]);
                 region.RegionLocY = Convert.ToUInt32((Int32) requestData["region_y"]);
+
+                // check for collisions: region name, region UUID,
+                // region location
+                if (m_app.SceneManager.TryGetScene(region.RegionName, out scene)) 
+                    throw new Exception(String.Format("region name already in use by region {0}, UUID {1}, <{2},{3}>",
+                                                      scene.RegionInfo.RegionName, scene.RegionInfo.RegionID,
+                                                      scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY));
+
+                if (m_app.SceneManager.TryGetScene(region.RegionLocX, region.RegionLocY, out scene))
+                    throw new Exception(String.Format("region location <{0},{1}> already in use by region {2}, UUID {3}, <{4},{5}>",
+                                                      region.RegionLocX, region.RegionLocY,
+                                                      scene.RegionInfo.RegionName, scene.RegionInfo.RegionID,
+                                                      scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY));
                 
-                // Security risk
-                if (requestData.ContainsKey("datastore"))
-                    region.DataStore = (string) requestData["datastore"];
+                // Security risk [and apparently not used]
+                // if (requestData.ContainsKey("datastore"))
+                //     region.DataStore = (string) requestData["datastore"];
 
                 region.InternalEndPoint = 
                     new IPEndPoint(IPAddress.Parse((string) requestData["listen_ip"]), 0);
                 
-                // FIXME: need to check whether listen_port already in use!
                 region.InternalEndPoint.Port = (Int32) requestData["listen_port"];
+                if (m_app.SceneManager.TryGetScene(region.InternalEndPoint, out scene))
+                    throw new Exception(String.Format("region internal IP {0} and port {1} already in use by region {2}, UUID {3}, <{4},{5}>",
+                                                      region.InternalEndPoint.Address, 
+                                                      region.InternalEndPoint.Port,
+                                                      scene.RegionInfo.RegionName, scene.RegionInfo.RegionID,
+                                                      scene.RegionInfo.RegionLocX, scene.RegionInfo.RegionLocY));
+                
+
                 region.ExternalHostName = (string) requestData["external_address"];
                     
                 region.MasterAvatarFirstName = (string) requestData["region_master_first"];
                 region.MasterAvatarLastName = (string) requestData["region_master_last"];
+                region.MasterAvatarSandboxPassword = (string) requestData["region_master_password"];
+
+                bool persist = Convert.ToBoolean((string)requestData["persist"]);
+                if (persist) 
+                {
+                    string regionConfigPath = Path.Combine(Path.Combine(Util.configDir(), "Regions"),
+                                                           String.Format("{0}x{1}-{2}.xml",
+                                                                         region.RegionLocX.ToString(),
+                                                                         region.RegionLocY.ToString(),
+                                                                         regionID.ToString()));
+                    m_log.DebugFormat("[RADMIN] CreateRegion: persisting region {0} to {1}", 
+                                      region.RegionID, regionConfigPath);
+                    region.SaveRegionToFile("dynamic region", regionConfigPath);
+                }
                 
                 m_app.CreateRegion(region, true);
 
@@ -358,6 +387,9 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             }
             catch (Exception e)
             {
+                m_log.ErrorFormat("[RADMIN] CreateRegion: failed {0}", e.Message);
+                m_log.DebugFormat("[RADMIN] CreateRegion: failed {0}", e.ToString());
+
                 responseData["success"] = "false";
                 responseData["error"] = e.Message;
 
@@ -405,7 +437,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
         /// </remarks>
         public XmlRpcResponse XmlRpcCreateUserMethod(XmlRpcRequest request)
         {
-            m_log.Info("[RADMIN]: Received Create User Administrator Request");
+            m_log.Info("[RADMIN]: CreateUser: new request");
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
@@ -444,12 +476,12 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
                 response.Value = responseData;
 
-                m_log.InfoFormat("[RADMIN]: User {0} {1} created, UUID {2}", firstname, lastname, userID);
+                m_log.InfoFormat("[RADMIN]: CreateUser: User {0} {1} created, UUID {2}", firstname, lastname, userID);
             }
             catch (Exception e) 
             {
-                m_log.ErrorFormat("[RADMIN] create user: failed: {0}", e.Message);
-                m_log.DebugFormat("[RADMIN] create user: failed: {0}", e.ToString());
+                m_log.ErrorFormat("[RADMIN] CreateUser: failed: {0}", e.Message);
+                m_log.DebugFormat("[RADMIN] CreateUser: failed: {0}", e.ToString());
 
                 responseData["success"]     = "false";
                 responseData["avatar_uuid"] = LLUUID.Zero.ToString();
@@ -471,8 +503,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             try 
             {
                 // check completeness
-                foreach (string p in new string[] { "password", 
-                                                    "region_name", "filename" })
+                foreach (string p in new string[] { "password", "region_name", "filename" })
                 {
                     if (!requestData.Contains(p)) 
                         throw new Exception(String.Format("missing parameter {0}", p));

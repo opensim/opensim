@@ -27,6 +27,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
@@ -267,6 +269,36 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (Scene mscene in m_localScenes)
             {
                 if (mscene.RegionInfo.RegionID == regionID)
+                {
+                    scene = mscene;
+                    return true;
+                }
+            }
+            scene = null;
+            return false;
+        }
+
+        public bool TryGetScene(uint locX, uint locY, out Scene scene)
+        {
+            foreach (Scene mscene in m_localScenes)
+            {
+                if (mscene.RegionInfo.RegionLocX == locX &&
+                    mscene.RegionInfo.RegionLocY == locY)
+                {
+                    scene = mscene;
+                    return true;
+                }
+            }
+            scene = null;
+            return false;
+        }
+
+        public bool TryGetScene(IPEndPoint ipEndPoint, out Scene scene)
+        {
+            foreach (Scene mscene in m_localScenes)
+            {
+                if (mscene.RegionInfo.InternalEndPoint.Address == ipEndPoint.Address &&
+                    mscene.RegionInfo.InternalEndPoint.Port == ipEndPoint.Port)
                 {
                     scene = mscene;
                     return true;
