@@ -58,6 +58,47 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             return imageData;
         }
 
+        private void ShadeBuildings(ref Bitmap map)
+        {
+            lock (map)
+            {
+                lock (m_scene.Entities)
+                {
+                    foreach (EntityBase entity in m_scene.Entities.Values)
+                    {
+                        if (entity is SceneObjectGroup)
+                        {
+                            SceneObjectGroup sog = (SceneObjectGroup)entity;
+
+                            foreach (SceneObjectPart primitive in sog.Children.Values)
+                            {
+                                int x, y, w, h, dx, dy;
+                                x = (int)(primitive.AbsolutePosition.X - (primitive.Scale.X / 2));
+                                y = (int)(primitive.AbsolutePosition.Y - (primitive.Scale.Y / 2));
+                                w = (int)primitive.Scale.X;
+                                h = (int)primitive.Scale.Y;
+
+                                for (dx = x; dx < x + w; dx++)
+                                {
+                                    for (dy = y; dy < y + h; dy++)
+                                    {
+                                        if (x < 0 || y < 0)
+                                            continue;
+                                        if (x >= map.Width || y >= map.Height)
+                                            continue;
+
+                                        map.SetPixel(dx, dy, Color.DarkGray);
+                                    }
+                                }
+
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         private Bitmap TerrainToBitmap(string gradientmap)
         {
             Bitmap gradientmapLd = new Bitmap(gradientmap);
@@ -84,8 +125,9 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                         bmp.SetPixel(x, copy.Height - y - 1, colours[colorindex]);
                     }
                 }
+                ShadeBuildings(ref bmp);
+                return bmp;
             }
-            return bmp;
         }
 
 
