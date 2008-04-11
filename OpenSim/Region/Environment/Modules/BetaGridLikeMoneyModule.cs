@@ -187,10 +187,13 @@ namespace OpenSim.Region.Environment.Modules
         {
             IClientAPI user = LocateClientObject(agentId);
 
-            user.SendEconomyData(EnergyEfficiency, ObjectCapacity, ObjectCount, PriceEnergyUnit, PriceGroupCreate,
-                PriceObjectClaim, PriceObjectRent, PriceObjectScaleFactor, PriceParcelClaim, PriceParcelClaimFactor,
-                PriceParcelRent, PricePublicObjectDecay, PricePublicObjectDelete, PriceRentLight, PriceUpload,
-                TeleportMinPrice, TeleportPriceExponent);
+            if (user != null)
+            {
+                user.SendEconomyData(EnergyEfficiency, ObjectCapacity, ObjectCount, PriceEnergyUnit, PriceGroupCreate,
+                    PriceObjectClaim, PriceObjectRent, PriceObjectScaleFactor, PriceParcelClaim, PriceParcelClaimFactor,
+                    PriceParcelRent, PricePublicObjectDecay, PricePublicObjectDelete, PriceRentLight, PriceUpload,
+                    TeleportMinPrice, TeleportPriceExponent);
+            }
         }
 
         private void MoneyTransferAction (Object osender, MoneyTransferArgs e)
