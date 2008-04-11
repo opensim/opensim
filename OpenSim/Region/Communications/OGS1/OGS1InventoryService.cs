@@ -58,35 +58,28 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 InventoryRequest request = new InventoryRequest(userID, callback);
                 m_RequestingInventory.Add(userID, request);
-                RequestInventory(userID);
+                
+                try
+                {
+                    m_log.InfoFormat(
+                        "[OGS1 INVENTORY SERVICE]: Requesting inventory from {0}/GetInventory/ for user {1}",
+                        _inventoryServerUrl, userID);
+    
+                    RestObjectPosterResponse<InventoryCollection> requester
+                        = new RestObjectPosterResponse<InventoryCollection>();
+                    requester.ResponseCallback = InventoryResponse;
+    
+                    requester.BeginPostObject<Guid>(_inventoryServerUrl + "/GetInventory/", userID.UUID);
+                }
+                catch (System.Net.WebException e)
+                {
+                    m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Request inventory operation failed, {0} {1}", 
+                         e.Source, e.Message);
+                }
             }
-        }
-
-        /// <summary>
-        /// Request the entire user's inventory (folders and items) from the inventory server.  
-        /// 
-        /// XXX May want to change this so that we don't end up shuffling over data which might prove
-        /// entirely unnecessary.
-        /// </summary>
-        /// <param name="userID"></param>
-        private void RequestInventory(LLUUID userID)
-        {
-            try
+            else
             {
-                m_log.InfoFormat(
-                    "[OGS1 INVENTORY SERVICE]: Requesting inventory from {0}/GetInventory/ for user {1}",
-                    _inventoryServerUrl, userID);
-
-                RestObjectPosterResponse<InventoryCollection> requester
-                    = new RestObjectPosterResponse<InventoryCollection>();
-                requester.ResponseCallback = InventoryResponse;
-
-                requester.BeginPostObject<Guid>(_inventoryServerUrl + "/GetInventory/", userID.UUID);
-            }
-            catch (System.Net.WebException e)
-            {
-                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Request inventory operation failed, {0} {1}", 
-                     e.Source, e.Message);
+                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: RequestInventoryForUser() - could you not find user profile for {0}", userID);
             }
         }
          
