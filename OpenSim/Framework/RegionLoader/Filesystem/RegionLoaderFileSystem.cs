@@ -32,13 +32,26 @@ namespace OpenSim.Framework.RegionLoader.Filesystem
 {
     public class RegionLoaderFileSystem : IRegionLoader
     {
+        private IniConfigSource m_configSouce;
+
         public void SetIniConfigSource(IniConfigSource configSource)
         {
+            m_configSouce = configSource;
         }
 
         public RegionInfo[] LoadRegions()
         {
             string regionConfigPath = Path.Combine(Util.configDir(), "Regions");
+
+            try
+            {
+                IniConfig startupConfig = (IniConfig)m_configSouce.Configs["Startup"];
+                regionConfigPath = startupConfig.GetString("regionload_regionsdir", regionConfigPath).Trim();
+            }
+            catch (System.Exception)
+            {
+                // No INI setting recorded.
+            }
 
             if (!Directory.Exists(regionConfigPath))
             {

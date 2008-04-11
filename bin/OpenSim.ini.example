@@ -1,6 +1,9 @@
 [Startup]
 gridmode = false
 
+; Determines where the region XML files are stored.
+; regionload_regionsdir="C:\somewhere\xmlfiles\"
+
 ; ##
 ; ## STORAGE
 ; ##
