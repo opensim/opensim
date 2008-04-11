@@ -49,7 +49,8 @@ namespace OpenSim.Framework.Communications.Cache
         public UserProfileData UserProfile { get { return m_userProfile; } }
         
         // FIXME: These need to be hidden behind accessors
-        public InventoryFolderImpl RootFolder = null;
+        private InventoryFolderImpl m_rootFolder;
+        public InventoryFolderImpl RootFolder { get { return m_rootFolder; } }
         
         /// <summary>
         /// Stores received folders for which we have not yet received the parents.
@@ -67,6 +68,11 @@ namespace OpenSim.Framework.Communications.Cache
             m_commsManager = commsManager;
             m_userProfile = userProfile;
         }
+
+        /// <summary>
+        /// Has this user info object yet received its inventory information from the invetnroy service?
+        /// </summary>
+        public bool HasInventory { get { return RootFolder != null; } }
         
         /// <summary>
         /// Store a folder pending categorization when its parent is received.
@@ -134,7 +140,7 @@ namespace OpenSim.Framework.Communications.Cache
                     {
                         if (folderInfo.ParentID == LLUUID.Zero)
                         {
-                            RootFolder = folderInfo;
+                            m_rootFolder = folderInfo;
                         }
                     }
                     else if (RootFolder.ID == folderInfo.ParentID)
@@ -208,7 +214,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void AddItem(LLUUID userID, InventoryItemBase itemInfo)
         {
-            if ((userID == UserProfile.ID) && (RootFolder != null))
+            if ((userID == UserProfile.ID) && HasInventory)
             {
                 ItemReceive(userID, itemInfo);
                 m_commsManager.InventoryService.AddNewInventoryItem(userID, itemInfo);
@@ -217,7 +223,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void UpdateItem(LLUUID userID, InventoryItemBase itemInfo)
         {
-            if ((userID == UserProfile.ID) && (RootFolder != null))
+            if ((userID == UserProfile.ID) && HasInventory)
             {
                 m_commsManager.InventoryService.AddNewInventoryItem(userID, itemInfo);
             }
@@ -226,7 +232,7 @@ namespace OpenSim.Framework.Communications.Cache
         public bool DeleteItem(LLUUID userID, InventoryItemBase item)
         {
             bool result = false;
-            if ((userID == UserProfile.ID) && (RootFolder != null))
+            if ((userID == UserProfile.ID) && HasInventory)
             {
                 result = RootFolder.DeleteItem(item.ID);
                 if (result)

@@ -125,7 +125,7 @@ namespace OpenSim.Framework.Communications.Cache
 
             if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
             {
-                if (userProfile.RootFolder != null)
+                if (userProfile.HasInventory)
                 {
                     if (userProfile.RootFolder.ID == parentID)
                     {
@@ -175,7 +175,7 @@ namespace OpenSim.Framework.Communications.Cache
 
             if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
             {
-                if (userProfile.RootFolder != null)
+                if (userProfile.HasInventory)
                 {
                     InventoryFolderBase baseFolder = new InventoryFolderBase();
                     baseFolder.Owner = remoteClient.AgentId;
@@ -195,7 +195,7 @@ namespace OpenSim.Framework.Communications.Cache
 
             if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
             {
-                if (userProfile.RootFolder != null)
+                if (userProfile.HasInventory)
                 {
                     InventoryFolderBase baseFolder = new InventoryFolderBase();
                     baseFolder.Owner = remoteClient.AgentId;
@@ -248,21 +248,21 @@ namespace OpenSim.Framework.Communications.Cache
                 // inventory failure.
                 //
                 // This is a crude way of dealing with that by retrying the lookup.
-                if (userProfile.RootFolder == null)
+                if (!userProfile.HasInventory)
                 {
                     int attempts = 5;
                     while (attempts-- > 0)
                     {
                         Thread.Sleep(3000);
                         
-                        if (userProfile.RootFolder != null)
+                        if (userProfile.HasInventory)
                         {
                             break;
                         }
                     }
                 }
                 
-                if (userProfile.RootFolder != null)
+                if (userProfile.HasInventory)
                 {
                     if (userProfile.RootFolder.ID == folderID)
                     {
@@ -346,7 +346,7 @@ namespace OpenSim.Framework.Communications.Cache
             CachedUserInfo userProfile;
             if (m_userProfiles.TryGetValue(agentID, out userProfile))
             {
-                if (userProfile.RootFolder != null)
+                if (userProfile.HasInventory)
                 {
                     if (userProfile.RootFolder.ID == folderID)
                     {
@@ -393,7 +393,7 @@ namespace OpenSim.Framework.Communications.Cache
             CachedUserInfo userProfile;
             if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
             {
-                if (userProfile.RootFolder != null)
+                if (userProfile.HasInventory)
                 {
                     InventoryFolderImpl subFolder = userProfile.RootFolder.HasSubFolder(folderID);
                     if (subFolder != null)
@@ -420,7 +420,7 @@ namespace OpenSim.Framework.Communications.Cache
             CachedUserInfo userProfile;
             if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
             {
-                if (userProfile.RootFolder != null)
+                if (userProfile.HasInventory)
                 {
                     InventoryItemBase item = userProfile.RootFolder.HasItem(itemID);
                     if (item != null)
