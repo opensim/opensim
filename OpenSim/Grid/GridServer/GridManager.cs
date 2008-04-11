@@ -333,7 +333,17 @@ namespace OpenSim.Grid.GridServer
                     {
                         try
                         {
-                            DataResponse insertResponse = kvp.Value.AddProfile(sim);
+                            DataResponse insertResponse;
+
+                            if( existingSim == null )
+                            {
+                                insertResponse = kvp.Value.AddProfile(sim);
+                            }
+                            else
+                            {
+                                insertResponse = kvp.Value.UpdateProfile(sim);
+                            }
+
                             switch (insertResponse)
                             {
                                 case DataResponse.RESPONSE_OK:

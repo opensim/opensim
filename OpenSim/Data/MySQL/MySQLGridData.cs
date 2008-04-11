@@ -309,6 +309,11 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        override public DataResponse UpdateProfile(RegionProfileData profile)
+        {
+            return AddProfile(profile);
+        }
+
         /// <summary>
         /// Deletes a profile from the database
         /// </summary>

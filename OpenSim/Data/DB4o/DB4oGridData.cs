@@ -125,6 +125,11 @@ namespace OpenSim.Data.DB4o
             }
         }
 
+        override public DataResponse UpdateProfile(RegionProfileData profile)
+        {
+            return AddProfile(profile);
+        }
+
         /// <summary>
         /// Authenticates a new region using the shared secrets. NOT SECURE.
         /// </summary>

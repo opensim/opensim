@@ -228,18 +228,6 @@ namespace OpenSim.Data.MSSQL
         /// <returns>A dataresponse enum indicating success</returns>
         override public DataResponse AddProfile(RegionProfileData profile)
         {
-            try
-            {
-                if (GetProfileByLLUUID(profile.UUID) != null)
-                {
-                    return DataResponse.RESPONSE_OK;
-                }
-            }
-            catch (Exception)
-            {
-                System.Console.WriteLine("No regions found. Create new one.");
-            }
-
             if (insertRegionRow(profile))
             {
                 return DataResponse.RESPONSE_OK;
@@ -250,6 +238,83 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        public override DataResponse UpdateProfile(RegionProfileData profile)
+        {
+            if (updateRegionRow(profile))
+            {
+                return DataResponse.RESPONSE_OK;
+            }
+            else
+            {
+                return DataResponse.RESPONSE_ERROR;
+            }
+        }
+
+        public bool updateRegionRow(RegionProfileData profile)
+        {
+            //Insert new region
+            string sql =
+                "UPDATE " + m_regionsTableName + @" SET 
+                [regionHandle]=@regionHandle, [regionName]=@regionName, 
+                [regionRecvKey]=@regionRecvKey, [regionSecret]=@regionSecret, [regionSendKey]=@regionSendKey,
+                [regionDataURI]=@regionDataURI, [serverIP]=@serverIP, [serverPort]=@serverPort, [serverURI]=@serverURI,
+                [locX]=@locX, [locY]=@locY, [locZ]=@locZ, [eastOverrideHandle]=@eastOverrideHandle, 
+                [westOverrideHandle]=@westOverrideHandle, [southOverrideHandle]=@southOverrideHandle, 
+                [northOverrideHandle]=@northOverrideHandle, [regionAssetURI]=@regionAssetURI, 
+                [regionAssetRecvKey]=@regionAssetRecvKey, [regionAssetSendKey]=@regionAssetSendKey,
+                [regionUserURI]=@regionUserURI, [regionUserRecvKey]=@regionUserRecvKey, [regionUserSendKey]=@regionUserSendKey,
+                [regionMapTexture]=@regionMapTexture, [serverHttpPort]=@serverHttpPort,
+                [serverRemotingPort]=@serverRemotingPort, [owner_uuid]=@owner_uuid 
+                where [uuid]=@uuid";
+
+            Dictionary<string, string> parameters = new Dictionary<string, string>();
+
+            parameters["regionHandle"] = profile.regionHandle.ToString();
+            parameters["regionName"] = profile.regionName;
+            parameters["uuid"] = profile.UUID.ToString();
+            parameters["regionRecvKey"] = profile.regionRecvKey;
+            parameters["regionSecret"] = profile.regionSecret;
+            parameters["regionSendKey"] = profile.regionSendKey;
+            parameters["regionDataURI"] = profile.regionDataURI;
+            parameters["serverIP"] = profile.serverIP;
+            parameters["serverPort"] = profile.serverPort.ToString();
+            parameters["serverURI"] = profile.serverURI;
+            parameters["locX"] = profile.regionLocX.ToString();
+            parameters["locY"] = profile.regionLocY.ToString();
+            parameters["locZ"] = profile.regionLocZ.ToString();
+            parameters["eastOverrideHandle"] = profile.regionEastOverrideHandle.ToString();
+            parameters["westOverrideHandle"] = profile.regionWestOverrideHandle.ToString();
+            parameters["northOverrideHandle"] = profile.regionNorthOverrideHandle.ToString();
+            parameters["southOverrideHandle"] = profile.regionSouthOverrideHandle.ToString();
+            parameters["regionAssetURI"] = profile.regionAssetURI;
+            parameters["regionAssetRecvKey"] = profile.regionAssetRecvKey;
+            parameters["regionAssetSendKey"] = profile.regionAssetSendKey;
+            parameters["regionUserURI"] = profile.regionUserURI;
+            parameters["regionUserRecvKey"] = profile.regionUserRecvKey;
+            parameters["regionUserSendKey"] = profile.regionUserSendKey;
+            parameters["regionMapTexture"] = profile.regionMapTextureID.ToString();
+            parameters["serverHttpPort"] = profile.httpPort.ToString();
+            parameters["serverRemotingPort"] = profile.remotingPort.ToString();
+            parameters["owner_uuid"] = profile.owner_uuid.ToString();
+
+            bool returnval = false;
+
+            try
+            {
+                IDbCommand result = database.Query(sql, parameters);
+
+                if (result.ExecuteNonQuery() == 1)
+                    returnval = true;
+
+                result.Dispose();
+            }
+            catch (Exception e)
+            {
+                m_log.Error("MSSQLManager : " + e.ToString());
+            }
+
+            return returnval;
+        }
         /// <summary>
         /// Creates a new region in the database
         /// </summary>

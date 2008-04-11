@@ -188,6 +188,11 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        override public DataResponse UpdateProfile(RegionProfileData profile)
+        {
+            return AddProfile(profile);
+        }
+
         /// <summary>
         /// DEPRECATED. Attempts to authenticate a region by comparing a shared secret.
         /// </summary>

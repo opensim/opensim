@@ -18,5 +18,6 @@ namespace OpenSim.Data
         public abstract string getVersion();
         public abstract DataResponse AddProfile(RegionProfileData profile);
         public abstract ReservationData GetReservationAtPoint(uint x, uint y);
+        public abstract DataResponse UpdateProfile(RegionProfileData profile);
     }
 }

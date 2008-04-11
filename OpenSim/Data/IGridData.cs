@@ -113,6 +113,8 @@ namespace OpenSim.Data
         /// <returns>RESPONSE_OK if successful, error if not.</returns>
         DataResponse AddProfile(RegionProfileData profile);
 
+        DataResponse UpdateProfile(RegionProfileData profile);
+
         ReservationData GetReservationAtPoint(uint x, uint y);
     }
 }
