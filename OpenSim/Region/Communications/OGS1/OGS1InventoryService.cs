@@ -51,12 +51,11 @@ namespace OpenSim.Region.Communications.OGS1
         #region IInventoryServices Members
 
         // See IInventoryServices
-        public void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack,
-                                            InventoryItemInfo itemCallBack)
+        public void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback)
         {
             if (!m_RequestingInventory.ContainsKey(userID))
             {
-                InventoryRequest request = new InventoryRequest(userID, folderCallBack, itemCallBack);
+                InventoryRequest request = new InventoryRequest(userID, callback);
                 m_RequestingInventory.Add(userID, request);
                 RequestInventory(userID);
             }
@@ -105,13 +104,17 @@ namespace OpenSim.Region.Communications.OGS1
 
                 InventoryFolderImpl rootFolder = null;
                 InventoryRequest request = m_RequestingInventory[userID];
+                
+                ICollection<InventoryFolderImpl> folders = new List<InventoryFolderImpl>();
+                ICollection<InventoryItemBase> items = new List<InventoryItemBase>();
+                
                 foreach (InventoryFolderBase folder in response.Folders)
                 {
                     if (folder.ParentID == LLUUID.Zero)
                     {
-                        InventoryFolderImpl newfolder = new InventoryFolderImpl(folder);
-                        rootFolder = newfolder;
-                        request.FolderCallBack(userID, newfolder);
+                        rootFolder = new InventoryFolderImpl(folder);
+                        folders.Add(rootFolder);
+                        //request.FolderCallBack(userID, newfolder);
                     }
                 }
 
@@ -121,16 +124,20 @@ namespace OpenSim.Region.Communications.OGS1
                     {
                         if (folder.ID != rootFolder.ID)
                         {
-                            InventoryFolderImpl newfolder = new InventoryFolderImpl(folder);
-                            request.FolderCallBack(userID, newfolder);
+                            folders.Add(new InventoryFolderImpl(folder));
+                            //request.FolderCallBack(userID, newfolder);
                         }
                     }
 
                     foreach (InventoryItemBase item in response.AllItems)
                     {
-                        request.ItemCallBack(userID, item);
+                        items.Add(item);
+                        //request.ItemCallBack(userID, item);
                     }
                 }
+                
+                request.Callback(userID, folders, items);
+                
                 m_RequestingInventory.Remove(userID);
             }
             else
@@ -223,17 +230,22 @@ namespace OpenSim.Region.Communications.OGS1
 
         #endregion
 
+        /// <summary>
+        /// Caches a pending inventory request that has yet to be satisfied by the inventory service
+        /// </summary>
         public class InventoryRequest
         {
             public LLUUID UserID;
-            public InventoryFolderInfo FolderCallBack;
-            public InventoryItemInfo ItemCallBack;
+            public InventoryReceiptCallback Callback;
+            //public InventoryFolderInfo FolderCallBack;
+            //public InventoryItemInfo ItemCallBack;
 
-            public InventoryRequest(LLUUID userId, InventoryFolderInfo folderCall, InventoryItemInfo itemCall)
+            public InventoryRequest(LLUUID userId, InventoryReceiptCallback callback)
             {
                 UserID = userId;
-                FolderCallBack = folderCall;
-                ItemCallBack = itemCall;
+                //FolderCallBack = folderCall;
+                //ItemCallBack = itemCall;
+                Callback = callback;
             }
         }
     }

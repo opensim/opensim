@@ -32,6 +32,9 @@ using libsecondlife;
 
 namespace OpenSim.Framework
 {
+    /// <summary>
+    /// Used to serialize a whole inventory for transfer over the network.
+    /// </summary>
     public class InventoryCollection
     {
         public List<InventoryFolderBase> _folders;

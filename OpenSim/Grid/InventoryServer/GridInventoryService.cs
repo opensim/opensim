@@ -41,8 +41,7 @@ namespace OpenSim.Grid.InventoryServer
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public override void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack,
-                                                     InventoryItemInfo itemCallBack)
+        public override void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback)
         {
         }
 

@@ -26,21 +26,34 @@
  */
 
 using System.Collections.Generic;
+
 using libsecondlife;
+
 using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Framework.Communications
 {
-    public delegate void InventoryFolderInfo(LLUUID userID, InventoryFolderImpl folderInfo);
+    /// <summary>
+    /// Callback used when a user's inventory is received from the inventory service
+    /// </summary>
+    public delegate void InventoryReceiptCallback(LLUUID userId, ICollection<InventoryFolderImpl> folders, ICollection<InventoryItemBase> items);
+                                                  
+    //public delegate void InventoryFolderInfo(LLUUID userID, InventoryFolderImpl folderInfo);
 
-    public delegate void InventoryItemInfo(LLUUID userID, InventoryItemBase itemInfo);
+    //public delegate void InventoryItemInfo(LLUUID userID, InventoryItemBase itemInfo);
 
     /// <summary>
     /// Defines all the operations one can perform on a user's inventory.
     /// </summary>
     public interface IInventoryServices
     {
-        void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack, InventoryItemInfo itemCallBack);
+        /// <summary>
+        /// Request the inventory for a user.  This is an asynchronous operation that will call the callback when the 
+        /// inventory has been received
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="callback"></param>
+        void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback);
         
         /// <summary>
         /// Add a new folder to the given user's inventory

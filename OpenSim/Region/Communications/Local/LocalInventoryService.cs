@@ -39,32 +39,38 @@ namespace OpenSim.Region.Communications.Local
     /// </summary>
     public class LocalInventoryService : InventoryServiceBase
     {
-        public override void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack,
-                                                     InventoryItemInfo itemCallBack)
+        public override void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback)
         {
-            List<InventoryFolderBase> folders = GetInventorySkeleton(userID);
-            
+            List<InventoryFolderBase> skeletonFolders = GetInventorySkeleton(userID);            
             InventoryFolderImpl rootFolder = null;
+            
+            ICollection<InventoryFolderImpl> folders = new List<InventoryFolderImpl>();
+            ICollection<InventoryItemBase> items = new List<InventoryItemBase>();
 
-            //need to make sure we send root folder first
-            foreach (InventoryFolderBase folder in folders)
+            // Need to retrieve the root folder on the first pass
+            foreach (InventoryFolderBase folder in skeletonFolders)
             {
                 if (folder.ParentID == LLUUID.Zero)
                 {
-                    rootFolder = RequestInventoryFolder(userID, folder, folderCallBack, itemCallBack);
+                    //rootFolder = RequestInventoryFolder(userID, folder, callback);
+                    rootFolder = new InventoryFolderImpl(folder);
+                    folders.Add(rootFolder);
                 }
             }
 
             if (rootFolder != null)
             {
-                foreach (InventoryFolderBase folder in folders)
+                foreach (InventoryFolderBase folder in skeletonFolders)
                 {
                     if (folder.ID != rootFolder.ID)
                     {
-                        RequestInventoryFolder(userID, folder, folderCallBack, itemCallBack);
+                        //RequestInventoryFolder(userID, folder, callback);
+                        folders.Add(new InventoryFolderImpl(folder));
                     }
                 }
             }
+            
+            callback(userID, folders, items);
         }
 
         public override void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder)
@@ -98,27 +104,6 @@ namespace OpenSim.Region.Communications.Local
             {
                 return true;
             }
-        }
-
-        /// <summary>
-        /// Send the given inventory folder and its item contents back to the requester.
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <param name="folder"></param>
-        private InventoryFolderImpl RequestInventoryFolder(LLUUID userID, InventoryFolderBase folder,
-                                                           InventoryFolderInfo folderCallBack,
-                                                           InventoryItemInfo itemCallBack)
-        {
-            InventoryFolderImpl newFolder = new InventoryFolderImpl(folder);
-            folderCallBack(userID, newFolder);
-
-            List<InventoryItemBase> items = RequestFolderItems(newFolder.ID);
-            foreach (InventoryItemBase item in items)
-            {
-                itemCallBack(userID, item);
-            }
-
-            return newFolder;
         }
     }
 }

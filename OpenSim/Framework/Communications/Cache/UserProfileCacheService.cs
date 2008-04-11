@@ -97,7 +97,7 @@ namespace OpenSim.Framework.Communications.Cache
             CachedUserInfo userInfo = GetUserDetails(userID);
             if (userInfo != null)
             {            
-                m_commsManager.InventoryService.RequestInventoryForUser(userID, userInfo.FolderReceive, userInfo.ItemReceive);
+                m_commsManager.InventoryService.RequestInventoryForUser(userID, userInfo.InventoryReceive);
             }
             else
             {
@@ -118,6 +118,14 @@ namespace OpenSim.Framework.Communications.Cache
                 return null;
         }
 
+        /// <summary>
+        /// Handle an inventory folder creation request from the client.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="folderID"></param>
+        /// <param name="folderType"></param>
+        /// <param name="folderName"></param>
+        /// <param name="parentID"></param>
         public void HandleCreateInventoryFolder(IClientAPI remoteClient, LLUUID folderID, ushort folderType,
                                                 string folderName, LLUUID parentID)
         {
@@ -189,6 +197,12 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
+        /// <summary>
+        /// Handle an inventory folder move request from the client.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="folderID"></param>
+        /// <param name="parentID"></param>
         public void HandleMoveInventoryFolder(IClientAPI remoteClient, LLUUID folderID, LLUUID parentID)
         {
             CachedUserInfo userProfile;

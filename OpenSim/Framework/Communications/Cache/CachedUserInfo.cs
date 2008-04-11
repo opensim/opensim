@@ -118,64 +118,82 @@ namespace OpenSim.Framework.Communications.Cache
                 }
             }
         }
+        
+        /// <summary>
+        /// Callback invoked when the inventory is received from an async request to the inventory service
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="inventoryCollection"></param>
+        public void InventoryReceive(LLUUID userID, ICollection<InventoryFolderImpl> folders, ICollection<InventoryItemBase> items)
+        {
+            // FIXME: Exceptions thrown upwards never appear on the console.  Could fix further up if these
+            // are simply being swallowed
+            try
+            {            
+                foreach (InventoryFolderImpl folder in folders)
+                {
+                    FolderReceive(userID, folder);
+                }
+                
+                foreach (InventoryItemBase item in items)
+                {
+                    ItemReceive(userID, item);
+                }
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[INVENTORY CACHE]: {0}", e);
+            }            
+        }
 
         /// <summary>
         /// Callback invoked when a folder is received from an async request to the inventory service.
         /// </summary>
         /// <param name="userID"></param>
         /// <param name="folderInfo"></param>
-        public void FolderReceive(LLUUID userID, InventoryFolderImpl folderInfo)
+        private void FolderReceive(LLUUID userID, InventoryFolderImpl folderInfo)
         {
-            // FIXME: Exceptions thrown upwards never appear on the console.  Could fix further up if these
-            // are simply being swallowed
-            try
-            {
 //                m_log.DebugFormat(
 //                    "[INVENTORY CACHE]: Received folder {0} {1} for user {2}", 
 //                    folderInfo.name, folderInfo.folderID, userID);
-                
-                if (userID == UserProfile.ID)
+            
+            if (userID == UserProfile.ID)
+            {
+                if (RootFolder == null)
                 {
-                    if (RootFolder == null)
+                    if (folderInfo.ParentID == LLUUID.Zero)
                     {
-                        if (folderInfo.ParentID == LLUUID.Zero)
-                        {
-                            m_rootFolder = folderInfo;
-                        }
+                        m_rootFolder = folderInfo;
                     }
-                    else if (RootFolder.ID == folderInfo.ParentID)
+                }
+                else if (RootFolder.ID == folderInfo.ParentID)
+                {
+                    if (!RootFolder.SubFolders.ContainsKey(folderInfo.ID))
                     {
-                        if (!RootFolder.SubFolders.ContainsKey(folderInfo.ID))
-                        {
-                            RootFolder.SubFolders.Add(folderInfo.ID, folderInfo);
-                        }
-                        else
-                        {
-                            AddPendingFolder(folderInfo);
-                        }                        
+                        RootFolder.SubFolders.Add(folderInfo.ID, folderInfo);
                     }
                     else
                     {
-                        InventoryFolderImpl folder = RootFolder.HasSubFolder(folderInfo.ParentID);
-                        if (folder != null)
+                        AddPendingFolder(folderInfo);
+                    }                        
+                }
+                else
+                {
+                    InventoryFolderImpl folder = RootFolder.HasSubFolder(folderInfo.ParentID);
+                    if (folder != null)
+                    {
+                        if (!folder.SubFolders.ContainsKey(folderInfo.ID))
                         {
-                            if (!folder.SubFolders.ContainsKey(folderInfo.ID))
-                            {
-                                folder.SubFolders.Add(folderInfo.ID, folderInfo);
-                            }
-                        }
-                        else
-                        {
-                            AddPendingFolder(folderInfo);
+                            folder.SubFolders.Add(folderInfo.ID, folderInfo);
                         }
                     }
-                    
-                    ResolvePendingFolders(folderInfo);
+                    else
+                    {
+                        AddPendingFolder(folderInfo);
+                    }
                 }
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[INVENTORY CACHE] {0}", e);
+                
+                ResolvePendingFolders(folderInfo);
             }
         }
 
@@ -187,7 +205,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="userID"></param>
         /// <param name="folderInfo"></param>        
-        public void ItemReceive(LLUUID userID, InventoryItemBase itemInfo)
+        private void ItemReceive(LLUUID userID, InventoryItemBase itemInfo)
         {
             if ((userID == UserProfile.ID) && (RootFolder != null))
             {
@@ -212,6 +230,11 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
+        /// <summary>
+        /// Add an item to the user's inventory
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="itemInfo"></param>
         public void AddItem(LLUUID userID, InventoryItemBase itemInfo)
         {
             if ((userID == UserProfile.ID) && HasInventory)
@@ -221,6 +244,11 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
+        /// <summary>
+        /// Update an item in the user's inventory
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="itemInfo"></param>
         public void UpdateItem(LLUUID userID, InventoryItemBase itemInfo)
         {
             if ((userID == UserProfile.ID) && HasInventory)
@@ -229,6 +257,12 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
+        /// <summary>
+        /// Delete an item from the user's inventory
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="item"></param>
+        /// <returns></returns>
         public bool DeleteItem(LLUUID userID, InventoryItemBase item)
         {
             bool result = false;
@@ -240,6 +274,7 @@ namespace OpenSim.Framework.Communications.Cache
                     m_commsManager.InventoryService.DeleteInventoryItem(userID, item);
                 }
             }
+            
             return result;
         }
     }

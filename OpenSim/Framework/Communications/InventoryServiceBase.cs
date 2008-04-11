@@ -158,8 +158,9 @@ namespace OpenSim.Framework.Communications
             return false;
         }      
         
-        public abstract void RequestInventoryForUser(LLUUID userID, InventoryFolderInfo folderCallBack,
-                                                     InventoryItemInfo itemCallBack);
+        // See IInventoryServices
+        public abstract void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback);
+        
         public abstract void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder);
         public abstract void MoveExistingInventoryFolder(InventoryFolderBase folder);
         public abstract void AddNewInventoryItem(LLUUID userID, InventoryItemBase item);
