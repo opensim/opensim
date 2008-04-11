@@ -158,9 +158,9 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="folderInfo"></param>
         private void FolderReceive(LLUUID userID, InventoryFolderImpl folderInfo)
         {
-            m_log.DebugFormat(
-                "[INVENTORY CACHE]: Received folder {0} {1} for user {2}", 
-                folderInfo.Name, folderInfo.ID, userID);
+//            m_log.DebugFormat(
+//                "[INVENTORY CACHE]: Received folder {0} {1} for user {2}", 
+//                folderInfo.Name, folderInfo.ID, userID);
             
             if (userID == UserProfile.ID)
             {
@@ -212,9 +212,9 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="folderInfo"></param>        
         private void ItemReceive(LLUUID userID, InventoryItemBase itemInfo)
         {
-            m_log.DebugFormat(
-                "[INVENTORY CACHE]: Received item {0} {1} for user {2}", 
-                itemInfo.Name, itemInfo.ID, userID);
+//            m_log.DebugFormat(
+//                "[INVENTORY CACHE]: Received item {0} {1} for user {2}", 
+//                itemInfo.Name, itemInfo.ID, userID);
             
             if ((userID == UserProfile.ID) && (RootFolder != null))
             {
