@@ -4,8 +4,8 @@
         <id name="ID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
             <generator class="assigned" /> 
         </id>
-        <property name="FirstName" type="String" length="32" />
-        <property name="SurName" type="String" length="32" />
+        <property name="FirstName" index="user_firstname" type="String" length="32" />
+        <property name="SurName" index="user_surname" type="String" length="32" />
         <property name="PasswordHash" type="String" length="32" />
         <property name="PasswordSalt" type="String" length="32" />
         <property name="WebLoginKey" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
