@@ -38,7 +38,8 @@ namespace OpenSim.Region.Communications.OGS1
 {
     public class OGS1InventoryService : IInventoryServices
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log 
+            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private string _inventoryServerUrl;
         private Dictionary<LLUUID, InventoryRequest> m_RequestingInventory = new Dictionary<LLUUID, InventoryRequest>();

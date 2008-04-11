@@ -39,13 +39,18 @@ namespace OpenSim.Region.Communications.Local
     /// </summary>
     public class LocalInventoryService : InventoryServiceBase
     {
+        private static readonly log4net.ILog m_log 
+            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        
         public override void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback)
         {
+            m_log.InfoFormat("[LOCAL INVENTORY SERVICE]: Requesting inventory for user {0}", userID);
+            
             List<InventoryFolderBase> skeletonFolders = GetInventorySkeleton(userID);            
             InventoryFolderImpl rootFolder = null;
             
-            ICollection<InventoryFolderImpl> folders = new List<InventoryFolderImpl>();
-            ICollection<InventoryItemBase> items = new List<InventoryItemBase>();
+            List<InventoryFolderImpl> folders = new List<InventoryFolderImpl>();
+            List<InventoryItemBase> items = new List<InventoryItemBase>();
 
             // Need to retrieve the root folder on the first pass
             foreach (InventoryFolderBase folder in skeletonFolders)
@@ -54,6 +59,7 @@ namespace OpenSim.Region.Communications.Local
                 {
                     rootFolder = new InventoryFolderImpl(folder);
                     folders.Add(rootFolder);
+                    items.AddRange(RequestFolderItems(rootFolder.ID));
                 }
             }
 
@@ -64,6 +70,7 @@ namespace OpenSim.Region.Communications.Local
                     if (folder.ID != rootFolder.ID)
                     {
                         folders.Add(new InventoryFolderImpl(folder));
+                        items.AddRange(RequestFolderItems(folder.ID));
                     }
                 }
             }
