@@ -1072,7 +1072,13 @@ namespace OpenSim.Region.Environment.Scenes
                                     heightvalue = 0;
 
                                 heightvalue = 100 - (heightvalue * 100) / 19;
-                                
+
+                                if (heightvalue > 255)
+                                    heightvalue = 255;
+
+                                if (heightvalue < 0)
+                                    heightvalue = 0;
+
                                 Color water = Color.FromArgb((int)heightvalue, (int)heightvalue, 255);
                                 mapbmp.SetPixel(x, (256 - y) - 1, water);
                             }
