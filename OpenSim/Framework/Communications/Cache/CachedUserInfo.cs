@@ -32,16 +32,24 @@ using libsecondlife;
 
 namespace OpenSim.Framework.Communications.Cache
 {
+    /// <summary>
+    /// Stores user profile and inventory data received from backend services for a particular user.
+    /// </summary>
     public class CachedUserInfo
     {
         private static readonly log4net.ILog m_log 
             = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         
-        private readonly CommunicationsManager m_parentCommsManager;
+        /// <summary>
+        /// The comms manager holds references to services (user, grid, inventory, etc.)
+        /// </summary>        
+        private readonly CommunicationsManager m_commsManager;
 
+        private UserProfileData m_userProfile;        
+        public UserProfileData UserProfile { get { return m_userProfile; } }
+        
         // FIXME: These need to be hidden behind accessors
         public InventoryFolderImpl RootFolder = null;
-        public UserProfileData UserProfile = null;
         
         /// <summary>
         /// Stores received folders for which we have not yet received the parents.
@@ -49,9 +57,15 @@ namespace OpenSim.Framework.Communications.Cache
         private IDictionary<LLUUID, IList<InventoryFolderImpl>> pendingCategorizationFolders 
             = new Dictionary<LLUUID, IList<InventoryFolderImpl>>();
 
-        public CachedUserInfo(CommunicationsManager commsManager)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="commsManager"></param>
+        /// <param name="userProfile"></param>
+        public CachedUserInfo(CommunicationsManager commsManager, UserProfileData userProfile)
         {
-            m_parentCommsManager = commsManager;
+            m_commsManager = commsManager;
+            m_userProfile = userProfile;
         }
         
         /// <summary>
@@ -197,7 +211,7 @@ namespace OpenSim.Framework.Communications.Cache
             if ((userID == UserProfile.ID) && (RootFolder != null))
             {
                 ItemReceive(userID, itemInfo);
-                m_parentCommsManager.InventoryService.AddNewInventoryItem(userID, itemInfo);
+                m_commsManager.InventoryService.AddNewInventoryItem(userID, itemInfo);
             }
         }
 
@@ -205,7 +219,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             if ((userID == UserProfile.ID) && (RootFolder != null))
             {
-                m_parentCommsManager.InventoryService.AddNewInventoryItem(userID, itemInfo);
+                m_commsManager.InventoryService.AddNewInventoryItem(userID, itemInfo);
             }
         }
 
@@ -217,7 +231,7 @@ namespace OpenSim.Framework.Communications.Cache
                 result = RootFolder.DeleteItem(item.ID);
                 if (result)
                 {
-                    m_parentCommsManager.InventoryService.DeleteInventoryItem(userID, item);
+                    m_commsManager.InventoryService.DeleteInventoryItem(userID, item);
                 }
             }
             return result;

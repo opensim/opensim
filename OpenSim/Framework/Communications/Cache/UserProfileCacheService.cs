@@ -35,12 +35,15 @@ using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Communications.Cache
 {
+    /// <summary>
+    /// Holds user profile information and retrieves it from backend services.
+    /// </summary>
     public class UserProfileCacheService
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// The comms manager holds the reference to this service
+        /// The comms manager holds references to services (user, grid, inventory, etc.)
         /// </summary>
         private readonly CommunicationsManager m_commsManager;
         
@@ -68,12 +71,12 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 if (!m_userProfiles.ContainsKey(userID))
                 {
-                    CachedUserInfo userInfo = new CachedUserInfo(m_commsManager);
-                    userInfo.UserProfile = m_commsManager.UserService.GetUserProfile(userID);
+                    UserProfileData userProfile = m_commsManager.UserService.GetUserProfile(userID);
+                    CachedUserInfo userInfo = new CachedUserInfo(m_commsManager, userProfile);
 
                     if (userInfo.UserProfile != null)
                     {
-                        // The inventory will be populated when the user actually enters the scene
+                        // The inventory for the user will be populated when they actually enter the scene
                         m_userProfiles.Add(userID, userInfo);
                     }
                     else
@@ -85,7 +88,7 @@ namespace OpenSim.Framework.Communications.Cache
         }            
 
         /// <summary>
-        /// Request the inventory data for the given user.  This will occur asynchronous if running on a grid
+        /// Request the inventory data for the given user.  This will occur asynchronously if running on a grid
         /// </summary>
         /// <param name="userID"></param>
         /// <param name="userInfo"></param>
