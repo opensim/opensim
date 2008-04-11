@@ -434,13 +434,15 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             LSL_Types.list SenseList = m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.GetSensorList(m_localID, m_itemID);
-            if ((number>=0)&&(number <= SenseList.Length))
+            if (SenseList != null)
             {
-                LLUUID SensedUUID = (LLUUID)SenseList.Data[number];
-                return resolveName(SensedUUID);
+                if ((number >= 0) && (number <= SenseList.Length))
+                {
+                    LLUUID SensedUUID = (LLUUID)SenseList.Data[number];
+                    return resolveName(SensedUUID);
+                }
             }
-            else
-                return String.Empty;
+            return String.Empty;
        }
 
         public LLUUID uuidDetectedKey(int number)
@@ -479,15 +481,18 @@ namespace OpenSim.Region.ScriptEngine.Common
         public EntityBase entityDetectedKey(int number)
         {
             LSL_Types.list SenseList = m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.GetSensorList(m_localID, m_itemID);
-            if ((number >= 0) && (number < SenseList.Length))
+            if (SenseList != null)
             {
-                LLUUID SensedUUID = (LLUUID)SenseList.Data[number];
-                EntityBase SensedObject = null;
-                lock (World.Entities)
+                if ((number >= 0) && (number < SenseList.Length))
                 {
-                    World.Entities.TryGetValue(SensedUUID, out SensedObject);
+                    LLUUID SensedUUID = (LLUUID)SenseList.Data[number];
+                    EntityBase SensedObject = null;
+                    lock (World.Entities)
+                    {
+                        World.Entities.TryGetValue(SensedUUID, out SensedObject);
+                    }
+                    return SensedObject;
                 }
-                return SensedObject;
             }
             return null;
         }
