@@ -550,7 +550,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_physicsActor.Flying = isFlying;
 
             m_scene.SwapRootAgentCount(false);
-            m_scene.CommsManager.UserProfileCacheService.UpdateUserInventory(m_uuid);
+            m_scene.CommsManager.UserProfileCacheService.RequestInventoryForUser(m_uuid);
             m_scene.AddCapsHandler(m_uuid);
             //if (!m_gotAllObjectsInScene)
             //{

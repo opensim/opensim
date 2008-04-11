@@ -59,7 +59,7 @@ namespace OpenSim
     public delegate void ConsoleCommand(string[] comParams);
 
     public class OpenSimMain : RegionApplicationBase, conscmd_callback
-    {
+    {        
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private string proxyUrl;
         private int proxyOffset = 0;

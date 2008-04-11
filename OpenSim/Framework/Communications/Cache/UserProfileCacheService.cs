@@ -77,16 +77,25 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                 }
             }
-        }
+        }            
 
-        public void UpdateUserInventory(LLUUID userID)
+        /// <summary>
+        /// Request the inventory data for the given user.  This will occur asynchronous if running on a grid
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="userInfo"></param>
+        public void RequestInventoryForUser(LLUUID userID)
         {
             CachedUserInfo userInfo = GetUserDetails(userID);
             if (userInfo != null)
-            {
-                RequestInventoryForUser(userID, userInfo);
+            {            
+                m_parent.InventoryService.RequestInventoryForUser(userID, userInfo.FolderReceive, userInfo.ItemReceive);
             }
-        }
+            else
+            {
+                m_log.ErrorFormat("[USER CACHE]: RequestInventoryForUser() - user profile for user {0} not found", userID);
+            }
+        }            
 
         public CachedUserInfo GetUserDetails(LLUUID userID)
         {
@@ -407,16 +416,6 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Request the inventory data for the given user.
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <param name="userInfo"></param>
-        private void RequestInventoryForUser(LLUUID userID, CachedUserInfo userInfo)
-        {
-            m_parent.InventoryService.RequestInventoryForUser(userID, userInfo.FolderReceive, userInfo.ItemReceive);
         }
     }
 }
