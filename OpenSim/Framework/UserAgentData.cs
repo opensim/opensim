@@ -204,5 +204,18 @@ namespace OpenSim.Framework
                 currentPos = value;
             }
         }
+
+        public float PositionX {
+            get { return currentPos.X; }
+            set { currentPos.X = value; }
+        }
+        public float PositionY {
+            get { return currentPos.Y; }
+            set { currentPos.Y = value; }
+        }
+        public float PositionZ {
+            get { return currentPos.Z; }
+            set { currentPos.Z = value; }
+        }
     }
 }
