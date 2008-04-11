@@ -39,21 +39,26 @@ namespace OpenSim.Framework.Communications.Cache
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        // Fields
-        private readonly CommunicationsManager m_parent;
+        /// <summary>
+        /// The comms manager holds the reference to this service
+        /// </summary>
+        private readonly CommunicationsManager m_commsManager;
+        
+        /// <summary>
+        /// Each user has a cached profile.
+        /// </summary>
         private readonly Dictionary<LLUUID, CachedUserInfo> m_userProfiles = new Dictionary<LLUUID, CachedUserInfo>();
 
-        public LibraryRootFolder libraryRoot = new LibraryRootFolder();
+        public readonly LibraryRootFolder libraryRoot = new LibraryRootFolder();
 
         // Methods
-        public UserProfileCacheService(CommunicationsManager parent)
+        public UserProfileCacheService(CommunicationsManager commsManager)
         {
-            m_parent = parent;
+            m_commsManager = commsManager;
         }
 
         /// <summary>
-        /// A new user has moved into a region in this instance
-        /// so get info from servers
+        /// A new user has moved into a region in this instance so retrieve their profile from the user service.
         /// </summary>
         /// <param name="userID"></param>
         public void AddNewUser(LLUUID userID)
@@ -63,8 +68,8 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 if (!m_userProfiles.ContainsKey(userID))
                 {
-                    CachedUserInfo userInfo = new CachedUserInfo(m_parent);
-                    userInfo.UserProfile = m_parent.UserService.GetUserProfile(userID);
+                    CachedUserInfo userInfo = new CachedUserInfo(m_commsManager);
+                    userInfo.UserProfile = m_commsManager.UserService.GetUserProfile(userID);
 
                     if (userInfo.UserProfile != null)
                     {
@@ -73,7 +78,7 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                     else
                     {
-                        m_log.ErrorFormat("[USER CACHE]: User profile for user {0} not found", userID);
+                        m_log.ErrorFormat("[USER CACHE]: User profile for user {0} not found.", userID);
                     }
                 }
             }
@@ -89,7 +94,7 @@ namespace OpenSim.Framework.Communications.Cache
             CachedUserInfo userInfo = GetUserDetails(userID);
             if (userInfo != null)
             {            
-                m_parent.InventoryService.RequestInventoryForUser(userID, userInfo.FolderReceive, userInfo.ItemReceive);
+                m_commsManager.InventoryService.RequestInventoryForUser(userID, userInfo.FolderReceive, userInfo.ItemReceive);
             }
             else
             {
@@ -97,6 +102,11 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }            
 
+        /// <summary>
+        /// Get the details of the given user.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns>null if no user details are found</returns>
         public CachedUserInfo GetUserDetails(LLUUID userID)
         {
             if (m_userProfiles.ContainsKey(userID))
@@ -128,7 +138,7 @@ namespace OpenSim.Framework.Communications.Cache
                             createdBaseFolder.ParentID = createdFolder.ParentID;
                             createdBaseFolder.Type = createdFolder.Type;
                             createdBaseFolder.Version = createdFolder.Version;
-                            m_parent.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, createdBaseFolder);
+                            m_commsManager.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, createdBaseFolder);
                         }
                     }
                     else
@@ -171,7 +181,7 @@ namespace OpenSim.Framework.Communications.Cache
                     baseFolder.ParentID = parentID;
                     baseFolder.Type = (short) type;
                     baseFolder.Version = userProfile.RootFolder.Version;
-                    m_parent.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, baseFolder);
+                    m_commsManager.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, baseFolder);
                 }
             }
         }
@@ -188,7 +198,7 @@ namespace OpenSim.Framework.Communications.Cache
                     baseFolder.Owner = remoteClient.AgentId;
                     baseFolder.ID = folderID;
                     baseFolder.ParentID = parentID;
-                    m_parent.InventoryService.MoveInventoryFolder(remoteClient.AgentId, baseFolder);
+                    m_commsManager.InventoryService.MoveInventoryFolder(remoteClient.AgentId, baseFolder);
                 }
             }
         }
