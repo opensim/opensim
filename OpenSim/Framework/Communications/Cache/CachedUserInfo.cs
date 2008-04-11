@@ -200,7 +200,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// Callback invoked when an item is received from an async request to the inventory service.
         /// 
-        /// FIXME: We're assuming here that items are always received after all the folders have been
+        /// We're assuming here that items are always received after all the folders have been
         /// received.
         /// </summary>
         /// <param name="userID"></param>

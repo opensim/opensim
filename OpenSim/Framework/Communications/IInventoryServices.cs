@@ -37,10 +37,6 @@ namespace OpenSim.Framework.Communications
     /// Callback used when a user's inventory is received from the inventory service
     /// </summary>
     public delegate void InventoryReceiptCallback(LLUUID userId, ICollection<InventoryFolderImpl> folders, ICollection<InventoryItemBase> items);
-                                                  
-    //public delegate void InventoryFolderInfo(LLUUID userID, InventoryFolderImpl folderInfo);
-
-    //public delegate void InventoryItemInfo(LLUUID userID, InventoryItemBase itemInfo);
 
     /// <summary>
     /// Defines all the operations one can perform on a user's inventory.

@@ -114,7 +114,6 @@ namespace OpenSim.Region.Communications.OGS1
                     {
                         rootFolder = new InventoryFolderImpl(folder);
                         folders.Add(rootFolder);
-                        //request.FolderCallBack(userID, newfolder);
                     }
                 }
 
@@ -125,14 +124,12 @@ namespace OpenSim.Region.Communications.OGS1
                         if (folder.ID != rootFolder.ID)
                         {
                             folders.Add(new InventoryFolderImpl(folder));
-                            //request.FolderCallBack(userID, newfolder);
                         }
                     }
 
                     foreach (InventoryItemBase item in response.AllItems)
                     {
                         items.Add(item);
-                        //request.ItemCallBack(userID, item);
                     }
                 }
                 
@@ -237,14 +234,10 @@ namespace OpenSim.Region.Communications.OGS1
         {
             public LLUUID UserID;
             public InventoryReceiptCallback Callback;
-            //public InventoryFolderInfo FolderCallBack;
-            //public InventoryItemInfo ItemCallBack;
 
             public InventoryRequest(LLUUID userId, InventoryReceiptCallback callback)
             {
                 UserID = userId;
-                //FolderCallBack = folderCall;
-                //ItemCallBack = itemCall;
                 Callback = callback;
             }
         }

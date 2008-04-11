@@ -52,7 +52,6 @@ namespace OpenSim.Region.Communications.Local
             {
                 if (folder.ParentID == LLUUID.Zero)
                 {
-                    //rootFolder = RequestInventoryFolder(userID, folder, callback);
                     rootFolder = new InventoryFolderImpl(folder);
                     folders.Add(rootFolder);
                 }
@@ -64,7 +63,6 @@ namespace OpenSim.Region.Communications.Local
                 {
                     if (folder.ID != rootFolder.ID)
                     {
-                        //RequestInventoryFolder(userID, folder, callback);
                         folders.Add(new InventoryFolderImpl(folder));
                     }
                 }
