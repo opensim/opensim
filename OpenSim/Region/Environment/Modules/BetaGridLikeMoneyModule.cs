@@ -26,20 +26,38 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
+using System.Xml;
 using libsecondlife;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using Nwc.XmlRpc;
+
 using MoneyTransferArgs = OpenSim.Region.Environment.Scenes.EventManager.MoneyTransferArgs;
 
 namespace OpenSim.Region.Environment.Modules
-{
+{   
+    /// <summary>
+    /// Demo Economy/Money Module.  This is not a production quality money/economy module!
+    /// This is a demo for you to use when making one that works for you.
+    /// </summary>
     public class BetaGridLikeMoneyModule: IRegionModule
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
+        
+        /// <summary>
+        /// Region UUIDS indexed by AgentID
+        /// </summary>
+        Dictionary<LLUUID, LLUUID> m_rootAgents = new Dictionary<LLUUID, LLUUID>();
+        
+        /// <summary>
+        /// Scenes by Region Handle
+        /// </summary>
         private Dictionary<ulong,Scene> m_scenel = new Dictionary<ulong,Scene>();
 
         private IConfigSource m_gConfig;
@@ -55,7 +73,7 @@ namespace OpenSim.Region.Environment.Modules
         private Dictionary<LLUUID, int> m_KnownClientFunds = new Dictionary<LLUUID, int>();
 
         private bool gridmode = false;
-
+        private Scene XMLRPCHandler;
         private float EnergyEfficiency = 0f;
         private int ObjectCapacity = 45000;
         private int ObjectCount = 0;
@@ -73,11 +91,21 @@ namespace OpenSim.Region.Environment.Modules
         private int PriceUpload = 0;
         private int TeleportMinPrice = 0;
         private int UserLevelPaysFees = 2;
+        private string m_MoneyAddress = String.Empty;
+        private string m_LandAddress = String.Empty;
 
         float TeleportPriceExponent = 0f;
 
+        /// <summary>
+        /// Where Stipends come from and Fees go to.
+        /// </summary>
         LLUUID EconomyBaseAccount = LLUUID.Zero;
 
+        /// <summary>
+        /// Startup
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="config"></param>
         public void Initialise(Scene scene, IConfigSource config)
         {
             m_gConfig = config;
@@ -94,6 +122,31 @@ namespace OpenSim.Region.Environment.Modules
             {
                 lock (m_scenel)
                 {
+                    if (m_scenel.Count == 0)
+                    {
+                       XMLRPCHandler = scene;
+
+                       // To use the following you need to add:
+                       // -helperuri <ADDRESS TO HERE OR grid MONEY SERVER> 
+                       // to the command line parameters you use to start up your client
+                       // This commonly looks like -helperuri http://127.0.0.1:9000/
+
+                       if (m_MoneyAddress.Length > 0)
+                       {
+                           // Centralized grid structure using OpenSimWi Redux revision 9+
+                           scene.AddXmlRPCHandler("dynamic_balance_update_request", GridMoneyUpdate);
+                       }
+                       else
+                       {
+                           // Local Server..  enables functionality only.
+                           scene.AddXmlRPCHandler("getCurrencyQuote", quote_func);
+                           scene.AddXmlRPCHandler("buyCurrency", buy_func);
+                           scene.AddXmlRPCHandler("preflightBuyLandPrep", preflightBuyLandPrep_func);
+                           scene.AddXmlRPCHandler("buyLandPrep", landBuy_func);
+                       }
+
+
+                    }
 
                     if (m_scenel.ContainsKey(scene.RegionInfo.RegionHandle))
                     {
@@ -109,10 +162,18 @@ namespace OpenSim.Region.Environment.Modules
                 scene.EventManager.OnMoneyTransfer += MoneyTransferAction;
                 scene.EventManager.OnClientClosed += ClientClosed;
                 scene.EventManager.OnNewInventoryItemUploadComplete += NewInventoryItemEconomyHandler;
+                scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
+                scene.EventManager.OnMakeChildAgent += MakeChildAgent;
+                scene.EventManager.OnClientClosed += ClientLoggedOut;
                 
             }
         }
-
+        /// <summary>
+        /// Parse Configuration
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="startupConfig"></param>
+        /// <param name="config"></param>
         private void ReadConfigAndPopulate(Scene scene, IConfig startupConfig, string config)
         {
             if (config == "Startup" && startupConfig != null)
@@ -145,12 +206,18 @@ namespace OpenSim.Region.Environment.Modules
                 m_stipend = startupConfig.GetInt("UserStipend", 500);
                 m_minFundsBeforeRefresh = startupConfig.GetInt("IssueStipendWhenClientIsBelowAmount", 10);
                 m_keepMoneyAcrossLogins = startupConfig.GetBoolean("KeepMoneyAcrossLogins", true);
+                m_MoneyAddress = startupConfig.GetString("CurrencyServer", String.Empty);
+                m_LandAddress = startupConfig.GetString("LandServer", String.Empty);
             }
             
             // Send ObjectCapacity to Scene..  Which sends it to the SimStatsReporter.
             scene.SetObjectCapacity(ObjectCapacity);
         }
 
+        /// <summary>
+        /// New Client Event Handler
+        /// </summary>
+        /// <param name="client"></param>
         private void OnNewClient(IClientAPI client)
         {
             // Here we check if we're in grid mode
@@ -159,7 +226,58 @@ namespace OpenSim.Region.Environment.Modules
 
             if (gridmode)
             {
-                CheckExistAndRefreshFunds(client.AgentId);
+                if (m_MoneyAddress.Length == 0)
+                {
+
+                    CheckExistAndRefreshFunds(client.AgentId);
+                }
+                else
+                {
+                    //client.SecureSessionId;
+                    Scene s = GetRandomScene();
+                    if (s != null)
+                    {
+                        //s.RegionInfo.RegionHandle;
+                        LLUUID agentID = LLUUID.Zero;
+                        int funds = 0;
+                        
+                        Hashtable hbinfo = GetBalanceForUserFromMoneyServer(client.AgentId, client.SecureSessionId, s.RegionInfo.originRegionID.ToString(), s.RegionInfo.regionSecret);
+                        if ((bool)hbinfo["success"] == true)
+                        {
+
+                            Helpers.TryParse((string)hbinfo["agentId"], out agentID);
+                            try
+                            {
+                                funds = (Int32)hbinfo["funds"];
+                            }
+                            catch (ArgumentException)
+                            {
+                            }
+                            catch (FormatException)
+                            {
+                            }
+                            catch (OverflowException)
+                            {
+                                m_log.ErrorFormat("[MONEY]: While getting the Currency for user {0}, the return funds overflowed.", agentID);
+                                client.SendAlertMessage("Unable to get your money balance, money operations will be unavailable");
+                            }
+                            catch (InvalidCastException)
+                            {
+                                funds = 0;
+                            }
+
+                            m_KnownClientFunds[agentID] = funds;
+                        }
+                        else
+                        {
+                            m_log.WarnFormat("[MONEY]: Getting Money for user {0} failed with the following message:{1}", agentID, (string)hbinfo["errorMessage"]);
+                            client.SendAlertMessage((string)hbinfo["errorMessage"]);
+                        }
+                        SendMoneyBalance(client, agentID, client.SessionId, LLUUID.Zero);
+
+                    }
+                }
+                 
             }
             else
             {
@@ -170,19 +288,34 @@ namespace OpenSim.Region.Environment.Modules
             client.OnEconomyDataRequest += EconomyDataRequestHandler;
             client.OnMoneyBalanceRequest += SendMoneyBalance;
             client.OnLogout += ClientClosed;
-            
+
 
         }
 
+        #region event Handlers
+
+        /// <summary>
+        /// When the client closes the connection we remove their accounting info from memory to free up resources.
+        /// </summary>
+        /// <param name="AgentID"></param>
         public void ClientClosed(LLUUID AgentID)
         {
             lock (m_KnownClientFunds)
             {
-                if (!m_keepMoneyAcrossLogins)
+                if (m_keepMoneyAcrossLogins && m_MoneyAddress.Length == 0)
+                {
+                }
+                else
+                {
                     m_KnownClientFunds.Remove(AgentID);
+                }
             }
         }
 
+        /// <summary>
+        /// Event called Economy Data Request handler.
+        /// </summary>
+        /// <param name="agentId"></param>
         public void EconomyDataRequestHandler(LLUUID agentId)
         {
             IClientAPI user = LocateClientObject(agentId);
@@ -196,6 +329,11 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
+        /// <summary>
+        /// THis method gets called when someone pays someone else as a gift.
+        /// </summary>
+        /// <param name="osender"></param>
+        /// <param name="e"></param>
         private void MoneyTransferAction (Object osender, MoneyTransferArgs e)
         {
             IClientAPI sender = null;
@@ -228,6 +366,13 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
+        /// <summary>
+        /// A new inventory item came in, so we must charge if we're configured to do so!
+        /// </summary>
+        /// <param name="Uploader"></param>
+        /// <param name="AssetID"></param>
+        /// <param name="AssetName"></param>
+        /// <param name="userlevel"></param>
         private void NewInventoryItemEconomyHandler(LLUUID Uploader, LLUUID AssetID, String AssetName, int userlevel)
         {
             // Presumably a normal grid would actually send this information to a server somewhere.
@@ -244,6 +389,144 @@ namespace OpenSim.Region.Environment.Modules
 
         }
 
+        /// <summary>
+        /// Event Handler for when a root agent becomes a child agent
+        /// </summary>
+        /// <param name="avatar"></param>
+        private void MakeChildAgent(ScenePresence avatar)
+        {
+
+            lock (m_rootAgents)
+            {
+                if (m_rootAgents.ContainsKey(avatar.UUID))
+                {
+                    if (m_rootAgents[avatar.UUID] == avatar.Scene.RegionInfo.originRegionID)
+                    {
+                        m_rootAgents.Remove(avatar.UUID);
+                        m_log.Info("[MONEY]: Removing " + avatar.Firstname + " " + avatar.Lastname + " as a root agent");
+                    }
+
+                }
+            }
+
+        }
+
+        /// <summary>
+        /// Event Handler for when the client logs out.
+        /// </summary>
+        /// <param name="AgentId"></param>
+        private void ClientLoggedOut(LLUUID AgentId)
+        {
+            lock (m_rootAgents)
+            {
+                if (m_rootAgents.ContainsKey(AgentId))
+                {
+                    m_rootAgents.Remove(AgentId);
+                    //m_log.Info("[MONEY]: Removing " + AgentId + ". Agent logged out.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Call this when the client disconnects.
+        /// </summary>
+        /// <param name="client"></param>
+        public void ClientClosed(IClientAPI client)
+        {
+            ClientClosed(client.AgentId);
+        }
+
+        /// <summary>
+        /// Event Handler for when an Avatar enters one of the parcels in the simulator.
+        /// </summary>
+        /// <param name="avatar"></param>
+        /// <param name="localLandID"></param>
+        /// <param name="regionID"></param>
+        private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, LLUUID regionID)
+        {
+            lock (m_rootAgents)
+            {
+                if (m_rootAgents.ContainsKey(avatar.UUID))
+                {
+                    if (avatar.Scene.RegionInfo.originRegionID != m_rootAgents[avatar.UUID])
+                    {
+                        m_rootAgents[avatar.UUID] = avatar.Scene.RegionInfo.originRegionID;
+                        //m_log.Info("[MONEY]: Claiming " + avatar.Firstname + " " + avatar.Lastname + " in region:" + avatar.RegionHandle + ".");
+                        // Claim User! my user!  Mine mine mine!
+                        if (m_MoneyAddress.Length > 0)
+                        {
+                            Scene RegionItem = GetSceneByUUID(regionID);
+                            if (RegionItem != null)
+                            {
+                                Hashtable hresult = claim_user(avatar.UUID, avatar.ControllingClient.SecureSessionId, regionID, RegionItem.RegionInfo.regionSecret);
+                                if ((bool)hresult["success"] == true)
+                                {
+                                    int funds = 0;
+                                    try
+                                    {
+                                        funds = (Int32)hresult["funds"];
+                                    }
+                                    catch (InvalidCastException)
+                                    {
+
+                                    }
+                                    SetLocalFundsForAgentID(avatar.UUID, funds);
+                                }
+                                else
+                                {
+                                    avatar.ControllingClient.SendAgentAlertMessage((string)hresult["errorMessage"], true);
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    lock (m_rootAgents)
+                    {
+                        m_rootAgents.Add(avatar.UUID, avatar.Scene.RegionInfo.originRegionID);
+                    }
+                    if (m_MoneyAddress.Length > 0)
+                    {
+                        Scene RegionItem = GetSceneByUUID(regionID);
+                        if (RegionItem != null)
+                        {
+                            Hashtable hresult = claim_user(avatar.UUID, avatar.ControllingClient.SecureSessionId, regionID, RegionItem.RegionInfo.regionSecret);
+                            if ((bool)hresult["success"] == true)
+                            {
+                                int funds = 0;
+                                try
+                                {
+                                    funds = (Int32)hresult["funds"];
+                                }
+                                catch (InvalidCastException)
+                                {
+
+                                }
+                                SetLocalFundsForAgentID(avatar.UUID, funds);
+                            }
+                            else
+                            {
+                                avatar.ControllingClient.SendAgentAlertMessage((string)hresult["errorMessage"], true);
+                            }
+                        }
+                    }
+
+                    //m_log.Info("[MONEY]: Claiming " + avatar.Firstname + " " + avatar.Lastname + " in region:" + avatar.RegionHandle + ".");
+                }
+            }
+            //m_log.Info("[FRIEND]: " + avatar.Name + " status:" + (!avatar.IsChildAgent).ToString());
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Transfer money  This currently does Gifts only.
+        /// </summary>
+        /// <param name="Sender"></param>
+        /// <param name="Receiver"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
         private bool doMoneyTranfer(LLUUID Sender, LLUUID Receiver, int amount)
         {
             bool result = false;
@@ -267,10 +550,20 @@ namespace OpenSim.Region.Environment.Modules
                                 // Make a record for them so they get the updated balance when they login
                                 CheckExistAndRefreshFunds(Receiver);
                             }
+                            if (m_enabled)
+                            {
+                                if (m_MoneyAddress.Length == 0)
+                                {
+                                    //Add the amount to the Receiver's funds
+                                    m_KnownClientFunds[Receiver] += amount;
+                                    result = true;
+                                }
+                                else
+                                {
 
-                            //Add the amount to the Receiver's funds
-                            m_KnownClientFunds[Receiver] += amount;
-                            result = true;
+                                    result = TransferMoneyonMoneyServer(Sender, Receiver, amount);
+                                }
+                            }
                         }
                         else
                         {
@@ -286,7 +579,12 @@ namespace OpenSim.Region.Environment.Modules
             }
             return result;
         }
-
+        #region Utility Helpers
+        /// <summary>
+        /// Locates a IClientAPI for the client specified
+        /// </summary>
+        /// <param name="AgentID"></param>
+        /// <returns></returns>
         private IClientAPI LocateClientObject(LLUUID AgentID)
         {
             ScenePresence tPresence = null;
@@ -314,11 +612,71 @@ namespace OpenSim.Region.Environment.Modules
             return null;
         }
 
-        public void ClientClosed(IClientAPI client)
+        private Scene LocateSceneClientIn(LLUUID AgentId)
         {
-            ClientClosed(client.AgentId);
+            lock (m_scenel)
+            {
+                foreach (Scene _scene in m_scenel.Values)
+                {
+                    ScenePresence tPresence = _scene.GetScenePresence(AgentId);
+                    if (tPresence != null)
+                    {
+                        if (!tPresence.IsChildAgent)
+                        {
+                            return _scene;
+                        }
+                    }
+
+                }
+
+            }
+            return null;
         }
 
+        /// <summary>
+        /// Utility function Gets a Random scene in the instance.  For when which scene exactly you're doing something with doesn't matter
+        /// </summary>
+        /// <returns></returns>
+        public Scene GetRandomScene()
+        {
+            lock (m_scenel)
+            {
+                foreach (Scene rs in m_scenel.Values)
+                    return rs;
+            }
+            return null;
+
+        }
+        /// <summary>
+        /// Utility function to get a Scene by RegionID in a module
+        /// </summary>
+        /// <param name="RegionID"></param>
+        /// <returns></returns>
+        public Scene GetSceneByUUID(LLUUID RegionID)
+        {
+            lock (m_scenel)
+            {
+                foreach (Scene rs in m_scenel.Values)
+                {
+                    if (rs.RegionInfo.originRegionID == RegionID)
+                    {
+                        return rs;
+                    }
+                }
+            }
+            return null;
+        }
+        #endregion
+
+
+
+        /// <summary>
+        /// Sends the the stored money balance to the client
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="agentID"></param>
+        /// <param name="SessionID"></param>
+        /// <param name="TransactionID"></param>
         public void SendMoneyBalance(IClientAPI client, LLUUID agentID, LLUUID SessionID, LLUUID TransactionID)
         {
             if (client.AgentId == agentID && client.SessionId == SessionID)
@@ -342,6 +700,11 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
+        #region local Fund Management
+        /// <summary>
+        /// Ensures that the agent accounting data is set up in this instance.
+        /// </summary>
+        /// <param name="agentID"></param>
         private void CheckExistAndRefreshFunds(LLUUID agentID)
         {
             lock (m_KnownClientFunds)
@@ -359,7 +722,11 @@ namespace OpenSim.Region.Environment.Modules
                 }
             }
         }
-
+        /// <summary>
+        /// Gets the amount of Funds for an agent
+        /// </summary>
+        /// <param name="AgentID"></param>
+        /// <returns></returns>
         private int GetFundsForAgentID(LLUUID AgentID)
         {
             int returnfunds = 0;
@@ -376,6 +743,488 @@ namespace OpenSim.Region.Environment.Modules
             }
             return returnfunds;
         }
+        private void SetLocalFundsForAgentID(LLUUID AgentID, int amount)
+        {
+            lock (m_KnownClientFunds)
+            {
+                if (m_KnownClientFunds.ContainsKey(AgentID))
+                {
+                    m_KnownClientFunds[AgentID] = amount;
+                }
+                else
+                {
+                    m_KnownClientFunds.Add(AgentID, amount);
+                }
+            }
+
+        }
+
+        #endregion
+        
+        /// <summary>
+        /// Gets the current balance for the user from the Grid Money Server
+        /// </summary>
+        /// <param name="agentId"></param>
+        /// <param name="secureSessionID"></param>
+        /// <param name="regionId"></param>
+        /// <param name="regionSecret"></param>
+        /// <returns></returns>
+        public Hashtable GetBalanceForUserFromMoneyServer(LLUUID agentId, LLUUID secureSessionID, LLUUID regionId, string regionSecret)
+        {
+
+            Hashtable MoneyBalanceRequestParams = new Hashtable();
+            MoneyBalanceRequestParams["agentId"] = agentId.ToString();
+            MoneyBalanceRequestParams["secureSessionId"] = secureSessionID.ToString();
+            MoneyBalanceRequestParams["regionId"] = regionId.ToString();
+            MoneyBalanceRequestParams["secret"] = regionSecret;
+            MoneyBalanceRequestParams["currencySecret"] = ""; // per - region/user currency secret gotten from the money system
+
+            Hashtable MoneyRespData = genericCurrencyXMLRPCRequest(MoneyBalanceRequestParams, "simulator_user_balance_request");
+
+            return MoneyRespData;
+        }
+        
+ 
+
+        /// <summary>
+        /// Generic XMLRPC client abstraction
+        /// </summary>
+        /// <param name="ReqParams">Hashtable containing parameters to the method</param>
+        /// <param name="method">Method to invoke</param>
+        /// <returns>Hashtable with success=>bool and other values</returns>
+        public Hashtable genericCurrencyXMLRPCRequest(Hashtable ReqParams, string method)
+        {
+            ArrayList SendParams = new ArrayList();
+            SendParams.Add(ReqParams);
+            // Send Request
+            XmlRpcResponse MoneyResp;
+            try
+            {
+                XmlRpcRequest BalanceRequestReq = new XmlRpcRequest(method, SendParams);
+                MoneyResp = BalanceRequestReq.Send(m_MoneyAddress, 30000);
+            }
+            catch (WebException ex)
+            {
+
+                m_log.ErrorFormat(
+                    "[MONEY]: Unable to connect to Money Server {0}.  Exception {1}",
+                    m_MoneyAddress, ex);
+
+                Hashtable ErrorHash = new Hashtable();
+                ErrorHash["success"] = false;
+                ErrorHash["errorMessage"] = "Unable to manage your money at this time. Purchases may be unavailable";
+                ErrorHash["errorURI"] = "";
+
+                return ErrorHash;
+                //throw (ex);
+            }
+            catch (SocketException ex)
+            {
+
+                m_log.ErrorFormat(
+                    "[MONEY]: Unable to connect to Money Server {0}.  Exception {1}",
+                    m_MoneyAddress, ex);
+
+                Hashtable ErrorHash = new Hashtable();
+                ErrorHash["success"] = false;
+                ErrorHash["errorMessage"] = "Unable to manage your money at this time. Purchases may be unavailable";
+                ErrorHash["errorURI"] = "";
+
+                return ErrorHash;
+                //throw (ex);
+            }
+            catch (XmlException ex)
+            {
+                m_log.ErrorFormat(
+                   "[MONEY]: Unable to connect to Money Server {0}.  Exception {1}",
+                   m_MoneyAddress, ex);
+
+                Hashtable ErrorHash = new Hashtable();
+                ErrorHash["success"] = false;
+                ErrorHash["errorMessage"] = "Unable to manage your money at this time. Purchases may be unavailable";
+                ErrorHash["errorURI"] = "";
+
+                return ErrorHash;
+
+            }
+            if (MoneyResp.IsFault)
+            {
+                Hashtable ErrorHash = new Hashtable();
+                ErrorHash["success"] = false;
+                ErrorHash["errorMessage"] = "Unable to manage your money at this time. Purchases may be unavailable";
+                ErrorHash["errorURI"] = "";
+
+                return ErrorHash;
+
+            }
+            Hashtable MoneyRespData = (Hashtable)MoneyResp.Value;
+
+            return MoneyRespData;
+        }
+        /// <summary>
+        /// This informs the Money Grid Server that the avatar is in this simulator
+        /// </summary>
+        /// <param name="agentId"></param>
+        /// <param name="secureSessionID"></param>
+        /// <param name="regionId"></param>
+        /// <param name="regionSecret"></param>
+        /// <returns></returns>
+        public Hashtable claim_user(LLUUID agentId, LLUUID secureSessionID, LLUUID regionId, string regionSecret)
+        {
+
+            Hashtable MoneyBalanceRequestParams = new Hashtable();
+            MoneyBalanceRequestParams["agentId"] = agentId.ToString();
+            MoneyBalanceRequestParams["secureSessionId"] = secureSessionID.ToString();
+            MoneyBalanceRequestParams["regionId"] = regionId.ToString();
+            MoneyBalanceRequestParams["secret"] = regionSecret;
+
+            Hashtable MoneyRespData = genericCurrencyXMLRPCRequest(MoneyBalanceRequestParams, "simulator_claim_user_request");
+            IClientAPI sendMoneyBal = LocateClientObject(agentId);
+            if (sendMoneyBal != null)
+            {
+                SendMoneyBalance(sendMoneyBal, agentId, sendMoneyBal.SessionId, LLUUID.Zero);
+            }
+            return MoneyRespData;
+        }
+
+        /// <summary>
+        /// Informs the Money Grid Server of a transfer.
+        /// </summary>
+        /// <param name="sourceId"></param>
+        /// <param name="destId"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
+        public bool TransferMoneyonMoneyServer(LLUUID sourceId, LLUUID destId, int amount)
+        {
+            string description = "Gift";
+            int aggregatePermInventory = 0;
+            int aggregatePermNextOwner = 0;
+            int flags = 0;
+            int transactiontype = 0;
+            bool rvalue = false;
+
+            IClientAPI cli = LocateClientObject(sourceId);
+            if (cli != null)
+            {
+
+                Scene userScene = null;
+                lock (m_rootAgents)
+                {
+                    userScene = GetSceneByUUID(m_rootAgents[sourceId]);
+                }
+                if (userScene != null)
+                {
+                    Hashtable ht = new Hashtable();
+                    ht["agentId"] = sourceId.ToString();
+                    ht["secureSessionId"] = cli.SecureSessionId.ToString();
+                    ht["regionId"] = userScene.RegionInfo.originRegionID.ToString();
+                    ht["secret"] = userScene.RegionInfo.regionSecret;
+                    ht["currencySecret"] = " ";
+                    ht["destId"] = destId.ToString();
+                    ht["cash"] = amount;
+                    ht["aggregatePermInventory"] = aggregatePermInventory;
+                    ht["aggregatePermNextOwner"] = aggregatePermNextOwner;
+                    ht["flags"] = flags;
+                    ht["transactionType"] = transactiontype;
+                    ht["description"] = description;
+                    
+                    Hashtable hresult = genericCurrencyXMLRPCRequest(ht, "region_move_money");
+
+                    if ((bool)hresult["success"] == true)
+                    {
+                        int funds1 = 0;
+                        int funds2 = 0;
+                        try
+                        {
+                            funds1 = (Int32)hresult["funds"];
+                        }
+                        catch(InvalidCastException)
+                        {
+                            funds1 = 0;
+                        }
+                        SetLocalFundsForAgentID(sourceId, funds1);
+                        if (m_KnownClientFunds.ContainsKey(destId))
+                        {
+                            try
+                            {
+                                funds2 = (Int32)hresult["funds2"];
+                            }
+                            catch (InvalidCastException)
+                            {
+                                funds2 = 0;
+                            }
+                            SetLocalFundsForAgentID(destId, funds2);
+                        }
+
+
+                        rvalue = true;
+                    }
+                    else
+                    {
+                        cli.SendAgentAlertMessage((string)hresult["errorMessage"], true);
+                    }
+
+                }
+            }
+            else
+            {
+                m_log.ErrorFormat("[MONEY]: Client {0} not found", sourceId.ToString());
+            }
+
+            return rvalue;
+
+        }
+
+
+        public XmlRpcResponse GridMoneyUpdate(XmlRpcRequest request)
+        {
+            m_log.Debug("[MONEY]: Dynamic balance update called.");
+            Hashtable requestData = (Hashtable)request.Params[0];
+
+            if (requestData.ContainsKey("agentId"))
+            {
+                LLUUID agentId = LLUUID.Zero;
+
+                Helpers.TryParse((string)requestData["agentId"], out agentId);
+                if (agentId != LLUUID.Zero)
+                {
+                    IClientAPI aClient = LocateClientObject(agentId);
+                    if (aClient != null)
+                    {
+                        Scene s = LocateSceneClientIn(agentId);
+                        if (s != null)
+                        {
+                            if (m_MoneyAddress.Length > 0)
+                            {
+                                Hashtable hbinfo = GetBalanceForUserFromMoneyServer(aClient.AgentId, aClient.SecureSessionId, s.RegionInfo.originRegionID.ToString(), s.RegionInfo.regionSecret);
+                                if ((bool)hbinfo["success"] == true)
+                                {
+                                    int funds = 0;
+                                    Helpers.TryParse((string)hbinfo["agentId"], out agentId);
+                                    try
+                                    {
+                                        funds = (Int32)hbinfo["funds"];
+                                    }
+                                    catch (ArgumentException)
+                                    {
+                                    }
+                                    catch (FormatException)
+                                    {
+                                    }
+                                    catch (OverflowException)
+                                    {
+                                        m_log.ErrorFormat("[MONEY]: While getting the Currency for user {0}, the return funds overflowed.", agentId);
+                                        aClient.SendAlertMessage("Unable to get your money balance, money operations will be unavailable");
+                                    }
+                                    catch (InvalidCastException)
+                                    {
+                                        funds = 0;
+                                    }
+
+                                    SetLocalFundsForAgentID(agentId, funds);
+                                }
+                                else
+                                {
+                                    m_log.WarnFormat("[MONEY]: Getting Money for user {0} failed with the following message:{1}", agentId, (string)hbinfo["errorMessage"]);
+                                    aClient.SendAlertMessage((string)hbinfo["errorMessage"]);
+                                }
+                            }
+                            SendMoneyBalance(aClient, agentId, aClient.SessionId, LLUUID.Zero);
+                        }
+                        else
+                        {
+                            m_log.Debug("[MONEY]: Got balance request update for agent that is here, but couldn't find which scene.");
+                        }
+                    }
+                    else
+                    {
+                        m_log.Debug("[MONEY]: Got balance request update for agent that isn't here.");
+                    }
+
+                }
+                else
+                {
+                    m_log.Debug("[MONEY]: invalid agentId specified, dropping.");
+                }
+            }
+            else
+            {
+                m_log.Debug("[MONEY]: no agentId specified, dropping.");
+            }
+            XmlRpcResponse r = new XmlRpcResponse();
+            Hashtable rparms = new Hashtable();
+            rparms["success"] = true;
+            
+            r.Value = rparms;
+            return r;
+        }
+
+# region Standalone box enablers only
+
+        public XmlRpcResponse quote_func(XmlRpcRequest request)
+        {
+            Hashtable requestData = (Hashtable)request.Params[0];
+            LLUUID agentId = LLUUID.Zero;
+            int amount = 0;
+            Hashtable quoteResponse = new Hashtable();
+            XmlRpcResponse returnval = new XmlRpcResponse();
+
+            if (requestData.ContainsKey("agentId") && requestData.ContainsKey("currencyBuy"))
+            {
+                Helpers.TryParse((string)requestData["agentId"], out agentId);
+                try
+                {
+                    amount = (Int32)requestData["currencyBuy"];
+                }
+                catch (InvalidCastException)
+                {
+
+                }
+                Hashtable currencyResponse = new Hashtable();
+                currencyResponse.Add("estimatedCost", 0);
+                currencyResponse.Add("currencyBuy", amount);
+                
+                quoteResponse.Add("success", true);
+                quoteResponse.Add("currency", currencyResponse);
+                quoteResponse.Add("confirm", "asdfad9fj39ma9fj");
+                
+                returnval.Value = quoteResponse;
+                return returnval;
+            }
+
+            
+            
+            quoteResponse.Add("success", false);
+            quoteResponse.Add("errorMessage", "Invalid parameters passed to the quote box");
+            quoteResponse.Add("errorURI", "http://www.opensimulator.org/wiki");
+            returnval.Value = quoteResponse;
+            return returnval;
+        }
+        public XmlRpcResponse buy_func(XmlRpcRequest request)
+        {
+
+            Hashtable requestData = (Hashtable)request.Params[0];
+            LLUUID agentId = LLUUID.Zero;
+            int amount = 0;
+            if (requestData.ContainsKey("agentId") && requestData.ContainsKey("currencyBuy"))
+            {
+                Helpers.TryParse((string)requestData["agentId"], out agentId);
+                try
+                {
+                    amount = (Int32)requestData["currencyBuy"];
+                }
+                catch (InvalidCastException)
+                {
+
+                }
+                if (agentId != LLUUID.Zero)
+                {
+                    lock (m_KnownClientFunds)
+                    {
+                        if (m_KnownClientFunds.ContainsKey(agentId))
+                        {
+                            m_KnownClientFunds[agentId] += amount;
+                        }
+                        else
+                        {
+                            m_KnownClientFunds.Add(agentId, amount);
+                        }
+                    }
+                    IClientAPI client = LocateClientObject(agentId);
+                    if (client != null)
+                    {
+                        SendMoneyBalance(client, agentId, client.SessionId, LLUUID.Zero);
+                    }
+                }
+            }
+            XmlRpcResponse returnval = new XmlRpcResponse();
+            Hashtable returnresp = new Hashtable();
+            returnresp.Add("success", true);
+            returnval.Value = returnresp;
+            return returnval;
+        }
+
+        public XmlRpcResponse preflightBuyLandPrep_func(XmlRpcRequest request)
+        {
+            XmlRpcResponse ret = new XmlRpcResponse();
+            Hashtable retparam = new Hashtable();
+            Hashtable membershiplevels = new Hashtable();
+            ArrayList levels = new ArrayList();
+            Hashtable level = new Hashtable();
+            level.Add("id", "00000000-0000-0000-0000-000000000000");
+            level.Add("description", "some level");
+            levels.Add(level);
+            //membershiplevels.Add("levels",levels);
+
+            Hashtable landuse = new Hashtable();
+            landuse.Add("upgrade", false);
+            landuse.Add("action", "http://invaliddomaininvalid.com/");
+
+            Hashtable currency = new Hashtable();
+            currency.Add("estimatedCost", 0);
+
+            Hashtable membership = new Hashtable();
+            membershiplevels.Add("upgrade", false);
+            membershiplevels.Add("action", "http://invaliddomaininvalid.com/");
+            membershiplevels.Add("levels", membershiplevels);
+
+            retparam.Add("success", true);
+            retparam.Add("currency", currency);
+            retparam.Add("membership", membership);
+            retparam.Add("landuse", landuse);
+            retparam.Add("confirm", "asdfajsdkfjasdkfjalsdfjasdf");
+
+            ret.Value = retparam;
+
+            return ret;
+
+        }
+        public XmlRpcResponse landBuy_func(XmlRpcRequest request)
+        {
+            XmlRpcResponse ret = new XmlRpcResponse();
+            Hashtable retparam = new Hashtable();
+            Hashtable requestData = (Hashtable)request.Params[0];
+
+            LLUUID agentId = LLUUID.Zero;
+            int amount = 0;
+            if (requestData.ContainsKey("agentId") && requestData.ContainsKey("currencyBuy"))
+            {
+                Helpers.TryParse((string)requestData["agentId"], out agentId);
+                try
+                {
+                    amount = (Int32)requestData["currencyBuy"];
+                }
+                catch (InvalidCastException)
+                {
+
+                }
+                if (agentId != LLUUID.Zero)
+                {
+                    lock (m_KnownClientFunds)
+                    {
+                        if (m_KnownClientFunds.ContainsKey(agentId))
+                        {
+                            m_KnownClientFunds[agentId] += amount;
+                        }
+                        else
+                        {
+                            m_KnownClientFunds.Add(agentId, amount);
+                        }
+                    }
+                    IClientAPI client = LocateClientObject(agentId);
+                    if (client != null)
+                    {
+                        SendMoneyBalance(client, agentId, client.SessionId, LLUUID.Zero);
+                    }
+                }
+            }
+            retparam.Add("success", true);
+            ret.Value = retparam;
+
+            return ret;
+
+        }
+#endregion
 
         public void PostInitialise()
         {
@@ -394,5 +1243,13 @@ namespace OpenSim.Region.Environment.Modules
         {
             get { return true; }
         }
+    }
+    public enum TransactionType : int
+    {
+        SystemGenerated=0,
+        RegionMoneyRequest=1,
+        Gift=2,
+        Purchase=3
+
     }
 }

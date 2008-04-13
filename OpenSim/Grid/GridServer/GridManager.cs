@@ -530,7 +530,22 @@ namespace OpenSim.Grid.GridServer
 
             sim.regionRecvKey = String.Empty;
             sim.regionSendKey = String.Empty;
-            sim.regionSecret = Config.SimRecvKey;
+            
+            if (requestData.ContainsKey("region_secret"))
+            {
+                string regionsecret = (string)requestData["region_secret"];
+                if (regionsecret.Length > 0)
+                    sim.regionSecret = regionsecret;
+                else
+                    sim.regionSecret = Config.SimRecvKey;
+
+            }
+            else
+            {
+                sim.regionSecret = Config.SimRecvKey;
+            }
+            
+            
             sim.regionDataURI = String.Empty;
             sim.regionAssetURI = Config.DefaultAssetServer;
             sim.regionAssetRecvKey = Config.AssetRecvKey;

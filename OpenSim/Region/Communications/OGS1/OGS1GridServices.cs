@@ -112,6 +112,7 @@ namespace OpenSim.Region.Communications.OGS1
             GridParams["map-image-id"] = regionInfo.EstateSettings.terrainImageID.ToString();
             GridParams["originUUID"] = regionInfo.originRegionID.ToString();
             GridParams["server_uri"] = regionInfo.ServerURI;
+            GridParams["region_secret"] = regionInfo.regionSecret;
 
             // part of an initial brutish effort to provide accurate information (as per the xml region spec)
             // wrt the ownership of a given region

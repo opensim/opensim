@@ -216,6 +216,7 @@ namespace OpenSim.Framework
         public string MasterAvatarFirstName = String.Empty;
         public string MasterAvatarLastName = String.Empty;
         public string MasterAvatarSandboxPassword = String.Empty;
+        public string regionSecret = LLUUID.Random().ToString();
         public string proxyUrl = ""; 
         public LLUUID originRegionID = LLUUID.Zero;
 

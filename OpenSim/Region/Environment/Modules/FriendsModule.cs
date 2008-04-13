@@ -190,7 +190,7 @@ namespace OpenSim.Region.Environment.Modules
             List<LLUUID> updateUsers = new List<LLUUID>();
             foreach (FriendListItem fli in lfli)
             {
-                if (fli.onlinestatus = true)
+                if (fli.onlinestatus == true)
                 {
                     updateUsers.Add(fli.Friend);
                 }

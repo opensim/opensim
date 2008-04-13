@@ -306,7 +306,14 @@ snapshot_cache_directory = "DataSnapshot"
 data_services="http://metaverseink.com/cgi-bin/register.py"
 
 [Economy]
-; These economy values get used in the BetaGridLikeMoneyModule
+; These economy values get used in the BetaGridLikeMoneyModule.  - This module is for demonstration only -
+; In grid mode, use this currency XMLRPC server.  Leave blank for normal functionality
+CurrencyServer = ""
+; "http://192.168.1.127/currency.php"
+
+; In grid mode, this is the land XMLRPC server. Leave blank for normal functionality
+LandServer = ""
+;"http://192.168.1.127/landtool.php"
 
 ; 45000 is the highest value that the sim could possibly report because of protocol constraints
 ObjectCapacity = 45000
