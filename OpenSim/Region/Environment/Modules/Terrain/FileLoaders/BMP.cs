@@ -30,8 +30,19 @@ using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
 {
+    /// <summary>
+    /// A generic windows bitmap loader. 
+    /// Should be capable of handling 24-bit RGB images.
+    /// 
+    /// Uses the System.Drawing filesystem loader.
+    /// </summary>
     class BMP : GenericSystemDrawing
     {
+        /// <summary>
+        /// Exports a file to a image on the disk using a System.Drawing exporter.
+        /// </summary>
+        /// <param name="filename">The target filename</param>
+        /// <param name="map">The terrain channel being saved</param>
         public override void SaveFile(string filename, ITerrainChannel map)
         {
             Bitmap colours = CreateGrayscaleBitmapFromMap(map);
@@ -39,6 +50,10 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
             colours.Save(filename, System.Drawing.Imaging.ImageFormat.Bmp);
         }
 
+        /// <summary>
+        /// The human readable version of the file format(s) this loader handles
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             return "BMP";
