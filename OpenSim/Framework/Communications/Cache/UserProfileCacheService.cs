@@ -355,11 +355,36 @@ namespace OpenSim.Framework.Communications.Cache
             if ((fold = libraryRoot.HasSubFolder(folderID)) != null)
             {
                 return fold.RequestListOfItems();
-            }
+            }         
 
             CachedUserInfo userProfile;
             if (m_userProfiles.TryGetValue(agentID, out userProfile))
-            {
+            {            
+                // XXX: When a client crosses into a scene, their entire inventory is fetched
+                // asynchronously.  If the client makes a request before the inventory is received, we need
+                // to give the inventory a chance to come in.
+                //
+                // This is a crude way of dealing with that by retrying the lookup.  It's not quite as bad
+                // in CAPS as doing this with the udp request, since here it won't hold up other packets.
+                // In fact, here we'll be generous and try for longer.
+                if (!userProfile.HasInventory)
+                {
+                    int attempts = 0;
+                    while (attempts++ < 20)
+                    {
+                        m_log.DebugFormat(
+                             "[INVENTORY CACHE]: Poll number {0} for inventory items in folder {1} for user {2}", 
+                             attempts, folderID, agentID);
+                        
+                        Thread.Sleep(3000);
+                        
+                        if (userProfile.HasInventory)
+                        {
+                            break;
+                        }
+                    }
+                }   
+                
                 if (userProfile.HasInventory)
                 {
                     if (userProfile.RootFolder.ID == folderID)
