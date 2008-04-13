@@ -3265,7 +3265,19 @@ namespace OpenSim.Region.ClientStack
                         handlerSetAppearance = OnSetAppearance;
                         if (handlerSetAppearance != null)
                         {
-                            handlerSetAppearance(appear.ObjectData.TextureEntry, appear.VisualParam);
+                            // Temporarily protect ourselves from the mantis #951 failure.
+                            // However, we could do this for several other handlers where a failure isn't terminal
+                            // for the client session anyway, in order to protect ourselves against bad code in plugins 
+                            try
+                            {
+                                handlerSetAppearance(appear.ObjectData.TextureEntry, appear.VisualParam);
+                            }
+                            catch (Exception e)
+                            {
+                                m_log.ErrorFormat(
+                                    "[CLIENT VIEW]: AgentSetApperance packet handler threw an exception, {0}", 
+                                    e);
+                            }
                         }
 
                         break;
