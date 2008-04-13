@@ -272,7 +272,16 @@ namespace OpenSim.Region.Capabilities
             contents.agent___id = m_agentID;
             contents.owner___id =  invFetch.owner_id;
             contents.folder___id = invFetch.folder_id;
-            contents.version = 1; //FixMe
+            
+            // In http://opensimulator.org/mantis/view.php?id=912 we tried changing this to 1 instead.
+            // Unfortunately, on 1.19.1.4, this means that we see a problem where on subsequent logins
+            // without clearing client cache, objects in the root folder disappear until the cache is cleared,
+            // at which point they reappear.
+            //
+            // Seeing the version to something other than 0 may be the right thing to do, but there is
+            // a greater subtlety of the second life protocol that needs to be understood first.
+            contents.version = 0;            
+            
             contents.descendents = 0;
             reply.folders.Array.Add(contents);
             List<InventoryItemBase> itemList = null;
