@@ -273,7 +273,7 @@ namespace OpenSim.Region.Capabilities
             contents.owner___id =  invFetch.owner_id;
             contents.folder___id = invFetch.folder_id;
             
-            // In http://opensimulator.org/mantis/view.php?id=912 we tried changing this to 1 instead.
+            // The version number being sent back was originally 1.
             // Unfortunately, on 1.19.1.4, this means that we see a problem where on subsequent logins
             // without clearing client cache, objects in the root folder disappear until the cache is cleared,
             // at which point they reappear.
