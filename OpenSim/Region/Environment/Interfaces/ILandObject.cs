@@ -48,6 +48,7 @@ namespace OpenSim.Region.Environment.Interfaces
         void resetLandPrimCounts();
         void addPrimToCount(SceneObjectGroup obj);
         void removePrimFromCount(SceneObjectGroup obj);
+        void updateLandSold(LLUUID avatarID, LLUUID groupID, bool groupOwned, uint AuctionID, int claimprice, int area);
 
 
     }

@@ -11,9 +11,9 @@ namespace OpenSim.Framework.Communications.XMPP
         public string localName = String.Empty;
         public JId to;
         public JId from;
-        string id;
-        string lang;
-        string nodeName;
+        public string id;
+        public string lang;
+        public string nodeName;
 
         public Stanza(XmlNode node, Object defaults, bool hasID)
         {

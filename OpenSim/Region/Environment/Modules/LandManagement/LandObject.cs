@@ -256,11 +256,27 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
                 newData.snapshotID = packet.ParcelData.SnapshotID;
                 newData.userLocation = packet.ParcelData.UserLocation;
                 newData.userLookAt = packet.ParcelData.UserLookAt;
-
+                
                 m_scene.LandChannel.updateLandObject(landData.localID, newData);
 
                 sendLandUpdateToAvatarsOverMe();
             }
+        }
+        public void updateLandSold(LLUUID avatarID, LLUUID groupID, bool groupOwned, uint AuctionID, int claimprice, int area)
+        {
+            LandData newData = landData.Copy();
+            newData.ownerID = avatarID;
+            newData.groupID = groupID;
+            newData.isGroupOwned = groupOwned;
+            //newData.auctionID = AuctionID;
+            newData.claimDate = Util.UnixTimeSinceEpoch();
+            newData.claimPrice = claimprice;
+            newData.salePrice = 0;
+            newData.authBuyerID = LLUUID.Zero;
+            newData.landFlags &= ~(uint)(libsecondlife.Parcel.ParcelFlags.ForSale | Parcel.ParcelFlags.ForSaleObjects | Parcel.ParcelFlags.SellParcelObjects);
+            m_scene.LandChannel.updateLandObject(landData.localID, newData);
+
+            sendLandUpdateToAvatarsOverMe();
         }
 
         public bool isEitherBannedOrRestricted(LLUUID avatar)

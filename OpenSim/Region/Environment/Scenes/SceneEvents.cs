@@ -176,10 +176,50 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public class LandBuyArgs : System.EventArgs
+        {
+            public LLUUID agentId = LLUUID.Zero;
+            
+            public LLUUID groupId = LLUUID.Zero;
+
+            public LLUUID parcelOwnerID = LLUUID.Zero;
+
+            public bool final = false;
+            public bool groupOwned = false;
+            public bool removeContribution = false;
+            public int parcelLocalID = 0;
+            public int parcelArea = 0;
+            public int parcelPrice = 0;
+            public bool authenticated = false;
+            public bool landValidated = false;
+            public bool economyValidated = false;
+            public int transactionID = 0;
+            public int amountDebited = 0;
+
+            
+            public LandBuyArgs(LLUUID pagentId, LLUUID pgroupId, bool pfinal, bool pgroupOwned,
+                bool premoveContribution, int pparcelLocalID, int pparcelArea, int pparcelPrice, 
+                bool pauthenticated)
+            {
+                agentId = pagentId;
+                groupId = pgroupId;
+                final = pfinal;
+                groupOwned = pgroupOwned;
+                removeContribution = premoveContribution;
+                parcelLocalID = pparcelLocalID;
+                parcelArea = pparcelArea;
+                parcelPrice = pparcelPrice;
+                authenticated = pauthenticated;
+            }
+        }
+
         public delegate void MoneyTransferEvent(Object sender, MoneyTransferArgs e);
 
-        public event MoneyTransferEvent OnMoneyTransfer;
+        public delegate void LandBuy(Object sender, LandBuyArgs e);
 
+        public event MoneyTransferEvent OnMoneyTransfer;
+        public event LandBuy OnLandBuy;
+        public event LandBuy OnValidatedLandBuy;
 
         /* Designated Event Deletage Instances */
 
@@ -212,6 +252,8 @@ namespace OpenSim.Region.Environment.Scenes
         private RegisterCapsEvent handlerRegisterCaps = null; // OnRegisterCaps;
         private DeregisterCapsEvent handlerDeregisterCaps = null; // OnDeregisterCaps;
         private NewInventoryItemUploadComplete handlerNewInventoryItemUpdateComplete = null;
+        private LandBuy handlerLandBuy = null;
+        private LandBuy handlerValidatedLandBuy = null;
 
         public void TriggerOnScriptChangedEvent(uint localID, uint change)
         {
@@ -474,6 +516,22 @@ namespace OpenSim.Region.Environment.Scenes
             if (handlerNewInventoryItemUpdateComplete != null)
             {
                 handlerNewInventoryItemUpdateComplete(agentID, AssetID, AssetName, userlevel);
+            }
+        }
+        public void TriggerLandBuy (Object sender, LandBuyArgs e)
+        {
+            handlerLandBuy = OnLandBuy;
+            if (handlerLandBuy != null)
+            {
+                handlerLandBuy(sender, e);
+            }
+        }
+        public void TriggerValidatedLandBuy(Object sender, LandBuyArgs e)
+        {
+            handlerValidatedLandBuy = OnValidatedLandBuy;
+            if (handlerValidatedLandBuy != null)
+            {
+                handlerValidatedLandBuy(sender, e);
             }
         }
     }

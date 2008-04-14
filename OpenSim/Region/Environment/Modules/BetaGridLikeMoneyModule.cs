@@ -39,12 +39,20 @@ using OpenSim.Region.Environment.Scenes;
 using Nwc.XmlRpc;
 
 using MoneyTransferArgs = OpenSim.Region.Environment.Scenes.EventManager.MoneyTransferArgs;
+using LandBuyArgs = OpenSim.Region.Environment.Scenes.EventManager.LandBuyArgs;
 
 namespace OpenSim.Region.Environment.Modules
 {   
     /// <summary>
     /// Demo Economy/Money Module.  This is not a production quality money/economy module!
     /// This is a demo for you to use when making one that works for you.
+    ///  // To use the following you need to add:
+    /// -helperuri <ADDRESS TO HERE OR grid MONEY SERVER> 
+    /// to the command line parameters you use to start up your client
+    /// This commonly looks like -helperuri http://127.0.0.1:9000/
+    /// 
+    /// Centralized grid structure example using OpenSimWi Redux revision 9+
+    /// svn co https://opensimwiredux.svn.sourceforge.net/svnroot/opensimwiredux
     /// </summary>
     public class BetaGridLikeMoneyModule: IRegionModule
     {
@@ -134,6 +142,7 @@ namespace OpenSim.Region.Environment.Modules
                        if (m_MoneyAddress.Length > 0)
                        {
                            // Centralized grid structure using OpenSimWi Redux revision 9+
+                           // https://opensimwiredux.svn.sourceforge.net/svnroot/opensimwiredux
                            scene.AddXmlRPCHandler("dynamic_balance_update_request", GridMoneyUpdate);
                        }
                        else
@@ -165,6 +174,8 @@ namespace OpenSim.Region.Environment.Modules
                 scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
                 scene.EventManager.OnMakeChildAgent += MakeChildAgent;
                 scene.EventManager.OnClientClosed += ClientLoggedOut;
+                scene.EventManager.OnLandBuy += ValidateLandBuy;
+                scene.EventManager.OnValidatedLandBuy += processLandBuy;
                 
             }
         }
@@ -329,6 +340,101 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
+        private void ValidateLandBuy (Object osender, LandBuyArgs e)
+        {
+            LLUUID agentId = e.agentId;
+            int price = e.parcelPrice;
+            bool final = e.final;
+            
+            int funds = 0;
+
+            if (m_MoneyAddress.Length > 0)
+            {
+                IClientAPI aClient = LocateClientObject(agentId);
+                if (aClient != null)
+                {
+                    Scene s = LocateSceneClientIn(agentId);
+                    if (s != null)
+                    {
+                        Hashtable hbinfo = GetBalanceForUserFromMoneyServer(aClient.AgentId, aClient.SecureSessionId, s.RegionInfo.originRegionID.ToString(), s.RegionInfo.regionSecret);
+                        if ((bool)hbinfo["success"] == true)
+                        {
+
+                            Helpers.TryParse((string)hbinfo["agentId"], out agentId);
+                            try
+                            {
+                                funds = (Int32)hbinfo["funds"];
+                            }
+                            catch (ArgumentException)
+                            {
+                            }
+                            catch (FormatException)
+                            {
+                            }
+                            catch (OverflowException)
+                            {
+                                m_log.ErrorFormat("[MONEY]: While getting the Currency for user {0}, the return funds overflowed.", agentId);
+                                aClient.SendAlertMessage("Unable to get your money balance, money operations will be unavailable");
+                            }
+                            catch (InvalidCastException)
+                            {
+                                funds = 0;
+                            }
+
+                            SetLocalFundsForAgentID(agentId, funds);
+
+                        }
+                        else
+                        {
+                            m_log.WarnFormat("[MONEY]: Getting Money for user {0} failed with the following message:{1}", agentId, (string)hbinfo["errorMessage"]);
+                            aClient.SendAlertMessage((string)hbinfo["errorMessage"]);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                funds = GetFundsForAgentID(agentId);
+            }
+            if (funds >= e.parcelPrice)
+            {
+                lock (e)
+                {
+                    e.economyValidated = true;
+                }
+                XMLRPCHandler.EventManager.TriggerValidatedLandBuy(this, e);
+            }
+        }
+
+        private void processLandBuy(Object osender, LandBuyArgs e)
+        {
+            LLUUID agentId = e.agentId;
+            int price = e.parcelPrice;
+            bool final = e.final;
+
+            int funds = 0;
+            
+            // Only do this if we have not already transacted against this.
+            if (e.transactionID == 0)
+            {
+                funds = GetFundsForAgentID(e.agentId);
+                if (e.landValidated)
+                {
+                    if (e.parcelPrice >= 0)
+                    {
+                        doMoneyTranfer(agentId, e.parcelOwnerID, e.parcelPrice);
+                        lock (e)
+                        {
+                            e.transactionID = Util.UnixTimeSinceEpoch();
+                            e.amountDebited = e.parcelPrice;
+                        }
+                    }
+                    // This tells the land module that we've transacted.
+                    XMLRPCHandler.EventManager.TriggerValidatedLandBuy(this, e);
+                }
+            }
+
+        }
         /// <summary>
         /// THis method gets called when someone pays someone else as a gift.
         /// </summary>

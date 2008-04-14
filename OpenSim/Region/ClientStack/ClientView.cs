@@ -214,6 +214,7 @@ namespace OpenSim.Region.ClientStack
         private ViewerEffectEventHandler handlerViewerEffect = null; //OnViewerEffect;
         private Action<IClientAPI> handlerLogout = null; //OnLogout;
         private MoneyTransferRequest handlerMoneyTransferRequest = null; //OnMoneyTransferRequest;
+        private ParcelBuy handlerParcelBuy = null;
         private EconomyDataRequest handlerEconomoyDataRequest = null;
 
         private UpdateVector handlerUpdatePrimSinglePosition = null; //OnUpdatePrimSinglePosition;
@@ -769,6 +770,7 @@ namespace OpenSim.Region.ClientStack
         public event EconomyDataRequest OnEconomyDataRequest;
 
         public event MoneyBalanceRequest OnMoneyBalanceRequest;
+        public event ParcelBuy OnParcelBuy;
 
 
         #region Scene/Avatar to Client
@@ -2396,6 +2398,7 @@ namespace OpenSim.Region.ClientStack
             AddLocalPacketHandler(PacketType.AgentCachedTexture, AgentTextureCached);
             AddLocalPacketHandler(PacketType.MultipleObjectUpdate, MultipleObjUpdate);
             AddLocalPacketHandler(PacketType.MoneyTransferRequest, HandleMoneyTransferRequest);
+            AddLocalPacketHandler(PacketType.ParcelBuy, HandleParcelBuyRequest);
         }
 
         private bool HandleMoneyTransferRequest(IClientAPI sender, Packet Pack)
@@ -2418,6 +2421,28 @@ namespace OpenSim.Region.ClientStack
             {
                 return false;
             }
+        }
+
+        private bool HandleParcelBuyRequest(IClientAPI sender, Packet Pack)
+        {
+            ParcelBuyPacket parcel = (ParcelBuyPacket)Pack;
+            if (parcel.AgentData.AgentID == AgentId && parcel.AgentData.SessionID == this.SessionId)
+            {
+                handlerParcelBuy = OnParcelBuy;
+                if (handlerParcelBuy != null)
+                {
+                    handlerParcelBuy(parcel.AgentData.AgentID, parcel.Data.GroupID, parcel.Data.Final, parcel.Data.IsGroupOwned,
+                                        parcel.Data.RemoveContribution, parcel.Data.LocalID, parcel.ParcelData.Area, parcel.ParcelData.Price,
+                                        false);
+                }
+                return true;
+
+            }
+            else
+            {
+                return false;
+            }
+
         }
 
         private bool HandleViewerEffect(IClientAPI sender, Packet Pack)

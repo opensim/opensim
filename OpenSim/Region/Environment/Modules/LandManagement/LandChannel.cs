@@ -1,7 +1,33 @@
-﻿using System;
+﻿/*
+ * Copyright (c) Contributors, http://opensimulator.org/
+ * See CONTRIBUTORS.TXT for a full list of copyright holders.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the OpenSim Project nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Text;
-
 using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
@@ -10,6 +36,8 @@ using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Physics.Manager;
+
+using LandBuyArgs = OpenSim.Region.Environment.Scenes.EventManager.LandBuyArgs;
 
 namespace OpenSim.Region.Environment.Modules.LandManagement
 {
@@ -230,6 +258,18 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
             {
                 return landList[landIDList[x, y]];
             }
+        }
+
+        public ILandObject getLandObject(int parcelLocalID)
+        {
+            lock (landList)
+            {
+                if (landList.ContainsKey(parcelLocalID))
+                {
+                    return landList[parcelLocalID];
+                }
+            }
+            return null;
         }
 
         public ILandObject getLandObject(int x, int y)
@@ -657,6 +697,7 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
             if (landList.ContainsKey(packet.ParcelData.LocalID))
             {
                 landList[packet.ParcelData.LocalID].updateLandProperties(packet, remote_client);
+                
             }
         }
 
@@ -912,5 +953,49 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
             }
         }
 
+        public void handleLandBuyRequest(Object o, LandBuyArgs e)
+        {
+            if (e.economyValidated && e.landValidated)
+            {
+                lock (landList)
+                {
+                    if (landList.ContainsKey(e.parcelLocalID))
+                    {
+                        landList[e.parcelLocalID].updateLandSold(e.agentId, e.groupId, e.groupOwned, (uint)e.transactionID, e.parcelPrice, e.parcelArea);
+                        return;
+                    }
+                }
+            }
+            else if (e.landValidated == false)
+            {
+                ILandObject lob = null;
+                lock (landList)
+                {
+                    if (landList.ContainsKey(e.parcelLocalID))
+                    {
+                        lob = landList[e.parcelLocalID];
+                    }
+                }
+                if (lob != null)
+                {
+                    LLUUID AuthorizedID = lob.landData.authBuyerID;
+                    int saleprice = lob.landData.salePrice;
+                    LLUUID pOwnerID = lob.landData.ownerID;
+                    
+                    bool landforsale = ((lob.landData.landFlags & (uint)(libsecondlife.Parcel.ParcelFlags.ForSale | libsecondlife.Parcel.ParcelFlags.ForSaleObjects | libsecondlife.Parcel.ParcelFlags.SellParcelObjects)) != 0);
+                    if ((AuthorizedID == LLUUID.Zero || AuthorizedID == e.agentId) && e.parcelPrice >= saleprice && landforsale)
+                    {
+                        lock (e)
+                        {
+                            e.parcelOwnerID = pOwnerID;
+                            e.landValidated = true;
+
+                        }
+                        
+                    }
+                }
+                m_scene.EventManager.TriggerValidatedLandBuy(this, e);
+            }
+        }
     }
 }

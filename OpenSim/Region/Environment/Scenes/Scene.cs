@@ -1001,8 +1001,8 @@ namespace OpenSim.Region.Environment.Scenes
                 LLVector3 RayEnd = new LLVector3(0, 0, 0);
                 LLVector3 RayStart = new LLVector3(0, 0, 0);
                 LLVector3 direction = new LLVector3(0, 0, -1);
-                Vector3 AXOrigin = new Vector3();
-                Vector3 AXdirection = new Vector3();
+                //Vector3 AXOrigin = new Vector3();
+                //Vector3 AXdirection = new Vector3();
                 Ray testRay = new Ray();
                 EntityIntersection rt = new EntityIntersection();
 
@@ -1573,6 +1573,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             client.OnGrabObject += ProcessObjectGrab;
             client.OnMoneyTransferRequest += ProcessMoneyTransferRequest;
+            client.OnParcelBuy += ProcessParcelBuy;
             client.OnAvatarPickerRequest += ProcessAvatarPickerRequest;
             client.OnPacketStats += AddPacketStats;
 

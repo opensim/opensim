@@ -424,6 +424,9 @@ namespace OpenSim.Framework
     public delegate void PacketStats(int inPackets, int outPackets, int unAckedBytes);
     
     public delegate void MoneyTransferRequest(LLUUID sourceID, LLUUID destID, int amount, int transactionType, string description);
+
+    public delegate void ParcelBuy(LLUUID agentId, LLUUID groupId, bool final, bool groupOwned,
+                bool removeContribution, int parcelLocalID, int parcelArea, int parcelPrice, bool authenticated);
     
     // We keep all this information for fraud purposes in the future.
     public delegate void MoneyBalanceRequest(IClientAPI remoteClient, LLUUID agentID, LLUUID sessionID, LLUUID TransactionID);
@@ -544,6 +547,7 @@ namespace OpenSim.Framework
 
         event MoneyBalanceRequest OnMoneyBalanceRequest;
         event UpdateAvatarProperties OnUpdateAvatarProperties;
+        event ParcelBuy OnParcelBuy;
 
 
          

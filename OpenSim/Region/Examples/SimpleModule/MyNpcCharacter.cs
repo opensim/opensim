@@ -49,6 +49,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event ObjectPermissions OnObjectPermissions;
 
         public event MoneyTransferRequest OnMoneyTransferRequest;
+        public event ParcelBuy OnParcelBuy;
         public event Action<IClientAPI> OnConnectionClosed;
 
         public event ImprovedInstantMessage OnInstantMessage;

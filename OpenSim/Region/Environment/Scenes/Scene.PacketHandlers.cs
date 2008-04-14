@@ -130,6 +130,15 @@ namespace OpenSim.Region.Environment.Scenes
             EventManager.TriggerMoneyTransfer(this, args);
         }
 
+        public virtual void ProcessParcelBuy(LLUUID agentId, LLUUID groupId, bool final, bool groupOwned,
+                bool removeContribution, int parcelLocalID, int parcelArea, int parcelPrice, bool authenticated)
+        {
+            EventManager.LandBuyArgs args = new EventManager.LandBuyArgs(
+               agentId, groupId, final, groupOwned, removeContribution, parcelLocalID, parcelArea, parcelPrice, authenticated);
+
+            m_eventManager.TriggerLandBuy(this, args);        
+        }
+
         public virtual void ProcessObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
 
