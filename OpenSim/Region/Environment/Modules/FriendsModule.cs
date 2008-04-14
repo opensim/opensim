@@ -195,37 +195,44 @@ namespace OpenSim.Region.Environment.Modules
                     updateUsers.Add(fli.Friend);
                 }
             }
-            for (int i = 0; i < updateUsers.Count; i++)
+            lock (updateUsers)
             {
-                List<FriendListItem> flfli = new List<FriendListItem>();
-                lock (FriendLists)
+                for (int i = 0; i < updateUsers.Count; i++)
                 {
-                    if (FriendLists.ContainsKey(updateUsers[i]))
-                        flfli = FriendLists[updateUsers[i]];
-                }
-                for (int j = 0; j < flfli.Count; j++)
-                {
-                    if (flfli[i].Friend == AgentId)
+                    List<FriendListItem> flfli = new List<FriendListItem>();
+                    
+                    lock (FriendLists)
                     {
-                        flfli[i].onlinestatus = false;
+                        if (FriendLists.ContainsKey(updateUsers[i]))
+                            flfli = FriendLists[updateUsers[i]];
                     }
 
+                    for (int j = 0; j < flfli.Count; j++)
+                    {
+                        if (flfli[i].Friend == AgentId)
+                        {
+                            flfli[i].onlinestatus = false;
+                        }
+
+                    }
+                  
+
                 }
-
-            }
-            for (int i = 0; i < updateUsers.Count; i++)
-            {
-                ScenePresence av = GetPresenceFromAgentID(updateUsers[i]);
-                if (av != null)
+            
+                for (int i = 0; i < updateUsers.Count; i++)
                 {
+                    ScenePresence av = GetPresenceFromAgentID(updateUsers[i]);
+                    if (av != null)
+                    {
 
-                    OfflineNotificationPacket onp = new OfflineNotificationPacket();
-                    OfflineNotificationPacket.AgentBlockBlock[] onpb = new OfflineNotificationPacket.AgentBlockBlock[1];
-                    OfflineNotificationPacket.AgentBlockBlock onpbl = new OfflineNotificationPacket.AgentBlockBlock();
-                    onpbl.AgentID = AgentId;
-                    onpb[0] = onpbl;
-                    onp.AgentBlock = onpb;
-                    av.ControllingClient.OutPacket(onp, ThrottleOutPacketType.Task);
+                        OfflineNotificationPacket onp = new OfflineNotificationPacket();
+                        OfflineNotificationPacket.AgentBlockBlock[] onpb = new OfflineNotificationPacket.AgentBlockBlock[1];
+                        OfflineNotificationPacket.AgentBlockBlock onpbl = new OfflineNotificationPacket.AgentBlockBlock();
+                        onpbl.AgentID = AgentId;
+                        onpb[0] = onpbl;
+                        onp.AgentBlock = onpb;
+                        av.ControllingClient.OutPacket(onp, ThrottleOutPacketType.Task);
+                    }
                 }
             }
             lock (FriendLists)
