@@ -88,6 +88,9 @@ namespace OpenSim.Region.Environment.Modules
             client.OnTerminateFriendship += OnTerminateFriendship;
 
             List<FriendListItem> fl = new List<FriendListItem>();
+
+            //bool addFLback = false;
+
             lock (FriendLists)
             {
                 if (FriendLists.ContainsKey(client.AgentId))
@@ -97,11 +100,12 @@ namespace OpenSim.Region.Environment.Modules
                 else 
                 {
                     fl = m_scene[0].GetFriendList(client.AgentId);
-                    lock (FriendLists)
-                    {
+                    
+                    //lock (FriendLists)
+                    //{
                         if (!FriendLists.ContainsKey(client.AgentId))
                             FriendLists.Add(client.AgentId, fl);
-                    }
+                    //}
                 }
             }
             
@@ -200,11 +204,21 @@ namespace OpenSim.Region.Environment.Modules
                 for (int i = 0; i < updateUsers.Count; i++)
                 {
                     List<FriendListItem> flfli = new List<FriendListItem>();
-                    
-                    lock (FriendLists)
+                    try
                     {
-                        if (FriendLists.ContainsKey(updateUsers[i]))
-                            flfli = FriendLists[updateUsers[i]];
+
+                        lock (FriendLists)
+                        {
+                            if (FriendLists.ContainsKey(updateUsers[i]))
+                                flfli = FriendLists[updateUsers[i]];
+                        }
+                    }
+                    catch (IndexOutOfRangeException)
+                    {
+                        // Ignore the index out of range exception.  
+                        // This causes friend lists to get out of sync slightly..  however
+                        // prevents a sim crash.
+                        m_log.Info("[FRIEND]: Unable to enumerate last friendlist user.  User logged off");
                     }
 
                     for (int j = 0; j < flfli.Count; j++)
