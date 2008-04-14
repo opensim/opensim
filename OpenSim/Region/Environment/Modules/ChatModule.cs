@@ -275,16 +275,19 @@ namespace OpenSim.Region.Environment.Modules
                 }
             }
 
-            if (e.Message.Length > 0)
-            {
-                if (m_irc.Connected && (avatar != null)) // this is to keep objects from talking to IRC
-                {
-                    m_irc.PrivMsg(fromName, scene.RegionInfo.RegionName, e.Message);
-                }
-            }
 
+            // We only want to relay stuff on channel 0
             if (e.Channel == 0)
             {
+                // IRC stuff
+                if (e.Message.Length > 0)
+                {
+                    if (m_irc.Connected && (avatar != null)) // this is to keep objects from talking to IRC
+                    {
+                        m_irc.PrivMsg(fromName, scene.RegionInfo.RegionName, e.Message);
+                    }
+                }
+                
                 foreach (Scene s in m_scenes)
                 {
                     s.ForEachScenePresence(delegate(ScenePresence presence)
