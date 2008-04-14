@@ -43,6 +43,8 @@ namespace OpenSim.Framework
 {
     public class Util
     {
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);        
+        
         private static Random randomClass = new Random();
         private static uint nextXferID = 5000;
         private static object XferLock = new object();
@@ -327,8 +329,20 @@ namespace OpenSim.Framework
             if (IPAddress.TryParse(dnsAddress, out ipa))
                 return ipa;
 
+            IPAddress[] hosts = null;
+            
             // Not an IP, lookup required
-            IPAddress[] hosts = Dns.GetHostEntry(dnsAddress).AddressList;
+            try
+            {
+                hosts = Dns.GetHostEntry(dnsAddress).AddressList;
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[UTIL]: An error occurred while resolving {0}, {1}", dnsAddress, e);
+                
+                // Still going to throw the exception on for now, since this was what was happening in the first place
+                throw e;
+            }
 
             foreach (IPAddress host in hosts)
             {
