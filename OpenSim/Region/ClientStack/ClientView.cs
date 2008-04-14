@@ -1576,7 +1576,8 @@ namespace OpenSim.Region.ClientStack
         }
 
         /// <summary>
-        /// 
+        /// Send an alert message to the client.  On the Linden client (tested 1.19.1.4), this pops up a brief duration
+        /// blue information box in the bottom right hand corner.
         /// </summary>
         /// <param name="message"></param>
         public void SendAlertMessage(string message)
@@ -1587,10 +1588,12 @@ namespace OpenSim.Region.ClientStack
         }
 
         /// <summary>
-        /// 
+        /// Send an agent alert message to the client.
         /// </summary>
         /// <param name="message"></param>
-        /// <param name="modal"></param>
+        /// <param name="modal">On the linden client, if this true then it displays a one button text box placed in the
+        /// middle of the window.  If false, the message is displayed in a brief duration blue information box (as for 
+        /// the AlertMessage packet).</param>
         public void SendAgentAlertMessage(string message, bool modal)
         {
             AgentAlertMessagePacket alertPack = (AgentAlertMessagePacket)PacketPool.Instance.GetPacket(PacketType.AgentAlertMessage);

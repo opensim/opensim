@@ -1884,7 +1884,7 @@ namespace OpenSim.Region.Environment.Scenes
             cap.ItemUpdatedCall = CapsUpdateInventoryItemAsset;
             cap.TaskScriptUpdatedCall = CapsUpdateTaskInventoryScriptAsset;
             cap.CAPSFetchInventoryDescendents = CommsManager.UserProfileCacheService.HandleFetchInventoryDescendentsCAPS;
-
+            cap.GetClient = m_innerScene.GetControllingClient;
             m_capsHandlers[agentId] = cap;
         } 
 

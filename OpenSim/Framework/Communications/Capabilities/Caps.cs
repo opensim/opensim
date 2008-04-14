@@ -56,6 +56,13 @@ namespace OpenSim.Region.Capabilities
 
     public delegate List<InventoryItemBase> FetchInventoryDescendentsCAPS(LLUUID agentID, LLUUID folderID, LLUUID ownerID,
                                                    bool fetchFolders, bool fetchItems, int sortOrder);
+    
+    /// <summary>
+    /// XXX Probably not a particularly nice way of allow us to get the scene presence from the scene (chiefly so that
+    /// we can popup a message on the user's client if the inventory service has permanently failed).  But I didn't want
+    /// to just pass the whole Scene into CAPS.
+    /// </summary>
+    public delegate IClientAPI GetClientDelegate(LLUUID agentID);
 
     public class Caps
     {
@@ -99,8 +106,8 @@ namespace OpenSim.Region.Capabilities
         public NewInventoryItem AddNewInventoryItem = null;
         public ItemUpdatedCallback ItemUpdatedCall = null;
         public TaskScriptUpdatedCallback TaskScriptUpdatedCall = null;
-        //
         public FetchInventoryDescendentsCAPS CAPSFetchInventoryDescendents = null;
+        public GetClientDelegate GetClient = null;
 
         public Caps(AssetCache assetCache, BaseHttpServer httpServer, string httpListen, uint httpPort, string capsPath,
                     LLUUID agent, bool dumpAssetsToFile)
@@ -240,7 +247,7 @@ namespace OpenSim.Region.Capabilities
 
                 LLSDFetchInventoryDescendents llsdRequest = new LLSDFetchInventoryDescendents();
                 LLSDHelpers.DeserialiseLLSDMap(inventoryhash, llsdRequest);
-                LLSDInventoryDescendents reply = FetchInventory(llsdRequest);
+                LLSDInventoryDescendents reply = FetchInventoryReply(llsdRequest);
 
                 inventoryitemstr = LLSDHelpers.SerialiseLLSDReply(reply);
                 inventoryitemstr = inventoryitemstr.Replace("<llsd><map><key>folders</key><array>", "");
@@ -265,7 +272,7 @@ namespace OpenSim.Region.Capabilities
             return response;
         }
 
-        private LLSDInventoryDescendents FetchInventory(LLSDFetchInventoryDescendents invFetch)
+        private LLSDInventoryDescendents FetchInventoryReply(LLSDFetchInventoryDescendents invFetch)
         {
             LLSDInventoryDescendents reply = new LLSDInventoryDescendents();
             LLSDInventoryFolderContents contents = new LLSDInventoryFolderContents();
@@ -289,6 +296,7 @@ namespace OpenSim.Region.Capabilities
             {
                 itemList = CAPSFetchInventoryDescendents(m_agentID, invFetch.folder_id, invFetch.owner_id, invFetch.fetch_folders, invFetch.fetch_items, invFetch.sort_order);
             }
+            
             if (itemList != null)
             {
                 foreach (InventoryItemBase invItem in itemList)
@@ -296,6 +304,27 @@ namespace OpenSim.Region.Capabilities
                     contents.items.Array.Add(ConvertInventoryItem(invItem));
                 }
             }
+            else
+            {                
+                IClientAPI client = GetClient(m_agentID);
+                    
+                // We're going to both notify the client of inventory service failure and send back a 'no folder contents' response.  
+                // If we don't send back the response,
+                // the client becomes unhappy (see Teravus' comment in FetchInventoryRequest())                
+                if (client != null)
+                {
+                    client.SendAgentAlertMessage(
+                        "AGIN0001E: The inventory service has either failed or is not responding.  Your inventory will not function properly for the rest of this session.  Please clear your cache and relog.",
+                        true);
+                }
+                else
+                {
+                    m_log.ErrorFormat(
+                        "[AGENT INVENTORY]: Could not lookup controlling client for {0} in order to notify them of the inventory service failure", 
+                        m_agentID);
+                }
+            }
+            
             contents.descendents = contents.items.Array.Count;
             return reply;
         }

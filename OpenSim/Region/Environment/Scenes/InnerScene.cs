@@ -618,6 +618,28 @@ namespace OpenSim.Region.Environment.Scenes
 
             return result;
         }
+        
+        /// <summary>
+        /// Get the controlling client for the given avatar, if there is one.
+        /// 
+        /// FIXME: The only user of the method right now is Caps.cs, in order to resolve a client API since it can't 
+        /// use the ScenePresence.  This could be better solved in a number of ways - we could establish an
+        /// OpenSim.Framework.IScenePresence, or move the caps code into a region package (which might be the more 
+        /// suitable solution).
+        /// </summary>
+        /// <param name="agentId"></param>
+        /// <returns>null if either the avatar wasn't in the scene, or they do not have a controlling client</returns>
+        public IClientAPI GetControllingClient(LLUUID agentId)
+        {
+            ScenePresence presence = GetScenePresence(agentId);
+            
+            if (presence != null)
+            {
+                return presence.ControllingClient;
+            }
+            
+            return null;
+        }
 
         /// <summary>
         /// Request a filtered list of m_scenePresences in this World
@@ -640,16 +662,17 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Request a Avatar by UUID
+        /// Request a scene presence by UUID
         /// </summary>
         /// <param name="avatarID"></param>
-        /// <returns></returns>
-        public ScenePresence GetScenePresence(LLUUID avatarID)
+        /// <returns>null if the agent was not found</returns>
+        public ScenePresence GetScenePresence(LLUUID agentID)
         {
-            if (ScenePresences.ContainsKey(avatarID))
+            if (ScenePresences.ContainsKey(agentID))
             {
-                return ScenePresences[avatarID];
+                return ScenePresences[agentID];
             }
+            
             return null;
         }
 

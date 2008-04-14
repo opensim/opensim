@@ -340,7 +340,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="fetchFolders"></param>
         /// <param name="fetchItems"></param>
         /// <param name="sortOrder"></param>
-        /// <returns></returns>
+        /// <returns>null if the inventory look up failed</returns>
         public List<InventoryItemBase> HandleFetchInventoryDescendentsCAPS(LLUUID agentID, LLUUID folderID, LLUUID ownerID,
                                                    bool fetchFolders, bool fetchItems, int sortOrder)
         {
@@ -403,7 +403,7 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     m_log.ErrorFormat("[INVENTORY CACHE]: Could not find root folder for user {0}", agentID.ToString());
 
-                    return new List<InventoryItemBase>(); ;
+                    return null;
                 }
             }
             else
@@ -412,7 +412,7 @@ namespace OpenSim.Framework.Communications.Cache
                      "[USER CACHE]: HandleFetchInventoryDescendentsCAPS() Could not find user profile for {0}",
                      agentID);
             
-                return new List<InventoryItemBase>();
+                return null;
             }
 
             // If we've reached this point then we couldn't find the folder, even though the client thinks
