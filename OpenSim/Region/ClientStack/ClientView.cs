@@ -1985,7 +1985,15 @@ namespace OpenSim.Region.ClientStack
             outPacket.ObjectData[0].ID = localID;
             outPacket.ObjectData[0].FullID = objectID;
             outPacket.ObjectData[0].OwnerID = ownerID;
+            
+            // Anything more than 255 will cause libsecondlife to barf
+            if (text.Length > 255)
+            {
+                text = text.Remove(255);
+            }
+            
             outPacket.ObjectData[0].Text = Helpers.StringToField(text);
+            
             outPacket.ObjectData[0].TextColor[0] = color[0];
             outPacket.ObjectData[0].TextColor[1] = color[1];
             outPacket.ObjectData[0].TextColor[2] = color[2];
