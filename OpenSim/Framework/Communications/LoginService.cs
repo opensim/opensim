@@ -84,6 +84,7 @@ namespace OpenSim.Framework.UserManagement
         /// </summary>
         /// <param name="userID"></param>
         /// <returns></returns>
+        /// <exception cref='System.Net.WebException'>This will be thrown if there is a problem with the inventory service</exception>
         protected abstract InventoryData GetInventorySkeleton(LLUUID userID);     
         
         /// <summary>
@@ -208,9 +209,20 @@ namespace OpenSim.Framework.UserManagement
                     try
                     {
                         LLUUID agentID = userProfile.ID;
-
-                        // Inventory Library Section
-                        InventoryData inventData = GetInventorySkeleton(agentID);
+                        InventoryData inventData = null;
+                        
+                        try
+                        {                                               
+                            inventData = GetInventorySkeleton(agentID);
+                        }
+                        catch (System.Net.WebException e)
+                        {
+                            m_log.ErrorFormat(
+                                "[LOGIN]: Error retrieving inventory skeleton of agent {0}, {1} - {2}", agentID, e.GetType(), e.Message);
+                            
+                            return logResponse.CreateLoginInventoryFailedResponse();                                                                                                        
+                        }                        
+                        
                         ArrayList AgentInventoryArray = inventData.InventoryArray;
 
                         Hashtable InventoryRootHash = new Hashtable();
@@ -218,7 +230,20 @@ namespace OpenSim.Framework.UserManagement
                         ArrayList InventoryRoot = new ArrayList();
                         InventoryRoot.Add(InventoryRootHash);
                         userProfile.RootInventoryFolderID = inventData.RootFolderID;
+                        
+                        // Inventory Library Section
+                        Hashtable InventoryLibRootHash = new Hashtable();
+                        InventoryLibRootHash["folder_id"] = "00000112-000f-0000-0000-000100bba000";
+                        ArrayList InventoryLibRoot = new ArrayList();
+                        InventoryLibRoot.Add(InventoryLibRootHash);
+                        logResponse.InventoryLibRoot = InventoryLibRoot;
 
+                        logResponse.InventoryLibraryOwner = GetLibraryOwner();
+                        
+                        logResponse.InventoryRoot = InventoryRoot;
+                        logResponse.InventorySkeleton = AgentInventoryArray;
+                        logResponse.InventoryLibrary = GetInventoryLibrary(); 
+                        
                         // Circuit Code
                         uint circode = (uint) (Util.RandomClass.Next());
 
@@ -227,17 +252,7 @@ namespace OpenSim.Framework.UserManagement
                         logResponse.AgentID = agentID.ToString();
                         logResponse.SessionID = userProfile.CurrentAgent.SessionID.ToString();
                         logResponse.SecureSessionID = userProfile.CurrentAgent.SecureSessionID.ToString();
-                        logResponse.InventoryRoot = InventoryRoot;
-                        logResponse.InventorySkeleton = AgentInventoryArray;
-                        logResponse.InventoryLibrary = GetInventoryLibrary();
 
-                        Hashtable InventoryLibRootHash = new Hashtable();
-                        InventoryLibRootHash["folder_id"] = "00000112-000f-0000-0000-000100bba000";
-                        ArrayList InventoryLibRoot = new ArrayList();
-                        InventoryLibRoot.Add(InventoryLibRootHash);
-                        logResponse.InventoryLibRoot = InventoryLibRoot;
-
-                        logResponse.InventoryLibraryOwner = GetLibraryOwner();
                         logResponse.CircuitCode = (Int32) circode;
                         //logResponse.RegionX = 0; //overwritten
                         //logResponse.RegionY = 0; //overwritten

@@ -238,6 +238,19 @@ namespace OpenSim.Framework.UserManagement
                 "Could not authenticate your avatar. Please check your username and password, and check the grid if problems persist.",
                 "false");
         }
+        
+        /// <summary>
+        /// Response to indicate that login failed because the agent's inventory was not available.
+        /// </summary>
+        /// <returns></returns>
+        public XmlRpcResponse CreateLoginInventoryFailedResponse()
+        {
+            return GenerateFailureResponse(
+                "key",
+                "The agent inventory service is not responding.  Please notify the grid operator if this is a grid sim,"
+                    + " or the sim operator if this is a standalone sim.",
+                "false");     
+        }
 
         public XmlRpcResponse CreateAlreadyLoggedInResponse()
         {

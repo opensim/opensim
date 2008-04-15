@@ -302,6 +302,8 @@ namespace OpenSim.Grid.UserServer
         // See LoginService
         protected override InventoryData GetInventorySkeleton(LLUUID userID)
         {
+            m_log.InfoFormat("[LOGIN]: Contacting inventory service at {0} for inventory skeleton of agent {1}", m_config.InventoryUrl, userID);
+            
             List<InventoryFolderBase> folders
                 = SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(
                     "POST", m_config.InventoryUrl + "RootFolders/", userID.UUID);
