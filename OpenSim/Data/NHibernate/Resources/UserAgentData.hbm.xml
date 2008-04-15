@@ -6,16 +6,16 @@
         </id>
         <property name="AgentIP" type="String" length="24" />
         <property name="AgentPort" type="UInt32" />
-        <property name="AgentOnline" type="bool" />
+        <property name="AgentOnline" type="boolean" />
         <property name="SessionID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
         <property name="SecureSessionID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
         <property name="InitialRegion" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
         <property name="Region" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
         <property name="LoginTime" type="Int32" />
         <property name="LogoutTime" type="Int32" />
-        <property name="Handle" type="ulong" />
-        <property name="PositionX" type="float" />
-        <property name="PositionY" type="float" />
-        <property name="PositionZ" type="float" />
+        <property name="Handle" type="UInt64" />
+        <property name="PositionX" type="Single" />
+        <property name="PositionY" type="Single" />
+        <property name="PositionZ" type="Single" />
     </class>
 </hibernate-mapping>

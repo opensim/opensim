@@ -10,12 +10,13 @@
         <property name="PasswordSalt" type="String" length="32" />
         <property name="WebLoginKey" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
         <property name="HomeRegionX" type="UInt32" />
-        <property name="HomeLocationX" type="Float" />
-        <property name="HomeLocationY" type="Float" />
-        <property name="HomeLocationZ" type="Float" />
-        <property name="HomeLookAtX" type="Float" />
-        <property name="HomeLookAtY" type="Float" />
-        <property name="HomeLookAtZ" type="Float" />
+        <property name="HomeRegionY" type="UInt32" />
+        <property name="HomeLocationX" type="Single" />
+        <property name="HomeLocationY" type="Single" />
+        <property name="HomeLocationZ" type="Single" />
+        <property name="HomeLookAtX" type="Single" />
+        <property name="HomeLookAtY" type="Single" />
+        <property name="HomeLookAtZ" type="Single" />
         <property name="Created" type="int" />
         <property name="LastLogin" type="int" />
         <property name="RootInventoryFolderID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
