@@ -297,8 +297,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (Scene mscene in m_localScenes)
             {
-                if (mscene.RegionInfo.InternalEndPoint.Address == ipEndPoint.Address &&
-                    mscene.RegionInfo.InternalEndPoint.Port == ipEndPoint.Port)
+                // .NET WEIRDNESS ALERT: need to compare the long
+                // values of address...
+                if ((mscene.RegionInfo.InternalEndPoint.Address.Address == ipEndPoint.Address.Address) &&
+                    (mscene.RegionInfo.InternalEndPoint.Port == ipEndPoint.Port))
                 {
                     scene = mscene;
                     return true;

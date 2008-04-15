@@ -141,6 +141,10 @@ whisper_distance = 10
 say_distance = 30
 shout_distance = 100
 
+[RemoteAdmin]
+enabled = false
+access_password = unknown
+
 ; Uncomment the following for IRC bridge
 ; experimental, so if it breaks... keep both parts... yada yada
 ; also, not good error detection when it fails

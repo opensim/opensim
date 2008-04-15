@@ -234,6 +234,29 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             m_app.Shutdown();
         }
 
+
+        private void checkStringParameters(XmlRpcRequest request, string[] param)
+        {
+            Hashtable requestData = (Hashtable) request.Params[0];
+            foreach (string p in param)
+            {
+                if (!requestData.Contains(p)) 
+                    throw new Exception(String.Format("missing string parameter {0}", p));
+                if (String.IsNullOrEmpty((string)requestData[p]))
+                    throw new Exception(String.Format("parameter {0} is empty", p));
+            }
+        }
+
+        private void checkIntegerParams(XmlRpcRequest request, string[] param)
+        {
+            Hashtable requestData = (Hashtable) request.Params[0];
+            foreach (string p in param)
+            {
+                if (!requestData.Contains(p)) 
+                    throw new Exception(String.Format("missing integer parameter {0}", p));
+            }
+        }
+
         /// <summary>
         /// Create a new region.
         /// <summary>
@@ -250,21 +273,24 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
         /// <item><term>region_id</term>
         ///       <description>(optional) desired region UUID</description></item>
         /// <item><term>region_x</term>
-        ///       <description>desired region X coordinate</description></item>
+        ///       <description>desired region X coordinate (integer)</description></item>
         /// <item><term>region_y</term>
-        ///       <description>desired region Y coordinate</description></item>
+        ///       <description>desired region Y coordinate (integer)</description></item>
         /// <item><term>region_master_first</term>
         ///       <description>firstname of region master</description></item>
         /// <item><term>region_master_last</term>
         ///       <description>lastname of region master</description></item>
         /// <item><term>listen_ip</term>
-        ///       <description>internal IP address</description></item>
+        ///       <description>internal IP address (dotted quad)</description></item>
         /// <item><term>listen_port</term>
-        ///       <description>internal port</description></item>
+        ///       <description>internal port (integer)</description></item>
         /// <item><term>external_address</term>
         ///       <description>external IP address</description></item>
         /// <item><term>datastore</term>
         ///       <description>datastore parameter (?)</description></item>
+        /// <item><term>persist</term>
+        ///       <description>if true, persist the region info
+        ///       ('true' or 'false')</description></item>
         /// </list>
         /// 
         /// XmlRpcCreateRegionMethod returns
@@ -288,16 +314,12 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             Hashtable responseData = new Hashtable();
 
             try {
-                // check completeness
-                foreach (string p in new string[] { "password", 
-                                                    "region_name", "region_x", "region_y", 
-                                                    "region_master_first", "region_master_last", 
-                                                    "region_master_password",
-                                                    "listen_ip", "listen_port", "external_address"})
-                {
-                    if (!requestData.Contains(p)) 
-                        throw new Exception(String.Format("missing parameter {0}", p));
-                }
+                checkStringParameters(request, new string[] { "password", 
+                                                              "region_name", 
+                                                              "region_master_first", "region_master_last", 
+                                                              "region_master_password",
+                                                              "listen_ip", "external_address"});
+                checkIntegerParams(request, new string[] { "region_x", "region_y", "listen_port"});
 
                 // check password
                 if (!String.IsNullOrEmpty(requiredPassword) &&
@@ -350,6 +372,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                     new IPEndPoint(IPAddress.Parse((string) requestData["listen_ip"]), 0);
                 
                 region.InternalEndPoint.Port = (Int32) requestData["listen_port"];
+                if (0 == region.InternalEndPoint.Port) throw new Exception("listen_port is 0");
                 if (m_app.SceneManager.TryGetScene(region.InternalEndPoint, out scene))
                     throw new Exception(String.Format("region internal IP {0} and port {1} already in use by region {2}, UUID {3}, <{4},{5}>",
                                                       region.InternalEndPoint.Address, 
@@ -445,13 +468,9 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             try 
             {
                 // check completeness
-                foreach (string p in new string[] { "password", 
-                                                    "user_firstname", "user_lastname", "user_password",
-                                                    "start_region_x", "start_region_y" })
-                {
-                    if (!requestData.Contains(p)) 
-                        throw new Exception(String.Format("missing parameter {0}", p));
-                }
+                checkStringParameters(request, new string[] { "password", "user_firstname", 
+                                                              "user_lastname", "user_password" });
+                checkIntegerParams(request, new string[] { "start_region_x", "start_region_y" });
 
                 // check password
                 if (!String.IsNullOrEmpty(requiredPassword) &&
