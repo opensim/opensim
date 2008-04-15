@@ -204,7 +204,7 @@ namespace OpenSim.Grid.UserServer
                 handlerUserLoggedInAtLocation = OnUserLoggedInAtLocation;
                 if (handlerUserLoggedInAtLocation != null)
                 {
-                    m_log.Info("[LOGIN]: Letting other objects know about login");
+                    //m_log.Info("[LOGIN]: Letting other objects know about login");
                     handlerUserLoggedInAtLocation(theUser.ID, theUser.CurrentAgent.SessionID, theUser.CurrentAgent.Region, 
                         theUser.CurrentAgent.Handle, theUser.CurrentAgent.Position.X,theUser.CurrentAgent.Position.Y,theUser.CurrentAgent.Position.Z,
                         theUser.FirstName,theUser.SurName);
@@ -302,7 +302,9 @@ namespace OpenSim.Grid.UserServer
         // See LoginService
         protected override InventoryData GetInventorySkeleton(LLUUID userID)
         {
-            m_log.InfoFormat("[LOGIN]: Contacting inventory service at {0} for inventory skeleton of agent {1}", m_config.InventoryUrl, userID);
+            m_log.DebugFormat(
+                 "[LOGIN]: Contacting inventory service at {0} for inventory skeleton of agent {1}", 
+                 m_config.InventoryUrl, userID);
             
             List<InventoryFolderBase> folders
                 = SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(

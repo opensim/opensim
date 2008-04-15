@@ -660,7 +660,7 @@ namespace OpenSim.Data.MySQL
                 return false;
             }
 
-            m_log.Debug("[MySQLManager]: Fetch user retval == " + returnval.ToString());
+            //m_log.Debug("[MySQLManager]: Fetch user retval == " + returnval.ToString());
             return returnval;
         }
 
@@ -750,7 +750,7 @@ namespace OpenSim.Data.MySQL
                 return false;
             }
 
-            m_log.Debug("[MySQLManager]: update user retval == " + returnval.ToString());
+            //m_log.Debug("[MySQLManager]: update user retval == " + returnval.ToString());
             return returnval;
         }
 

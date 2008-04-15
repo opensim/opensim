@@ -169,10 +169,10 @@ namespace OpenSim.Grid.UserServer
                 {
                     m_log.Info("[MSGCONNECTOR]: Sending login notice to registered message servers");
                 }
-                else
-                {
-                    m_log.Info("[MSGCONNECTOR]: No Message Servers registered, ignoring");
-                }
+//                else
+//                {
+//                    m_log.Debug("[MSGCONNECTOR]: No Message Servers registered, ignoring");
+//                }
                 foreach (MessageServerInfo serv in MessageServers.Values)
                 {
                     NotifyMessageServerAboutUser(serv, agentID, sessionID, RegionID,
@@ -191,9 +191,9 @@ namespace OpenSim.Grid.UserServer
                     m_log.Info("[MSGCONNECTOR]: Sending login notice to registered message servers");
                 }
                 else
-                {
-                    m_log.Info("[MSGCONNECTOR]: No Message Servers registered, ignoring");
-                }
+//                {
+//                    m_log.Debug("[MSGCONNECTOR]: No Message Servers registered, ignoring");
+//                }
                 foreach (MessageServerInfo serv in MessageServers.Values)
                 {
                     NotifyMessageServerAboutUserLogoff(serv,agentID);

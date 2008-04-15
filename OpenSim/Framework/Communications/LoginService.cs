@@ -121,25 +121,28 @@ namespace OpenSim.Framework.UserManagement
                     lastname = (string) requestData["last"];
                     
                     m_log.InfoFormat(
-                         "[LOGIN]: Received login request message from user {0} {1}", 
+                         "[LOGIN BEGIN]: Received login request message from user {0} {1}", 
                          firstname, lastname);
 
-                    if( requestData.Contains("version"))
+                    string clientVersion = "Unknown";
+                    
+                    if (requestData.Contains("version"))
                     {
-                        string clientversion = (string)requestData["version"];
-                        m_log.Info("[LOGIN]: Client version: " + clientversion);
+                        clientVersion = (string)requestData["version"];                        
                     }
                      
                     if (requestData.Contains("start"))
                     {
                         startLocationRequest = (string)requestData["start"];
-                        m_log.Info("[LOGIN]: Client requested start location: " + (string)requestData["start"]);
                     }                    
+                    
+                    m_log.DebugFormat(
+                         "[LOGIN]: Client is {0}, start location is {1}", clientVersion, startLocationRequest);
 
                     userProfile = GetTheUser(firstname, lastname);
                     if (userProfile == null)
                     {
-                        m_log.Info("[LOGIN]: Could not find a profile for " + firstname + " " + lastname);
+                        m_log.Info("[LOGIN END]: Could not find a profile for " + firstname + " " + lastname);
 
                         return logResponse.CreateLoginFailedResponse();
                     }
@@ -159,7 +162,7 @@ namespace OpenSim.Framework.UserManagement
                         catch (System.Exception e)
                         {
                             m_log.InfoFormat(
-                                 "[LOGIN]: Bad web_login_key: {0} for user {1} {2}, exception {3}", 
+                                 "[LOGIN END]: Bad web_login_key: {0} for user {1} {2}, exception {3}", 
                                  requestData["web_login_key"], firstname, lastname, e);
                             
                             return logResponse.CreateFailedResponse();
@@ -171,14 +174,14 @@ namespace OpenSim.Framework.UserManagement
                 else
                 {
                     m_log.Info(
-                        "[LOGIN]: login_to_simulator login message did not contain all the required data");
+                        "[LOGIN END]: login_to_simulator login message did not contain all the required data");
                     
                     return logResponse.CreateGridErrorResponse();
                 }
 
                 if (!GoodLogin)
                 {
-                    m_log.InfoFormat("[LOGIN]: User {0} {1} failed authentication", firstname, lastname);
+                    m_log.InfoFormat("[LOGIN END]: User {0} {1} failed authentication", firstname, lastname);
                     
                     return logResponse.CreateLoginFailedResponse();
                 }
@@ -197,7 +200,7 @@ namespace OpenSim.Framework.UserManagement
                         // Reject the login
                         
                         m_log.InfoFormat(
-                             "[LOGIN]: Notifying user {0} {1} that they are already logged in", 
+                             "[LOGIN END]: Notifying user {0} {1} that they are already logged in", 
                              firstname, lastname);
                         
                         return logResponse.CreateAlreadyLoggedInResponse();
@@ -218,8 +221,9 @@ namespace OpenSim.Framework.UserManagement
                         catch (System.Net.WebException e)
                         {
                             m_log.ErrorFormat(
-                                "[LOGIN]: Error retrieving inventory skeleton of agent {0}, {1} - {2}", agentID, e.GetType(), e.Message);
-                            
+                                "[LOGIN END]: Error retrieving inventory skeleton of agent {0}, {1} - {2}",
+                                agentID, e.GetType(), e.Message);
+                                                        
                             return logResponse.CreateLoginInventoryFailedResponse();                                                                                                        
                         }                        
                         
@@ -269,7 +273,7 @@ namespace OpenSim.Framework.UserManagement
                         }
                         catch (Exception e)
                         {
-                            m_log.Info("[LOGIN]: " + e.ToString());
+                            m_log.Info("[LOGIN END]: " + e.ToString());
                             return logResponse.CreateDeadRegionResponse();
                             //return logResponse.ToXmlRpcResponse();
                         }
@@ -279,19 +283,19 @@ namespace OpenSim.Framework.UserManagement
                         if (StatsManager.UserStats != null)
                             StatsManager.UserStats.AddSuccessfulLogin();
                         
-                        m_log.InfoFormat(
-                             "[LOGIN]: Authentication of user {0} {1} successful.  Sending response to client.",
+                        m_log.DebugFormat(
+                             "[LOGIN END]: Authentication of user {0} {1} successful.  Sending response to client.",
                              firstname, lastname);
                         
                         return logResponse.ToXmlRpcResponse();
                     }
                     catch (Exception e)
                     {
-                        m_log.Info("[LOGIN]: Login failed, " + e.ToString());
+                        m_log.Info("[LOGIN END]: Login failed, " + e.ToString());
                     }
                 }
 
-                m_log.Info("[LOGIN]: Login failed.  Sending back blank XMLRPC response");
+                m_log.Info("[LOGIN END]: Login failed.  Sending back blank XMLRPC response");
                 return response;
             }
             finally
@@ -654,7 +658,7 @@ namespace OpenSim.Framework.UserManagement
         public virtual bool AuthenticateUser(UserProfileData profile, string password)
         {
             bool passwordSuccess = false;
-            m_log.InfoFormat("[LOGIN]: Authenticating {0} {1} ({2})", profile.FirstName, profile.SurName, profile.ID);
+            //m_log.InfoFormat("[LOGIN]: Authenticating {0} {1} ({2})", profile.FirstName, profile.SurName, profile.ID);
 
             // Web Login method seems to also occasionally send the hashed password itself
 
