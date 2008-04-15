@@ -106,7 +106,11 @@ namespace OpenSim.Region.ScriptEngine.Common
             get { return m_LSL_Functions.State; }
             set { m_LSL_Functions.State = value;  }
         }
-
+        public void state(string state)
+        {
+            State = state;
+            
+        }
 
 
         public void Start(BuilIn_Commands LSL_Functions)

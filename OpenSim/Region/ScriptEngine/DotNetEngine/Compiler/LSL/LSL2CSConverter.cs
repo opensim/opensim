@@ -1,29 +1,30 @@
 /*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSim Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+* Copyright (c) Contributors, http://opensimulator.org/
+* See CONTRIBUTORS.TXT for a full list of copyright holders.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*     * Redistributions of source code must retain the above copyright
+*       notice, this list of conditions and the following disclaimer.
+*     * Redistributions in binary form must reproduce the above copyright
+*       notice, this list of conditions and the following disclaimer in the
+*       documentation and/or other materials provided with the distribution.
+*     * Neither the name of the OpenSim Project nor the
+*       names of its contributors may be used to endorse or promote products
+*       derived from this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS AS IS AND ANY
+* EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+* DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+* 
+*/
 
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -33,6 +34,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
     public class LSL2CSConverter
     {
+
+
         // Uses regex to convert LSL code to C# code.
 
         //private Regex rnw = new Regex(@"[a-zA-Z0-9_\-]", RegexOptions.Compiled);
@@ -173,7 +176,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                     {
                         // 0 => 1: Get last 
                         Match m =
-                            Regex.Match(cache, @"(?![a-zA-Z_]+)\s*([a-zA-Z_]+)[^a-zA-Z_\(\)]*{",
+                          //Regex.Match(cache, @"(?![a-zA-Z_]+)\s*([a-zA-Z_]+)[^a-zA-Z_\(\)]*{",
+                            Regex.Match(cache, @"(?![a-zA-Z_]+)\s*(state\s+)?(?<statename>[a-zA-Z_]+)[^a-zA-Z_\(\)]*{",
+
                                         RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
                         in_state = false;
@@ -181,13 +186,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                         {
                             // Go back to level 0, this is not a state
                             in_state = true;
-                            current_statename = m.Groups[1].Captures[0].Value;
+                            current_statename = m.Groups["statename"].Captures[0].Value;
                             //Console.WriteLine("Current statename: " + current_statename);
                             cache =
+                                              //@"(?<s1>(?![a-zA-Z_]+)\s*)" + @"([a-zA-Z_]+)(?<s2>[^a-zA-Z_\(\)]*){",
                                 Regex.Replace(cache,
-                                              @"(?<s1>(?![a-zA-Z_]+)\s*)" + @"([a-zA-Z_]+)(?<s2>[^a-zA-Z_\(\)]*){",
+                                              @"(?<s1>(?![a-zA-Z_]+)\s*)" + @"(state\s+)?([a-zA-Z_]+)(?<s2>[^a-zA-Z_\(\)]*){",
                                               "${s1}${s2}",
-                                              RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+                                              RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.IgnoreCase);
                         }
                         ret += cache;
                         cache = String.Empty;
@@ -208,7 +214,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                                 Regex.Replace(cache,
                                               @"^(\s*)((?!(if|switch|for|while)[^a-zA-Z0-9_])[a-zA-Z0-9_]*\s*\([^\)]*\)[^;]*\{)",
                                               @"$1public " + current_statename + "_event_$2",
-                                              RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+                                              RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.IgnoreCase);
                         }
 
                         ret += cache;
@@ -254,10 +260,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             // Replace <x,y,z> and <x,y,z,r>
             Script =
-                Regex.Replace(Script, @"<([^,>;]*,[^,>;\)]*,[^,>;\)]*,[^,>;\)]*)>", @"new LSL_Types.Quaternion($1)",
+                Regex.Replace(Script, @"<([^,>;]*,[^,>;]*,[^,>;]*,[^,>;]*)>", @"new LSL_Types.Quaternion($1)",
                               RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
             Script =
-                Regex.Replace(Script, @"<([^,>;]*,[^,>;\)]*,[^,>;\)]*)>", @"new LSL_Types.Vector3($1)",
+                Regex.Replace(Script, @"<([^,>;)]*,[^,>;]*,[^,>;]*)>", @"new LSL_Types.Vector3($1)",
                               RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
             // Replace List []'s
@@ -274,6 +280,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 Regex.Replace(Script, @"\((float|int)\)\s*([a-zA-Z0-9_.]+(\s*\([^\)]*\))?)", @"$1.Parse($2)",
                               RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
+            // Replace "state STATENAME" with "state("statename")"
+            Script =
+                    Regex.Replace(Script, @"(state)\s+([^;\n\r]+)(;[\r\n\s])", "$1(\"$2\")$3",
+                  RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
             // REPLACE BACK QUOTES
             foreach (string key in quotes.Keys)

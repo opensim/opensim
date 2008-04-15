@@ -79,7 +79,15 @@ namespace OpenSim.Region.ScriptEngine.Common
                 if (m_state != value)
                 {
                     m_state = value;
-                    m_ScriptEngine.m_EventManager.state_entry(m_localID);
+                    try
+                    {
+                        m_ScriptEngine.m_EventManager.state_entry(m_localID);
+
+                    }
+                    catch (AppDomainUnloadedException)
+                    {
+                        System.Console.WriteLine("[SCRIPT]: state change called when script was unloaded.  Nothing to worry about, but noting the occurance");
+                    }
                 }
             }
         }
