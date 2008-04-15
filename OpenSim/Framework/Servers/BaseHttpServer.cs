@@ -332,7 +332,14 @@ namespace OpenSim.Framework.Servers
             }
             finally
             {
-                response.OutputStream.Close();
+                try
+                {
+                    response.OutputStream.Close();
+                }
+                catch (System.Net.Sockets.SocketException)
+                {
+                    // This has to be here to prevent a Linux/Mono crash
+                }
             }
         }
 

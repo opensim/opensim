@@ -2813,7 +2813,7 @@ namespace OpenSim.Region.ClientStack
         {
             // Keep track of when this packet was sent out
             Pack.TickCount = System.Environment.TickCount;
-
+            
             if (!Pack.Header.Resent)
             {
                 Pack.Header.Sequence = NextSeqNum();

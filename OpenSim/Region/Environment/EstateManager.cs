@@ -289,7 +289,7 @@ namespace OpenSim.Region.Environment
             }
 
             //Sending Estate Settings
-            returnblock[0].Parameter = Helpers.StringToField(m_scene.RegionInfo.MasterAvatarFirstName + m_scene.RegionInfo.MasterAvatarLastName);
+            returnblock[0].Parameter = Helpers.StringToField(m_scene.RegionInfo.EstateSettings.estateName);
             returnblock[1].Parameter = Helpers.StringToField(m_scene.RegionInfo.MasterAvatarAssignedUUID.ToString());
             returnblock[2].Parameter = Helpers.StringToField(m_scene.RegionInfo.EstateSettings.estateID.ToString());
             
@@ -578,21 +578,22 @@ namespace OpenSim.Region.Environment
         {
             RegionInfoPacket rinfopack = new RegionInfoPacket();
             RegionInfoPacket.RegionInfoBlock rinfoblk = new RegionInfoPacket.RegionInfoBlock();
-
-            rinfoblk.BillableFactor = 0;
-            rinfoblk.EstateID = 02;
-            rinfoblk.MaxAgents = 100;
-            rinfoblk.ObjectBonusFactor = 1.0f;
-            rinfoblk.ParentEstateID = 0;
-            rinfoblk.PricePerMeter = 0;
-            rinfoblk.RedirectGridX = 0;
-            rinfoblk.RedirectGridY = 0;
-            rinfoblk.RegionFlags = (uint) m_regInfo.EstateSettings.regionFlags;
+            rinfopack.AgentData.AgentID = client.AgentId;
+            rinfopack.AgentData.SessionID = client.SessionId;
+            rinfoblk.BillableFactor = m_regInfo.EstateSettings.billableFactor;
+            rinfoblk.EstateID = m_regInfo.EstateSettings.estateID;
+            rinfoblk.MaxAgents = m_regInfo.EstateSettings.maxAgents;
+            rinfoblk.ObjectBonusFactor = m_regInfo.EstateSettings.objectBonusFactor;
+            rinfoblk.ParentEstateID = m_regInfo.EstateSettings.parentEstateID;
+            rinfoblk.PricePerMeter = m_regInfo.EstateSettings.pricePerMeter;
+            rinfoblk.RedirectGridX = m_regInfo.EstateSettings.redirectGridX;
+            rinfoblk.RedirectGridY = m_regInfo.EstateSettings.redirectGridY;
+            rinfoblk.RegionFlags = (uint)( m_regInfo.EstateSettings.regionFlags);
             rinfoblk.SimAccess = (byte) m_regInfo.EstateSettings.simAccess;
             rinfoblk.SunHour = m_regInfo.EstateSettings.sunHour;
-            rinfoblk.TerrainLowerLimit = 20;
-            rinfoblk.TerrainRaiseLimit = 20;
-            rinfoblk.UseEstateSun = true;
+            rinfoblk.TerrainLowerLimit = m_regInfo.EstateSettings.terrainLowerLimit;
+            rinfoblk.TerrainRaiseLimit = m_regInfo.EstateSettings.terrainRaiseLimit;
+            rinfoblk.UseEstateSun = !m_regInfo.EstateSettings.useFixedSun;
             rinfoblk.WaterHeight = m_regInfo.EstateSettings.waterHeight;
             rinfoblk.SimName = Helpers.StringToField(m_regInfo.RegionName);
 
@@ -650,7 +651,7 @@ namespace OpenSim.Region.Environment
             regionInfoPacket.RegionInfo.PricePerMeter = m_regInfo.EstateSettings.pricePerMeter;
             regionInfoPacket.RegionInfo.RedirectGridX = m_regInfo.EstateSettings.redirectGridX;
             regionInfoPacket.RegionInfo.RedirectGridY = m_regInfo.EstateSettings.redirectGridY;
-            regionInfoPacket.RegionInfo.RegionFlags = (uint) m_regInfo.EstateSettings.regionFlags;
+            regionInfoPacket.RegionInfo.RegionFlags = (uint)(m_regInfo.EstateSettings.regionFlags);
             regionInfoPacket.RegionInfo.SimAccess = (byte) m_regInfo.EstateSettings.simAccess;
             regionInfoPacket.RegionInfo.SimName = Helpers.StringToField(m_regInfo.RegionName);
             regionInfoPacket.RegionInfo.SunHour = m_regInfo.EstateSettings.sunHour;
@@ -658,6 +659,7 @@ namespace OpenSim.Region.Environment
             regionInfoPacket.RegionInfo.TerrainRaiseLimit = m_regInfo.EstateSettings.terrainRaiseLimit;
             regionInfoPacket.RegionInfo.UseEstateSun = !m_regInfo.EstateSettings.useFixedSun;
             regionInfoPacket.RegionInfo.WaterHeight = m_regInfo.EstateSettings.waterHeight;
+            
 
             remote_client.OutPacket(regionInfoPacket, ThrottleOutPacketType.Task);
         }

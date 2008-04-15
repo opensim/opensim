@@ -486,6 +486,19 @@ namespace OpenSim.Framework
             }
         }
 
+        // Estate name
+        private string m_estateName;
+
+        public string estateName
+        {
+            get { return m_estateName; }
+            set
+            {
+                m_estateName = value;
+                configMember.forceSetConfigurationOption("estate_name", m_estateName.ToString());
+            }
+        }
+
         private LLUUID m_estateManager0;
         private LLUUID m_estateManager1;
         private LLUUID m_estateManager2;
@@ -835,6 +848,8 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("terrain_image_id", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
                                                 String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
+            configMember.addConfigurationOption("estate_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                String.Empty, "TestEstate", true);
             configMember.addConfigurationOption("estate_manager_0", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
                                                 String.Empty, "00000000-0000-0000-0000-000000000000", true);
             configMember.addConfigurationOption("estate_manager_1", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
@@ -965,6 +980,9 @@ namespace OpenSim.Framework
 
                 case "terrain_file":
                     m_terrainFile = (string) configuration_result;
+                    break;
+                case "estate_name":
+                    m_estateName = (string) configuration_result;
                     break;
                 case "terrain_multiplier":
                     m_terrainMultiplier = Convert.ToDouble(configuration_result);

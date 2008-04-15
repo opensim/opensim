@@ -144,6 +144,7 @@ namespace OpenSim.Region.Environment.Modules
                            // Centralized grid structure using OpenSimWi Redux revision 9+
                            // https://opensimwiredux.svn.sourceforge.net/svnroot/opensimwiredux
                            scene.AddXmlRPCHandler("dynamic_balance_update_request", GridMoneyUpdate);
+                           scene.AddXmlRPCHandler("user_alert", UserAlert);
                        }
                        else
                        {
@@ -1164,6 +1165,49 @@ namespace OpenSim.Region.Environment.Modules
             r.Value = rparms;
             return r;
         }
+        /// <summary>
+        /// XMLRPC handler to send alert message and sound to client
+        /// </summary>
+        public XmlRpcResponse UserAlert(XmlRpcRequest request)
+		{
+            XmlRpcResponse ret = new XmlRpcResponse();
+            Hashtable retparam = new Hashtable();
+            Hashtable requestData = (Hashtable)request.Params[0];
+
+            LLUUID agentId = LLUUID.Zero;
+            LLUUID soundId = LLUUID.Zero;
+
+			Helpers.TryParse((string)requestData["agentId"], out agentId);
+			Helpers.TryParse((string)requestData["soundId"], out soundId);
+			string text=(string)requestData["text"];
+			string secret=(string)requestData["secret"];
+
+			Scene userScene = GetRandomScene();
+			if(userScene.RegionInfo.regionSecret.ToString() == secret)
+			{
+				IClientAPI client = LocateClientObject(agentId);
+
+				if (client != null)
+				{
+					if(soundId != LLUUID.Zero)
+						client.SendPlayAttachedSound(soundId, LLUUID.Zero, LLUUID.Zero, 1.0f, 0);
+					client.SendBlueBoxMessage(LLUUID.Zero, LLUUID.Zero, "", text);
+					retparam.Add("success", true);
+				}
+				else
+				{
+					retparam.Add("success", false);
+				}
+			}
+			else
+			{
+				retparam.Add("success", false);
+			}
+            ret.Value = retparam;
+
+            return ret;
+		}
+
 
 # region Standalone box enablers only
 

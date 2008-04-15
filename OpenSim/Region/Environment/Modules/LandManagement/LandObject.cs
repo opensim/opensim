@@ -172,7 +172,7 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
             {
                 updatePacket.ParcelData.MaxPrims =
                     Convert.ToInt32(
-                        Math.Round((Convert.ToDecimal(landData.area)/Convert.ToDecimal(65536))*15000*
+                        Math.Round((Convert.ToDecimal(landData.area)/Convert.ToDecimal(65536))*m_scene.objectCapacity*
                                    Convert.ToDecimal(m_scene.RegionInfo.EstateSettings.objectBonusFactor)));
             }
             else
@@ -194,7 +194,7 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
             updatePacket.ParcelData.PassHours = landData.passHours;
             updatePacket.ParcelData.PassPrice = landData.passPrice;
             updatePacket.ParcelData.PublicCount = 0; //unemplemented
-
+            
             uint regionFlags = (uint) m_scene.RegionInfo.EstateSettings.regionFlags;
             updatePacket.ParcelData.RegionDenyAnonymous = ((regionFlags & (uint) Simulator.RegionFlags.DenyAnonymous) >
                                                            0);
@@ -215,7 +215,7 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
             {
                 updatePacket.ParcelData.SimWideMaxPrims =
                     Convert.ToInt32(
-                        Math.Round((Convert.ToDecimal(landData.simwideArea)/Convert.ToDecimal(65536))*15000*
+                        Math.Round((Convert.ToDecimal(landData.simwideArea) / Convert.ToDecimal(65536)) * m_scene.objectCapacity *
                                    Convert.ToDecimal(m_scene.RegionInfo.EstateSettings.objectBonusFactor)));
             }
             else
