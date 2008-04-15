@@ -155,7 +155,7 @@ namespace OpenSim.Grid.UserServer
                 response.SeedCapability = SimInfo.httpServerURI + "CAPS/" + capsPath + "0000/";
                 
                 m_log.DebugFormat(
-                    "[CAPS]: Sending new CAPS seed url {0} to client {1}", 
+                    "[LOGIN]: Sending new CAPS seed url {0} to client {1}", 
                     response.SeedCapability, response.AgentID);                 
 
                 // Notify the target of an incoming user
