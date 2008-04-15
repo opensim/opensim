@@ -201,6 +201,7 @@ namespace OpenSim.Region.Capabilities
         {
             //Console.WriteLine("caps request " + request);
             string result = LLSDHelpers.SerialiseLLSDReply(m_capsHandlers.CapsDetails);
+            //m_log.DebugFormat("[CAPS] CapsRequest {0}", result);
             return result;
         }
 

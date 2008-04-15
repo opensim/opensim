@@ -173,6 +173,22 @@ account_management_server = https://www.bhr.vivox.com/api2
 ; Global SIP Server for conference calls
 sip_domain = testserver.com
 
+[AsteriskVoice]
+; PLEASE NOTE that we don't have voice support in OpenSim quite yet - these configuration options are stubs
+enabled = false
+; SIP account server domain 
+sip_domain = testserver.com
+; SIP conf server domain 
+conf_domain = testserver.com
+; URL of the asterisk opensim frontend 
+asterisk_frontend = http://testserver.com:49153/
+; password for the asterisk frontend XmlRpc calls
+asterisk_password = bah-humbug
+; timeout for XmlRpc calls to asterisk front end (in ms)
+asterisk_timeout = 3000
+; salt for asterisk nonces
+asterisk_salt = paluempalum
+
 ; Uncomment the following to control the progression of daytime
 ; in the Sim.  The defaults are what is shown below
 ;[Sun]
