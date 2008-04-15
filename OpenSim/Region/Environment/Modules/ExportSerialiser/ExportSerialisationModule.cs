@@ -41,7 +41,7 @@ namespace OpenSim.Region.Environment.Modules.ExportSerialiser
             TextWriter regionInfoWriter = new StreamWriter(saveDir + "README.TXT");
             regionInfoWriter.WriteLine("Region Name: " + scene.RegionInfo.RegionName);
             regionInfoWriter.WriteLine("Region ID: " + scene.RegionInfo.RegionID.ToString());
-            regionInfoWriter.WriteLine("Backup Time: " + Util.UnixTimeSinceEpoch().ToString());
+            regionInfoWriter.WriteLine("Backup Time: UTC " + DateTime.UtcNow.ToString());
             regionInfoWriter.WriteLine("Serialise Version: 0.1");
             regionInfoWriter.Close();
 
@@ -117,6 +117,7 @@ namespace OpenSim.Region.Environment.Modules.ExportSerialiser
             lock (m_serialisers)
             {
                 m_serialisers.Add(new SerialiseTerrain());
+                m_serialisers.Add(new SerialiseObjects());
             }
 
             LoadCommanderCommands();
