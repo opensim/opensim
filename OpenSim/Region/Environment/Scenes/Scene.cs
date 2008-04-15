@@ -1867,8 +1867,25 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="agentId"></param>   
         /// <param name="capsObjectPath"></param>         
         public void AddCapsHandler(LLUUID agentId)
-        {                             
-            String capsObjectPath = GetCapsPath(agentId);                
+        {       
+            // Here we clear out old Caps handlers for the agent
+            // this is required because we potentially have multiple simulators in an instance nearby.
+            Caps oldcap = null;
+            lock (m_capsHandlers)
+            {
+                if (m_capsHandlers.ContainsKey(agentId))
+                    oldcap = m_capsHandlers[agentId];
+            }
+            if (oldcap != null)
+            {
+                oldcap.DeregisterHandlers();
+            }
+
+            // Generate a new base caps path LLUUID.Random().ToString() instead of agentId.ToString()
+            // If the caps paths are not different for each region, the client and sim will do weird 
+            // things like send the request to a region the agent is no longer in.
+
+            String capsObjectPath = GetNewCapsPath(agentId);                
 
             m_log.DebugFormat(
                 "[CAPS]: Setting up CAPS handler for root agent {0} in {1}",

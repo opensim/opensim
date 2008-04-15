@@ -64,6 +64,7 @@ namespace OpenSim.Framework
 
         ClientManager ClientManager { get; }
         
-        string GetCapsPath(LLUUID agentId);       
+        string GetCapsPath(LLUUID agentId);
+        string GetNewCapsPath(LLUUID agentId);
     }
 }
