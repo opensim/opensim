@@ -71,8 +71,8 @@ namespace OpenSim.Region.Environment.Interfaces
         byte[] ExportJpegImage(string gradientmap);
     }
 
-    public interface ITerrainTemp
+    public interface IMapImageGenerator
     {
-        byte[] WriteJpegImage(string gradientmap);
+        byte[] WriteJpeg2000Image(string gradientmap);
     }
 }

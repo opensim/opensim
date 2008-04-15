@@ -10,7 +10,7 @@ using OpenSim.Region.Environment.Modules.ModuleFramework;
 
 namespace OpenSim.Region.Environment.Modules.Terrain
 {
-    class MapImageModule : ITerrainTemp, IRegionModule
+    class MapImageModule : IMapImageGenerator, IRegionModule
     {
         private Scene m_scene;
         #region IRegionModule Members
@@ -18,7 +18,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
         public void Initialise(Scene scene, IConfigSource source)
         {
             m_scene = scene;
-            m_scene.RegisterModuleInterface<ITerrainTemp>(this);
+            m_scene.RegisterModuleInterface<IMapImageGenerator>(this);
         }
 
         public void PostInitialise()
@@ -40,15 +40,15 @@ namespace OpenSim.Region.Environment.Modules.Terrain
         }
 
 
-        public byte[] WriteJpegImage(string gradientmap)
+        public byte[] WriteJpeg2000Image(string gradientmap)
         {
             byte[] imageData = null;
+
+            Bitmap bmp = TerrainToBitmap(gradientmap);
+
             try
             {
-                Bitmap bmp = TerrainToBitmap(gradientmap);
-
                 imageData = OpenJPEGNet.OpenJPEG.EncodeFromImage(bmp, true);
-
             }
             catch (Exception e) // LEGIT: Catching problems caused by OpenJPEG p/invoke
             {
@@ -122,7 +122,12 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                     {
                         // 512 is the largest possible height before colours clamp
                         int colorindex = (int)(Math.Max(Math.Min(1.0, copy[x, y] / 512.0), 0.0) * (pallete - 1));
-                        bmp.SetPixel(x, copy.Height - y - 1, colours[colorindex]);
+
+                        // Handle error conditions
+                        if (colorindex > pallete - 1 || colorindex < 0)
+                            bmp.SetPixel(x, copy.Height - y - 1, Color.Red);
+                        else
+                            bmp.SetPixel(x, copy.Height - y - 1, colours[colorindex]);
                     }
                 }
                 ShadeBuildings(ref bmp);

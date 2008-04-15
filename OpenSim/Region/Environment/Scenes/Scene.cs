@@ -984,19 +984,21 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void CreateTerrainTexture(bool temporary)
         {
-            //TODOADAM: Move this to TerrainModule
-          
             //create a texture asset of the terrain 
-            ITerrainTemp terrain = RequestModuleInterface<ITerrainTemp>();
+            IMapImageGenerator terrain = RequestModuleInterface<IMapImageGenerator>();
 
-            if (Heightmap != null)
+            // Cannot create a map for a nonexistant heightmap yet.
+            if (Heightmap == null)
+                return;
+
+            if (terrain == null)
             {
                 Bitmap mapbmp = new Bitmap(256, 256);
                 double[,] hm = Heightmap.GetDoubles();
 
                 float heightvalue = 0;
 
-                
+
                 Color prim = Color.FromArgb(120, 120, 120);
                 LLVector3 RayEnd = new LLVector3(0, 0, 0);
                 LLVector3 RayStart = new LLVector3(0, 0, 0);
@@ -1038,50 +1040,50 @@ namespace OpenSim.Region.Environment.Scenes
 
                         //if (rt.HitTF)
                         //{
-                            //mapbmp.SetPixel(x, y, prim);
+                        //mapbmp.SetPixel(x, y, prim);
                         //}
                         //else
                         //{
-                            float tmpval = (float)hm[x, y];
-                            heightvalue = (float)hm[x, y];
+                        float tmpval = (float)hm[x, y];
+                        heightvalue = (float)hm[x, y];
 
-                            if ((float)heightvalue > m_regInfo.EstateSettings.waterHeight)
-                            {
-                                // scale height value
-                                heightvalue = low + mid * (heightvalue - low) / mid;
+                        if ((float)heightvalue > m_regInfo.EstateSettings.waterHeight)
+                        {
+                            // scale height value
+                            heightvalue = low + mid * (heightvalue - low) / mid;
 
-                                if (heightvalue > 255)
-                                    heightvalue = 255;
+                            if (heightvalue > 255)
+                                heightvalue = 255;
 
-                                if (heightvalue < 0)
-                                    heightvalue = 0;
-                                
-                            
-                                Color green = Color.FromArgb((int)heightvalue, 100, (int)heightvalue);
-                                
-                                // Y flip the cordinates
-                                mapbmp.SetPixel(x, (256 - y) - 1, green);
-                            }
-                            else
-                            {
-                                // Y flip the cordinates
-                                heightvalue = m_regInfo.EstateSettings.waterHeight - heightvalue;
-                                if (heightvalue > 19)
-                                    heightvalue = 19;
-                                if (heightvalue < 0)
-                                    heightvalue = 0;
+                            if (heightvalue < 0)
+                                heightvalue = 0;
 
-                                heightvalue = 100 - (heightvalue * 100) / 19;
 
-                                if (heightvalue > 255)
-                                    heightvalue = 255;
+                            Color green = Color.FromArgb((int)heightvalue, 100, (int)heightvalue);
 
-                                if (heightvalue < 0)
-                                    heightvalue = 0;
+                            // Y flip the cordinates
+                            mapbmp.SetPixel(x, (256 - y) - 1, green);
+                        }
+                        else
+                        {
+                            // Y flip the cordinates
+                            heightvalue = m_regInfo.EstateSettings.waterHeight - heightvalue;
+                            if (heightvalue > 19)
+                                heightvalue = 19;
+                            if (heightvalue < 0)
+                                heightvalue = 0;
 
-                                Color water = Color.FromArgb((int)heightvalue, (int)heightvalue, 255);
-                                mapbmp.SetPixel(x, (256 - y) - 1, water);
-                            }
+                            heightvalue = 100 - (heightvalue * 100) / 19;
+
+                            if (heightvalue > 255)
+                                heightvalue = 255;
+
+                            if (heightvalue < 0)
+                                heightvalue = 0;
+
+                            Color water = Color.FromArgb((int)heightvalue, (int)heightvalue, 255);
+                            mapbmp.SetPixel(x, (256 - y) - 1, water);
+                        }
                         //}
 
 
@@ -1098,7 +1100,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     return;
                 }
-                
+
                 m_regInfo.EstateSettings.terrainImageID = LLUUID.Random();
                 AssetBase asset = new AssetBase();
                 asset.FullID = m_regInfo.EstateSettings.terrainImageID;
@@ -1108,12 +1110,11 @@ namespace OpenSim.Region.Environment.Scenes
                 asset.Type = 0;
                 asset.Temporary = temporary;
                 AssetCache.AddAsset(asset);
-                
-            }
 
-            if (terrain != null)
+            }
+            else
             {
-                byte[] data = terrain.WriteJpegImage("defaultstripe.png");
+                byte[] data = terrain.WriteJpeg2000Image("defaultstripe.png");
                 if (data != null)
                 {
                     m_regInfo.EstateSettings.terrainImageID = LLUUID.Random();
