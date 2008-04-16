@@ -68,6 +68,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event RequestMapBlocks OnRequestMapBlocks;
         public event RequestMapName OnMapNameRequest;
         public event TeleportLocationRequest OnTeleportLocationRequest;
+        public event TeleportLandmarkRequest OnTeleportLandmarkRequest;
         public event DisconnectUser OnDisconnectUser;
         public event RequestAvatarProperties OnRequestAvatarProperties;
         public event SetAlwaysRun OnSetAlwaysRun;

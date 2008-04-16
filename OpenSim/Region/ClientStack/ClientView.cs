@@ -154,6 +154,7 @@ namespace OpenSim.Region.ClientStack
         private FetchInventory handlerAgentDataUpdateRequest = null; //OnAgentDataUpdateRequest;
         private FetchInventory handlerUserInfoRequest = null; //OnUserInfoRequest;
         private TeleportLocationRequest handlerSetStartLocationRequest = null; //OnSetStartLocationRequest;
+        private TeleportLandmarkRequest handlerTeleportLandmarkRequest = null; //OnTeleportLandmarkRequest;
         private LinkObjects handlerLinkObjects = null; //OnLinkObjects;
         private DelinkObjects handlerDelinkObjects = null; //OnDelinkObjects;
         private AddNewPrim handlerAddPrim = null; //OnAddPrim;
@@ -716,6 +717,7 @@ namespace OpenSim.Region.ClientStack
         public event RequestMapBlocks OnRequestMapBlocks;
         public event RequestMapName OnMapNameRequest;
         public event TeleportLocationRequest OnTeleportLocationRequest;
+        public event TeleportLandmarkRequest OnTeleportLandmarkRequest;
         public event DisconnectUser OnDisconnectUser;
         public event RequestAvatarProperties OnRequestAvatarProperties;
         public event SetAlwaysRun OnSetAlwaysRun;
@@ -4185,50 +4187,35 @@ namespace OpenSim.Region.ClientStack
                         break;
                     case PacketType.TeleportLandmarkRequest:
                         TeleportLandmarkRequestPacket tpReq = (TeleportLandmarkRequestPacket)Pack;
-
-                        TeleportStartPacket tpStart = (TeleportStartPacket)PacketPool.Instance.GetPacket(PacketType.TeleportStart);
-                        tpStart.Info.TeleportFlags = 8; // tp via lm
-                        OutPacket(tpStart, ThrottleOutPacketType.Task);
-
-                        TeleportProgressPacket tpProgress = (TeleportProgressPacket)PacketPool.Instance.GetPacket(PacketType.TeleportProgress);
-                        tpProgress.Info.Message = (new UTF8Encoding()).GetBytes("sending_landmark");
-                        tpProgress.Info.TeleportFlags = 8;
-                        tpProgress.AgentData.AgentID = tpReq.Info.AgentID;
-                        OutPacket(tpProgress, ThrottleOutPacketType.Task);
-
-                        // Fetch landmark
                         LLUUID lmid = tpReq.Info.LandmarkID;
                         AssetBase lma = m_assetCache.GetAsset(lmid, false);
-                        if (lma != null)
+                       
+                        if(lma == null)
                         {
-                            AssetLandmark lm = new AssetLandmark(lma);
+                            // Failed to find landmark
+                        
+                            TeleportCancelPacket tpCancel = (TeleportCancelPacket)PacketPool.Instance.GetPacket(PacketType.TeleportCancel);
+                            tpCancel.Info.SessionID = tpReq.Info.SessionID;
+                            tpCancel.Info.AgentID = tpReq.Info.AgentID;
+                            OutPacket(tpCancel, ThrottleOutPacketType.Task);
+                        }
 
-                            if (lm.RegionID == m_scene.RegionInfo.RegionID)
-                            {
-                                TeleportLocalPacket tpLocal = (TeleportLocalPacket)PacketPool.Instance.GetPacket(PacketType.TeleportLocal);
-
-                                tpLocal.Info.AgentID = tpReq.Info.AgentID;
-                                tpLocal.Info.TeleportFlags = 8; // Teleport via landmark
-                                tpLocal.Info.LocationID = 2;
-                                tpLocal.Info.Position = lm.Position;
-                                OutPacket(tpLocal, ThrottleOutPacketType.Task);
-                            }
-                            else
-                            {
-                                TeleportCancelPacket tpCancel = (TeleportCancelPacket)PacketPool.Instance.GetPacket(PacketType.TeleportCancel);
-                                tpCancel.Info.AgentID = tpReq.Info.AgentID;
-                                tpCancel.Info.SessionID = tpReq.Info.SessionID;
-                                OutPacket(tpCancel, ThrottleOutPacketType.Task);
-                            }
+                        AssetLandmark lm = new AssetLandmark(lma);
+                        handlerTeleportLandmarkRequest = OnTeleportLandmarkRequest;
+                        if (handlerTeleportLandmarkRequest != null)
+                        {
+                            handlerTeleportLandmarkRequest(this, lm.RegionHandle, lm.Position);
                         }
                         else
                         {
-                            Console.WriteLine("Cancelling Teleport - fetch asset not yet implemented");
+                            //no event handler so cancel request
+
 
                             TeleportCancelPacket tpCancel = (TeleportCancelPacket)PacketPool.Instance.GetPacket(PacketType.TeleportCancel);
                             tpCancel.Info.AgentID = tpReq.Info.AgentID;
                             tpCancel.Info.SessionID = tpReq.Info.SessionID;
                             OutPacket(tpCancel, ThrottleOutPacketType.Task);
+
                         }
                         break;
                     case PacketType.TeleportLocationRequest:

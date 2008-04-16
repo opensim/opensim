@@ -545,7 +545,20 @@ namespace OpenSim.Region.Environment.Scenes
                 
                 if (userInfo != null)
                 {
-                    AssetBase asset = CreateAsset(name, description, invType, assetType, null);
+                    ScenePresence presence;
+                    TryGetAvatar(remoteClient.AgentId, out presence);
+                    byte[] data = null;
+                    if(invType == 3 && presence != null) // libsecondlife.asset.assettype.landmark = 3 - needs to be turned into an enum
+                    {
+                        LLVector3 pos=presence.AbsolutePosition;
+                        string strdata=String.Format("Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\n",
+                            presence.Scene.RegionInfo.RegionID,
+                            pos.X, pos.Y, pos.Z,
+                            presence.RegionHandle);
+                        data=Encoding.ASCII.GetBytes(strdata);
+                    }
+
+                    AssetBase asset = CreateAsset(name, description, invType, assetType, data);
                     AssetCache.AddAsset(asset);
 
                     CreateNewInventoryItem(remoteClient, folderID, callbackID, asset, nextOwnerMask);

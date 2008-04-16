@@ -260,6 +260,9 @@ namespace OpenSim.Framework
     public delegate void TeleportLocationRequest(
         IClientAPI remoteClient, ulong regionHandle, LLVector3 position, LLVector3 lookAt, uint flags);
 
+    public delegate void TeleportLandmarkRequest(
+        IClientAPI remoteClient, ulong regionHandle, LLVector3 position);
+
     public delegate void DisconnectUser();
 
     public delegate void RequestAvatarProperties(IClientAPI remoteClient, LLUUID avatarID);
@@ -458,6 +461,7 @@ namespace OpenSim.Framework
         event DisconnectUser OnDisconnectUser;
         event RequestAvatarProperties OnRequestAvatarProperties;
         event SetAlwaysRun OnSetAlwaysRun;
+        event TeleportLandmarkRequest OnTeleportLandmarkRequest;
         event GenericCall4 OnDeRezObject;
         event Action<IClientAPI> OnRegionHandShakeReply;
         event GenericCall2 OnRequestWearables;

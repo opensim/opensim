@@ -270,6 +270,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
                 m_pos = value;
+				m_parentPosition=new LLVector3(0, 0, 0);
             }
         }
 
@@ -602,7 +603,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="pos"></param>
         public void Teleport(LLVector3 pos)
         {
+			RemoveFromPhysicalScene();
+			Velocity = new LLVector3(0, 0, 0);
             AbsolutePosition = pos;
+			AddToPhysicalScene();
             SendTerseUpdateToAllClients();
         }
 

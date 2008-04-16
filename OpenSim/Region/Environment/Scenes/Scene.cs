@@ -1518,6 +1518,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnRequestMapBlocks += RequestMapBlocks;
             client.OnUpdatePrimTexture += m_innerScene.UpdatePrimTexture;
             client.OnTeleportLocationRequest += RequestTeleportLocation;
+            client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
             client.OnObjectSelect += SelectPrim;
             client.OnObjectDeselect += DeselectPrim;
             client.OnGrabUpdate += m_innerScene.MoveObject;
@@ -2078,6 +2079,21 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_sceneGridService.RequestTeleportToLocation(m_scenePresences[remoteClient.AgentId], regionHandle,
                                                              position, lookAt, flags);
+            }
+        }
+
+        /// <summary>
+        /// Tries to teleport agent to landmark.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="regionHandle"></param>
+        /// <param name="position"></param>
+        public void RequestTeleportLandmark(IClientAPI remoteClient, ulong regionHandle, LLVector3 position)
+        {
+            if (m_scenePresences.ContainsKey(remoteClient.AgentId))
+            {
+                m_sceneGridService.RequestTeleportToLocation(m_scenePresences[remoteClient.AgentId], regionHandle,
+                                                             position, LLVector3.Zero, 0);
             }
         }
 
