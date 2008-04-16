@@ -163,6 +163,7 @@ namespace OpenSim.Region.ClientStack
         private ObjectDuplicateOnRay handlerObjectDuplicateOnRay = null;
         private ObjectSelect handlerObjectSelect = null;
         private ObjectDeselect handlerObjectDeselect = null;
+        private ObjectIncludeInSearch handlerObjectIncludeInSearch = null;
         private UpdatePrimFlags handlerUpdatePrimFlags = null; //OnUpdatePrimFlags;
         private UpdatePrimTexture handlerUpdatePrimTexture = null;
         private UpdateVector handlerGrabObject = null; //OnGrabObject;
@@ -699,6 +700,7 @@ namespace OpenSim.Region.ClientStack
         public event ObjectDeselect OnObjectDeselect;
         public event GenericCall7 OnObjectDescription;
         public event GenericCall7 OnObjectName;
+        public event ObjectIncludeInSearch OnObjectIncludeInSearch;
         public event RequestObjectPropertiesFamily OnRequestObjectPropertiesFamily;
         public event UpdatePrimFlags OnUpdatePrimFlags;
         public event UpdatePrimTexture OnUpdatePrimTexture;
@@ -3790,6 +3792,22 @@ namespace OpenSim.Region.ClientStack
                                        packObjBlock.ObjectID);
                         }
 
+                        break;
+                    case PacketType.ObjectIncludeInSearch:
+                        //This lets us set objects to appear in search (stuff like DataSnapshot, etc)
+                        ObjectIncludeInSearchPacket packInSearch = (ObjectIncludeInSearchPacket)Pack;
+                        handlerObjectIncludeInSearch = null;
+
+                        foreach (ObjectIncludeInSearchPacket.ObjectDataBlock objData in packInSearch.ObjectData) {
+                            bool inSearch = objData.IncludeInSearch;
+                            uint localID = objData.ObjectLocalID;
+
+                            handlerObjectIncludeInSearch = OnObjectIncludeInSearch;
+
+                            if (handlerObjectIncludeInSearch != null) {
+                                handlerObjectIncludeInSearch(this, inSearch, localID);
+                            }
+                        }
                         break;
 
                     #endregion

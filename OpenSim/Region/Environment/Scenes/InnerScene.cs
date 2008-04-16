@@ -1236,6 +1236,50 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void MakeObjectSearchable(IClientAPI remoteClient, bool IncludeInSearch, uint localID)
+        {
+            LLUUID user = remoteClient.AgentId;
+            LLUUID objid = null;
+            SceneObjectPart obj = null;
+
+            List<EntityBase> EntityList = GetEntities();
+            foreach (EntityBase ent in EntityList)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    foreach (KeyValuePair<LLUUID, SceneObjectPart> subent in ((SceneObjectGroup)ent).Children)
+                    {
+                        if (subent.Value.LocalId == localID)
+                        {
+                            objid = subent.Key;
+                            obj = subent.Value;
+                        }
+                    }
+                }
+            }
+            
+            //Protip: In my day, we didn't call them searchable objects, we called them limited point-to-point joints
+            //aka ObjectFlags.JointWheel = IncludeInSearch
+
+            //Permissions model: Object can be REMOVED from search IFF:
+            // * User owns object
+            //use CanEditObject
+
+            //Object can be ADDED to search IFF:
+            // * User owns object
+            // * Asset/DRM permission bit "modify" is enabled
+            //use CanEditObjectPosition
+
+            if (IncludeInSearch && PermissionsMngr.CanEditObject(user, objid))
+            {
+                obj.AddFlag(LLObject.ObjectFlags.JointWheel);
+            }
+            else if (!IncludeInSearch && PermissionsMngr.CanEditObjectPosition(user, objid))
+            {
+                obj.RemFlag(LLObject.ObjectFlags.JointWheel);
+            }
+        }
+
         /// <summary>
         /// Duplicate the given object.
         /// </summary>

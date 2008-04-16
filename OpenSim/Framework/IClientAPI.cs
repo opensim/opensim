@@ -435,6 +435,8 @@ namespace OpenSim.Framework
 
     public delegate void EconomyDataRequest(LLUUID agentID);
 
+    public delegate void ObjectIncludeInSearch(IClientAPI remoteClient, bool IncludeInSearch, uint localID);
+
     public interface IClientAPI
     {
         event ImprovedInstantMessage OnInstantMessage;
@@ -549,7 +551,7 @@ namespace OpenSim.Framework
         event UpdateAvatarProperties OnUpdateAvatarProperties;
         event ParcelBuy OnParcelBuy;
 
-
+        event ObjectIncludeInSearch OnObjectIncludeInSearch;
          
         LLVector3 StartPos { get; set; }
 

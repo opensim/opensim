@@ -1578,6 +1578,8 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnAvatarPickerRequest += ProcessAvatarPickerRequest;
             client.OnPacketStats += AddPacketStats;
 
+            client.OnObjectIncludeInSearch += m_innerScene.MakeObjectSearchable;
+
             EventManager.TriggerOnNewClient(client);
         }
 

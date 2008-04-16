@@ -161,6 +161,8 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event MoneyBalanceRequest OnMoneyBalanceRequest;
         public event UpdateAvatarProperties OnUpdateAvatarProperties;
 
+        public event ObjectIncludeInSearch OnObjectIncludeInSearch;
+
 
 #pragma warning restore 67
 

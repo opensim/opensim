@@ -440,6 +440,7 @@ namespace OpenSim.Framework.Servers
             string[] querystringkeys = request.QueryString.AllKeys;
             string[] rHeaders = request.Headers.AllKeys;
 
+            
             foreach (string queryname in querystringkeys)
             {
                 keysvals.Add(queryname, request.QueryString[queryname]);
@@ -487,7 +488,16 @@ namespace OpenSim.Framework.Servers
         {
             int responsecode = (int)responsedata["int_response_code"];
             string responseString = (string)responsedata["str_response_string"];
-            
+            string contentType = (string)responsedata["content_type"];
+
+            //Even though only one other part of the entire code uses HTTPHandlers, we shouldn't expect this
+            //and should check for NullReferenceExceptions
+
+            if (contentType == null || contentType == "")
+            {
+                contentType = "text/html";
+            }
+
             // We're forgoing the usual error status codes here because the client 
             // ignores anything but 200 and 301
 
@@ -498,7 +508,8 @@ namespace OpenSim.Framework.Servers
                 response.RedirectLocation = (string)responsedata["str_redirect_location"];
                 response.StatusCode = responsecode;
             }
-            response.AddHeader("Content-type", "text/html");
+
+            response.AddHeader("Content-type", contentType);
 
             byte[] buffer = Encoding.UTF8.GetBytes(responseString);
 
