@@ -405,49 +405,96 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             public list GetSublist(int start, int end)
             {
-                Console.WriteLine("GetSublist(" + start.ToString() + "," + end.ToString() + ")");
+
                 object[] ret;
+
                 // Take care of neg start or end's
+                // NOTE that either index may still be negative after
+                // adding the length, so we must take additional
+                // measures to protect against this. Note also that
+                // after normalisation the negative indices are no 
+                // longer relative to the end of the list.
+
                 if (start < 0)
                 {
                     start = m_data.Length + start;
                 }
+
                 if (end < 0)
                 {
                     end = m_data.Length + end;
                 }
 
-                // Case start <= end
+                // The conventional case is start <= end
+                // NOTE that the case of an empty list is 
+                // dealt with by the initial test. Start
+                // less than end is taken to be the most
+                // common case.
+
                 if (start <= end)
                 {
-                    if (start >= m_data.Length)
+
+                    // Start sublist beyond length
+                    // Also deals with start AND end still negative
+                    if (start >= m_data.Length || end < 0)
                     {
                         return new list();
                     }
+
+                    // Sublist extends beyond the end of the supplied list
                     if (end >= m_data.Length)
                     {
                         end = m_data.Length - 1;
                     }
+                   
+                    // Sublist still starts before the beginning of the list
+                    if (start < 0)
+                    {
+                        start = 0;
+                    }
+
                     ret = new object[end - start + 1];
+  
                     Array.Copy(m_data, start, ret, 0, end - start + 1);
+
                     return new list(ret);
+
                 }
+
+                // Deal with the segmented case: 0->end + start->EOL
+
                 else
                 {
-                    if (start >= m_data.Length)
+
+                    list result = null;
+
+                    // If end is negative, then prefix list is empty
+                    if(end < 0)
                     {
-                        return GetSublist(0, end);
+                        result = new list();
+                        // If start is still negative, then the whole of
+                        // the existing list is returned. This case is 
+                        // only admitted if end is also still negative.
+                        if(start < 0)
+                        {
+                            return this;
+                        }
+
                     }
-                    if (end >= m_data.Length)
+                    else
                     {
-                        return new list();
+                        result = GetSublist(0,end);
                     }
-                    // end < start
-                    //ret = new object[m_data.Length - Math.Abs(end - start + 1)];
-                    //Array.Copy(m_data, 0, ret, m_data.Length - start, end + 1);
-                    //Array.Copy(m_data, start, ret, 0, m_data.Length - start);
-                    return GetSublist(0, end) + GetSublist(start, Data.Length - 1);
-                    //return new list(ret);
+
+                    // If start is outside of list, then just return 
+                    // the prefix, whatever it is.
+                    if(start >= m_data.Length)
+                    {
+                        return result;
+                    }
+
+                    return result + GetSublist(start, Data.Length);
+
                 }
             }
 
