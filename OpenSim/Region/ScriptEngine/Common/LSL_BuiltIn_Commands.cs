@@ -1568,7 +1568,6 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llStopHover()
         {
             m_host.AddScriptLPS(1);
-            m_host.AddScriptLPS(1);
             NotImplemented("llStopHover");
         }
 
@@ -2165,11 +2164,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llPushObject(string target, LSL_Types.Vector3 impulse, LSL_Types.Vector3 ang_impulse, int local)
         {
             m_host.AddScriptLPS(1);
+            NotImplemented("llPushObject");
         }
 
         public void llPassCollisions(int pass)
         {
             m_host.AddScriptLPS(1);
+            NotImplemented("llPassCollisions");
         }
 
         public string llGetScriptName()
@@ -2195,24 +2196,28 @@ namespace OpenSim.Region.ScriptEngine.Common
         public int llGetNumberOfSides()
         {
             m_host.AddScriptLPS(1);
+            NotImplemented("llGetNumberOfSides");
             return 0;
         }
 
         public LSL_Types.Quaternion llAxisAngle2Rot(LSL_Types.Vector3 axis, double angle)
         {
             m_host.AddScriptLPS(1);
+            NotImplemented("llAxisAngle2Rot");
             return new LSL_Types.Quaternion();
         }
 
         public LSL_Types.Vector3 llRot2Axis(LSL_Types.Quaternion rot)
         {
             m_host.AddScriptLPS(1);
+            NotImplemented("llRot2Axis");
             return new LSL_Types.Vector3();
         }
 
         public void llRot2Angle()
         {
             m_host.AddScriptLPS(1);
+            NotImplemented("llRot2Angle");
         }
 
         public double llAcos(double val)
@@ -2230,23 +2235,27 @@ namespace OpenSim.Region.ScriptEngine.Common
         public double llAngleBetween(LSL_Types.Quaternion a, LSL_Types.Quaternion b)
         {
             m_host.AddScriptLPS(1);
+            NotImplemented("llAngleBetween");
             return 0;
         }
 
         public string llGetInventoryKey(string name)
         {
             m_host.AddScriptLPS(1);
+            NotImplemented("llGetInventoryKey");
             return String.Empty;
         }
 
         public void llAllowInventoryDrop(int add)
         {
             m_host.AddScriptLPS(1);
+            NotImplemented("llAllowInventoryDrop");
         }
 
         public LSL_Types.Vector3 llGetSunDirection()
         {
             m_host.AddScriptLPS(1);
+            NotImplemented("llGetSunDirection");
             return new LSL_Types.Vector3();
         }
 
@@ -5164,6 +5173,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         // Adam's super super custom animation functions
         public void osAvatarPlayAnimation(string avatar, string animation)
         {
+            m_host.AddScriptLPS(1);
             if (World.Entities.ContainsKey(avatar) && World.Entities[avatar] is ScenePresence)
             {
                 ScenePresence target = (ScenePresence)World.Entities[avatar];
@@ -5173,6 +5183,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void osAvatarStopAnimation(string avatar, string animation)
         {
+            m_host.AddScriptLPS(1);
             if (World.Entities.ContainsKey(avatar) && World.Entities[avatar] is ScenePresence)
             {
                 ScenePresence target = (ScenePresence)World.Entities[avatar];
@@ -5183,86 +5194,94 @@ namespace OpenSim.Region.ScriptEngine.Common
         //Texture draw functions 
         public string osMovePen(string drawList, int x, int y)
         {
+            m_host.AddScriptLPS(1);
             drawList += "MoveTo " + x + "," + y + ";";
             return drawList;
         }
 
         public string osDrawLine(string drawList, int startX, int startY, int endX, int endY)
         {
+            m_host.AddScriptLPS(1);
             drawList += "MoveTo "+ startX+","+ startY +"; LineTo "+endX +","+endY +"; ";
             return drawList;
         }
 
         public string osDrawLine(string drawList, int endX, int endY)
         {
+            m_host.AddScriptLPS(1);
             drawList += "LineTo " + endX + "," + endY + "; ";
             return drawList;
         }
 
         public string osDrawText(string drawList, string text)
         {
+            m_host.AddScriptLPS(1);
             drawList += "Text " + text + "; ";
             return drawList;
         }
 
         public string osDrawEllipse(string drawList, int width, int height)
         {
+            m_host.AddScriptLPS(1);
             drawList += "Ellipse " + width + "," + height + "; ";
             return drawList;
         }
 
         public string osDrawRectangle(string drawList, int width, int height)
         {
+            m_host.AddScriptLPS(1);
             drawList += "Rectangle " + width + "," + height + "; ";
             return drawList;
         }
 
         public string osDrawFilledRectangle(string drawList, int width, int height)
         {
+            m_host.AddScriptLPS(1);
             drawList += "FillRectangle " + width + "," + height + "; ";
             return drawList;
         }
 
         public string osSetFontSize(string drawList, int fontSize)
         {
+            m_host.AddScriptLPS(1);
             drawList += "FontSize "+ fontSize +"; ";
             return drawList;
         }
 
         public string osSetPenSize(string drawList, int penSize)
         {
+            m_host.AddScriptLPS(1);
             drawList += "PenSize " + penSize + "; ";
             return drawList;
         }
 
         public string osSetPenColour(string drawList, string colour)
         {
+            m_host.AddScriptLPS(1);
             drawList += "PenColour " + colour + "; ";
             return drawList;
         }
 
         public string osDrawImage(string drawList, int width, int height, string imageUrl)
         {
+           m_host.AddScriptLPS(1);
            drawList +="Image " +width + "," + height+ ","+ imageUrl +"; " ;
            return drawList;
         }
 
         private void NotImplemented(string command)
         {
-            m_host.AddScriptLPS(1);
             if (throwErrorOnNotImplemented)
                 throw new NotImplementedException("Command not implemented: " + command);
         }
 
         private void Deprecated(string command)
         {
-            m_host.AddScriptLPS(1);
             throw new Exception("Command deprecated: " + command);
         }
 
         private void LSLError(string msg)
         {
-            m_host.AddScriptLPS(1);
             throw new Exception("LSL Runtime Error: " + msg);
         }
     }
