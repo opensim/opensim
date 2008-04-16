@@ -785,7 +785,7 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("redirect_grid_y", ConfigurationOption.ConfigurationTypes.TYPE_INT32, String.Empty,
                                                 "0", true);
             configMember.addConfigurationOption("region_flags", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, String.Empty,
-                                                "4194304", true); //The String value of RegionFlags.RestrictPushObject
+                                                "336723974", true); //Taken from a Linden sim for the moment.
             configMember.addConfigurationOption("sim_access", ConfigurationOption.ConfigurationTypes.TYPE_BYTE, String.Empty, "21",
                                                 true);
             configMember.addConfigurationOption("sun_hour", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "0",
