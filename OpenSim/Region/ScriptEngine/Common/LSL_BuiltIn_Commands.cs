@@ -2779,10 +2779,55 @@ namespace OpenSim.Region.ScriptEngine.Common
             return new LSL_Types.Vector3(World.RegionInfo.RegionLocX * Constants.RegionSize, World.RegionInfo.RegionLocY * Constants.RegionSize, 0);
         }
 
-        public LSL_Types.list llListInsertList(LSL_Types.list dest, LSL_Types.list src, int start)
+        /// <summary>
+        /// Insert the list identified by <src> into the
+        /// list designated by <dest> such that the first
+        /// new element has the index specified by <index>
+        /// </summary>
+
+        public LSL_Types.list llListInsertList(LSL_Types.list dest, LSL_Types.list src, int index)
         {
+      
+            LSL_Types.list pref = null;
+            LSL_Types.list suff = null;
+
             m_host.AddScriptLPS(1);
-            return dest.GetSublist(0, start - 1) + src + dest.GetSublist(start, -1);
+
+            if(index < 0)
+            {
+                index = index+src.Length;
+                if(index < 0)
+                {
+                    index = 0;
+                }
+            }
+
+            if(index != 0)
+            {
+                pref = dest.GetSublist(0,index-1);
+                if(index < dest.Length)
+                {
+                    suff = dest.GetSublist(index,-1);
+                    return pref + src + suff;
+                }
+                else
+                {
+                    return pref + src;
+                }
+            }
+            else
+            {
+                if(index < dest.Length)
+                {
+                    suff = dest.GetSublist(index,-1);
+                    return src + suff;
+                }
+                else
+                {
+                    return src;
+                }
+            }
+
         }
 
         /// <summary>
