@@ -1460,8 +1460,8 @@ namespace OpenSim.Region.Communications.OGS1
             AsyncCallback ConnectedMethodCallback = new AsyncCallback(ConnectedMethod);
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IAsyncResult ar = socket.BeginConnect(m_EndPoint, ConnectedMethodCallback, socket);
-            System.Threading.Thread.Sleep(500);
             ar.AsyncWaitHandle.WaitOne(timeOut*1000, false);
+            System.Threading.Thread.Sleep(500);
         }
 
         public bool Available
