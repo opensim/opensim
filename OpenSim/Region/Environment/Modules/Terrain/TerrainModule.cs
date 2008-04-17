@@ -37,7 +37,7 @@ using OpenSim.Region.Environment.Modules.ModuleFramework;
 
 namespace OpenSim.Region.Environment.Modules.Terrain
 {
-    public class TerrainModule : IRegionModule, ICommandableModule
+    public class TerrainModule : IRegionModule, ICommandableModule, OpenSim.Region.Environment.Modules.Terrain.ITerrainModule
     {
         public enum StandardTerrainEffects : byte
         {
@@ -217,6 +217,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                 UpdateRevertMap();
             }
 
+            m_scene.RegisterModuleInterface<ITerrainModule>(this);
             m_scene.EventManager.OnNewClient += EventManager_OnNewClient;
             m_scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
             m_scene.EventManager.OnTerrainTick += EventManager_OnTerrainTick;
