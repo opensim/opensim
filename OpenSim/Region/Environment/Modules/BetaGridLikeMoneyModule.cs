@@ -446,7 +446,7 @@ namespace OpenSim.Region.Environment.Modules
             IClientAPI sender = null;
             IClientAPI receiver = null;
             
-            m_log.WarnFormat("[MONEY] Explicit transfer of {0} from {1} to {2}", e.amount, e.sender.ToString(), e.receiver.ToString());
+            //m_log.WarnFormat("[MONEY] Explicit transfer of {0} from {1} to {2}", e.amount, e.sender.ToString(), e.receiver.ToString());
 
             sender = LocateClientObject(e.sender);
             if (sender != null)
@@ -638,7 +638,7 @@ namespace OpenSim.Region.Environment.Modules
         /// <returns></returns>
         private bool doMoneyTransfer(LLUUID Sender, LLUUID Receiver, int amount)
         {
-            m_log.WarnFormat("[MONEY] Transfer {0} from {1} to {2}", amount, Sender.ToString(), Receiver.ToString());
+            //m_log.WarnFormat("[MONEY] Transfer {0} from {1} to {2}", amount, Sender.ToString(), Receiver.ToString());
 
             bool result = false;
             if (amount >= 0)

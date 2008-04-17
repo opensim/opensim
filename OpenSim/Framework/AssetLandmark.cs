@@ -54,7 +54,7 @@ namespace OpenSim.Framework
             string[] parts = temp.Split('\n');
             int.TryParse(parts[0].Substring(17, 1), out Version);
             LLUUID.TryParse(parts[1].Substring(10, 36), out RegionID);
-            LLVector3.TryParse(parts[2].Substring(11, parts[2].Length - 11), out Position);
+            LLVector3.TryParse(parts[2].Substring(10, parts[2].Length - 10), out Position);
             ulong.TryParse(parts[3].Substring(14, parts[3].Length - 14), out RegionHandle);
         }
     }
