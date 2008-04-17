@@ -2549,16 +2549,32 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         }
 
+        /// <summary>
+        /// Process the supplied list and return the
+        /// content of the list formatted as a comma
+        /// separated list. There is a space after
+        /// each comma.
+        /// </summary>
+
         public string llList2CSV(LSL_Types.list src)
         {
-            m_host.AddScriptLPS(1);
+
             string ret = String.Empty;
-            foreach (object o in src.Data)
+            int    x   = 0;
+
+            m_host.AddScriptLPS(1);
+
+            if(src.Data.Length > 0)
             {
-                ret = ret + o.ToString() + ", ";
+                ret = src.Data[x++].ToString();
+                for(;x<src.Data.Length;x++)
+                {
+                    ret += ", "+src.Data[x].ToString();
+                }
             }
-            ret = ret.Substring(0, ret.Length - 2);
+
             return ret;
+
         }
 
         /// <summary>
@@ -4463,10 +4479,87 @@ namespace OpenSim.Region.ScriptEngine.Common
             return 0;
         }
 
+        /// <summary>
+        /// illListReplaceList removes the sub-list defined by the inclusive indices
+        /// start and end and inserts the src list in its place. The inclusive 
+        /// nature of the indices means that at least one element must be deleted
+        /// if the indices are within the bounds of the existing list. I.e. 2,2
+        /// will remove the element at index 2 and replace it with the source
+        /// list. Both indices may be negative, with the usual interpretation. An
+        /// interesting case is where end is lower than start. As these indices 
+        /// bound the list to be removed, then 0->end, and start->lim are removed
+        /// and the source list is added as a suffix.
+        /// </summary>
+
         public LSL_Types.list llListReplaceList(LSL_Types.list dest, LSL_Types.list src, int start, int end)
         {
+      
+            LSL_Types.list pref = null;
+
             m_host.AddScriptLPS(1);
-            return dest.GetSublist(0, start - 1) + src + dest.GetSublist(end + 1, -1);
+
+            // Note that although we have normalized, both
+            // indices could still be negative.
+            if(start < 0)
+            {
+                start = start+dest.Length;
+            }
+
+            if(end < 0)
+            {
+                end = end+dest.Length;
+            }
+            // The comventional case, remove a sequence starting with
+            // start and ending with end. And then insert the source
+            // list.
+            if(start <= end)
+            {
+                // If greater than zero, then there is going to be a 
+                // surviving prefix. Otherwise the inclusive nature 
+                // of the indices mean that we're going to add the 
+                // source list as a prefix.
+                if(start > 0)
+                {
+                    pref = dest.GetSublist(0,start-1);
+                    // Only add a suffix if there is something
+                    // beyond the end index (it's inclusive too).
+                    if(end+1 < dest.Length)
+                    {
+                        return pref + src + dest.GetSublist(end+1,-1);
+                    }
+                    else
+                    {
+                        return pref + src;
+                    }
+                }
+                // If start is less than or equal to zero, then
+                // the new list is simply a prefix. We still need to
+                // figure out any necessary surgery to the destination
+                // based upon end. Note that if end exceeds the upper
+                // bound in this case, the entire destination list
+                // is removed.
+                else
+                {
+                    if(end+1 < dest.Length)
+                    {
+                        return src + dest.GetSublist(end+1,-1);
+                    }
+                    else
+                    {
+                        return src;
+                    }
+                }
+            }
+            // Finally, if start > end, we strip away a prefix and
+            // a suffix, to leave the list that sits <between> ens
+            // and start, and then tag on the src list. AT least 
+            // that's my interpretation. We can get sublist to do
+            // this for us. Note that one, or both of the indices
+            // might have been negative.
+            else
+            {
+                return dest.GetSublist(end+1,start-1)+src;
+            }
         }
 
         public void llLoadURL(string avatar_id, string message, string url)
