@@ -381,3 +381,10 @@ EnergyEfficiency = 1
 PriceObjectRent = 1
 PriceObjectScaleFactor = 10
 PriceParcelRent = 1
+
+[SVN]
+Enabled = false
+Directory = SVNmodule\repo
+URL = "svn://your.repo.here/"
+Username = "user"
+Password = "password"

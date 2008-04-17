@@ -1,31 +1,4 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSim Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Nini.Config;
 using OpenSim.Region.Environment.Interfaces;
@@ -35,6 +8,8 @@ using OpenSim.Region.Environment.Modules.ExportSerialiser;
 using PumaCode.SvnDotNet.SubversionSharp;
 using PumaCode.SvnDotNet.AprSharp;
 
+using Slash=System.IO.Path;
+
 namespace OpenSim.Region.Modules.SvnSerialiser
 {
     public class SvnBackupModule : IRegionModule
@@ -42,11 +17,12 @@ namespace OpenSim.Region.Modules.SvnSerialiser
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         
         private SvnClient m_svnClient;
+        private bool m_enabled = false;
         private bool m_installBackupOnLoad = false;
-        private string m_svnurl = "svn://url.tld/repository/";
+        private string m_svnurl = "svn://your.svn.tld/";
         private string m_svnuser = "user";
         private string m_svnpass = "password";
-        private string m_svndir = "modsvn/";
+        private string m_svndir = "SVNmodule\\repo";
         private IRegionSerialiser m_serialiser;
         private List<Scene> m_scenes = new List<Scene>();
 
@@ -54,13 +30,24 @@ namespace OpenSim.Region.Modules.SvnSerialiser
 
         public void SaveRegion(Scene scene)
         {
-            List<string> filenames = m_serialiser.SerialiseRegion(scene, m_svndir);
-            foreach (string filename in filenames)
-            {
-                m_svnClient.Add3(filename, false, true, false);
-            }
+            m_log.Info("[SVNBACKUP]: Saving a region to SVN with name " + scene.RegionInfo.RegionName);
 
-            m_svnClient.Commit3(filenames, true, false);
+            List<string> filenames = m_serialiser.SerialiseRegion(scene, m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID.ToString() + "\\");
+
+            try
+            {
+                m_svnClient.Add3(m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID.ToString(), true, false, false);
+            }
+                // Ignore this error, it means the sim is already under version control.
+            catch (SvnException) { }
+
+            List<string> svnfilenames = new List<string>();
+            foreach (string filename in filenames)
+                svnfilenames.Add(m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID.ToString() + Slash.DirectorySeparatorChar + filename);
+            svnfilenames.Add(m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID.ToString());
+
+            m_svnClient.Commit3(svnfilenames, true, false);
+            m_log.Info("[SVNBACKUP]: Backup successful.");
         }
 
         #endregion
@@ -81,7 +68,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
         {
             if (!commitItems.IsNull)
             {
-                foreach (SvnClientCommitItem item in commitItems)
+                foreach (SvnClientCommitItem2 item in commitItems)
                 {
                     m_log.Debug("[SVNBACKUP]: Updated " + item.Path.ToString() + " (" + item.Kind.ToString() + ") " + item.Revision.ToString());
                     m_log.Debug("[SVNBACKUP]: " + item.Url.ToString() + " -> " + item.CopyFromUrl.ToString());
@@ -102,6 +89,19 @@ namespace OpenSim.Region.Modules.SvnSerialiser
 
         public void Initialise(Scene scene, IConfigSource source)
         {
+            try
+            {
+                if (!source.Configs["SVN"].GetBoolean("Enabled", false))
+                    return;
+
+                m_enabled = true;
+
+                m_svndir = source.Configs["SVN"].GetString("Directory", m_svndir);
+                m_svnurl = source.Configs["SVN"].GetString("URL", m_svnurl);
+                m_svnuser = source.Configs["SVN"].GetString("Username", m_svnuser);
+                m_svnpass = source.Configs["SVN"].GetString("Password", m_svnpass);
+            } catch(Exception) { }
+
             lock (m_scenes)
             {
                 m_scenes.Add(scene);
@@ -112,14 +112,14 @@ namespace OpenSim.Region.Modules.SvnSerialiser
 
         void EventManager_OnPluginConsole(string[] args)
         {
-            if (args[0] == "testsvn")
+            if (args[0] == "svn" && args[1] == "save")
                 SaveRegion(m_scenes[0]);
         }
 
         public void PostInitialise()
         {
-            m_log.Info("[SVNBACKUP]: Disabled.");
-            return; 
+            if (m_enabled == false)
+                return;
 
             m_log.Info("[SVNBACKUP]: Connecting...");
 
@@ -140,7 +140,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
 
             if (m_installBackupOnLoad)
             {
-
+                //TODO
             }
         }
 

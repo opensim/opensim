@@ -130,7 +130,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
         public void SaveFile(string filename, ITerrainChannel map)
         {
             FileInfo file = new FileInfo(filename);
-            FileStream s = file.Open(FileMode.CreateNew, FileAccess.Write);
+            FileStream s = file.Open(FileMode.Create, FileAccess.Write);
             BinaryWriter bs = new BinaryWriter(s);
 
             int x, y;
