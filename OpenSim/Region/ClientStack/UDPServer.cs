@@ -295,6 +295,17 @@ namespace OpenSim.Region.ClientStack
                         // new client
                         m_log.Debug("[UDPSERVER]: Adding New Client");
                         AddNewClient(packet);
+
+                        UseCircuitCodePacket p = (UseCircuitCodePacket)packet;
+
+                        // Ack the first UseCircuitCode packet
+                        PacketAckPacket ack_it = (PacketAckPacket)PacketPool.Instance.GetPacket(PacketType.PacketAck);
+                        // TODO: don't create new blocks if recycling an old packet
+                        ack_it.Packets = new PacketAckPacket.PacketsBlock[1];
+                        ack_it.Packets[0] = new PacketAckPacket.PacketsBlock();
+                        ack_it.Packets[0].ID = packet.Header.Sequence;
+                        ack_it.Header.Reliable = false;
+                        SendPacketTo(ack_it.ToBytes(),ack_it.ToBytes().Length,SocketFlags.None,p.CircuitCode.Code);
                     }
                     else
                     {

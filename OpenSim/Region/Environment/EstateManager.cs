@@ -221,9 +221,34 @@ namespace OpenSim.Region.Environment
                         SetRegionDebug(remote_client, packet);
                     }
                     break;
+                case "teleporthomeuser":
+                    if (m_scene.PermissionsMngr.GenericEstatePermission(remote_client.AgentId))
+                    {
+                        TeleportOneUserHome(remote_client,packet);
+                    }
+                    break;
                 default:
                     m_log.Error("EstateOwnerMessage: Unknown method requested\n" + packet.ToString());
                     break;
+            }
+
+
+        }
+
+        private void TeleportOneUserHome(object remove_client,EstateOwnerMessagePacket packet)
+        {
+            LLUUID invoice = packet.MethodData.Invoice;
+            LLUUID SenderID = packet.AgentData.AgentID;
+            LLUUID Prey = LLUUID.Zero;
+
+            Helpers.TryParse(Helpers.FieldToUTF8String(packet.ParamList[1].Parameter),out Prey);
+            if (Prey != LLUUID.Zero)
+            {
+                ScenePresence s = m_scene.GetScenePresence(Prey);
+                if (s != null)
+                {
+                    m_scene.TeleportClientHome(Prey, s.ControllingClient);
+                }
             }
         }
 

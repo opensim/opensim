@@ -324,7 +324,7 @@ namespace OpenSim.Region.ClientStack
 
             m_userEndPoint = remoteEP;
             m_proxyEndPoint = proxyEP;
-
+            
             m_startpos = m_authenticateSessionsHandler.GetPosition(circuitCode);
 
             // While working on this, the BlockingQueue had me fooled for a bit.
