@@ -363,6 +363,93 @@ namespace OpenSim.Grid.UserServer
             if (requestData.Contains("ProfileURL"))
             {                
             }
+            if (requestData.Contains("home_region"))
+            {
+                try
+                {
+                    userProfile.HomeRegion = Convert.ToUInt64((string)requestData["home_region"]);
+                }
+                catch (ArgumentException)
+                {
+                    m_log.Error("[PROFILE]:Failed to set home region, Invalid Argument");
+                }
+                catch (FormatException)
+                {
+                    m_log.Error("[PROFILE]:Failed to set home region, Invalid Format");
+                }
+                catch (OverflowException)
+                {
+                    m_log.Error("[PROFILE]:Failed to set home region, Value was too large");
+                }
+                
+            }
+            if (requestData.Contains("home_pos_x"))
+            {
+                try
+                {
+                    userProfile.HomeLocationX = (float)Convert.ToDecimal((string)requestData["home_pos_x"]);
+                }
+                catch (System.InvalidCastException)
+                {
+                    m_log.Error("[PROFILE]:Failed to set home postion x");
+                }
+
+            }
+            if (requestData.Contains("home_pos_y"))
+            {
+                try
+                {
+                    userProfile.HomeLocationY = (float)Convert.ToDecimal((string)requestData["home_pos_y"]);
+                }
+                catch (System.InvalidCastException)
+                {
+                    m_log.Error("[PROFILE]:Failed to set home postion y");
+                }
+            }
+            if (requestData.Contains("home_pos_z"))
+            {
+                try
+                {
+                    userProfile.HomeLocationZ = (float)Convert.ToDecimal((string)requestData["home_pos_z"]);
+                }
+                catch (System.InvalidCastException)
+                {
+                    m_log.Error("[PROFILE]:Failed to set home postion z");
+                }
+            }
+            if (requestData.Contains("home_look_x"))
+            {
+                try
+                {
+                    userProfile.HomeLookAtX = (float)Convert.ToDecimal((string)requestData["home_look_x"]);
+                }
+                catch (System.InvalidCastException)
+                {
+                    m_log.Error("[PROFILE]:Failed to set home lookat x");
+                }
+            }
+            if (requestData.Contains("home_look_y"))
+            {
+                try
+                {
+                    userProfile.HomeLookAtY = (float)Convert.ToDecimal((string)requestData["home_look_y"]);
+                }
+                catch (System.InvalidCastException)
+                {
+                    m_log.Error("[PROFILE]:Failed to set home lookat y");
+                }
+            }
+            if (requestData.Contains("home_look_z"))
+            {
+                try 
+                {
+                    userProfile.HomeLookAtZ = (float)Convert.ToDecimal((string)requestData["home_look_z"]);
+                }
+                catch (System.InvalidCastException)
+                {
+                    m_log.Error("[PROFILE]:Failed to set home lookat z");
+                }
+            }
             // call plugin!
             bool ret = UpdateUserProfileProperties(userProfile);
             responseData["returnString"] = ret.ToString();

@@ -423,7 +423,7 @@ namespace OpenSim.Region.Environment.Modules
                 {
                     if (e.parcelPrice >= 0)
                     {
-                        doMoneyTranfer(agentId, e.parcelOwnerID, e.parcelPrice);
+                        doMoneyTransfer(agentId, e.parcelOwnerID, e.parcelPrice);
                         lock (e)
                         {
                             e.transactionID = Util.UnixTimeSinceEpoch();
@@ -446,13 +446,15 @@ namespace OpenSim.Region.Environment.Modules
             IClientAPI sender = null;
             IClientAPI receiver = null;
             
+            m_log.WarnFormat("[MONEY] Explicit transfer of {0} from {1} to {2}", e.amount, e.sender.ToString(), e.receiver.ToString());
+
             sender = LocateClientObject(e.sender);
             if (sender != null)
             {
-                receiver = LocateClientObject(e.reciever);
-                bool transactionresult = doMoneyTranfer(e.sender, e.reciever, e.amount);
+                receiver = LocateClientObject(e.receiver);
+                bool transactionresult = doMoneyTransfer(e.sender, e.receiver, e.amount);
 
-                if (e.sender != e.reciever)
+                if (e.sender != e.receiver)
                 {
                     if (sender != null)
                     {
@@ -462,14 +464,14 @@ namespace OpenSim.Region.Environment.Modules
 
                 if (receiver != null)
                 {
-                    receiver.SendMoneyBalance(LLUUID.Random(), transactionresult, Helpers.StringToField(e.description), GetFundsForAgentID(e.reciever));
+                    receiver.SendMoneyBalance(LLUUID.Random(), transactionresult, Helpers.StringToField(e.description), GetFundsForAgentID(e.receiver));
                 }
                 
 
             }
             else
             {
-                m_log.Warn("[MONEY]: Potential Fraud Warning, got money transfer request for avatar that isn't in this simulator - Details; Sender:" + e.sender.ToString() + " Reciver: " + e.reciever.ToString() + " Amount: " + e.amount.ToString());
+                m_log.Warn("[MONEY]: Potential Fraud Warning, got money transfer request for avatar that isn't in this simulator - Details; Sender:" + e.sender.ToString() + " Reciver: " + e.receiver.ToString() + " Amount: " + e.amount.ToString());
             }
         }
 
@@ -490,7 +492,7 @@ namespace OpenSim.Region.Environment.Modules
                 // Use this to exclude Region Owners (2), Estate Managers(1), Users (0), Disabled(-1)
                 if (PriceUpload > 0 && userlevel <= UserLevelPaysFees)
                 {
-                    doMoneyTranfer(Uploader, EconomyBaseAccount, PriceUpload);
+                    doMoneyTransfer(Uploader, EconomyBaseAccount, PriceUpload);
                 }
             }
 
@@ -634,8 +636,10 @@ namespace OpenSim.Region.Environment.Modules
         /// <param name="Receiver"></param>
         /// <param name="amount"></param>
         /// <returns></returns>
-        private bool doMoneyTranfer(LLUUID Sender, LLUUID Receiver, int amount)
+        private bool doMoneyTransfer(LLUUID Sender, LLUUID Receiver, int amount)
         {
+            m_log.WarnFormat("[MONEY] Transfer {0} from {1} to {2}", amount, Sender.ToString(), Receiver.ToString());
+
             bool result = false;
             if (amount >= 0)
             {

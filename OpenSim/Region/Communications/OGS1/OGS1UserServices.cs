@@ -314,6 +314,16 @@ namespace OpenSim.Region.Communications.OGS1
             param["AboutText"] = UserProfile.AboutText;
             param["FLAboutText"] = UserProfile.FirstLifeAboutText;
             //param["ProfileURL"] = UserProfile.ProfileURL.ToString();
+
+            param["home_region"] = UserProfile.HomeRegion.ToString();
+
+            param["home_pos_x"] = UserProfile.HomeLocationX.ToString();
+            param["home_pos_y"] = UserProfile.HomeLocationY.ToString();
+            param["home_pos_z"] = UserProfile.HomeLocationZ.ToString();
+            param["home_look_x"] = UserProfile.HomeLookAtX.ToString();
+            param["home_look_y"] = UserProfile.HomeLookAtY.ToString();
+            param["home_look_z"] = UserProfile.HomeLookAtZ.ToString();
+
             IList parameters = new ArrayList();
             parameters.Add(param);
 

@@ -579,9 +579,9 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 m_log.Debug("[CONNECTION DEBUGGING]: Main agent detected");
                 agentData.startpos =
-                    new LLVector3(Convert.ToUInt32(requestData["startpos_x"]),
-                                  Convert.ToUInt32(requestData["startpos_y"]),
-                                  Convert.ToUInt32(requestData["startpos_z"]));
+                    new LLVector3((float)Convert.ToDecimal((string)requestData["startpos_x"]),
+                                  (float)Convert.ToDecimal((string)requestData["startpos_y"]),
+                                  (float)Convert.ToDecimal((string)requestData["startpos_z"]));
                 agentData.child = false;
             }
 

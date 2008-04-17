@@ -227,6 +227,7 @@ namespace OpenSim.Region.ClientStack
         private UpdatePrimGroupRotation handlerUpdatePrimGroupRotation = null; //OnUpdatePrimGroupMouseRotation;
         private PacketStats handlerPacketStats = null; // OnPacketStats;#
         private RequestAsset handlerRequestAsset = null; // OnRequestAsset;
+        private UUIDNameRequest handlerTeleportHomeRequest = null;
 
 
         /* Properties */
@@ -776,6 +777,7 @@ namespace OpenSim.Region.ClientStack
         public event MoneyBalanceRequest OnMoneyBalanceRequest;
         public event ParcelBuy OnParcelBuy;
 
+        public event UUIDNameRequest OnTeleportHomeRequest;
 
         #region Scene/Avatar to Client
 
@@ -4188,19 +4190,48 @@ namespace OpenSim.Region.ClientStack
                     case PacketType.TeleportLandmarkRequest:
                         TeleportLandmarkRequestPacket tpReq = (TeleportLandmarkRequestPacket)Pack;
                         LLUUID lmid = tpReq.Info.LandmarkID;
-                        AssetBase lma = m_assetCache.GetAsset(lmid, false);
-                       
-                        if(lma == null)
+                        AssetLandmark lm;
+                        if (lmid != LLUUID.Zero)
                         {
-                            // Failed to find landmark
-                        
-                            TeleportCancelPacket tpCancel = (TeleportCancelPacket)PacketPool.Instance.GetPacket(PacketType.TeleportCancel);
-                            tpCancel.Info.SessionID = tpReq.Info.SessionID;
-                            tpCancel.Info.AgentID = tpReq.Info.AgentID;
-                            OutPacket(tpCancel, ThrottleOutPacketType.Task);
+                            AssetBase lma = m_assetCache.GetAsset(lmid, false);
+
+                            if (lma == null)
+                            {
+                                // Failed to find landmark
+
+                                TeleportCancelPacket tpCancel = (TeleportCancelPacket)PacketPool.Instance.GetPacket(PacketType.TeleportCancel);
+                                tpCancel.Info.SessionID = tpReq.Info.SessionID;
+                                tpCancel.Info.AgentID = tpReq.Info.AgentID;
+                                OutPacket(tpCancel, ThrottleOutPacketType.Task);
+                            }
+                            
+
+                            try
+                            {
+                                lm = new AssetLandmark(lma);
+                            }
+                            catch (NullReferenceException)
+                            {
+                                // asset not found generates null ref inside the assetlandmark constructor.
+                                TeleportCancelPacket tpCancel = (TeleportCancelPacket)PacketPool.Instance.GetPacket(PacketType.TeleportCancel);
+                                tpCancel.Info.SessionID = tpReq.Info.SessionID;
+                                tpCancel.Info.AgentID = tpReq.Info.AgentID;
+                                OutPacket(tpCancel, ThrottleOutPacketType.Task);
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            
+                            // Teleport home request
+                            handlerTeleportHomeRequest = OnTeleportHomeRequest;
+                            if (handlerTeleportHomeRequest != null)
+                            {
+                                handlerTeleportHomeRequest(this.AgentId,this);
+                            }
+                            break;
                         }
 
-                        AssetLandmark lm = new AssetLandmark(lma);
                         handlerTeleportLandmarkRequest = OnTeleportLandmarkRequest;
                         if (handlerTeleportLandmarkRequest != null)
                         {

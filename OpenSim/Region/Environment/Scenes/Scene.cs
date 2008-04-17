@@ -1581,9 +1581,55 @@ namespace OpenSim.Region.Environment.Scenes
 
             client.OnObjectIncludeInSearch += m_innerScene.MakeObjectSearchable;
 
+            client.OnTeleportHomeRequest += TeleportClientHome;
+
+            client.OnSetStartLocationRequest += SetHomeRezPoint;
+             
             EventManager.TriggerOnNewClient(client);
         }
+        public virtual void TeleportClientHome(LLUUID AgentId, IClientAPI client)
+        {
+            UserProfileData UserProfile = CommsManager.UserService.GetUserProfile(AgentId);
+            if (UserProfile != null)
+            {
+                ulong homeRegion = UserProfile.HomeRegion;
+                LLVector3 homePostion = new LLVector3(UserProfile.HomeLocationX,UserProfile.HomeLocationY,UserProfile.HomeLocationZ);
+                LLVector3 homeLookat = new LLVector3(UserProfile.HomeLookAt);
+                RequestTeleportLocation(client, homeRegion, homePostion,homeLookat,(uint)0);
 
+            }
+
+
+        }
+        
+        public virtual void SetHomeRezPoint(IClientAPI remoteClient, ulong regionHandle, LLVector3 position, LLVector3 lookAt, uint flags)
+        {
+            UserProfileData UserProfile = CommsManager.UserService.GetUserProfile(remoteClient.AgentId);
+            if (UserProfile != null)
+            {
+                // I know I'm ignoring the regionHandle provided by the teleport location request.
+                // reusing the TeleportLocationRequest delegate, so regionHandle isn't valid
+                UserProfile.HomeRegion = RegionInfo.RegionHandle;
+
+                // We cast these to an int so as not to cause a breaking change with old regions
+                // Newer regions treat this as a float on the ExpectUser method..  so we need to wait a few
+                // releases before setting these to floats. (r4257)
+                UserProfile.HomeLocationX = (int)position.X;
+                UserProfile.HomeLocationY = (int)position.Y;
+                UserProfile.HomeLocationZ = (int)position.Z;
+                UserProfile.HomeLookAtX = (int)lookAt.X;
+                UserProfile.HomeLookAtY = (int)lookAt.Y;
+                UserProfile.HomeLookAtZ = (int)lookAt.Z;
+                CommsManager.UserService.UpdateUserProfileProperties(UserProfile);
+                
+                remoteClient.SendAgentAlertMessage("Set home to here if supported by login service",false);
+            }
+            else
+            {
+                remoteClient.SendAgentAlertMessage("Set Home request Failed",false);
+            }
+
+        }
         protected virtual ScenePresence CreateAndAddScenePresence(IClientAPI client, bool child)
         {
             ScenePresence avatar = null;

@@ -158,7 +158,7 @@ namespace OpenSim.Region.Environment.Scenes
         public class MoneyTransferArgs : System.EventArgs 
         {
             public LLUUID sender;
-            public LLUUID reciever;
+            public LLUUID receiver;
 
             // Always false. The SL protocol sucks.
             public bool authenticated = false;
@@ -169,7 +169,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             public MoneyTransferArgs(LLUUID asender, LLUUID areciever, int aamount, int atransactiontype, string adescription) {
                 sender = asender;
-                reciever = areciever;
+                receiver = areciever;
                 amount = aamount;
                 transactiontype = atransactiontype;
                 description = adescription;

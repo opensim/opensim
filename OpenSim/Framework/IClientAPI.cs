@@ -556,6 +556,9 @@ namespace OpenSim.Framework
         event ParcelBuy OnParcelBuy;
 
         event ObjectIncludeInSearch OnObjectIncludeInSearch;
+
+        event UUIDNameRequest OnTeleportHomeRequest;
+
          
         LLVector3 StartPos { get; set; }
 

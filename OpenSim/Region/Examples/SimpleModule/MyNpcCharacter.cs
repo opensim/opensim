@@ -163,6 +163,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event UpdateAvatarProperties OnUpdateAvatarProperties;
 
         public event ObjectIncludeInSearch OnObjectIncludeInSearch;
+        public event UUIDNameRequest OnTeleportHomeRequest;
 
 
 #pragma warning restore 67
