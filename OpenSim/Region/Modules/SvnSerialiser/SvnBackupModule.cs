@@ -50,6 +50,16 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             m_log.Info("[SVNBACKUP]: Backup successful.");
         }
 
+        public void LoadRegion(Scene scene)
+        {
+            m_svnClient.Checkout2(m_svnurl, m_svndir, Svn.Revision.Head, Svn.Revision.Head, true, false);
+            scene.LoadPrimsFromXml2(m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID.ToString() + 
+                Slash.DirectorySeparatorChar + "objects.xml");
+            scene.RequestModuleInterface<OpenSim.Region.Environment.Modules.Terrain.ITerrainModule>().LoadFromFile(m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID.ToString() +
+                Slash.DirectorySeparatorChar + "heightmap.r32");
+            m_log.Info("[SVNBACKUP]: Load successful.");
+        }
+
         #endregion
 
         #region SvnDotNet Callbacks
@@ -114,6 +124,8 @@ namespace OpenSim.Region.Modules.SvnSerialiser
         {
             if (args[0] == "svn" && args[1] == "save")
                 SaveRegion(m_scenes[0]);
+            if (args[0] == "svn" && args[1] == "load")
+                LoadRegion(m_scenes[0]);
         }
 
         public void PostInitialise()
