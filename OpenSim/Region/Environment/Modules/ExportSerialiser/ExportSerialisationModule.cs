@@ -12,18 +12,16 @@ using System.IO;
 
 namespace OpenSim.Region.Environment.Modules.ExportSerialiser
 {
-    public class ExportSerialisationModule : IRegionModule
+    public class ExportSerialisationModule : IRegionModule, OpenSim.Region.Environment.Modules.ExportSerialiser.IRegionSerialiser
     {
         private List<Scene> m_regions = new List<Scene>();
         private List<IFileSerialiser> m_serialisers = new List<IFileSerialiser>();
         private Commander m_commander = new Commander("Export");
         private string m_savedir = "exports" + "/";
 
-        private List<string> SerialiseRegion(Scene scene)
+        public List<string> SerialiseRegion(Scene scene, string saveDir)
         {
             List<string> results = new List<string>();
-
-            string saveDir = m_savedir + scene.RegionInfo.RegionID.ToString() + "/";
 
             if (!Directory.Exists(saveDir))
             {
@@ -62,6 +60,7 @@ namespace OpenSim.Region.Environment.Modules.ExportSerialiser
         {
             scene.RegisterModuleCommander("Export", m_commander);
             scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
+            scene.RegisterModuleInterface<IRegionSerialiser>(this);
 
             lock (m_regions)
             {
@@ -88,7 +87,7 @@ namespace OpenSim.Region.Environment.Modules.ExportSerialiser
             {
                 if (region.RegionInfo.RegionName == (string)args[0])
                 {
-                    List<string> results = SerialiseRegion(region);
+                    List<string> results = SerialiseRegion(region, m_savedir + region.RegionInfo.RegionID.ToString() + "/");
                 }
             }
         }
@@ -97,7 +96,7 @@ namespace OpenSim.Region.Environment.Modules.ExportSerialiser
         {
             foreach (Scene region in m_regions)
             {
-                List<string> results = SerialiseRegion(region);
+                List<string> results = SerialiseRegion(region, m_savedir + region.RegionInfo.RegionID.ToString() + "/");
             }
         }
 

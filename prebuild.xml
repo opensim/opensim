@@ -928,6 +928,36 @@
       </Files>
     </Project>
 
+
+ <Project name="OpenSim.Region.Modules.SvnSerialiser" path="OpenSim/Region/Modules/SvnSerialiser" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>          
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Xml"/>
+      <Reference name="System.Data"/>
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Data.Base" />
+      <Reference name="OpenSim.Region.Environment"/>
+      <Reference name="Nini.dll" />
+	  <Reference name="PumaCode.SvnDotNet.dll" />
+	  <Reference name="log4net"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
     <Project name="OpenSim.DataStore.MSSQL" path="OpenSim/Region/Storage/OpenSim.DataStore.MSSQL" type="Library">
       <Configuration name="Debug">
         <Options>
