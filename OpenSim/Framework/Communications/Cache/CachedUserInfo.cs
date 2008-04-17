@@ -251,11 +251,6 @@ namespace OpenSim.Framework.Communications.Cache
                 ItemReceive(userID, itemInfo);
                 m_commsManager.InventoryService.AddNewInventoryItem(userID, itemInfo);
             }
-            else
-            {
-                m_log.Error("[UNABLE TO UPLOAD]: ");
-            }
-
         }
 
         /// <summary>
@@ -268,10 +263,6 @@ namespace OpenSim.Framework.Communications.Cache
             if ((userID == UserProfile.ID) && HasInventory)
             {
                 m_commsManager.InventoryService.AddNewInventoryItem(userID, itemInfo);
-            }
-            else
-            {
-                m_log.Error("[UNABLE TO UPDATE]: ");
             }
         }
 
@@ -291,10 +282,6 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     m_commsManager.InventoryService.DeleteInventoryItem(userID, item);
                 }
-            }
-            else
-            {
-                m_log.Error("[UNABLE TO DELETE]: ");
             }
             
             return result;

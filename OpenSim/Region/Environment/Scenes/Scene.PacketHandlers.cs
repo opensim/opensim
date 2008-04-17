@@ -136,6 +136,10 @@ namespace OpenSim.Region.Environment.Scenes
             EventManager.LandBuyArgs args = new EventManager.LandBuyArgs(
                agentId, groupId, final, groupOwned, removeContribution, parcelLocalID, parcelArea, parcelPrice, authenticated);
 
+			// First, allow all validators a stab at it
+            m_eventManager.TriggerValidateLandBuy(this, args);        
+
+			// Then, check validation and transfer
             m_eventManager.TriggerLandBuy(this, args);        
         }
 

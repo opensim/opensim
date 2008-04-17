@@ -68,6 +68,8 @@ namespace OpenSim.Region.Capabilities
         /// handler to be removed</param>
         public void Remove(string capsName) 
         {
+            // This line must be here, or caps will break!
+            m_httpListener.RemoveStreamHandler("POST", m_capsHandlers[capsName].Path);
             m_capsHandlers.Remove(capsName);
         }
 

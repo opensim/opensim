@@ -214,17 +214,5 @@ namespace OpenSim.Region.Environment.Scenes
             
             return null;
         }
-        public string GetNewCapsPath(LLUUID agentID)
-        {
-            if (capsPaths.ContainsKey(agentID))
-            {
-                capsPaths[agentID] = LLUUID.Random().ToString();
-            }
-            else
-            {
-                capsPaths.Add(agentID, LLUUID.Random().ToString());
-            }
-            return GetCapsPath(agentID);
-        }
     }
 }

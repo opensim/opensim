@@ -167,9 +167,9 @@ namespace OpenSim.Region.Environment.Scenes
             public int transactiontype;
             public string description;
 
-            public MoneyTransferArgs(LLUUID asender, LLUUID areciever, int aamount, int atransactiontype, string adescription) {
+            public MoneyTransferArgs(LLUUID asender, LLUUID areceiver, int aamount, int atransactiontype, string adescription) {
                 sender = asender;
-                receiver = areciever;
+                receiver = areceiver;
                 amount = aamount;
                 transactiontype = atransactiontype;
                 description = adescription;
@@ -219,7 +219,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event MoneyTransferEvent OnMoneyTransfer;
         public event LandBuy OnLandBuy;
-        public event LandBuy OnValidatedLandBuy;
+        public event LandBuy OnValidateLandBuy;
 
         /* Designated Event Deletage Instances */
 
@@ -253,7 +253,7 @@ namespace OpenSim.Region.Environment.Scenes
         private DeregisterCapsEvent handlerDeregisterCaps = null; // OnDeregisterCaps;
         private NewInventoryItemUploadComplete handlerNewInventoryItemUpdateComplete = null;
         private LandBuy handlerLandBuy = null;
-        private LandBuy handlerValidatedLandBuy = null;
+        private LandBuy handlerValidateLandBuy = null;
 
         public void TriggerOnScriptChangedEvent(uint localID, uint change)
         {
@@ -526,12 +526,12 @@ namespace OpenSim.Region.Environment.Scenes
                 handlerLandBuy(sender, e);
             }
         }
-        public void TriggerValidatedLandBuy(Object sender, LandBuyArgs e)
+        public void TriggerValidateLandBuy(Object sender, LandBuyArgs e)
         {
-            handlerValidatedLandBuy = OnValidatedLandBuy;
-            if (handlerValidatedLandBuy != null)
+            handlerValidateLandBuy = OnValidateLandBuy;
+            if (handlerValidateLandBuy != null)
             {
-                handlerValidatedLandBuy(sender, e);
+                handlerValidateLandBuy(sender, e);
             }
         }
     }

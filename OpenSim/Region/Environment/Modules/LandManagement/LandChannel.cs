@@ -953,8 +953,12 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
             }
         }
 
+		// If the economy has been validated by the economy module,
+		// and land has been validated as well, this method transfers
+		// the land ownership
+
         public void handleLandBuyRequest(Object o, LandBuyArgs e)
-        {
+		{
             if (e.economyValidated && e.landValidated)
             {
                 lock (landList)
@@ -966,7 +970,15 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
                     }
                 }
             }
-            else if (e.landValidated == false)
+		}
+
+		// After receiving a land buy packet, first the data needs to
+		// be validated. This method validates the right to buy the
+		// parcel
+
+        public void handleLandValidationRequest(Object o, LandBuyArgs e)
+        {
+            if (e.landValidated == false)
             {
                 ILandObject lob = null;
                 lock (landList)
@@ -994,7 +1006,6 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
                         
                     }
                 }
-                m_scene.EventManager.TriggerValidatedLandBuy(this, e);
             }
         }
     }

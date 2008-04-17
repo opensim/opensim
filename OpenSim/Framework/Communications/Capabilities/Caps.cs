@@ -100,6 +100,7 @@ namespace OpenSim.Region.Capabilities
         private int m_eventQueueCount = 1;
         private Queue<string> m_capsEventQueue = new Queue<string>();
         private bool m_dumpAssetsToFile;
+        private string m_regionName;
 
         // These are callbacks which will be setup by the scene so that we can update scene data when we 
         // receive capability calls
@@ -110,7 +111,7 @@ namespace OpenSim.Region.Capabilities
         public GetClientDelegate GetClient = null;
 
         public Caps(AssetCache assetCache, BaseHttpServer httpServer, string httpListen, uint httpPort, string capsPath,
-                    LLUUID agent, bool dumpAssetsToFile)
+                    LLUUID agent, bool dumpAssetsToFile, string regionName)
         {
             m_assetCache = assetCache;
             m_capsObjectPath = capsPath;
@@ -120,6 +121,7 @@ namespace OpenSim.Region.Capabilities
             m_agentID = agent;
             m_dumpAssetsToFile = dumpAssetsToFile;
             m_capsHandlers = new CapsHandlers(httpServer, httpListen, httpPort);
+            m_regionName = regionName;
         }
 
         /// <summary>
@@ -199,6 +201,7 @@ namespace OpenSim.Region.Capabilities
         /// <returns></returns>
         public string CapsRequest(string request, string path, string param)
         {
+            m_log.Debug("[CAPS]: Seed Caps Request in region: " + m_regionName);
             //Console.WriteLine("caps request " + request);
             string result = LLSDHelpers.SerialiseLLSDReply(m_capsHandlers.CapsDetails);
             //m_log.DebugFormat("[CAPS] CapsRequest {0}", result);
@@ -225,6 +228,7 @@ namespace OpenSim.Region.Capabilities
             string unmodifiedRequest = request.ToString();
             
             //m_log.DebugFormat("[AGENT INVENTORY]: Received CAPS fetch inventory request {0}", unmodifiedRequest);
+            m_log.Debug("[CAPS]: Inventory Request in region: " + m_regionName);
            
             Hashtable hash = new Hashtable();
             try
@@ -366,6 +370,7 @@ namespace OpenSim.Region.Capabilities
         /// <returns></returns>
         public LLSDMapLayerResponse GetMapLayer(LLSDMapRequest mapReq)
         {
+            m_log.Debug("[CAPS]: MapLayer Request in region: " + m_regionName);
             LLSDMapLayerResponse mapResponse = new LLSDMapLayerResponse();
             mapResponse.LayerData.Array.Add(GetLLSDMapLayerResponse());
             return mapResponse;
@@ -472,6 +477,7 @@ namespace OpenSim.Region.Capabilities
         {
             try
             {
+                m_log.Debug("[CAPS]: ScriptTaskInventory Request in region: " + m_regionName);
                 //m_log.DebugFormat("[CAPS]: request: {0}, path: {1}, param: {2}", request, path, param);
 
                 Hashtable hash = (Hashtable) LLSD.LLSDDeserialize(Helpers.StringToField(request));
@@ -523,6 +529,7 @@ namespace OpenSim.Region.Capabilities
         /// <returns></returns>
         public string NoteCardAgentInventory(string request, string path, string param)
         {
+            m_log.Debug("[CAPS]: NoteCardAgentInventory Request in region: " + m_regionName);
             //libsecondlife.StructuredData.LLSDMap hash = (libsecondlife.StructuredData.LLSDMap)libsecondlife.StructuredData.LLSDParser.DeserializeBinary(Helpers.StringToField(request));
             Hashtable hash = (Hashtable) LLSD.LLSDDeserialize(Helpers.StringToField(request));
             LLSDItemUpdate llsdRequest = new LLSDItemUpdate();

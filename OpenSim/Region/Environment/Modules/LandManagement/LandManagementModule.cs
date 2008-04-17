@@ -55,8 +55,8 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
             m_scene.EventManager.OnParcelPrimCountUpdate += landChannel.updateLandPrimCounts;
             m_scene.EventManager.OnAvatarEnteringNewParcel += new EventManager.AvatarEnteringNewParcel(landChannel.handleAvatarChangingParcel);
             m_scene.EventManager.OnClientMovement += new EventManager.ClientMovement(landChannel.handleAnyClientMovement);
+            m_scene.EventManager.OnValidateLandBuy += landChannel.handleLandValidationRequest;
             m_scene.EventManager.OnLandBuy += landChannel.handleLandBuyRequest;
-            m_scene.EventManager.OnValidatedLandBuy += landChannel.handleLandBuyRequest;
 
             lock (m_scene)
             {
