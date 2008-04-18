@@ -458,7 +458,12 @@ namespace OpenSim.Data.MySQL
                 result.Parameters.AddWithValue("?creatorID", item.Creator.ToString());
                 result.Parameters.AddWithValue("?inventoryBasePermissions", item.BasePermissions);
                 result.Parameters.AddWithValue("?inventoryEveryOnePermissions", item.EveryOnePermissions);
-                result.ExecuteNonQuery();
+                
+                lock (database)
+                {
+                    result.ExecuteNonQuery();
+                }
+                
                 result.Dispose();
             }
             catch (MySqlException e)
@@ -487,7 +492,11 @@ namespace OpenSim.Data.MySQL
                 MySqlCommand cmd =
                     new MySqlCommand("DELETE FROM inventoryitems WHERE inventoryID=?uuid", database.Connection);
                 cmd.Parameters.AddWithValue("?uuid", itemID.ToString());
-                cmd.ExecuteNonQuery();
+                
+                lock (database)
+                {
+                    cmd.ExecuteNonQuery();
+                }
             }
             catch (MySqlException e)
             {

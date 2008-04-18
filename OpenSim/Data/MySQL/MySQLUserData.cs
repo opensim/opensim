@@ -590,11 +590,15 @@ namespace OpenSim.Data.MySQL
         /// <param name="user">The profile data to use to update the DB</param>
         override public bool UpdateUserProfile(UserProfileData user)
         {
-            database.updateUserRow(user.ID, user.FirstName, user.SurName, user.PasswordHash, user.PasswordSalt,
-                                   user.HomeRegion, user.HomeLocation.X, user.HomeLocation.Y, user.HomeLocation.Z, user.HomeLookAt.X,
-                                   user.HomeLookAt.Y, user.HomeLookAt.Z, user.Created, user.LastLogin, user.UserInventoryURI,
-                                   user.UserAssetURI, user.CanDoMask, user.WantDoMask, user.AboutText,
-                                   user.FirstLifeAboutText, user.Image, user.FirstLifeImage, user.WebLoginKey);
+            lock (database)
+            {
+                database.updateUserRow(user.ID, user.FirstName, user.SurName, user.PasswordHash, user.PasswordSalt,
+                                       user.HomeRegion, user.HomeLocation.X, user.HomeLocation.Y, user.HomeLocation.Z, user.HomeLookAt.X,
+                                       user.HomeLookAt.Y, user.HomeLookAt.Z, user.Created, user.LastLogin, user.UserInventoryURI,
+                                       user.UserAssetURI, user.CanDoMask, user.WantDoMask, user.AboutText,
+                                       user.FirstLifeAboutText, user.Image, user.FirstLifeImage, user.WebLoginKey);
+            }
+            
             return true;
         }
 
