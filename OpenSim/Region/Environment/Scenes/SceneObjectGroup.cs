@@ -1299,12 +1299,12 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     else
                     {
-                        NonPhysicalGrabMovement(pos);
+                        //NonPhysicalGrabMovement(pos);
                     }
                 }
                 else
                 {
-                    NonPhysicalGrabMovement(pos);
+                    //NonPhysicalGrabMovement(pos);
                 }
             }
         }
@@ -1474,7 +1474,8 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdatePermissions(LLUUID AgentID, byte field, uint localID, uint mask, byte addRemTF)
         {
             SceneObjectPart updatePart = GetChildPart(localID);
-            updatePart.UpdatePermissions(AgentID, field, localID, mask, addRemTF);           
+            updatePart.UpdatePermissions(AgentID, field, localID, mask, addRemTF);
+            HasGroupChanged = true;
         }
 
         #endregion
