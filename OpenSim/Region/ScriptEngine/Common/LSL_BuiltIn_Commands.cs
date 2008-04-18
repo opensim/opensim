@@ -2242,8 +2242,21 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llGetInventoryKey(string name)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetInventoryKey");
-            return String.Empty;
+            foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            {
+				if(inv.Value.Name == name)
+				{
+					if((inv.Value.OwnerMask & (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify)) == (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
+					{
+						return inv.Value.AssetID.ToString();
+					}
+					else
+					{
+						return LLUUID.Zero.ToString();
+					}
+				}
+			}
+			return LLUUID.Zero.ToString();
         }
 
         public void llAllowInventoryDrop(int add)
