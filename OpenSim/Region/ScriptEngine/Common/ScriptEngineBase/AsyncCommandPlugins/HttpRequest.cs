@@ -72,18 +72,30 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                 // implemented here yet anyway.  Should be fixed if/when maxsize
                 // is supported
 
-                if (m_CmdManager.m_ScriptEngine.m_ScriptManager.GetScript(httpInfo.localID, httpInfo.itemID) != null)
+                bool handled = false;
+                iHttpReq.RemoveCompletedRequest(httpInfo.reqID);
+                foreach (ScriptEngine sman in ScriptEngine.ScriptEngines)
                 {
-                    iHttpReq.RemoveCompletedRequest(httpInfo.reqID);
-                    object[] resobj = new object[]
+                    if (sman.m_ScriptManager.GetScript(httpInfo.localID, httpInfo.itemID) != null)
                     {
-                        httpInfo.reqID.ToString(), httpInfo.status, null, httpInfo.response_body
-                    };
+                        object[] resobj = new object[]
+                        {
+                            httpInfo.reqID.ToString(), httpInfo.status, null, httpInfo.response_body
+                        };
 
-                    m_CmdManager.m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-                        httpInfo.localID, httpInfo.itemID, "http_response", EventQueueManager.llDetectNull, resobj
-                    );
-                    //Thread.Sleep(2500);
+                        sman.m_EventQueueManager.AddToScriptQueue(
+                            httpInfo.localID, httpInfo.itemID, "http_response", EventQueueManager.llDetectNull, resobj
+                        );
+
+                        handled = true;
+                        break;
+                        //Thread.Sleep(2500);
+                    }
+                }
+
+                if (!handled)
+                {
+                    Console.WriteLine("Unhandled http_response: " + httpInfo.reqID);
                 }
 
                 httpInfo = iHttpReq.GetNextCompletedRequest();
