@@ -1306,53 +1306,230 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.PreloadSound(sound);
         }
 
+        /// <summary>
+        /// Return a portion of the designated string bounded by
+        /// inclusive indices (start and end). As usual, the negative
+        /// indices, and the tolerance for out-of-bound values, makes
+        /// this more complicated than it might otherwise seem.
+        /// </summary>
+
         public string llGetSubString(string src, int start, int end)
         {
-            m_host.AddScriptLPS(1);
-            // substring expects length
-            // return src.Substring(start, end);
 
-            // if one is negative so use length of string as base
-            // if start > end then it is exclusive
-            // for length add +1 for char at location=0
-            if (start < 0) { start = src.Length-start; }
-            if (end < 0) { end = src.Length - end; }
-            if (start > end)
+            m_host.AddScriptLPS(1);
+
+            // Normalize indices (if negative).
+            // After normlaization they may still be
+            // negative, but that is now relative to
+            // the start, rather than the end, of the
+            // sequence.
+
+            if (start < 0)
             {
-                return src.Substring(0, 1+end) + src.Substring(start, src.Length - start);
+                start = src.Length+start;
             }
+            if (end < 0)
+            {
+                end = src.Length+end;
+            }
+
+            // Conventional substring
+            if (start <= end)
+            {
+                // Implies both bounds are out-of-range.
+                if(end < 0 || start >= src.Length)
+                {
+                    return String.Empty;
+                }
+                // If end is positive, then it directly
+                // corresponds to the lengt of the substring
+                // needed (plus one of course). BUT, it 
+                // must be within bounds.
+                if(end >= src.Length)
+                {
+                    end = src.Length-1;
+                }
+
+                if(start < 0)
+                {
+                    return src.Substring(0,end+1);
+                }
+                // Both indices are positive
+                return src.Substring(start, (end+1) - start);
+            }
+
+            // Inverted substring (end < start)
             else
             {
-                return src.Substring(start, (1+end) - start);
+                // Implies both indices are below the 
+                // lower bound. In the inverted case, that 
+                // means the entire string will be returned
+                // unchanged.
+                if(start < 0)
+                {
+                    return src;
+                }
+                // If both indices are greater than the upper 
+                // bound the result may seem initially counter
+                // intuitive.
+                if(end >= src.Length)
+                {
+                    return src;
+                }
+
+                if(end < 0)
+                {
+                    if(start < src.Length)
+                    {
+                        return src.Substring(start);
+                    }
+                    else
+                    {
+                        return String.Empty;
+                    }
+                }
+                else
+                {
+                    if(start < src.Length)
+                    {
+                        return src.Substring(0,end+1) + src.Substring(start);
+                    }
+                    else
+                    {
+                        return src.Substring(0,end+1);
+                    }
+                }
             }
          }
 
+        /// <summary>
+        /// Delete substring removes the specified substring bounded
+        /// by the inclusive indices start and end. Indices may be 
+        /// negative (indicating end-relative) and may be inverted,
+        /// i.e. end < start.
+        /// </summary>
+
         public string llDeleteSubString(string src, int start, int end)
         {
+
             m_host.AddScriptLPS(1);
-            //return src.Remove(start, end - start);
-            // if one is negative so use length of string as base
-            // if start > end then it is exclusive
-            // for length add +1 for char at location=0
-            if (start < 0) { start = src.Length - start; }
-            if (end < 0) { end = src.Length - end; }
-            if (start > end)
+
+            // Normalize indices (if negative).
+            // After normlaization they may still be
+            // negative, but that is now relative to
+            // the start, rather than the end, of the
+            // sequence.
+            if (start < 0)
             {
-                return src.Remove(0, 1 + end) + src.Remove(start, src.Length - start);
+                start = src.Length+start;
             }
+            if (end < 0)
+            {
+                end = src.Length+end;
+            }
+            // Conventionally delimited substring
+            if (start <= end)
+            {
+                // If both bounds are outside of the existing
+                // string, then return unchanges.
+                if(end < 0 || start >= src.Length)
+                {
+                    return src;
+                }
+                // At least one bound is in-range, so we
+                // need to clip the out-of-bound argument.
+                if(start < 0)
+                {
+                    start = 0;
+                }
+
+                if(end >= src.Length)
+                {
+                    end = src.Length-1;
+                }
+
+                return src.Remove(start,end-start+1);
+            }
+            // Inverted substring
             else
             {
-                return src.Remove(start, (1 + end) - start);
+                // In this case, out of bounds means that
+                // the existing string is part of the cut.
+                if(start < 0 || end >= src.Length)
+                {
+                    return String.Empty;
+                }
+                
+                if(end > 0)
+                {
+                    if(start < src.Length)
+                    {
+                        return src.Remove(start).Remove(0,end+1);
+                    }
+                    else
+                    {
+                        return src.Remove(0,end+1);
+                    }
+                }
+                else
+                {
+                    if(start < src.Length)
+                    {
+                        return src.Remove(start);
+                    }
+                    else
+                    {
+                        return src;
+                    }
+                }
             }
         }
    
-        
-        public string llInsertString(string dst, int position, string src)
-        {
-            m_host.AddScriptLPS(1);
-            return dst.Insert(position, src);
-        }
+        /// <summary>
+        /// Insert string inserts the specified string identified by src
+        /// at the index indicated by index. Index may be negative, in
+        /// which case it is end-relative. The index may exceed either
+        /// string bound, with the result being a concatenation.
+        /// </summary>
 
+        public string llInsertString(string dest, int index, string src)
+        {
+
+            m_host.AddScriptLPS(1);
+
+            // Normalize indices (if negative).
+            // After normlaization they may still be
+            // negative, but that is now relative to
+            // the start, rather than the end, of the
+            // sequence.
+            if (index < 0)
+            {
+                index = dest.Length+index;
+
+                // Negative now means it is less than the lower
+                // bound of the string.
+
+                if(index < 0)
+                {
+                    return src+dest;
+                }
+
+            }
+
+            if(index >= dest.Length)
+            {
+                return dest+src;
+            }
+
+            // The index is in bounds.
+            // In this case the index refers to the index that will
+            // be assigned to the first character of the inserted string. 
+            // So unlike the other string operations, we do not add one
+            // to get the correct string length.
+            return dest.Substring(0,index)+src+dest.Substring(index);
+
+        }
+   
         public string llToUpper(string src)
         {
             m_host.AddScriptLPS(1);
@@ -2176,7 +2353,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llGetScriptName()
         {
 
-            string result = null;
+            string result = String.Empty;
 
             m_host.AddScriptLPS(1);
 
@@ -2184,7 +2361,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 if(item.Type == 10 && item.ItemID == m_itemID)
                 {
-                    result =  item.Name;
+                    result =  item.Name!=null?item.Name:String.Empty;
                     break;
                 }
             }
@@ -2244,19 +2421,19 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
-				if(inv.Value.Name == name)
-				{
-					if((inv.Value.OwnerMask & (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify)) == (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
-					{
-						return inv.Value.AssetID.ToString();
-					}
-					else
-					{
-						return LLUUID.Zero.ToString();
-					}
-				}
-			}
-			return LLUUID.Zero.ToString();
+                if(inv.Value.Name == name)
+                {
+                    if((inv.Value.OwnerMask & (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify)) == (uint)(PermissionMask.Copy | PermissionMask.Transfer | PermissionMask.Modify))
+                    {
+                        return inv.Value.AssetID.ToString();
+                    }
+                    else
+                    {
+                        return LLUUID.Zero.ToString();
+                    }
+                }
+            }
+            return LLUUID.Zero.ToString();
         }
 
         public void llAllowInventoryDrop(int add)
@@ -2900,13 +3077,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llGetObjectName()
         {
             m_host.AddScriptLPS(1);
-            return m_host.Name;
+            return m_host.Name!=null?m_host.Name:String.Empty;
         }
 
         public void llSetObjectName(string name)
         {
             m_host.AddScriptLPS(1);
-            m_host.Name = name;
+            m_host.Name = name!=null?name:String.Empty;
         }
 
         public string llGetDate()
@@ -3759,13 +3936,13 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string llGetObjectDesc()
         {
-            return m_host.Description;
+            return m_host.Description!=null?m_host.Description:String.Empty;
         }
 
         public void llSetObjectDesc(string desc)
         {
             m_host.AddScriptLPS(1);
-            m_host.Description = desc;
+            m_host.Description = desc!=null?desc:String.Empty;
         }
 
         public string llGetCreator()
