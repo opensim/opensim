@@ -841,7 +841,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="packet"></param>
         /// <param name="simClient"></param>
         public virtual void DeRezObject(Packet packet, IClientAPI remoteClient)
-        {            
+        {     
             DeRezObjectPacket DeRezPacket = (DeRezObjectPacket) packet;
 
             if (DeRezPacket.AgentBlock.DestinationID == LLUUID.Zero)

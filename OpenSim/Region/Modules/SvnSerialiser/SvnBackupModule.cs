@@ -113,7 +113,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
                 m_svnurl = source.Configs["SVN"].GetString("URL", m_svnurl);
                 m_svnuser = source.Configs["SVN"].GetString("Username", m_svnuser);
                 m_svnpass = source.Configs["SVN"].GetString("Password", m_svnpass);
-                m_installBackupOnLoad = source.Configs["SVN"].GetString("ImportOnStartup", m_installBackupOnLoad);
+                m_installBackupOnLoad = source.Configs["SVN"].GetBoolean("ImportOnStartup", m_installBackupOnLoad);
             } catch(Exception) { }
 
             lock (m_scenes)
