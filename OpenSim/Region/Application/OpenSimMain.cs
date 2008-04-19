@@ -146,6 +146,9 @@ namespace OpenSim
                 Directory.Delete("addin-db-000", true);
             }
              
+            
+            m_log.Info("[OPENSIM MAIN]: PLEASE IGNORE THE SCANNING ERRORS BELOW.  These are the result of a temporary problem with our plugins manager.");
+            
             AddinManager.Initialize(".");
             AddinManager.Registry.Update(null);
 
