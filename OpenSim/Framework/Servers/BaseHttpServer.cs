@@ -199,6 +199,16 @@ namespace OpenSim.Framework.Servers
                     }
                 }
             }
+            catch (System.Net.Sockets.SocketException e)
+            {
+                // At least on linux, it appears that if the client makes a request without requiring the response,
+                // an unconnected socket exception is thrown when we close the response output stream.  There's no
+                // obvious way to tell if the client didn't require the response, so instead we'll catch and ignore
+                // the exception instead.
+                //
+                // An alternative may be to turn off all response write exceptions on the HttpListener, but let's go
+                // with the minimum first
+            }
             catch (Exception e)
             {
                 m_log.ErrorFormat("[BASE HTTP SERVER]: HandleRequest() threw {0}", e);
