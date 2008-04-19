@@ -19,8 +19,8 @@ namespace OpenSim.Region.Modules.SvnSerialiser
         private SvnClient m_svnClient;
         private bool m_enabled = false;
         private bool m_installBackupOnLoad = false;
-        private string m_svnurl = "svn://your.svn.tld/";
-        private string m_svnuser = "user";
+        private string m_svnurl = "svn://insert.your.svn/here/";
+        private string m_svnuser = "username";
         private string m_svnpass = "password";
         private string m_svndir = "SVNmodule\\repo";
         private IRegionSerialiser m_serialiser;
@@ -38,7 +38,6 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             {
                 m_svnClient.Add3(m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID.ToString(), true, false, false);
             }
-                // Ignore this error, it means the sim is already under version control.
             catch (SvnException) { }
 
             List<string> svnfilenames = new List<string>();
@@ -47,17 +46,21 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             svnfilenames.Add(m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID.ToString());
 
             m_svnClient.Commit3(svnfilenames, true, false);
-            m_log.Info("[SVNBACKUP]: Backup successful.");
+            m_log.Info("[SVNBACKUP]: Region backup successful (" + scene.RegionInfo.RegionName + ").");
         }
 
         public void LoadRegion(Scene scene)
         {
-            m_svnClient.Checkout2(m_svnurl, m_svndir, Svn.Revision.Head, Svn.Revision.Head, true, false);
             scene.LoadPrimsFromXml2(m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID.ToString() + 
                 Slash.DirectorySeparatorChar + "objects.xml");
             scene.RequestModuleInterface<OpenSim.Region.Environment.Modules.Terrain.ITerrainModule>().LoadFromFile(m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID.ToString() +
                 Slash.DirectorySeparatorChar + "heightmap.r32");
-            m_log.Info("[SVNBACKUP]: Load successful.");
+            m_log.Info("[SVNBACKUP]: Region load successful (" + scene.RegionInfo.RegionName + ").");
+        }
+
+        private void CheckoutSvn()
+        {
+            m_svnClient.Checkout2(m_svnurl, m_svndir, Svn.Revision.Head, Svn.Revision.Head, true, false);
         }
 
         #endregion
@@ -110,6 +113,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
                 m_svnurl = source.Configs["SVN"].GetString("URL", m_svnurl);
                 m_svnuser = source.Configs["SVN"].GetString("Username", m_svnuser);
                 m_svnpass = source.Configs["SVN"].GetString("Password", m_svnpass);
+                m_installBackupOnLoad = source.Configs["SVN"].GetString("ImportOnStartup", m_installBackupOnLoad);
             } catch(Exception) { }
 
             lock (m_scenes)
@@ -123,9 +127,21 @@ namespace OpenSim.Region.Modules.SvnSerialiser
         void EventManager_OnPluginConsole(string[] args)
         {
             if (args[0] == "svn" && args[1] == "save")
-                SaveRegion(m_scenes[0]);
+            {
+                foreach (Scene scene in m_scenes)
+                {
+                    SaveRegion(scene);
+                }
+            }
             if (args[0] == "svn" && args[1] == "load")
-                LoadRegion(m_scenes[0]);
+            {
+                CheckoutSvn();
+
+                foreach (Scene scene in m_scenes)
+                {
+                    LoadRegion(scene);
+                }
+            }
         }
 
         public void PostInitialise()
@@ -133,27 +149,43 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             if (m_enabled == false)
                 return;
 
-            m_log.Info("[SVNBACKUP]: Connecting...");
+            m_log.Info("[SVNBACKUP]: Connecting to SVN server " + m_svnurl + " ...");
+            SetupSvnProvider();
 
+            m_log.Info("[SVNBACKUP]: Creating repository in " + m_svndir + ".");
+            CreateSvnDirectory();
+            CheckoutSvn();
+            SetupSerialiser();
+
+            if (m_installBackupOnLoad)
+            {
+                m_log.Info("[SVNBACKUP]: Importing latest SVN revision to scenes...");
+                foreach (Scene scene in m_scenes)
+                {
+                    LoadRegion(scene);
+                }
+            }
+        }
+
+        private void SetupSerialiser()
+        {
+
+            if (m_scenes.Count > 0)
+                m_serialiser = m_scenes[0].RequestModuleInterface<IRegionSerialiser>();
+        }
+
+        private void SetupSvnProvider()
+        {
             m_svnClient = new SvnClient();
             m_svnClient.AddUsernameProvider();
             m_svnClient.AddPromptProvider(new SvnAuthProviderObject.SimplePrompt(SimpleAuth), IntPtr.Zero, 2);
             m_svnClient.OpenAuth();
+        }
 
-            m_log.Info("[SVNBACKUP]: Checking out base directory...");
-
+        private void CreateSvnDirectory()
+        {
             if (!System.IO.Directory.Exists(m_svndir))
                 System.IO.Directory.CreateDirectory(m_svndir);
-
-            m_svnClient.Checkout2(m_svnurl, m_svndir, Svn.Revision.Head, Svn.Revision.Head, true, false);
-
-            if (m_scenes.Count > 0)
-                m_serialiser = m_scenes[0].RequestModuleInterface<IRegionSerialiser>();
-
-            if (m_installBackupOnLoad)
-            {
-                //TODO
-            }
         }
 
         public void Close()
