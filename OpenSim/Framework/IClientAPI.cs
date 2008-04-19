@@ -501,6 +501,7 @@ namespace OpenSim.Framework
         event UpdatePrimSingleRotation OnUpdatePrimSingleRotation;
         event UpdatePrimGroupRotation OnUpdatePrimGroupMouseRotation;
         event UpdateVector OnUpdatePrimScale;
+        event UpdateVector OnUpdatePrimGroupScale;
         event StatusChange OnChildAgentStatus;
         event GenericCall2 OnStopMovement;
         event Action<LLUUID> OnRemoveAvatar;

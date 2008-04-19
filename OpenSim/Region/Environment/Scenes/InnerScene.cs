@@ -890,6 +890,17 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+        public void UpdatePrimGroupScale(uint localID, LLVector3 scale, IClientAPI remoteClient)
+        {
+            SceneObjectGroup group = GetGroupByPrim(localID);
+            if (group != null)
+            {
+                if (PermissionsMngr.CanEditObjectPosition(remoteClient.AgentId, group.UUID))
+                {
+                    group.GroupResize(scale, localID);
+                }
+            }
+        }
 
         /// <summary>
         /// This handles the nifty little tool tip that you get when you drag your mouse over an object 

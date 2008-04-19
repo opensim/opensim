@@ -109,6 +109,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event UpdatePrimSingleRotation OnUpdatePrimSingleRotation;
         public event UpdatePrimGroupRotation OnUpdatePrimGroupMouseRotation;
         public event UpdateVector OnUpdatePrimScale;
+        public event UpdateVector OnUpdatePrimGroupScale;
         public event StatusChange OnChildAgentStatus;
         public event GenericCall2 OnStopMovement;
         public event Action<LLUUID> OnRemoveAvatar;

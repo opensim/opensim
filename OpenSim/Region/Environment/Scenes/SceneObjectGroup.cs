@@ -1520,7 +1520,7 @@ namespace OpenSim.Region.Environment.Scenes
                             new PhysicsVector(scale.X, scale.Y, scale.Z);
                     m_scene.PhysicsScene.AddPhysicsActorTaint(part.PhysActor);
                 }
-                if (part.UUID != m_rootPart.UUID)
+                //if (part.UUID != m_rootPart.UUID)
                     ScheduleGroupForFullUpdate();
 
                 //if (part.UUID == m_rootPart.UUID)
@@ -1532,6 +1532,48 @@ namespace OpenSim.Region.Environment.Scenes
                         //m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
                     //}
                 //}
+            }
+        }
+        public void GroupResize(LLVector3 scale, uint localID)
+        {
+            SceneObjectPart part = GetChildPart(localID);
+            if (part != null)
+            {
+                float x = (scale.X / part.Scale.X);
+                float y = (scale.Y / part.Scale.Y);
+                float z = (scale.Z / part.Scale.Z);
+                part.Resize(scale);
+                
+                lock (m_parts)
+                {
+                    foreach (SceneObjectPart obPart in m_parts.Values)
+                    {
+                        if (obPart.UUID != m_rootPart.UUID)
+                        {
+                            
+                            LLVector3 currentpos = new LLVector3(obPart.OffsetPosition);
+                            currentpos.X *= x;
+                            currentpos.Y *= y;
+                            currentpos.Z *= z;
+                            LLVector3 newSize = new LLVector3(obPart.Scale);
+                            newSize.X *= x;
+                            newSize.Y *= y;
+                            newSize.Z *= z;
+                            obPart.Resize(newSize);
+                            obPart.UpdateOffSet(currentpos);
+                        }
+                    }
+                }
+            
+                if (part.PhysActor != null)
+                {
+                    part.PhysActor.Size =
+                            new PhysicsVector(scale.X, scale.Y, scale.Z);
+                    m_scene.PhysicsScene.AddPhysicsActorTaint(part.PhysActor);
+                }
+                
+
+                    ScheduleGroupForTerseUpdate();
             }
         }
 

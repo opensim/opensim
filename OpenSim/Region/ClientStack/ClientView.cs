@@ -222,6 +222,7 @@ namespace OpenSim.Region.ClientStack
         private UpdateVector handlerUpdatePrimSinglePosition = null; //OnUpdatePrimSinglePosition;
         private UpdatePrimSingleRotation handlerUpdatePrimSingleRotation = null; //OnUpdatePrimSingleRotation;
         private UpdateVector handlerUpdatePrimScale = null; //OnUpdatePrimScale;
+        private UpdateVector handlerUpdatePrimGroupScale = null; //OnUpdateGroupScale;
         private UpdateVector handlerUpdateVector = null; //OnUpdatePrimGroupPosition;
         private UpdatePrimRotation handlerUpdatePrimRotation = null; //OnUpdatePrimGroupRotation;
         private UpdatePrimGroupRotation handlerUpdatePrimGroupRotation = null; //OnUpdatePrimGroupMouseRotation;
@@ -712,6 +713,7 @@ namespace OpenSim.Region.ClientStack
         public event UpdatePrimSingleRotation OnUpdatePrimSingleRotation;
         public event UpdatePrimGroupRotation OnUpdatePrimGroupMouseRotation;
         public event UpdateVector OnUpdatePrimScale;
+        public event UpdateVector OnUpdatePrimGroupScale;
         public event StatusChange OnChildAgentStatus;
         public event GenericCall2 OnStopMovement;
         public event Action<LLUUID> OnRemoveAvatar;
@@ -2590,6 +2592,7 @@ namespace OpenSim.Region.ClientStack
                             case 5:
 
                                 LLVector3 scale1 = new LLVector3(block.Data, 12);
+                                LLVector3 pos11 = new LLVector3(block.Data, 0);
 
                                 handlerUpdatePrimScale = OnUpdatePrimScale;
                                 if (handlerUpdatePrimScale != null)
@@ -2597,6 +2600,13 @@ namespace OpenSim.Region.ClientStack
 
                                     // Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
                                     handlerUpdatePrimScale(localId, scale1, this);
+
+                                    
+                                    handlerUpdatePrimSinglePosition = OnUpdatePrimSinglePosition;
+                                    if (handlerUpdatePrimSinglePosition != null)
+                                    {
+                                        handlerUpdatePrimSinglePosition(localId, pos11, this);
+                                    }
                                 }
                                 break;
                             case 9:
@@ -2661,27 +2671,35 @@ namespace OpenSim.Region.ClientStack
                                 LLVector3 scale5 = new LLVector3(block.Data, 12);
                                 LLVector3 pos5 = new LLVector3(block.Data, 0);
 
-                                handlerUpdatePrimScale = OnUpdatePrimScale;
-                                if (handlerUpdatePrimScale != null)
+                                handlerUpdatePrimGroupScale = OnUpdatePrimGroupScale;
+                                if (handlerUpdatePrimGroupScale != null)
                                 {
 
                                     // Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z );
-                                    handlerUpdatePrimScale(localId, scale5, this);
+                                    handlerUpdatePrimGroupScale(localId, scale5, this);
+                                    handlerUpdateVector = OnUpdatePrimGroupPosition;
 
-                                    handlerUpdatePrimSinglePosition = OnUpdatePrimSinglePosition;
-                                    if (handlerUpdatePrimSinglePosition != null)
+                                    if (handlerUpdateVector != null)
                                     {
-                                        handlerUpdatePrimSinglePosition(localId, pos5, this);
+
+                                        handlerUpdateVector(localId, pos5, this);
                                     }
                                 }
                                 break;
                             case 21:
                                 LLVector3 scale6 = new LLVector3(block.Data, 12);
+                                LLVector3 pos6 = new LLVector3(block.Data, 0);
+
                                 handlerUpdatePrimScale = OnUpdatePrimScale;
                                 if (handlerUpdatePrimScale != null)
                                 {
                                     // Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
                                     handlerUpdatePrimScale(localId, scale6, this);
+                                    handlerUpdatePrimSinglePosition = OnUpdatePrimSinglePosition;
+                                    if (handlerUpdatePrimSinglePosition != null)
+                                    {
+                                        handlerUpdatePrimSinglePosition(localId, pos6, this);
+                                    }
                                 }
                                 break;
                         }
