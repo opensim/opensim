@@ -302,7 +302,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             string[] eventmatches = new string[0];
             //Regex stateevents = new Regex(@"(public void )([^_]+)(_event_)([^\(]+)[\(\)]+\s+[^\{]\{");
-            eventmatches = Regex.Split(Script, @"public void\s([^_]+)_event_([^\(]+)\((?:[a-zA-Z0-9\s_,\.\-]+)?\)+\s+[^\{]\{", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            eventmatches = Regex.Split(Script, @"public void\s([^_]+)_event_([^\(]+)\((?:[a-zA-Z0-9\s_,\.\-]+)?\)(?:[^\{]+)?\{", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.IgnoreCase);
             for (int pos = 0; pos<eventmatches.GetUpperBound(0);pos++)
             {
                 pos++; // garbage
@@ -329,7 +329,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             
             //Only match State_Entry events now
             // Note the whole regex is a group, then we have the state this entry belongs to.
-            eventmatches = Regex.Split(Script, @"(public void\s([^_]+)_event_state_entry[\(\)]+\s+[^\{]\{)", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            eventmatches = Regex.Split(Script, @"(public void\s([^_]+)_event_state_entry[\(\)](?:[^\{]+)?\{)", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.IgnoreCase);
             int endloop = eventmatches.GetUpperBound(0);
             for (int pos = 0; pos < endloop; pos++)
             {
