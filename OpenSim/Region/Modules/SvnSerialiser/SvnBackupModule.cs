@@ -165,6 +165,50 @@ namespace OpenSim.Region.Modules.SvnSerialiser
                     LoadAllScenes(Int32.Parse(args[2]));
                 }
             }
+            if (args.Length == 3)
+            {
+                if (args[0] == "svn" && args[1] == "load-region")
+                {
+                    LoadScene(args[2]);
+                }
+            }
+            if (args.Length == 4)
+            {
+                if (args[0] == "svn" && args[1] == "load-region")
+                {
+                    LoadScene(args[2], Int32.Parse(args[3]));
+                }
+            }
+        }
+
+        public void LoadScene(string name)
+        {
+            CheckoutSvn();
+
+            foreach (Scene scene in m_scenes)
+            {
+                if (scene.RegionInfo.RegionName.ToLower().Equals(name.ToLower()))
+                {
+                    LoadRegion(scene);
+                    return;
+                }
+            }
+            m_log.Warn("[SVNBACKUP]: No region loaded - unable to find matching name.");
+        }
+
+        public void LoadScene(string name, int revision)
+        {
+            CheckoutSvn(new SvnRevision(revision));
+
+            foreach (Scene scene in m_scenes)
+            {
+                if (scene.RegionInfo.RegionName.ToLower().Equals(name.ToLower()))
+                {
+                    LoadRegion(scene);
+                    return;
+                }
+            }
+            m_log.Warn("[SVNBACKUP]: No region loaded - unable to find matching name.");
         }
 
         private void LoadAllScenes()
