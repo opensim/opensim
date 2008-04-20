@@ -201,7 +201,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             m_svnClient.AddUsernameProvider();
             m_svnClient.AddPromptProvider(new SvnAuthProviderObject.SimplePrompt(SimpleAuth), IntPtr.Zero, 2);
             m_svnClient.OpenAuth();
-            m_svnClient.Context.LogMsgFunc = new SvnDelegate(new SvnClient.GetCommitLog(GetCommitLogCallback)); 
+            m_svnClient.Context.LogMsgFunc2 = new SvnDelegate(new SvnClient.GetCommitLog2(GetCommitLogCallback)); 
         }
 
         private void CreateSvnDirectory()
