@@ -84,7 +84,7 @@ namespace OpenSim.Framework.UserManagement
         /// </summary>
         /// <param name="userID"></param>
         /// <returns></returns>
-        /// <exception cref='System.Net.WebException'>This will be thrown if there is a problem with the inventory service</exception>
+        /// <exception cref='System.Exception'>This will be thrown if there is a problem with the inventory service</exception>
         protected abstract InventoryData GetInventorySkeleton(LLUUID userID);     
         
         /// <summary>
@@ -218,7 +218,7 @@ namespace OpenSim.Framework.UserManagement
                         {                                               
                             inventData = GetInventorySkeleton(agentID);
                         }
-                        catch (System.Net.WebException e)
+                        catch (Exception e)
                         {
                             m_log.ErrorFormat(
                                 "[LOGIN END]: Error retrieving inventory skeleton of agent {0}, {1} - {2}",

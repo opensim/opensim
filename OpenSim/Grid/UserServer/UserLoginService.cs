@@ -306,6 +306,7 @@ namespace OpenSim.Grid.UserServer
                  "[LOGIN]: Contacting inventory service at {0} for inventory skeleton of agent {1}", 
                  m_config.InventoryUrl, userID);
             
+
             List<InventoryFolderBase> folders
                 = SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(
                     "POST", m_config.InventoryUrl + "RootFolders/", userID.UUID);
@@ -355,26 +356,9 @@ namespace OpenSim.Grid.UserServer
             }
             else
             {
-                m_log.Warn("[LOGIN]: The root inventory folder could still not be retrieved" +
-                           " for user ID " + userID);
-
-                AgentInventory userInventory = new AgentInventory();
-                userInventory.CreateRootFolder(userID);
-
-                ArrayList AgentInventoryArray = new ArrayList();
-                Hashtable TempHash;
-                foreach (InventoryFolder InvFolder in userInventory.InventoryFolders.Values)
-                {
-                    TempHash = new Hashtable();
-                    TempHash["name"] = InvFolder.FolderName;
-                    TempHash["parent_id"] = InvFolder.ParentID.ToString();
-                    TempHash["version"] = (Int32) InvFolder.Version;
-                    TempHash["type_default"] = (Int32) InvFolder.DefaultType;
-                    TempHash["folder_id"] = InvFolder.FolderID.ToString();
-                    AgentInventoryArray.Add(TempHash);
-                }
-
-                return new InventoryData(AgentInventoryArray, userInventory.InventoryRoot.FolderID);
+                throw new Exception(
+                    String.Format(
+                        "A root inventory folder for {0} could not be retrieved from the inventory service", userID));
             }
         }
     }
