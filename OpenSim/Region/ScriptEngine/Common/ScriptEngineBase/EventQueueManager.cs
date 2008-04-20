@@ -231,7 +231,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             EventQueueThreadClass eqtc = new EventQueueThreadClass();
             eventQueueThreads.Add(eqtc);
-            m_ScriptEngine.Log.Debug("[" + m_ScriptEngine.ScriptEngineName + "]: Started new script execution thread. Current thread count: " + eventQueueThreads.Count);
+            //m_ScriptEngine.Log.Debug("[" + m_ScriptEngine.ScriptEngineName + "]: Started new script execution thread. Current thread count: " + eventQueueThreads.Count);
         }
 
         private void AbortThreadClass(EventQueueThreadClass threadClass)

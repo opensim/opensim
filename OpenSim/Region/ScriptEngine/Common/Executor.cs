@@ -80,7 +80,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
 //cfk 2-7-08 dont need this right now and the default Linux build has DEBUG defined
 #if DEBUG
-            Console.WriteLine("ScriptEngine: Executing function name: " + EventName);
+            //Console.WriteLine("ScriptEngine: Executing function name: " + EventName);
 #endif
             // Found
             ev.Invoke(m_Script, args);

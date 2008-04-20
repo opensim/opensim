@@ -66,14 +66,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             // We will initialize and start the script.
             // It will be up to the script itself to hook up the correct events.
-            string ScriptSource = String.Empty;
+            string CompiledScriptFile = String.Empty;
 
             SceneObjectPart m_host = World.GetSceneObjectPart(localID);
 
             try
             {
                 // Compile (We assume LSL)
-                ScriptSource = LSLCompiler.PerformScriptCompile(Script);
+                CompiledScriptFile = LSLCompiler.PerformScriptCompile(Script);
 
 //#if DEBUG
                 //long before;
@@ -81,7 +81,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 //#endif
 
                 IScript CompiledScript;
-                CompiledScript = m_scriptEngine.m_AppDomainManager.LoadScript(ScriptSource);
+                CompiledScript = m_scriptEngine.m_AppDomainManager.LoadScript(CompiledScriptFile);
 
 //#if DEBUG
                 //m_scriptEngine.Log.DebugFormat("[" + m_scriptEngine.ScriptEngineName + "]: Script " + itemID + " occupies {0} bytes", GC.GetTotalMemory(true) - before);

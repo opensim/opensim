@@ -130,7 +130,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 else
                 {
 #if DEBUG
-                    m_scriptEngine.Log.Debug("[" + m_scriptEngine.ScriptEngineName + "]: Config OK. Compiler recognized language type \"" + strlan + "\" specified in \"AllowedCompilers\".");
+                    //m_scriptEngine.Log.Debug("[" + m_scriptEngine.ScriptEngineName + "]: Config OK. Compiler recognized language type \"" + strlan + "\" specified in \"AllowedCompilers\".");
 #endif
                 }
                 AllowedCompilers.Add(strlan, true);
@@ -158,8 +158,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             else
             {
 #if DEBUG
-                m_scriptEngine.Log.Debug("[" + m_scriptEngine.ScriptEngineName + "]: " +
-                                            "Config OK. Default language \"" + defaultCompileLanguage + "\" specified in \"DefaultCompileLanguage\" is recognized as a valid language.");
+//                m_scriptEngine.Log.Debug("[" + m_scriptEngine.ScriptEngineName + "]: " +
+//                                            "Config OK. Default language \"" + defaultCompileLanguage + "\" specified in \"DefaultCompileLanguage\" is recognized as a valid language.");
 #endif
                 // LANGUAGE IS IN ALLOW-LIST
                 DefaultCompileLanguage = LanguageMapping[defaultCompileLanguage];
