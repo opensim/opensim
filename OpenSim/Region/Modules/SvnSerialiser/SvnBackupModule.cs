@@ -30,6 +30,29 @@ namespace OpenSim.Region.Modules.SvnSerialiser
 
         public void SaveRegion(Scene scene)
         {
+            List<string> svnfilenames = CreateAndAddExport(scene);
+
+            m_svnClient.Commit3(svnfilenames, true, false);
+            m_log.Info("[SVNBACKUP]: Region backup successful (" + scene.RegionInfo.RegionName + ").");
+        }
+
+        public void SaveAllRegions()
+        {
+            List<string> svnfilenames = new List<string>();
+            List<string> regions = new List<string>();
+
+            foreach (Scene scene in m_scenes)
+            {
+                svnfilenames.AddRange(CreateAndAddExport(scene));
+                regions.Add("'" + scene.RegionInfo.RegionName + "' ");
+            }
+
+            m_svnClient.Commit3(svnfilenames, true, false);
+            m_log.Info("[SVNBACKUP]: Server backup successful ( " + String.Concat(regions.ToArray()) + ").");
+        }
+
+        private List<string> CreateAndAddExport(Scene scene)
+        {
             m_log.Info("[SVNBACKUP]: Saving a region to SVN with name " + scene.RegionInfo.RegionName);
 
             List<string> filenames = m_serialiser.SerialiseRegion(scene, m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID.ToString() + "\\");
@@ -45,8 +68,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
                 svnfilenames.Add(m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID.ToString() + Slash.DirectorySeparatorChar + filename);
             svnfilenames.Add(m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID.ToString());
 
-            m_svnClient.Commit3(svnfilenames, true, false);
-            m_log.Info("[SVNBACKUP]: Region backup successful (" + scene.RegionInfo.RegionName + ").");
+            return svnfilenames;
         }
 
         public void LoadRegion(Scene scene)
@@ -103,15 +125,16 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             if (!commitItems.IsNull)
             {
                 foreach (SvnClientCommitItem2 item in commitItems)
-                {
-                    m_log.Debug("[SVNBACKUP]: Updated " + item.Path.ToString() + " (" + item.Kind.ToString() + ") " + item.Revision.ToString());
-                    m_log.Debug("[SVNBACKUP]: " + item.Url.ToString() + " -> " + item.CopyFromUrl.ToString());
+                {                    
+                    m_log.Debug("[SVNBACKUP]: ... " + System.IO.Path.GetFileName(item.Path.ToString()) + " (" + item.Kind.ToString() + ") r" + item.Revision.ToString());
                 }
             }
 
-            m_log.Debug("[SVNBACKUP]: Appending log message.");
+            string msg = "Region Backup (" + System.Environment.MachineName + " at " + DateTime.UtcNow.ToString() + " UTC)";
 
-            logMessage = new AprString("Automated Region Backup", pool);
+            m_log.Debug("[SVNBACKUP]: Saved with message: " + msg);
+
+            logMessage = new AprString(msg, pool);
             tmpFile = new SvnPath(pool);
 
             return (SvnError.NoError);
@@ -234,10 +257,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
 
         private void SaveAllScenes()
         {
-            foreach (Scene scene in m_scenes)
-            {
-                SaveRegion(scene);
-            }
+            SaveAllRegions();
         }
 
         public void PostInitialise()
@@ -265,7 +285,6 @@ namespace OpenSim.Region.Modules.SvnSerialiser
 
         private void SetupSerialiser()
         {
-
             if (m_scenes.Count > 0)
                 m_serialiser = m_scenes[0].RequestModuleInterface<IRegionSerialiser>();
         }
