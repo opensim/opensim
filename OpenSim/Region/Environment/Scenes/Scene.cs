@@ -1696,6 +1696,8 @@ namespace OpenSim.Region.Environment.Scenes
                     m_sceneGridService.SendCloseChildAgentConnections(agentID, childknownRegions);
 
                     RemoveCapsHandler(agentID);
+                    
+                    CommsManager.UserProfileCacheService.RemoveUser(agentID);
                 }
 
                 m_eventManager.TriggerClientClosed(agentID);

@@ -110,7 +110,7 @@ namespace OpenSim.Grid.InventoryServer
         public InventoryCollection GetUserInventory(Guid rawUserID)
         {
             // uncomment me to simulate an overloaded inventory server
-            //Thread.Sleep(40000);
+            //Thread.Sleep(25000);
             
             LLUUID userID = new LLUUID(rawUserID);
 

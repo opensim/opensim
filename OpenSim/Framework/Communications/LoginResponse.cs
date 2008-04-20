@@ -247,7 +247,7 @@ namespace OpenSim.Framework.UserManagement
         {
             return GenerateFailureResponse(
                 "key",
-                "The agent inventory service is not responding.  Please notify your region operator.",
+                "The agent inventory service is not responding.  Please notify your login region operator.",
                 "false");     
         }
 

@@ -86,7 +86,30 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                 }
             }
-        }            
+        }        
+        
+        /// <summary>
+        /// Remove this user's profile cache.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <returns>true if the user was successfully removed, false otherwise</returns>
+        public bool RemoveUser(LLUUID userID)
+        {
+            lock (m_userProfiles)
+            {
+                if (m_userProfiles.ContainsKey(userID))
+                {
+                    m_userProfiles.Remove(userID);
+                    return true;
+                }
+                else
+                {
+                    m_log.WarnFormat("[USER CACHE]: Tried to remove the profile of user {0}, but this was not in the scene", userID);
+                }               
+            }
+            
+            return false;
+        }
 
         /// <summary>
         /// Request the inventory data for the given user.  This will occur asynchronously if running on a grid
