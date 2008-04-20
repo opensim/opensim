@@ -33,5 +33,37 @@ namespace OpenSim.Region.ScriptEngine.Common
 {
     public interface OSSL_BuilIn_Commands_Interface
     {
+        //OpenSim functions
+        string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams, int timer);
+        string osSetDynamicTextureURLBlend(string dynamicID, string contentType, string url, string extraParams,
+                                           int timer, int alpha);
+        string osSetDynamicTextureData(string dynamicID, string contentType, string data, string extraParams, int timer);
+        string osSetDynamicTextureDataBlend(string dynamicID, string contentType, string data, string extraParams,
+                                            int timer, int alpha);
+        double osTerrainGetHeight(int x, int y);
+        int osTerrainSetHeight(int x, int y, double val);
+        int osRegionRestart(double seconds);
+        void osRegionNotice(string msg);
+        bool osConsoleCommand(string Command);
+        void osSetParcelMediaURL(string url);
+        void osSetPrimFloatOnWater(int floatYN);
+
+        // Animation commands
+        void osAvatarPlayAnimation(string avatar, string animation);
+        void osAvatarStopAnimation(string avatar, string animation);
+
+        //texture draw functions
+        string osMovePen(string drawList, int x, int y);
+        string osDrawLine(string drawList, int startX, int startY, int endX, int endY);
+        string osDrawLine(string drawList, int endX, int endY);
+        string osDrawText(string drawList, string text);
+        string osDrawEllipse(string drawList, int width, int height);
+        string osDrawRectangle(string drawList, int width, int height);
+        string osDrawFilledRectangle(string drawList, int width, int height);
+        string osSetFontSize(string drawList, int fontSize);
+        string osSetPenSize(string drawList, int penSize);
+        string osSetPenColour(string drawList, string colour);
+        string osDrawImage(string drawList, int width, int height, string imageUrl);
+        void osSetStateEvents(int events);  
     }
 }

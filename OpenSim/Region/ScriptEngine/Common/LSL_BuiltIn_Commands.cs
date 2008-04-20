@@ -52,11 +52,11 @@ namespace OpenSim.Region.ScriptEngine.Common
     {
         // private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private ScriptEngineBase.ScriptEngine m_ScriptEngine;
-        private SceneObjectPart m_host;
-        private uint m_localID;
-        private LLUUID m_itemID;
-        private bool throwErrorOnNotImplemented = true;
+        internal ScriptEngineBase.ScriptEngine m_ScriptEngine;
+        internal SceneObjectPart m_host;
+        internal uint m_localID;
+        internal LLUUID m_itemID;
+        internal bool throwErrorOnNotImplemented = true;
         
         public LSL_BuiltIn_Commands(ScriptEngineBase.ScriptEngine ScriptEngine, SceneObjectPart host, uint localID, LLUUID itemID)
         {
@@ -5303,317 +5303,36 @@ namespace OpenSim.Region.ScriptEngine.Common
             return new LSL_Types.list();
         }
 
-        //
-        // OpenSim functions
-        //
 
-        public int osTerrainSetHeight(int x, int y, double val)
-        {
-            m_host.AddScriptLPS(1);
-            if (x > 255 || x < 0 || y > 255 || y < 0)
-                LSLError("osTerrainSetHeight: Coordinate out of bounds");
-
-            if (World.PermissionsMngr.CanTerraform(m_host.OwnerID, new LLVector3(x, y, 0)))
-            {
-                World.Heightmap[x, y] = val;
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-
-        public double osTerrainGetHeight(int x, int y)
-        {
-            m_host.AddScriptLPS(1);
-            if (x > 255 || x < 0 || y > 255 || y < 0)
-                LSLError("osTerrainGetHeight: Coordinate out of bounds");
-
-            return World.Heightmap[x, y];
-        }
-
-        public int osRegionRestart(double seconds)
-        {
-            m_host.AddScriptLPS(1);
-            if (World.PermissionsMngr.CanRestartSim(m_host.OwnerID))
-            {
-                World.Restart((float)seconds);
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-
-        public void osRegionNotice(string msg)
-        {
-            m_host.AddScriptLPS(1);
-            World.SendGeneralAlert(msg);
-        }
-
-        public void osSetRot(LLUUID target, Quaternion rotation)
-        {
-            m_host.AddScriptLPS(1);
-            if (World.Entities.ContainsKey(target))
-            {
-                World.Entities[target].Rotation = rotation;
-            }
-            else
-            {
-                LSLError("osSetRot: Invalid target");
-            }
-        }
-
-        public string osSetDynamicTextureURL(string dynamicID, string contentType, string url, string extraParams,
-                                             int timer)
-        {
-            m_host.AddScriptLPS(1);
-            if (dynamicID == String.Empty)
-            {
-                IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
-                LLUUID createdTexture =
-                    textureManager.AddDynamicTextureURL(World.RegionInfo.RegionID, m_host.UUID, contentType, url,
-                                                        extraParams, timer);
-                return createdTexture.ToString();
-            }
-            else
-            {
-                //TODO update existing dynamic textures
-            }
-
-            return LLUUID.Zero.ToString();
-        }
-
-        public string osSetDynamicTextureURLBlend(string dynamicID, string contentType, string url, string extraParams,
-                                             int timer, int alpha)
-        {
-            m_host.AddScriptLPS(1);
-            if (dynamicID == String.Empty)
-            {
-                IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
-                LLUUID createdTexture =
-                    textureManager.AddDynamicTextureURL(World.RegionInfo.RegionID, m_host.UUID, contentType, url,
-                                                        extraParams, timer, true, (byte) alpha );
-                return createdTexture.ToString();
-            }
-            else
-            {
-                //TODO update existing dynamic textures
-            }
-
-            return LLUUID.Zero.ToString();
-        }
-
-        public string osSetDynamicTextureData(string dynamicID, string contentType, string data, string extraParams,
-                                           int timer)
-        {
-            m_host.AddScriptLPS(1);
-            if (dynamicID == String.Empty)
-            {
-                IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
-                if (textureManager != null)
-                {
-                    LLUUID createdTexture =
-                        textureManager.AddDynamicTextureData(World.RegionInfo.RegionID, m_host.UUID, contentType, data,
-                                                            extraParams, timer);
-                    return createdTexture.ToString();
-                }
-            }
-            else
-            {
-                //TODO update existing dynamic textures
-            }
-
-            return LLUUID.Zero.ToString();
-        }
-
-        public string osSetDynamicTextureDataBlend(string dynamicID, string contentType, string data, string extraParams,
-                                          int timer, int alpha)
-        {
-            m_host.AddScriptLPS(1);
-            if (dynamicID == String.Empty)
-            {
-                IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
-                if (textureManager != null)
-                {
-                    LLUUID createdTexture =
-                        textureManager.AddDynamicTextureData(World.RegionInfo.RegionID, m_host.UUID, contentType, data,
-                                                            extraParams, timer, true, (byte) alpha);
-                    return createdTexture.ToString();
-                }
-            }
-            else
-            {
-                //TODO update existing dynamic textures
-            }
-
-            return LLUUID.Zero.ToString();
-        }
-
-        public bool osConsoleCommand(string command)
-        {
-            m_host.AddScriptLPS(1);
-            Nini.Config.IConfigSource config = new Nini.Config.IniConfigSource(Application.iniFilePath);
-            if (config.Configs["LL-Functions"] == null)
-                config.AddConfig("LL-Functions");
-
-            if (config.Configs["LL-Functions"].GetBoolean("AllowosConsoleCommand", false))
-            {
-                if (World.PermissionsMngr.CanRunConsoleCommand(m_host.OwnerID))
-                {
-                    OpenSim.Framework.Console.MainConsole.Instance.RunCommand(command);
-                    return true;
-                }
-                return false;
-            }
-            return false;
-        }
-
-        private LLUUID ScriptByName(string name)
+        internal LLUUID ScriptByName(string name)
         {
             foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
             {
-                if(item.Type == 10 && item.Name == name)
+                if (item.Type == 10 && item.Name == name)
                     return item.ItemID;
             }
             return LLUUID.Zero;
         }
 
-        private void ShoutError(string msg)
+        internal void ShoutError(string msg)
         {
-            llShout(BuiltIn_Commands_BaseClass.DEBUG_CHANNEL,msg);
+            llShout(BuiltIn_Commands_BaseClass.DEBUG_CHANNEL, msg);
         }
 
-        public void osSetPrimFloatOnWater(int floatYN)
-        {
-            m_host.AddScriptLPS(1);
-            if (m_host.ParentGroup != null)
-            {
-                if (m_host.ParentGroup.RootPart != null)
-                {
-                    m_host.ParentGroup.RootPart.SetFloatOnWater(floatYN);
-                }
-            }
-        }
 
-        // Adam's super super custom animation functions
-        public void osAvatarPlayAnimation(string avatar, string animation)
-        {
-            m_host.AddScriptLPS(1);
-            if (World.Entities.ContainsKey(avatar) && World.Entities[avatar] is ScenePresence)
-            {
-                ScenePresence target = (ScenePresence)World.Entities[avatar];
-                target.AddAnimation(avatar, 0);
-            }
-        }
 
-        public void osAvatarStopAnimation(string avatar, string animation)
-        {
-            m_host.AddScriptLPS(1);
-            if (World.Entities.ContainsKey(avatar) && World.Entities[avatar] is ScenePresence)
-            {
-                ScenePresence target = (ScenePresence)World.Entities[avatar];
-                target.RemoveAnimation(animation);
-            }
-        }
-
-        //Texture draw functions 
-        public string osMovePen(string drawList, int x, int y)
-        {
-            m_host.AddScriptLPS(1);
-            drawList += "MoveTo " + x + "," + y + ";";
-            return drawList;
-        }
-
-        public string osDrawLine(string drawList, int startX, int startY, int endX, int endY)
-        {
-            m_host.AddScriptLPS(1);
-            drawList += "MoveTo "+ startX+","+ startY +"; LineTo "+endX +","+endY +"; ";
-            return drawList;
-        }
-
-        public string osDrawLine(string drawList, int endX, int endY)
-        {
-            m_host.AddScriptLPS(1);
-            drawList += "LineTo " + endX + "," + endY + "; ";
-            return drawList;
-        }
-
-        public string osDrawText(string drawList, string text)
-        {
-            m_host.AddScriptLPS(1);
-            drawList += "Text " + text + "; ";
-            return drawList;
-        }
-
-        public string osDrawEllipse(string drawList, int width, int height)
-        {
-            m_host.AddScriptLPS(1);
-            drawList += "Ellipse " + width + "," + height + "; ";
-            return drawList;
-        }
-
-        public string osDrawRectangle(string drawList, int width, int height)
-        {
-            m_host.AddScriptLPS(1);
-            drawList += "Rectangle " + width + "," + height + "; ";
-            return drawList;
-        }
-
-        public string osDrawFilledRectangle(string drawList, int width, int height)
-        {
-            m_host.AddScriptLPS(1);
-            drawList += "FillRectangle " + width + "," + height + "; ";
-            return drawList;
-        }
-
-        public string osSetFontSize(string drawList, int fontSize)
-        {
-            m_host.AddScriptLPS(1);
-            drawList += "FontSize "+ fontSize +"; ";
-            return drawList;
-        }
-
-        public string osSetPenSize(string drawList, int penSize)
-        {
-            m_host.AddScriptLPS(1);
-            drawList += "PenSize " + penSize + "; ";
-            return drawList;
-        }
-
-        public string osSetPenColour(string drawList, string colour)
-        {
-            m_host.AddScriptLPS(1);
-            drawList += "PenColour " + colour + "; ";
-            return drawList;
-        }
-
-        public string osDrawImage(string drawList, int width, int height, string imageUrl)
-        {
-           m_host.AddScriptLPS(1);
-           drawList +="Image " +width + "," + height+ ","+ imageUrl +"; " ;
-           return drawList;
-        }
-
-        public void osSetStateEvents(int events)
-        {
-            m_host.setScriptEvents(m_itemID,events);
-        }
-
-        private void NotImplemented(string command)
+        internal void NotImplemented(string command)
         {
             if (throwErrorOnNotImplemented)
                 throw new NotImplementedException("Command not implemented: " + command);
         }
 
-        private void Deprecated(string command)
+        internal void Deprecated(string command)
         {
             throw new Exception("Command deprecated: " + command);
         }
 
-        private void LSLError(string msg)
+        internal void LSLError(string msg)
         {
             throw new Exception("LSL Runtime Error: " + msg);
         }
