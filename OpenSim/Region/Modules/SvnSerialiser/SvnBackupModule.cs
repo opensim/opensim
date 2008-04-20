@@ -63,6 +63,27 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             m_svnClient.Checkout2(m_svnurl, m_svndir, Svn.Revision.Head, Svn.Revision.Head, true, false);
         }
 
+        private void CheckoutSvn(SvnRevision revision)
+        {
+            m_svnClient.Checkout2(m_svnurl, m_svndir, revision, revision, true, false);
+        }
+
+        private void CheckoutSvnPartial(string subdir)
+        {
+            if (!System.IO.Directory.Exists(m_svndir + Slash.DirectorySeparatorChar + subdir))
+                System.IO.Directory.CreateDirectory(m_svndir + Slash.DirectorySeparatorChar + subdir);
+
+            m_svnClient.Checkout2(m_svnurl + "/" + subdir, m_svndir, Svn.Revision.Head, Svn.Revision.Head, true, false);
+        }
+
+        private void CheckoutSvnPartial(string subdir, SvnRevision revision)
+        {
+            if (!System.IO.Directory.Exists(m_svndir + Slash.DirectorySeparatorChar + subdir))
+                System.IO.Directory.CreateDirectory(m_svndir + Slash.DirectorySeparatorChar + subdir);
+
+            m_svnClient.Checkout2(m_svnurl + "/" + subdir, m_svndir, revision, revision, true, false);
+        }
+
         #endregion
 
         #region SvnDotNet Callbacks
@@ -180,6 +201,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             m_svnClient.AddUsernameProvider();
             m_svnClient.AddPromptProvider(new SvnAuthProviderObject.SimplePrompt(SimpleAuth), IntPtr.Zero, 2);
             m_svnClient.OpenAuth();
+            m_svnClient.Context.LogMsgFunc = new SvnDelegate(new SvnClient.GetCommitLog(GetCommitLogCallback)); 
         }
 
         private void CreateSvnDirectory()
@@ -190,7 +212,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
 
         public void Close()
         {
-            
+
         }
 
         public string Name
