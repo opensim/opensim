@@ -157,7 +157,9 @@ namespace OpenSim.Grid.UserServer
 
                     if (null != m_userManager.GetUserProfile(tempfirstname, templastname))
                     {
-                        m_log.ErrorFormat("[USERS]: A user with the name {0} {1} already exists!", tempfirstname, templastname);
+                        m_log.ErrorFormat(
+                            "[USERS]: A user with the name {0} {1} already exists!", tempfirstname, templastname);
+                    
                         break;
                     }
                     
@@ -166,22 +168,40 @@ namespace OpenSim.Grid.UserServer
                     LLUUID userID = new LLUUID();
                     try
                     {
-                        userID =
-                            m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
-                    } catch (Exception ex)
+                        userID = m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
+                    } 
+                    catch (Exception ex)
                     {
                         m_log.ErrorFormat("[USERS]: Error creating user: {0}", ex.ToString());
                     }
 
                     try
                     {
-                        RestObjectPoster.BeginPostObject<Guid>(m_userManager._config.InventoryUrl + "CreateInventory/",
-                                                               userID.UUID);
+                        bool created 
+                            = SynchronousRestObjectPoster.BeginPostObject<Guid, bool>(
+                                "POST", m_userManager._config.InventoryUrl + "CreateInventory/", userID.UUID);
+                    
+                        if (!created)
+                        {
+                            throw new Exception(
+                                String.Format(
+                                    "The inventory creation request for user {0} did not succeed."
+                                        + "  Please contact your inventory service provider for more information.", 
+                                    userID));
+                        }
+                       
                     }
-                    catch (Exception ex)
+                    catch (System.Net.WebException e)
                     {
-                        m_log.ErrorFormat("[USERS]: Error creating inventory for user: {0}", ex.ToString());
+                        m_log.ErrorFormat(
+                            "[USERS]: Could not contact the inventory service at {0} to create an inventory for {1}", 
+                            m_userManager._config.InventoryUrl + "CreateInventory/", userID.UUID);
                     }
+                    catch (Exception e)
+                    {
+                        m_log.ErrorFormat("[USERS]: Error creating inventory for user: {0}", e);
+                    }
+                
                     m_lastCreatedUser = userID;
                     break;
             }

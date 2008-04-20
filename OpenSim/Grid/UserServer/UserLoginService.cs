@@ -310,14 +310,15 @@ namespace OpenSim.Grid.UserServer
                 = SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(
                     "POST", m_config.InventoryUrl + "RootFolders/", userID.UUID);
 
-            // In theory, the user will only ever be missing a root folder in situations where a grid
-            // which didn't previously run a grid wide inventory server is being transitioned to one 
-            // which does.
             if (null == folders || folders.Count == 0)
             {
                 m_log.InfoFormat(
                     "[LOGIN]: A root inventory folder for user {0} was not found.  Requesting creation.", userID);
 
+                // Although the create user function creates a new agent inventory along with a new user profile, some
+                // tools are creating the user profile directly in the database without creating the inventory.  At
+                // this time we'll accomodate them by lazily creating the user inventory now if it doesn't already
+                // exist.
                 bool created = 
                     SynchronousRestObjectPoster.BeginPostObject<Guid, bool>(
                         "POST", m_config.InventoryUrl + "CreateInventory/", userID.UUID);
@@ -340,6 +341,7 @@ namespace OpenSim.Grid.UserServer
                 LLUUID rootID = LLUUID.Zero;
                 ArrayList AgentInventoryArray = new ArrayList();
                 Hashtable TempHash;
+                
                 foreach (InventoryFolderBase InvFolder in folders)
                 {
 //                    m_log.DebugFormat("[LOGIN]: Received agent inventory folder {0}", InvFolder.name);
@@ -356,6 +358,7 @@ namespace OpenSim.Grid.UserServer
                     TempHash["folder_id"] = InvFolder.ID.ToString();
                     AgentInventoryArray.Add(TempHash);
                 }
+                
                 return new InventoryData(AgentInventoryArray, rootID);
             }
             else
