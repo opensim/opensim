@@ -149,19 +149,50 @@ namespace OpenSim.Region.Modules.SvnSerialiser
         {
             if (args[0] == "svn" && args[1] == "save")
             {
-                foreach (Scene scene in m_scenes)
+                SaveAllScenes();
+            }
+            if (args.Length == 2)
+            {
+                if (args[0] == "svn" && args[1] == "load")
                 {
-                    SaveRegion(scene);
+                    LoadAllScenes();
                 }
             }
-            if (args[0] == "svn" && args[1] == "load")
+            if (args.Length == 3)
             {
-                CheckoutSvn();
-
-                foreach (Scene scene in m_scenes)
+                if (args[0] == "svn" && args[1] == "load")
                 {
-                    LoadRegion(scene);
+                    LoadAllScenes(Int32.Parse(args[2]));
                 }
+            }
+        }
+
+        private void LoadAllScenes()
+        {
+            CheckoutSvn();
+
+            foreach (Scene scene in m_scenes)
+            {
+                LoadRegion(scene);
+            }
+        }
+
+
+        private void LoadAllScenes(int revision)
+        {
+            CheckoutSvn(new SvnRevision(revision));
+
+            foreach (Scene scene in m_scenes)
+            {
+                LoadRegion(scene);
+            }
+        }
+
+        private void SaveAllScenes()
+        {
+            foreach (Scene scene in m_scenes)
+            {
+                SaveRegion(scene);
             }
         }
 
