@@ -331,6 +331,10 @@ namespace OpenSim.Grid.UserServer
                                 + "  Please contact your inventory service provider for more information.", 
                             userID));
                 }
+                else
+                {
+                    m_log.InfoFormat("[LOGIN]: A new inventory skeleton was successfully created for user {0}", userID);
+                }
                 
                 folders = SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(
                     "POST", m_config.InventoryUrl + "RootFolders/", userID.UUID);
