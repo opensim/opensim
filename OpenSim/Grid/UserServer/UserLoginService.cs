@@ -303,9 +303,8 @@ namespace OpenSim.Grid.UserServer
         protected override InventoryData GetInventorySkeleton(LLUUID userID)
         {
             m_log.DebugFormat(
-                 "[LOGIN]: Contacting inventory service at {0} for inventory skeleton of agent {1}", 
-                 m_config.InventoryUrl, userID);
-            
+                 "[LOGIN]: Contacting inventory service at {0} for inventory skeleton of user {1}", 
+                 m_config.InventoryUrl, userID);            
 
             List<InventoryFolderBase> folders
                 = SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(
@@ -316,22 +315,27 @@ namespace OpenSim.Grid.UserServer
             // which does.
             if (null == folders || folders.Count == 0)
             {
-                m_log.Warn(
-                    "[LOGIN]: " +
-                    "root inventory folder user " + userID + " not found. Creating.");
+                m_log.InfoFormat(
+                    "[LOGIN]: A root inventory folder for user {0} was not found.  Requesting creation.", userID);
 
-                RestObjectPoster.BeginPostObject<Guid>(
-                    m_config.InventoryUrl + "CreateInventory/", userID.UUID);
-
-                // A big delay should be okay here since the recreation of the user's root folders should
-                // only ever happen once.  We need to sleep to let the inventory server do its work - 
-                // previously 1000ms has been found to be too short.
-                Thread.Sleep(10000);
+                bool created = 
+                    SynchronousRestObjectPoster.BeginPostObject<Guid, bool>(
+                        "POST", m_config.InventoryUrl + "CreateInventory/", userID.UUID);
+                
+                if (!created)
+                {
+                    throw new Exception(
+                        String.Format(
+                            "The inventory creation request for user {0} did not succeed."
+                                + "  Please contact your inventory service provider for more information.", 
+                            userID));
+                }
+                
                 folders = SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(
                     "POST", m_config.InventoryUrl + "RootFolders/", userID.UUID);
             }
 
-            if (folders.Count > 0)
+            if (folders != null && folders.Count > 0)
             {
                 LLUUID rootID = LLUUID.Zero;
                 ArrayList AgentInventoryArray = new ArrayList();
@@ -358,7 +362,8 @@ namespace OpenSim.Grid.UserServer
             {
                 throw new Exception(
                     String.Format(
-                        "A root inventory folder for {0} could not be retrieved from the inventory service", userID));
+                        "A root inventory folder for user {0} could not be retrieved from the inventory service", 
+                        userID));
             }
         }
     }

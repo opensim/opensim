@@ -83,7 +83,7 @@ namespace OpenSim.Framework.Communications
                                             
             InventoryFolderBase rootFolder = RequestRootFolder(userId);
             
-            // Agent is completely new and has no inventory structure yet.
+            // Agent has no inventory structure yet.
             if (null == rootFolder)
             {
                 return null;                    
