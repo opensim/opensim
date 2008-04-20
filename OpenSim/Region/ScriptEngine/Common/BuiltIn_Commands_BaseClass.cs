@@ -1990,6 +1990,10 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.osDrawImage(drawList, width, height, imageUrl);
         }
 
+        public void osSetStateEvents(int events)
+        {
+            m_LSL_Functions.osSetStateEvents(events);
+        }
 
         //
 

@@ -83,6 +83,7 @@ namespace OpenSim.Region.Environment.Scenes
         SCALE = 0x40
     }
 
+    
     [Serializable]
     public partial class SceneObjectPart : IScriptHost, ISerializable
     {
@@ -729,8 +730,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_folderID = LLUUID.Random();
 
             Flags = 0;
-            Flags |= LLObject.ObjectFlags.Touch |
-                       LLObject.ObjectFlags.AllowInventoryDrop |
+            Flags |=   LLObject.ObjectFlags.AllowInventoryDrop |
                        LLObject.ObjectFlags.CreateSelected;
 
 
@@ -774,7 +774,7 @@ namespace OpenSim.Region.Environment.Scenes
             
             // Since we don't store script state, this is only a 'temporary' objectflag now
             // If the object is scripted, the script will get loaded and this will be set again
-            ObjectFlags &= ~(uint)LLObject.ObjectFlags.Scripted; 
+            ObjectFlags &= ~(uint)(LLObject.ObjectFlags.Scripted | LLObject.ObjectFlags.Touch); 
             
             TrimPermissions();
             // ApplyPhysics();
@@ -2310,6 +2310,14 @@ namespace OpenSim.Region.Environment.Scenes
                                    (int) (color.y*0xff),
                                    (int) (color.z*0xff));
             SetText( text );
+        }
+
+        public void setScriptEvents(LLUUID scriptID, int events)
+        {
+            if (m_parentGroup != null)
+            {
+                m_parentGroup.SetScriptEvents(scriptID, events);
+            }
         }
 
         protected SceneObjectPart(SerializationInfo info, StreamingContext context)

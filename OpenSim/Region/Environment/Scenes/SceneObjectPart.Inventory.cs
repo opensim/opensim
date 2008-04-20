@@ -147,6 +147,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (10 == item.Type)
                     {
                         StopScript(item.ItemID);
+                        m_parentGroup.RemoveScriptEvents(item.ItemID);
                     }
                 }
             }

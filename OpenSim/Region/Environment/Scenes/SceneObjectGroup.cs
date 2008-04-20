@@ -41,6 +41,40 @@ using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {
+
+    [Flags]
+    public enum scriptEvents : int
+    {
+        None = 0,
+        attach = 1,
+        collision = 15,
+        collision_end = 32,
+        collision_start = 64,
+        control = 128,
+        dataserver = 256,
+        email = 512,
+        http_response = 1024,
+        land_collision = 2048,
+        land_collision_end = 4096,
+        land_collision_start = 8192,
+        link_message = 16384,
+        listen = 32768,
+        money = 65536,
+        moving_end = 131072,
+        moving_start = 262144,
+        not_at_rot_target = 524288,
+        not_at_target = 1048576,
+        remote_data = 8388608,
+        run_time_permissions = 268435456,
+        state_entry = 1073741824,
+        state_exit = 2,
+        timer = 4,
+        touch = 8,
+        touch_end = 536870912,
+        touch_start = 2097152,
+        object_rez = 4194304
+    }
+
     public delegate void PrimCountTaintedDelegate();
 
     public partial class SceneObjectGroup : EntityBase
@@ -66,6 +100,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         private LLVector3 lastPhysGroupPos;
         private LLQuaternion lastPhysGroupRot;
+
+        private Dictionary<LLUUID, scriptEvents> m_scriptEvents = new Dictionary<LLUUID, scriptEvents>();
+        private scriptEvents m_aggregateScriptEvents = scriptEvents.None;
 
         #region Properties
 
@@ -2040,6 +2077,104 @@ namespace OpenSim.Region.Environment.Scenes
         {
             InnerScene d = m_scene.m_innerScene;
             d.AddActiveScripts(count);
+        }
+
+        public void RemoveScriptEvents(LLUUID scriptid)
+        {
+            lock (m_scriptEvents)
+            {
+                if (m_scriptEvents.ContainsKey(scriptid))
+                {
+                    scriptEvents oldparts = scriptEvents.None;
+                    oldparts = (scriptEvents)m_scriptEvents[scriptid];
+
+                    // remove values from aggregated script events
+                    m_aggregateScriptEvents &= ~oldparts;
+                    m_scriptEvents.Remove(scriptid);
+                }
+
+            }
+            aggregateScriptEvents();
+        }
+
+        public void SetScriptEvents(LLUUID scriptid, int events)
+        {
+
+            scriptEvents oldparts = scriptEvents.None;
+            lock (m_scriptEvents)
+            {
+                if (m_scriptEvents.ContainsKey(scriptid))
+                {
+                    oldparts = (scriptEvents)m_scriptEvents[scriptid];
+
+                    // remove values from aggregated script events
+                    m_aggregateScriptEvents &= ~oldparts;
+                    m_scriptEvents[scriptid] = (scriptEvents)events;
+                }
+                else
+                {
+                    m_scriptEvents.Add(scriptid, (scriptEvents)events);
+                }
+
+            }
+
+            aggregateScriptEvents();
+        }
+        public void aggregateScriptEvents()
+        {
+            // Aggregate script events
+            lock (m_scriptEvents)
+            {
+                foreach (scriptEvents s in m_scriptEvents.Values)
+                {
+                    m_aggregateScriptEvents |= s;
+                }
+            }
+            uint objectflagupdate = m_rootPart.ObjectFlags;
+
+            if (
+                ((m_aggregateScriptEvents & scriptEvents.touch) != 0) ||
+                ((m_aggregateScriptEvents & scriptEvents.touch_end) != 0) ||
+                ((m_aggregateScriptEvents & scriptEvents.touch_start) != 0)
+                )
+            {
+                objectflagupdate |= (uint)LLObject.ObjectFlags.Touch;
+            }
+            else
+            {
+                objectflagupdate &= ~(uint)LLObject.ObjectFlags.Touch;
+            }
+
+            if ((m_aggregateScriptEvents & scriptEvents.money) != 0)
+            {
+                objectflagupdate |= (uint)LLObject.ObjectFlags.Money;
+            }
+            else
+            {
+                objectflagupdate &= ~(uint)LLObject.ObjectFlags.Money;
+            }
+
+            if (
+                ((m_aggregateScriptEvents & scriptEvents.collision) != 0) ||
+                ((m_aggregateScriptEvents & scriptEvents.collision_end) != 0) ||
+                ((m_aggregateScriptEvents & scriptEvents.collision_start) != 0)
+                )
+            {
+                // subscribe to physics updates.
+            }
+            else
+            {
+                // unsubscribe to physics updates.
+            }
+            lock (m_parts)
+            {
+                foreach (SceneObjectPart part in m_parts.Values)
+                {
+                    part.ObjectFlags = objectflagupdate;
+                }
+            }
+            ScheduleGroupForFullUpdate();
+
         }
 
         public override void SetText(string text, Vector3 color, double alpha)

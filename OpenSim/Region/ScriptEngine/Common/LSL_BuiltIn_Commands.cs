@@ -5597,6 +5597,11 @@ namespace OpenSim.Region.ScriptEngine.Common
            return drawList;
         }
 
+        public void osSetStateEvents(int events)
+        {
+            m_host.setScriptEvents(m_itemID,events);
+        }
+
         private void NotImplemented(string command)
         {
             if (throwErrorOnNotImplemented)

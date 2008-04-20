@@ -51,6 +51,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (part != null)
             {
                 part.StartScript(itemID);
+               
             }
             else
             {
@@ -119,6 +120,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (part != null)
             {
                 part.StopScript(itemID);
+                RemoveScriptEvents(itemID);
             }
             else
             {
