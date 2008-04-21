@@ -37,10 +37,54 @@ namespace OpenSim.Region.Environment.Modules.ExportSerialiser
 {
     public class ExportSerialisationModule : IRegionModule, IRegionSerialiser
     {
-        private List<Scene> m_regions = new List<Scene>();
-        private List<IFileSerialiser> m_serialisers = new List<IFileSerialiser>();
         private Commander m_commander = new Commander("Export");
+        private List<Scene> m_regions = new List<Scene>();
         private string m_savedir = "exports" + "/";
+        private List<IFileSerialiser> m_serialisers = new List<IFileSerialiser>();
+
+        #region IRegionModule Members
+
+        public void Initialise(Scene scene, IConfigSource source)
+        {
+            scene.RegisterModuleCommander("Export", m_commander);
+            scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
+            scene.RegisterModuleInterface<IRegionSerialiser>(this);
+
+            lock (m_regions)
+            {
+                m_regions.Add(scene);
+            }
+        }
+
+        public void PostInitialise()
+        {
+            lock (m_serialisers)
+            {
+                m_serialisers.Add(new SerialiseTerrain());
+                m_serialisers.Add(new SerialiseObjects());
+            }
+
+            LoadCommanderCommands();
+        }
+
+        public void Close()
+        {
+            m_regions.Clear();
+        }
+
+        public string Name
+        {
+            get { return "ExportSerialisationModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
+        }
+
+        #endregion
+
+        #region IRegionSerialiser Members
 
         public List<string> SerialiseRegion(Scene scene, string saveDir)
         {
@@ -76,22 +120,9 @@ namespace OpenSim.Region.Environment.Modules.ExportSerialiser
             return results;
         }
 
+        #endregion
 
-        #region IRegionModule Members
-
-        public void Initialise(Scene scene, IConfigSource source)
-        {
-            scene.RegisterModuleCommander("Export", m_commander);
-            scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
-            scene.RegisterModuleInterface<IRegionSerialiser>(this);
-
-            lock (m_regions)
-            {
-                m_regions.Add(scene);
-            }
-        }
-
-        void EventManager_OnPluginConsole(string[] args)
+        private void EventManager_OnPluginConsole(string[] args)
         {
             if (args[0] == "export")
             {
@@ -108,7 +139,7 @@ namespace OpenSim.Region.Environment.Modules.ExportSerialiser
         {
             foreach (Scene region in m_regions)
             {
-                if (region.RegionInfo.RegionName == (string)args[0])
+                if (region.RegionInfo.RegionName == (string) args[0])
                 {
                     List<string> results = SerialiseRegion(region, m_savedir + region.RegionInfo.RegionID.ToString() + "/");
                 }
@@ -133,33 +164,5 @@ namespace OpenSim.Region.Environment.Modules.ExportSerialiser
             m_commander.RegisterCommand("save", serialiseSceneCommand);
             m_commander.RegisterCommand("save-all", serialiseAllScenesCommand);
         }
-
-        public void PostInitialise()
-        {
-            lock (m_serialisers)
-            {
-                m_serialisers.Add(new SerialiseTerrain());
-                m_serialisers.Add(new SerialiseObjects());
-            }
-
-            LoadCommanderCommands();
-        }
-
-        public void Close()
-        {
-            m_regions.Clear();
-        }
-
-        public string Name
-        {
-            get { return "ExportSerialisationModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return true; }
-        }
-
-        #endregion
     }
 }

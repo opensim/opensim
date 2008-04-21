@@ -18,21 +18,20 @@ namespace OpenSim.Region.Modules.SvnSerialiser
     public class SvnBackupModule : IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
-        private SvnClient m_svnClient;
+
         private bool m_enabled = false;
         private bool m_installBackupOnLoad = false;
-        private string m_svnurl = "svn://insert.your.svn/here/";
-        private string m_svnuser = "username";
-        private string m_svnpass = "password";
+        private List<Scene> m_scenes = new List<Scene>();
+        private IRegionSerialiser m_serialiser;
+        private bool m_svnAutoSave = false;
+        private SvnClient m_svnClient;
         private string m_svndir = "SVNmodule\\repo";
+        private string m_svnpass = "password";
 
         private TimeSpan m_svnperiod = new TimeSpan(0, 0, 15, 0, 0);
-        private bool m_svnAutoSave = false;
+        private string m_svnurl = "svn://insert.your.svn/here/";
+        private string m_svnuser = "username";
         private Timer m_timer = new Timer();
-
-        private IRegionSerialiser m_serialiser;
-        private List<Scene> m_scenes = new List<Scene>();
 
         #region SvnModule Core
 
@@ -76,7 +75,9 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             {
                 m_svnClient.Add3(m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID.ToString(), true, false, false);
             }
-            catch (SvnException) { }
+            catch (SvnException)
+            {
+            }
 
             List<string> svnfilenames = new List<string>();
             foreach (string filename in filenames)
@@ -88,10 +89,10 @@ namespace OpenSim.Region.Modules.SvnSerialiser
 
         public void LoadRegion(Scene scene)
         {
-            scene.LoadPrimsFromXml2(m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID.ToString() + 
-                Slash.DirectorySeparatorChar + "objects.xml");
+            scene.LoadPrimsFromXml2(m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID.ToString() +
+                                    Slash.DirectorySeparatorChar + "objects.xml");
             scene.RequestModuleInterface<ITerrainModule>().LoadFromFile(m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID.ToString() +
-                Slash.DirectorySeparatorChar + "heightmap.r32");
+                                                                        Slash.DirectorySeparatorChar + "heightmap.r32");
             m_log.Info("[SVNBACKUP]: Region load successful (" + scene.RegionInfo.RegionName + ").");
         }
 
@@ -126,7 +127,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
         #region SvnDotNet Callbacks
 
         private SvnError SimpleAuth(out SvnAuthCredSimple svnCredentials, IntPtr baton,
-            AprString realm, AprString username, bool maySave, AprPool pool)
+                                    AprString realm, AprString username, bool maySave, AprPool pool)
         {
             svnCredentials = SvnAuthCredSimple.Alloc(pool);
             svnCredentials.Username = new AprString(m_svnuser, pool);
@@ -140,7 +141,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             if (!commitItems.IsNull)
             {
                 foreach (SvnClientCommitItem2 item in commitItems)
-                {                    
+                {
                     m_log.Debug("[SVNBACKUP]: ... " + Path.GetFileName(item.Path.ToString()) + " (" + item.Kind.ToString() + ") r" + item.Revision.ToString());
                 }
             }
@@ -174,8 +175,11 @@ namespace OpenSim.Region.Modules.SvnSerialiser
                 m_svnpass = source.Configs["SVN"].GetString("Password", m_svnpass);
                 m_installBackupOnLoad = source.Configs["SVN"].GetBoolean("ImportOnStartup", m_installBackupOnLoad);
                 m_svnAutoSave = source.Configs["SVN"].GetBoolean("Autosave", m_svnAutoSave);
-                m_svnperiod = new TimeSpan(0, source.Configs["SVN"].GetInt("AutosavePeriod", (int)m_svnperiod.TotalMinutes), 0);
-            } catch(Exception) { }
+                m_svnperiod = new TimeSpan(0, source.Configs["SVN"].GetInt("AutosavePeriod", (int) m_svnperiod.TotalMinutes), 0);
+            }
+            catch (Exception)
+            {
+            }
 
             lock (m_scenes)
             {
@@ -185,7 +189,54 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
         }
 
-        void EventManager_OnPluginConsole(string[] args)
+        public void PostInitialise()
+        {
+            if (m_enabled == false)
+                return;
+
+            if (m_svnAutoSave == true)
+            {
+                m_timer.Interval = m_svnperiod.TotalMilliseconds;
+                m_timer.Elapsed += new ElapsedEventHandler(m_timer_Elapsed);
+                m_timer.AutoReset = true;
+                m_timer.Start();
+            }
+
+            m_log.Info("[SVNBACKUP]: Connecting to SVN server " + m_svnurl + " ...");
+            SetupSvnProvider();
+
+            m_log.Info("[SVNBACKUP]: Creating repository in " + m_svndir + ".");
+            CreateSvnDirectory();
+            CheckoutSvn();
+            SetupSerialiser();
+
+            if (m_installBackupOnLoad)
+            {
+                m_log.Info("[SVNBACKUP]: Importing latest SVN revision to scenes...");
+                foreach (Scene scene in m_scenes)
+                {
+                    LoadRegion(scene);
+                }
+            }
+        }
+
+        public void Close()
+        {
+        }
+
+        public string Name
+        {
+            get { return "SvnBackupModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
+        }
+
+        #endregion
+
+        private void EventManager_OnPluginConsole(string[] args)
         {
             if (args[0] == "svn" && args[1] == "save")
             {
@@ -272,38 +323,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             }
         }
 
-        public void PostInitialise()
-        {
-            if (m_enabled == false)
-                return;
-
-            if (m_svnAutoSave == true)
-            {
-                m_timer.Interval = m_svnperiod.TotalMilliseconds;
-                m_timer.Elapsed += new ElapsedEventHandler(m_timer_Elapsed);
-                m_timer.AutoReset = true;
-                m_timer.Start();
-            }
-
-            m_log.Info("[SVNBACKUP]: Connecting to SVN server " + m_svnurl + " ...");
-            SetupSvnProvider();
-
-            m_log.Info("[SVNBACKUP]: Creating repository in " + m_svndir + ".");
-            CreateSvnDirectory();
-            CheckoutSvn();
-            SetupSerialiser();
-
-            if (m_installBackupOnLoad)
-            {
-                m_log.Info("[SVNBACKUP]: Importing latest SVN revision to scenes...");
-                foreach (Scene scene in m_scenes)
-                {
-                    LoadRegion(scene);
-                }
-            }
-        }
-
-        void m_timer_Elapsed(object sender, ElapsedEventArgs e)
+        private void m_timer_Elapsed(object sender, ElapsedEventArgs e)
         {
             SaveAllRegions();
         }
@@ -320,7 +340,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             m_svnClient.AddUsernameProvider();
             m_svnClient.AddPromptProvider(new SvnAuthProviderObject.SimplePrompt(SimpleAuth), IntPtr.Zero, 2);
             m_svnClient.OpenAuth();
-            m_svnClient.Context.LogMsgFunc2 = new SvnDelegate(new SvnClient.GetCommitLog2(GetCommitLogCallback)); 
+            m_svnClient.Context.LogMsgFunc2 = new SvnDelegate(new SvnClient.GetCommitLog2(GetCommitLogCallback));
         }
 
         private void CreateSvnDirectory()
@@ -328,22 +348,5 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             if (!Directory.Exists(m_svndir))
                 Directory.CreateDirectory(m_svndir);
         }
-
-        public void Close()
-        {
-
-        }
-
-        public string Name
-        {
-            get { return "SvnBackupModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return true; }
-        }
-
-        #endregion
     }
 }

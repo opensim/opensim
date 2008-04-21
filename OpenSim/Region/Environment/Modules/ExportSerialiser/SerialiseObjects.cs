@@ -27,20 +27,30 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 using System.Xml;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.ExportSerialiser
 {
-    class SerialiseObjects : IFileSerialiser
+    internal class SerialiseObjects : IFileSerialiser
     {
         #region IFileSerialiser Members
 
+        public string WriteToFile(Scene scene, string dir)
+        {
+            string targetFileName = dir + "objects.xml";
+
+            SaveSerialisedToFile(targetFileName, scene);
+
+            return "objects.xml";
+        }
+
+        #endregion
 
         public void SaveSerialisedToFile(string fileName, Scene scene)
         {
-            int primCount = 0;
             string xmlstream = "<scene>";
 
             List<EntityBase> EntityList = scene.GetEntities();
@@ -50,8 +60,7 @@ namespace OpenSim.Region.Environment.Modules.ExportSerialiser
             {
                 if (ent is SceneObjectGroup)
                 {
-                    EntityXml.Add(((SceneObjectGroup)ent).ToXmlString2());
-                    primCount++;
+                    EntityXml.Add(((SceneObjectGroup) ent).ToXmlString2());
                 }
             }
             EntityXml.Sort();
@@ -69,26 +78,24 @@ namespace OpenSim.Region.Environment.Modules.ExportSerialiser
             formatter.Formatting = Formatting.Indented;
             doc.WriteContentTo(formatter);
             formatter.Flush();
-            StreamReader reader = new StreamReader(stream);
 
             stream.Seek(0, SeekOrigin.Begin);
 
             FileStream objectsFile = new FileStream(fileName, FileMode.Create);
+
             stream.WriteTo(objectsFile);
             objectsFile.Flush();
             objectsFile.Close();
 
+            #region GZip Compressed Version
+            FileStream objectsFileCompressed = new FileStream(fileName + ".gzs", FileMode.Create);
+            MemoryStream gzipMSStream = new MemoryStream();
+            GZipStream gzipStream = new GZipStream(gzipMSStream, CompressionMode.Compress);
+            stream.WriteTo(gzipStream);
+            gzipMSStream.WriteTo(objectsFileCompressed);
+            objectsFileCompressed.Flush();
+            objectsFileCompressed.Close();
+            #endregion
         }
-
-        public string WriteToFile(Scene scene, string dir)
-        {
-            string targetFileName = dir + "objects.xml";
-
-            SaveSerialisedToFile(targetFileName, scene);
-
-            return "objects.xml";
-        }
-
-        #endregion
     }
 }

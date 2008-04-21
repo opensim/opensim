@@ -29,7 +29,7 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.ExportSerialiser
 {
-    interface IFileSerialiser
+    internal interface IFileSerialiser
     {
         string WriteToFile(Scene scene, string dir);
     }

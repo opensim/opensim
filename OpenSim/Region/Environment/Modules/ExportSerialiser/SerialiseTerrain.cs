@@ -31,7 +31,7 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.ExportSerialiser
 {
-    class SerialiseTerrain : IFileSerialiser
+    internal class SerialiseTerrain : IFileSerialiser
     {
         #region IFileSerialiser Members
 

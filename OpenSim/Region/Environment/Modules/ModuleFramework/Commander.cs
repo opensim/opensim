@@ -42,11 +42,11 @@ namespace OpenSim.Region.Environment.Modules.ModuleFramework
     public class Command : ICommand
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private List<CommandArgument> m_args = new List<CommandArgument>();
 
         private Action<object[]> m_command;
-        private string m_name;
         private string m_help;
-        private List<CommandArgument> m_args = new List<CommandArgument>();
+        private string m_name;
 
         public Command(string name, Action<Object[]> command, string help)
         {
@@ -54,6 +54,8 @@ namespace OpenSim.Region.Environment.Modules.ModuleFramework
             m_command = command;
             m_help = help;
         }
+
+        #region ICommand Members
 
         public void AddArgument(string name, string helptext, string type)
         {
@@ -143,8 +145,8 @@ namespace OpenSim.Region.Environment.Modules.ModuleFramework
                 catch (FormatException)
                 {
                     m_log.Error("Argument number " + (i + 1) +
-                        " (" + m_args[i].Name + ") must be a valid " +
-                        m_args[i].ArgumentType.ToLower() + ".");
+                                " (" + m_args[i].Name + ") must be a valid " +
+                                m_args[i].ArgumentType.ToLower() + ".");
                 }
                 cleanArgs[i] = m_args[i].ArgumentValue;
 
@@ -153,6 +155,8 @@ namespace OpenSim.Region.Environment.Modules.ModuleFramework
 
             m_command.Invoke(cleanArgs);
         }
+
+        #endregion
     }
 
     /// <summary>
@@ -160,8 +164,8 @@ namespace OpenSim.Region.Environment.Modules.ModuleFramework
     /// </summary>
     public class CommandArgument
     {
-        private string m_name;
         private string m_help;
+        private string m_name;
         private string m_type;
         private Object m_val;
 
@@ -208,27 +212,11 @@ namespace OpenSim.Region.Environment.Modules.ModuleFramework
             m_name = name;
         }
 
+        #region ICommander Members
+
         public void RegisterCommand(string commandName, ICommand command)
         {
             m_commands[commandName] = command;
-        }
-
-        void ShowConsoleHelp()
-        {
-            m_log.Info("===" + m_name + "===");
-            foreach (ICommand com in m_commands.Values)
-            {
-                m_log.Info("* " + com.Name + " - " + com.Help);
-            }
-        }
-
-        string EscapeRuntimeAPICommand(string command)
-        {
-            command = command.Replace('-', '_');
-            StringBuilder tmp = new StringBuilder(command);
-            tmp[0] = tmp[0].ToString().ToUpper().ToCharArray()[0];
-
-            return tmp.ToString();
         }
 
         /// <summary>
@@ -253,7 +241,7 @@ namespace OpenSim.Region.Environment.Modules.ModuleFramework
                 {
                     classSrc += "\t\targs[" + i.ToString() + "] = " + Util.Md5Hash(arg.Key) + "  " + ";\n";
                     i++;
-                }                
+                }
                 classSrc += "\t\tGetCommander(\"" + m_name + "\").Run(\"" + com.Name + "\", args);\n";
                 classSrc += "\t}\n";
             }
@@ -295,6 +283,26 @@ namespace OpenSim.Region.Environment.Modules.ModuleFramework
                     m_log.Info(GenerateRuntimeAPI());
                 ShowConsoleHelp();
             }
+        }
+
+        #endregion
+
+        private void ShowConsoleHelp()
+        {
+            m_log.Info("===" + m_name + "===");
+            foreach (ICommand com in m_commands.Values)
+            {
+                m_log.Info("* " + com.Name + " - " + com.Help);
+            }
+        }
+
+        private string EscapeRuntimeAPICommand(string command)
+        {
+            command = command.Replace('-', '_');
+            StringBuilder tmp = new StringBuilder(command);
+            tmp[0] = tmp[0].ToString().ToUpper().ToCharArray()[0];
+
+            return tmp.ToString();
         }
     }
 }
