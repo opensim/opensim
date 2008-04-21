@@ -178,20 +178,24 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                         {
                             m_log.Error("[TERRAIN]: Unable to load heightmap, the " + loader.Value +
                                         " parser does not support file loading. (May be save only)");
-                            return;
+                            throw new Exception(String.Format("unable to load heightmap: parser {0} does not support loading", loader.Value));
                         }
                         catch (FileNotFoundException)
                         {
                             m_log.Error(
                                 "[TERRAIN]: Unable to load heightmap, file not found. (A directory permissions error may also cause this)");
-                            return;
+                            throw new Exception(String.Format("unable to load heightmap: file {0} not found (or permissions do not allow access", 
+                                                              filename));
                         }
                     }
+                    CheckForTerrainUpdates();
                     m_log.Info("[TERRAIN]: File (" + filename + ") loaded successfully");
                     return;
                 }
             }
             m_log.Error("[TERRAIN]: Unable to load heightmap, no file loader availible for that format.");
+            throw new Exception(String.Format("unable to load heightmap from file {0}: no loader available for that format", 
+                                              filename));
         }
 
         /// <summary>
@@ -214,6 +218,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             catch (NotImplementedException)
             {
                 m_log.Error("Unable to save to " + filename + ", saving of this file format has not been implemented.");
+                throw new Exception(String.Format("unable to save heightmap: {0}: saving of this file format not implemented"));
             }
         }
 

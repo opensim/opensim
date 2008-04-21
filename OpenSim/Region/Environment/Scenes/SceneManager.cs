@@ -250,6 +250,22 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public bool TrySetCurrentScene(LLUUID regionID)
+        {
+            Console.WriteLine("Searching for Region: '{0}'", regionID.ToString());
+            
+            foreach (Scene scene in m_localScenes)
+            {
+                if (scene.RegionInfo.RegionID == regionID)
+                {
+                    m_currentScene = scene;
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
         public bool TryGetScene(string regionName, out Scene scene)
         {
             foreach (Scene mscene in m_localScenes)

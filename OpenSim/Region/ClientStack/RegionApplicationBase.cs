@@ -54,6 +54,9 @@ namespace OpenSim.Region.ClientStack
         protected uint m_httpServerPort;
 
         protected CommunicationsManager m_commsManager;
+        public CommunicationsManager CommunicationsManager {
+            get { return m_commsManager; }
+        }
 
         protected SceneManager m_sceneManager = new SceneManager();
 

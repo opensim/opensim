@@ -63,7 +63,7 @@ namespace OpenSim.Framework.RegionLoader.Filesystem
 
             if (configFiles.Length == 0)
             {
-                new RegionInfo("DEFAULT REGION CONFIG", Path.Combine(regionConfigPath, "default.xml"),false);
+                new RegionInfo("DEFAULT REGION CONFIG", Path.Combine(regionConfigPath, "default.xml"), false);
                 configFiles = Directory.GetFiles(regionConfigPath, "*.xml");
             }
 

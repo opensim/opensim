@@ -62,14 +62,16 @@ namespace OpenSim.Region.Environment
             }
         }
 
-        public void PickupModules(Scene scene, string moduleDir)
+        public List<IRegionModule> PickupModules(Scene scene, string moduleDir)
         {
             DirectoryInfo dir = new DirectoryInfo(moduleDir);
+            List<IRegionModule> modules = new List<IRegionModule>();
 
             foreach (FileInfo fileInfo in dir.GetFiles("*.dll"))
             {
-                LoadRegionModules(fileInfo.FullName, scene);
+                modules.AddRange(LoadRegionModules(fileInfo.FullName, scene));
             }
+            return modules;
         }
 
         public void LoadDefaultSharedModules()
@@ -190,9 +192,10 @@ namespace OpenSim.Region.Environment
             }
         }
 
-        public void LoadRegionModules(string dllName, Scene scene)
+        public List<IRegionModule> LoadRegionModules(string dllName, Scene scene)
         {
             IRegionModule[] modules = LoadModules(dllName);
+            List<IRegionModule> initializedModules = new List<IRegionModule>();
 
             if (modules.Length > 0)
             {
@@ -203,6 +206,7 @@ namespace OpenSim.Region.Environment
                     {
                         m_log.InfoFormat("[MODULES]:    [{0}]: Initializing.", module.Name);
                         InitializeModule(module, scene);
+                        initializedModules.Add(module);
                     }
                     else
                     {
@@ -211,6 +215,7 @@ namespace OpenSim.Region.Environment
                     }
                 }
             }
+            return initializedModules;
         }
 
         public void LoadRegionModule(string dllName, string moduleName, Scene scene)

@@ -38,6 +38,7 @@ using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Modules.Terrain;
 
 [assembly : Addin]
 [assembly : AddinDependency("OpenSim", "0.5")]
@@ -88,6 +89,9 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             LLUUID regionID = new LLUUID((string) requestData["regionID"]);
 
             Hashtable responseData = new Hashtable();
+
+            m_log.Info("[RADMIN]: Request to restart Region.");
+
             if (requiredPassword != String.Empty &&
                 (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
             {
@@ -119,23 +123,29 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
         {
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable) request.Params[0];
-
             Hashtable responseData = new Hashtable();
-            if (requiredPassword != String.Empty &&
-                (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
-            {
-                responseData["accepted"] = "false";
-                response.Value = responseData;
-            }
-            else
-            {
+
+            try {
+                checkStringParameters(request, new string[] { "password", "message" });
+
+                if (requiredPassword != String.Empty &&
+                    (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
+                    throw new Exception("wrong password");
+                
                 string message = (string) requestData["message"];
-                m_log.Info("[RADMIN]: Broadcasting: " + message);
+                m_log.InfoFormat("[RADMIN]: Broadcasting: {0}", message);
 
                 responseData["accepted"] = "true";
                 response.Value = responseData;
 
                 m_app.SceneManager.SendGeneralMessage(message);
+            }
+            catch(Exception e)
+            {
+                m_log.ErrorFormat("[RADMIN]: Broadcasting: failed: {0}", e.Message);
+                m_log.DebugFormat("[RADMIN]: Broadcasting: failed: {0}", e.ToString());
+                responseData["accepted"] = "false";
+                response.Value = responseData;
             }
 
             return response;
@@ -146,34 +156,47 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
 
-            Hashtable responseData = new Hashtable();
-            if (requiredPassword != String.Empty &&
-                (!requestData.Contains("password") || (string)requestData["password"] != requiredPassword))
+            m_log.DebugFormat("[RADMIN]: Load Terrain: XmlRpc {0}", request.ToString());
+            foreach (string k in requestData.Keys)
             {
-                responseData["accepted"] = "false";
-                response.Value = responseData;
+                m_log.DebugFormat("[RADMIN]: Load Terrain: XmlRpc {0}: >{1}< {2}", 
+                                  k, (string)requestData[k], ((string)requestData[k]).Length);
             }
-            else
-            {
+
+            Hashtable responseData = new Hashtable();
+            try {
+                checkStringParameters(request, new string[] { "password", "filename", "regionid"});
+
+                if (requiredPassword != String.Empty &&
+                    (!requestData.Contains("password") || (string)requestData["password"] != requiredPassword))
+                    throw new Exception("wrong password");
+
                 string file = (string)requestData["filename"];
-                LLUUID regionID = LLUUID.Parse((string)requestData["regionid"]);
-                m_log.Info("[RADMIN]: Terrain Loading: " + file);
+                LLUUID regionID = (string) requestData["regionid"];
+                m_log.InfoFormat("[RADMIN]: Terrain Loading: {0}", file);
 
                 responseData["accepted"] = "true";
 
                 Scene region = null;
 
-                if (m_app.SceneManager.TryGetScene(regionID, out region))
-                {
-                    //region.LoadWorldMap(file);
-                    responseData["success"] = "true";
-                }
-                else
-                {
-                    responseData["success"] = "false";
-                    responseData["error"] = "1: Unable to get a scene with that name.";
-                }
+                if (!m_app.SceneManager.TryGetScene(regionID, out region))
+                    throw new Exception("1: unable to get a scene with that name");
+
+                ITerrainModule terrainModule = region.RequestModuleInterface<ITerrainModule>();
+                if (null == terrainModule) throw new Exception("terrain module not available");
+                terrainModule.LoadFromFile(file);
+
+                responseData["success"] = "true";
+
                 response.Value = responseData;
+            }
+            catch (Exception e) 
+            {
+                m_log.ErrorFormat("[RADMIN] Terrain Loading: failed: {0}", e.Message);
+                m_log.DebugFormat("[RADMIN] Terrain Loading: failed: {0}", e.ToString());
+
+                responseData["success"] = "false";
+                responseData["error"] = e.Message;
             }
 
             return response;
@@ -185,37 +208,32 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
-            if (requiredPassword != String.Empty &&
-                (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
-            {
-                responseData["accepted"] = "false";
+
+            try {
+                checkStringParameters(request, new string[] { "password", "shutdown" });
+                checkIntegerParams(request, new string[] { "milliseconds"});
+                
+                if (requiredPassword != String.Empty &&
+                    (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
+                    throw new Exception("wrong password");
+
+                responseData["accepted"] = "true";
                 response.Value = responseData;
-            }
-            else
-            {
+
                 if ((string) requestData["shutdown"] == "delayed")
                 {
                     int timeout = (Int32) requestData["milliseconds"];
-
-                    responseData["accepted"] = "true";
-                    response.Value = responseData;
-
                     m_app.SceneManager.SendGeneralMessage("Region is going down in " + ((int) (timeout/1000)).ToString() +
                                                           " second(s). Please save what you are doing and log out.");
-
+                    
                     // Perform shutdown
                     Timer shutdownTimer = new Timer(timeout); // Wait before firing
                     shutdownTimer.AutoReset = false;
                     shutdownTimer.Elapsed += new ElapsedEventHandler(shutdownTimer_Elapsed);
                     shutdownTimer.Start();
-
-                    return response;
-                }
+                } 
                 else
                 {
-                    responseData["accepted"] = "true";
-                    response.Value = responseData;
-
                     m_app.SceneManager.SendGeneralMessage("Region is going down now.");
 
                     // Perform shutdown
@@ -223,9 +241,17 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                     shutdownTimer.AutoReset = false;
                     shutdownTimer.Elapsed += new ElapsedEventHandler(shutdownTimer_Elapsed);
                     shutdownTimer.Start();
-
-                    return response;
                 }
+            }
+            catch (Exception e) 
+            {
+                m_log.ErrorFormat("[RADMIN] Shutdown: failed: {0}", e.Message);
+                m_log.DebugFormat("[RADMIN] Shutdown: failed: {0}", e.ToString());
+
+                responseData["accepted"] = "false";
+                responseData["error"] = e.Message;
+
+                response.Value = responseData;
             }
             return response;
         }
@@ -401,7 +427,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                     region.SaveRegionToFile("dynamic region", regionConfigPath);
                 }
                 
-                m_app.CreateRegion(region, true);
+                m_app.CreateRegion(region);
 
                 responseData["success"]     = "true";
                 responseData["region_name"] = region.RegionName;
@@ -484,8 +510,10 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 uint   regX      = Convert.ToUInt32((Int32)requestData["start_region_x"]);
                 uint   regY      = Convert.ToUInt32((Int32)requestData["start_region_y"]);
                 
-                // FIXME: need to check whether "firstname lastname"
-                // already exists!
+                UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
+                if (null != userProfile) 
+                    throw new Exception(String.Format("avatar {0} {1} already exists", firstname, lastname));
+
                 LLUUID userID = m_app.CreateUser(firstname, lastname, passwd, regX, regY);
                 
                 if (userID == LLUUID.Zero) throw new Exception(String.Format("failed to create new user {0} {1}",
@@ -523,22 +551,34 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             try 
             {
                 // check completeness
-                foreach (string p in new string[] { "password", "region_name", "filename" })
+                foreach (string p in new string[] { "password", "filename" })
                 {
                     if (!requestData.Contains(p)) 
                         throw new Exception(String.Format("missing parameter {0}", p));
+                    if (String.IsNullOrEmpty((string)requestData[p]))
+                        throw new Exception(String.Format("parameter {0} is empty"));
                 }
                 
                 // check password
                 if (!String.IsNullOrEmpty(requiredPassword) &&
                     (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
                 
-                string region_name = (string)requestData["region_name"];
-                string filename    = (string)requestData["filename"];
-                
-                if (!m_app.SceneManager.TrySetCurrentScene(region_name)) 
-                    throw new Exception(String.Format("failed to switch to region {0}", region_name));
-                m_log.InfoFormat("[RADMIN] Switched to region {0}");
+                string filename = (string)requestData["filename"];
+                if (requestData.Contains("region_uuid"))
+                {
+                    LLUUID region_uuid = (string)requestData["region_uuid"];
+                    if (!m_app.SceneManager.TrySetCurrentScene(region_uuid)) 
+                        throw new Exception(String.Format("failed to switch to region {0}", region_uuid.ToString()));
+                    m_log.InfoFormat("[RADMIN] Switched to region {0}", region_uuid.ToString());
+                }
+                else if (requestData.Contains("region_name"))
+                {
+                    string region_name = (string)requestData["region_name"];
+                    if (!m_app.SceneManager.TrySetCurrentScene(region_name)) 
+                        throw new Exception(String.Format("failed to switch to region {0}", region_name));
+                    m_log.InfoFormat("[RADMIN] Switched to region {0}", region_name);
+                }
+                else throw new Exception("neither region_name nor region_uuid given");
 
                 responseData["switched"] = "true";
 
@@ -550,7 +590,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             catch (Exception e)
             {
                 m_log.InfoFormat("[RADMIN] LoadXml: {0}", e.Message);
-                m_log.DebugFormat("[RADMIN] LoadXML {0}: {1}", e.ToString());
+                m_log.DebugFormat("[RADMIN] LoadXml: {0}", e.ToString());
 
                 responseData["loaded"]  = "false";
                 responseData["switched"] = "false";

@@ -44,6 +44,10 @@ namespace OpenSim.Region.Capabilities
         private uint m_httpListenerPort;
 
         /// <summary></summary>
+        /// CapsHandlers is a cap handler container but also takes
+        /// care of adding and removing cap handlers to and from the
+        /// supplied BaseHttpServer.
+        /// </summary>
         /// <param name="httpListener">base HTTP server</param>
         /// <param name="httpListenerHostname">host name of the HTTP
         /// server</param>

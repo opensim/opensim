@@ -462,7 +462,28 @@ namespace OpenSim
         /// <param name="regionInfo"></param>
         /// <param name="portadd_flag"></param>
         /// <returns></returns>
-        public UDPServer CreateRegion(RegionInfo regionInfo, bool portadd_flag)
+        public UDPServer CreateRegion(RegionInfo regionInfo, bool portadd_flag) {
+            return CreateRegion(regionInfo, portadd_flag, false);
+        }
+
+        /// <summary>
+        /// Execute the region creation process.  This includes setting up scene infrastructure.
+        /// </summary>
+        /// <param name="regionInfo"></param>
+        /// <param name="portadd_flag"></param>
+        /// <returns></returns>
+        public UDPServer CreateRegion(RegionInfo regionInfo) {
+            return CreateRegion(regionInfo, false, true);
+        }
+
+        /// <summary>
+        /// Execute the region creation process.  This includes setting up scene infrastructure.
+        /// </summary>
+        /// <param name="regionInfo"></param>
+        /// <param name="portadd_flag"></param>
+        /// <param name="do_post_init"></param>
+        /// <returns></returns>
+        public UDPServer CreateRegion(RegionInfo regionInfo, bool portadd_flag, bool do_post_init)
         {
             int port = regionInfo.InternalEndPoint.Port;
 
@@ -487,7 +508,7 @@ namespace OpenSim
 
             m_log.Info("[MODULES]: Loading Region's modules");
 
-            m_moduleLoader.PickupModules(scene, ".");
+            List<IRegionModule> modules = m_moduleLoader.PickupModules(scene, ".");
             //m_moduleLoader.PickupModules(scene, "ScriptEngines");
             //m_moduleLoader.LoadRegionModules(Path.Combine("ScriptEngines", m_scriptEngine), scene);
 
@@ -535,6 +556,14 @@ namespace OpenSim
             m_udpServers.Add(udpServer);
             m_regionData.Add(regionInfo);
             udpServer.ServerListener();
+
+            if (do_post_init)
+            {
+                foreach (IRegionModule module in modules)
+                {
+                    module.PostInitialise();
+                }
+            }
 
             return udpServer;
         }
