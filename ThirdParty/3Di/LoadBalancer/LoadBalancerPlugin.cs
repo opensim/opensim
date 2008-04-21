@@ -26,31 +26,21 @@
  */
 
 using System;
-using System.IO;
-using System.Net;
-using System.Xml;
-using System.Text;
-using System.Xml.Serialization;
-using System.Net.Sockets;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.IO;
+using System.Net;
+using System.Reflection;
 using System.Threading;
-
-using OpenSim.Framework;
-using OpenSim.Framework.Console;
-using OpenSim.Framework.Servers;
-using OpenSim.Region.Environment;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.ClientStack;
-
-using Nwc.XmlRpc;
-using Nini.Config;
-
-using Mono.Addins;
-
 using libsecondlife;
 using libsecondlife.Packets;
+using log4net;
+using Mono.Addins;
+using Nwc.XmlRpc;
+using OpenSim.Framework;
+using OpenSim.Framework.Servers;
+using OpenSim.Region.ClientStack;
+using OpenSim.Region.Environment.Scenes;
 
 [assembly:Addin]
 [assembly:AddinDependency ("OpenSim", "0.5")]
@@ -61,7 +51,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
     [Extension("/OpenSim/Startup")]
     public class LoadBalancerPlugin : IApplicationPlugin
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private OpenSimMain simMain;
         private BaseHttpServer commandServer;

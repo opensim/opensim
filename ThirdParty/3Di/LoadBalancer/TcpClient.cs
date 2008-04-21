@@ -26,12 +26,9 @@
  */
 
 using System;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using System.Text;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace OpenSim.ApplicationPlugins.LoadBalancer {
     public class AsynchronousClient {

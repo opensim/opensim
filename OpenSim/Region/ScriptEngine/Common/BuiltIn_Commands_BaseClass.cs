@@ -32,8 +32,8 @@ using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 using integer = System.Int32;
 using key = System.String;
-using vector = ScriptEngine.Common.LSL_Types.Vector3;
-using rotation = Quaternion;
+using vector = OpenSim.Region.ScriptEngine.Common.LSL_Types.Vector3;
+using rotation = OpenSim.Region.ScriptEngine.Common.LSL_Types.Quaternion;
 
 namespace OpenSim.Region.ScriptEngine.Common
 {

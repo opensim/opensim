@@ -29,11 +29,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using System.Runtime.Serialization.Formatters.Binary;
-
-using OpenSim.Framework.Console;
 
 namespace OpenSim.ApplicationPlugins.LoadBalancer {
 

@@ -26,22 +26,16 @@
  */
 
 using System;
-using System.IO;
-using System.Net;
-using System.Xml;
-using System.Text;
-using System.Xml.Serialization;
-using System.Net.Sockets;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
-
+using System.Net;
+using System.Net.Sockets;
+using System.Reflection;
+using log4net;
+using Mono.Addins;
+using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.Console;
-using Nwc.XmlRpc;
-
-using Mono.Addins;
 
 [assembly:Addin ("RegionProxy", "0.1")]
 [assembly:AddinDependency ("OpenSim", "0.5")]
@@ -71,7 +65,7 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
     {
         private ProxyServer proxy;
         private BaseHttpServer command_server;
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public void Initialise(OpenSimMain openSim)
         {
@@ -199,7 +193,7 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
     public class ProxyServer {
         protected AsyncCallback receivedData;
         protected ProxyMap proxy_map = new ProxyMap();
-        protected readonly log4net.ILog m_log;
+        protected readonly ILog m_log;
         protected bool running;
 
         protected class ProxyMap
@@ -279,7 +273,7 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
             }
         }
 
-        public ProxyServer(log4net.ILog log)
+        public ProxyServer(ILog log)
         {
             m_log = log;
             running=false;
