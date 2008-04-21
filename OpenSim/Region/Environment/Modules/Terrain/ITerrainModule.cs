@@ -1,5 +1,4 @@
-﻿using System;
-namespace OpenSim.Region.Environment.Modules.Terrain
+﻿namespace OpenSim.Region.Environment.Modules.Terrain
 {
     public interface ITerrainModule
     {

@@ -31,39 +31,6 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FloodBrushes
 {
     public class SmoothArea : ITerrainFloodEffect
     {
-        private double GetBilinearInterpolate(double x, double y, ITerrainChannel map)
-        {
-            int w = map.Width;
-            int h = map.Height;
-
-            if (x > w - 2.0)
-                x = w - 2.0;
-            if (y > h - 2.0)
-                y = h - 2.0;
-            if (x < 0.0)
-                x = 0.0;
-            if (y < 0.0)
-                y = 0.0;
-
-            int stepSize = 1;
-            double h00 = map[(int)x, (int)y];
-            double h10 = map[(int)x + stepSize, (int)y];
-            double h01 = map[(int)x, (int)y + stepSize];
-            double h11 = map[(int)x + stepSize, (int)y + stepSize];
-            double h1 = h00;
-            double h2 = h10;
-            double h3 = h01;
-            double h4 = h11;
-            double a00 = h1;
-            double a10 = h2 - h1;
-            double a01 = h3 - h1;
-            double a11 = h1 - h2 - h3 + h4;
-            double partialx = x - (int)x;
-            double partialz = y - (int)y;
-            double hi = a00 + (a10 * partialx) + (a01 * partialz) + (a11 * partialx * partialz);
-            return hi;
-        }
-
         #region ITerrainFloodEffect Members
 
         public void FloodEffect(ITerrainChannel map, bool[,] fillArea, double strength)
@@ -71,9 +38,8 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FloodBrushes
             double area = strength;
             double step = strength / 4.0;
 
-            double[,] manipulate = new double[map.Width, map.Height];
+            double[,] manipulate = new double[map.Width,map.Height];
             int x, y;
-            double n, l;
             for (x = 0; x < map.Width; x++)
             {
                 for (y = 0; y < map.Height; y++)
@@ -84,8 +50,10 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FloodBrushes
                     double average = 0.0;
                     int avgsteps = 0;
 
+                    double n;
                     for (n = 0.0 - area; n < area; n += step)
                     {
+                        double l;
                         for (l = 0.0 - area; l < area; l += step)
                         {
                             avgsteps++;
@@ -109,5 +77,38 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FloodBrushes
         }
 
         #endregion
+
+        private static double GetBilinearInterpolate(double x, double y, ITerrainChannel map)
+        {
+            int w = map.Width;
+            int h = map.Height;
+
+            if (x > w - 2.0)
+                x = w - 2.0;
+            if (y > h - 2.0)
+                y = h - 2.0;
+            if (x < 0.0)
+                x = 0.0;
+            if (y < 0.0)
+                y = 0.0;
+
+            int stepSize = 1;
+            double h00 = map[(int) x, (int) y];
+            double h10 = map[(int) x + stepSize, (int) y];
+            double h01 = map[(int) x, (int) y + stepSize];
+            double h11 = map[(int) x + stepSize, (int) y + stepSize];
+            double h1 = h00;
+            double h2 = h10;
+            double h3 = h01;
+            double h4 = h11;
+            double a00 = h1;
+            double a10 = h2 - h1;
+            double a01 = h3 - h1;
+            double a11 = h1 - h2 - h3 + h4;
+            double partialx = x - (int) x;
+            double partialz = y - (int) y;
+            double hi = a00 + (a10 * partialx) + (a01 * partialz) + (a11 * partialx * partialz);
+            return hi;
+        }
     }
 }

@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.Terrain.FloodBrushes
@@ -40,9 +41,9 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FloodBrushes
             {
                 for (y = 0; y < map.Height; y++)
                 {
-                    if (fillArea[x, y] == true)
+                    if (fillArea[x, y])
                     {
-                        double noise = TerrainUtil.PerlinNoise2D((double)x / (double)Framework.Constants.RegionSize, (double)y / (double)Framework.Constants.RegionSize, 8, 1.0);
+                        double noise = TerrainUtil.PerlinNoise2D((double) x / Constants.RegionSize, (double) y / Constants.RegionSize, 8, 1.0);
 
                         map[x, y] += noise * strength;
                     }

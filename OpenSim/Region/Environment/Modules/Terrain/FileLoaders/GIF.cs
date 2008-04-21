@@ -24,19 +24,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-using System;
 using System.Drawing;
+using System.Drawing.Imaging;
 using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
 {
-    class GIF : GenericSystemDrawing
+    internal class GIF : GenericSystemDrawing
     {
         public override void SaveFile(string filename, ITerrainChannel map)
         {
             Bitmap colours = CreateGrayscaleBitmapFromMap(map);
 
-            colours.Save(filename, System.Drawing.Imaging.ImageFormat.Gif);
+            colours.Save(filename, ImageFormat.Gif);
         }
 
         public override string ToString()

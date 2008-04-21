@@ -25,8 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Region.Environment.Interfaces;
 using System;
+using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
 {
@@ -35,18 +35,12 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
     /// </summary>
     public class ErodeSphere : ITerrainPaintableEffect
     {
-        NeighbourSystem type = NeighbourSystem.Moore; // Parameter
-
-        double rainHeight = 0.2;
-        int rounds = 10;
-        double waterSaturation = 0.30; // Can carry 1% of water in height
+        private double rainHeight = 0.2;
+        private int rounds = 10;
+        private NeighbourSystem type = NeighbourSystem.Moore; // Parameter
+        private double waterSaturation = 0.30; // Can carry 1% of water in height
 
         #region Supporting Functions
-        private enum NeighbourSystem
-        {
-            Moore,
-            VonNeumann
-        } ;
 
         private int[] Neighbours(NeighbourSystem type, int index)
         {
@@ -145,6 +139,12 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
 
             return coord;
         }
+
+        private enum NeighbourSystem
+        {
+            Moore,
+            VonNeumann
+        } ;
 
         #endregion
 
@@ -266,7 +266,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
                                 // Calculate how much water we can move
                                 double waterMin = Math.Min(water[x, y], altitudeDelta);
                                 double waterDelta = waterMin * ((water[coords[0], coords[1]] + map[coords[0], coords[1]])
-                                    / altitudeTotal);
+                                                                / altitudeTotal);
 
                                 double sedimentDelta = sediment[x, y] * (waterDelta / water[x, y]);
 

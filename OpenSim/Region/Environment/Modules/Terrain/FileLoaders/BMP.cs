@@ -24,8 +24,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-using System;
 using System.Drawing;
+using System.Drawing.Imaging;
 using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
@@ -36,7 +36,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
     /// 
     /// Uses the System.Drawing filesystem loader.
     /// </summary>
-    class BMP : GenericSystemDrawing
+    internal class BMP : GenericSystemDrawing
     {
         /// <summary>
         /// Exports a file to a image on the disk using a System.Drawing exporter.
@@ -47,7 +47,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
         {
             Bitmap colours = CreateGrayscaleBitmapFromMap(map);
 
-            colours.Save(filename, System.Drawing.Imaging.ImageFormat.Bmp);
+            colours.Save(filename, ImageFormat.Bmp);
         }
 
         /// <summary>

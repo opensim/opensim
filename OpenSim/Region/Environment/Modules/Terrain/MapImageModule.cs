@@ -26,20 +26,40 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Drawing;
-using libsecondlife;
 using Nini.Config;
-using OpenSim.Framework;
+using OpenJPEGNet;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Modules.ModuleFramework;
 
 namespace OpenSim.Region.Environment.Modules.Terrain
 {
-    class MapImageModule : IMapImageGenerator, IRegionModule
+    internal class MapImageModule : IMapImageGenerator, IRegionModule
     {
         private Scene m_scene;
+
+        #region IMapImageGenerator Members
+
+        public byte[] WriteJpeg2000Image(string gradientmap)
+        {
+            byte[] imageData = null;
+
+            Bitmap bmp = TerrainToBitmap(gradientmap);
+
+            try
+            {
+                imageData = OpenJPEG.EncodeFromImage(bmp, true);
+            }
+            catch (Exception e) // LEGIT: Catching problems caused by OpenJPEG p/invoke
+            {
+                Console.WriteLine("Failed generating terrain map: " + e);
+            }
+
+            return imageData;
+        }
+
+        #endregion
+
         #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource source)
@@ -66,24 +86,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             get { return false; }
         }
 
-
-        public byte[] WriteJpeg2000Image(string gradientmap)
-        {
-            byte[] imageData = null;
-
-            Bitmap bmp = TerrainToBitmap(gradientmap);
-
-            try
-            {
-                imageData = OpenJPEGNet.OpenJPEG.EncodeFromImage(bmp, true);
-            }
-            catch (Exception e) // LEGIT: Catching problems caused by OpenJPEG p/invoke
-            {
-                Console.WriteLine("Failed generating terrain map: " + e.ToString());
-            }
-
-            return imageData;
-        }
+        #endregion
 
         private void ShadeBuildings(ref Bitmap map)
         {
@@ -95,18 +98,20 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                     {
                         if (entity is SceneObjectGroup)
                         {
-                            SceneObjectGroup sog = (SceneObjectGroup)entity;
+                            SceneObjectGroup sog = (SceneObjectGroup) entity;
 
                             foreach (SceneObjectPart primitive in sog.Children.Values)
                             {
-                                int x, y, w, h, dx, dy;
-                                x = (int)(primitive.AbsolutePosition.X - (primitive.Scale.X / 2));
-                                y = (int)(primitive.AbsolutePosition.Y - (primitive.Scale.Y / 2));
-                                w = (int)primitive.Scale.X;
-                                h = (int)primitive.Scale.Y;
+                                int x, y, w, h;
+                                x = (int) (primitive.AbsolutePosition.X - (primitive.Scale.X / 2));
+                                y = (int) (primitive.AbsolutePosition.Y - (primitive.Scale.Y / 2));
+                                w = (int) primitive.Scale.X;
+                                h = (int) primitive.Scale.Y;
 
+                                int dx;
                                 for (dx = x; dx < x + w; dx++)
                                 {
+                                    int dy;
                                     for (dy = y; dy < y + h; dy++)
                                     {
                                         if (x < 0 || y < 0)
@@ -117,8 +122,6 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                                         map.SetPixel(dx, dy, Color.DarkGray);
                                     }
                                 }
-
-
                             }
                         }
                     }
@@ -148,7 +151,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                     for (int x = 0; x < copy.Width; x++)
                     {
                         // 512 is the largest possible height before colours clamp
-                        int colorindex = (int)(Math.Max(Math.Min(1.0, copy[x, y] / 512.0), 0.0) * (pallete - 1));
+                        int colorindex = (int) (Math.Max(Math.Min(1.0, copy[x, y] / 512.0), 0.0) * (pallete - 1));
 
                         // Handle error conditions
                         if (colorindex > pallete - 1 || colorindex < 0)
@@ -161,7 +164,5 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                 return bmp;
             }
         }
-
-        #endregion
     }
 }

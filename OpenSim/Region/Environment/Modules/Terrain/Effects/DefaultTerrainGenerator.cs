@@ -24,16 +24,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenSim.Region.Environment.Modules.Terrain;
-using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Framework;
+using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.Terrain.Effects
 {
-    class DefaultTerrainGenerator : ITerrainEffect
+    internal class DefaultTerrainGenerator : ITerrainEffect
     {
         #region ITerrainEffect Members
 

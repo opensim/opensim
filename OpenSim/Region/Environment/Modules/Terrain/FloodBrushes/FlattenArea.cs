@@ -25,10 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenSim.Region.Environment.Modules.Terrain;
 using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.Terrain.FloodBrushes
@@ -41,14 +37,14 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FloodBrushes
         {
             double sum = 0.0;
             double steps = 0.0;
-            double avg = 0.0;
+            double avg;
 
             int x, y;
             for (x = 0; x < map.Width; x++)
             {
                 for (y = 0; y < map.Height; y++)
                 {
-                    if (fillArea[x, y] == true)
+                    if (fillArea[x, y])
                     {
                         sum += map[x, y];
                         steps += 1.0;
@@ -64,7 +60,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FloodBrushes
             {
                 for (y = 0; y < map.Height; y++)
                 {
-                    if (fillArea[x, y] == true)
+                    if (fillArea[x, y])
                         map[x, y] = (map[x, y] * (1.0 - str)) + (avg * str);
                 }
             }

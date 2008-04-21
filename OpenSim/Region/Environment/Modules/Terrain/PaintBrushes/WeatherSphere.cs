@@ -34,15 +34,10 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
     /// </summary>
     public class WeatherSphere : ITerrainPaintableEffect
     {
-        NeighbourSystem type = NeighbourSystem.Moore; // Parameter
-        double talus = 0.2; // Number of meters max difference before stop eroding. Tweakage required.
+        private double talus = 0.2; // Number of meters max difference before stop eroding. Tweakage required.
+        private NeighbourSystem type = NeighbourSystem.Moore; // Parameter
 
         #region Supporting Functions
-        private enum NeighbourSystem
-        {
-            Moore,
-            VonNeumann
-        } ;
 
         private int[] Neighbours(NeighbourSystem type, int index)
         {
@@ -141,6 +136,12 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
 
             return coord;
         }
+
+        private enum NeighbourSystem
+        {
+            Moore,
+            VonNeumann
+        } ;
 
         #endregion
 

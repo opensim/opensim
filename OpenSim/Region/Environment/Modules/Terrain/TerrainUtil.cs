@@ -57,10 +57,10 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                 y = 0.0;
 
             int stepSize = 1;
-            double h00 = map[(int)x, (int)y];
-            double h10 = map[(int)x + stepSize, (int)y];
-            double h01 = map[(int)x, (int)y + stepSize];
-            double h11 = map[(int)x + stepSize, (int)y + stepSize];
+            double h00 = map[(int) x, (int) y];
+            double h10 = map[(int) x + stepSize, (int) y];
+            double h01 = map[(int) x, (int) y + stepSize];
+            double h11 = map[(int) x + stepSize, (int) y + stepSize];
             double h1 = h00;
             double h2 = h10;
             double h3 = h01;
@@ -69,15 +69,15 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             double a10 = h2 - h1;
             double a01 = h3 - h1;
             double a11 = h1 - h2 - h3 + h4;
-            double partialx = x - (int)x;
-            double partialz = y - (int)y;
+            double partialx = x - (int) x;
+            double partialz = y - (int) y;
             double hi = a00 + (a10 * partialx) + (a01 * partialz) + (a11 * partialx * partialz);
             return hi;
         }
 
         private static double Noise(double x, double y)
         {
-            int n = (int)x + (int)(y * 749);
+            int n = (int) x + (int) (y * 749);
             n = (n << 13) ^ n;
             return (1.0 - ((n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff) / 1073741824.0);
         }
@@ -97,10 +97,10 @@ namespace OpenSim.Region.Environment.Modules.Terrain
 
         private static double InterpolatedNoise(double x, double y)
         {
-            int integer_X = (int)(x);
+            int integer_X = (int) (x);
             double fractional_X = x - integer_X;
 
-            int integer_Y = (int)y;
+            int integer_Y = (int) y;
             double fractional_Y = y - integer_Y;
 
             double v1 = SmoothedNoise1(integer_X, integer_Y);
@@ -122,8 +122,8 @@ namespace OpenSim.Region.Environment.Modules.Terrain
 
             for (int i = 0; i < octaves; i++)
             {
-                frequency = System.Math.Pow(2, i);
-                amplitude = System.Math.Pow(persistence, i);
+                frequency = Math.Pow(2, i);
+                amplitude = Math.Pow(persistence, i);
 
                 total += InterpolatedNoise(x * frequency, y * frequency) * amplitude;
             }

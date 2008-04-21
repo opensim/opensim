@@ -47,7 +47,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
             {
                 for (x = 0; x < retval.Width; x++)
                 {
-                    retval[x, y] = (double)bs.ReadByte() * ((double)bs.ReadByte() / 127.0);
+                    retval[x, y] = (double) bs.ReadByte() * ((double) bs.ReadByte() / 127.0);
                     bs.ReadBytes(11); // Advance the stream to next bytes.
                 }
             }
@@ -56,11 +56,6 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
             s.Close();
 
             return retval;
-        }
-
-        public override string ToString()
-        {
-            return "LL/SL RAW";
         }
 
         public ITerrainChannel LoadFile(string filename, int x, int y, int fileWidth, int fileHeight, int w, int h)
@@ -81,7 +76,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
             {
                 for (j = 0; j < 256; j++)
                 {
-                    lookupHeightTable[i + (j * 256)] = ((double)i * ((double)j / 127.0));
+                    lookupHeightTable[i + (j * 256)] = ((double) i * ((double) j / 127.0));
                 }
             }
 
@@ -103,9 +98,9 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
                         }
                     }
 
-                    byte red = (byte)(index & 0xFF);
-                    byte green = (byte)((index >> 8) & 0xFF);
-                    byte blue   = 20;
+                    byte red = (byte) (index & 0xFF);
+                    byte green = (byte) ((index >> 8) & 0xFF);
+                    byte blue = 20;
                     byte alpha1 = 0; // Land Parcels
                     byte alpha2 = 0; // For Sale Land
                     byte alpha3 = 0; // Public Edit Object
@@ -138,5 +133,10 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
         }
 
         #endregion
+
+        public override string ToString()
+        {
+            return "LL/SL RAW";
+        }
     }
 }

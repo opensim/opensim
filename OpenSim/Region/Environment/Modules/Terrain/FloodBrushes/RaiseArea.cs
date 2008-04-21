@@ -40,7 +40,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FloodBrushes
             {
                 for (y = 0; y < map.Height; y++)
                 {
-                    if (fillArea[x, y] == true)
+                    if (fillArea[x, y])
                     {
                         map[x, y] += strength;
                     }

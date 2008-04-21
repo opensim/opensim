@@ -37,7 +37,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
     /// Built from specification at
     /// http://www.planetside.co.uk/terragen/dev/tgterrain.html
     /// </summary>
-    class Terragen : ITerrainLoader
+    internal class Terragen : ITerrainLoader
     {
         #region ITerrainLoader Members
 
@@ -84,7 +84,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
                             {
                                 for (y = 0; y < h; y++)
                                 {
-                                    retval[x, y] = (double)baseHeight + (double)bs.ReadInt16() * (double)heightScale / 65536.0;
+                                    retval[x, y] = (double) baseHeight + (double) bs.ReadInt16() * (double) heightScale / 65536.0;
                                 }
                             }
                             break;
@@ -107,16 +107,16 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
             throw new NotImplementedException();
         }
 
-        public override string ToString()
-        {
-            return "Terragen";
-        }
-
         public ITerrainChannel LoadFile(string filename, int x, int y, int fileWidth, int fileHeight, int w, int h)
         {
             throw new NotImplementedException();
         }
 
         #endregion
+
+        public override string ToString()
+        {
+            return "Terragen";
+        }
     }
 }

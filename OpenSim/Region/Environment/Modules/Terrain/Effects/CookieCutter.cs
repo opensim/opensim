@@ -25,26 +25,24 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenSim.Region.Environment.Modules.Terrain;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Framework;
+using OpenSim.Region.Environment.Modules.Terrain.FloodBrushes;
+using OpenSim.Region.Environment.Modules.Terrain.PaintBrushes;
 
 namespace OpenSim.Region.Environment.Modules.Terrain.Effects
 {
-    class CookieCutter : ITerrainEffect
+    internal class CookieCutter : ITerrainEffect
     {
         #region ITerrainEffect Members
 
         public void RunEffect(ITerrainChannel map)
         {
-            FloodBrushes.SmoothArea smooth = new FloodBrushes.SmoothArea();
-            ITerrainPaintableEffect eroder = new PaintBrushes.WeatherSphere();
+            SmoothArea smooth = new SmoothArea();
+            ITerrainPaintableEffect eroder = new WeatherSphere();
 
-            bool[,] cliffMask = new bool[map.Width, map.Height];
-            bool[,] channelMask = new bool[map.Width, map.Height];
-            bool[,] smoothMask = new bool[map.Width, map.Height];
+            bool[,] cliffMask = new bool[map.Width,map.Height];
+            bool[,] channelMask = new bool[map.Width,map.Height];
+            bool[,] smoothMask = new bool[map.Width,map.Height];
 
             Console.WriteLine("S1");
 
@@ -98,7 +96,10 @@ namespace OpenSim.Region.Environment.Modules.Terrain.Effects
             //smooth.FloodEffect(map, smoothMask, 4.0);
         }
 
-        private static void SetLowerChannel(ITerrainChannel map, bool[,] cliffMask, bool[,] channelMask, int x, int y, int numChannels, int channelWidth, int mapSize, int rp)
+        #endregion
+
+        private static void SetLowerChannel(ITerrainChannel map, bool[,] cliffMask, bool[,] channelMask, int x, int y, int numChannels, int channelWidth,
+                                            int mapSize, int rp)
         {
             for (int i = 0; i < numChannels; i++)
             {
@@ -119,7 +120,5 @@ namespace OpenSim.Region.Environment.Modules.Terrain.Effects
                 }
             }
         }
-
-        #endregion
     }
 }

@@ -27,6 +27,7 @@
 
 using System;
 using System.Drawing;
+using System.Drawing.Imaging;
 using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
@@ -72,6 +73,20 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Exports a file to a image on the disk using a System.Drawing exporter.
+        /// </summary>
+        /// <param name="filename">The target filename</param>
+        /// <param name="map">The terrain channel being saved</param>
+        public virtual void SaveFile(string filename, ITerrainChannel map)
+        {
+            Bitmap colours = CreateGrayscaleBitmapFromMap(map);
+
+            colours.Save(filename, ImageFormat.Png);
+        }
+
+        #endregion
+
         public override string ToString()
         {
             return "SYS.DRAWING";
@@ -100,7 +115,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
                 for (int x = 0; x < map.Width; x++)
                 {
                     // 512 is the largest possible height before colours clamp
-                    int colorindex = (int)(Math.Max(Math.Min(1.0, map[x, y] / 128.0), 0.0) * (pallete - 1));
+                    int colorindex = (int) (Math.Max(Math.Min(1.0, map[x, y] / 128.0), 0.0) * (pallete - 1));
 
                     // Handle error conditions
                     if (colorindex > pallete - 1 || colorindex < 0)
@@ -137,7 +152,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
                 for (int x = 0; x < map.Width; x++)
                 {
                     // 512 is the largest possible height before colours clamp
-                    int colorindex = (int)(Math.Max(Math.Min(1.0, map[x, y] / 512.0), 0.0) * (pallete - 1));
+                    int colorindex = (int) (Math.Max(Math.Min(1.0, map[x, y] / 512.0), 0.0) * (pallete - 1));
 
                     // Handle error conditions
                     if (colorindex > pallete - 1 || colorindex < 0)
@@ -148,19 +163,5 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
             }
             return bmp;
         }
-
-        /// <summary>
-        /// Exports a file to a image on the disk using a System.Drawing exporter.
-        /// </summary>
-        /// <param name="filename">The target filename</param>
-        /// <param name="map">The terrain channel being saved</param>
-        public virtual void SaveFile(string filename, ITerrainChannel map)
-        {
-            Bitmap colours = CreateGrayscaleBitmapFromMap(map);
-
-            colours.Save(filename, System.Drawing.Imaging.ImageFormat.Png);
-        }
-
-        #endregion
     }
 }

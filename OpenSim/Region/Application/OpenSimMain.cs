@@ -26,12 +26,14 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Timers;
+using libsecondlife;
+using Mono.Addins;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -45,14 +47,7 @@ using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
-using Timer=System.Timers.Timer;
-using System.Net;
-using Nwc.XmlRpc;
-using System.Collections;
-using System.Reflection;
-using libsecondlife;
-using Mono.Addins;
-using Mono.Addins.Description;
+using Timer = System.Timers.Timer;
 
 namespace OpenSim
 {

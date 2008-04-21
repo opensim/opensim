@@ -25,7 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using System.IO;
 using OpenSim.Region.Environment.Interfaces;
 
@@ -57,11 +56,6 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
             return retval;
         }
 
-        public override string ToString()
-        {
-            return "RAW32";
-        }
-
         public ITerrainChannel LoadFile(string filename, int offsetX, int offsetY, int fileWidth, int fileHeight, int sectionWidth, int sectionHeight)
         {
             TerrainChannel retval = new TerrainChannel(sectionWidth, sectionHeight);
@@ -69,7 +63,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
             FileInfo file = new FileInfo(filename);
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
             BinaryReader bs = new BinaryReader(s);
-            
+
             int currFileXOffset = 0;
             int currFileYOffset = 0;
 
@@ -79,7 +73,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
             {
                 // read a whole strip of regions
                 int heightsToRead = sectionHeight * (fileWidth * sectionWidth);
-                bs.ReadBytes( heightsToRead * 4); // because the floats are 4 bytes in the file
+                bs.ReadBytes(heightsToRead * 4); // because the floats are 4 bytes in the file
                 currFileYOffset++;
             }
 
@@ -90,13 +84,13 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
             for (y = 0; y < sectionHeight; y++)
             {
                 currFileXOffset = 0;
-                     
+
                 // if our region isn't the first X section of the areas to be landscaped, then
                 // advance the stream to the X start pos of our section in the file
                 // i.e. eat X upto where we start
                 while (currFileXOffset < offsetX)
                 {
-                    bs.ReadBytes( sectionWidth * 4); // 4 bytes = single
+                    bs.ReadBytes(sectionWidth * 4); // 4 bytes = single
                     currFileXOffset++;
                 }
 
@@ -111,14 +105,12 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
 
                 // if our region isn't the last X section of the areas to be landscaped, then
                 // advance the stream to the end of this Y column
-                while (currFileXOffset < fileWidth )
+                while (currFileXOffset < fileWidth)
                 {
                     // eat the next regions x line
                     bs.ReadBytes(sectionWidth * 4); // 4 bytes = single
                     currFileXOffset++;
                 }
-
-
             }
 
             bs.Close();
@@ -138,7 +130,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
             {
                 for (x = 0; x < map.Width; x++)
                 {
-                    bs.Write((float)map[x, y]);
+                    bs.Write((float) map[x, y]);
                 }
             }
 
@@ -147,5 +139,10 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
         }
 
         #endregion
+
+        public override string ToString()
+        {
+            return "RAW32";
+        }
     }
 }

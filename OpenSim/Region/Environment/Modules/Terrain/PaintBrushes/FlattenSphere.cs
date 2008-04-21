@@ -31,12 +31,6 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
 {
     public class FlattenSphere : ITerrainPaintableEffect
     {
-        private double SphericalFactor(double x, double y, double rx, double ry, double size)
-        {
-            double z = size * size - ((x - rx) * (x - rx) + (y - ry) * (y - ry));
-            return z;
-        }
-
 // TODO: unused
 //         private double GetBilinearInterpolate(double x, double y, ITerrainChannel map)
 //         {
@@ -78,7 +72,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
             strength = TerrainUtil.MetersToSphericalStrength(strength);
 
             int x, y;
-            double[,] tweak = new double[map.Width, map.Height];
+            double[,] tweak = new double[map.Width,map.Height];
 
             double area = strength;
             double step = strength / 4.0;
@@ -123,5 +117,11 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
         }
 
         #endregion
+
+        private double SphericalFactor(double x, double y, double rx, double ry, double size)
+        {
+            double z = size * size - ((x - rx) * (x - rx) + (y - ry) * (y - ry));
+            return z;
+        }
     }
 }

@@ -25,8 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Region.Environment.Interfaces;
 using System;
+using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
 {
@@ -38,16 +38,10 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
     /// </summary>
     public class OlsenSphere : ITerrainPaintableEffect
     {
-        NeighbourSystem type = NeighbourSystem.Moore; // Parameter
-
-        double nConst = 1024.0;
+        private double nConst = 1024.0;
+        private NeighbourSystem type = NeighbourSystem.Moore; // Parameter
 
         #region Supporting Functions
-        private enum NeighbourSystem
-        {
-            Moore,
-            VonNeumann
-        } ;
 
         private int[] Neighbours(NeighbourSystem type, int index)
         {
@@ -152,6 +146,12 @@ namespace OpenSim.Region.Environment.Modules.Terrain.PaintBrushes
             double z = size * size - ((x - rx) * (x - rx) + (y - ry) * (y - ry));
             return z;
         }
+
+        private enum NeighbourSystem
+        {
+            Moore,
+            VonNeumann
+        } ;
 
         #endregion
 
