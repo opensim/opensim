@@ -365,7 +365,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
-            catch (XmlException e)
+            catch (XmlException)
             {
                 m_log.ErrorFormat("[SCENE OBJECT GROUP]: Deserialization of following xml failed, {0}", xmlData);
                 

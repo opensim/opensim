@@ -313,7 +313,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (Scene mscene in m_localScenes)
             {
-                if((mscene.RegionInfo.InternalEndPoint.Address.Equals(ipEndPoint.Address.Address)) &&
+                if((mscene.RegionInfo.InternalEndPoint.Equals(ipEndPoint.Address)) &&
                     (mscene.RegionInfo.InternalEndPoint.Port == ipEndPoint.Port))
                 {
                     scene = mscene;
