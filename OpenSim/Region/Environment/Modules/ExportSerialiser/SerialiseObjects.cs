@@ -51,6 +51,32 @@ namespace OpenSim.Region.Environment.Modules.ExportSerialiser
 
         public void SaveSerialisedToFile(string fileName, Scene scene)
         {
+            string xmlstream = GetObjectXml(scene);
+
+            MemoryStream stream = ReformatXmlString(xmlstream);
+
+            stream.Seek(0, SeekOrigin.Begin);
+            CreateXmlFile(stream, fileName);
+
+            stream.Seek(0, SeekOrigin.Begin);
+            CreateCompressedXmlFile(stream, fileName);
+        }
+
+        private static MemoryStream ReformatXmlString(string xmlstream)
+        {
+            MemoryStream stream = new MemoryStream();
+            XmlTextWriter formatter = new XmlTextWriter(stream, Encoding.UTF8);
+            XmlDocument doc = new XmlDocument();
+
+            doc.LoadXml(xmlstream);
+            formatter.Formatting = Formatting.Indented;
+            doc.WriteContentTo(formatter);
+            formatter.Flush();
+            return stream;
+        }
+
+        private static string GetObjectXml(Scene scene)
+        {
             string xmlstream = "<scene>";
 
             List<EntityBase> EntityList = scene.GetEntities();
@@ -69,29 +95,25 @@ namespace OpenSim.Region.Environment.Modules.ExportSerialiser
                 xmlstream += xml;
 
             xmlstream += "</scene>";
+            return xmlstream;
+        }
 
-            MemoryStream stream = new MemoryStream();
-            XmlTextWriter formatter = new XmlTextWriter(stream, Encoding.UTF8);
-            XmlDocument doc = new XmlDocument();
-
-            doc.LoadXml(xmlstream);
-            formatter.Formatting = Formatting.Indented;
-            doc.WriteContentTo(formatter);
-            formatter.Flush();
-
-            stream.Seek(0, SeekOrigin.Begin);
-
+        private static void CreateXmlFile(MemoryStream xmlStream, string fileName)
+        {
             FileStream objectsFile = new FileStream(fileName, FileMode.Create);
 
-            stream.WriteTo(objectsFile);
+            xmlStream.WriteTo(objectsFile);
             objectsFile.Flush();
             objectsFile.Close();
+        }
 
+        private static void CreateCompressedXmlFile(MemoryStream xmlStream, string fileName)
+        {
             #region GZip Compressed Version
             FileStream objectsFileCompressed = new FileStream(fileName + ".gzs", FileMode.Create);
             MemoryStream gzipMSStream = new MemoryStream();
             GZipStream gzipStream = new GZipStream(gzipMSStream, CompressionMode.Compress);
-            stream.WriteTo(gzipStream);
+            xmlStream.WriteTo(gzipStream);
             gzipMSStream.WriteTo(objectsFileCompressed);
             objectsFileCompressed.Flush();
             objectsFileCompressed.Close();

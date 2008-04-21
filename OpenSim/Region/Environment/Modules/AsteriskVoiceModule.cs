@@ -163,7 +163,7 @@ namespace OpenSim.Region.Environment.Modules
                 // setup response to client
                 Hashtable creds = new Hashtable();
                 creds["channel_uri"] = String.Format("sip:{0}@{1}", 
-                                                     m_scene.RegionInfo.RegionID.ToString(), m_sipDomain);
+                                                     m_scene.RegionInfo.RegionID, m_sipDomain);
                 
                 string regionName = m_scene.RegionInfo.RegionName;
                 ScenePresence avatar = m_scene.GetScenePresence(agentID);
@@ -207,8 +207,6 @@ namespace OpenSim.Region.Environment.Modules
 
                 return "<llsd>undef</llsd>";
             }
-            
-            return null;
         }
 
         /// <summary>
@@ -282,8 +280,6 @@ namespace OpenSim.Region.Environment.Modules
 
                 return "<llsd>undef</llsd>";
             }
-
-            return null;
         }
     }
 }
