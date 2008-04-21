@@ -23,11 +23,20 @@ namespace OpenSim.Region.Modules.SvnSerialiser
         private string m_svnuser = "username";
         private string m_svnpass = "password";
         private string m_svndir = "SVNmodule\\repo";
+
+        private TimeSpan m_svnperiod = new TimeSpan(0, 0, 15, 0, 0);
+        private bool m_svnAutoSave = false;
+        private System.Timers.Timer m_timer = new System.Timers.Timer();
+
         private IRegionSerialiser m_serialiser;
         private List<Scene> m_scenes = new List<Scene>();
 
         #region SvnModule Core
 
+        /// <summary>
+        /// Exports a specified scene to the SVN repo directory, then commits.
+        /// </summary>
+        /// <param name="scene">The scene to export</param>
         public void SaveRegion(Scene scene)
         {
             List<string> svnfilenames = CreateAndAddExport(scene);
@@ -36,6 +45,9 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             m_log.Info("[SVNBACKUP]: Region backup successful (" + scene.RegionInfo.RegionName + ").");
         }
 
+        /// <summary>
+        /// Saves all registered scenes to the SVN repo, then commits.
+        /// </summary>
         public void SaveAllRegions()
         {
             List<string> svnfilenames = new List<string>();
@@ -158,6 +170,8 @@ namespace OpenSim.Region.Modules.SvnSerialiser
                 m_svnuser = source.Configs["SVN"].GetString("Username", m_svnuser);
                 m_svnpass = source.Configs["SVN"].GetString("Password", m_svnpass);
                 m_installBackupOnLoad = source.Configs["SVN"].GetBoolean("ImportOnStartup", m_installBackupOnLoad);
+                m_svnAutoSave = source.Configs["SVN"].GetBoolean("Autosave", m_svnAutoSave);
+                m_svnperiod = new TimeSpan(0, source.Configs["SVN"].GetInt("AutosavePeriod", (int)m_svnperiod.TotalMinutes), 0);
             } catch(Exception) { }
 
             lock (m_scenes)
@@ -172,7 +186,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
         {
             if (args[0] == "svn" && args[1] == "save")
             {
-                SaveAllScenes();
+                SaveAllRegions();
             }
             if (args.Length == 2)
             {
@@ -234,7 +248,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             m_log.Warn("[SVNBACKUP]: No region loaded - unable to find matching name.");
         }
 
-        private void LoadAllScenes()
+        public void LoadAllScenes()
         {
             CheckoutSvn();
 
@@ -245,7 +259,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
         }
 
 
-        private void LoadAllScenes(int revision)
+        public void LoadAllScenes(int revision)
         {
             CheckoutSvn(new SvnRevision(revision));
 
@@ -255,15 +269,18 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             }
         }
 
-        private void SaveAllScenes()
-        {
-            SaveAllRegions();
-        }
-
         public void PostInitialise()
         {
             if (m_enabled == false)
                 return;
+
+            if (m_svnAutoSave == true)
+            {
+                m_timer.Interval = m_svnperiod.TotalMilliseconds;
+                m_timer.Elapsed += new System.Timers.ElapsedEventHandler(m_timer_Elapsed);
+                m_timer.AutoReset = true;
+                m_timer.Start();
+            }
 
             m_log.Info("[SVNBACKUP]: Connecting to SVN server " + m_svnurl + " ...");
             SetupSvnProvider();
@@ -281,6 +298,11 @@ namespace OpenSim.Region.Modules.SvnSerialiser
                     LoadRegion(scene);
                 }
             }
+        }
+
+        void m_timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            SaveAllRegions();
         }
 
         private void SetupSerialiser()

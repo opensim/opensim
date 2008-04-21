@@ -388,3 +388,6 @@ Directory = SVNmodule\repo
 URL = "svn://your.repo.here/"
 Username = "user"
 Password = "password"
+ImportOnStartup = false
+Autosave = false
+AutoSavePeriod = 15 ; Number of minutes between autosave backups
