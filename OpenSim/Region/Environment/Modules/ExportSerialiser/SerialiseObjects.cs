@@ -26,6 +26,9 @@
  */
 
 using OpenSim.Region.Environment.Scenes;
+using System.IO;
+using System.Collections.Generic;
+using System.Xml;
 
 namespace OpenSim.Region.Environment.Modules.ExportSerialiser
 {
@@ -33,11 +36,54 @@ namespace OpenSim.Region.Environment.Modules.ExportSerialiser
     {
         #region IFileSerialiser Members
 
+
+        public void SaveSerialisedToFile(string fileName, Scene scene)
+        {
+            int primCount = 0;
+            string xmlstream = "<scene>";
+
+            List<EntityBase> EntityList = scene.GetEntities();
+            List<string> EntityXml = new List<string>();
+
+            foreach (EntityBase ent in EntityList)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    EntityXml.Add(((SceneObjectGroup)ent).ToXmlString2());
+                    primCount++;
+                }
+            }
+            EntityXml.Sort();
+
+            foreach (string xml in EntityXml)
+                xmlstream += xml;
+
+            xmlstream += "</scene>";
+
+            MemoryStream stream = new MemoryStream();
+            XmlTextWriter formatter = new XmlTextWriter(stream, System.Text.Encoding.UTF8);
+            XmlDocument doc = new XmlDocument();
+
+            doc.LoadXml(xmlstream);
+            formatter.Formatting = Formatting.Indented;
+            doc.WriteContentTo(formatter);
+            formatter.Flush();
+            StreamReader reader = new StreamReader(stream);
+
+            stream.Seek(0, SeekOrigin.Begin);
+
+            FileStream objectsFile = new FileStream(fileName, FileMode.Create);
+            stream.WriteTo(objectsFile);
+            objectsFile.Flush();
+            objectsFile.Close();
+
+        }
+
         public string WriteToFile(Scene scene, string dir)
         {
             string targetFileName = dir + "objects.xml";
 
-            scene.SavePrimsToXml2(targetFileName);
+            SaveSerialisedToFile(targetFileName, scene);
 
             return "objects.xml";
         }
