@@ -26,15 +26,8 @@
  */
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
-using libsecondlife;
-using Axiom.Math;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Framework;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugins
 {

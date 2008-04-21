@@ -28,7 +28,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net;
 using System.Text;
+using System.Web;
 using libsecondlife;
 using OpenSim.Region.ScriptEngine.Common.TRPC;
 
@@ -41,24 +43,24 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public delegate void ReceiveCommandDelegate(int ID, string Command, params object[] p);
         public event ReceiveCommandDelegate ReceiveCommand;
-        System.Collections.Generic.Dictionary<string, Type> TypeDictionary = new Dictionary<string, Type>();
+        Dictionary<string, Type> TypeDictionary = new Dictionary<string, Type>();
         Type[] Types = 
         {
-            typeof(System.String),
-            typeof(System.Int16),
-            typeof(System.Int32),
-            typeof(System.Int64),
-            typeof(System.Double),
-            typeof(System.Decimal),
-            typeof(System.Array),
+            typeof(String),
+            typeof(Int16),
+            typeof(Int32),
+            typeof(Int64),
+            typeof(Double),
+            typeof(Decimal),
+            typeof(Array),
             typeof(LLUUID),
-            typeof(System.UInt16),
-            typeof(System.UInt32),
-            typeof(System.UInt64)
+            typeof(UInt16),
+            typeof(UInt32),
+            typeof(UInt64)
         };
 
         // TODO: Maybe we should move queue into TCPSocket so we won't have to keep one queue instance per connection
-        private System.Collections.Generic.Dictionary<int, InQueueStruct> InQueue = new Dictionary<int, InQueueStruct>();
+        private Dictionary<int, InQueueStruct> InQueue = new Dictionary<int, InQueueStruct>();
         private class InQueueStruct
         {
             public byte[] Queue;
@@ -81,7 +83,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
         }
 
-        void TCPS_ClientConnected(int ID, System.Net.EndPoint Remote)
+        void TCPS_ClientConnected(int ID, EndPoint Remote)
         {
             // Create a incoming queue for this connection
             InQueueStruct iq = new InQueueStruct();
@@ -165,7 +167,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         for (int i = 1; i < parts.Length; i++)
                         {
                             string[] spl;
-                            spl = System.Web.HttpUtility.UrlDecode(parts[i]).Split('|');
+                            spl = HttpUtility.UrlDecode(parts[i]).Split('|');
                             string t = spl[0];
                             param[i - 1] = Convert.ChangeType(spl[1], TypeLookup(t));
                         }
@@ -192,7 +194,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             string tmpStr = Command;
             for (int i = 0; i < p.Length; i++)
             {
-                tmpStr += "," + p[i].GetType().ToString() + "|" + System.Web.HttpUtility.UrlEncode(p[i].ToString()); // .Replace(",", "%44")
+                tmpStr += "," + p[i].GetType().ToString() + "|" + HttpUtility.UrlEncode(p[i].ToString()); // .Replace(",", "%44")
             }
             tmpStr += "\n";
             byte[] byteData = Encoding.ASCII.GetBytes(tmpStr);

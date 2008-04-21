@@ -26,9 +26,7 @@
  */
 
 using System.Collections.Generic;
-
 using libsecondlife;
-
 using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Framework.Communications

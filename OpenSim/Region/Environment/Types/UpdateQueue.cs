@@ -25,13 +25,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
-using libsecondlife;
-using OpenSim.Region.Environment.Scenes;
-
-using System; 
 using System.Runtime.Serialization;
 using System.Security.Permissions;
+using libsecondlife;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Types
 {
@@ -97,7 +96,7 @@ namespace OpenSim.Region.Environment.Types
 
             if (info == null)
             {
-                throw new System.ArgumentNullException("info");
+                throw new ArgumentNullException("info");
             }
 
             m_queue = (Queue<SceneObjectPart>)info.GetValue("m_queue", typeof(Queue<SceneObjectPart>));
@@ -118,7 +117,7 @@ namespace OpenSim.Region.Environment.Types
         {
             if (info == null)
             {
-                throw new System.ArgumentNullException("info");
+                throw new ArgumentNullException("info");
             }
 
             List<Guid> ids_work = new List<Guid>();

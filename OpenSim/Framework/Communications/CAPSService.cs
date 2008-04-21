@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using OpenSim.Framework.Servers;
 
 namespace OpenSim.Framework.Communications
@@ -47,7 +48,7 @@ namespace OpenSim.Framework.Communications
         public string CapsRequest(string request, string path, string param)
         {
             System.Console.WriteLine("new caps request " + request + " from path " + path);
-            return System.String.Empty;
+            return String.Empty;
         }
     }
 }

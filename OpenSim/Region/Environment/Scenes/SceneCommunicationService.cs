@@ -28,10 +28,11 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Reflection;
 using libsecondlife;
+using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -41,7 +42,7 @@ namespace OpenSim.Region.Environment.Scenes
 
     public class SceneCommunicationService //one instance per region
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected CommunicationsManager m_commsProvider;
         protected RegionInfo m_regionInfo;
@@ -416,7 +417,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
-            catch (System.InvalidOperationException)
+            catch (InvalidOperationException)
             {
                 // We're ignoring a collection was modified error because this data gets old and outdated fast.
             }

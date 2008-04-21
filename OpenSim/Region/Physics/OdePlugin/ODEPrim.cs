@@ -27,8 +27,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Axiom.Math;
+using log4net;
 using Ode.NET;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
@@ -37,7 +40,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 {
     public class OdePrim : PhysicsActor
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public PhysicsVector _position;
         private PhysicsVector _velocity;
@@ -663,7 +666,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // This sleeper is there to moderate how long it takes between 
             // setting up the mesh and pre-processing it when we get rapid fire mesh requests on a single object
             
-            System.Threading.Thread.Sleep(10);
+            Thread.Sleep(10);
             
             //Kill Body so that mesh can re-make the geom
             if (IsPhysical && Body != (IntPtr) 0)
@@ -692,7 +695,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     SetGeom(d.CreateTriMesh(m_targetSpace, _triMeshData, parent_scene.triCallback, null, null));
                 }
             }
-            catch (System.AccessViolationException)
+            catch (AccessViolationException)
             {
                 
                 m_log.Error("[PHYSICS]: MESH LOCKED");
@@ -934,7 +937,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 {
                                     SetGeom(d.CreateSphere(m_targetSpace, _size.X / 2));
                                 }
-                                catch (System.AccessViolationException)
+                                catch (AccessViolationException)
                                 {
                                     m_log.Warn("[PHYSICS]: Unable to create physics proxy for object");
                                     ode.dunlock(_parent_scene.world);
@@ -948,7 +951,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 {
                                     SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
                                 }
-                                catch (System.AccessViolationException)
+                                catch (AccessViolationException)
                                 {
                                     m_log.Warn("[PHYSICS]: Unable to create physics proxy for object");
                                     ode.dunlock(_parent_scene.world);
@@ -963,7 +966,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
                             }
-                            catch (System.AccessViolationException)
+                            catch (AccessViolationException)
                             {
                                 m_log.Warn("[PHYSICS]: Unable to create physics proxy for object");
                                 ode.dunlock(_parent_scene.world);
@@ -990,7 +993,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             SetGeom(d.CreateBox(m_targetSpace, _size.X, _size.Y, _size.Z));
                         }
-                        catch (System.AccessViolationException)
+                        catch (AccessViolationException)
                         {
                             m_log.Warn("[PHYSICS]: Unable to create physics proxy for object");
                             ode.dunlock(_parent_scene.world);
@@ -1135,7 +1138,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     // If the PID Controller isn't active then we set our force 
                     // calculating base velocity to the current position
-                    if (System.Environment.OSVersion.Platform == PlatformID.Unix)
+                    if (Environment.OSVersion.Platform == PlatformID.Unix)
                     {
                         PID_D = 3200.0f;
                         //PID_P = 1400.0f;
@@ -1670,7 +1673,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 
 
-                System.Threading.Thread.Sleep(20);
+                Thread.Sleep(20);
                 if (IsPhysical)
                 {
                     if (Body != (IntPtr)0)

@@ -25,7 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.Reflection;
 using libsecondlife;
+using log4net;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
@@ -35,7 +38,7 @@ namespace OpenSim.Region.Environment.Modules
 {
     public class AvatarProfilesModule : IRegionModule
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene;
 
         public AvatarProfilesModule()
@@ -92,8 +95,8 @@ namespace OpenSim.Region.Environment.Modules
             {
                 remoteClient.SendAvatarProperties(profile.ID, profile.AboutText,
                     Util.ToDateTime(profile.Created).ToString(),
-                    System.String.Empty, profile.FirstLifeAboutText, profile.CanDoMask,
-                    profile.FirstLifeImage, profile.Image, System.String.Empty, partner);
+                    String.Empty, profile.FirstLifeAboutText, profile.CanDoMask,
+                    profile.FirstLifeImage, profile.Image, String.Empty, partner);
             }
             else
             {

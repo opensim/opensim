@@ -26,9 +26,7 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Runtime.Remoting.Lifetime;
-using System.Text;
 
 namespace OpenSim.Region.ScriptEngine.Common
 {

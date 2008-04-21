@@ -28,10 +28,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using libsecondlife;
 using libsecondlife.StructuredData;
+using log4net;
 using Nwc.XmlRpc;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.UserManagement
 {
@@ -41,7 +42,7 @@ namespace OpenSim.Framework.UserManagement
     /// </summary>
     public class LoginResponse
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Hashtable loginFlagsHash;
         private Hashtable globalTexturesHash;

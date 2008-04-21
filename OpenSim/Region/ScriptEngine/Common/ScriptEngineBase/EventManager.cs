@@ -35,7 +35,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     /// Prepares events so they can be directly executed upon a script by EventQueueManager, then queues it.
     /// </summary>
     [Serializable]
-    public class EventManager : OpenSim.Region.ScriptEngine.Common.ScriptServerInterfaces.RemoteEvents, iScriptEngineFunctionModule
+    public class EventManager : ScriptServerInterfaces.RemoteEvents, iScriptEngineFunctionModule
     {
         //
         // Class is instanced in "ScriptEngine" and Uses "EventQueueManager" that is also instanced in "ScriptEngine".

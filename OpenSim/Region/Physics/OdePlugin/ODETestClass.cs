@@ -26,15 +26,10 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using Axiom.Math;
-using Ode.NET;
-using OpenSim.Framework;
-using OpenSim.Framework.Console;
-using OpenSim.Region.Physics.Manager;
 using NUnit.Framework;
-using NUnit.Framework.SyntaxHelpers;
+using OpenSim.Framework;
+using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.OdePlugin
 {

@@ -26,8 +26,6 @@
 * 
 */
 
-using libsecondlife;
-
 namespace OpenSim.Region.Capabilities
 {
     [LLSDMap]

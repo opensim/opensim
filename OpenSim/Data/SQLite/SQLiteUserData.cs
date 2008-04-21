@@ -28,10 +28,11 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Reflection;
 using libsecondlife;
+using log4net;
 using Mono.Data.SqliteClient;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Data.SQLite
 {
@@ -40,7 +41,7 @@ namespace OpenSim.Data.SQLite
     /// </summary>
     public class SQLiteUserData : UserDataBase
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// The database manager
@@ -238,9 +239,9 @@ namespace OpenSim.Data.SQLite
         }
 
 
-        override public List<Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
+        override public List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
-            List<Framework.AvatarPickerAvatar> returnlist = new List<Framework.AvatarPickerAvatar>();
+            List<AvatarPickerAvatar> returnlist = new List<AvatarPickerAvatar>();
             string[] querysplit;
             querysplit = query.Split(' ');
             if (querysplit.Length == 2)
@@ -254,7 +255,7 @@ namespace OpenSim.Data.SQLite
                     {
                         while (reader.Read())
                         {
-                            Framework.AvatarPickerAvatar user = new Framework.AvatarPickerAvatar();
+                            AvatarPickerAvatar user = new AvatarPickerAvatar();
                             user.AvatarID = new LLUUID((string) reader["UUID"]);
                             user.firstName = (string) reader["username"];
                             user.lastName = (string) reader["surname"];
@@ -275,7 +276,7 @@ namespace OpenSim.Data.SQLite
                     {
                         while (reader.Read())
                         {
-                            Framework.AvatarPickerAvatar user = new Framework.AvatarPickerAvatar();
+                            AvatarPickerAvatar user = new AvatarPickerAvatar();
                             user.AvatarID = new LLUUID((string) reader["UUID"]);
                             user.firstName = (string) reader["username"];
                             user.lastName = (string) reader["surname"];
@@ -766,7 +767,7 @@ namespace OpenSim.Data.SQLite
 
                 pcmd.ExecuteNonQuery();
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 m_log.Info("[USERS]: users table already exists");
             }
@@ -775,7 +776,7 @@ namespace OpenSim.Data.SQLite
             {
                 fcmd.ExecuteNonQuery();
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 m_log.Info("[USERS]: userfriends table already exists");
             }

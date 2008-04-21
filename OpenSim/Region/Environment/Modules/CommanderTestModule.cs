@@ -26,13 +26,10 @@
  */
 
 using System;
-using System.Collections.Generic;
-using libsecondlife;
 using Nini.Config;
-using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Modules.ModuleFramework;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules
 {

@@ -25,9 +25,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Reflection;
+using System.Threading;
+using log4net;
 using Mono.Addins;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.RegionLoader.Filesystem;
 using OpenSim.Framework.RegionLoader.Web;
 
@@ -39,7 +41,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
     [Extension("/OpenSim/Startup")]
     public class LoadRegionsPlugin : IApplicationPlugin
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public void Initialise(OpenSimMain openSim)
         {
@@ -64,7 +66,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
             for (int i = 0; i < regionsToLoad.Length; i++)
             {
-                m_log.Debug("[LOADREGIONS]: Creating Region: " + regionsToLoad[i].RegionName + " (ThreadID: " + System.Threading.Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+                m_log.Debug("[LOADREGIONS]: Creating Region: " + regionsToLoad[i].RegionName + " (ThreadID: " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
                 openSim.CreateRegion(regionsToLoad[i], true); 
             }
 
@@ -94,7 +96,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             {
                 if (regionhandle == regionsToLoad[i].RegionHandle)
                 {
-                    m_log.Debug("[LOADREGIONS]: Creating Region: " + regionsToLoad[i].RegionName + " (ThreadID: " + System.Threading.Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+                    m_log.Debug("[LOADREGIONS]: Creating Region: " + regionsToLoad[i].RegionName + " (ThreadID: " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
                     openSim.CreateRegion(regionsToLoad[i], true);
                 }
             }

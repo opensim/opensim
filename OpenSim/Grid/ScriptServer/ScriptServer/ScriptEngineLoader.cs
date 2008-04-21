@@ -28,14 +28,14 @@
 using System;
 using System.IO;
 using System.Reflection;
-using OpenSim.Framework.Console;
+using log4net;
 using OpenSim.Region.ScriptEngine.Common;
 
 namespace OpenSim.Grid.ScriptServer.ScriptServer
 {
     internal class ScriptEngineLoader
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public ScriptServerInterfaces.ScriptEngine LoadScriptEngine(string EngineName)
         {

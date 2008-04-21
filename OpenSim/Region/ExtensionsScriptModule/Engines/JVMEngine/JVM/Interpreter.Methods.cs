@@ -25,6 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+
 namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
 {
     partial class Thread
@@ -46,8 +48,8 @@ namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
                             string typ =
                                 ((ClassRecord.PoolMethodRef) m_thread.currentClass.m_constantsPool[refIndex - 1]).
                                     mNameType.Type.Value;
-                            string typeparam = System.String.Empty;
-                            string typereturn = System.String.Empty;
+                            string typeparam = String.Empty;
+                            string typereturn = String.Empty;
                             int firstbrak = 0;
                             int secondbrak = 0;
                             firstbrak = typ.LastIndexOf('(');

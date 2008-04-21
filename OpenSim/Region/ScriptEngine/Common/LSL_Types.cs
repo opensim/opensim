@@ -26,8 +26,8 @@
  */
 
 using System;
-using System.Text.RegularExpressions;
 using System.Collections;
+using System.Text.RegularExpressions;
 
 namespace OpenSim.Region.ScriptEngine.Common
 {
@@ -639,7 +639,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             public double GeometricMean()
             {
                 double ret = 1.0;
-                list nums = list.ToDoubleList(this);
+                list nums = ToDoubleList(this);
                 for (int i = 0; i < nums.Data.Length; i++)
                 {
                     ret *= (double)nums.Data[i];
@@ -650,7 +650,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             public double HarmonicMean()
             {
                 double ret = 0.0;
-                list nums = list.ToDoubleList(this);
+                list nums = ToDoubleList(this);
                 for (int i = 0; i < nums.Data.Length; i++)
                 {
                     ret += 1.0 / (double)nums.Data[i];
@@ -661,7 +661,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             public double Variance()
             {
                 double s = 0;
-                list num = list.ToDoubleList(this);
+                list num = ToDoubleList(this);
                 for (int i = 0; i < num.Data.Length; i++)
                 {
                     s += Math.Pow((double)num.Data[i], 2);
@@ -701,7 +701,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 output = "[";
                 foreach (object o in m_data)
                 {
-                    if (o is System.String)
+                    if (o is String)
                     {
                         output = output + "\"" + o + "\", ";
                     }
@@ -837,7 +837,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             #region Operators
 
-            static public implicit operator System.Boolean(key k)
+            static public implicit operator Boolean(key k)
             {
                 if (k.value.Length == 0)
                 {
@@ -864,7 +864,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return new key(s);
             }
 
-            static public implicit operator System.String(key k)
+            static public implicit operator String(key k)
             {
                 return k.value;
             }
@@ -917,7 +917,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             #endregion
 
             #region Operators
-            static public implicit operator System.Boolean(LSLString s)
+            static public implicit operator Boolean(LSLString s)
             {
                 if (s.m_string.Length == 0)
                 {
@@ -929,7 +929,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
             }
 
-            static public implicit operator System.String(LSLString s)
+            static public implicit operator String(LSLString s)
             {
                 return s.m_string;
             }
@@ -1017,12 +1017,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
 
             #endregion
-            static public implicit operator System.Int32(LSLInteger i)
+            static public implicit operator Int32(LSLInteger i)
             {
                 return i.value;
             }
 
-            static public implicit operator System.Boolean(LSLInteger i)
+            static public implicit operator Boolean(LSLInteger i)
             {
                 if (i.value == 0)
                 {
@@ -1086,7 +1086,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             #region Operators
 
-            static public implicit operator System.Double(LSLFloat f)
+            static public implicit operator Double(LSLFloat f)
             {
                 return f.value;
             }
@@ -1097,7 +1097,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             //}
 
 
-            static public implicit operator System.Boolean(LSLFloat f)
+            static public implicit operator Boolean(LSLFloat f)
             {
                 if (f.value == 0)
                 {

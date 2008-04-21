@@ -27,7 +27,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using libsecondlife;
+using log4net;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
@@ -36,7 +38,7 @@ namespace OpenSim.Framework.Communications
 {
     public class CommunicationsManager
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected IUserService m_userService;
 

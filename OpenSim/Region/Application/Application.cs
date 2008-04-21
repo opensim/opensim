@@ -26,7 +26,7 @@
  */
 
 using System;
-using System.Net;
+using log4net.Config;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
@@ -44,7 +44,7 @@ namespace OpenSim
             // First line
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
-            log4net.Config.XmlConfigurator.Configure();
+            XmlConfigurator.Configure();
 
             Console.WriteLine("OpenSim " + VersionInfo.Version + "\n");
 

@@ -30,15 +30,17 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Security.Authentication;
+using System.Threading;
 using libsecondlife;
+using log4net;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Communications.Local;
 
@@ -46,7 +48,7 @@ namespace OpenSim.Region.Communications.OGS1
 {
     public class OGS1GridServices : IGridServices, IInterRegionCommunications
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private LocalBackEndServices m_localBackend = new LocalBackEndServices();
         private Dictionary<ulong, RegionInfo> m_remoteRegionInfoCache = new Dictionary<ulong, RegionInfo>();
@@ -1461,7 +1463,7 @@ namespace OpenSim.Region.Communications.OGS1
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IAsyncResult ar = socket.BeginConnect(m_EndPoint, ConnectedMethodCallback, socket);
             ar.AsyncWaitHandle.WaitOne(timeOut*1000, false);
-            System.Threading.Thread.Sleep(500);
+            Thread.Sleep(500);
         }
 
         public bool Available

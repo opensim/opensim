@@ -27,7 +27,6 @@
 
 using System;
 using System.Collections.Generic;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.Meshing

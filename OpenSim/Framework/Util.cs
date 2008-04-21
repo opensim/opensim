@@ -26,24 +26,26 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using libsecondlife;
+using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
 
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 namespace OpenSim.Framework
 {
     public class Util
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);        
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);        
         
         private static Random randomClass = new Random();
         private static uint nextXferID = 5000;
@@ -385,7 +387,7 @@ namespace OpenSim.Framework
         /// <returns>safe path</returns>
         public static string safePath(string path)
         {
-            return System.Text.RegularExpressions.Regex.Replace(path, @regexInvalidPathChars, string.Empty);
+            return Regex.Replace(path, @regexInvalidPathChars, string.Empty);
         }
 
         /// <summary>
@@ -395,7 +397,7 @@ namespace OpenSim.Framework
         /// <returns>safe filename</returns>
         public static string safeFileName(string filename)
         {
-            return System.Text.RegularExpressions.Regex.Replace(filename, @regexInvalidFileChars, string.Empty); ;
+            return Regex.Replace(filename, @regexInvalidFileChars, string.Empty); ;
         }
 
         //
@@ -520,7 +522,7 @@ namespace OpenSim.Framework
                 sr.Close();
                 return issue;
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 return "";
             }

@@ -25,21 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.Remoting.Lifetime;
-using System.Text;
-using System.Threading;
 using Axiom.Math;
 using libsecondlife;
-using OpenSim.Framework;
-using OpenSim.Framework.Communications;
+using Nini.Config;
+using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.ScriptEngine.Common;
-using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
-using OpenSim.Region.Environment;
-using OpenSim.Region.Environment.Modules.LandManagement;
+
 //using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL;
 
 namespace OpenSim.Region.ScriptEngine.Common
@@ -408,7 +400,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public bool osConsoleCommand(string command)
         {
             m_host.AddScriptLPS(1);
-            Nini.Config.IConfigSource config = new Nini.Config.IniConfigSource(Application.iniFilePath);
+            IConfigSource config = new IniConfigSource(Application.iniFilePath);
             if (config.Configs["LL-Functions"] == null)
                 config.AddConfig("LL-Functions");
 
@@ -416,7 +408,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 if (World.PermissionsMngr.CanRunConsoleCommand(m_host.OwnerID))
                 {
-                    OpenSim.Framework.Console.MainConsole.Instance.RunCommand(command);
+                    MainConsole.Instance.RunCommand(command);
                     return true;
                 }
                 return false;

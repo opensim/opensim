@@ -25,13 +25,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
-
 using libsecondlife;
-using System;
+using log4net;
 
 namespace OpenSim.Framework
 {        
@@ -43,7 +44,7 @@ namespace OpenSim.Framework
     public class TaskInventoryDictionary : Dictionary<LLUUID, TaskInventoryItem>, 
         ICloneable, IXmlSerializable
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);            
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);            
         
         private static XmlSerializer tiiSerializer = new XmlSerializer(typeof(TaskInventoryItem));        
         

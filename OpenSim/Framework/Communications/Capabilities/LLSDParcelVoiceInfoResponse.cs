@@ -27,7 +27,6 @@
 */
 
 using System.Collections;
-using libsecondlife;
 
 namespace OpenSim.Region.Capabilities
 {

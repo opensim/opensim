@@ -31,18 +31,18 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Xml;
 using libsecondlife;
+using log4net;
 using Nwc.XmlRpc;
-using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Data;
-using OpenSim.Framework.Servers;
 using OpenSim.Data.MySQL;
+using OpenSim.Framework;
+using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.GridServer
 {
     public class GridManager
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Dictionary<string, IGridData> _plugins = new Dictionary<string, IGridData>();
         private Dictionary<string, ILogData> _logplugins = new Dictionary<string, ILogData>();
@@ -630,7 +630,7 @@ namespace OpenSim.Grid.GridServer
                 //OpenSim.Data.MySQL.MySQLGridData dbengine = new OpenSim.Data.MySQL.MySQLGridData();
                 try
                 {
-                    OpenSim.Data.MySQL.MySQLGridData mysqldata = (OpenSim.Data.MySQL.MySQLGridData)(kvp.Value);
+                    MySQLGridData mysqldata = (MySQLGridData)(kvp.Value);
                     //DataResponse insertResponse = mysqldata.DeleteProfile(TheSim);
                     DataResponse insertResponse = mysqldata.DeleteProfile(uuid);
                     switch (insertResponse)

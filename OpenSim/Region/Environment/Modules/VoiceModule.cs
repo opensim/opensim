@@ -27,23 +27,24 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
+using System.Reflection;
 using libsecondlife;
+using log4net;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Capabilities;
-using Caps = OpenSim.Region.Capabilities.Caps;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using Caps=OpenSim.Region.Capabilities.Caps;
 
 namespace OpenSim.Region.Environment.Modules
 {
     public class VoiceModule : IRegionModule
     {
-        private static readonly log4net.ILog m_log = 
-            log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = 
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_scene;
         private IConfig m_config;

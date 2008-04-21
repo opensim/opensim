@@ -28,7 +28,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.Remoting.Lifetime;
 
 namespace OpenSim.Region.ScriptEngine.Common
 {

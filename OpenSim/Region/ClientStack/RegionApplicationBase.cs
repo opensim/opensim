@@ -25,10 +25,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Reflection;
 using libsecondlife;
+using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
@@ -42,8 +43,8 @@ namespace OpenSim.Region.ClientStack
 {
     public abstract class RegionApplicationBase : BaseOpenSimServer
     {
-        private static readonly log4net.ILog m_log 
-            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log 
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected AssetCache m_assetCache;
         protected Dictionary<EndPoint, uint> m_clientCircuits = new Dictionary<EndPoint, uint>();

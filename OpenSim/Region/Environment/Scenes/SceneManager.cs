@@ -28,10 +28,10 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Net.Sockets;
+using System.Reflection;
 using libsecondlife;
+using log4net;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -39,7 +39,7 @@ namespace OpenSim.Region.Environment.Scenes
 
     public class SceneManager
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public event RestartSim OnRestartSim;
 

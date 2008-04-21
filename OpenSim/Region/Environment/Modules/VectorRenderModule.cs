@@ -27,15 +27,17 @@
 
 using System;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
 using System.Net;
-using System.Globalization;
 using libsecondlife;
 using Nini.Config;
 using OpenJPEGNet;
-using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using Image=System.Drawing.Image;
+
 //using Cairo;
 
 namespace OpenSim.Region.Environment.Modules
@@ -96,9 +98,9 @@ namespace OpenSim.Region.Environment.Modules
             if ((size < 128) || (size > 1024))
                 size = 256;
             
-            Bitmap bitmap = new Bitmap(size, size, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            Bitmap bitmap = new Bitmap(size, size, PixelFormat.Format32bppArgb);
 
-            System.Drawing.Graphics graph = System.Drawing.Graphics.FromImage(bitmap);
+            Graphics graph = Graphics.FromImage(bitmap);
 
             extraParams = extraParams.ToLower();
             int alpha = 255;
@@ -166,11 +168,11 @@ namespace OpenSim.Region.Environment.Modules
         }
 */
 
-        private void GDIDraw(string data, System.Drawing.Graphics graph)
+        private void GDIDraw(string data, Graphics graph)
         {
-            System.Drawing.Point startPoint = new System.Drawing.Point(0, 0);
-            System.Drawing.Point endPoint = new System.Drawing.Point(0, 0);
-            System.Drawing.Pen drawPen = new Pen(System.Drawing.Color.Black, 7);
+            Point startPoint = new Point(0, 0);
+            Point endPoint = new Point(0, 0);
+            Pen drawPen = new Pen(Color.Black, 7);
             Font myFont = new Font("Times New Roman", 14);
             SolidBrush myBrush = new SolidBrush(Color.Black);
             char[] lineDelimiter = { ';' };
@@ -213,7 +215,7 @@ namespace OpenSim.Region.Environment.Modules
                     GetParams(partsDelimiter, ref nextLine, 5, ref x, ref y);
                     endPoint.X = (int)x;
                     endPoint.Y = (int)y;
-                    System.Drawing.Image image = ImageHttpRequest(nextLine);
+                    Image image = ImageHttpRequest(nextLine);
                     graph.DrawImage(image, (float)startPoint.X, (float)startPoint.Y, x, y);
                     startPoint.X += endPoint.X;
                     startPoint.Y += endPoint.Y;

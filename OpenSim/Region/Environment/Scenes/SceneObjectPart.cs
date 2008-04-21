@@ -28,18 +28,16 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Runtime.Serialization;
+using System.Security.Permissions;
 using System.Xml;
 using System.Xml.Serialization;
 using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
-using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
-using System.Runtime.Serialization;
-using System.Security.Permissions;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -324,7 +322,7 @@ namespace OpenSim.Region.Environment.Scenes
                 ParentGroup.ResetChildPrimPhysicsPositions();
                 
             }
-            catch (System.NullReferenceException)
+            catch (NullReferenceException)
             {
                 // Ignore, and skip over.
             }
@@ -2326,7 +2324,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (info == null)
             {
-                throw new System.ArgumentNullException("info");
+                throw new ArgumentNullException("info");
             }
 
             /*
@@ -2344,7 +2342,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (info == null)
             {
-                throw new System.ArgumentNullException("info");
+                throw new ArgumentNullException("info");
             }
 
             info.AddValue("m_inventoryFileName", m_inventoryFileName);

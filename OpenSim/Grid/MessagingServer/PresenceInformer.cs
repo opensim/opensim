@@ -25,18 +25,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using libsecondlife;
+using System.Reflection;
+using log4net;
 using Nwc.XmlRpc;
-using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Data;
-using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.MessagingServer
 {
@@ -44,7 +37,7 @@ namespace OpenSim.Grid.MessagingServer
     {
         public UserPresenceData presence1 = null;
         public UserPresenceData presence2 = null;
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public PresenceInformer()
         {

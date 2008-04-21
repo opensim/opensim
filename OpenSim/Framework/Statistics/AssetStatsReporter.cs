@@ -26,7 +26,6 @@
  */
 
 using System;
-using System.Text;
 using System.Timers;
 
 namespace OpenSim.Framework.Statistics

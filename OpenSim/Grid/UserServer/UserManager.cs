@@ -28,11 +28,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using libsecondlife;
+using log4net;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
-using OpenSim.Framework.Statistics;
 using OpenSim.Framework.UserManagement;
 
 namespace OpenSim.Grid.UserServer
@@ -41,7 +42,7 @@ namespace OpenSim.Grid.UserServer
 
     public class UserManager : UserManagerBase
     {            
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public event logOffUser OnLogOffUser;
         private logOffUser handlerLogOffUser = null;
@@ -389,7 +390,7 @@ namespace OpenSim.Grid.UserServer
                 {
                     userProfile.HomeLocationX = (float)Convert.ToDecimal((string)requestData["home_pos_x"]);
                 }
-                catch (System.InvalidCastException)
+                catch (InvalidCastException)
                 {
                     m_log.Error("[PROFILE]:Failed to set home postion x");
                 }
@@ -401,7 +402,7 @@ namespace OpenSim.Grid.UserServer
                 {
                     userProfile.HomeLocationY = (float)Convert.ToDecimal((string)requestData["home_pos_y"]);
                 }
-                catch (System.InvalidCastException)
+                catch (InvalidCastException)
                 {
                     m_log.Error("[PROFILE]:Failed to set home postion y");
                 }
@@ -412,7 +413,7 @@ namespace OpenSim.Grid.UserServer
                 {
                     userProfile.HomeLocationZ = (float)Convert.ToDecimal((string)requestData["home_pos_z"]);
                 }
-                catch (System.InvalidCastException)
+                catch (InvalidCastException)
                 {
                     m_log.Error("[PROFILE]:Failed to set home postion z");
                 }
@@ -423,7 +424,7 @@ namespace OpenSim.Grid.UserServer
                 {
                     userProfile.HomeLookAtX = (float)Convert.ToDecimal((string)requestData["home_look_x"]);
                 }
-                catch (System.InvalidCastException)
+                catch (InvalidCastException)
                 {
                     m_log.Error("[PROFILE]:Failed to set home lookat x");
                 }
@@ -434,7 +435,7 @@ namespace OpenSim.Grid.UserServer
                 {
                     userProfile.HomeLookAtY = (float)Convert.ToDecimal((string)requestData["home_look_y"]);
                 }
-                catch (System.InvalidCastException)
+                catch (InvalidCastException)
                 {
                     m_log.Error("[PROFILE]:Failed to set home lookat y");
                 }
@@ -445,7 +446,7 @@ namespace OpenSim.Grid.UserServer
                 {
                     userProfile.HomeLookAtZ = (float)Convert.ToDecimal((string)requestData["home_look_z"]);
                 }
-                catch (System.InvalidCastException)
+                catch (InvalidCastException)
                 {
                     m_log.Error("[PROFILE]:Failed to set home lookat z");
                 }

@@ -28,11 +28,11 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
 using libsecondlife;
-using OpenSim.Framework.Console;
+using log4net;
 
 namespace OpenSim.Data.MySQL
 {
@@ -41,7 +41,7 @@ namespace OpenSim.Data.MySQL
     /// </summary>
     public class MySQLGridData : GridDataBase
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// MySQL Database Manager

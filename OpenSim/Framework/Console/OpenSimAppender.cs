@@ -26,14 +26,9 @@
  */
 
 using System;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Globalization;
-
-using log4net.Core;
-using log4net.Layout;
 using log4net.Appender;
-using log4net.Util;
+using log4net.Core;
 
 namespace OpenSim.Framework.Console
 {

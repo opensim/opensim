@@ -25,11 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
+using System.Collections.Generic;
+using OpenSim.Region.Environment.Scenes;
+
 namespace OpenSim.Region.Environment.Modules.ExportSerialiser
 {
     public interface IRegionSerialiser
     {
-        System.Collections.Generic.List<string> SerialiseRegion(OpenSim.Region.Environment.Scenes.Scene scene, string saveDir);
+        List<string> SerialiseRegion(Scene scene, string saveDir);
     }
 }

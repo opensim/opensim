@@ -27,14 +27,14 @@
 
 using System;
 using System.Reflection;
-using OpenSim.Framework.Console;
+using log4net;
 using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment
 {
     public class StorageManager
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IRegionDataStore m_dataStore;
 

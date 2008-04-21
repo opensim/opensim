@@ -25,18 +25,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Data;
-using libsecondlife;
+using System.Reflection;
+using log4net;
 using NHibernate;
-using NHibernate.Cfg;
 
 namespace OpenSim.Data.NHibernate
 {
     internal class NHibernateManager
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private ISessionFactory factory;
         private ISession session;

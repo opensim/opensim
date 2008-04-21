@@ -26,6 +26,7 @@
  */
 
 using OpenSim.Region.Environment.Modules.Terrain;
+using OpenSim.Region.Environment.Modules.Terrain.FileLoaders;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.ExportSerialiser
@@ -36,7 +37,7 @@ namespace OpenSim.Region.Environment.Modules.ExportSerialiser
 
         public string WriteToFile(Scene scene, string dir)
         {
-            ITerrainLoader fileSystemExporter = new Terrain.FileLoaders.RAW32();
+            ITerrainLoader fileSystemExporter = new RAW32();
             string targetFileName = dir + "heightmap.r32";
 
             lock (scene.Heightmap)

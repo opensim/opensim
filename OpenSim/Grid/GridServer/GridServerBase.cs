@@ -26,16 +26,13 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Timers;
-using System.Collections;
-using System.Collections.Generic;
+using Mono.Addins;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
-using Nwc.XmlRpc;
-using Mono.Addins;
-using Mono.Addins.Description;
 
 namespace OpenSim.Grid.GridServer
 {

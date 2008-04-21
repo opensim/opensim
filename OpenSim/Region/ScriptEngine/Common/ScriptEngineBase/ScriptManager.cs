@@ -32,9 +32,7 @@ using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using libsecondlife;
-using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.ScriptEngine.Common;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 {
@@ -106,9 +104,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         #region Object init/shutdown
 
-        public ScriptEngineBase.ScriptEngine m_scriptEngine;
+        public ScriptEngine m_scriptEngine;
 
-        public ScriptManager(ScriptEngineBase.ScriptEngine scriptEngine)
+        public ScriptManager(ScriptEngine scriptEngine)
         {
             m_scriptEngine = scriptEngine;
         }

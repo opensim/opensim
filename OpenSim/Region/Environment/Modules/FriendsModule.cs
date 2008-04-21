@@ -26,8 +26,10 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using libsecondlife;
 using libsecondlife.Packets;
+using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
@@ -38,7 +40,7 @@ namespace OpenSim.Region.Environment.Modules
 {
     public class FriendsModule : IRegionModule
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private List<Scene> m_scene = new List<Scene>();
 

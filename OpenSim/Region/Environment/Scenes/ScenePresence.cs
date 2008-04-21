@@ -27,16 +27,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.Serialization;
+using System.Security.Permissions;
 using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
+using log4net;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Types;
 using OpenSim.Region.Physics.Manager;
-using OpenSim.Region.Environment.Interfaces;
-using System.Runtime.Serialization;
-using System.Security.Permissions;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -48,7 +48,7 @@ namespace OpenSim.Region.Environment.Scenes
 //            System.Console.WriteLine("[ScenePresence] Destructor called");
 //        }
         
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public static AvatarAnimations Animations = new AvatarAnimations();
         public static byte[] DefaultTexture;
@@ -1746,7 +1746,7 @@ namespace OpenSim.Region.Environment.Scenes
                             movementvector.Z = force.Z;
                             Velocity = movementvector;
                         }
-                        catch (System.NullReferenceException)
+                        catch (NullReferenceException)
                         {
                             // Under extreme load, this returns a NullReference Exception that we can ignore. 
                             // Ignoring this causes no movement to be sent to the physics engine...  
@@ -1800,7 +1800,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (info == null)
                 {
-                    throw new System.ArgumentNullException("info");
+                    throw new ArgumentNullException("info");
                 }
 
                 FullID = new LLUUID((Guid)info.GetValue("FullID", typeof(Guid)));
@@ -1817,7 +1817,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (info == null)
                 {
-                    throw new System.ArgumentNullException("info");
+                    throw new ArgumentNullException("info");
                 }
 
                 info.AddValue("FullID", FullID.UUID);
@@ -1928,7 +1928,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (info == null)
             {
-                throw new System.ArgumentNullException("info");
+                throw new ArgumentNullException("info");
             }
 /* JB
             if (Animations == null)
@@ -2100,7 +2100,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (info == null)
             {
-                throw new System.ArgumentNullException("info");
+                throw new ArgumentNullException("info");
             }
 
             base.GetObjectData(info, context);

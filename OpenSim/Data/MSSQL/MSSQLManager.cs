@@ -32,8 +32,8 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Reflection;
 using libsecondlife;
+using log4net;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Data.MSSQL
 {
@@ -42,7 +42,7 @@ namespace OpenSim.Data.MSSQL
     /// </summary>
     public class MSSQLManager
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// The database connection object

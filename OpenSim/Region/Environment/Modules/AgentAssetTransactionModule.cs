@@ -27,7 +27,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using libsecondlife;
+using log4net;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
@@ -129,8 +131,8 @@ namespace OpenSim.Region.Environment.Modules
     //should merge this classes and clean up
     public class AgentAssetTransactionsManager
     {
-        private static readonly log4net.ILog m_log
-            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // Fields
         public Scene MyScene;

@@ -27,23 +27,21 @@
 
 using System;
 using System.Collections.Generic;
-using Axiom.Math;
+using System.Reflection;
+using System.Text;
 using libsecondlife;
 using libsecondlife.Packets;
+using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Console;
-using System.IO;
-using System.Text;
-using System.Xml;
 using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Scenes
 {
     public partial class Scene
     {
-        private static readonly log4net.ILog m_log 
-            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log 
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Start all the scripts in the scene which should be started.
@@ -454,7 +452,7 @@ namespace OpenSim.Region.Environment.Scenes
                 InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
                 if (item != null)
                 {
-                    if (newName != System.String.Empty)
+                    if (newName != String.Empty)
                     {
                         item.Name = newName;
                     }
@@ -1014,7 +1012,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void RezSingleAttachment(IClientAPI remoteClient, LLUUID itemID, uint AttachmentPt,
                                     uint ItemFlags, uint NextOwnerMask)
         {
-            System.Console.WriteLine("RezSingleAttachment: unimplemented yet");
+            Console.WriteLine("RezSingleAttachment: unimplemented yet");
         }
     }
 }

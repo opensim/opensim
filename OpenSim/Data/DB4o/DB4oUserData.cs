@@ -174,10 +174,10 @@ namespace OpenSim.Data.DB4o
 
         
 
-        public List<Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
+        public List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
             //Do nothing yet
-            List<Framework.AvatarPickerAvatar> returnlist = new List<Framework.AvatarPickerAvatar>();
+            List<AvatarPickerAvatar> returnlist = new List<AvatarPickerAvatar>();
             return returnlist;
         }
 

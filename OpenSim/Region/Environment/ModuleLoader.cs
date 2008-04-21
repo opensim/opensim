@@ -29,8 +29,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using log4net;
 using Nini.Config;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules;
 using OpenSim.Region.Environment.Scenes;
@@ -39,7 +39,7 @@ namespace OpenSim.Region.Environment
 {
     public class ModuleLoader
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public Dictionary<string, Assembly> LoadedAssemblys = new Dictionary<string, Assembly>();
 

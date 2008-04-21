@@ -26,12 +26,8 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Xml;
 using OpenSim.Region.Environment.Scenes;
-using libsecondlife;
 
 namespace OpenSim.Region.DataSnapshot
 {

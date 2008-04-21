@@ -29,14 +29,14 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using libsecondlife;
-using OpenSim.Framework.Console;
+using log4net;
 
 namespace OpenSim.Framework.Communications
 {
     public abstract class InventoryServiceBase : IInventoryServices
     {
-        private static readonly log4net.ILog m_log 
-            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log 
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected Dictionary<string, IInventoryData> m_plugins = new Dictionary<string, IInventoryData>();
 

@@ -32,8 +32,8 @@ using System.Reflection;
 using System.Security.Cryptography;
 using libsecondlife;
 using libsecondlife.StructuredData;
+using log4net;
 using Nwc.XmlRpc;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.Statistics;
 
 namespace OpenSim.Framework.UserManagement
@@ -43,8 +43,8 @@ namespace OpenSim.Framework.UserManagement
     /// </summary>
     public abstract class UserManagerBase : IUserService
     {
-        private static readonly log4net.ILog m_log 
-            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log 
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public UserConfig _config;
         private Dictionary<string, IUserData> _plugins = new Dictionary<string, IUserData>();

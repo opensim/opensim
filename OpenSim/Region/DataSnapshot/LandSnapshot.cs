@@ -28,18 +28,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Xml;
 using System.Reflection;
-
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Modules.LandManagement;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Framework;
-using OpenSim.Framework.Console;
-using OpenSim.Framework.Communications;
+using System.Xml;
 using libsecondlife;
-using libsecondlife.Packets;
+using log4net;
+using OpenSim.Framework;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Modules.LandManagement;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.DataSnapshot
 {
@@ -48,7 +44,7 @@ namespace OpenSim.Region.DataSnapshot
         private Scene m_scene = null;
         private DataSnapshotManager m_parent = null;
         //private Dictionary<int, Land> m_landIndexed = new Dictionary<int, Land>();
-        private log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         #region Dead code
 

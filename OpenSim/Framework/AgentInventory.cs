@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
@@ -230,7 +231,7 @@ namespace OpenSim.Framework
         public LLUUID CreatorID;
         public sbyte InvType;
         public sbyte Type;
-        public string Name = System.String.Empty;
+        public string Name = String.Empty;
         public string Description;
 
         public InventoryItem()
@@ -241,7 +242,7 @@ namespace OpenSim.Framework
         public string ExportString()
         {
             string typ = "notecard";
-            string result = System.String.Empty;
+            string result = String.Empty;
             result += "\tinv_object\t0\n\t{\n";
             result += "\t\tobj_id\t%s\n";
             result += "\t\tparent_id\t" + ItemID.ToString() + "\n";

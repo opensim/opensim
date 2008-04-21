@@ -27,11 +27,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Reflection;
 using libsecondlife;
 using libsecondlife.Packets;
+using log4net;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment
@@ -41,7 +41,7 @@ namespace OpenSim.Region.Environment
     /// </summary>
     public class EstateManager
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_scene;
         private RegionInfo m_regInfo;

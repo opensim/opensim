@@ -30,7 +30,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-using TCPCommon=OpenSim.Region.ScriptEngine.Common.TRPC.TCPCommon;
 
 namespace OpenSim.Region.ScriptEngine.Common.TRPC
 {

@@ -29,6 +29,8 @@ using System;
 using System.IO;
 using System.Reflection;
 using libsecondlife;
+using log4net;
+using log4net.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.AssetLoader.Filesystem;
 using OpenSim.Framework.Console;
@@ -42,7 +44,7 @@ namespace OpenSim.Grid.AssetServer
     /// </summary>
     public class OpenAsset_Main : BaseOpenSimServer, conscmd_callback
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public AssetConfig m_config;
 
@@ -56,7 +58,7 @@ namespace OpenSim.Grid.AssetServer
         [STAThread]
         public static void Main(string[] args)
         {
-            log4net.Config.XmlConfigurator.Configure();
+            XmlConfigurator.Configure();
 
             m_log.Info("Starting...\n");
 

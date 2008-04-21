@@ -26,18 +26,18 @@
  */
 
 using System;
-using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 using libsecondlife;
-using OpenSim.Framework.Console;
+using log4net;
 using OpenSim.Framework.AssetLoader.Filesystem;
 
 namespace OpenSim.Framework.Communications.Cache
 {
     public abstract class AssetServerBase : IAssetServer
     {
-        private static readonly log4net.ILog m_log 
-            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log 
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected IAssetReceiver m_receiver;
         protected BlockingQueue<AssetRequest> m_assetRequests;
@@ -100,7 +100,7 @@ namespace OpenSim.Framework.Communications.Cache
             m_localAssetServerThread.Name = "LocalAssetServerThread";
             m_localAssetServerThread.IsBackground = true;
             m_localAssetServerThread.Start();
-            OpenSim.Framework.ThreadTracker.Add(m_localAssetServerThread);
+            ThreadTracker.Add(m_localAssetServerThread);
         }
 
         private void RunRequests()

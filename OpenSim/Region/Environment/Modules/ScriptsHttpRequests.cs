@@ -33,6 +33,7 @@ using System.Text;
 using System.Threading;
 using libsecondlife;
 using Nini.Config;
+using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
@@ -289,7 +290,7 @@ namespace OpenSim.Region.Environment.Modules
             httpThread.IsBackground = true;
             finished = false;
             httpThread.Start();
-            OpenSim.Framework.ThreadTracker.Add(httpThread);
+            ThreadTracker.Add(httpThread);
         }
 
         /*

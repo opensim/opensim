@@ -27,13 +27,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Reflection;
+using log4net;
 using Nini.Config;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.ScriptEngine.Common;
-using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 {
@@ -42,9 +40,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     /// </summary>
     /// 
     [Serializable]
-    public abstract class ScriptEngine : IRegionModule, OpenSim.Region.ScriptEngine.Common.ScriptServerInterfaces.ScriptEngine, iScriptEngineFunctionModule
+    public abstract class ScriptEngine : IRegionModule, ScriptServerInterfaces.ScriptEngine, iScriptEngineFunctionModule
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public static List<ScriptEngine> ScriptEngines = new List<ScriptEngine>();
         public Scene World;
@@ -75,7 +73,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public abstract ScriptManager _GetScriptManager();
 
-        public log4net.ILog Log
+        public ILog Log
         {
             get { return m_log; }
         }

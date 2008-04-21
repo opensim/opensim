@@ -26,14 +26,11 @@
 * 
 */
 
-using System;
-using System.Collections.Generic;
 using System.Collections;
-using System.Text;
+using System.Reflection;
 using System.Xml;
+using log4net;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Framework.Servers;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.DataSnapshot
 {
@@ -41,7 +38,7 @@ namespace OpenSim.Region.DataSnapshot
     {
         private Scene m_scene = null;
         private DataSnapshotManager m_externalData = null;
-        private log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public DataRequestHandler(Scene scene, DataSnapshotManager externalData)
         {

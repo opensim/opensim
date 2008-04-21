@@ -26,7 +26,6 @@
  */
 
 using System;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework
 {

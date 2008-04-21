@@ -27,15 +27,16 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 using System.Xml.Serialization;
-using OpenSim.Framework.Console;
+using log4net;
 using OpenSim.Framework.Servers;
 
 namespace OpenSim.Framework.Communications.Cache
 {
     public class GridAssetClient : AssetServerBase
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string _assetServerUrl;
 

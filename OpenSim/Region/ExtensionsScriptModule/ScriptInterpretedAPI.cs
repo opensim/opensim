@@ -26,9 +26,10 @@
  */
 
 using System;
+using System.Reflection;
 using System.Text;
 using Axiom.Math;
-using OpenSim.Framework.Console;
+using log4net;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using Key = libsecondlife.LLUUID;
@@ -44,7 +45,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
     /// <remarks>Avoid at all costs. This should ONLY be used for LSL.</remarks>
     internal class ScriptInterpretedAPI
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected Key m_object;
         protected Scene m_scene;

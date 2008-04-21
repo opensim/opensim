@@ -26,9 +26,9 @@
  */
 
 using System;
-using OpenSim.Framework;
-using OpenSim.Data.Base;
 using libsecondlife;
+using OpenSim.Data.Base;
+using OpenSim.Framework;
 
 namespace OpenSim.Data
 {

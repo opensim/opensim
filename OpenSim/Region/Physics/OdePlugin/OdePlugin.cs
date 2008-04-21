@@ -27,11 +27,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Axiom.Math;
+using log4net;
 using Ode.NET;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Physics.Manager;
 
 //using OpenSim.Region.Physics.OdePlugin.Meshing;
@@ -114,12 +116,12 @@ namespace OpenSim.Region.Physics.OdePlugin
 
     public class OdeScene : PhysicsScene
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Dictionary<string, sCollisionData> m_storedCollisions = new Dictionary<string, sCollisionData>();
 
         CollisionLocker ode;
 
-        protected Random fluidRandomizer = new Random(System.Environment.TickCount);
+        protected Random fluidRandomizer = new Random(Environment.TickCount);
 
         private const uint m_regionWidth = Constants.RegionSize;
         private const uint m_regionHeight = Constants.RegionSize;
@@ -331,7 +333,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     d.SpaceCollide2(g1, g2, IntPtr.Zero, nearCallback);
                 }
-                catch (System.AccessViolationException)
+                catch (AccessViolationException)
                 {
                     m_log.Warn("[PHYSICS]: Unable to collide test a space");
                     return;
@@ -404,7 +406,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 ode.drelease(world);
                 base.TriggerPhysicsBasedRestart();
             }
-            catch (System.AccessViolationException)
+            catch (AccessViolationException)
             {
                 
                 m_log.Warn("[PHYSICS]: Unable to collide test an object");
@@ -1166,7 +1168,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             }
 
                         }
-                        catch (System.AccessViolationException)
+                        catch (AccessViolationException)
                         {
                             m_log.Info("[PHYSICS]: Couldn't remove prim from physics scene, it was already be removed.");
                         }
@@ -1243,7 +1245,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // never be called if the prim is physical(active)
 
             // All physical prim end up in the root space
-            System.Threading.Thread.Sleep(20);
+            Thread.Sleep(20);
             if (currentspace != space)
             {
                 //m_log.Info("[SPACE]: C:" + currentspace.ToString() + " g:" + geom.ToString());

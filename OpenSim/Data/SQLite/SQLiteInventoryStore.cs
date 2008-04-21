@@ -30,15 +30,15 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using libsecondlife;
+using log4net;
 using Mono.Data.SqliteClient;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Data.SQLite
 {
     public class SQLiteInventoryStore : SQLiteUtil, IInventoryData
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private const string invItemsSelect = "select * from inventoryitems";
         private const string invFoldersSelect = "select * from inventoryfolders";

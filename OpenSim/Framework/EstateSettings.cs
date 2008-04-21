@@ -27,14 +27,15 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 using libsecondlife;
-using OpenSim.Framework.Console;
+using log4net;
 
 namespace OpenSim.Framework
 {
     public class EstateSettings
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         //Settings to this island
         private float m_billableFactor;

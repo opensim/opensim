@@ -25,16 +25,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System.IO;
+using System.Reflection;
 using Db4objects.Db4o;
 using Db4objects.Db4o.Query;
 using libsecondlife;
-using OpenSim.Framework.Console;
+using log4net;
 
 namespace OpenSim.Framework.Communications.Cache
 {
     public class LocalAssetServer : AssetServerBase
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IObjectContainer db;
 

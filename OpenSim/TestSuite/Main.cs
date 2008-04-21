@@ -26,15 +26,7 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using libsecondlife;
-using libsecondlife.Packets;
 using Nini.Config;
-using log4net;
-using log4net.Config;
-using System.Threading;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.TestSuite
 {
@@ -89,7 +81,7 @@ namespace OpenSim.TestSuite
         
         private static void Help()
         {
-            System.Console.WriteLine(
+            Console.WriteLine(
                                      "usage: pCampBot <-loginuri loginuri> [OPTIONS]\n" +
                                      "Spawns a set of bots to test an OpenSim region\n\n" +
                                      "  -l, -loginuri      loginuri for sim to log into (required)\n" +

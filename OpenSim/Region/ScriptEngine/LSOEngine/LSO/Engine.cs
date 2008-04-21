@@ -33,7 +33,6 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Threading;
 using OpenSim.Region.ScriptEngine.Common;
-using OpenSim.Region.ScriptEngine.LSOEngine.LSO;
 
 namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
 {
@@ -59,11 +58,11 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
             string DLL_FileName = asmName.Name + ".dll";
             string DLL_FileName_WithPath = Path.GetDirectoryName(LSO_FileName) + @"\" + DLL_FileName;
 
-            LSOEngine.LSO.Common.SendToLog("LSO File Name: " + Path.GetFileName(LSO_FileName));
-            LSOEngine.LSO.Common.SendToLog("Assembly name: " + asmName.Name);
-            LSOEngine.LSO.Common.SendToLog("Assembly File Name: " + asmName.Name + ".dll");
-            LSOEngine.LSO.Common.SendToLog("Starting processing of LSL ByteCode...");
-            LSOEngine.LSO.Common.SendToLog(String.Empty);
+            Common.SendToLog("LSO File Name: " + Path.GetFileName(LSO_FileName));
+            Common.SendToLog("Assembly name: " + asmName.Name);
+            Common.SendToLog("Assembly File Name: " + asmName.Name + ".dll");
+            Common.SendToLog("Starting processing of LSL ByteCode...");
+            Common.SendToLog(String.Empty);
 
 
             // Create Assembly
@@ -104,7 +103,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
             LSOP.Parse();
 
             // Constructor has to be created AFTER LSO_Parser because of accumulated variables
-            if (LSOEngine.LSO.Common.IL_CreateConstructor)
+            if (Common.IL_CreateConstructor)
                 IL_CREATE_CONSTRUCTOR(typeBuilder, LSOP);
 
             LSOP.CloseFile();
@@ -113,15 +112,15 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
              */
 
 
-            LSOEngine.LSO.Common.SendToLog("Attempting to compile assembly...");
+            Common.SendToLog("Attempting to compile assembly...");
             // Compile it
             Type type = typeBuilder.CreateType();
-            LSOEngine.LSO.Common.SendToLog("Compilation successful!");
+            Common.SendToLog("Compilation successful!");
 
-            LSOEngine.LSO.Common.SendToLog("Saving assembly: " + DLL_FileName);
+            Common.SendToLog("Saving assembly: " + DLL_FileName);
             asmBuilder.Save(DLL_FileName);
 
-            LSOEngine.LSO.Common.SendToLog("Returning assembly filename: " + DLL_FileName);
+            Common.SendToLog("Returning assembly filename: " + DLL_FileName);
 
 
             return DLL_FileName;
@@ -166,7 +165,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
 
         private static void IL_CREATE_CONSTRUCTOR(TypeBuilder typeBuilder, LSO_Parser LSOP)
         {
-            LSOEngine.LSO.Common.SendToDebug("IL_CREATE_CONSTRUCTOR()");
+            Common.SendToDebug("IL_CREATE_CONSTRUCTOR()");
             //ConstructorBuilder constructor = typeBuilder.DefineConstructor(
             //            MethodAttributes.Public,
             //            CallingConventions.Standard, 
@@ -235,7 +234,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
                     Type datatype = null;
 
                     // Push data to stack
-                    LSOEngine.LSO.Common.SendToDebug("Adding to static (" + pos + ") type: " +
+                    Common.SendToDebug("Adding to static (" + pos + ") type: " +
                                                      ((LSO_Enums.Variable_Type_Codes) sb.ObjectType).ToString() + " (" + sb.ObjectType +
                                                      ")");
                     switch ((LSO_Enums.Variable_Type_Codes) sb.ObjectType)

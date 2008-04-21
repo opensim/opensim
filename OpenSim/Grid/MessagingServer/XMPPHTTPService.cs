@@ -27,19 +27,16 @@
 
 using System;
 using System.IO;
-using System.Text;
-using System.Xml;
-using System.Xml.Serialization;
+using System.Reflection;
 using libsecondlife;
-using OpenSim.Framework;
-using OpenSim.Framework.Console;
+using log4net;
 using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.MessagingServer
 {
     public class XMPPHTTPStreamHandler : BaseStreamHandler
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 
         /// <summary>
@@ -85,7 +82,7 @@ namespace OpenSim.Grid.MessagingServer
 
     public class PostXMPPStreamHandler : BaseStreamHandler
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public override byte[] Handle(string path, Stream request)
         {

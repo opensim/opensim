@@ -25,18 +25,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using libsecondlife;
+using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Communications.Local
 {
     public class LocalBackEndServices : IGridServices, IInterRegionCommunications
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected Dictionary<ulong, RegionInfo> m_regions = new Dictionary<ulong, RegionInfo>();
 
@@ -47,7 +49,7 @@ namespace OpenSim.Region.Communications.Local
 
         private Dictionary<string, string> m_queuedGridSettings = new Dictionary<string, string>();
 
-        public string _gdebugRegionName = System.String.Empty;
+        public string _gdebugRegionName = String.Empty;
 
         bool m_bAvailable=true;
 
@@ -67,7 +69,7 @@ namespace OpenSim.Region.Communications.Local
             set { _gdebugRegionName = value; }
         }
 
-        public string _rdebugRegionName = System.String.Empty;
+        public string _rdebugRegionName = String.Empty;
 
         public string rdebugRegionName
         {

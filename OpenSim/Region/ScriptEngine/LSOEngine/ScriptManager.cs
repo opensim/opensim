@@ -26,11 +26,6 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Threading;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
@@ -39,7 +34,7 @@ using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 
 namespace OpenSim.Region.ScriptEngine.LSOEngine
 {
-    public class ScriptManager : OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.ScriptManager
+    public class ScriptManager : Common.ScriptEngineBase.ScriptManager
     {
         public ScriptManager(Common.ScriptEngineBase.ScriptEngine scriptEngine)
             : base(scriptEngine)

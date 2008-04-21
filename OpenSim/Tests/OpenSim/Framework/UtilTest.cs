@@ -28,7 +28,6 @@
 using libsecondlife;
 using NUnit.Framework;
 using NUnit.Framework.SyntaxHelpers;
-
 using OpenSim.Tests.Common;
 
 namespace OpenSim.Framework.Tests

@@ -27,14 +27,15 @@
 
 using System;
 using System.Collections;
-using System.Net;
 using System.IO;
+using System.Net;
+using System.Reflection;
 using System.Timers;
 using libsecondlife;
+using log4net;
 using Mono.Addins;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Scenes;
 
@@ -46,7 +47,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
     [Extension("/OpenSim/Startup")]
     public class RemoteAdminPlugin : IApplicationPlugin
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private OpenSimMain m_app;
         private BaseHttpServer m_httpd;

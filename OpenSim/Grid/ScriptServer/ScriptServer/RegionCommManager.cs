@@ -27,7 +27,7 @@
 
 using System.Collections.Generic;
 using System.Threading;
-using OpenSim.Framework.Console;
+using OpenSim.Framework;
 
 namespace OpenSim.Grid.ScriptServer
 {
@@ -61,7 +61,7 @@ namespace OpenSim.Grid.ScriptServer
             listenThread.Name = "ListenThread";
             listenThread.IsBackground = true;
             listenThread.Start();
-            OpenSim.Framework.ThreadTracker.Add(listenThread);
+            ThreadTracker.Add(listenThread);
         }
 
         /// <summary>

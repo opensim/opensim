@@ -27,12 +27,13 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 using libsecondlife;
+using log4net;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Statistics;
 
@@ -40,7 +41,7 @@ namespace OpenSim.Grid.AssetServer
 {
     public class GetAssetStreamHandler : BaseStreamHandler
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private OpenAsset_Main m_assetManager;
         private IAssetProvider m_assetProvider;
@@ -115,7 +116,7 @@ namespace OpenSim.Grid.AssetServer
 
     public class PostAssetStreamHandler : BaseStreamHandler
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private OpenAsset_Main m_assetManager;
         private IAssetProvider m_assetProvider;

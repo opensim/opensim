@@ -26,11 +26,11 @@
  */
 
 using System;
+using System.Runtime.Serialization;
+using System.Security.Permissions;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
-using System.Runtime.Serialization;
-using System.Security.Permissions;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -159,7 +159,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (info == null)
             {
-                throw new System.ArgumentNullException("info");
+                throw new ArgumentNullException("info");
             }
 
             m_scenePresenceID = new LLUUID((Guid)info.GetValue("m_scenePresenceID", typeof(Guid)));
@@ -182,7 +182,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (info == null)
             {
-                throw new System.ArgumentNullException("info");
+                throw new ArgumentNullException("info");
             }
 
             info.AddValue("m_scenePresenceID", m_scenePresenceID.UUID);

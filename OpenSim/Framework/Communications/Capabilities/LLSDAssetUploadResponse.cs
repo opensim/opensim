@@ -25,13 +25,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+
 namespace OpenSim.Region.Capabilities
 {
     [LLSDMap]
     public class LLSDAssetUploadResponse
     {
-        public string uploader = System.String.Empty;
-        public string state = System.String.Empty;
+        public string uploader = String.Empty;
+        public string state = String.Empty;
 
         public LLSDAssetUploadResponse()
         {

@@ -26,25 +26,23 @@
  */
 
 using System;
-using System.Net;
-using System.Net.Sockets;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
+using System.Reflection;
 using System.Threading;
-//using System.Xml;
 using libsecondlife;
+using log4net;
 using Nwc.XmlRpc;
-using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Data;
-using OpenSim.Framework.Servers;
-using FriendRights = libsecondlife.FriendRights;
+using OpenSim.Framework;
+//using System.Xml;
 
 namespace OpenSim.Grid.MessagingServer
 {
     public class MessageService
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private MessageServerConfig m_cfg;
 

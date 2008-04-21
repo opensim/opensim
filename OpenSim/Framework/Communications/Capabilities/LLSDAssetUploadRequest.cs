@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using libsecondlife;
 
 namespace OpenSim.Region.Capabilities
@@ -32,11 +33,11 @@ namespace OpenSim.Region.Capabilities
     [LLSDMap]
     public class LLSDAssetUploadRequest
     {
-        public string asset_type = System.String.Empty;
-        public string description = System.String.Empty;
+        public string asset_type = String.Empty;
+        public string description = String.Empty;
         public LLUUID folder_id = LLUUID.Zero;
-        public string inventory_type = System.String.Empty;
-        public string name = System.String.Empty;
+        public string inventory_type = String.Empty;
+        public string name = String.Empty;
 
         public LLSDAssetUploadRequest()
         {

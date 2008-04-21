@@ -26,7 +26,6 @@
  */
 
 using System.Collections.Generic;
-using OpenSim.Data.Base;
 
 namespace OpenSim.Data.Base
 {

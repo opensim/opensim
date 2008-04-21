@@ -31,7 +31,6 @@ using System.Net.Sockets;
 using System.Xml;
 using libsecondlife;
 using Nini.Config;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework
 {

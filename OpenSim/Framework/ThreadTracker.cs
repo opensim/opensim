@@ -28,7 +28,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 
 namespace OpenSim.Framework
@@ -36,7 +35,7 @@ namespace OpenSim.Framework
     public static class ThreadTracker
     {
         public static List<ThreadTrackerItem> m_Threads;
-        public static System.Threading.Thread ThreadTrackerThread;
+        public static Thread ThreadTrackerThread;
         private static readonly long ThreadTimeout = 30 * 10000000;
 
         static ThreadTracker()
@@ -46,7 +45,7 @@ namespace OpenSim.Framework
             ThreadTrackerThread = new Thread(ThreadTrackerThreadLoop);
             ThreadTrackerThread.Name = "ThreadTrackerThread";
             ThreadTrackerThread.IsBackground = true;
-            ThreadTrackerThread.Priority = System.Threading.ThreadPriority.BelowNormal;
+            ThreadTrackerThread.Priority = ThreadPriority.BelowNormal;
             ThreadTrackerThread.Start();
 #endif
         }
@@ -60,7 +59,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public static void Add(System.Threading.Thread thread)
+        public static void Add(Thread thread)
         {
 #if DEBUG
             lock (m_Threads)
@@ -73,7 +72,7 @@ namespace OpenSim.Framework
 #endif
         }
 
-        public static void Remove(System.Threading.Thread thread)
+        public static void Remove(Thread thread)
         {
 #if DEBUG
             lock (m_Threads)
@@ -126,7 +125,7 @@ namespace OpenSim.Framework
 
         public class ThreadTrackerItem
         {
-            public System.Threading.Thread Thread;
+            public Thread Thread;
             public long LastSeenActive;
         }
     }

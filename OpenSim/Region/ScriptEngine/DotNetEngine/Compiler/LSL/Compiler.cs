@@ -30,10 +30,10 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 using Microsoft.CSharp;
-using Microsoft.VisualBasic;
 using Microsoft.JScript;
+using Microsoft.VisualBasic;
+using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
@@ -62,8 +62,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         private bool WriteScriptSourceToDebugFile;
         private bool CompileWithDebugInformation;
         private bool CleanUpOldScriptsOnStartup;
-        private System.Collections.Generic.Dictionary<string, Boolean> AllowedCompilers = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
-        private System.Collections.Generic.Dictionary<string, enumCompileType> LanguageMapping = new Dictionary<string, enumCompileType>(StringComparer.CurrentCultureIgnoreCase);
+        private Dictionary<string, bool> AllowedCompilers = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
+        private Dictionary<string, enumCompileType> LanguageMapping = new Dictionary<string, enumCompileType>(StringComparer.CurrentCultureIgnoreCase);
 
         private string FilePrefix;
         private string ScriptEnginesPath = "ScriptEngines";
@@ -276,7 +276,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             if (enableCommanderLSL == true && l == enumCompileType.cs)
             {
                 foreach (KeyValuePair<string, 
-                    OpenSim.Region.Environment.Interfaces.ICommander> com 
+                    ICommander> com 
                     in m_scriptEngine.World.GetCommanders())
                 {
                     compileScript = com.Value.GenerateRuntimeAPI() + compileScript;

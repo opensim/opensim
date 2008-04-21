@@ -29,10 +29,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Web;
-using OpenSim.Framework.Console;
+using log4net;
 
 namespace OpenSim.Framework.Communications
 {
@@ -55,7 +56,7 @@ namespace OpenSim.Framework.Communications
     /// </remarks>
     public class RestClient
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string realuri;
 

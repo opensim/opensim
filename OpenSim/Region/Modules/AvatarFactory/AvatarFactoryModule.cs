@@ -30,12 +30,12 @@ using System.Collections.Generic;
 using System.Threading;
 using libsecondlife;
 using Nini.Config;
+using OpenSim.Data.Base;
+using OpenSim.Data.MapperFactory;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Data.Base;
-using OpenSim.Data.MapperFactory;
 
 namespace OpenSim.Region.Modules.AvatarFactory
 {

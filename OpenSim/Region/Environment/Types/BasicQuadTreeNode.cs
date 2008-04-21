@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using OpenSim.Region.Environment.Scenes;
 
@@ -261,7 +262,7 @@ namespace OpenSim.Region.Environment.Types
         public string[] GetNeighbours(string nodeName)
         {
             string[] retVal = new string[1];
-            retVal[0] = System.String.Empty;
+            retVal[0] = String.Empty;
             return retVal;
         }
     }

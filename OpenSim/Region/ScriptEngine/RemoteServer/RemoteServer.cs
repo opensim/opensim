@@ -26,8 +26,7 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Net.Sockets;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
@@ -61,20 +60,20 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
                 // Use the object
                 if (obj.Equals(null))
                 {
-                    System.Console.WriteLine("Error: unable to locate server");
+                    Console.WriteLine("Error: unable to locate server");
                 }
                 else
                 {
                     return obj;
                 }
             }
-            catch (System.Net.Sockets.SocketException)
+            catch (SocketException)
             {
-                System.Console.WriteLine("Error: unable to connect to server");
+                Console.WriteLine("Error: unable to connect to server");
             }
-            catch (System.Runtime.Remoting.RemotingException)
+            catch (RemotingException)
             {
-                System.Console.WriteLine("Error: unable to connect to server");
+                Console.WriteLine("Error: unable to connect to server");
             }
             return null;
         }

@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using libsecondlife;
 
 namespace OpenSim.Framework
@@ -39,7 +40,7 @@ namespace OpenSim.Framework
         public LLUUID InventoryFolder;
         public LLUUID BaseFolder;
         public uint CircuitCode;
-        public string CapsPath = System.String.Empty;
+        public string CapsPath = String.Empty;
         public LLVector3 StartPos;
 
         public Login()

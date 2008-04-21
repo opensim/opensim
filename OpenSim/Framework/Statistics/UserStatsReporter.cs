@@ -25,7 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Text;
 using System.Timers;
 
 namespace OpenSim.Framework.Statistics

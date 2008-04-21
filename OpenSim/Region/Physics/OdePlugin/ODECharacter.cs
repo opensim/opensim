@@ -121,7 +121,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             _acceleration = new PhysicsVector();
             _parent_scene = parent_scene;
 
-            if (System.Environment.OSVersion.Platform == PlatformID.Unix)
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
             {
                 m_tensor = 2000000f;
             }
@@ -413,7 +413,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private void AvatarGeomAndBodyCreation(float npositionX, float npositionY, float npositionZ, float tensor)
         {
 
-            if (System.Environment.OSVersion.Platform == PlatformID.Unix)
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
             {
                 m_tensor = 2000000f;
             }
@@ -641,7 +641,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             // If the PID Controller isn't active then we set our force 
             // calculating base velocity to the current position
-            if (System.Environment.OSVersion.Platform == PlatformID.Unix)
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
             {
                 PID_D = 3200.0f;
                 PID_P = 1400.0f;

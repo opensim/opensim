@@ -29,7 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using OpenSim.Framework.Console;
+using log4net;
 
 namespace OpenSim.Region.Physics.Manager
 {
@@ -38,7 +38,7 @@ namespace OpenSim.Region.Physics.Manager
     /// </summary>
     public class PhysicsPluginManager
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Dictionary<string, IPhysicsPlugin> _PhysPlugins = new Dictionary<string, IPhysicsPlugin>();
         private Dictionary<string, IMeshingPlugin> _MeshPlugins = new Dictionary<string, IMeshingPlugin>();

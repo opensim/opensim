@@ -27,11 +27,8 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using libsecondlife;
-using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes.Scripting;
 
@@ -123,7 +120,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             EventQueueThread.Priority = MyThreadPriority;
             EventQueueThread.Name = "EventQueueManagerThread_" + ThreadCount;
             EventQueueThread.Start();
-            OpenSim.Framework.ThreadTracker.Add(EventQueueThread);
+            ThreadTracker.Add(EventQueueThread);
 
             // Look at this... Don't you wish everyone did that solid coding everywhere? :P
             if (ThreadCount == int.MaxValue)

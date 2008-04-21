@@ -26,9 +26,6 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework
 {
@@ -69,7 +66,7 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("default_user_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default User Server URI",
-                                                "http://127.0.0.1:" + MessageServerConfig.DefaultHttpPort.ToString() + "/", false);
+                                                "http://127.0.0.1:" + DefaultHttpPort.ToString() + "/", false);
             configMember.addConfigurationOption("user_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to send to user server", "null", false);
             configMember.addConfigurationOption("user_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,

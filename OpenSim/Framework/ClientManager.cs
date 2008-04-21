@@ -27,8 +27,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using libsecondlife;
 using libsecondlife.Packets;
+using log4net;
 
 namespace OpenSim.Framework
 {
@@ -36,7 +38,7 @@ namespace OpenSim.Framework
 
     public class ClientManager
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Dictionary<uint, IClientAPI> m_clients;
 
@@ -56,7 +58,7 @@ namespace OpenSim.Framework
                 {
                     whatToDo(LocalClients[i]);
                 }
-                catch (System.Exception e)
+                catch (Exception e)
                 {
                     m_log.Warn("[CLIENT]: Unable to do ForEachClient for one of the clients" + "\n Reason: " + e.ToString());
                 }
@@ -129,7 +131,7 @@ namespace OpenSim.Framework
                         client.Close(false);
                     }
                 }
-                catch (System.Exception e)
+                catch (Exception e)
                 {
                     m_log.Error(string.Format("[CLIENT]: Unable to shutdown circuit for: {0}\n Reason: {1}", agentId, e));
                 }

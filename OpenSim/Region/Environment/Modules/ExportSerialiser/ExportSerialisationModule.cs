@@ -27,18 +27,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using libsecondlife;
-using Nini.Config;
-using OpenSim.Framework;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Modules.ModuleFramework;
 using System.IO;
+using Nini.Config;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Modules.ModuleFramework;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.ExportSerialiser
 {
-    public class ExportSerialisationModule : IRegionModule, OpenSim.Region.Environment.Modules.ExportSerialiser.IRegionSerialiser
+    public class ExportSerialisationModule : IRegionModule, IRegionSerialiser
     {
         private List<Scene> m_regions = new List<Scene>();
         private List<IFileSerialiser> m_serialisers = new List<IFileSerialiser>();

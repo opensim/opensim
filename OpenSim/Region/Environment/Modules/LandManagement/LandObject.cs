@@ -27,12 +27,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using libsecondlife;
 using libsecondlife.Packets;
+using log4net;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
-using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.LandManagement
 {
@@ -46,7 +47,7 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
     {
         #region Member Variables
 
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected LandData m_landData = new LandData();
         protected List<SceneObjectGroup> primsOverMe = new List<SceneObjectGroup>();
@@ -273,7 +274,7 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
             newData.claimPrice = claimprice;
             newData.salePrice = 0;
             newData.authBuyerID = LLUUID.Zero;
-            newData.landFlags &= ~(uint)(libsecondlife.Parcel.ParcelFlags.ForSale | Parcel.ParcelFlags.ForSaleObjects | Parcel.ParcelFlags.SellParcelObjects);
+            newData.landFlags &= ~(uint)(Parcel.ParcelFlags.ForSale | Parcel.ParcelFlags.ForSaleObjects | Parcel.ParcelFlags.SellParcelObjects);
             m_scene.LandChannel.updateLandObject(landData.localID, newData);
 
             sendLandUpdateToAvatarsOverMe();

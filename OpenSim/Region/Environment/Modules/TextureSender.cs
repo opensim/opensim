@@ -26,10 +26,10 @@
  */
 
 using System;
-using libsecondlife;
+using System.Reflection;
 using libsecondlife.Packets;
+using log4net;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules
@@ -40,8 +40,8 @@ namespace OpenSim.Region.Environment.Modules
     /// </summary>
     public class TextureSender : ITextureSender
     {
-        private static readonly log4net.ILog m_log 
-            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log 
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Records the number of times texture send has been called.

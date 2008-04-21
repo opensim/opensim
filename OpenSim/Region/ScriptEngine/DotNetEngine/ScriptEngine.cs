@@ -28,13 +28,12 @@
 /* Original code: Tedd Hansen */
 using System;
 using Nini.Config;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
     [Serializable]
-    public class ScriptEngine : OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.ScriptEngine
+    public class ScriptEngine : Common.ScriptEngineBase.ScriptEngine
     {
         // We need to override a few things for our DotNetEngine
         public override void Initialise(Scene scene, IConfigSource config)
@@ -43,7 +42,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             InitializeEngine(scene, config, true, GetScriptManager());
         }
 
-        public override OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.ScriptManager _GetScriptManager()
+        public override Common.ScriptEngineBase.ScriptManager _GetScriptManager()
         {
             return new ScriptManager(this);
         }

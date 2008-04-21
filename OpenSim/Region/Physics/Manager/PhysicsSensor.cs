@@ -26,10 +26,7 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Timers;
-using Axiom.Math;
-using OpenSim.Framework;
 
 namespace OpenSim.Region.Physics.Manager
 {

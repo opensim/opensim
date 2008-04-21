@@ -25,11 +25,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
 using System;
+using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
-using Caps = OpenSim.Region.Capabilities.Caps;
+using Caps=OpenSim.Region.Capabilities.Caps;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -155,7 +155,7 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void DeregisterCapsEvent(LLUUID agentID, Caps caps);
         public event DeregisterCapsEvent OnDeregisterCaps;
 
-        public class MoneyTransferArgs : System.EventArgs 
+        public class MoneyTransferArgs : EventArgs 
         {
             public LLUUID sender;
             public LLUUID receiver;
@@ -176,7 +176,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public class LandBuyArgs : System.EventArgs
+        public class LandBuyArgs : EventArgs
         {
             public LLUUID agentId = LLUUID.Zero;
             

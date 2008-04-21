@@ -25,10 +25,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Region.Environment.Scenes;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using System.Xml;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.ExportSerialiser
 {
@@ -61,7 +62,7 @@ namespace OpenSim.Region.Environment.Modules.ExportSerialiser
             xmlstream += "</scene>";
 
             MemoryStream stream = new MemoryStream();
-            XmlTextWriter formatter = new XmlTextWriter(stream, System.Text.Encoding.UTF8);
+            XmlTextWriter formatter = new XmlTextWriter(stream, Encoding.UTF8);
             XmlDocument doc = new XmlDocument();
 
             doc.LoadXml(xmlstream);

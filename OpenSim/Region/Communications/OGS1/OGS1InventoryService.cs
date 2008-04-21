@@ -27,19 +27,21 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Reflection;
 using libsecondlife;
+using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 
 namespace OpenSim.Region.Communications.OGS1
 {
     public class OGS1InventoryService : IInventoryServices
     {
-        private static readonly log4net.ILog m_log 
-            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log 
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string _inventoryServerUrl;
         private Dictionary<LLUUID, InventoryRequest> m_RequestingInventory = new Dictionary<LLUUID, InventoryRequest>();
@@ -71,7 +73,7 @@ namespace OpenSim.Region.Communications.OGS1
     
                     requester.BeginPostObject<Guid>(_inventoryServerUrl + "/GetInventory/", userID.UUID);
                 }
-                catch (System.Net.WebException e)
+                catch (WebException e)
                 {
                     m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Request inventory operation failed, {0} {1}", 
                          e.Source, e.Message);
@@ -153,7 +155,7 @@ namespace OpenSim.Region.Communications.OGS1
                 SynchronousRestObjectPoster.BeginPostObject<InventoryFolderBase, bool>(
                     "POST", _inventoryServerUrl + "/NewFolder/", folder);
             }
-            catch (System.Net.WebException e)
+            catch (WebException e)
             {
                 m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Add new inventory folder operation failed, {0} {1}", 
                      e.Source, e.Message);
@@ -167,7 +169,7 @@ namespace OpenSim.Region.Communications.OGS1
                 SynchronousRestObjectPoster.BeginPostObject<InventoryFolderBase, bool>(
                     "POST", _inventoryServerUrl + "/MoveFolder/", folder);
             }
-            catch (System.Net.WebException e)
+            catch (WebException e)
             {
                 m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Move inventory folder operation failed, {0} {1}", 
                      e.Source, e.Message);
@@ -181,7 +183,7 @@ namespace OpenSim.Region.Communications.OGS1
                 SynchronousRestObjectPoster.BeginPostObject<InventoryItemBase, bool>(
                     "POST", _inventoryServerUrl + "/NewItem/", item);
             }
-            catch (System.Net.WebException e)
+            catch (WebException e)
             {
                 m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Add new inventory item operation failed, {0} {1}", 
                      e.Source, e.Message);
@@ -195,7 +197,7 @@ namespace OpenSim.Region.Communications.OGS1
                 SynchronousRestObjectPoster.BeginPostObject<InventoryItemBase, bool>(
                     "POST", _inventoryServerUrl + "/DeleteItem/", item);
             }
-            catch (System.Net.WebException e)
+            catch (WebException e)
             {
                 m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Delete inventory item operation failed, {0} {1}", 
                      e.Source, e.Message);

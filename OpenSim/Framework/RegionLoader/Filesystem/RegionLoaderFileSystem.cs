@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.IO;
 using Nini.Config;
 
@@ -48,7 +49,7 @@ namespace OpenSim.Framework.RegionLoader.Filesystem
                 IniConfig startupConfig = (IniConfig)m_configSouce.Configs["Startup"];
                 regionConfigPath = startupConfig.GetString("regionload_regionsdir", regionConfigPath).Trim();
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 // No INI setting recorded.
             }

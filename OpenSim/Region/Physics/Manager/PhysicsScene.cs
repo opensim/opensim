@@ -25,10 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
+using System.Reflection;
 using Axiom.Math;
+using log4net;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Physics.Manager
 {
@@ -36,7 +36,7 @@ namespace OpenSim.Region.Physics.Manager
 
     public abstract class PhysicsScene
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // The only thing that should register for this event is the InnerScene
         // Anything else could cause problems.

@@ -29,17 +29,18 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Timers;
 using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
+using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Scenes;
-using Timer = System.Timers.Timer;
+using Timer=System.Timers.Timer;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -51,7 +52,7 @@ namespace OpenSim.Region.ClientStack
     /// </summary>
     public class ClientView : IClientAPI
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         //                ~ClientView()
         //                {
@@ -341,7 +342,7 @@ namespace OpenSim.Region.ClientStack
             m_clientThread.Name = "ClientThread";
             m_clientThread.IsBackground = true;
             m_clientThread.Start();
-            OpenSim.Framework.ThreadTracker.Add(m_clientThread);
+            ThreadTracker.Add(m_clientThread);
         }
 
         public void SetDebug(int newDebug)

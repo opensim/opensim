@@ -25,16 +25,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Threading;
 using libsecondlife;
-using Axiom.Math;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Modules;
-using OpenSim.Region.Environment.Scenes;
 using OpenSim.Framework;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugins;
 using Timer=OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugins.Timer;
 
@@ -50,11 +45,11 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public ScriptEngine m_ScriptEngine;
 
-        public AsyncCommandPlugins.Timer m_Timer;
-        public AsyncCommandPlugins.HttpRequest m_HttpRequest;
-        public AsyncCommandPlugins.Listener m_Listener;
-        public AsyncCommandPlugins.SensorRepeat m_SensorRepeat;
-        public AsyncCommandPlugins.XmlRequest m_XmlRequest;
+        public Timer m_Timer;
+        public HttpRequest m_HttpRequest;
+        public Listener m_Listener;
+        public SensorRepeat m_SensorRepeat;
+        public XmlRequest m_XmlRequest;
 
         public AsyncCommandManager(ScriptEngine _ScriptEngine)
         {
@@ -81,7 +76,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 cmdHandlerThread.Priority = ThreadPriority.BelowNormal;
                 cmdHandlerThread.IsBackground = true;
                 cmdHandlerThread.Start();
-                OpenSim.Framework.ThreadTracker.Add(cmdHandlerThread);
+                ThreadTracker.Add(cmdHandlerThread);
             }
         }
 

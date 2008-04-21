@@ -26,7 +26,6 @@
  */
 
 using System;
-using OpenSim.Framework;
 
 namespace OpenSim.Framework
 {

@@ -27,13 +27,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Xml.Serialization;
-
+using System.Reflection;
 using libsecondlife;
-
+using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes.Scripting;
 
@@ -41,7 +39,7 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public partial class SceneObjectPart : IScriptHost
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_inventoryFileName = String.Empty;
 

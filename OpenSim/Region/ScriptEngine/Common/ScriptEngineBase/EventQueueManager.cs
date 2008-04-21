@@ -28,10 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
 using libsecondlife;
-using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes.Scripting;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 {

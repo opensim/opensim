@@ -30,18 +30,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Xml;
-using Nwc.XmlRpc;
 using libsecondlife.StructuredData;
-using OpenSim.Framework.Console;
+using log4net;
+using Nwc.XmlRpc;
 
 namespace OpenSim.Framework.Servers
 {
     public class BaseHttpServer
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected Thread m_workerThread;
         protected HttpListener m_httpListener;
@@ -199,7 +201,7 @@ namespace OpenSim.Framework.Servers
                     }
                 }
             }
-            catch (System.Net.Sockets.SocketException e)
+            catch (SocketException e)
             {
                 // At least on linux, it appears that if the client makes a request without requiring the response,
                 // an unconnected socket exception is thrown when we close the response output stream.  There's no
@@ -346,7 +348,7 @@ namespace OpenSim.Framework.Servers
                 {
                     response.OutputStream.Close();
                 }
-                catch (System.Net.Sockets.SocketException)
+                catch (SocketException)
                 {
                     // This has to be here to prevent a Linux/Mono crash
                 }
@@ -602,7 +604,7 @@ namespace OpenSim.Framework.Servers
             m_workerThread.Name = "HttpThread";
             m_workerThread.IsBackground = true;
             m_workerThread.Start();
-            OpenSim.Framework.ThreadTracker.Add(m_workerThread);
+            ThreadTracker.Add(m_workerThread);
         }
 
         private void StartHTTP()

@@ -27,6 +27,7 @@
 
 using System;
 using System.IO;
+using log4net.Config;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
@@ -58,7 +59,7 @@ namespace OpenSim.Tools.Export
 
         public static void Main(string[] args)
         {
-            log4net.Config.XmlConfigurator.Configure();
+            XmlConfigurator.Configure();
 
             OpenSimExport export = new OpenSimExport(InitConfig(args));
             RegionInfo reg = new RegionInfo("Sara Jane", "Regions/1000-1000.xml",false);

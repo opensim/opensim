@@ -59,7 +59,7 @@ namespace OpenSim.TestSuite
         
         private static void TestResult(Result r, String msg)
         {
-            System.Console.WriteLine("[{0}]: {1}", ResultToString(r), msg);
+            Console.WriteLine("[{0}]: {1}", ResultToString(r), msg);
         }
         
         public static void TestFail(String msg)

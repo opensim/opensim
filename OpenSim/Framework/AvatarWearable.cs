@@ -25,10 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
 using System;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
+using libsecondlife;
 
 namespace OpenSim.Framework
 {
@@ -77,7 +77,7 @@ namespace OpenSim.Framework
             //System.Console.WriteLine("AvatarWearable Deserialize BGN");
             if (info == null)
             {
-                throw new System.ArgumentNullException("info");
+                throw new ArgumentNullException("info");
             }
 
             AssetID = new LLUUID((Guid)info.GetValue("AssetID", typeof(Guid)));
@@ -93,7 +93,7 @@ namespace OpenSim.Framework
         {
             if (info == null)
             {
-                throw new System.ArgumentNullException("info");
+                throw new ArgumentNullException("info");
             }
 
             info.AddValue("AssetID", AssetID.UUID);

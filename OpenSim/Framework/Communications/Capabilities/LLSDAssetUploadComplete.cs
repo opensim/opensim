@@ -25,8 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using libsecondlife;
 using System;
+using libsecondlife;
 
 namespace OpenSim.Region.Capabilities
 {

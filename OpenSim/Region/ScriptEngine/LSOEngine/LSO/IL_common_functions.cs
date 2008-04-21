@@ -26,10 +26,6 @@
  */
 
 /* Original code: Tedd Hansen */
-using System;
-using System.Reflection;
-using System.Reflection.Emit;
-
 namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
 {
     internal partial class LSO_Parser

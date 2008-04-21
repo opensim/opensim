@@ -26,9 +26,9 @@
 * 
 */
 
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
@@ -61,7 +61,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         public string Convert(string Script)
         {
             quotes.Clear();
-            string Return = System.String.Empty;
+            string Return = String.Empty;
             Script = " \r\n" + Script;
 
             //
@@ -77,12 +77,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             // temporarily replace quotes so we can work our magic on the script without
             //  always considering if we are inside our outside quotes's
             // TODO: Does this work on half-quotes in strings? ;)
-            string _Script = System.String.Empty;
+            string _Script = String.Empty;
             string C;
             bool in_quote = false;
             bool quote_replaced = false;
             string quote_replacement_string = "Q_U_O_T_E_REPLACEMENT_";
-            string quote = System.String.Empty;
+            string quote = String.Empty;
             bool last_was_escape = false;
             int quote_replaced_count = 0;
             for (int p = 0; p < Script.Length; p++)
@@ -101,7 +101,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                         }
                         else
                         {
-                            if (quote == System.String.Empty)
+                            if (quote == String.Empty)
                             {
                                 // We didn't replace quote, probably because of empty string?
                                 _Script += quote_replacement_string +
@@ -111,7 +111,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                             quotes.Add(
                                 quote_replacement_string +
                                 quote_replaced_count.ToString().PadLeft(5, "0".ToCharArray()[0]), quote);
-                            quote = System.String.Empty;
+                            quote = String.Empty;
                         }
                         break;
                     }
@@ -155,10 +155,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             //
             int ilevel = 0;
             int lastlevel = 0;
-            string ret = System.String.Empty;
-            string cache = System.String.Empty;
+            string ret = String.Empty;
+            string cache = String.Empty;
             bool in_state = false;
-            string current_statename = System.String.Empty;
+            string current_statename = String.Empty;
             for (int p = 0; p < Script.Length; p++)
             {
                 C = Script.Substring(p, 1);
@@ -319,9 +319,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 {
                     state_events.Add(statea, convertnametoFlag(eventa));
                 }
-                System.Console.WriteLine("State:" + statea + ", event: " + eventa);
+                Console.WriteLine("State:" + statea + ", event: " + eventa);
             }
-            System.Console.WriteLine("Matches:" + eventmatches.GetUpperBound(0));
+            Console.WriteLine("Matches:" + eventmatches.GetUpperBound(0));
             // Add namespace, class name and inheritance
 
             // Looking *ONLY* for state entry events

@@ -25,13 +25,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Collections.Generic;
-using Axiom.Math;
-using libsecondlife;
-
 using System;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
+using Axiom.Math;
+using libsecondlife;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -145,7 +143,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (info == null)
             {
-                throw new System.ArgumentNullException("info");
+                throw new ArgumentNullException("info");
             }
 
             m_uuid = new LLUUID((Guid)info.GetValue("m_uuid", typeof(Guid)));
@@ -188,7 +186,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (info == null)
             {
-                throw new System.ArgumentNullException("info");
+                throw new ArgumentNullException("info");
             }
 
             info.AddValue("m_uuid", m_uuid.UUID);

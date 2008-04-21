@@ -25,8 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Framework.Console;
-
 namespace OpenSim.Grid.ScriptServer
 {
     // Maintains connection and communication to a region

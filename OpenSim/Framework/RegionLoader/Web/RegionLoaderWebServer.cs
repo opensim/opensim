@@ -25,17 +25,19 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.IO;
 using System.Net;
+using System.Reflection;
 using System.Xml;
+using log4net;
 using Nini.Config;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.RegionLoader.Web
 {
     public class RegionLoaderWebServer : IRegionLoader
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IniConfigSource m_configSouce;
 
@@ -54,8 +56,8 @@ namespace OpenSim.Framework.RegionLoader.Web
             else
             {
                 IniConfig startupConfig = (IniConfig) m_configSouce.Configs["Startup"];
-                string url = startupConfig.GetString("regionload_webserver_url", System.String.Empty).Trim();
-                if (url == System.String.Empty)
+                string url = startupConfig.GetString("regionload_webserver_url", String.Empty).Trim();
+                if (url == String.Empty)
                 {
                     m_log.Error("[WEBLOADER]: Unable to load webserver URL - URL was empty.");
                     return null;
@@ -68,7 +70,7 @@ namespace OpenSim.Framework.RegionLoader.Web
                     HttpWebResponse webResponse = (HttpWebResponse) webRequest.GetResponse();
                     m_log.Debug("[WEBLOADER]: Downloading Region Information From Remote Server...");
                     StreamReader reader = new StreamReader(webResponse.GetResponseStream());
-                    string xmlSource = System.String.Empty;
+                    string xmlSource = String.Empty;
                     string tempStr = reader.ReadLine();
                     while (tempStr != null)
                     {

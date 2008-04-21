@@ -40,11 +40,12 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Modules.Terrain;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
-using Caps = OpenSim.Region.Capabilities.Caps;
-using Image = System.Drawing.Image;
-using Timer = System.Timers.Timer;
+using Caps=OpenSim.Region.Capabilities.Caps;
+using Image=System.Drawing.Image;
+using Timer=System.Timers.Timer;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -580,7 +581,7 @@ namespace OpenSim.Region.Environment.Scenes
                                      if (!avatar.IsChildAgent)
                                          avatar.ControllingClient.Kick("The simulator is going down.");
 
-                                     avatar.ControllingClient.OutPacket(PacketPool.Instance.GetPacket(libsecondlife.Packets.PacketType.DisableSimulator),
+                                     avatar.ControllingClient.OutPacket(PacketPool.Instance.GetPacket(PacketType.DisableSimulator),
                                                                         ThrottleOutPacketType.Task);
                                  });
 
@@ -755,17 +756,17 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 throw;
             }
-            catch (System.AccessViolationException e)
+            catch (AccessViolationException e)
             {
                 m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
 
             }
-            catch (System.NullReferenceException e)
+            catch (NullReferenceException e)
             {
                 m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
 
             }
-            catch (System.InvalidOperationException e)
+            catch (InvalidOperationException e)
             {
                 m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
 
@@ -941,13 +942,13 @@ namespace OpenSim.Region.Environment.Scenes
                 if (map == null)
                 {
                     m_log.Info("[TERRAIN]: No default terrain. Generating a new terrain.");
-                    Heightmap = new Modules.Terrain.TerrainChannel();
+                    Heightmap = new TerrainChannel();
 
                     m_storageManager.DataStore.StoreTerrain(Heightmap.GetDoubles(), RegionInfo.RegionID);
                 }
                 else
                 {
-                    Heightmap = new Modules.Terrain.TerrainChannel(map);
+                    Heightmap = new TerrainChannel(map);
                 }
                
             }
@@ -1094,7 +1095,7 @@ namespace OpenSim.Region.Environment.Scenes
                 byte[] data;
                 try
                 {
-                    data = OpenJPEGNet.OpenJPEG.EncodeFromImage(mapbmp, false);
+                    data = OpenJPEG.EncodeFromImage(mapbmp, false);
                 }
                 catch (Exception)
                 {
@@ -1420,7 +1421,7 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         DeleteSceneObjectGroup(grp);
                     }
-                    catch (System.Exception)
+                    catch (Exception)
                     {
                         m_log.Warn("[DATABASE]: exception when trying to remove the prim that crossed the border.");
                     }
@@ -1714,7 +1715,7 @@ namespace OpenSim.Region.Environment.Scenes
                           {
                               client.SendKillObject(avatar.RegionHandle, avatar.LocalId);
                           }
-                          catch (System.NullReferenceException)
+                          catch (NullReferenceException)
                           {
                               //We can safely ignore null reference exceptions.  It means the avatar are dead and cleaned up anyway.
                           }
@@ -2041,7 +2042,7 @@ namespace OpenSim.Region.Environment.Scenes
                         m_innerScene.removeUserCount(true);
                     }
                     // Tell a single agent to disconnect from the region.
-                    libsecondlife.Packets.DisableSimulatorPacket disable = (libsecondlife.Packets.DisableSimulatorPacket)PacketPool.Instance.GetPacket(libsecondlife.Packets.PacketType.DisableSimulator);
+                    DisableSimulatorPacket disable = (DisableSimulatorPacket)PacketPool.Instance.GetPacket(PacketType.DisableSimulator);
                     presence.ControllingClient.OutPacket(disable, ThrottleOutPacketType.Unknown);
                     presence.ControllingClient.Close(true);
                 }

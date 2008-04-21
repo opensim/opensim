@@ -29,9 +29,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using libsecondlife;
+using log4net;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
@@ -41,7 +43,7 @@ namespace OpenSim.Region.Environment.Modules
 {
     public class ChatModule : IRegionModule, ISimChat
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private List<Scene> m_scenes = new List<Scene>();
 
@@ -116,7 +118,7 @@ namespace OpenSim.Region.Environment.Modules
                     if (!m_irc_connector.IsAlive)
                     {
                         m_irc_connector.Start();
-                        OpenSim.Framework.ThreadTracker.Add(m_irc_connector);
+                        ThreadTracker.Add(m_irc_connector);
                     }
                 }
                 catch (Exception)
@@ -267,7 +269,7 @@ namespace OpenSim.Region.Environment.Modules
                     if (!m_irc_connector.IsAlive)
                     {
                         m_irc_connector.Start();
-                        OpenSim.Framework.ThreadTracker.Add(m_irc_connector);
+                        ThreadTracker.Add(m_irc_connector);
                     }
                 }
                 catch (Exception)
@@ -336,7 +338,7 @@ namespace OpenSim.Region.Environment.Modules
 
     internal class IRCChatModule
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_server = null;
         private uint m_port = 6668;
@@ -431,13 +433,13 @@ namespace OpenSim.Region.Environment.Modules
                     pingSender.Name = "PingSenderThread";
                     pingSender.IsBackground = true;
                     pingSender.Start();
-                    OpenSim.Framework.ThreadTracker.Add(pingSender);
+                    ThreadTracker.Add(pingSender);
 
                     listener = new Thread(new ThreadStart(ListenerRun));
                     listener.Name = "IRCChatModuleListenerThread";
                     listener.IsBackground = true;
                     listener.Start();
-                    OpenSim.Framework.ThreadTracker.Add(listener);
+                    ThreadTracker.Add(listener);
 
                     m_writer.WriteLine(m_user);
                     m_writer.Flush();

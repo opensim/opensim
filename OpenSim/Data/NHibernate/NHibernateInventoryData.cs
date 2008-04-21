@@ -26,25 +26,23 @@
  */
 
 using System;
-using System.Data;
-using System.Reflection;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using libsecondlife;
+using log4net;
 using NHibernate;
-using NHibernate.Expression;
 using NHibernate.Cfg;
-using NHibernate.Tool.hbm2ddl;
+using NHibernate.Expression;
 using NHibernate.Mapping.Attributes;
-using OpenSim.Data;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
-using Environment = NHibernate.Cfg.Environment;
+using Environment=NHibernate.Cfg.Environment;
 
 namespace OpenSim.Data.NHibernate
 {
     public class NHibernateInventoryData: IInventoryData
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Configuration cfg;
         private ISessionFactory factory;
@@ -74,8 +72,8 @@ namespace OpenSim.Data.NHibernate
             cfg.AddAssembly("OpenSim.Data.NHibernate");
 
             HbmSerializer.Default.Validate = true;
-            using ( System.IO.MemoryStream stream = 
-                    HbmSerializer.Default.Serialize(System.Reflection.Assembly.GetExecutingAssembly()))
+            using ( MemoryStream stream = 
+                    HbmSerializer.Default.Serialize(Assembly.GetExecutingAssembly()))
                 cfg.AddInputStream(stream);
             
             // new SchemaExport(cfg).Create(true, true);

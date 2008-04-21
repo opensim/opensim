@@ -25,11 +25,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Net;
+
 namespace OpenSim.Region.ScriptEngine.Common.TRPC
 {
     public class TCPCommon
     {
-        public delegate void ClientConnectedDelegate(int ID, System.Net.EndPoint Remote);
+        public delegate void ClientConnectedDelegate(int ID, EndPoint Remote);
         public delegate void DataReceivedDelegate(int ID, byte[] data, int offset, int length);
         public delegate void DataSentDelegate(int ID, int length);
         public delegate void CloseDelegate(int ID);
@@ -46,7 +48,7 @@ namespace OpenSim.Region.ScriptEngine.Common.TRPC
 
         public interface ClientInterface : ServerAndClientInterface
         {
-            event TCPCommon.ConnectErrorDelegate ConnectError;
+            event ConnectErrorDelegate ConnectError;
             void Connect(string RemoteHost, int RemotePort);
             void Disconnect(int ID);
         }

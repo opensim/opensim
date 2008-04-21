@@ -26,11 +26,10 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
-using OpenSim.Framework;
 using OpenSim.Data;
+using OpenSim.Framework;
 
 namespace OpenSim.Grid.MessagingServer
 {

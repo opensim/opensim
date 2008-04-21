@@ -28,10 +28,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Xml;
 using libsecondlife;
+using log4net;
 using Nini.Config;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -41,7 +42,7 @@ namespace OpenSim.Framework.Communications.Cache
     /// </summary>
     public class LibraryRootFolder : InventoryFolderImpl
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private LLUUID libOwner = new LLUUID("11111111-1111-0000-0000-000100bba000");
         
@@ -153,13 +154,13 @@ namespace OpenSim.Framework.Communications.Cache
         {
             string foldersPath 
                 = Path.Combine(
-                    Util.inventoryDir(), config.GetString("foldersFile", System.String.Empty));
+                    Util.inventoryDir(), config.GetString("foldersFile", String.Empty));
             
             LoadFromFile(foldersPath, "Library folders", ReadFolderFromConfig);
             
             string itemsPath 
                 = Path.Combine(
-                    Util.inventoryDir(), config.GetString("itemsFile", System.String.Empty));
+                    Util.inventoryDir(), config.GetString("itemsFile", String.Empty));
             
             LoadFromFile(itemsPath, "Library items", ReadItemFromConfig);
         }
@@ -209,8 +210,8 @@ namespace OpenSim.Framework.Communications.Cache
             item.ID = new LLUUID(config.GetString("inventoryID", ID.ToString()));
             item.AssetID = new LLUUID(config.GetString("assetID", LLUUID.Random().ToString()));
             item.Folder = new LLUUID(config.GetString("folderID", ID.ToString()));
-            item.Description = config.GetString("description", System.String.Empty);
-            item.Name = config.GetString("name", System.String.Empty);
+            item.Description = config.GetString("description", String.Empty);
+            item.Name = config.GetString("name", String.Empty);
             item.AssetType = config.GetInt("assetType", 0);
             item.InvType = config.GetInt("inventoryType", 0);
             item.CurrentPermissions = (uint)config.GetLong("currentPermissions", 0x7FFFFFFF);

@@ -28,11 +28,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
+using System.Reflection;
 using System.Threading;
 using libsecondlife;
+using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
-using OpenSim.Framework.Console;
+using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
@@ -74,7 +77,7 @@ namespace OpenSim.Region.Environment.Modules
 {
     public class XMLRPCModule : IRegionModule, IXMLRPC
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private object XMLRPCListLock = new object();
         private string m_name = "XMLRPCModule";
@@ -208,7 +211,7 @@ namespace OpenSim.Region.Environment.Modules
                         }
                     }
 
-                    System.Collections.IEnumerator tmpEnumerator = tmp.GetEnumerator();
+                    IEnumerator tmpEnumerator = tmp.GetEnumerator();
                     while ( tmpEnumerator.MoveNext() )
                         m_openChannels.Remove((LLUUID)tmpEnumerator.Current);
                 }
@@ -559,7 +562,7 @@ namespace OpenSim.Region.Environment.Modules
         private Thread httpThread;
         public LLUUID m_itemID;
         public uint m_localID;
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public SendRemoteDataRequest(uint localID, LLUUID itemID, string channel, string dest, int idata, string sdata)
         {
@@ -583,7 +586,7 @@ namespace OpenSim.Region.Environment.Modules
             httpThread.IsBackground = true;
             finished = false;
             httpThread.Start();
-            OpenSim.Framework.ThreadTracker.Add(httpThread);
+            ThreadTracker.Add(httpThread);
 
             return reqID;
 
@@ -648,7 +651,7 @@ namespace OpenSim.Region.Environment.Modules
                     }
                 }
             }
-            catch (System.Net.WebException we)
+            catch (WebException we)
             {
                 sdata = we.Message;
                 m_log.Warn("[SendRemoteDataRequest]: Request failed");

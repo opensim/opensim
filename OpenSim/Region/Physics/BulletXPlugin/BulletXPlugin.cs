@@ -31,12 +31,10 @@ using System;
 using System.Collections.Generic;
 using MonoXnaCompactMaths;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Physics.Manager;
 using XnaDevRu.BulletX;
 using XnaDevRu.BulletX.Dynamics;
 using AxiomQuaternion = Axiom.Math.Quaternion;
-using BoxShape=XnaDevRu.BulletX.BoxShape;
 
 #endregion
 

@@ -52,6 +52,6 @@ namespace OpenSim.Data
         public abstract string GetVersion();
         public abstract string getName();
         public abstract void Initialise();
-        public abstract List<OpenSim.Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query);
+        public abstract List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query);
     }
 }

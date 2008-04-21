@@ -33,7 +33,6 @@ using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
-using OpenSim.Region.ScriptEngine.LSOEngine.LSO;
 
 namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
 {

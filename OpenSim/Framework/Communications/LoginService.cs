@@ -29,21 +29,22 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Web;
 using libsecondlife;
 using libsecondlife.StructuredData;
+using log4net;
 using Nwc.XmlRpc;
-
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.Statistics;
 
 namespace OpenSim.Framework.UserManagement
 {
     public abstract class LoginService
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected string m_welcomeMessage = "Welcome to OpenSim";
         protected UserManagerBase m_userManager = null;
@@ -159,7 +160,7 @@ namespace OpenSim.Framework.UserManagement
                         {
                             webloginkey = new LLUUID((string)requestData["web_login_key"]);
                         }
-                        catch (System.Exception e)
+                        catch (Exception e)
                         {
                             m_log.InfoFormat(
                                  "[LOGIN END]: Bad web_login_key: {0} for user {1} {2}, exception {3}", 
@@ -514,7 +515,7 @@ namespace OpenSim.Framework.UserManagement
                     statuscode = 301;
 
                     string redirectURL = "about:blank?redirect-http-hack=" +
-                        System.Web.HttpUtility.UrlEncode("secondlife:///app/login?first_name=" + firstname + "&last_name=" +
+                        HttpUtility.UrlEncode("secondlife:///app/login?first_name=" + firstname + "&last_name=" +
                                                          lastname +
                                                          "&location=" + location + "&grid=Other&web_login_key=" + webloginkey.ToString());
                     //m_log.Info("[WEB]: R:" + redirectURL);

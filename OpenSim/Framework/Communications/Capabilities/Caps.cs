@@ -29,12 +29,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-
+using System.Reflection;
 using libsecondlife;
-
+using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 
 namespace OpenSim.Region.Capabilities
@@ -66,8 +65,8 @@ namespace OpenSim.Region.Capabilities
 
     public class Caps
     {
-        private static readonly log4net.ILog m_log = 
-            log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = 
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private string m_httpListenerHostName;
         private uint m_httpListenPort;

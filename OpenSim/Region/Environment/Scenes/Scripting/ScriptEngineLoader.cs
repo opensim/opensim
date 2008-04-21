@@ -29,13 +29,13 @@
 using System;
 using System.IO;
 using System.Reflection;
-using OpenSim.Framework.Console;
+using log4net;
 
 namespace OpenSim.Region.Environment.Scenes.Scripting
 {
     public class ScriptEngineLoader
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public ScriptEngineInterface LoadScriptEngine(string EngineName)
         {

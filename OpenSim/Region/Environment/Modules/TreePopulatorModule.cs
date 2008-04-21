@@ -27,10 +27,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Timers;
+using Axiom.Math;
 using libsecondlife;
+using log4net;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
@@ -42,7 +45,7 @@ namespace OpenSim.Region.Environment.Modules
     public class TreePopulatorModule : IRegionModule
     {
         private Scene m_scene;
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private List<LLUUID> m_trees;
 
@@ -63,8 +66,8 @@ namespace OpenSim.Region.Environment.Modules
 
             m_scene.EventManager.OnPluginConsole += new EventManager.OnPluginConsoleDelegate(EventManager_OnPluginConsole);
 
-            System.Timers.Timer CalculateTrees = new System.Timers.Timer(m_tree_updates);
-            CalculateTrees.Elapsed += new System.Timers.ElapsedEventHandler(CalculateTrees_Elapsed);
+            Timer CalculateTrees = new Timer(m_tree_updates);
+            CalculateTrees.Elapsed += new ElapsedEventHandler(CalculateTrees_Elapsed);
             CalculateTrees.Start();
             m_log.Debug("[TREES]: Initialised tree module");
         }
@@ -168,7 +171,7 @@ namespace OpenSim.Region.Environment.Modules
                     }
                     else
                     {
-                        selectedTree.SetText(killLikelyhood.ToString(), new Axiom.Math.Vector3(1.0f, 1.0f, 1.0f), 1.0);
+                        selectedTree.SetText(killLikelyhood.ToString(), new Vector3(1.0f, 1.0f, 1.0f), 1.0);
                     }
                 }
                 else
@@ -217,7 +220,7 @@ namespace OpenSim.Region.Environment.Modules
             tree.SendGroupFullUpdate();
         }
 
-        void CalculateTrees_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        void CalculateTrees_Elapsed(object sender, ElapsedEventArgs e)
         {
             growTrees();
             seedTrees();

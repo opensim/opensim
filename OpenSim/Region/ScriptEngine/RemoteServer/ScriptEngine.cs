@@ -28,8 +28,9 @@
 /* Original code: Tedd Hansen */
 
 using System;
+using System.Reflection;
+using log4net;
 using Nini.Config;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
@@ -42,7 +43,7 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
     [Serializable]
     public class ScriptEngine : IRegionModule
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         internal Scene World;
         internal EventManager m_EventManager; // Handles and queues incoming events from OpenSim
@@ -53,7 +54,7 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
             Common.mySE = this;
         }
 
-        public log4net.ILog Log
+        public ILog Log
         {
             get { return m_log; }
         }

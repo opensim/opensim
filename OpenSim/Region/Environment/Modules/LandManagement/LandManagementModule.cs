@@ -25,17 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections.Generic;
-using libsecondlife;
-using libsecondlife.Packets;
-using OpenSim.Framework;
-using OpenSim.Framework.Console;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Interfaces;
 using Nini.Config;
-
-using LandBuyArgs = OpenSim.Region.Environment.Scenes.EventManager.LandBuyArgs;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.LandManagement
 {

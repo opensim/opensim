@@ -27,11 +27,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 using libsecondlife;
 using libsecondlife.Packets;
-
-using OpenSim.Framework.Console;
+using log4net;
 using OpenSim.Framework.Statistics;
 
 namespace OpenSim.Framework.Communications.Cache
@@ -52,8 +52,8 @@ namespace OpenSim.Framework.Communications.Cache
     /// </summary>
     public class AssetCache : IAssetReceiver
     {
-        private static readonly log4net.ILog m_log
-            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// The cache of assets.  This does not include textures.
@@ -170,7 +170,7 @@ namespace OpenSim.Framework.Communications.Cache
               m_assetCacheThread.Name = "AssetCacheThread";
               m_assetCacheThread.IsBackground = true;
               m_assetCacheThread.Start();
-             OpenSim.Framework.ThreadTracker.Add(m_assetCacheThread);
+             ThreadTracker.Add(m_assetCacheThread);
         }
 
         /// <summary>

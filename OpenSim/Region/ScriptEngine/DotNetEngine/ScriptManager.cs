@@ -34,7 +34,7 @@ using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
-    public class ScriptManager : OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.ScriptManager
+    public class ScriptManager : Common.ScriptEngineBase.ScriptManager
     {
         public ScriptManager(Common.ScriptEngineBase.ScriptEngine scriptEngine)
             : base(scriptEngine)

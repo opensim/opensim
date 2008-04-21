@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using OpenSim.Framework.Console;
+using System;
 
 namespace OpenSim.Framework
 {
@@ -34,12 +34,12 @@ namespace OpenSim.Framework
     /// </summary>
     public class InventoryConfig
     {
-        public string DefaultStartupMsg = System.String.Empty;
-        public string UserServerURL = System.String.Empty;
-        public string UserSendKey = System.String.Empty;
-        public string UserRecvKey = System.String.Empty;
+        public string DefaultStartupMsg = String.Empty;
+        public string UserServerURL = String.Empty;
+        public string UserSendKey = String.Empty;
+        public string UserRecvKey = String.Empty;
 
-        public string DatabaseProvider = System.String.Empty;
+        public string DatabaseProvider = String.Empty;
         public static uint DefaultHttpPort = 8004;
 
         public uint HttpPort = DefaultHttpPort;

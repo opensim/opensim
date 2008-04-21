@@ -28,18 +28,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
+using System.Reflection;
 using libsecondlife;
+using log4net;
 using Nwc.XmlRpc;
-
+using OpenSim.Data;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Console;
-using OpenSim.Data;
 using OpenSim.Framework.Servers;
-using OpenSim.Framework.Statistics;
 using OpenSim.Framework.UserManagement;
-using InventoryFolder=OpenSim.Framework.InventoryFolder;
 
 namespace OpenSim.Grid.UserServer
 {
@@ -48,7 +45,7 @@ namespace OpenSim.Grid.UserServer
 
     public class UserLoginService : LoginService
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public event UserLoggedInAtLocation OnUserLoggedInAtLocation;
 

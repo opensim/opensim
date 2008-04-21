@@ -29,8 +29,6 @@ using System.Collections.Generic;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
-using OpenSim.Framework.UserManagement;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Environment.Scenes
 {

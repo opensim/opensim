@@ -29,17 +29,18 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using libsecondlife;
+using log4net;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Communications.OGS1
 {
     public class OGS1UserServices : IUserService
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private CommunicationsOGS1 m_parent;
 
@@ -158,7 +159,7 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
             }
-            catch (System.Net.WebException)
+            catch (WebException)
             {
                 m_log.Warn("[LOGOFF]: Unable to notify grid server of user logoff");
             }

@@ -27,18 +27,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using libsecondlife;
+using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Console;
-using OpenSim.Region.Terrain;
 using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Scenes
 {
     public abstract class SceneBase : IScene
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         #region Events
 
@@ -204,7 +204,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// XXX These two methods are very temporary
         /// </summary>
-        protected Dictionary<LLUUID, String> capsPaths = new Dictionary<LLUUID, String>();
+        protected Dictionary<LLUUID, string> capsPaths = new Dictionary<LLUUID, string>();
         public string GetCapsPath(LLUUID agentId)
         {
             if (capsPaths.ContainsKey(agentId))

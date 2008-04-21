@@ -25,8 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Reflection;
 using libsecondlife;
-using OpenSim.Framework.Console;
+using log4net;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.ExtensionsScriptModule
@@ -36,7 +37,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
     /// </summary>
     public class ScriptInfo
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // Reference to world.eventsManager provided for convenience
         public EventManager events;
@@ -47,7 +48,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
         // API Access
         public ScriptAPI api;
 
-        public log4net.ILog Log
+        public ILog Log
         {
             get { return m_log; }
         }

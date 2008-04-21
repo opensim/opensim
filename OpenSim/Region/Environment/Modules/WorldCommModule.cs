@@ -27,7 +27,6 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using libsecondlife;
 using Nini.Config;
 using OpenSim.Framework;

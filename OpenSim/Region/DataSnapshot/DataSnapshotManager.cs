@@ -28,18 +28,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Xml;
 using System.IO;
+using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Timers;
-using OpenSim.Framework;
+using System.Xml;
+using libsecondlife;
+using log4net;
+using Nini.Config;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using Nini.Config;
-using libsecondlife;
-using libsecondlife.Packets;
 
 namespace OpenSim.Region.DataSnapshot
 {
@@ -47,13 +47,13 @@ namespace OpenSim.Region.DataSnapshot
     {
         #region Class members
         private List<Scene> m_scenes = new List<Scene>();
-        private log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private bool m_enabled = false;
         private bool m_configLoaded = false;
         internal object m_syncInit = new object();
         private DataRequestHandler m_requests = null;
         private Dictionary<Scene, List<IDataSnapshotProvider>> m_dataproviders = new Dictionary<Scene, List<IDataSnapshotProvider>>();
-        private Dictionary<String, String> m_gridinfo = new Dictionary<String, String>();
+        private Dictionary<string, string> m_gridinfo = new Dictionary<string, string>();
         //private int m_oldestSnapshot = 0;
         private int m_maxSnapshots = 500;
         private int m_lastSnapshot = 0;
@@ -63,7 +63,7 @@ namespace OpenSim.Region.DataSnapshot
         private string m_hostname = "127.0.0.1";
         private Timer m_periodic = null;
         private int m_period = 60; // in seconds
-        private List<String> m_disabledModules = new List<String>();
+        private List<string> m_disabledModules = new List<string>();
         #endregion
 
         #region IRegionModule
@@ -72,7 +72,7 @@ namespace OpenSim.Region.DataSnapshot
          	
         }
         
-        public void Initialise(Scene scene, Nini.Config.IConfigSource config)
+        public void Initialise(Scene scene, IConfigSource config)
         {
             if (!m_scenes.Contains(scene))
                 m_scenes.Add(scene);
@@ -495,7 +495,7 @@ namespace OpenSim.Region.DataSnapshot
                 {
                     reply = cli.Request();
                 }
-                catch (System.Net.WebException)
+                catch (WebException)
                 {
                     m_log.Warn("[DATASNAPSHOT] Unable to notify " + url);
                 }
@@ -514,7 +514,7 @@ namespace OpenSim.Region.DataSnapshot
                     m_log.Warn("[DATASNAPSHOT] Unable to decode reply from data service. Ignoring. " + e.StackTrace);
                 }
                 // This is not quite working, so...
-                string responseStr = System.Text.ASCIIEncoding.UTF8.GetString(response);
+                string responseStr = ASCIIEncoding.UTF8.GetString(response);
                 m_log.Info("[DATASNAPSHOT] data service notified: " + url);
             }
 

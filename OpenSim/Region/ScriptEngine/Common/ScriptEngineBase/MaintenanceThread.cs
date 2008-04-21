@@ -27,9 +27,8 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 {
@@ -94,7 +93,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 MaintenanceThreadThread.Name = "ScriptMaintenanceThread";
                 MaintenanceThreadThread.IsBackground = true;
                 MaintenanceThreadThread.Start();
-                OpenSim.Framework.ThreadTracker.Add(MaintenanceThreadThread);
+                ThreadTracker.Add(MaintenanceThreadThread);
             }
         }
 
@@ -144,7 +143,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 {
                     while (true)
                     {
-                        System.Threading.Thread.Sleep(MaintenanceLoopms); // Sleep before next pass
+                        Thread.Sleep(MaintenanceLoopms); // Sleep before next pass
 
                         // Reset counters?
                         if (MaintenanceLoopTicks_ScriptLoadUnload_ResetCount)

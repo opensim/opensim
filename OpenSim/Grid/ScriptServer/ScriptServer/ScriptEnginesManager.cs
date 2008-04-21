@@ -26,7 +26,6 @@
  */
 
 using System.Collections.Generic;
-using OpenSim.Framework.Console;
 using OpenSim.Region.ScriptEngine.Common;
 
 namespace OpenSim.Grid.ScriptServer.ScriptServer

@@ -26,6 +26,7 @@
  */
 
 using System;
+using log4net.Config;
 
 namespace OpenSim.Grid.ScriptServer
 {
@@ -35,7 +36,7 @@ namespace OpenSim.Grid.ScriptServer
 
         private static void Main(string[] args)
         {
-            log4net.Config.XmlConfigurator.Configure();
+            XmlConfigurator.Configure();
 
             AppDomain.CurrentDomain.UnhandledException +=
                 new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);

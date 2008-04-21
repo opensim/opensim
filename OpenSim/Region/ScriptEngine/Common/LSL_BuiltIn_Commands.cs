@@ -34,13 +34,12 @@ using System.Threading;
 using Axiom.Math;
 using libsecondlife;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications;
-using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.ScriptEngine.Common;
-using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 using OpenSim.Region.Environment;
+using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.LandManagement;
+using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
+
 //using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL;
 
 namespace OpenSim.Region.ScriptEngine.Common
@@ -86,7 +85,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     }
                     catch (AppDomainUnloadedException)
                     {
-                        System.Console.WriteLine("[SCRIPT]: state change called when script was unloaded.  Nothing to worry about, but noting the occurance");
+                        Console.WriteLine("[SCRIPT]: state change called when script was unloaded.  Nothing to worry about, but noting the occurance");
                     }
                 }
             }
@@ -1677,10 +1676,10 @@ namespace OpenSim.Region.ScriptEngine.Common
             //m_pendingFriendRequests.Add(friendTransactionID, fromAgentID);
 
             GridInstantMessage msg = new GridInstantMessage();
-            msg.fromAgentID = new System.Guid(m_host.UUID.ToString()); // fromAgentID.UUID;
-            msg.fromAgentSession = new System.Guid(friendTransactionID.ToString());// fromAgentSession.UUID;
-            msg.toAgentID = new System.Guid(user); // toAgentID.UUID;
-            msg.imSessionID = new System.Guid(friendTransactionID.ToString()); // This is the item we're mucking with here
+            msg.fromAgentID = new Guid(m_host.UUID.ToString()); // fromAgentID.UUID;
+            msg.fromAgentSession = new Guid(friendTransactionID.ToString());// fromAgentSession.UUID;
+            msg.toAgentID = new Guid(user); // toAgentID.UUID;
+            msg.imSessionID = new Guid(friendTransactionID.ToString()); // This is the item we're mucking with here
             Console.WriteLine("[Scripting IM]: From:" + msg.fromAgentID.ToString() + " To: " + msg.toAgentID.ToString() + " Session:" + msg.imSessionID.ToString() + " Message:" + message);
             Console.WriteLine("[Scripting IM]: Filling Session: " + msg.imSessionID.ToString());
             msg.timestamp = (uint)Util.UnixTimeSinceEpoch();// timestamp;
@@ -2654,7 +2653,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 return new LSL_Types.Vector3(0, 0, 0);
             }
-            if (src.Data[index].GetType() == typeof(OpenSim.Region.ScriptEngine.Common.LSL_Types.Vector3))
+            if (src.Data[index].GetType() == typeof(LSL_Types.Vector3))
             {
                 return (LSL_Types.Vector3)src.Data[index];
             }
@@ -2675,7 +2674,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 return new LSL_Types.Quaternion(0, 0, 0, 1);
             }
-            if (src.Data[index].GetType() == typeof(OpenSim.Region.ScriptEngine.Common.LSL_Types.Quaternion))
+            if (src.Data[index].GetType() == typeof(LSL_Types.Quaternion))
             {
                 return (LSL_Types.Quaternion)src.Data[index];
             }
@@ -2713,11 +2712,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return 0;
             }
 
-            if (src.Data[index] is System.Int32)
+            if (src.Data[index] is Int32)
                 return 1;
-            if (src.Data[index] is System.Double)
+            if (src.Data[index] is Double)
                 return 2;
-            if (src.Data[index] is System.String)
+            if (src.Data[index] is String)
             {
                 LLUUID tuuid;
                 if (LLUUID.TryParse(src.Data[index].ToString(), out tuuid))
@@ -2729,11 +2728,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                     return 4;
                 }
             }
-            if (src.Data[index] is OpenSim.Region.ScriptEngine.Common.LSL_Types.Vector3)
+            if (src.Data[index] is LSL_Types.Vector3)
                 return 5;
-            if (src.Data[index] is OpenSim.Region.ScriptEngine.Common.LSL_Types.Quaternion)
+            if (src.Data[index] is LSL_Types.Quaternion)
                 return 6;
-            if (src.Data[index] is OpenSim.Region.ScriptEngine.Common.LSL_Types.list)
+            if (src.Data[index] is LSL_Types.list)
                 return 7;
             return 0;
 

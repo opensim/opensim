@@ -25,16 +25,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-
-using OpenSim.Region.Environment.Modules.ModuleFramework;
+using System.Collections.Generic;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
     public interface ICommand
     {
         void AddArgument(string name, string helptext, string type);
-        System.Collections.Generic.Dictionary<string, string> Arguments { get; }
+        Dictionary<string, string> Arguments { get; }
         string Help { get; }
         string Name { get; }
         void Run(object[] args);

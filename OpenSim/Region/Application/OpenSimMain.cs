@@ -29,10 +29,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Timers;
 using libsecondlife;
+using log4net;
 using Mono.Addins;
 using Nini.Config;
 using OpenSim.Framework;
@@ -47,7 +50,7 @@ using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
-using Timer = System.Timers.Timer;
+using Timer=System.Timers.Timer;
 
 namespace OpenSim
 {
@@ -55,7 +58,7 @@ namespace OpenSim
 
     public class OpenSimMain : RegionApplicationBase, conscmd_callback
     {        
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private string proxyUrl;
         private int proxyOffset = 0;
 
@@ -757,7 +760,7 @@ namespace OpenSim
                         }
                         else
                         {
-                            m_sceneManager.CurrentScene.SetSceneCoreDebug(!System.Convert.ToBoolean(cmdparams[0]), !System.Convert.ToBoolean(cmdparams[1]), !System.Convert.ToBoolean(cmdparams[2]));
+                            m_sceneManager.CurrentScene.SetSceneCoreDebug(!Convert.ToBoolean(cmdparams[0]), !Convert.ToBoolean(cmdparams[1]), !Convert.ToBoolean(cmdparams[2]));
                         }
                     }
                     else
@@ -813,7 +816,7 @@ namespace OpenSim
 //                         m_console.Notice("THREAD", _tc + ": ID: " + pt.Id + ", Started: " + pt.StartTime.ToString() + ", CPU time: " + pt.TotalProcessorTime + ", Pri: " + pt.BasePriority.ToString() + ", State: " + pt.ThreadState.ToString());
 //                     }
 
-                    List<Thread> threads = OpenSim.Framework.ThreadTracker.GetThreads();
+                    List<Thread> threads = ThreadTracker.GetThreads();
                     if (threads == null)
                     {
                         m_console.Notice("THREAD", "Thread tracking is only enabled in DEBUG mode.");
@@ -1056,7 +1059,7 @@ namespace OpenSim
                             case "unload":
                                 if (cmdparams.Length > 1)
                                 {
-                                    foreach (IRegionModule rm in new System.Collections.ArrayList(m_moduleLoader.GetLoadedSharedModules))
+                                    foreach (IRegionModule rm in new ArrayList(m_moduleLoader.GetLoadedSharedModules))
                                     {
                                         if (rm.Name.ToLower() == cmdparams[1].ToLower())
                                         {
@@ -1069,7 +1072,7 @@ namespace OpenSim
                             case "load":
                                 if (cmdparams.Length > 1)
                                 {
-                                    foreach (Scene s in new System.Collections.ArrayList(m_sceneManager.Scenes))
+                                    foreach (Scene s in new ArrayList(m_sceneManager.Scenes))
                                     {
                                         
                                         m_console.Notice("Loading module: " + cmdparams[1]);
@@ -1142,7 +1145,7 @@ namespace OpenSim
                     {
                         RegionInfo regionInfo = m_sceneManager.GetRegionInfo(presence.RegionHandle);
                         string regionName;
-                        System.Net.EndPoint ep = null;
+                        EndPoint ep = null;
 
                         if (regionInfo == null)
                         {

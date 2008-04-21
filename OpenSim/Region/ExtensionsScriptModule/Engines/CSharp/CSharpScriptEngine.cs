@@ -28,14 +28,15 @@
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Reflection;
+using log4net;
 using Microsoft.CSharp;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.ExtensionsScriptModule.CSharp
 {
     public class CSharpScriptEngine : IScriptCompiler
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public string FileExt()
         {

@@ -25,23 +25,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading;
+using System.Net;
+using System.Reflection;
 using libsecondlife;
+using log4net;
 using Nwc.XmlRpc;
-using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.UserServer
 {
     public class MessageServersConnector
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public Dictionary<string, MessageServerInfo> MessageServers;
         
@@ -214,7 +211,7 @@ namespace OpenSim.Grid.UserServer
             {
                 XmlRpcResponse GridResp = GridReq.Send(serv.URI, 6000);
             }
-            catch (System.Net.WebException)
+            catch (WebException)
             {
                 m_log.Warn("[MSGCONNECTOR]: Unable to notify Message Server about log out.  Other users might still think this user is online");
             }
@@ -249,7 +246,7 @@ namespace OpenSim.Grid.UserServer
                 XmlRpcResponse GridResp = GridReq.Send(serv.URI, 6000);
                 m_log.Info("[LOGIN]: Notified : " + serv.URI + " about user login");
             }
-            catch (System.Net.WebException)
+            catch (WebException)
             {
                 m_log.Warn("[MSGCONNECTOR]: Unable to notify Message Server about login.  Presence might be borked for this user");
             }

@@ -27,12 +27,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.IO;
-using libsecondlife;
-using libsecondlife.Packets;
-using Nini.Config;
+using System.Reflection;
 using System.Threading;
+using libsecondlife;
+using log4net;
+using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 
@@ -43,13 +42,13 @@ namespace OpenSim.TestSuite
     /// </summary>
     public class BotManager : conscmd_callback
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected ConsoleBase m_console;
         protected List<PhysicsBot> m_lBot;
         protected Thread[] m_td;
         protected bool m_verbose = true;
-        protected Random somthing = new Random(System.Environment.TickCount);
+        protected Random somthing = new Random(Environment.TickCount);
         protected int numbots = 0;
         protected IConfig Previous_config;
         
@@ -118,7 +117,7 @@ namespace OpenSim.TestSuite
             m_td[pos].IsBackground = true;
             m_td[pos].Start();
             m_lBot.Add(pb);
-            OpenSim.Framework.ThreadTracker.Add(m_td[pos]);
+            ThreadTracker.Add(m_td[pos]);
         }
 
         /// <summary>

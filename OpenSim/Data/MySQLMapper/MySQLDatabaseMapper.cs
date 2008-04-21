@@ -28,7 +28,6 @@
 using System.Data;
 using System.Data.Common;
 using MySql.Data.MySqlClient;
-using OpenSim.Data;
 using OpenSim.Data.Base;
 
 namespace OpenSim.Data.MySQLMapper

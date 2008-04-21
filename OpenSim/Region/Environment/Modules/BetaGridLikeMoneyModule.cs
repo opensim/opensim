@@ -30,16 +30,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Xml;
 using libsecondlife;
+using log4net;
 using Nini.Config;
+using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using Nwc.XmlRpc;
-
-using MoneyTransferArgs = OpenSim.Region.Environment.Scenes.EventManager.MoneyTransferArgs;
-using LandBuyArgs = OpenSim.Region.Environment.Scenes.EventManager.LandBuyArgs;
 
 namespace OpenSim.Region.Environment.Modules
 {   
@@ -56,7 +55,7 @@ namespace OpenSim.Region.Environment.Modules
     /// </summary>
     public class BetaGridLikeMoneyModule: IRegionModule
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         /// <summary>
         /// Region UUIDS indexed by AgentID
@@ -341,7 +340,7 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
-        private void ValidateLandBuy (Object osender, LandBuyArgs e)
+        private void ValidateLandBuy (Object osender, EventManager.LandBuyArgs e)
         {
 			if (m_MoneyAddress.Length == 0)
 			{
@@ -372,7 +371,7 @@ namespace OpenSim.Region.Environment.Modules
 			}
         }
 
-        private void processLandBuy(Object osender, LandBuyArgs e)
+        private void processLandBuy(Object osender, EventManager.LandBuyArgs e)
         {
 			lock(e)
 			{
@@ -396,7 +395,7 @@ namespace OpenSim.Region.Environment.Modules
         /// </summary>
         /// <param name="osender"></param>
         /// <param name="e"></param>
-        private void MoneyTransferAction (Object osender, MoneyTransferArgs e)
+        private void MoneyTransferAction (Object osender, EventManager.MoneyTransferArgs e)
         {
             IClientAPI sender = null;
             IClientAPI receiver = null;
@@ -724,7 +723,7 @@ namespace OpenSim.Region.Environment.Modules
                 {
                     returnfunds = GetFundsForAgentID(agentID);
                 }
-                catch (System.Exception e)
+                catch (Exception e)
                 {
                     client.SendAlertMessage(e.Message + " ");
                 }

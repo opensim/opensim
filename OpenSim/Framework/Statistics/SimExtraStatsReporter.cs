@@ -28,11 +28,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-
-using OpenSim.Framework;
-using OpenSim.Framework.Statistics.Interfaces;
-
 using libsecondlife;
+using OpenSim.Framework.Statistics.Interfaces;
 
 namespace OpenSim.Framework.Statistics
 {  

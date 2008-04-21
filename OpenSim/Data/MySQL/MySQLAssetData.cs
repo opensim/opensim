@@ -28,16 +28,17 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Reflection;
 using libsecondlife;
+using log4net;
 using MySql.Data.MySqlClient;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Data.MySQL
 {
     internal class MySQLAssetData : AssetDataBase, IPlugin
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private MySQLManager _dbConnection;
 

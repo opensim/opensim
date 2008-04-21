@@ -26,8 +26,9 @@
  */
 
 using libsecondlife;
-using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Scenes;
+
 namespace OpenSim.Region.Environment
 {
     public class PermissionManager

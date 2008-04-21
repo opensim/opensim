@@ -27,17 +27,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
-using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
-
-using LandBuyArgs = OpenSim.Region.Environment.Scenes.EventManager.LandBuyArgs;
 
 namespace OpenSim.Region.Environment.Modules.LandManagement
 {
@@ -245,7 +241,7 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
                 x = Convert.ToInt32(Math.Floor(Convert.ToDouble(x_float) / Convert.ToDouble(4.0)));
                 y = Convert.ToInt32(Math.Floor(Convert.ToDouble(y_float) / Convert.ToDouble(4.0)));
             }
-            catch (System.OverflowException)
+            catch (OverflowException)
             {
                 return null;
             }
@@ -957,7 +953,7 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
 		// and land has been validated as well, this method transfers
 		// the land ownership
 
-        public void handleLandBuyRequest(Object o, LandBuyArgs e)
+        public void handleLandBuyRequest(Object o, EventManager.LandBuyArgs e)
 		{
             if (e.economyValidated && e.landValidated)
             {
@@ -976,7 +972,7 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
 		// be validated. This method validates the right to buy the
 		// parcel
 
-        public void handleLandValidationRequest(Object o, LandBuyArgs e)
+        public void handleLandValidationRequest(Object o, EventManager.LandBuyArgs e)
         {
             if (e.landValidated == false)
             {
@@ -994,7 +990,7 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
                     int saleprice = lob.landData.salePrice;
                     LLUUID pOwnerID = lob.landData.ownerID;
                     
-                    bool landforsale = ((lob.landData.landFlags & (uint)(libsecondlife.Parcel.ParcelFlags.ForSale | libsecondlife.Parcel.ParcelFlags.ForSaleObjects | libsecondlife.Parcel.ParcelFlags.SellParcelObjects)) != 0);
+                    bool landforsale = ((lob.landData.landFlags & (uint)(Parcel.ParcelFlags.ForSale | Parcel.ParcelFlags.ForSaleObjects | Parcel.ParcelFlags.SellParcelObjects)) != 0);
                     if ((AuthorizedID == LLUUID.Zero || AuthorizedID == e.agentId) && e.parcelPrice >= saleprice && landforsale)
                     {
                         lock (e)

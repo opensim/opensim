@@ -26,6 +26,7 @@
  */
 
 using System;
+using log4net.Config;
 
 namespace OpenSim.Tests.UserServer.Stress
 {
@@ -36,9 +37,9 @@ namespace OpenSim.Tests.UserServer.Stress
     {
         public static void Main(string[] args)
         {     
-            log4net.Config.XmlConfigurator.Configure();
+            XmlConfigurator.Configure();
 
-            System.Console.WriteLine("Aborting - not yet functional");
+            Console.WriteLine("Aborting - not yet functional");
         }
     }
 }

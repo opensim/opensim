@@ -27,11 +27,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
+using log4net;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Types;
 using OpenSim.Region.Physics.Manager;
 
@@ -41,7 +42,7 @@ namespace OpenSim.Region.Environment.Scenes
 
     public class InnerScene
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         #region Events
 
@@ -295,7 +296,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, LLQuaternion rot)
         {
-            System.Console.WriteLine("Attaching object " + objectLocalID + " to " + AttachmentPt);
+            Console.WriteLine("Attaching object " + objectLocalID + " to " + AttachmentPt);
             SceneObjectPart p = GetSceneObjectPart(objectLocalID);
             if (p != null)
             {

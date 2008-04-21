@@ -27,10 +27,10 @@
 
 using System;
 using System.Data;
+using libsecondlife;
 using NHibernate;
 using NHibernate.SqlTypes;
 using NHibernate.UserTypes;
-using libsecondlife;
 
 namespace OpenSim.Data.NHibernate
 {
@@ -67,7 +67,7 @@ namespace OpenSim.Data.NHibernate
             get { return false; }
         }
 
-        public object NullSafeGet(System.Data.IDataReader rs, string[] names, object owner)
+        public object NullSafeGet(IDataReader rs, string[] names, object owner)
         {
             object uuid = null; 
 
@@ -81,7 +81,7 @@ namespace OpenSim.Data.NHibernate
             return uuid;
         }
 
-        public void NullSafeSet(System.Data.IDbCommand cmd, object obj, int index)
+        public void NullSafeSet(IDbCommand cmd, object obj, int index)
         {
             LLUUID uuid = (LLUUID)obj;
             ((IDataParameter)cmd.Parameters[index]).Value = uuid.ToString();

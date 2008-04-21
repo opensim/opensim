@@ -26,8 +26,10 @@
  */
 
 using System;
+using System.Reflection;
 using System.Runtime.Remoting;
 using libsecondlife;
+using log4net;
 using OpenSim.Framework;
 
 namespace OpenSim.Region.Communications.OGS1
@@ -153,7 +155,7 @@ namespace OpenSim.Region.Communications.OGS1
 
     public class OGS1InterRegionRemoting : MarshalByRefObject
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public OGS1InterRegionRemoting()
         {

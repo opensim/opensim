@@ -26,7 +26,9 @@
  */
 
 using System.Collections.Generic;
+using System.Reflection;
 using libsecondlife;
+using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
@@ -39,8 +41,8 @@ namespace OpenSim.Region.Communications.Local
     /// </summary>
     public class LocalInventoryService : InventoryServiceBase
     {
-        private static readonly log4net.ILog m_log 
-            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log 
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         public override void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback)
         {

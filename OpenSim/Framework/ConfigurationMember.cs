@@ -32,13 +32,14 @@ using System.Net;
 using System.Reflection;
 using System.Xml;
 using libsecondlife;
+using log4net;
 using OpenSim.Framework.Console;
 
 namespace OpenSim.Framework
 {
     public class ConfigurationMember
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public delegate bool ConfigurationOptionResult(string configuration_key, object configuration_result);
 

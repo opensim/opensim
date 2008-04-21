@@ -29,9 +29,10 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Reflection;
 using libsecondlife;
+using log4net;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Data.MSSQL
 {
@@ -40,7 +41,7 @@ namespace OpenSim.Data.MSSQL
     /// </summary>
     public class MSSQLUserData : UserDataBase
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Database manager for MySQL
@@ -326,9 +327,9 @@ namespace OpenSim.Data.MSSQL
 
 
 
-        override public List<Framework.AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
+        override public List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
-            List<Framework.AvatarPickerAvatar> returnlist = new List<Framework.AvatarPickerAvatar>();
+            List<AvatarPickerAvatar> returnlist = new List<AvatarPickerAvatar>();
             string[] querysplit;
             querysplit = query.Split(' ');
             if (querysplit.Length == 2)
@@ -350,7 +351,7 @@ namespace OpenSim.Data.MSSQL
 
                         while (reader.Read())
                         {
-                            Framework.AvatarPickerAvatar user = new Framework.AvatarPickerAvatar();
+                            AvatarPickerAvatar user = new AvatarPickerAvatar();
                             user.AvatarID = new LLUUID((string)reader["UUID"]);
                             user.firstName = (string)reader["username"];
                             user.lastName = (string)reader["lastname"];
@@ -385,7 +386,7 @@ namespace OpenSim.Data.MSSQL
 
                         while (reader.Read())
                         {
-                            Framework.AvatarPickerAvatar user = new Framework.AvatarPickerAvatar();
+                            AvatarPickerAvatar user = new AvatarPickerAvatar();
                             user.AvatarID = new LLUUID((string)reader["UUID"]);
                             user.firstName = (string)reader["username"];
                             user.lastName = (string)reader["lastname"];

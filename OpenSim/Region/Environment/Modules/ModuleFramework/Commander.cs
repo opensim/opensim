@@ -27,8 +27,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
-
+using log4net;
+using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.ModuleFramework
@@ -39,9 +41,9 @@ namespace OpenSim.Region.Environment.Modules.ModuleFramework
     /// </summary>
     public class Command : ICommand
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Action<Object[]> m_command;
+        private Action<object[]> m_command;
         private string m_name;
         private string m_help;
         private List<CommandArgument> m_args = new List<CommandArgument>();
@@ -197,7 +199,7 @@ namespace OpenSim.Region.Environment.Modules.ModuleFramework
     /// </summary>
     public class Commander : ICommander
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Dictionary<string, ICommand> m_commands = new Dictionary<string, ICommand>();
         private string m_name;
 
@@ -241,7 +243,7 @@ namespace OpenSim.Region.Environment.Modules.ModuleFramework
                 classSrc += "\tpublic void " + EscapeRuntimeAPICommand(com.Name) + "( ";
                 foreach (KeyValuePair<string, string> arg in com.Arguments)
                 {
-                    classSrc += arg.Value + " " + Framework.Util.Md5Hash(arg.Key) + ",";
+                    classSrc += arg.Value + " " + Util.Md5Hash(arg.Key) + ",";
                 }
                 classSrc = classSrc.Remove(classSrc.Length - 1); // Delete the last comma
                 classSrc += " )\n\t{\n";
@@ -249,7 +251,7 @@ namespace OpenSim.Region.Environment.Modules.ModuleFramework
                 int i = 0;
                 foreach (KeyValuePair<string, string> arg in com.Arguments)
                 {
-                    classSrc += "\t\targs[" + i.ToString() + "] = " + Framework.Util.Md5Hash(arg.Key) + "  " + ";\n";
+                    classSrc += "\t\targs[" + i.ToString() + "] = " + Util.Md5Hash(arg.Key) + "  " + ";\n";
                     i++;
                 }                
                 classSrc += "\t\tGetCommander(\"" + m_name + "\").Run(\"" + com.Name + "\", args);\n";

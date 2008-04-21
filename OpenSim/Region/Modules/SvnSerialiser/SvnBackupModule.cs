@@ -1,20 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using System.Timers;
+using log4net;
 using Nini.Config;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Modules.ExportSerialiser;
-
-using PumaCode.SvnDotNet.SubversionSharp;
+using OpenSim.Region.Environment.Modules.Terrain;
+using OpenSim.Region.Environment.Scenes;
 using PumaCode.SvnDotNet.AprSharp;
-
+using PumaCode.SvnDotNet.SubversionSharp;
 using Slash=System.IO.Path;
 
 namespace OpenSim.Region.Modules.SvnSerialiser
 {
     public class SvnBackupModule : IRegionModule
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         private SvnClient m_svnClient;
         private bool m_enabled = false;
@@ -26,7 +29,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
 
         private TimeSpan m_svnperiod = new TimeSpan(0, 0, 15, 0, 0);
         private bool m_svnAutoSave = false;
-        private System.Timers.Timer m_timer = new System.Timers.Timer();
+        private Timer m_timer = new Timer();
 
         private IRegionSerialiser m_serialiser;
         private List<Scene> m_scenes = new List<Scene>();
@@ -87,7 +90,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
         {
             scene.LoadPrimsFromXml2(m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID.ToString() + 
                 Slash.DirectorySeparatorChar + "objects.xml");
-            scene.RequestModuleInterface<OpenSim.Region.Environment.Modules.Terrain.ITerrainModule>().LoadFromFile(m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID.ToString() +
+            scene.RequestModuleInterface<ITerrainModule>().LoadFromFile(m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID.ToString() +
                 Slash.DirectorySeparatorChar + "heightmap.r32");
             m_log.Info("[SVNBACKUP]: Region load successful (" + scene.RegionInfo.RegionName + ").");
         }
@@ -104,16 +107,16 @@ namespace OpenSim.Region.Modules.SvnSerialiser
 
         private void CheckoutSvnPartial(string subdir)
         {
-            if (!System.IO.Directory.Exists(m_svndir + Slash.DirectorySeparatorChar + subdir))
-                System.IO.Directory.CreateDirectory(m_svndir + Slash.DirectorySeparatorChar + subdir);
+            if (!Directory.Exists(m_svndir + Slash.DirectorySeparatorChar + subdir))
+                Directory.CreateDirectory(m_svndir + Slash.DirectorySeparatorChar + subdir);
 
             m_svnClient.Checkout2(m_svnurl + "/" + subdir, m_svndir, Svn.Revision.Head, Svn.Revision.Head, true, false);
         }
 
         private void CheckoutSvnPartial(string subdir, SvnRevision revision)
         {
-            if (!System.IO.Directory.Exists(m_svndir + Slash.DirectorySeparatorChar + subdir))
-                System.IO.Directory.CreateDirectory(m_svndir + Slash.DirectorySeparatorChar + subdir);
+            if (!Directory.Exists(m_svndir + Slash.DirectorySeparatorChar + subdir))
+                Directory.CreateDirectory(m_svndir + Slash.DirectorySeparatorChar + subdir);
 
             m_svnClient.Checkout2(m_svnurl + "/" + subdir, m_svndir, revision, revision, true, false);
         }
@@ -138,7 +141,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             {
                 foreach (SvnClientCommitItem2 item in commitItems)
                 {                    
-                    m_log.Debug("[SVNBACKUP]: ... " + System.IO.Path.GetFileName(item.Path.ToString()) + " (" + item.Kind.ToString() + ") r" + item.Revision.ToString());
+                    m_log.Debug("[SVNBACKUP]: ... " + Path.GetFileName(item.Path.ToString()) + " (" + item.Kind.ToString() + ") r" + item.Revision.ToString());
                 }
             }
 
@@ -277,7 +280,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             if (m_svnAutoSave == true)
             {
                 m_timer.Interval = m_svnperiod.TotalMilliseconds;
-                m_timer.Elapsed += new System.Timers.ElapsedEventHandler(m_timer_Elapsed);
+                m_timer.Elapsed += new ElapsedEventHandler(m_timer_Elapsed);
                 m_timer.AutoReset = true;
                 m_timer.Start();
             }
@@ -300,7 +303,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             }
         }
 
-        void m_timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        void m_timer_Elapsed(object sender, ElapsedEventArgs e)
         {
             SaveAllRegions();
         }
@@ -322,8 +325,8 @@ namespace OpenSim.Region.Modules.SvnSerialiser
 
         private void CreateSvnDirectory()
         {
-            if (!System.IO.Directory.Exists(m_svndir))
-                System.IO.Directory.CreateDirectory(m_svndir);
+            if (!Directory.Exists(m_svndir))
+                Directory.CreateDirectory(m_svndir);
         }
 
         public void Close()

@@ -25,8 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.Data;
-
 using OpenSim.Data.Base;
 
 namespace OpenSim.Data

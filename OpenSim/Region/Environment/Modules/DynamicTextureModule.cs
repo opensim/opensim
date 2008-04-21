@@ -26,14 +26,15 @@
  */
 
 using System;
-using System.Drawing;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using libsecondlife;
 using Nini.Config;
+using OpenJPEGNet;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using OpenJPEGNet;
 
 namespace OpenSim.Region.Environment.Modules
 {
@@ -252,7 +253,7 @@ namespace OpenSim.Region.Environment.Modules
                 Bitmap joint;
                 Graphics jG;
 
-                joint = new Bitmap(back.Width, back.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                joint = new Bitmap(back.Width, back.Height, PixelFormat.Format32bppArgb);
                 jG = Graphics.FromImage(joint);
 
                 jG.DrawImage(back, 0, 0, back.Width, back.Height);

@@ -26,9 +26,7 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using OpenSim.Framework.Console;
+using log4net.Config;
 
 namespace OpenSim.Grid.GridServer
 {
@@ -37,7 +35,7 @@ namespace OpenSim.Grid.GridServer
         [STAThread]
         public static void Main(string[] args)
         {
-            log4net.Config.XmlConfigurator.Configure();
+            XmlConfigurator.Configure();
 
             GridServerBase app = new GridServerBase();
 

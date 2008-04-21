@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using libsecondlife;
 
 namespace OpenSim.Data
@@ -37,11 +38,11 @@ namespace OpenSim.Data
         public int reservationMaxX = 65536;
         public int reservationMaxY = 65536;
 
-        public string reservationName = System.String.Empty;
-        public string reservationCompany = System.String.Empty;
+        public string reservationName = String.Empty;
+        public string reservationCompany = String.Empty;
         public bool status = true;
 
-        public string gridSendKey = System.String.Empty;
-        public string gridRecvKey = System.String.Empty;
+        public string gridSendKey = String.Empty;
+        public string gridRecvKey = String.Empty;
     }
 }

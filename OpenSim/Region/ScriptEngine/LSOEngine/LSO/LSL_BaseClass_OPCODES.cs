@@ -25,9 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
-using System.Collections.Generic;
-
 namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
 {
     //public partial class LSL_BaseClass

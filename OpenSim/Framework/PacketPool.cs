@@ -26,8 +26,9 @@
  */
 
 using System;
-using System.Net;
 using System.Collections;
+using System.Net;
+using libsecondlife;
 using libsecondlife.Packets;
 
 namespace OpenSim.Framework
@@ -115,13 +116,13 @@ namespace OpenSim.Framework
         {
             byte[] decoded_header = new byte[10 + 8];
             ushort id;
-            libsecondlife.PacketFrequency freq;
+            PacketFrequency freq;
 
             Buffer.BlockCopy(bytes, 0, decoded_header, 0, 10);
 
-            if((bytes[0] & libsecondlife.Helpers.MSG_ZEROCODED)!=0)
+            if((bytes[0] & Helpers.MSG_ZEROCODED)!=0)
             {
-                libsecondlife.Helpers.ZeroDecodeCommand(bytes, decoded_header);
+                Helpers.ZeroDecodeCommand(bytes, decoded_header);
             }
 
             if (decoded_header[6] == 0xFF)
@@ -129,18 +130,18 @@ namespace OpenSim.Framework
                 if (decoded_header[7] == 0xFF)
                 {
                     id = (ushort)((decoded_header[8] << 8) + decoded_header[9]);
-                    freq = libsecondlife.PacketFrequency.Low;
+                    freq = PacketFrequency.Low;
                 }
                 else
                 {
                     id = (ushort)decoded_header[7];
-                    freq = libsecondlife.PacketFrequency.Medium;
+                    freq = PacketFrequency.Medium;
                 }
             }
             else
             {
                 id = (ushort)decoded_header[6];
-                freq = libsecondlife.PacketFrequency.High;
+                freq = PacketFrequency.High;
             }
  
             return Packet.GetType(id, freq);

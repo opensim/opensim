@@ -25,11 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Xml;
 using libsecondlife;
-using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.Environment.Scenes
 {

@@ -25,13 +25,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+
 namespace OpenSim.Framework.Configuration.HTTP
 {
     public class RemoteConfigSettings
     {
         private ConfigurationMember configMember;
 
-        public string baseConfigURL = System.String.Empty;
+        public string baseConfigURL = String.Empty;
 
         public RemoteConfigSettings(string filename)
         {

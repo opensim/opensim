@@ -104,7 +104,7 @@ namespace OpenSim.Framework.Communications.Limit
         {
             if (!IsMonitoringRequests(id))
             {
-                requests.Add(id, new Request(System.DateTime.Now));
+                requests.Add(id, new Request(DateTime.Now));
             }            
         }  
         

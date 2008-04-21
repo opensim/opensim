@@ -26,17 +26,14 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using libsecondlife;
-using libsecondlife.Packets;
-using Nini.Config;
 using System.Threading;
+using System.Timers;
+using libsecondlife;
+using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
-using Timer = System.Timers.Timer;
-using log4net;
+using Timer=System.Timers.Timer;
 
 namespace OpenSim.TestSuite
 {
@@ -55,7 +52,7 @@ namespace OpenSim.TestSuite
 
         protected Timer m_action; // Action Timer
 
-        protected Random somthing = new Random(System.Environment.TickCount);// We do stuff randomly here
+        protected Random somthing = new Random(Environment.TickCount);// We do stuff randomly here
 
         
         //New instance of a SecondLife client
@@ -76,7 +73,7 @@ namespace OpenSim.TestSuite
         //We do our actions here.  This is where one would 
         //add additional steps and/or things the bot should do
 
-        void m_action_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        void m_action_Elapsed(object sender, ElapsedEventArgs e)
         {
             //client.Throttle.Task = 500000f;
             //client.Throttle.Set();
@@ -147,7 +144,7 @@ namespace OpenSim.TestSuite
                 if (OnConnected != null)
                 {
                     m_action = new Timer(somthing.Next(1000, 10000));
-                    m_action.Elapsed += new System.Timers.ElapsedEventHandler(m_action_Elapsed);
+                    m_action.Elapsed += new ElapsedEventHandler(m_action_Elapsed);
                     m_action.Start();
                     OnConnected(this, EventType.CONNECTED);
                     client.Self.Jump();

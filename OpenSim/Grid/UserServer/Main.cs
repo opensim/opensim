@@ -28,7 +28,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Reflection;
 using libsecondlife;
+using log4net;
+using log4net.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
@@ -41,7 +45,7 @@ namespace OpenSim.Grid.UserServer
     /// </summary>
     public class OpenUser_Main : BaseOpenSimServer, conscmd_callback
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private UserConfig Cfg;
         
@@ -54,7 +58,7 @@ namespace OpenSim.Grid.UserServer
         [STAThread]
         public static void Main(string[] args)
         {
-            log4net.Config.XmlConfigurator.Configure();
+            XmlConfigurator.Configure();
 
             m_log.Info("Launching UserServer...");
 
@@ -191,7 +195,7 @@ namespace OpenSim.Grid.UserServer
                         }
                        
                     }
-                    catch (System.Net.WebException e)
+                    catch (WebException e)
                     {
                         m_log.ErrorFormat(
                             "[USERS]: Could not contact the inventory service at {0} to create an inventory for {1}", 

@@ -25,10 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System.IO;
+using System;
+using System.Reflection;
 using libsecondlife;
-using Nini.Config;
-using OpenSim.Framework;
+using log4net;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Grid.ScriptServer.ScriptServer;
@@ -39,7 +39,7 @@ namespace OpenSim.Grid.ScriptServer
 {
     public class ScriptServerMain : BaseOpenSimServer, conscmd_callback
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         //
         // Root object. Creates objects used.
@@ -77,7 +77,7 @@ namespace OpenSim.Grid.ScriptServer
                     RPC.ReceiveCommand += new TRPC_Remote.ReceiveCommandDelegate(RPC_ReceiveCommand);
             m_TCPServer.StartListen();
 
-            System.Console.ReadLine();
+            Console.ReadLine();
         }
 
         private void RPC_ReceiveCommand(int ID, string Command, object[] p)

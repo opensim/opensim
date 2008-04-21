@@ -28,7 +28,6 @@
 using System;
 using System.Data.Common;
 using System.Data.SqlClient;
-using OpenSim.Data;
 
 namespace OpenSim.Data.MSSQLMapper
 {
