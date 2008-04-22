@@ -332,6 +332,29 @@ namespace OpenSim.Framework.Communications.Cache
     /// </summary>    
     public interface IInventoryRequest
     {
+        /// <summary>
+        /// This is the method executed once we have received the user's inventory by which the request can be fulfilled.
+        /// </summary>
         void Execute();
     }
+        
+    /// <summary>
+    /// Generic inventory request
+    /// </summary>
+    public class InventoryRequest : IInventoryRequest
+    {
+        private Delegate m_delegat;
+        private Object[] m_args;
+        
+        internal InventoryRequest(Delegate delegat, Object[] args)
+        {
+            m_delegat = delegat; 
+            m_args = args;
+        }
+        
+        public void Execute()
+        {
+            m_delegat.DynamicInvoke(m_args);
+        }
+    }      
 }

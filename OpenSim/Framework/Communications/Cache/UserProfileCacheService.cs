@@ -25,14 +25,19 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
+
 using libsecondlife;
 using log4net;
 
 namespace OpenSim.Framework.Communications.Cache
 {
+    internal delegate void UpdateInventoryFolderDelegate(
+        IClientAPI remoteClient, LLUUID folderID, ushort type, string name, LLUUID parentID);
+        
     /// <summary>
     /// Holds user profile information and retrieves it from backend services.
     /// </summary>
@@ -221,7 +226,10 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 else
                 {
-                    userProfile.AddRequest(new UpdateFolderRequest(this, remoteClient, folderID, type, name, parentID));
+                    userProfile.AddRequest(
+                        new InventoryRequest(
+                            Delegate.CreateDelegate(typeof(UpdateInventoryFolderDelegate), this, "HandleUpdateInventoryFolder"),
+                            new object[] { remoteClient, folderID, type, name, parentID }));
                 }
             }
         }
@@ -234,6 +242,10 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="parentID"></param>
         public void HandleMoveInventoryFolder(IClientAPI remoteClient, LLUUID folderID, LLUUID parentID)
         {
+            m_log.DebugFormat(
+                "[AGENT INVENTORY] Moving inventory folder {0} into folder {1} for {2} {3}",
+                parentID, remoteClient.Name, remoteClient.AgentId);
+
             CachedUserInfo userProfile;
 
             if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
@@ -246,6 +258,10 @@ namespace OpenSim.Framework.Communications.Cache
                     baseFolder.ParentID = parentID;
                     m_commsManager.InventoryService.MoveInventoryFolder(remoteClient.AgentId, baseFolder);
                 }
+//                else
+//                {
+//                    userProfile.AddRequest(new MoveFolderRequest(remoteClient, folderID, parentID));
+//                }
             }
         }
 
@@ -497,35 +513,6 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                 }
             }
-        }
-    }
-    
-    /// <summary>
-    /// Used to create an update folder request if we haven't yet received the user's inventory
-    /// </summary>
-    internal class UpdateFolderRequest : IInventoryRequest
-    {
-        private UserProfileCacheService m_userProfileCacheService;
-        private IClientAPI m_client;
-        private LLUUID m_folderID;
-        private ushort m_type;
-        private string m_name;
-        private LLUUID m_parentID;
-        
-        internal UpdateFolderRequest(
-            UserProfileCacheService cacheService, IClientAPI client, LLUUID folderID, ushort type, string name, LLUUID parentID)
-        {
-            m_userProfileCacheService = cacheService;
-            m_client = client;
-            m_folderID = folderID;
-            m_type = type;
-            m_name = name;
-            m_parentID = parentID;
-        }
-        
-        public void Execute()
-        {
-            m_userProfileCacheService.HandleUpdateInventoryFolder(m_client, m_folderID, m_type, m_name, m_parentID);
         }
     }
 }
