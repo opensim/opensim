@@ -2771,6 +2771,65 @@ namespace OpenSim.Region.Environment.Scenes
             m_eventManager.TriggerOnScriptChangedEvent(localID, change);
         }
 
+        public bool pipeEventsForScript(uint localID)
+        {
+            SceneObjectPart part = GetSceneObjectPart(localID);
+            if (part != null)
+            {
+                LLVector3 pos = part.GetWorldPosition();
+                ILandObject parcel = LandChannel.getLandObject(pos.X, pos.Y);
+                if (parcel != null)
+                {
+                    if ((parcel.landData.landFlags & (uint)Parcel.ParcelFlags.AllowOtherScripts) != 0)
+                    {
+                        return true;
+                    }
+                    else if ((parcel.landData.landFlags & (uint)Parcel.ParcelFlags.AllowGroupScripts) != 0)
+                    {
+                        if (part.OwnerID == parcel.landData.ownerID || (parcel.landData.isGroupOwned && part.GroupID == parcel.landData.groupID) || PermissionsMngr.GenericEstatePermission(part.OwnerID))
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        if (part.OwnerID == parcel.landData.ownerID)
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                }
+                else
+                {
+                    
+                    if (pos.X > 0f && pos.X < Constants.RegionSize && pos.Y > 0f && pos.Y < Constants.RegionSize)
+                    {
+                        // The only time parcel != null when an object is inside a region is when 
+                        // there is nothing behind the landchannel.  IE, no land plugin loaded.
+                        return true;
+                    }
+                    else
+                    {
+                        // The object is outside of this region.  Stop piping events to it.
+                        return false;
+                    }
+                }
+
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         #endregion
 
         #region InnerScene wrapper methods

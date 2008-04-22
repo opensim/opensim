@@ -272,15 +272,19 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                 //                                              + ", QIS.functionName: " +
                                 //                                              QIS.functionName);
 #endif
-                                LastExecutionStarted = DateTime.Now.Ticks;
-                                KillCurrentScript = false;
-                                InExecution = true;
-                                m_ScriptEngine.m_ScriptManager.ExecuteEvent(QIS.localID,
-                                                                            QIS.itemID,
-                                                                            QIS.functionName,
-                                                                            QIS.llDetectParams,
-                                                                            QIS.param);
-                                InExecution = false;
+                                // Only pipe event if land supports it.
+                                if (m_ScriptEngine.World.pipeEventsForScript(QIS.localID))
+                                {
+                                    LastExecutionStarted = DateTime.Now.Ticks;
+                                    KillCurrentScript = false;
+                                    InExecution = true;
+                                    m_ScriptEngine.m_ScriptManager.ExecuteEvent(QIS.localID,
+                                                                                QIS.itemID,
+                                                                                QIS.functionName,
+                                                                                QIS.llDetectParams,
+                                                                                QIS.param);
+                                    InExecution = false;
+                                }
                             }
                             catch (Exception e)
                             {
