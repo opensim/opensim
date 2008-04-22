@@ -3693,10 +3693,19 @@ namespace OpenSim.Region.ScriptEngine.Common
             return ret;
         }
 
-        public void llScriptDanger(LSL_Types.Vector3 pos)
+        public int llScriptDanger(LSL_Types.Vector3 pos)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llScriptDanger");
+            bool result = World.scriptDanger(m_host.LocalId, new LLVector3((float)pos.x, (float)pos.y, (float)pos.z));
+            if (result)
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+
         }
 
         public void llDialog(string avatar, string message, LSL_Types.list buttons, int chat_channel)

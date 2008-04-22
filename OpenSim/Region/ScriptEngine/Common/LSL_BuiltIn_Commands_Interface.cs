@@ -473,7 +473,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //
         string llDumpList2String(LSL_Types.list src, string seperator);
         //wiki: integer llScriptDanger(vector pos)
-        void llScriptDanger(LSL_Types.Vector3 pos);
+        int llScriptDanger(LSL_Types.Vector3 pos);
         //wiki: llDialog( key avatar, string message, list buttons, integer chat_channel )
         void llDialog(string avatar, string message, LSL_Types.list buttons, int chat_channel);
         //wiki: llVolumeDetect(integer detect)

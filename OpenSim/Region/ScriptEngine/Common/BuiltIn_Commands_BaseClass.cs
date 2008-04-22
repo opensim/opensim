@@ -1421,9 +1421,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llDumpList2String(src, seperator);
         }
 
-        public void llScriptDanger(LSL_Types.Vector3 pos)
+        public int llScriptDanger(LSL_Types.Vector3 pos)
         {
-            m_LSL_Functions.llScriptDanger(pos);
+            return m_LSL_Functions.llScriptDanger(pos);
         }
 
         public void llDialog(string avatar, string message, LSL_Types.list buttons, int chat_channel)
