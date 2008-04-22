@@ -3284,7 +3284,44 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llUnSit(string id)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llUnSit");
+
+            LLUUID key = new LLUUID();
+            if (LLUUID.TryParse(id, out key))
+            {
+                
+                ScenePresence av = World.GetScenePresence(key);
+                if (av != null)
+                {
+                    if (llAvatarOnSitTarget() == id)
+                    {
+                        // if the avatar is sitting on this object, then 
+                        // we can unsit them.  We don't want random scripts unsitting random people
+                        // Lets avoid the popcorn avatar scenario.
+                        av.StandUp();
+                    }
+                    else
+                    {
+                        // If the object owner also owns the parcel
+                        // or
+                        // if the land is group owned and the object is group owned by the same group
+                        // or
+                        // if the object is owned by a person with estate access.
+                        
+                        ILandObject parcel = World.LandChannel.getLandObject(av.AbsolutePosition.X, av.AbsolutePosition.Y);
+                        if (parcel != null)
+                        {
+                            if (m_host.ObjectOwner == parcel.landData.ownerID || 
+                                (m_host.OwnerID == m_host.GroupID && m_host.GroupID == parcel.landData.groupID 
+                                && parcel.landData.isGroupOwned) || World.PermissionsMngr.GenericEstatePermission(m_host.OwnerID))
+                            {
+                                av.StandUp();
+                            }
+                        }
+                    }
+                }
+                
+            }
+
         }
 
         public LSL_Types.Vector3 llGroundSlope(LSL_Types.Vector3 offset)
