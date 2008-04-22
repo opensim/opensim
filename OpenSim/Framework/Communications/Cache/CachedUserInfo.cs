@@ -142,10 +142,13 @@ namespace OpenSim.Framework.Communications.Cache
 //                        "[INVENTORY CACHE]: Resolving pending received folder {0} {1} into {2} {3}",
 //                        folder.name, folder.folderID, parent.name, parent.folderID);
                     
-                    if (!parent.SubFolders.ContainsKey(folder.ID))
+                    lock (parent.SubFolders)
                     {
-                        parent.SubFolders.Add(folder.ID, folder);
-                    }                    
+                        if (!parent.SubFolders.ContainsKey(folder.ID))
+                        {
+                            parent.SubFolders.Add(folder.ID, folder);
+                        }                    
+                    }
                 }
             }
         }
@@ -212,28 +215,34 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 else if (RootFolder.ID == folderInfo.ParentID)
                 {
-                    if (!RootFolder.SubFolders.ContainsKey(folderInfo.ID))
+                    lock (RootFolder.SubFolders)
                     {
-                        RootFolder.SubFolders.Add(folderInfo.ID, folderInfo);
+                        if (!RootFolder.SubFolders.ContainsKey(folderInfo.ID))
+                        {
+                            RootFolder.SubFolders.Add(folderInfo.ID, folderInfo);
+                        }
+                        else
+                        {
+                            AddPendingFolder(folderInfo);
+                        }      
                     }
-                    else
-                    {
-                        AddPendingFolder(folderInfo);
-                    }                        
                 }
                 else
                 {
                     InventoryFolderImpl folder = RootFolder.HasSubFolder(folderInfo.ParentID);
-                    if (folder != null)
+                    lock (folder.SubFolders)
                     {
-                        if (!folder.SubFolders.ContainsKey(folderInfo.ID))
+                        if (folder != null)
                         {
-                            folder.SubFolders.Add(folderInfo.ID, folderInfo);
+                            if (!folder.SubFolders.ContainsKey(folderInfo.ID))
+                            {
+                                folder.SubFolders.Add(folderInfo.ID, folderInfo);
+                            }
                         }
-                    }
-                    else
-                    {
-                        AddPendingFolder(folderInfo);
+                        else
+                        {
+                            AddPendingFolder(folderInfo);
+                        }
                     }
                 }
                 
@@ -259,9 +268,12 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 if (itemInfo.Folder == RootFolder.ID)
                 {
-                    if (!RootFolder.Items.ContainsKey(itemInfo.ID))
+                    lock (RootFolder.Items)
                     {
-                        RootFolder.Items.Add(itemInfo.ID, itemInfo);
+                        if (!RootFolder.Items.ContainsKey(itemInfo.ID))
+                        {
+                            RootFolder.Items.Add(itemInfo.ID, itemInfo);
+                        }
                     }
                 }
                 else
@@ -269,9 +281,12 @@ namespace OpenSim.Framework.Communications.Cache
                     InventoryFolderImpl folder = RootFolder.HasSubFolder(itemInfo.Folder);
                     if (folder != null)
                     {
-                        if (!folder.Items.ContainsKey(itemInfo.ID))
+                        lock (folder.Items)
                         {
-                            folder.Items.Add(itemInfo.ID, itemInfo);
+                            if (!folder.Items.ContainsKey(itemInfo.ID))
+                            {
+                                folder.Items.Add(itemInfo.ID, itemInfo);
+                            }
                         }
                     }
                 }
