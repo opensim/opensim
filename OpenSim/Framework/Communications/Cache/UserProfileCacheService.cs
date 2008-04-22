@@ -35,6 +35,10 @@ using log4net;
 
 namespace OpenSim.Framework.Communications.Cache
 {
+    internal delegate void CreateInventoryFolderDelegate(
+        IClientAPI remoteClient, LLUUID folderID, ushort folderType, string folderName, LLUUID parentID); 
+    internal delegate void MoveInventoryFolderDelegate(IClientAPI remoteClient, LLUUID folderID, LLUUID parentID);         
+    internal delegate void PurgeInventoryDescendentsDelegate(IClientAPI remoteClient, LLUUID folderID);     
     internal delegate void UpdateInventoryFolderDelegate(
         IClientAPI remoteClient, LLUUID folderID, ushort type, string name, LLUUID parentID);
         
@@ -188,6 +192,13 @@ namespace OpenSim.Framework.Communications.Cache
                         }
                     }
                 }
+                else
+                {
+                    userProfile.AddRequest(
+                        new InventoryRequest(
+                            Delegate.CreateDelegate(typeof(CreateInventoryFolderDelegate), this, "HandleCreateInventoryFolder"),
+                            new object[] { remoteClient, folderID, folderType, folderName, parentID }));                                       
+                }
             }
         }
 
@@ -207,7 +218,7 @@ namespace OpenSim.Framework.Communications.Cache
                                                 LLUUID parentID)
         {
 //            m_log.DebugFormat(
-//                "[AGENT INVENTORY] Updating inventory folder {0} {1} for {2} {3}", folderID, name, remoteClient.Name, remoteClient.AgentId);
+//                "[AGENT INVENTORY]: Updating inventory folder {0} {1} for {2} {3}", folderID, name, remoteClient.Name, remoteClient.AgentId);
             
             CachedUserInfo userProfile;
 
@@ -242,9 +253,9 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="parentID"></param>
         public void HandleMoveInventoryFolder(IClientAPI remoteClient, LLUUID folderID, LLUUID parentID)
         {
-            m_log.DebugFormat(
-                "[AGENT INVENTORY] Moving inventory folder {0} into folder {1} for {2} {3}",
-                parentID, remoteClient.Name, remoteClient.AgentId);
+//            m_log.DebugFormat(
+//                "[AGENT INVENTORY]: Moving inventory folder {0} into folder {1} for {2} {3}",
+//                parentID, remoteClient.Name, remoteClient.Name, remoteClient.AgentId);
 
             CachedUserInfo userProfile;
 
@@ -258,10 +269,13 @@ namespace OpenSim.Framework.Communications.Cache
                     baseFolder.ParentID = parentID;
                     m_commsManager.InventoryService.MoveInventoryFolder(remoteClient.AgentId, baseFolder);
                 }
-//                else
-//                {
-//                    userProfile.AddRequest(new MoveFolderRequest(remoteClient, folderID, parentID));
-//                }
+                else
+                {
+                    userProfile.AddRequest(
+                        new InventoryRequest(
+                            Delegate.CreateDelegate(typeof(MoveInventoryFolderDelegate), this, "HandleMoveInventoryFolder"),
+                            new object[] { remoteClient, folderID, parentID }));   
+                }
             }
         }
 
@@ -471,7 +485,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void HandlePurgeInventoryDescendents(IClientAPI remoteClient, LLUUID folderID)
         {
-//            m_log.InfoFormat("[INVENTORYCACHE]: Purging folder {0} for {1} uuid {2}", 
+//            m_log.InfoFormat("[AGENT INVENTORY]: Purging folder {0} for {1} uuid {2}", 
 //                folderID, remoteClient.Name, remoteClient.AgentId);
             
             CachedUserInfo userProfile;
@@ -488,6 +502,13 @@ namespace OpenSim.Framework.Communications.Cache
                             userProfile.DeleteItem(remoteClient.AgentId, item);
                         }
                     }
+                }
+                else
+                {
+                    userProfile.AddRequest(
+                        new InventoryRequest(
+                            Delegate.CreateDelegate(typeof(PurgeInventoryDescendentsDelegate), this, "HandlePurgeInventoryDescendents"),
+                            new object[] { remoteClient, folderID }));                 
                 }
             }
         }
