@@ -45,25 +45,31 @@ namespace OpenSim.Framework.Communications.Cache
         /// The comms manager holds references to services (user, grid, inventory, etc.)
         /// </summary>        
         private readonly CommunicationsManager m_commsManager;
-
-        private UserProfileData m_userProfile;        
+        
         public UserProfileData UserProfile { get { return m_userProfile; } }
+        private UserProfileData m_userProfile;                
 
-
+        /// <summary>
+        /// Has we received the user's inventory from the inventory service?
+        /// </summary>
         private bool m_hasInventory;
+        
+        /// <summary>
+        /// Inventory requests waiting for receipt of this user's inventory from the inventory service.
+        /// </summary>
+        private readonly IList<IInventoryRequest> m_pendingRequests = new List<IInventoryRequest>();         
         
         /// <summary>
         /// Has this user info object yet received its inventory information from the invetnroy service?
         /// </summary>
         public bool HasInventory { get { return m_hasInventory; } }
         
-        // FIXME: These need to be hidden behind accessors
         private InventoryFolderImpl m_rootFolder;
         public InventoryFolderImpl RootFolder { get { return m_rootFolder; } }        
         
         /// <summary>
-        /// Stores received folders for which we have not yet received the parents.
-        /// </summary></param>
+        /// FIXME: This could be contained within a local variable - it doesn't need to be a field
+        /// </summary>
         private IDictionary<LLUUID, IList<InventoryFolderImpl>> pendingCategorizationFolders 
             = new Dictionary<LLUUID, IList<InventoryFolderImpl>>();
 
@@ -76,6 +82,27 @@ namespace OpenSim.Framework.Communications.Cache
         {
             m_commsManager = commsManager;
             m_userProfile = userProfile;
+        }
+        
+        /// <summary>
+        /// This allows a request to be added to be processed once we receive a user's inventory
+        /// from the inventory service.  If we already have the inventory, the request
+        /// is executed immediately instead.
+        /// </summary>
+        /// <param name="parent"></param>
+        public void AddRequest(IInventoryRequest request)
+        {
+            lock (m_pendingRequests)
+            {
+                if (m_hasInventory)
+                {
+                    request.Execute();
+                }
+                else
+                {
+                    m_pendingRequests.Add(request);
+                }
+            }
         }
         
         /// <summary>
@@ -148,8 +175,19 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 m_log.ErrorFormat("[INVENTORY CACHE]: Error processing inventory received from inventory service, {0}", e);
             } 
-            
-            m_hasInventory = true;
+                                    
+            // Deal with pending requests
+            lock (m_pendingRequests)
+            {
+                // We're going to change inventory status within the lock to avoid a race condition
+                // where requests are processed after the AddRequest() method has been called.
+                m_hasInventory = true;
+                
+                foreach (IInventoryRequest request in m_pendingRequests)
+                {
+                    request.Execute();
+                }
+            }
         }
 
         /// <summary>
@@ -287,5 +325,13 @@ namespace OpenSim.Framework.Communications.Cache
             
             return result;
         }
+    }
+    
+    /// <summary>
+    /// Should be implemented by callers which require a callback when the user's inventory is received
+    /// </summary>    
+    public interface IInventoryRequest
+    {
+        void Execute();
     }
 }

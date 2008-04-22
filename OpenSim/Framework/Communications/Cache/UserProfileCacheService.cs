@@ -201,6 +201,9 @@ namespace OpenSim.Framework.Communications.Cache
         public void HandleUpdateInventoryFolder(IClientAPI remoteClient, LLUUID folderID, ushort type, string name,
                                                 LLUUID parentID)
         {
+//            m_log.DebugFormat(
+//                "[AGENT INVENTORY] Updating inventory folder {0} {1} for {2} {3}", folderID, name, remoteClient.Name, remoteClient.AgentId);
+            
             CachedUserInfo userProfile;
 
             if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
@@ -215,6 +218,10 @@ namespace OpenSim.Framework.Communications.Cache
                     baseFolder.Type = (short) type;
                     baseFolder.Version = userProfile.RootFolder.Version;
                     m_commsManager.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, baseFolder);
+                }
+                else
+                {
+                    userProfile.AddRequest(new UpdateFolderRequest(this, remoteClient, folderID, type, name, parentID));
                 }
             }
         }
@@ -490,6 +497,35 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                 }
             }
+        }
+    }
+    
+    /// <summary>
+    /// Used to create an update folder request if we haven't yet received the user's inventory
+    /// </summary>
+    internal class UpdateFolderRequest : IInventoryRequest
+    {
+        private UserProfileCacheService m_userProfileCacheService;
+        private IClientAPI m_client;
+        private LLUUID m_folderID;
+        private ushort m_type;
+        private string m_name;
+        private LLUUID m_parentID;
+        
+        internal UpdateFolderRequest(
+            UserProfileCacheService cacheService, IClientAPI client, LLUUID folderID, ushort type, string name, LLUUID parentID)
+        {
+            m_userProfileCacheService = cacheService;
+            m_client = client;
+            m_folderID = folderID;
+            m_type = type;
+            m_name = name;
+            m_parentID = parentID;
+        }
+        
+        public void Execute()
+        {
+            m_userProfileCacheService.HandleUpdateInventoryFolder(m_client, m_folderID, m_type, m_name, m_parentID);
         }
     }
 }

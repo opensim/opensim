@@ -28,6 +28,8 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
+
 using libsecondlife;
 using log4net;
 using OpenSim.Framework;
@@ -108,7 +110,7 @@ namespace OpenSim.Grid.InventoryServer
         public InventoryCollection GetUserInventory(Guid rawUserID)
         {
             // uncomment me to simulate an overloaded inventory server
-            //Thread.Sleep(25000);
+            //Thread.Sleep(20000);
             
             LLUUID userID = new LLUUID(rawUserID);
 
@@ -165,6 +167,8 @@ namespace OpenSim.Grid.InventoryServer
         /// <returns></returns>        
         public List<InventoryFolderBase> GetInventorySkeleton(Guid rawUserID)
         {
+            //Thread.Sleep(10000);
+            
             LLUUID userID = new LLUUID(rawUserID);
             return GetInventorySkeleton(userID);
         }        
