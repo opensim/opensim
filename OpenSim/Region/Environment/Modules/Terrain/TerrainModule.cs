@@ -35,7 +35,6 @@ using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.ModuleFramework;
-using OpenSim.Region.Environment.Modules.Terrain.Effects;
 using OpenSim.Region.Environment.Modules.Terrain.FileLoaders;
 using OpenSim.Region.Environment.Modules.Terrain.FloodBrushes;
 using OpenSim.Region.Environment.Modules.Terrain.PaintBrushes;
@@ -80,6 +79,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             new Dictionary<StandardTerrainEffects, ITerrainPaintableEffect>();
 
         private ITerrainChannel m_channel;
+        private Dictionary<string, ITerrainEffect> m_plugineffects;
         private ITerrainChannel m_revert;
         private Scene m_scene;
         private bool m_tainted = false;
@@ -135,6 +135,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
         {
             InstallDefaultEffects();
             InstallInterfaces();
+            LoadPlugins();
         }
 
         public void Close()
@@ -184,7 +185,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                         {
                             m_log.Error(
                                 "[TERRAIN]: Unable to load heightmap, file not found. (A directory permissions error may also cause this)");
-                            throw new Exception(String.Format("unable to load heightmap: file {0} not found (or permissions do not allow access", 
+                            throw new Exception(String.Format("unable to load heightmap: file {0} not found (or permissions do not allow access",
                                                               filename));
                         }
                     }
@@ -194,7 +195,7 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                 }
             }
             m_log.Error("[TERRAIN]: Unable to load heightmap, no file loader availible for that format.");
-            throw new Exception(String.Format("unable to load heightmap from file {0}: no loader available for that format", 
+            throw new Exception(String.Format("unable to load heightmap from file {0}: no loader available for that format",
                                               filename));
         }
 
@@ -221,6 +222,46 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                 throw new Exception(String.Format("unable to save heightmap: {0}: saving of this file format not implemented"));
             }
         }
+
+        #region Plugin Loading Methods
+
+        private void LoadPlugins()
+        {
+            m_plugineffects = new Dictionary<string, ITerrainEffect>();
+            // Load the files in the Terrain/ dir
+            string[] files = Directory.GetFiles("Terrain");
+            foreach (string file in files)
+            {
+                m_log.Info("Loading effects in " + file);
+                try
+                {
+                    Assembly library = Assembly.LoadFrom(file);
+                    foreach (Type pluginType in library.GetTypes())
+                    {
+                        try
+                        {
+                            if (pluginType.IsAbstract || pluginType.IsNotPublic)
+                                continue;
+
+                            if (pluginType.GetInterface("ITerrainEffect", false) != null)
+                            {
+                                ITerrainEffect terEffect = (ITerrainEffect) Activator.CreateInstance(library.GetType(pluginType.ToString()));
+                                m_plugineffects.Add(pluginType.Name, terEffect);
+                                m_log.Info("... " + pluginType.Name);
+                            }
+                        }
+                        catch (AmbiguousMatchException)
+                        {
+                        }
+                    }
+                }
+                catch (BadImageFormatException)
+                {
+                }
+            }
+        }
+
+        #endregion
 
         #endregion
 
@@ -564,10 +605,31 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             }
         }
 
-        private void InterfacePerformEffectTest(Object[] args)
+        private void InterfaceRunPluginEffect(Object[] args)
         {
-            CookieCutter cookie = new CookieCutter();
-            cookie.RunEffect(m_channel);
+            if ((string) args[0] == "list")
+            {
+                m_log.Info("List of loaded plugins");
+                foreach (KeyValuePair<string, ITerrainEffect> kvp in m_plugineffects)
+                {
+                    m_log.Info(kvp.Key);
+                }
+                return;
+            }
+            if ((string) args[0] == "reload")
+            {
+                LoadPlugins();
+                return;
+            }
+            if (m_plugineffects.ContainsKey((string) args[0]))
+            {
+                m_plugineffects[(string) args[0]].RunEffect(m_channel);
+                CheckForTerrainUpdates();
+            }
+            else
+            {
+                m_log.Warn("No such plugin effect loaded.");
+            }
         }
 
         private void InstallInterfaces()
@@ -634,9 +696,10 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                             "Enables experimental brushes which replace the standard terrain brushes. WARNING: This is a debug setting and may be removed at any time.");
             experimentalBrushesCommand.AddArgument("Enabled?", "true / false - Enable new brushes", "Boolean");
 
-            // Effects
-            Command effectsTestCommand =
-                new Command("test", InterfacePerformEffectTest, "Performs an effects module test");
+            //Plugins
+            Command pluginRunCommand =
+                new Command("effect", InterfaceRunPluginEffect, "Runs a specified plugin effect");
+            pluginRunCommand.AddArgument("name", "The plugin effect you wish to run, or 'list' to see all plugins", "String");
 
             m_commander.RegisterCommand("load", loadFromFileCommand);
             m_commander.RegisterCommand("load-tile", loadFromTileCommand);
@@ -648,8 +711,8 @@ namespace OpenSim.Region.Environment.Modules.Terrain
             m_commander.RegisterCommand("bake", bakeRegionCommand);
             m_commander.RegisterCommand("revert", revertRegionCommand);
             m_commander.RegisterCommand("newbrushes", experimentalBrushesCommand);
-            m_commander.RegisterCommand("test", effectsTestCommand);
             m_commander.RegisterCommand("stats", showDebugStatsCommand);
+            m_commander.RegisterCommand("effect", pluginRunCommand);
 
             // Add this to our scene so scripts can call these functions
             m_scene.RegisterModuleCommander("Terrain", m_commander);

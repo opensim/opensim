@@ -929,6 +929,28 @@
     </Project>
 
 
+ <Project name="OpenSim.Region.Modules.Terrain.Extensions.DefaultEffects" path="OpenSim/Region/Modules/Terrain/Extensions/DefaultEffects" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../../../bin/Terrain/</OutputPath>          
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../../../bin/Terrain/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Region.Environment"/>
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+	
  <Project name="OpenSim.Region.Modules.SvnSerialiser" path="OpenSim/Region/Modules/SvnSerialiser" type="Library">
       <Configuration name="Debug">
         <Options>
