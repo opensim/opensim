@@ -57,99 +57,169 @@ namespace OpenSim.Framework.Communications.Cache
         {
         }
 
-        // Methods
         public InventoryFolderImpl CreateNewSubFolder(LLUUID folderID, string folderName, ushort type)
         {
-            if (!SubFolders.ContainsKey(folderID))
+            lock (SubFolders)
             {
-                InventoryFolderImpl subFold = new InventoryFolderImpl();
-                subFold.Name = folderName;
-                subFold.ID = folderID;
-                subFold.Type = (short) type;
-                subFold.ParentID = this.ID;
-                subFold.Owner = Owner;
-                SubFolders.Add(subFold.ID, subFold);
-                return subFold;
+                if (!SubFolders.ContainsKey(folderID))
+                {
+                    InventoryFolderImpl subFold = new InventoryFolderImpl();
+                    subFold.Name = folderName;
+                    subFold.ID = folderID;
+                    subFold.Type = (short) type;
+                    subFold.ParentID = this.ID;
+                    subFold.Owner = Owner;
+                    SubFolders.Add(subFold.ID, subFold);
+                    return subFold;
+                }
             }
+            
             return null;
         }
+        
+        /// <summary>
+        /// Delete all the folders and items in this folder.
+        /// 
+        /// TODO: This method is not used yet, but will be shortly
+        /// </summary>
+        public void DeleteAllContents()
+        {
+            foreach (InventoryFolderImpl folder in SubFolders.Values)
+            {
+                folder.DeleteAllContents();                
+            }
+            
+            SubFolders.Clear();
+            Items.Clear();
+        }
 
+        /// <summary>
+        /// Does this folder contain the given item?
+        /// </summary>
+        /// <param name="itemID"></param>
+        /// <returns></returns>
         public InventoryItemBase HasItem(LLUUID itemID)
         {
             InventoryItemBase base2 = null;
-            if (Items.ContainsKey(itemID))
+            
+            lock (Items)
             {
-                return Items[itemID];
-            }
-            foreach (InventoryFolderImpl folder in SubFolders.Values)
-            {
-                base2 = folder.HasItem(itemID);
-                if (base2 != null)
+                if (Items.ContainsKey(itemID))
                 {
-                    break;
+                    return Items[itemID];
                 }
             }
-            return base2;
-        }
-
-        public bool DeleteItem(LLUUID itemID)
-        {
-            bool found = false;
-            if (Items.ContainsKey(itemID))
-            {
-                Items.Remove(itemID);
-                return true;
-            }
-            foreach (InventoryFolderImpl folder in SubFolders.Values)
-            {
-                found = folder.DeleteItem(itemID);
-                if (found == true)
-                {
-                    break;
-                }
-            }
-            return found;
-        }
-
-
-        public InventoryFolderImpl HasSubFolder(LLUUID folderID)
-        {
-            InventoryFolderImpl returnFolder = null;
-            if (SubFolders.ContainsKey(folderID))
-            {
-                returnFolder = SubFolders[folderID];
-            }
-            else
+            
+            lock (SubFolders)
             {
                 foreach (InventoryFolderImpl folder in SubFolders.Values)
                 {
-                    returnFolder = folder.HasSubFolder(folderID);
-                    if (returnFolder != null)
+                    base2 = folder.HasItem(itemID);
+                    if (base2 != null)
                     {
                         break;
                     }
                 }
             }
+            
+            return base2;
+        }
+
+        /// <summary>
+        /// Delete an item from the folder.
+        /// </summary>
+        /// <param name="folderID"></param>
+        /// <returns></returns>
+        public bool DeleteItem(LLUUID itemID)
+        {
+            bool found = false;
+            
+            lock (Items)
+            {
+                if (Items.ContainsKey(itemID))
+                {
+                    Items.Remove(itemID);
+                    return true;
+                }
+            }
+            
+            lock (SubFolders)
+            {
+                foreach (InventoryFolderImpl folder in SubFolders.Values)
+                {
+                    found = folder.DeleteItem(itemID);
+                    if (found == true)
+                    {
+                        break;
+                    }
+                }
+            }
+            return found;
+        }
+
+        /// <summary>
+        /// Does this folder contain the given subfolder?
+        /// </summary>
+        /// <returns></returns>
+        public InventoryFolderImpl HasSubFolder(LLUUID folderID)
+        {            
+            InventoryFolderImpl returnFolder = null;
+            
+            lock (SubFolders)
+            {
+                if (SubFolders.ContainsKey(folderID))
+                {
+                    returnFolder = SubFolders[folderID];
+                }
+                else
+                {
+                    foreach (InventoryFolderImpl folder in SubFolders.Values)
+                    {
+                        returnFolder = folder.HasSubFolder(folderID);
+                        if (returnFolder != null)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            
             return returnFolder;
         }
 
+        /// <summary>
+        /// Return the list of items in this folder
+        /// </summary>
         public List<InventoryItemBase> RequestListOfItems()
         {
             List<InventoryItemBase> itemList = new List<InventoryItemBase>();
-            foreach (InventoryItemBase item in Items.Values)
+                
+            lock (Items)
             {
-                itemList.Add(item);
+                foreach (InventoryItemBase item in Items.Values)
+                {
+                    itemList.Add(item);
+                }
             }
+            
             return itemList;
         }
 
+        /// <summary>
+        /// Return the list of folders in this folder
+        /// </summary>
         public List<InventoryFolderBase> RequestListOfFolders()
-        {
+        {            
             List<InventoryFolderBase> folderList = new List<InventoryFolderBase>();
-            foreach (InventoryFolderBase folder in SubFolders.Values)
+            
+            lock (SubFolders)
             {
-                folderList.Add(folder);
+                foreach (InventoryFolderBase folder in SubFolders.Values)
+                {
+                    folderList.Add(folder);
+                }
             }
+            
             return folderList;
         }
     }
