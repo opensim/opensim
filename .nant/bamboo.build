@@ -1,17 +1,17 @@
 <?xml version="1.0" ?>
 <project name="OpenSim" default="build">
 	<target name="build">
-			<exec program="mono" commandline="bin/Prebuild.exe /target nant" />
-	        <nant buildfile="OpenSim.build" target="build" />
+			<exec program="mono" commandline="../bin/Prebuild.exe /target nant" />
+	        <nant buildfile="../OpenSim.build" target="build" />
 	</target>
 	<target name="cibuild">
 			<property name="projectdir" value="opensim-0.5.5" />
-			<exec program="mono" commandline="bin/Prebuild.exe /target nant" />
-	        <nant buildfile="OpenSim.build" target="build" />
+			<exec program="mono" commandline="../bin/Prebuild.exe /target nant" />
+	        <nant buildfile="../OpenSim.build" target="build" />
 
-		   <delete dir="${projectdir}" />
-		   <copy todir="${projectdir}">
-			   <fileset basedir=".">
+		   <delete dir="../${projectdir}" />
+		   <copy todir="../${projectdir}">
+			   <fileset basedir="../">
 				  <include name="ThirdPartyLicenses/**" />
 				  <include name="CONTRIBUTORS.txt" />
 				  <include name="README" />
@@ -19,20 +19,20 @@
 			   </fileset>
 		   </copy>
 		   
-		   <touch file="${projectdir}/bin/startup_commands.txt" />
+		   <touch file="../${projectdir}/bin/startup_commands.txt" />
 
-			<zip zipfile="${projectdir}.zip">
-			<fileset basedir=".">
+			<zip zipfile="../${projectdir}.zip">
+			<fileset basedir="../">
 				<include name="${projectdir}/**" />
 			</fileset>
 			</zip>
-			<tar destfile="${projectdir}.tar.gz" compression="GZip">
-			<fileset basedir=".">
+			<tar destfile="../${projectdir}.tar.gz" compression="GZip">
+			<fileset basedir="../">
 				<include name="${projectdir}/**" />
 			</fileset>
 			</tar>
 			
-			<copy file="${projectdir}.zip" tofile="/home/buildsystem/public_html/${projectdir}-TRUNK.zip" overwrite="true" />
-			<copy file="${projectdir}.tar.gz" tofile="/home/buildsystem/public_html/${projectdir}-TRUNK.tar.gz" overwrite="true" />
+			<copy file="../${projectdir}.zip" tofile="/home/buildsystem/public_html/${projectdir}-TRUNK.zip" overwrite="true" />
+			<copy file="../${projectdir}.tar.gz" tofile="/home/buildsystem/public_html/${projectdir}-TRUNK.tar.gz" overwrite="true" />
 	</target>
 </project>
