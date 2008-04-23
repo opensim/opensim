@@ -259,13 +259,12 @@ namespace OpenSim.Framework.Communications
                 }
             }
 
-            // XXX Temporarily don't delete the items since UserProfileCacheService is still doing this
-//            List<InventoryItemBase> items = RequestFolderItems(folder.ID);
-//
-//            foreach (InventoryItemBase item : items)
-//            {
-//                DeleteItem(item);
-//            }
+            List<InventoryItemBase> items = RequestFolderItems(folder.ID);
+
+            foreach (InventoryItemBase item in items)
+            {
+                DeleteItem(item);
+            }
         }
         
         private void AddNewInventorySet(UsersInventory inventory)

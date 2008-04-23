@@ -198,6 +198,11 @@ namespace OpenSim.Grid.InventoryServer
         {
             MoveFolder(folder);
         }
+        
+        public override void PurgeInventoryFolder(LLUUID userID, InventoryFolderBase folder)
+        {
+             PurgeFolder(folder);
+        }        
 
         public override void AddNewInventoryItem(LLUUID userID, InventoryItemBase item)
         {
@@ -207,7 +212,8 @@ namespace OpenSim.Grid.InventoryServer
         public bool AddInventoryFolder(InventoryFolderBase folder)
         {
             // Right now, this actions act more like an update/insert combination than a simple create.
-            m_log.InfoFormat("[GRID AGENT INVENTORY]: Creating folder {0} {1} in folder {2}", folder.Name, folder.ID, folder.ParentID);
+            m_log.InfoFormat(
+                "[GRID AGENT INVENTORY]: Creating folder {0} {1} in folder {2}", folder.Name, folder.ID, folder.ParentID);
 
             AddNewInventoryFolder(folder.Owner, folder);
             return true;
@@ -215,20 +221,20 @@ namespace OpenSim.Grid.InventoryServer
 
         public bool MoveInventoryFolder(InventoryFolderBase folder)
         {
-            m_log.InfoFormat("[GRID AGENT INVENTORY]: Moving folder {0} {1} to folder {2}", folder.Name, folder.ID, folder.ParentID);
+            m_log.InfoFormat(
+                "[GRID AGENT INVENTORY]: Moving folder {0} {1} to folder {2}", folder.Name, folder.ID, folder.ParentID);
 
             MoveExistingInventoryFolder(folder);
             return true;
         }
         
-        /// <summary>
-        /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <param name="folder"></param>
-        public override void PurgeInventoryFolder(LLUUID userID, InventoryFolderBase folder)
+        public bool PurgeInventoryFolder(InventoryFolderBase folder)
         {
-            // XXX No implementation yet (temporarily)!
+            m_log.InfoFormat(
+                "[GRID AGENT INVENTORY]: Purging folder {0} {1} of its contents", folder.Name, folder.ID);
+            
+            PurgeInventoryFolder(folder.Owner, folder);
+            return true;
         }         
 
         public bool AddInventoryItem(InventoryItemBase item)

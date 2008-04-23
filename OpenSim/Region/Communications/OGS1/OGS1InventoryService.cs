@@ -53,7 +53,11 @@ namespace OpenSim.Region.Communications.OGS1
 
         #region IInventoryServices Members
 
-        // See IInventoryServices
+        /// <summary>
+        /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="callback"></param>
         public void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback)
         {
             if (!m_RequestingInventory.ContainsKey(userID))
@@ -148,6 +152,11 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
+        /// <summary>
+        /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="folder"></param>        
         public void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder)
         {
             try
@@ -162,6 +171,11 @@ namespace OpenSim.Region.Communications.OGS1
             }
         }
 
+        /// <summary>
+        /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="folder"></param>        
         public void MoveInventoryFolder(LLUUID userID, InventoryFolderBase folder)
         {
             try
@@ -181,11 +195,26 @@ namespace OpenSim.Region.Communications.OGS1
         /// </summary>
         /// <param name="userID"></param>
         /// <param name="folder"></param>
+        /// <returns></returns>
         public void PurgeInventoryFolder(LLUUID userID, InventoryFolderBase folder)
         {
-            // XXX No implementation yet (temporarily)!
+            try
+            {            
+                SynchronousRestObjectPoster.BeginPostObject<InventoryFolderBase, bool>(
+                    "POST", _inventoryServerUrl + "/PurgeFolder/", folder);
+            }
+            catch (WebException e)
+            {
+                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Move inventory folder operation failed, {0} {1}", 
+                     e.Source, e.Message);
+            }    
         }        
 
+        /// <summary>
+        /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="folder"></param>        
         public void AddNewInventoryItem(LLUUID userID, InventoryItemBase item)
         {
             try
@@ -200,6 +229,11 @@ namespace OpenSim.Region.Communications.OGS1
             }                
         }
 
+        /// <summary>
+        /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="folder"></param>        
         public void DeleteInventoryItem(LLUUID userID, InventoryItemBase item)
         {
             try

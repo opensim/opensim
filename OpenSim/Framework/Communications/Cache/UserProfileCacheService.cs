@@ -523,14 +523,7 @@ namespace OpenSim.Framework.Communications.Cache
                         purgedBaseFolder.Type = purgedFolder.Type;
                         purgedBaseFolder.Version = purgedFolder.Version;                        
                         
-                        m_commsManager.InventoryService.PurgeInventoryFolder(remoteClient.AgentId, purgedBaseFolder);                        
-
-                        // XXX Remains temporarily so that we still delete items in the grid case.
-                        List<InventoryItemBase> items = purgedFolder.RequestListOfItems();
-                        foreach (InventoryItemBase item in items)
-                        {
-                            userProfile.DeleteItem(remoteClient.AgentId, item);
-                        }                        
+                        m_commsManager.InventoryService.PurgeInventoryFolder(remoteClient.AgentId, purgedBaseFolder);                                              
                         
                         purgedFolder.Purge();                        
                     }
