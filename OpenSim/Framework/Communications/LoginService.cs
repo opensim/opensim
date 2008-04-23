@@ -248,7 +248,7 @@ namespace OpenSim.Framework.UserManagement
                         logResponse.InventoryRoot = InventoryRoot;
                         logResponse.InventorySkeleton = AgentInventoryArray;
                         logResponse.InventoryLibrary = GetInventoryLibrary(); 
-                        
+
                         // Circuit Code
                         uint circode = (uint) (Util.RandomClass.Next());
 
@@ -266,7 +266,8 @@ namespace OpenSim.Framework.UserManagement
                         //logResponse.SimAddress = "127.0.0.1"; //overwritten
                         //logResponse.SimPort = 0; //overwritten
                         logResponse.Message = GetMessage();
-                        logResponse.BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(agentID)); 
+                        logResponse.BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(agentID));
+                        logResponse.StartLocation = startLocationRequest;
 
                         try
                         {
