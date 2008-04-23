@@ -160,6 +160,9 @@ namespace OpenSim.Framework.Communications.Cache
         public void HandleCreateInventoryFolder(IClientAPI remoteClient, LLUUID folderID, ushort folderType,
                                                 string folderName, LLUUID parentID)
         {
+//            m_log.DebugFormat(
+//                "[AGENT INVENTORY]: Creating inventory folder {0} {1} for {2} {3}", folderID, folderName, remoteClient.Name, remoteClient.AgentId);
+            
             CachedUserInfo userProfile;
 
             if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
@@ -188,7 +191,17 @@ namespace OpenSim.Framework.Communications.Cache
                         InventoryFolderImpl folder = userProfile.RootFolder.HasSubFolder(parentID);
                         if (folder != null)
                         {
-                            folder.CreateNewSubFolder(folderID, folderName, folderType);
+                            InventoryFolderImpl createdFolder = folder.CreateNewSubFolder(folderID, folderName, folderType);
+                            
+                            InventoryFolderBase createdBaseFolder = new InventoryFolderBase();
+                            createdBaseFolder.Owner = createdFolder.Owner;
+                            createdBaseFolder.ID = createdFolder.ID;
+                            createdBaseFolder.Name = createdFolder.Name;
+                            createdBaseFolder.ParentID = createdFolder.ParentID;
+                            createdBaseFolder.Type = createdFolder.Type;
+                            createdBaseFolder.Version = createdFolder.Version;                            
+                            
+                            m_commsManager.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, createdBaseFolder);
                         }
                     }
                 }
