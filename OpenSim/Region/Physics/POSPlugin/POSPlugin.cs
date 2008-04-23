@@ -502,6 +502,12 @@ namespace OpenSim.Region.Physics.POSPlugin
         {
 
         }
+
+        public override void LockAngularMotion(PhysicsVector axis)
+        {
+
+        }
+
         public void SetAcceleration(PhysicsVector accel)
         {
             _acceleration = accel;
@@ -704,6 +710,11 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         public override void delink()
         {
+        }
+
+        public override void LockAngularMotion(PhysicsVector axis)
+        {
+
         }
 
         public override bool Selected

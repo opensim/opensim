@@ -392,6 +392,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
 
         }
 
+        public override void LockAngularMotion(PhysicsVector axis)
+        {
+
+        }
+
         public override void SetMomentum(PhysicsVector momentum)
         {
         }
@@ -628,6 +633,11 @@ namespace OpenSim.Region.Physics.PhysXPlugin
 
         public override void delink()
         {
+        }
+
+        public override void LockAngularMotion(PhysicsVector axis)
+        {
+
         }
 
         public override float Mass

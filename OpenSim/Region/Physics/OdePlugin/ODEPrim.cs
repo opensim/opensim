@@ -38,6 +38,10 @@ using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Physics.OdePlugin
 {
+    /// <summary>
+    /// Various properties that ODE uses for AMotors but isn't exposed in ODE.NET so we must define them ourselves.
+    /// </summary>
+
     public class OdePrim : PhysicsActor
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -55,6 +59,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector m_taintsize;
         private PhysicsVector m_taintVelocity = PhysicsVector.Zero;
         private Quaternion m_taintrot;
+        private PhysicsVector m_angularlock = new PhysicsVector(1f, 1f, 1f);
+        private PhysicsVector m_taintAngularLock = new PhysicsVector(1f, 1f, 1f);
+        private IntPtr Amotor = IntPtr.Zero;
 
         private PhysicsVector m_PIDTarget = new PhysicsVector(0, 0, 0);
         private float m_PIDTau = 0f;
@@ -308,6 +315,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_interpenetrationcount = 0;
             m_collisionscore = 0;
             m_disabled = false;
+
+            // The body doesn't already have a finite rotation mode set here
+            if ((!m_angularlock.IsIdentical(PhysicsVector.Zero, 0)) && _parent == null)
+            {
+                createAMotor(m_angularlock);
+            }
 
             _parent_scene.addActivePrim(this);
         }
@@ -722,7 +735,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             if (prim_geom != (IntPtr)0)
             {
-                if (m_taintposition != _position)
+                if (!_position.IsIdentical(m_taintposition,0f))
                     changemove(timestep);
 
                 if (m_taintrot != _orientation)
@@ -733,7 +746,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     changePhysicsStatus(timestep);
                 //
 
-                if (m_taintsize != _size)
+                if (!_size.IsIdentical(m_taintsize,0))
                     changesize(timestep);
                 //
 
@@ -750,7 +763,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_taintselected != m_isSelected)
                     changeSelectedStatus(timestep);
 
-                if (m_taintVelocity != PhysicsVector.Zero)
+                if (!m_taintVelocity.IsIdentical(PhysicsVector.Zero,0))
                     changevelocity(timestep);
 
                 if (m_taintparent != _parent)
@@ -759,12 +772,43 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_taintCollidesWater != m_collidesWater)
                     changefloatonwater(timestep);
 
+                if (!m_angularlock.IsIdentical(m_taintAngularLock,0))
+                    changeAngularLock(timestep);
 
             }
             else
             {
                 m_log.Error("[PHYSICS]: The scene reused a disposed PhysActor! *waves finger*, Don't be evil.");
             }
+        }
+
+        private void changeAngularLock(float timestep)
+        {   
+            // do we have a Physical object?
+            if (Body != IntPtr.Zero)
+            {
+                //Check that we have a Parent
+                //If we have a parent then we're not authorative here
+                if (_parent == null)
+                {
+                    if (!m_taintAngularLock.IsIdentical(new PhysicsVector(1f,1f,1f), 0))
+                    {
+                        //d.BodySetFiniteRotationMode(Body, 0);
+                        //d.BodySetFiniteRotationAxis(Body,m_taintAngularLock.X,m_taintAngularLock.Y,m_taintAngularLock.Z);
+                        createAMotor(m_taintAngularLock);
+                    }
+                    else
+                    {
+                        if (Amotor != IntPtr.Zero)
+                        {
+                            d.JointDestroy(Amotor);
+                            Amotor = (IntPtr)0;
+                        }
+                    }
+                }
+            }
+            // Store this for later in case we get turned into a separate body
+            m_angularlock = new PhysicsVector(m_taintAngularLock.X,m_angularlock.Y,m_angularlock.Z);
         }
 
         private void changelink(float timestep)
@@ -1241,6 +1285,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (m_isphysical && Body != (IntPtr) 0)
             {
                 d.BodySetQuaternion(Body, ref myrot);
+                if (!m_angularlock.IsIdentical(new PhysicsVector(1, 1, 1), 0))
+                    createAMotor(m_angularlock);
             }
             
             resetCollisionAccounting();
@@ -1880,6 +1926,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_taintparent = null;
         }
 
+
+        public override void LockAngularMotion(PhysicsVector axis)
+        {
+            // reverse the zero/non zero values for ODE.
+
+            axis.X = (axis.X > 0) ? 1f : 0f;
+            axis.Y = (axis.Y > 0) ? 1f : 0f;
+            axis.Z = (axis.Z > 0) ? 1f : 0f;
+            m_taintAngularLock = new PhysicsVector(axis.X, axis.Y, axis.Z); ;
+        }
+
         public void UpdatePositionAndVelocity()
         { 
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
@@ -2078,5 +2135,83 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override PhysicsVector PIDTarget { set { m_PIDTarget = value; ; } }
         public override bool PIDActive { set { m_usePID = value; } }
         public override float PIDTau { set { m_PIDTau = (value * 0.6f); } }
+
+        private void createAMotor(PhysicsVector axis)
+        {
+            if (Body == IntPtr.Zero)
+                return;
+
+            if (Amotor != IntPtr.Zero)
+            {
+                d.JointDestroy(Amotor);
+                Amotor = IntPtr.Zero;
+            }
+
+            float m_tensor = 0f;
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                m_tensor = 2f;
+            }
+            else
+            {
+                m_tensor = 5f;
+            }
+            
+            float axisnum = 3;
+
+            axisnum = (axisnum - (axis.X + axis.Y + axis.Z));
+
+            if (axisnum <= 0)
+                return;
+            int dAMotorEuler = 1;
+
+            Amotor = d.JointCreateAMotor(_parent_scene.world, IntPtr.Zero);
+            d.JointAttach(Amotor, Body, IntPtr.Zero);
+            d.JointSetAMotorMode(Amotor, dAMotorEuler);
+
+            
+
+            d.JointSetAMotorNumAxes(Amotor,(int)axisnum);
+            int i = 0;
+
+            if (axis.X == 0)
+            {
+                d.JointSetAMotorAxis(Amotor, i, 0, 1, 0, 0);
+                i++;
+            }
+
+            if (axis.Y == 0)
+            {
+                d.JointSetAMotorAxis(Amotor, i, 0, 0, 1, 0);
+                i++;
+            }
+
+
+            if (axis.Z == 0)
+            {
+                d.JointSetAMotorAxis(Amotor, i, 0, 0, 0, 1);
+                i++;
+            }
+            for (int j = 0; j < (int)axisnum; j++)
+            {
+                //d.JointSetAMotorAngle(Amotor, j, 0);
+            }
+            //
+            //d.JointSetAMotorAngle(Amotor, 1, 0);
+            //d.JointSetAMotorAngle(Amotor, 2, 0);
+
+            // These lowstops and high stops are effectively (no wiggle room)
+            d.JointSetAMotorParam(Amotor, (int)dParam.LowStop, -0.000000000001f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.LoStop3, -0.000000000001f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.LoStop2, -0.000000000001f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 0.000000000001f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0.000000000001f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.000000000001f);
+
+           
+            d.JointSetAMotorParam(Amotor, (int)dParam.FudgeFactor, 0f);
+            d.JointSetAMotorParam(Amotor, (int)dParam.FMax, m_tensor);
+
+        }
     }
 }

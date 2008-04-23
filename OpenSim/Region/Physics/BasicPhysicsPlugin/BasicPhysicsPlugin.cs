@@ -374,6 +374,11 @@ namespace OpenSim.Region.Physics.BasicPhysicsPlugin
         {
         }
 
+        public override void LockAngularMotion(PhysicsVector axis)
+        {
+
+        }
+
         public void SetAcceleration(PhysicsVector accel)
         {
             _acceleration = accel;

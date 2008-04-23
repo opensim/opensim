@@ -692,6 +692,9 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSetStatus(int status, int value)
         {
             m_host.AddScriptLPS(1);
+
+            int statusrotationaxis = 0;
+
             if ((status & BuiltIn_Commands_BaseClass.STATUS_PHYSICS) == BuiltIn_Commands_BaseClass.STATUS_PHYSICS)
             {
                 if (value == 1)
@@ -713,15 +716,16 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
             if ((status & BuiltIn_Commands_BaseClass.STATUS_ROTATE_X) == BuiltIn_Commands_BaseClass.STATUS_ROTATE_X)
             {
-                NotImplemented("llSetStatus - STATUS_ROTATE_X");
+                statusrotationaxis |= BuiltIn_Commands_BaseClass.STATUS_ROTATE_X;
+                
             }
             if ((status & BuiltIn_Commands_BaseClass.STATUS_ROTATE_Y) == BuiltIn_Commands_BaseClass.STATUS_ROTATE_Y)
             {
-                NotImplemented("llSetStatus - STATUS_ROTATE_Y");
+                statusrotationaxis |= BuiltIn_Commands_BaseClass.STATUS_ROTATE_Y;
             }
             if ((status & BuiltIn_Commands_BaseClass.STATUS_ROTATE_Z) == BuiltIn_Commands_BaseClass.STATUS_ROTATE_Z)
             {
-                NotImplemented("llSetStatus - STATUS_ROTATE_Z");
+                statusrotationaxis |= BuiltIn_Commands_BaseClass.STATUS_ROTATE_Z;
             }
             if ((status & BuiltIn_Commands_BaseClass.STATUS_BLOCK_GRAB) == BuiltIn_Commands_BaseClass.STATUS_BLOCK_GRAB)
             {
@@ -739,7 +743,11 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 NotImplemented("llSetStatus - STATUS_SANDBOX");
             }
-            
+            if (statusrotationaxis != 0)
+            {
+                m_host.SetAxisRotation(statusrotationaxis, value);
+
+            }
             return;
         }
 

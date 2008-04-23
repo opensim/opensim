@@ -149,7 +149,7 @@ namespace OpenSim.Region.Physics.Manager
         {
             PhysicsVector diff = this - v;
             float d = diff.length();
-            if (d < tolerance)
+            if (d <= tolerance)
                 return true;
 
             return false;

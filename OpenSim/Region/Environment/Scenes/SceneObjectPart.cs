@@ -104,6 +104,7 @@ namespace OpenSim.Region.Environment.Scenes
         private Vector3 m_sitTargetPosition = new Vector3(0, 0, 0);
         private Quaternion m_sitTargetOrientation = new Quaternion(0, 0, 0, 1);
         public  LLUUID m_sitTargetAvatar = LLUUID.Zero;
+        [XmlIgnore] public PhysicsVector m_rotationAxis = new PhysicsVector(1f,1f,1f);
 
         #region Permissions
 
@@ -1290,6 +1291,21 @@ namespace OpenSim.Region.Environment.Scenes
                 PhysActor.Buoyancy = fvalue;
             }
         }
+        
+        public void SetAxisRotation(int axis, int rotate)
+        {
+            if (m_parentGroup != null)
+            {
+                m_parentGroup.SetAxisRotation(axis, rotate);
+
+            }
+        }
+
+        public void SetPhysicsAxisRotation()
+        {
+            PhysActor.LockAngularMotion(m_rotationAxis);
+            m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+        }
 
         public void SetFloatOnWater(int floatYN)
         {
@@ -1306,6 +1322,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             }
         }
+        
 
         public LLVector3 GetSitTargetPositionLL()
         {

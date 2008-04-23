@@ -123,6 +123,8 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract void delink();
 
+        public abstract void LockAngularMotion(PhysicsVector axis);
+
         public virtual void RequestPhysicsterseUpdate()
         {
             // Make a temporary copy of the event to avoid possibility of
@@ -347,6 +349,9 @@ namespace OpenSim.Region.Physics.Manager
         {
         }
 
+        public override void LockAngularMotion(PhysicsVector axis)
+        {
+        }
 
         public override void AddForce(PhysicsVector force)
         {

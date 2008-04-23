@@ -505,7 +505,14 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         }
 
-// TODO: unused:
+        public override void LockAngularMotion(PhysicsVector axis)
+        {
+
+        }
+
+//      This code is very useful. Written by DanX0r. We're just not using it right now.  
+//      Commented out to prevent a warning.
+//
 //         private void standupStraight()
 //         {
 //             // The purpose of this routine here is to quickly stabilize the Body while it's popped up in the air.

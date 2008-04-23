@@ -809,6 +809,12 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         {
 
         }
+
+        public override void LockAngularMotion(PhysicsVector axis)
+        {
+
+        }
+
         public override float Mass
         {
             get { return ActorMass; }

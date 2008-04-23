@@ -1179,9 +1179,12 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart rootpart = m_rootPart;
             if (rootpart != null)
             {
-                rootpart.PhysActor.PIDTarget = new PhysicsVector(target.X, target.Y, target.Z);
-                rootpart.PhysActor.PIDTau = tau;
-                rootpart.PhysActor.PIDActive = true;
+                if (rootpart.PhysActor != null)
+                {
+                    rootpart.PhysActor.PIDTarget = new PhysicsVector(target.X, target.Y, target.Z);
+                    rootpart.PhysActor.PIDTau = tau;
+                    rootpart.PhysActor.PIDActive = true;
+                }
             }
         }
 
@@ -2229,5 +2232,38 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #endregion
+
+        internal void SetAxisRotation(int axis, int rotate10)
+        {
+            bool setX = false;
+            bool setY = false;
+            bool setZ = false;
+
+            int xaxis = 2;
+            int yaxis = 4;
+            int zaxis = 8;
+
+            if (m_rootPart != null)
+            {
+                setX = ((axis & xaxis) != 0) ? true : false;
+                setY = ((axis & yaxis) != 0) ? true : false;
+                setZ = ((axis & zaxis) != 0) ? true : false;
+
+                float setval = (rotate10 > 0) ? 1f : 0f;
+
+                if (setX)
+                    m_rootPart.m_rotationAxis.X = setval;
+                if (setY)
+                    m_rootPart.m_rotationAxis.Y = setval;
+                if (setZ)
+                    m_rootPart.m_rotationAxis.Z = setval;
+
+                if (setX || setY || setZ)
+                {
+                    m_rootPart.SetPhysicsAxisRotation();
+                }
+
+            }
+        }
     }
 }
