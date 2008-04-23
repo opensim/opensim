@@ -441,6 +441,7 @@ namespace OpenSim.Framework
     public delegate void ObjectIncludeInSearch(IClientAPI remoteClient, bool IncludeInSearch, uint localID);
 
 	public delegate void ScriptAnswer(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID, int answer);
+	public delegate void RequestPayPrice(IClientAPI remoteClient, LLUUID objectID);
 	
     public interface IClientAPI
     {
@@ -557,6 +558,7 @@ namespace OpenSim.Framework
         event MoneyBalanceRequest OnMoneyBalanceRequest;
         event UpdateAvatarProperties OnUpdateAvatarProperties;
         event ParcelBuy OnParcelBuy;
+		event RequestPayPrice  OnRequestPayPrice ;
 
         event ObjectIncludeInSearch OnObjectIncludeInSearch;
 
@@ -621,6 +623,7 @@ namespace OpenSim.Framework
         void SendTeleportFailed(string reason);
         void SendTeleportLocationStart();
         void SendMoneyBalance(LLUUID transaction, bool success, byte[] description, int balance);
+		void SendPayPrice(LLUUID objectID, int[] payPrice);
 
         void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID,
                             LLVector3 Pos, byte[] textureEntry, uint parentID);

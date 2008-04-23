@@ -522,6 +522,10 @@ namespace OpenSim
             m_log.Info("[MODULES]: Loading Region's modules");
 
             List<IRegionModule> modules = m_moduleLoader.PickupModules(scene, ".");
+			// This needs to be ahead of the script engine load, so the
+			// script module can pick up events exposed by a module
+            m_moduleLoader.InitialiseSharedModules(scene);
+
             //m_moduleLoader.PickupModules(scene, "ScriptEngines");
             //m_moduleLoader.LoadRegionModules(Path.Combine("ScriptEngines", m_scriptEngine), scene);
 
@@ -547,7 +551,6 @@ namespace OpenSim
                 }
             }
 
-            m_moduleLoader.InitialiseSharedModules(scene);
             scene.SetModuleInterfaces();
 
             //moved these here as the terrain texture has to be created after the modules are initialized

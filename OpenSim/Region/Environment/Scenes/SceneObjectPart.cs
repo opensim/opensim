@@ -96,6 +96,8 @@ namespace OpenSim.Region.Environment.Scenes
         public int SalePrice;
         public uint Category;
         
+        // TODO: This needs to be persisted in next XML version update!
+		[XmlIgnore] public int[] PayPrice = {0,0,0,0,0};
 
         public Int32 CreationDate;
         public uint ParentID = 0;
@@ -2456,6 +2458,7 @@ namespace OpenSim.Region.Environment.Scenes
             info.AddValue("m_clickAction", m_clickAction);
             info.AddValue("m_shape", m_shape);
             info.AddValue("m_parentGroup", m_parentGroup);
+            info.AddValue("PayPrice", PayPrice);
         }
 
     }

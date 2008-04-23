@@ -167,6 +167,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event UUIDNameRequest OnTeleportHomeRequest;
 
 		public event ScriptAnswer OnScriptAnswer;
+		public event RequestPayPrice OnRequestPayPrice;
 
 
 #pragma warning restore 67
@@ -341,6 +342,10 @@ namespace OpenSim.Region.Examples.SimpleModule
         public virtual void SendMoneyBalance(LLUUID transaction, bool success, byte[] description, int balance)
         {
         }
+
+		public virtual void SendPayPrice(LLUUID objectID, int[] payPrice)
+		{
+		}
 
         public virtual void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID,
                                            uint avatarLocalID, LLVector3 Pos, byte[] textureEntry, uint parentID)

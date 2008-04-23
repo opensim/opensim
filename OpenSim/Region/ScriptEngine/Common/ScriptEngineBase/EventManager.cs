@@ -28,6 +28,9 @@
 using System;
 using libsecondlife;
 using OpenSim.Framework;
+using OpenSim.Region.Environment;
+using OpenSim.Region.Environment.Modules;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 {
@@ -68,11 +71,26 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 myScriptEngine.World.EventManager.OnRemoveScript += OnRemoveScript;
                 myScriptEngine.World.EventManager.OnScriptChangedEvent += changed;
                 // TODO: HOOK ALL EVENTS UP TO SERVER!
+				IMoneyModule money=myScriptEngine.World.RequestModuleInterface<IMoneyModule>();
+				if(money != null)
+				{
+					money.OnObjectPaid+=HandleObjectPaid;
+				}
+
             }
         }
 
         public void ReadConfig()
         {
+        }
+
+        private void HandleObjectPaid(LLUUID objectID, LLUUID agentID, int amount)
+        {
+            SceneObjectPart part=myScriptEngine.World.GetSceneObjectPart(objectID);
+            if(part != null)
+            {
+                money(part.LocalId, agentID, amount);
+            }
         }
 
         public void changed(uint localID, uint change)
@@ -110,6 +128,11 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 localID,
                 itemID
                 );
+        }
+
+        public void money(uint localID, LLUUID agentID, int amount)
+        {
+            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "money", EventQueueManager.llDetectNull, new object[] { agentID.ToString(), (int)amount });
         }
 
         // TODO: Replace placeholders below
@@ -192,11 +215,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public void control(uint localID, LLUUID itemID)
         {
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "control", EventQueueManager.llDetectNull);
-        }
-
-        public void money(uint localID, LLUUID itemID)
-        {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "money", EventQueueManager.llDetectNull);
         }
 
         public void email(uint localID, LLUUID itemID)

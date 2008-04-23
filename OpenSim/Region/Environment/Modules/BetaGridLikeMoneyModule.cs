@@ -53,8 +53,22 @@ namespace OpenSim.Region.Environment.Modules
     /// Centralized grid structure example using OpenSimWi Redux revision 9+
     /// svn co https://opensimwiredux.svn.sourceforge.net/svnroot/opensimwiredux
     /// </summary>
-    public class BetaGridLikeMoneyModule: IRegionModule
+
+	public delegate void ObjectPaid(LLUUID objectID, LLUUID agentID, int amount);
+
+	public interface IMoneyModule : IRegionModule
+	{
+		bool ObjectGiveMoney(LLUUID objectID, LLUUID fromID, LLUUID toID, int amount);
+
+		event ObjectPaid OnObjectPaid;
+	}
+
+    public class BetaGridLikeMoneyModule: IMoneyModule
     {
+		public event ObjectPaid OnObjectPaid;
+
+		private ObjectPaid handerOnObjectPaid;
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         /// <summary>
@@ -120,7 +134,7 @@ namespace OpenSim.Region.Environment.Modules
             IConfig startupConfig = m_gConfig.Configs["Startup"];
             IConfig economyConfig = m_gConfig.Configs["Economy"];
             
-            
+         	scene.RegisterModuleInterface<IMoneyModule>(this);
             
             ReadConfigAndPopulate(scene, startupConfig, "Startup");
             ReadConfigAndPopulate(scene, economyConfig, "Economy");
@@ -298,12 +312,28 @@ namespace OpenSim.Region.Environment.Modules
             // Subscribe to Money messages
             client.OnEconomyDataRequest += EconomyDataRequestHandler;
             client.OnMoneyBalanceRequest += SendMoneyBalance;
+			client.OnRequestPayPrice += requestPayPrice;
             client.OnLogout += ClientClosed;
 
 
         }
 
         #region event Handlers
+
+		public void requestPayPrice(IClientAPI client, LLUUID objectID)
+		{
+			Scene scene=LocateSceneClientIn(client.AgentId);
+			if(scene == null)
+				return;
+
+			SceneObjectPart task=scene.GetSceneObjectPart(objectID);
+			if(task == null)
+				return;
+			SceneObjectGroup group=task.ParentGroup;
+			SceneObjectPart root=group.RootPart;
+
+			client.SendPayPrice(objectID, root.PayPrice);
+		}
 
         /// <summary>
         /// When the client closes the connection we remove their accounting info from memory to free up resources.
@@ -399,6 +429,48 @@ namespace OpenSim.Region.Environment.Modules
         {
             IClientAPI sender = null;
             IClientAPI receiver = null;
+
+			if(m_MoneyAddress.Length > 0) // Handled on server
+				e.description=String.Empty;
+
+			if(e.transactiontype == 5008) // Object gets paid
+			{
+				sender = LocateClientObject(e.sender);
+				if (sender != null)
+				{
+					SceneObjectPart part=findPrim(e.receiver);
+					if(part == null)
+						return;
+
+					string name=resolveAgentName(part.OwnerID);
+					if(name == String.Empty)
+						name="(hippos)";
+
+					receiver = LocateClientObject(part.OwnerID);
+
+					string description=String.Format("Paid {0} via object {1}", name, e.description);
+					bool transactionresult = doMoneyTransfer(e.sender, part.OwnerID, e.amount, e.transactiontype, description);
+
+					if(transactionresult)
+					{
+						ObjectPaid handlerOnObjectPaid = OnObjectPaid;
+						if(handlerOnObjectPaid != null)
+						{
+							handlerOnObjectPaid(e.receiver, e.sender, e.amount);
+						}
+					}
+
+					if (e.sender != e.receiver)
+					{
+						sender.SendMoneyBalance(LLUUID.Random(), transactionresult, Helpers.StringToField(e.description), GetFundsForAgentID(e.sender));
+					}
+					if(receiver != null)
+					{
+						receiver.SendMoneyBalance(LLUUID.Random(), transactionresult, Helpers.StringToField(e.description), GetFundsForAgentID(part.OwnerID));
+					}
+				}
+				return;
+			}
 
             sender = LocateClientObject(e.sender);
             if (sender != null)
@@ -922,6 +994,51 @@ namespace OpenSim.Region.Environment.Modules
             }
             return MoneyRespData;
         }
+
+		private SceneObjectPart findPrim(LLUUID objectID)
+		{
+            lock (m_scenel)
+            {
+                foreach (Scene s in m_scenel.Values)
+				{
+					SceneObjectPart part=s.GetSceneObjectPart(objectID);
+					if(part != null)
+					{
+						return part;
+					}
+				}
+            }
+			return null;
+		}
+
+		private string resolveObjectName(LLUUID objectID)
+		{
+			SceneObjectPart part=findPrim(objectID);
+			if(part != null)
+			{
+				return part.Name;
+			}
+			return String.Empty;
+		}
+
+		private string resolveAgentName(LLUUID agentID)
+        {
+            // try avatar username surname
+			Scene scene=GetRandomScene();
+            UserProfileData profile = scene.CommsManager.UserService.GetUserProfile(agentID);
+            if (profile != null)
+            {
+                string avatarname = profile.FirstName + " " + profile.SurName;
+                return avatarname;
+            }
+			return String.Empty;
+		}
+
+		public bool ObjectGiveMoney(LLUUID objectID, LLUUID fromID, LLUUID toID, int amount)
+		{
+			string description=String.Format("Object {0} pays {1}", resolveObjectName(objectID), resolveAgentName(toID));
+			return doMoneyTransfer(fromID, toID, amount, 2, description);
+		}
 
         /// <summary>
         /// Informs the Money Grid Server of a transfer.

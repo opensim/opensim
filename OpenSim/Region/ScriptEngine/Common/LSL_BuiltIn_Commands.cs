@@ -36,6 +36,7 @@ using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Modules;
 using OpenSim.Region.Environment.Modules.LandManagement;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
@@ -1609,8 +1610,42 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public int llGiveMoney(string destination, int amount)
         {
+			LLUUID invItemID=InventorySelf();
+			if(invItemID == LLUUID.Zero)
+				return 0;
+
             m_host.AddScriptLPS(1);
-            NotImplemented("llGiveMoney");
+
+			if(m_host.TaskInventory[invItemID].PermsGranter == LLUUID.Zero)
+				return 0;
+
+			if((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_DEBIT) == 0)
+			{
+				LSLError("No permissions to give money");
+				return 0;
+			}
+
+			LLUUID toID=new LLUUID();
+
+			if(!LLUUID.TryParse(destination, out toID))
+			{
+				LSLError("Bad key in llGiveMoney");
+				return 0;
+			}
+
+			IMoneyModule money=World.RequestModuleInterface<IMoneyModule>();
+
+			if(money == null)
+			{
+				NotImplemented("llGiveMoney");
+				return 0;
+			}
+
+			bool result=money.ObjectGiveMoney(m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount);
+
+			if(result)
+				return 1;
+
             return 0;
         }
 
@@ -5101,7 +5136,17 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSetPayPrice(int price, LSL_Types.list quick_pay_buttons)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetPayPrice");
+
+			if(quick_pay_buttons.Data.Length != 4)
+			{
+				LSLError("List must have 4 elements");
+				return;
+			}
+			m_host.ParentGroup.RootPart.PayPrice[0]=price;
+			m_host.ParentGroup.RootPart.PayPrice[1]=(int)quick_pay_buttons.Data[0];
+			m_host.ParentGroup.RootPart.PayPrice[2]=(int)quick_pay_buttons.Data[1];
+			m_host.ParentGroup.RootPart.PayPrice[3]=(int)quick_pay_buttons.Data[2];
+			m_host.ParentGroup.RootPart.PayPrice[4]=(int)quick_pay_buttons.Data[3];
         }
 
         public LSL_Types.Vector3 llGetCameraPos()
