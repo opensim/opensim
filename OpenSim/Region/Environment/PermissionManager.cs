@@ -159,6 +159,44 @@ namespace OpenSim.Region.Environment
             return permission;
         }
 
+        /// <summary>
+        /// Permissions check - can user enter an object?
+        /// </summary>
+        /// <param name="user">User attempting move an object</param>
+        /// <param name="oldPos">Source object-position</param>
+        /// <param name="newPos">Target object-position</param>
+        /// <returns>Has permission?</returns>
+        public virtual bool CanObjectEntry(LLUUID user, LLVector3 oldPos, LLVector3 newPos)
+        {
+            ILandObject land1 = m_scene.LandChannel.getLandObject(oldPos.X, oldPos.Y);
+            ILandObject land2 = m_scene.LandChannel.getLandObject(newPos.X, newPos.Y);
+            if (land1 == null || land2 == null)
+            {
+                return false;
+            }
+
+            if (land1.landData.globalID == land2.landData.globalID)
+            {
+                return true;
+            }
+
+            if ((land2.landData.landFlags & ((int)Parcel.ParcelFlags.AllowAllObjectEntry)) != 0)
+            {
+                return true;
+            }
+
+            //TODO: check for group rights
+
+            if (GenericParcelPermission(user, newPos))
+            {
+                return true;
+            }
+
+            SendPermissionError(user, "Not allowed to move objects in this parcel!");
+
+            return false;
+        }
+
         #region Object Permissions
 
         public virtual uint GenerateClientFlags(LLUUID user, LLUUID objID)

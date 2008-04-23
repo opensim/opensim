@@ -855,9 +855,23 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     if (selectedEnt != null)
                     {
-                        if (PermissionsMngr.CanDeRezObject(remoteClient.AgentId, ((SceneObjectGroup) selectedEnt).UUID))
+                        bool permission;
+                        if (DeRezPacket.AgentBlock.Destination == 1)
+                        { // Take Copy
+                            permission = PermissionsMngr.CanCopyObject(remoteClient.AgentId, 
+                                                                ((SceneObjectGroup) selectedEnt).UUID);
+                        }
+                        else
+                        { // Take
+                            permission = PermissionsMngr.CanDeRezObject(remoteClient.AgentId, 
+                                                                ((SceneObjectGroup) selectedEnt).UUID);
+                        }
+
+                        if (permission)
                         {
-                            string sceneObjectXml = ((SceneObjectGroup) selectedEnt).ToXmlString();
+                            SceneObjectGroup objectGroup = (SceneObjectGroup) selectedEnt;
+                            string sceneObjectXml = objectGroup.ToXmlString();
+
                             CachedUserInfo userInfo =
                                 CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
                             if (userInfo != null)
@@ -871,8 +885,8 @@ namespace OpenSim.Region.Environment.Scenes
                                 AssetCache.AddAsset(asset);
 
                                 InventoryItemBase item = new InventoryItemBase();
+                                item.Creator = objectGroup.RootPart.CreatorID;
                                 item.Owner = remoteClient.AgentId;
-                                item.Creator = remoteClient.AgentId;
                                 item.ID = LLUUID.Random();
                                 item.AssetID = asset.FullID;
                                 item.Description = asset.Description;
@@ -880,12 +894,18 @@ namespace OpenSim.Region.Environment.Scenes
                                 item.AssetType = asset.Type;
                                 item.InvType = asset.InvType;
                                 item.Folder = DeRezPacket.AgentBlock.DestinationID;
-                                item.CurrentPermissions = 2147483647;
-                                item.NextPermissions = 2147483647;
-                                item.EveryOnePermissions =
-                                    ((SceneObjectGroup) selectedEnt).RootPart.EveryoneMask;
-                                item.BasePermissions = ((SceneObjectGroup) selectedEnt).RootPart.BaseMask;
-                                item.CurrentPermissions = ((SceneObjectGroup) selectedEnt).RootPart.OwnerMask;
+                                item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
+                                if (remoteClient.AgentId != objectGroup.RootPart.OwnerID) {
+                                    item.BasePermissions = objectGroup.RootPart.NextOwnerMask;
+                                    item.CurrentPermissions = objectGroup.RootPart.NextOwnerMask;
+                                    item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
+                                }
+                                else
+                                {
+                                    item.BasePermissions = objectGroup.RootPart.BaseMask;
+                                    item.CurrentPermissions = objectGroup.RootPart.OwnerMask;
+                                    item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
+                                }
 
                                 userInfo.AddItem(remoteClient.AgentId, item);
                                 remoteClient.SendInventoryItemCreateUpdate(item);
@@ -894,7 +914,7 @@ namespace OpenSim.Region.Environment.Scenes
                             // FIXME: Nasty hardcoding.  If Destination is 1 then client wants us to take a copy
                             if (DeRezPacket.AgentBlock.Destination != 1)
                             {
-                                DeleteSceneObjectGroup((SceneObjectGroup) selectedEnt);
+                                DeleteSceneObjectGroup(objectGroup);
                             }
                         }
                     }
@@ -941,6 +961,11 @@ namespace OpenSim.Region.Environment.Scenes
                       RayStart, RayEnd, RayTargetID, new LLQuaternion(0, 0, 0, 1), 
                       BypassRayCast, bRayEndIsIntersection);
             
+            if (!PermissionsMngr.CanRezObject(remoteClient.AgentId, pos))
+            {
+                return;         
+            }
+
             // Rez object
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
             if (userInfo != null)
@@ -966,7 +991,22 @@ namespace OpenSim.Region.Environment.Scenes
                             // object itself before we rez.
                             rootPart.Name = item.Name;
                             rootPart.Description = item.Description;
-                            
+
+                            List<SceneObjectPart> partList = new List<SceneObjectPart>(group.Children.Values);
+                            foreach (SceneObjectPart part in partList)
+                            {
+                                if (part.OwnerID != item.Owner)
+                                {
+                                    part.LastOwnerID = part.OwnerID;
+                                    part.OwnerID = item.Owner;
+                                    part.EveryoneMask = item.EveryOnePermissions;
+                                    part.BaseMask = item.BasePermissions;
+                                    part.OwnerMask = item.CurrentPermissions;
+                                    part.NextOwnerMask = item.NextPermissions;
+                                    part.ChangeInventoryOwner(item.Owner);
+                                }
+                            }
+ 
                             rootPart.TrimPermissions();
                             group.ApplyPhysics(m_physicalPrim);
                             group.StartScripts();

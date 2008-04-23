@@ -115,6 +115,31 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void ChangeInventoryOwner(LLUUID ownerId)
+        {
+            lock (TaskInventory)
+            {
+                if (0 == TaskInventory.Count)
+                {
+                    return;
+                }
+
+                HasInventoryChanged = true;
+
+                IList<TaskInventoryItem> items = new List<TaskInventoryItem>(TaskInventory.Values);
+                foreach (TaskInventoryItem item in items)
+                {
+                    if (ownerId != item.OwnerID)
+                    {
+                        item.LastOwnerID = item.OwnerID;
+                        item.OwnerID = ownerId; 
+                        item.BaseMask = item.NextOwnerMask & (uint)PermissionMask.All;
+                        item.OwnerMask = item.NextOwnerMask & (uint)PermissionMask.All;
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Start all the scripts contained in this prim's inventory
         /// </summary>

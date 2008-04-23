@@ -981,6 +981,12 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
+                LLVector3 oldPos = group.AbsolutePosition;
+                if (!PermissionsMngr.CanObjectEntry(remoteClient.AgentId, oldPos, pos))
+                {
+                    group.SendGroupTerseUpdate();
+                    return;
+                }
                 if (PermissionsMngr.CanEditObjectPosition(remoteClient.AgentId, group.UUID))
                 {
                     group.UpdateSinglePosition(pos, localID);
@@ -999,6 +1005,12 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
+                LLVector3 oldPos = group.AbsolutePosition;
+                if (!PermissionsMngr.CanObjectEntry(remoteClient.AgentId, oldPos, pos))
+                {
+                    group.SendGroupTerseUpdate();
+                    return;
+                }
                 if (PermissionsMngr.CanEditObjectPosition(remoteClient.AgentId, group.UUID))
                 {
                     group.UpdateGroupPosition(pos);
