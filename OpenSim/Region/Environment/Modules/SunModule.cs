@@ -108,6 +108,9 @@ namespace OpenSim.Region.Environment.Modules
             {
                 avatar.ControllingClient.SendSunPos(SunPos(HourOfTheDay()), new LLVector3(0, 0.0f, 10.0f));
             }
+            // set estate settings for region access to sun position 
+            m_scene.RegionInfo.EstateSettings.sunPosition = SunPos(HourOfTheDay());
+
             m_frame = 0;
         }
 

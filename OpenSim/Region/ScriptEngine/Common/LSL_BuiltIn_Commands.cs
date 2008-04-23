@@ -2444,8 +2444,18 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.Vector3 llGetSunDirection()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetSunDirection");
-            return new LSL_Types.Vector3();
+
+            LSL_Types.Vector3 SunDoubleVector3;
+            LLVector3 SunFloatVector3;
+
+            // sunPosition estate setting is set in OpenSim.Region.Environment.Modules.SunModule
+            // have to convert from LLVector3 (float) to LSL_Types.Vector3 (double)
+            SunFloatVector3 = World.RegionInfo.EstateSettings.sunPosition;
+            SunDoubleVector3.x = (double)SunFloatVector3.X;
+            SunDoubleVector3.y = (double)SunFloatVector3.Y;
+            SunDoubleVector3.z = (double)SunFloatVector3.Z;
+
+            return SunDoubleVector3;
         }
 
         public LSL_Types.Vector3 llGetTextureOffset(int face)

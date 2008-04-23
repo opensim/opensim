@@ -159,6 +159,18 @@ namespace OpenSim.Framework
             }
         }
 
+        private LLVector3 m_sunPosition;
+
+        public LLVector3 sunPosition
+        {
+            get { return m_sunPosition; }
+            set
+            {
+                //Just set - does not need to be written to settings file
+                m_sunPosition = value;
+            }
+        }
+
         private float m_terrainRaiseLimit;
 
         public float terrainRaiseLimit
