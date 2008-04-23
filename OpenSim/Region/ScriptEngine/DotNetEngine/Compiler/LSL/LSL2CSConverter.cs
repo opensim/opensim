@@ -331,6 +331,30 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             // Note the whole regex is a group, then we have the state this entry belongs to.
             eventmatches = Regex.Split(Script, @"(public void\s([^_]+)_event_state_entry[\(\)](?:[^\{]+)?\{)", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.IgnoreCase);
             int endloop = eventmatches.GetUpperBound(0);
+
+            // Add all the states to a list of 
+            List<string> unUsedStates = new List<string>();
+            foreach (string state in state_events.Keys)
+            {
+                unUsedStates.Add(state);
+            }
+
+            // If endloop is 0, then there are no state entry events in the entire script.
+            // Stick a default state entry in there.
+            if (endloop == 0)
+            {
+                if (state_events.ContainsKey("default"))
+                {
+                    scriptCopy = "\r\n// programmatically added this state entry event.\r\n\r\npublic void default_event_state_entry() {\r\n\tosSetStateEvents((int)" + (int)state_events["default"] + ");\r\n }\r\n\r\n " + Script;
+                    unUsedStates.Remove("default");
+                }
+                else 
+                {
+                    throw new Exception("You must define a default state. Compile failed.  See LSL documentation for more details.");
+                }
+            }
+
+            // Loop over state entry events and rewrite the first line to define the events the state listens for.
             for (int pos = 0; pos < endloop; pos++)
             {
                 // Returns text before state entry match,
@@ -342,6 +366,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 // Returns which state we're matching and writes a method call to the end of the above state_entry
                 scriptCopy += "\r\n\t\tosSetStateEvents((int)" + (int)state_events[eventmatches[pos]] + ");"; //pos++;
                 
+                // Remove the state from the unused list.   There might be more states matched then defined, so we 
+                // check if the state was defined first
+                if (unUsedStates.Contains(eventmatches[pos]))
+                    unUsedStates.Remove(eventmatches[pos]);
+                
                 // adds the remainder of the script.
                 if ((pos + 1) == endloop)
                 {
@@ -350,6 +379,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 }
                 
             }
+
+            // states with missing state_entry blocks won't publish their events, 
+            // so, to fix that we write a state entry with only the event publishing method for states missing a state_entry event
+            foreach (string state in unUsedStates)
+            {
+                // Write the remainder states out into a blank state entry with the event setting routine
+                scriptCopy = "\r\n// programmatically added this state entry event.\r\n\r\npublic void " + state + "_event_state_entry() {\r\n\tosSetStateEvents((int)" + (int)state_events[state] + ");\r\n}\r\n\r\n " + scriptCopy;
+            }
+
             // save modified script.
             Script = scriptCopy;
             //System.Console.WriteLine(Script);
@@ -365,7 +403,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             //Return += @"public Script() { } ";
             Return += Script;
             //Return += "} }\r\n";
-
+            unUsedStates.Clear();
             state_events.Clear();
             quotes.Clear();
 
