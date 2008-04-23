@@ -376,6 +376,10 @@ namespace OpenSim.Framework.Console
             char[] delims = {' ', '"'};
             MatchCollection matches = Extractor.Matches(cmdline);
             // Get matches
+
+            if (matches.Count == 0)
+                return;
+
             string cmd = matches[0].Value.Trim(delims);
             string[] cmdparams = new string[matches.Count - 1];
 
