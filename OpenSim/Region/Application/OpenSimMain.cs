@@ -90,6 +90,9 @@ namespace OpenSim
         private string m_standaloneInventoryPlugin;
         private string m_standaloneAssetPlugin;
         private string m_standaloneUserPlugin;
+        private string m_standaloneInventorySource;
+        private string m_standaloneAssetSource;
+        private string m_standaloneUserSource;
 
         private string m_assetStorage = "local";
 
@@ -140,9 +143,10 @@ namespace OpenSim
             // The Mono addin manager (in Mono.Addins.dll version 0.2.0.0) occasionally seems to corrupt its addin cache
             // Hence, as a temporary solution we'll remove it before each startup
             if (Directory.Exists("addin-db-000"))
-            {
                 Directory.Delete("addin-db-000", true);
-            }
+
+            if (Directory.Exists("addin-db-001"))
+                Directory.Delete("addin-db-001", true);
              
             
             m_log.Info("[OPENSIM MAIN]: PLEASE IGNORE THE SCANNING ERRORS BELOW.  These are the result of a temporary problem with our plugins manager.");
@@ -210,8 +214,11 @@ namespace OpenSim
                 config.Set("accounts_authenticate", false);
                 config.Set("welcome_message", "Welcome to OpenSim");
                 config.Set("inventory_plugin", "OpenSim.Data.SQLite.dll");
+                config.Set("inventory_source", "");
                 config.Set("userDatabase_plugin", "OpenSim.Data.SQLite.dll");
+                config.Set("user_source", "");
                 config.Set("asset_plugin", "OpenSim.Data.SQLite.dll");
+                config.Set("asset_source", "");
                 config.Set("dump_assets_to_file", false);
             }
 
@@ -299,10 +306,16 @@ namespace OpenSim
                 m_standaloneWelcomeMessage = standaloneConfig.GetString("welcome_message", "Welcome to OpenSim");
                 m_standaloneInventoryPlugin =
                     standaloneConfig.GetString("inventory_plugin", "OpenSim.Data.SQLite.dll");
+                m_standaloneInventorySource =
+                    standaloneConfig.GetString("inventory_source","");
                 m_standaloneUserPlugin =
                     standaloneConfig.GetString("userDatabase_plugin", "OpenSim.Data.SQLite.dll");
+                m_standaloneUserSource =
+                    standaloneConfig.GetString("user_source","");
                 m_standaloneAssetPlugin =
                     standaloneConfig.GetString("asset_plugin", "OpenSim.Data.SQLite.dll");
+                m_standaloneAssetSource =
+                    standaloneConfig.GetString("asset_source","");
 
                 m_dumpAssetsToFile = standaloneConfig.GetBoolean("dump_assets_to_file", false);
             }
