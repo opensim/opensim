@@ -191,6 +191,13 @@ namespace OpenSim.Data.MSSQL
 
         #region IPlugin Members
 
+        override public void Initialise(string connect)
+        {
+            // TODO: this would allow you to pass in connnect info as
+            // a string instead of file, if someone writes the support
+            Initialise();
+        }
+
         override public void Initialise()
         {
             IniFile GridDataMySqlFile = new IniFile("mssql_connection.ini");

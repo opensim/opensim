@@ -454,7 +454,7 @@ namespace OpenSim
             }
             else
             {
-                SQLAssetServer sqlAssetServer = new SQLAssetServer(m_standaloneAssetPlugin);
+                SQLAssetServer sqlAssetServer = new SQLAssetServer(m_standaloneAssetPlugin, m_standaloneAssetSource);
                 sqlAssetServer.LoadDefaultAssets();
                 assetServer = sqlAssetServer;
             }

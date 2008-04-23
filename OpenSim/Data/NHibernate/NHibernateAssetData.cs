@@ -50,18 +50,24 @@ namespace OpenSim.Data.NHibernate
 
         public override void Initialise()
         {
-            // TODO: hard coding for sqlite based stuff to begin with, just making it easier to test
+            Initialise("SQLiteDialect;SqliteClientDriver;URI=file:Asset.db,version=3");
+        }
 
+        public override void Initialise(string connect)
+        {
+            // TODO: hard coding for sqlite based stuff to begin with, just making it easier to test
+            char[] split = {';'};
+            string[] parts = connect.Split(split);
+            
             // This is stubbing for now, it will become dynamic later and support different db backends
             cfg = new Configuration();
             cfg.SetProperty(Environment.ConnectionProvider, 
                             "NHibernate.Connection.DriverConnectionProvider");
             cfg.SetProperty(Environment.Dialect, 
-                            "NHibernate.Dialect.SQLiteDialect");
+                            "NHibernate.Dialect." + parts[0]);
             cfg.SetProperty(Environment.ConnectionDriver, 
-                            "NHibernate.Driver.SqliteClientDriver");
-            cfg.SetProperty(Environment.ConnectionString,
-                            "URI=file:Asset.db,version=3");
+                            "NHibernate.Driver." + parts[1]);
+            cfg.SetProperty(Environment.ConnectionString, parts[2]);
             cfg.AddAssembly("OpenSim.Data.NHibernate");
 
             HbmSerializer.Default.Validate = true;

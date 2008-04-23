@@ -35,9 +35,9 @@ namespace OpenSim.Framework.Communications.Cache
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public SQLAssetServer(string pluginName)
+        public SQLAssetServer(string pluginName, string connect)
         {
-            AddPlugin(pluginName);
+            AddPlugin(pluginName, connect);
         }
 
         public SQLAssetServer(IAssetProvider assetProvider)
@@ -45,7 +45,7 @@ namespace OpenSim.Framework.Communications.Cache
             m_assetProvider = assetProvider;
         }
 
-        public void AddPlugin(string FileName)
+        public void AddPlugin(string FileName, string connect)
         {
             m_log.Info("[SQLAssetServer]: AssetStorage: Attempting to load " + FileName);
             Assembly pluginAssembly = Assembly.LoadFrom(FileName);
@@ -61,7 +61,7 @@ namespace OpenSim.Framework.Communications.Cache
                         IAssetProvider plug =
                             (IAssetProvider) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         m_assetProvider = plug;
-                        m_assetProvider.Initialise();
+                        m_assetProvider.Initialise(connect);
 
                         m_log.Info("[AssetStorage]: " +
                                    "Added " + m_assetProvider.Name + " " +

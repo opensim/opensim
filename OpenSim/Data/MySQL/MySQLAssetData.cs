@@ -170,6 +170,13 @@ namespace OpenSim.Data.MySQL
 
         #region IPlugin Members
 
+        override public void Initialise(string connect)
+        {
+            // TODO: This will let you pass in the connect string in
+            // the config, though someone will need to write that.
+            Initialise();
+        }
+
         override public void Initialise()
         {
             IniFile GridDataMySqlFile = new IniFile("mysql_connection.ini");
