@@ -73,6 +73,7 @@ This software uses components from the following developers:
 * SQLite (Public Domain)
 * XmlRpcCS (http://xmlrpccs.sf.net/)
 * MySQL, Inc. (MySQL Connector/NET)
+* NUnit (http://www.nunit.org)
 * AGEIA Inc. (PhysX)
 * Russel L. Smith (ODE)
 * Prebuild ( http://sourceforge.net/projects/dnpb/ )
