@@ -89,8 +89,14 @@ namespace OpenSim.Region.Environment.Scenes
                             new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
                             new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
                                            rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
-                        rootPart.PhysActor.LocalID = rootPart.LocalId;
-                        rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
+
+                        // to quote from SceneObjectPart: Basic
+                        // Physics returns null..  joy joy joy.
+                        if (rootPart.PhysActor != null)
+                        {
+                            rootPart.PhysActor.LocalID = rootPart.LocalId;
+                            rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
+                        }
                     }
                     primCount++;
                 }
@@ -193,9 +199,13 @@ namespace OpenSim.Region.Environment.Scenes
                     new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
                                    rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
 
-                rootPart.PhysActor.LocalID = rootPart.LocalId;
-
-                rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
+                // to quote from SceneObjectPart: Basic
+                // Physics returns null..  joy joy joy.
+                if (rootPart.PhysActor != null)
+                {
+                    rootPart.PhysActor.LocalID = rootPart.LocalId;
+                    rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
+                }
                 rootPart.Velocity = receivedVelocity;                 
             }
 
