@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<project name="OpenSim" default="build">
+	<target name="cibuild">
+			<exec program="mono" commandline="bin/Prebuild.exe /target nant" />
+	        <nant buildfile="OpenSim.build" target="build" />
+			<nant buildfile="OpenSim.build" target="dist" />
+	</target>
+</project>
