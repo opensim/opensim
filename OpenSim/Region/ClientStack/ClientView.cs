@@ -91,6 +91,8 @@ namespace OpenSim.Region.ClientStack
         private readonly uint m_circuitCode;
         private int m_moneyBalance;
 
+		private int m_animationSequenceNumber = 1;
+
         private byte[] m_channelVersion = Helpers.StringToField("OpenSimulator 0.5"); // Dummy value needed by libSL
 
         /* protected variables */
@@ -301,6 +303,11 @@ namespace OpenSim.Region.ClientStack
         {
             get { return m_moneyBalance; }
         }
+
+		public int NextAnimationSequenceNumber
+		{
+			get { return m_animationSequenceNumber++; }
+		}
 
         /* METHODS */
 
@@ -3429,7 +3436,7 @@ namespace OpenSim.Region.ClientStack
                                 handlerStartAnim = OnStartAnim;
                                 if (handlerStartAnim != null)
                                 {
-                                    handlerStartAnim(this, AgentAni.AnimationList[i].AnimID, 1);
+                                    handlerStartAnim(this, AgentAni.AnimationList[i].AnimID);
                                 }
                             }
                             else

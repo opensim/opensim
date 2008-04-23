@@ -217,6 +217,10 @@ namespace OpenSim.Region.Examples.SimpleModule
             get { return FirstName + LastName; }
         }
 
+		public virtual int NextAnimationSequenceNumber
+		{
+			get { return 1; }
+		}
 
         public virtual void OutPacket(Packet newPack, ThrottleOutPacketType packType)
         {

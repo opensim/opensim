@@ -143,16 +143,26 @@ namespace OpenSim.Framework
         {
             "texture",
             "sound",
+            "calling_card",
+            "landmark",
             String.Empty,
             String.Empty,
-            String.Empty,
-            String.Empty,
-            String.Empty,
-            String.Empty,
+            "object",
+            "notecard",
             String.Empty,
             String.Empty,
             "lsl_text",
-            String.Empty
+            String.Empty,
+            String.Empty,
+			"bodypart",
+            String.Empty,
+            "snapshot",
+            String.Empty,
+            String.Empty,
+            "wearable",
+			"animation",
+			"gesture"
+
         };
         
         /// <summary>
@@ -162,16 +172,26 @@ namespace OpenSim.Framework
         {
             "texture",
             "sound",
-            String.Empty,
-            String.Empty,
-            String.Empty,
-            String.Empty,
-            String.Empty,
-            String.Empty,
-            String.Empty,
-            String.Empty,
+            "callcard",
+            "landmark",
+            "clothing", // Deprecated
+            "clothing",
+            "object",
+            "notecard",
+            "category",
+            "root",
             "lsltext",
-            String.Empty
+            "lslbyte",
+            "txtr_tga",
+			"bodypart",
+            "trash",
+            "snapshot",
+            "lstndfnd",
+            "snd_wav",
+            "img_tga",
+            "jpeg",
+			"animatn",
+			"gesture"
         };              
 
         public LLUUID ItemID = LLUUID.Zero;

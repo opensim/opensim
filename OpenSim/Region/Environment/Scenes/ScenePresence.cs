@@ -359,17 +359,15 @@ namespace OpenSim.Region.Environment.Scenes
 
             AbsolutePosition = m_controllingClient.StartPos;
 
-            // TODO: m_animations and m_animationSeqs should always be of the same length.
             // Move them into an object to (hopefully) avoid threading issues.
             try
             {
-                m_animations.Add(Animations.AnimsLLUUID["STAND"]);
+				SetMovementAnimation(Animations.AnimsLLUUID["STAND"]);
             }
             catch (KeyNotFoundException)
             {
                 m_log.Warn("[AVATAR]: KeyNotFound Exception playing avatar stand animation");
             }
-            m_animationSeqs.Add(1);
 
             RegisterToEvents();
             SetDirectionVectors();
@@ -549,6 +547,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             AddToPhysicalScene();
             m_physicsActor.Flying = isFlying;
+			SendAnimPack();
 
             m_scene.SwapRootAgentCount(false);
             m_scene.CommsManager.UserProfileCacheService.RequestInventoryForUser(m_uuid);
@@ -571,6 +570,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void MakeChildAgent()
         {
+			if(m_animations.Count > 0)
+			{
+				LLUUID movement=m_animations[0];
+
+				m_animations.Clear();
+				m_animationSeqs.Clear();
+
+				SetMovementAnimation(movement);
+			}
 //            m_log.DebugFormat(
 //                 "[SCENEPRESENCE]: Downgrading child agent {0}, {1} to a root agent in {2}", 
 //                 Name, UUID, m_scene.RegionInfo.RegionName);
@@ -634,7 +642,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 AbsolutePosition = AbsolutePosition + new LLVector3(0, 0, (1.56f / 6));
             }
-            SetMovementAnimation(Animations.AnimsLLUUID["LAND"], 2);
+            SetMovementAnimation(Animations.AnimsLLUUID["LAND"]);
             SendFullUpdateToAllClients();
         }
 
@@ -754,7 +762,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 // TODO: This doesn't quite work yet -- probably a parent ID problem
                 // m_parentID = (what should this be?)
-                SetMovementAnimation(Animations.AnimsLLUUID["SIT_GROUND"], 1);
+                SetMovementAnimation(Animations.AnimsLLUUID["SIT_GROUND"]);
             }
             // In the future, these values might need to go global.
             // Here's where you get them.
@@ -891,7 +899,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
 
-            SetMovementAnimation(Animations.AnimsLLUUID["STAND"], 1);
+            SetMovementAnimation(Animations.AnimsLLUUID["STAND"]);
         }
 
         private void SendSitResponse(IClientAPI remoteClient, LLUUID targetID, LLVector3 offset)
@@ -1025,7 +1033,7 @@ namespace OpenSim.Region.Environment.Scenes
             Velocity = new LLVector3(0, 0, 0);
             RemoveFromPhysicalScene();
 
-            SetMovementAnimation(Animations.AnimsLLUUID["SIT"], 1);
+            SetMovementAnimation(Animations.AnimsLLUUID["SIT"]);
             SendFullUpdateToAllClients();
             // This may seem stupid, but Our Full updates don't send avatar rotation :P
             // So we're also sending a terse update (which has avatar rotation)
@@ -1045,35 +1053,58 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void AddAnimation(LLUUID animID, int seq)
+        public void AddAnimation(LLUUID animID)
         {
+			if(m_isChildAgent)
+				return;
+
+			// Don't let this animation become the movement animation
+			if(m_animations.Count < 1)
+				SetMovementAnimation(Animations.AnimsLLUUID["STAND"]);
+
             if (!m_animations.Contains(animID))
             {
                 m_animations.Add(animID);
-                m_animationSeqs.Add(seq);
+                m_animationSeqs.Add(m_controllingClient.NextAnimationSequenceNumber);
                 SendAnimPack();
             }
         }
 
         public void RemoveAnimation(LLUUID animID)
         {
+			if(m_isChildAgent)
+				return;
+
             if (m_animations.Contains(animID))
             {
                 if (m_animations[0] == animID)
                 {
-                    SetMovementAnimation(Animations.AnimsLLUUID["STAND"], 1);
+                    SetMovementAnimation(Animations.AnimsLLUUID["STAND"]);
                 }
                 else
                 {
-                    m_animations.Remove(animID);
-                    SendAnimPack();
+					// What a HACK!! Anim list really needs to be an object!
+					int idx;
+
+					for(idx=0;idx < m_animations.Count;idx++)
+					{
+						if(m_animations[idx] == animID)
+						{
+							int seq=m_animationSeqs[idx];
+
+							m_animations.Remove(animID);
+							m_animationSeqs.Remove(seq);
+							SendAnimPack();
+							break;
+						}
+					}
                 }
             }
         }
 
-        public void HandleStartAnim(IClientAPI remoteClient, LLUUID animID, int seq)
+        public void HandleStartAnim(IClientAPI remoteClient, LLUUID animID)
         {
-            AddAnimation(animID, seq);
+            AddAnimation(animID);
         }
 
         public void HandleStopAnim(IClientAPI remoteClient, LLUUID animID)
@@ -1086,25 +1117,35 @@ namespace OpenSim.Region.Environment.Scenes
         /// reserved for "main" animations that are mutually exclusive,
         /// like flying and sitting, for example.
         /// </summary>
-        protected void SetMovementAnimation(LLUUID anim, int seq)
+        protected void SetMovementAnimation(LLUUID anim)
         {
-            try
-            {
-                if (m_animations[0] != anim)
-                {
-                    m_animations[0] = anim;
-                    m_animationSeqs[0] = seq;
-                    SendAnimPack();
-                }
-            }
-            catch
-            {
-                m_log.Warn("[AVATAR]: SetMovementAnimation for avatar failed. Attempting recovery...");
-                m_animations[0] = anim;
-                m_animationSeqs[0] = seq;
-                SendAnimPack();
-            }
-        }
+			if(m_animations.Count < 1)
+			{
+				m_animations.Add(Animations.AnimsLLUUID["STAND"]);
+				m_animationSeqs.Add(1);
+
+				SendAnimPack();
+			}
+			else
+			{
+				try
+				{
+					if (m_animations[0] != anim)
+					{
+						m_animations[0] = anim;
+						m_animationSeqs[0] = m_controllingClient.NextAnimationSequenceNumber;
+					}
+					SendAnimPack();
+				}
+				catch
+				{
+					m_log.Warn("[AVATAR]: SetMovementAnimation for avatar failed. Attempting recovery...");
+					m_animations[0] = anim;
+					m_animationSeqs[0] = m_controllingClient.NextAnimationSequenceNumber;
+					SendAnimPack();
+				}
+			}
+		}
 
         /// <summary>
         /// This method handles agent movement related animations
@@ -1123,18 +1164,18 @@ namespace OpenSim.Region.Environment.Scenes
                     if (m_physicsActor.Flying)
                     {
                         // We are flying
-                        SetMovementAnimation(Animations.AnimsLLUUID["FLY"], 1);
+                        SetMovementAnimation(Animations.AnimsLLUUID["FLY"]);
                     }
                     else if (((m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) &&
                              PhysicsActor.IsColliding)
                     {
                         // Client is pressing the page down button and moving and is colliding with something
-                        SetMovementAnimation(Animations.AnimsLLUUID["CROUCHWALK"], 1);
+                        SetMovementAnimation(Animations.AnimsLLUUID["CROUCHWALK"]);
                     }
                     else if (!PhysicsActor.IsColliding && m_physicsActor.Velocity.Z < -6)
                     {
                         // Client is moving and falling at a velocity greater then 6 meters per unit
-                        SetMovementAnimation(Animations.AnimsLLUUID["FALLDOWN"], 1);
+                        SetMovementAnimation(Animations.AnimsLLUUID["FALLDOWN"]);
                     }
                     else if (!PhysicsActor.IsColliding && Velocity.Z > 0 &&
                              (m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
@@ -1142,7 +1183,7 @@ namespace OpenSim.Region.Environment.Scenes
                         // Client is moving, and colliding and pressing the page up button but isn't flying
                         try
                         {
-                            SetMovementAnimation(Animations.AnimsLLUUID["JUMP"], 1);
+                            SetMovementAnimation(Animations.AnimsLLUUID["JUMP"]);
                         }
                         catch (KeyNotFoundException)
                         { }
@@ -1152,7 +1193,7 @@ namespace OpenSim.Region.Environment.Scenes
                         // We are running
                         try
                         {
-                            SetMovementAnimation(Animations.AnimsLLUUID["RUN"], 1);
+                            SetMovementAnimation(Animations.AnimsLLUUID["RUN"]);
                         }
                         catch (KeyNotFoundException)
                         { }
@@ -1162,7 +1203,7 @@ namespace OpenSim.Region.Environment.Scenes
                         // We're moving, but we're not doing anything else..   so play the stand animation
                         try
                         {
-                            SetMovementAnimation(Animations.AnimsLLUUID["WALK"], 1);
+                            SetMovementAnimation(Animations.AnimsLLUUID["WALK"]);
                         }
                         catch (KeyNotFoundException)
                         { }
@@ -1177,23 +1218,23 @@ namespace OpenSim.Region.Environment.Scenes
                         PhysicsActor.IsColliding)
                     {
                         // Client pressing the page down button
-                        SetMovementAnimation(Animations.AnimsLLUUID["CROUCH"], 1);
+                        SetMovementAnimation(Animations.AnimsLLUUID["CROUCH"]);
                     }
                     else if (!PhysicsActor.IsColliding && m_physicsActor.Velocity.Z < -6 && !m_physicsActor.Flying)
                     {
                         // Not colliding and not flying, and we're falling at high speed
-                        SetMovementAnimation(Animations.AnimsLLUUID["FALLDOWN"], 1);
+                        SetMovementAnimation(Animations.AnimsLLUUID["FALLDOWN"]);
                     }
                     else if (!PhysicsActor.IsColliding && Velocity.Z > 0 && !m_physicsActor.Flying &&
                              (m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
                     {
                         // This is the standing jump
-                        SetMovementAnimation(Animations.AnimsLLUUID["JUMP"], 1);
+                        SetMovementAnimation(Animations.AnimsLLUUID["JUMP"]);
                     }
                     else if (m_physicsActor.Flying)
                     {
                         // We're flying but not moving
-                        SetMovementAnimation(Animations.AnimsLLUUID["HOVER"], 1);
+                        SetMovementAnimation(Animations.AnimsLLUUID["HOVER"]);
                     }
                     else
                     {
@@ -1201,7 +1242,7 @@ namespace OpenSim.Region.Environment.Scenes
                         try
                         {
 
-                            SetMovementAnimation(Animations.AnimsLLUUID["STAND"], 1);
+                            SetMovementAnimation(Animations.AnimsLLUUID["STAND"]);
                         }
                         catch (KeyNotFoundException)
                         { }
@@ -1257,8 +1298,8 @@ namespace OpenSim.Region.Environment.Scenes
                         // PreJump and jump happen too quickly.  Many times prejump gets ignored.
                         try
                         {
-                            SetMovementAnimation(Animations.AnimsLLUUID["PREJUMP"], 1);
-                            SetMovementAnimation(Animations.AnimsLLUUID["JUMP"], 1);
+                            SetMovementAnimation(Animations.AnimsLLUUID["PREJUMP"]);
+                            SetMovementAnimation(Animations.AnimsLLUUID["JUMP"]);
                         }
                         catch (KeyNotFoundException)
                         { }
@@ -1495,6 +1536,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="seqs"></param>
         public void SendAnimPack(LLUUID[] animations, int[] seqs)
         {
+			if(m_isChildAgent)
+				return;
+
             m_scene.Broadcast(
                 delegate(IClientAPI client) { client.SendAnimations(animations, seqs, m_controllingClient.AgentId); });
         }
@@ -1915,7 +1959,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_animations = new List<LLUUID>();
             m_animations.Add(Animations.AnimsLLUUID["STAND"]);
-            m_animationSeqs.Add(1);
+            m_animationSeqs.Add(m_controllingClient.NextAnimationSequenceNumber);
 
             SetDirectionVectors();
             */

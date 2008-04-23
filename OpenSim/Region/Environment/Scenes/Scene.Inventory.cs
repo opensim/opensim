@@ -730,25 +730,11 @@ namespace OpenSim.Region.Environment.Scenes
 
                         if (item != null)
                         {
-                            if (item.AssetType == 0 || item.AssetType == 1 || item.AssetType == 10)
-                            {
-                                group.AddInventoryItem(remoteClient, primLocalID, item, copyID);
-                                m_log.InfoFormat(
-                                    "[PRIM INVENTORY]: Update with item {0} requested of prim {1} for {2}", 
-                                    item.Name, primLocalID, remoteClient.Name);
-                                group.GetProperties(remoteClient);
-                            }
-                            else
-                            { 
-                                // XXX Nasty temporary way of stopping things other than sounds, textures and scripts
-                                // from going in a prim's inventory, since other things will not currently work
-                                // See http://opensimulator.org/mantis/view.php?id=711 for the error caused later on
-                                // - to implement requires changes to TaskInventoryItem (which really requires the current
-                                // nasty way it is done to be changed).
-                                m_log.WarnFormat(
-                                    "[PRIM INVENTORY]: Sorry, prim inventory storage of asset type {0} is not yet supported", 
-                                    item.AssetType);
-                            }
+							group.AddInventoryItem(remoteClient, primLocalID, item, copyID);
+							m_log.InfoFormat(
+								"[PRIM INVENTORY]: Update with item {0} requested of prim {1} for {2}", 
+								item.Name, primLocalID, remoteClient.Name);
+							group.GetProperties(remoteClient);
                         }
                         else
                         {

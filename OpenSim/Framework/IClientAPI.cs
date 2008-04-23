@@ -245,7 +245,7 @@ namespace OpenSim.Framework
 
     public delegate void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam);
 
-    public delegate void StartAnim(IClientAPI remoteClient, LLUUID animID, int seq);
+    public delegate void StartAnim(IClientAPI remoteClient, LLUUID animID);
 
     public delegate void StopAnim(IClientAPI remoteClient, LLUUID animID);
 
@@ -572,6 +572,8 @@ namespace OpenSim.Framework
         string FirstName { get; }
 
         string LastName { get; }
+		
+		int NextAnimationSequenceNumber { get; }
 
         /// <summary>
         /// Returns the full name of the agent/avatar represented by this client

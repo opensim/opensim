@@ -434,7 +434,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (World.Entities.ContainsKey(avatar) && World.Entities[avatar] is ScenePresence)
             {
                 ScenePresence target = (ScenePresence)World.Entities[avatar];
-                target.AddAnimation(avatar, 0);
+                target.AddAnimation(avatar);
             }
         }
 
