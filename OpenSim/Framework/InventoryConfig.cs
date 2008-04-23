@@ -40,6 +40,7 @@ namespace OpenSim.Framework
         public string UserRecvKey = String.Empty;
 
         public string DatabaseProvider = String.Empty;
+        public string DatabaseConnect = String.Empty;
         public static uint DefaultHttpPort = 8004;
 
         public uint HttpPort = DefaultHttpPort;
@@ -68,6 +69,8 @@ namespace OpenSim.Framework
                                                 "Key to expect from user server", "null", false);
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Data.SQLite.dll", false);
+            configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                "Database Connect String", "", false);
             configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Http Listener port", DefaultHttpPort.ToString(), false);
         }
@@ -76,24 +79,27 @@ namespace OpenSim.Framework
         {
             switch (configuration_key)
             {
-                case "default_startup_message":
-                    DefaultStartupMsg = (string) configuration_result;
-                    break;
-                case "default_user_server":
-                    UserServerURL = (string) configuration_result;
-                    break;
-                case "user_send_key":
-                    UserSendKey = (string) configuration_result;
-                    break;
-                case "user_recv_key":
-                    UserRecvKey = (string) configuration_result;
-                    break;
-                case "database_provider":
-                    DatabaseProvider = (string) configuration_result;
-                    break;
-                case "http_port":
-                    HttpPort = (uint) configuration_result;
-                    break;
+            case "default_startup_message":
+                DefaultStartupMsg = (string) configuration_result;
+                break;
+            case "default_user_server":
+                UserServerURL = (string) configuration_result;
+                break;
+            case "user_send_key":
+                UserSendKey = (string) configuration_result;
+                break;
+            case "user_recv_key":
+                UserRecvKey = (string) configuration_result;
+                break;
+            case "database_provider":
+                DatabaseProvider = (string) configuration_result;
+                break;
+            case "database_connect":
+                DatabaseConnect = (string) configuration_result;
+                break;
+            case "http_port":
+                HttpPort = (uint) configuration_result;
+                break;
             }
 
             return true;

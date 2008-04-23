@@ -50,17 +50,13 @@ namespace OpenSim.Data.SQLite
         /// <summary>
         /// Initialises the interface
         /// </summary>
-        public void Initialise()
+        public void Initialise(string dbconnect)
         {
-            Initialise("inventoryStore.db", "inventoryDatabase");
-        }
-
-        public void Initialise(string dbfile, string dbname)
-        {
-            string connectionString = "URI=file:" + dbfile + ",version=3";
-
-            m_log.Info("[Inventory]: Sqlite - connecting: " + dbfile);
-            SqliteConnection conn = new SqliteConnection(connectionString);
+            if (dbconnect == string.Empty) {
+                dbconnect = "URI=file:inventoryStore.db,version=3";
+            }
+            m_log.Info("[Inventory]: Sqlite - connecting: " + dbconnect);
+            SqliteConnection conn = new SqliteConnection(dbconnect);
 
             conn.Open();
 

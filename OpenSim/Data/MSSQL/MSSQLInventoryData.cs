@@ -51,6 +51,12 @@ namespace OpenSim.Data.MSSQL
         /// <summary>
         /// Loads and initialises this database plugin
         /// </summary>
+        public void Initialise(string connect)
+        {
+            // TODO: actually use the provided connect string
+            Initialise();
+        }
+
         public void Initialise()
         {
             IniFile GridDataMySqlFile = new IniFile("mssql_connection.ini");

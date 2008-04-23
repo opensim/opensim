@@ -104,12 +104,17 @@ welcome_message = "Welcome to OpenSim"
 ; Asset database provider
 asset_plugin = "OpenSim.Data.SQLite.dll"
 ; asset_plugin = "OpenSim.Data.MySQL.dll"
+
 ; the Asset DB source.  This only works for sqlite and nhibernate for now
-asset_source = "URI=file:Asset.db,version=3"
+; Asset Source SQLite Exampe
+; asset_source = "URI=file:Asset.db,version=3"
+; Asset Source NHibernate Example (DIALECT;DRIVER;CONNECTSTRING)
+; asset_source = "SQLiteDialect;SqliteClientDriver;URI=file:Asset.db,version=3"
 
 ; Inventory database provider
 inventory_plugin = "OpenSim.Data.SQLite.dll"
 ; inventory_plugin = "OpenSim.Data.MySQL.dll"
+
 
 ; User Data Database provider
 userDatabase_plugin = "OpenSim.Data.SQLite.dll"

@@ -38,7 +38,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Initialises the interface
         /// </summary>
-        void Initialise();
+        void Initialise(string connect);
 
         /// <summary>
         /// Closes the interface

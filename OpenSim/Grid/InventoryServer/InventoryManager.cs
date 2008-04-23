@@ -48,7 +48,7 @@ namespace OpenSim.Grid.InventoryServer
         /// Adds a new inventory server plugin - user servers will be requested in the order they were loaded.
         /// </summary>
         /// <param name="FileName">The filename to the inventory server plugin DLL</param>
-        public void AddDatabasePlugin(string FileName)
+        public void AddDatabasePlugin(string FileName, string dbconnect)
         {
             m_log.Info("[" + OpenInventory_Main.LogName + "]: Invenstorage: Attempting to load " + FileName);
             Assembly pluginAssembly = Assembly.LoadFrom(FileName);
@@ -65,7 +65,7 @@ namespace OpenSim.Grid.InventoryServer
                     {
                         IInventoryData plug =
                             (IInventoryData) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                        plug.Initialise();
+                        plug.Initialise(dbconnect);
                         _databasePlugin = plug;
                         m_log.Info("[" + OpenInventory_Main.LogName + "]: " +
                                                  "Invenstorage: Added IInventoryData Interface");

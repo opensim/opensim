@@ -72,7 +72,7 @@ namespace OpenSim.Grid.InventoryServer
 
             m_inventoryService = new GridInventoryService();
             // m_inventoryManager = new InventoryManager();
-            m_inventoryService.AddPlugin(m_config.DatabaseProvider);
+            m_inventoryService.AddPlugin(m_config.DatabaseProvider, m_config.DatabaseConnect);
 
             m_log.Info("[" + LogName + "]: Starting HTTP server ...");
             

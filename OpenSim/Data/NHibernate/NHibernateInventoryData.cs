@@ -50,25 +50,21 @@ namespace OpenSim.Data.NHibernate
         /// <summary>
         /// Initialises the interface
         /// </summary>
-        public void Initialise()
+        public void Initialise(string connect)
         {
-            Initialise("Inventory.db", "Inventory");
-        }
-
-        public void Initialise(string dbfile, string dbname)
-        {
-                        // TODO: hard coding for sqlite based stuff to begin with, just making it easier to test
-
-            // This is stubbing for now, it will become dynamic later and support different db backends
+            // Split out the dialect, driver, and connect string
+            char[] split = {';'};
+            string[] parts = connect.Split(split);
+            
+            // Establish NHibernate Connection
             cfg = new Configuration();
             cfg.SetProperty(Environment.ConnectionProvider, 
                             "NHibernate.Connection.DriverConnectionProvider");
             cfg.SetProperty(Environment.Dialect, 
-                            "NHibernate.Dialect.SQLiteDialect");
+                            "NHibernate.Dialect." + parts[0]);
             cfg.SetProperty(Environment.ConnectionDriver, 
-                            "NHibernate.Driver.SqliteClientDriver");
-            cfg.SetProperty(Environment.ConnectionString,
-                            "URI=file:" + dbfile + ",version=3");
+                            "NHibernate.Driver." + parts[1]);
+            cfg.SetProperty(Environment.ConnectionString, parts[2]);
             cfg.AddAssembly("OpenSim.Data.NHibernate");
 
             HbmSerializer.Default.Validate = true;
@@ -76,6 +72,10 @@ namespace OpenSim.Data.NHibernate
                     HbmSerializer.Default.Serialize(Assembly.GetExecutingAssembly()))
                 cfg.AddInputStream(stream);
             
+            // If uncommented this will auto create tables, but it
+            // does drops of the old tables, so we need a smarter way
+            // to acturally manage this.
+
             // new SchemaExport(cfg).Create(true, true);
 
             factory  = cfg.BuildSessionFactory();

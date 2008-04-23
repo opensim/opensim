@@ -46,7 +46,7 @@ namespace OpenSim.Framework.Communications
         /// Adds a new user server plugin - plugins will be requested in the order they were loaded.
         /// </summary>
         /// <param name="FileName">The filename to the user server plugin DLL</param>
-        public void AddPlugin(string FileName)
+        public void AddPlugin(string FileName, string connect)
         {
             if (!String.IsNullOrEmpty(FileName))
             {
@@ -63,7 +63,7 @@ namespace OpenSim.Framework.Communications
                         {
                             IInventoryData plug =
                                 (IInventoryData) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                            plug.Initialise();
+                            plug.Initialise(connect);
                             m_plugins.Add(plug.getName(), plug);
                             m_log.Info("[AGENTINVENTORY]: Added IInventoryData Interface");
                         }

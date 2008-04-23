@@ -353,7 +353,7 @@ namespace OpenSim
             if (m_sandbox)
             {
                 LocalInventoryService inventoryService = new LocalInventoryService();
-                inventoryService.AddPlugin(m_standaloneInventoryPlugin);
+                inventoryService.AddPlugin(m_standaloneInventoryPlugin, m_standaloneInventorySource);
 
                 LocalUserServices userService =
                     new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX,

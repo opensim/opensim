@@ -55,11 +55,11 @@ namespace OpenSim.Data.NHibernate
 
         public override void Initialise(string connect)
         {
-            // TODO: hard coding for sqlite based stuff to begin with, just making it easier to test
+            // Split out the dialect, driver, and connect string
             char[] split = {';'};
             string[] parts = connect.Split(split);
             
-            // This is stubbing for now, it will become dynamic later and support different db backends
+            // NHibernate setup
             cfg = new Configuration();
             cfg.SetProperty(Environment.ConnectionProvider, 
                             "NHibernate.Connection.DriverConnectionProvider");
@@ -74,7 +74,11 @@ namespace OpenSim.Data.NHibernate
             using ( MemoryStream stream = 
                     HbmSerializer.Default.Serialize(Assembly.GetExecutingAssembly()))
                 cfg.AddInputStream(stream);
-            
+
+            // If uncommented this will auto create tables, but it
+            // does drops of the old tables, so we need a smarter way
+            // to acturally manage this.
+
             // new SchemaExport(cfg).Create(true, true);
 
             factory  = cfg.BuildSessionFactory();
