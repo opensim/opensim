@@ -822,6 +822,7 @@ namespace OpenSim
                     m_console.Notice("config get section field - get a config value");
                     m_console.Notice("config save - save OpenSim.ini");
                     m_console.Notice("config set section field value - set a config value");
+                    m_console.Notice("create-region <name> <regionfile.xml> - creates a new region");
                     m_console.Notice("create user - adds a new user.");
                     m_console.Notice("debug - debugging commands");
                     m_console.Notice("  packet 0..255 - print incoming/outgoing packets (0=off)");
