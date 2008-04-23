@@ -496,6 +496,11 @@ namespace OpenSim.Framework.Communications.Cache
             return new List<InventoryItemBase>();
         }
 
+        /// <summary>
+        /// This should delete all the items and folders in the given directory.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="folderID"></param>
         public void HandlePurgeInventoryDescendents(IClientAPI remoteClient, LLUUID folderID)
         {
 //            m_log.InfoFormat("[AGENT INVENTORY]: Purging folder {0} for {1} uuid {2}", 
@@ -506,14 +511,28 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 if (userProfile.HasInventory)
                 {
-                    InventoryFolderImpl subFolder = userProfile.RootFolder.HasSubFolder(folderID);
-                    if (subFolder != null)
-                    {
-                        List<InventoryItemBase> items = subFolder.RequestListOfItems();
+                    InventoryFolderImpl purgedFolder = userProfile.RootFolder.HasSubFolder(folderID);
+                    if (purgedFolder != null)
+                    {                        
+                        // XXX Nasty - have to create a new object to hold details we already have
+                        InventoryFolderBase purgedBaseFolder = new InventoryFolderBase();
+                        purgedBaseFolder.Owner = purgedFolder.Owner;
+                        purgedBaseFolder.ID = purgedFolder.ID;
+                        purgedBaseFolder.Name = purgedFolder.Name;
+                        purgedBaseFolder.ParentID = purgedFolder.ParentID;
+                        purgedBaseFolder.Type = purgedFolder.Type;
+                        purgedBaseFolder.Version = purgedFolder.Version;                        
+                        
+                        m_commsManager.InventoryService.PurgeInventoryFolder(remoteClient.AgentId, purgedBaseFolder);                        
+
+                        // XXX Remains temporarily so that we still delete items in the grid case.
+                        List<InventoryItemBase> items = purgedFolder.RequestListOfItems();
                         foreach (InventoryItemBase item in items)
                         {
                             userProfile.DeleteItem(remoteClient.AgentId, item);
-                        }
+                        }                        
+                        
+                        purgedFolder.Purge();                        
                     }
                 }
                 else

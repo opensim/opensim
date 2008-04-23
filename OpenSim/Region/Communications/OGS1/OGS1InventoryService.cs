@@ -175,6 +175,16 @@ namespace OpenSim.Region.Communications.OGS1
                      e.Source, e.Message);
             }                
         }
+        
+        /// <summary>
+        /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="folder"></param>
+        public void PurgeInventoryFolder(LLUUID userID, InventoryFolderBase folder)
+        {
+            // XXX No implementation yet (temporarily)!
+        }        
 
         public void AddNewInventoryItem(LLUUID userID, InventoryItemBase item)
         {

@@ -79,14 +79,12 @@ namespace OpenSim.Framework.Communications.Cache
         
         /// <summary>
         /// Delete all the folders and items in this folder.
-        /// 
-        /// TODO: This method is not used yet, but will be shortly
         /// </summary>
-        public void DeleteAllContents()
+        public void Purge()
         {
             foreach (InventoryFolderImpl folder in SubFolders.Values)
             {
-                folder.DeleteAllContents();                
+                folder.Purge();                
             }
             
             SubFolders.Clear();
@@ -206,7 +204,7 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Return the list of folders in this folder
+        /// Return the list of immediate child folders in this folder.
         /// </summary>
         public List<InventoryFolderBase> RequestListOfFolders()
         {            

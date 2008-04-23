@@ -56,7 +56,19 @@ namespace OpenSim.Framework.Communications
         /// <param name="folder"></param>
         void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder);
         
+        /// <summary>
+        /// Move an inventory folder to a new location
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="folder">A folder containing the details of the new location</param>
         void MoveInventoryFolder(LLUUID userID, InventoryFolderBase folder);
+        
+        /// <summary>
+        /// Purge an inventory folder of all its items and subfolders.
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="folder"></param>
+        void PurgeInventoryFolder(LLUUID userID, InventoryFolderBase folder);
         
         /// <summary>
         /// Add a new item to the given user's inventory

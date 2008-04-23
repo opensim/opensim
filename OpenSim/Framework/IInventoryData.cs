@@ -144,7 +144,7 @@ namespace OpenSim.Framework
         void moveInventoryFolder(InventoryFolderBase folder);
 
         /// <summary>
-        /// Deletes a folder based on its ID with folder
+        /// Deletes a folder.  Thie will delete both the folder itself and its contents (items and descendent folders)
         /// </summary>
         /// <param name="folder">The id of the folder</param>
         void deleteInventoryFolder(LLUUID folder);

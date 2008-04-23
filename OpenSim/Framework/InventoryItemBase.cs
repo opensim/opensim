@@ -108,8 +108,6 @@ namespace OpenSim.Framework
         	}
         }
 
-
-
         public int InvType {
         	get {
         		return _invType;

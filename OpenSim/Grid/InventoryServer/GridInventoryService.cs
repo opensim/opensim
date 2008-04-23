@@ -220,6 +220,16 @@ namespace OpenSim.Grid.InventoryServer
             MoveExistingInventoryFolder(folder);
             return true;
         }
+        
+        /// <summary>
+        /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="folder"></param>
+        public override void PurgeInventoryFolder(LLUUID userID, InventoryFolderBase folder)
+        {
+            // XXX No implementation yet (temporarily)!
+        }         
 
         public bool AddInventoryItem(InventoryItemBase item)
         {

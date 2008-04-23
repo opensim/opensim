@@ -100,6 +100,16 @@ namespace OpenSim.Region.Communications.Local
             DeleteItem(item);
         }
 
+        /// <summary>
+        /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="folder"></param>
+        public override void PurgeInventoryFolder(LLUUID userID, InventoryFolderBase folder)      
+        {
+            PurgeFolder(folder);
+        }
+
         public override bool HasInventoryForUser(LLUUID userID)
         {
             InventoryFolderBase root = RequestRootFolder(userID);

@@ -637,7 +637,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// Delete an inventory folder
+        /// Deletes an inventory folder
         /// </summary>
         /// <param name="folderId">Id of folder to delete</param>
         public void deleteInventoryFolder(LLUUID folderID)

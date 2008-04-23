@@ -50,7 +50,7 @@ namespace OpenSim.Framework.Communications
         {
             if (!String.IsNullOrEmpty(FileName))
             {
-                m_log.Info("[AGENTINVENTORY]: Inventory storage: Attempting to load " + FileName);
+                m_log.Info("[AGENT INVENTORY]: Inventory storage: Attempting to load " + FileName);
                 Assembly pluginAssembly = Assembly.LoadFrom(FileName);
 
                 foreach (Type pluginType in pluginAssembly.GetTypes())
@@ -161,9 +161,19 @@ namespace OpenSim.Framework.Communications
         // See IInventoryServices
         public abstract void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback);
         
+        // See IInventoryServices
         public abstract void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder);
+        
+        // See IInventoryServices
         public abstract void MoveExistingInventoryFolder(InventoryFolderBase folder);
+        
+        // See IInventoryServices
+        public abstract void PurgeInventoryFolder(LLUUID userID, InventoryFolderBase folder);
+        
+        // See IInventoryServices
         public abstract void AddNewInventoryItem(LLUUID userID, InventoryItemBase item);
+        
+        // See IInventoryServices
         public abstract void DeleteInventoryItem(LLUUID userID, InventoryItemBase item);        
         
         #endregion
@@ -228,6 +238,36 @@ namespace OpenSim.Framework.Communications
             }
         }
         
+        /// <summary>
+        /// Purge a folder of all items items and subfolders.
+        /// 
+        /// FIXME: Really nasty in a sense, because we have to query the database to get information we may
+        /// already know...  Needs heavy refactoring.
+        /// </summary>
+        /// <param name="folder"></param>
+        protected void PurgeFolder(InventoryFolderBase folder)
+        {
+            List<InventoryFolderBase> subFolders = RequestSubFolders(folder.ID);
+            
+            foreach (InventoryFolderBase subFolder in subFolders)
+            {
+//                m_log.DebugFormat("[AGENT INVENTORY]: Deleting folder {0} {1}", subFolder.Name, subFolder.ID);
+                
+                foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+                {
+                    plugin.Value.deleteInventoryFolder(subFolder.ID);
+                }
+            }
+
+            // XXX Temporarily don't delete the items since UserProfileCacheService is still doing this
+//            List<InventoryItemBase> items = RequestFolderItems(folder.ID);
+//
+//            foreach (InventoryItemBase item : items)
+//            {
+//                DeleteItem(item);
+//            }
+        }
+        
         private void AddNewInventorySet(UsersInventory inventory)
         {
             foreach (InventoryFolderBase folder in inventory.Folders.Values)
@@ -236,6 +276,9 @@ namespace OpenSim.Framework.Communications
             }
         }
 
+        /// <summary>
+        /// Used to create a new user inventory.
+        /// </summary>
         private class UsersInventory
         {
             public Dictionary<LLUUID, InventoryFolderBase> Folders = new Dictionary<LLUUID, InventoryFolderBase>();
