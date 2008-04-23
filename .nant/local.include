@@ -1,4 +1,4 @@
-<property name="projectdir" value="opensim-0.4" />
+<property name="projectdir" value="opensim-0.5.5" />
 
 <target name="distdir">
    <delete dir="${projectdir}" />

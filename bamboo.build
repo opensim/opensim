@@ -1,8 +1,14 @@
 <?xml version="1.0" ?>
 <project name="OpenSim" default="build">
+	<target name="build">
+			<exec program="mono" commandline="bin/Prebuild.exe /target nant" />
+	        <nant buildfile="OpenSim.build" target="build" />
+	</target>
 	<target name="cibuild">
 			<exec program="mono" commandline="bin/Prebuild.exe /target nant" />
 	        <nant buildfile="OpenSim.build" target="build" />
 			<nant buildfile="OpenSim.build" target="dist" />
+			<copy file="${projectdir}.zip" tofile="/home/buildsystem/public_html/${projectdir}-TRUNK.zip" overwrite="true" />
+			<copy file="${projectdir}.tar.gz" tofile="/home/buildsystem/public_html/${projectdir}-TRUNK.tar.gz" overwrite="true" />
 	</target>
 </project>
