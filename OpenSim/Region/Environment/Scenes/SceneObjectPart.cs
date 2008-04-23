@@ -1996,7 +1996,7 @@ namespace OpenSim.Region.Environment.Scenes
                 SceneObjectPart op = this;
                 foreach (KeyValuePair<LLUUID, TaskInventoryItem> item in op.TaskInventory)
                 {
-                    if (item.Value.Name == sound)
+                    if (item.Value.Name == sound && item.Value.Type == (int)AssetType.Sound)
                     {
                         soundID = item.Value.ItemID;
                         break;
@@ -2004,10 +2004,19 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
 
+			if(soundID == LLUUID.Zero)
+				return;
+
             List<ScenePresence> avatarts = m_parentGroup.Scene.GetAvatars();
             foreach (ScenePresence p in avatarts)
             {
-                // TODO: some filtering by distance of avatar
+				double dis=Util.GetDistanceTo(p.AbsolutePosition, position);
+				if(dis > 100.0) // Max audio distance
+					continue;
+
+				// Scale by distance
+				volume*=((100.0-dis)/100.0);
+
                 if (triggered)
                 {
                     p.ControllingClient.SendTriggeredSound(soundID, ownerID, objectID, parentID, regionHandle, position, (float)volume);
