@@ -118,6 +118,51 @@ namespace OpenSim.Region.ScriptEngine.Common
             return World.GetCommander(name);
         }
 
+		private LLUUID InventorySelf()
+		{
+			LLUUID invItemID=new LLUUID();
+
+            foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            {
+                if(inv.Value.Type == 10 && inv.Value.ItemID == m_itemID)
+                {
+					invItemID=inv.Key;
+					break;
+                }
+            }
+
+			return invItemID;
+		}
+
+		private LLUUID InventoryKey(string name, int type)
+		{
+            m_host.AddScriptLPS(1);
+            foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            {
+				if(inv.Value.Name == name)
+				{
+					if(inv.Value.Type != type)
+						return LLUUID.Zero;
+
+					return inv.Value.AssetID.ToString();
+				}
+			}
+			return LLUUID.Zero;
+		}
+
+		private LLUUID InventoryKey(string name)
+		{
+            m_host.AddScriptLPS(1);
+            foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            {
+				if(inv.Value.Name == name)
+				{
+					return inv.Value.AssetID.ToString();
+				}
+			}
+			return LLUUID.Zero;
+		}
+
         //These are the implementations of the various ll-functions used by the LSL scripts.
         //starting out, we use the System.Math library for trig functions. - ckrinke 8-14-07
         public double llSin(double f)
@@ -890,12 +935,23 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSetTexture(string texture, int face)
         {
             m_host.AddScriptLPS(1);
+
+			LLUUID textureID=new LLUUID();
+
+			if(!LLUUID.TryParse(texture, out textureID))
+			{
+				textureID=InventoryKey(texture, (int)AssetType.Texture);
+			}
+
+			if(textureID == LLUUID.Zero)
+				return;
+
             LLObject.TextureEntry tex = m_host.Shape.Textures;
 
             if (face > -1)
             {
                 LLObject.TextureEntryFace texface = tex.CreateFace((uint)face);
-                texface.TextureID = new LLUUID(texture);
+                texface.TextureID = textureID;
                 tex.FaceTextures[face] = texface;
                 m_host.UpdateTexture(tex);
                 return;
@@ -906,10 +962,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                 {
                     if (tex.FaceTextures[i] != null)
                     {
-                        tex.FaceTextures[i].TextureID = new LLUUID(texture);
+                        tex.FaceTextures[i].TextureID = textureID;
                     }
                 }
-                tex.DefaultTexture.TextureID = new LLUUID(texture);
+                tex.DefaultTexture.TextureID = textureID;
                 m_host.UpdateTexture(tex);
                 return;
             }
@@ -1781,13 +1837,58 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llStartAnimation(string anim)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llStartAnimation");
+
+			LLUUID invItemID=InventorySelf();
+			if(invItemID == LLUUID.Zero)
+				return;
+
+			if(m_host.TaskInventory[invItemID].PermsGranter == LLUUID.Zero)
+				return;
+
+			if((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TRIGGER_ANIMATION) != 0)
+			{
+				// Do NOT try to parse LLUUID, animations cannot be triggered by ID
+				LLUUID animID=InventoryKey(anim, (int)AssetType.Animation);
+				if(animID == LLUUID.Zero)
+					return;
+
+                if (World.m_innerScene.ScenePresences.ContainsKey(m_host.TaskInventory[invItemID].PermsGranter))
+                {
+                    ScenePresence presence = World.m_innerScene.ScenePresences[m_host.TaskInventory[invItemID].PermsGranter];
+					presence.AddAnimation(animID);
+				}
+			}
         }
 
         public void llStopAnimation(string anim)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llStopAnimation");
+
+			LLUUID invItemID=InventorySelf();
+			if(invItemID == LLUUID.Zero)
+				return;
+
+			if(m_host.TaskInventory[invItemID].PermsGranter == LLUUID.Zero)
+				return;
+
+			if((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TRIGGER_ANIMATION) != 0)
+			{
+				LLUUID animID = new LLUUID();
+
+				if(!LLUUID.TryParse(anim, out animID))
+				{
+					animID=InventoryKey(anim);
+				}
+
+				if(animID == LLUUID.Zero)
+					return;
+
+                if (World.m_innerScene.ScenePresences.ContainsKey(m_host.TaskInventory[invItemID].PermsGranter))
+                {
+                    ScenePresence presence = World.m_innerScene.ScenePresences[m_host.TaskInventory[invItemID].PermsGranter];
+					presence.RemoveAnimation(animID);
+				}
+			}
         }
 
         public void llPointAt()
@@ -1826,21 +1927,108 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llRequestPermissions(string agent, int perm)
         {
+			LLUUID agentID=new LLUUID();
+
+			if(!LLUUID.TryParse(agent, out agentID))
+				return;
+
+			LLUUID invItemID=InventorySelf();
+
+			if(invItemID == LLUUID.Zero)
+				return; // Not in a prim? How??
+
+			if(agentID == LLUUID.Zero || perm == 0) // Releasing permissions
+			{
+				m_host.TaskInventory[invItemID].PermsGranter=LLUUID.Zero;
+				m_host.TaskInventory[invItemID].PermsMask=0;
+
+				m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+					m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {(int)0});
+
+				return;
+			}
+
             m_host.AddScriptLPS(1);
-            NotImplemented("llRequestPermissions");
+
+			// Cannot combine debit with anything else since the new debit perms dialog has been introduced.
+			if((perm & BuiltIn_Commands_BaseClass.PERMISSION_DEBIT) != 0 &&
+					perm != BuiltIn_Commands_BaseClass.PERMISSION_DEBIT) 
+				perm &= ~BuiltIn_Commands_BaseClass.PERMISSION_DEBIT;// Silently ignore debit request
+
+			bool attachment=false; // Attachments not implemented yet. TODO: reflect real attachemnt state
+
+			if(attachment && agent == m_host.OwnerID)
+			{
+				// When attached, certain permissions are implicit if requested from owner
+				int implicitPerms = BuiltIn_Commands_BaseClass.PERMISSION_TAKE_CONTROLS |
+						BuiltIn_Commands_BaseClass.PERMISSION_TRIGGER_ANIMATION |
+						BuiltIn_Commands_BaseClass.PERMISSION_ATTACH;
+
+				if((perm & (~implicitPerms)) == 0) // Requested only implicit perms
+				{
+					m_host.TaskInventory[invItemID].PermsGranter=agentID;
+					m_host.TaskInventory[invItemID].PermsMask=perm;
+
+					m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+						m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {(int)perm});
+
+					return;
+				}
+			}
+			else if(m_host.m_sitTargetAvatar == agentID) // Sitting avatar
+			{
+				// When agent is sitting, certain permissions are implicit if requested from sitting agent
+				int implicitPerms = BuiltIn_Commands_BaseClass.PERMISSION_TRIGGER_ANIMATION |
+						BuiltIn_Commands_BaseClass.PERMISSION_TRACK_CAMERA;
+
+				if((perm & (~implicitPerms)) == 0) // Requested only implicit perms
+				{
+					m_host.TaskInventory[invItemID].PermsGranter=agentID;
+					m_host.TaskInventory[invItemID].PermsMask=perm;
+
+					m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+						m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {(int)perm});
+
+					return;
+				}
+			}
+
+			// TODO: Implement perms dialog sending
+
+			// Refuse perms for now
+			m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+				m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {(int)0});
+
+			NotImplemented("llRequestPermissions");
         }
 
         public string llGetPermissionsKey()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetPermissionsKey");
-            return String.Empty;
+
+            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
+            {
+                if(item.Type == 10 && item.ItemID == m_itemID)
+                {
+					return item.PermsGranter.ToString();
+                }
+            }
+
+            return LLUUID.Zero.ToString();
         }
 
         public int llGetPermissions()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetPermissions");
+
+            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
+            {
+                if(item.Type == 10 && item.ItemID == m_itemID)
+                {
+					return item.PermsMask;
+                }
+            }
+
             return 0;
         }
 
@@ -2292,14 +2480,23 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                 case (int)BuiltIn_Commands_BaseClass.LINK_THIS:
 
-                    Object[] respObjThis = new object[]
-                                {
-                                    m_host.LinkNum + 1, num, msg, id
-                                };
+                    foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
+                    {
+                        if (item.Type == 10)
+                        {
+                            partItemID = item.ItemID;
 
-                    m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-                        m_localID, m_itemID, "link_message", EventQueueManager.llDetectNull, respObjThis
-                    );
+                            object[] resobj = new object[]
+                            {
+                                m_host.LinkNum + 1, num, msg, id
+                            };
+
+                            m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                                m_localID, partItemID, "link_message", EventQueueManager.llDetectNull, resobj
+                            );
+
+                        }
+                    }
 
                     break;
 

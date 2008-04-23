@@ -103,7 +103,7 @@ namespace OpenSim.Region.Environment.Scenes
         private PhysicsVector m_lastRotationalVelocity = PhysicsVector.Zero;
         private Vector3 m_sitTargetPosition = new Vector3(0, 0, 0);
         private Quaternion m_sitTargetOrientation = new Quaternion(0, 0, 0, 1);
-        private LLUUID m_sitTargetAvatar = LLUUID.Zero;
+        public  LLUUID m_sitTargetAvatar = LLUUID.Zero;
 
         #region Permissions
 

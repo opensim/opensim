@@ -214,6 +214,8 @@ namespace OpenSim.Framework
         public string Name = String.Empty;
         public string Description = String.Empty;
         public uint CreationDate = 0;
+		public LLUUID PermsGranter;
+		public int PermsMask;
 
         public LLUUID ParentPartID = LLUUID.Zero;
         
