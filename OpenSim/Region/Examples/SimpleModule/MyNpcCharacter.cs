@@ -166,6 +166,8 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event ObjectIncludeInSearch OnObjectIncludeInSearch;
         public event UUIDNameRequest OnTeleportHomeRequest;
 
+		public event ScriptAnswer OnScriptAnswer;
+
 
 #pragma warning restore 67
 
@@ -593,5 +595,9 @@ namespace OpenSim.Region.Examples.SimpleModule
         public void SetClientInfo(ClientInfo info)
         {
         }
+
+		public void SendScriptQuestion(LLUUID objectID, string taskName, string ownerName, LLUUID itemID, int question)
+		{
+		}
     }
 }

@@ -440,6 +440,8 @@ namespace OpenSim.Framework
 
     public delegate void ObjectIncludeInSearch(IClientAPI remoteClient, bool IncludeInSearch, uint localID);
 
+	public delegate void ScriptAnswer(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID, int answer);
+	
     public interface IClientAPI
     {
         event ImprovedInstantMessage OnInstantMessage;
@@ -559,7 +561,8 @@ namespace OpenSim.Framework
         event ObjectIncludeInSearch OnObjectIncludeInSearch;
 
         event UUIDNameRequest OnTeleportHomeRequest;
-
+		
+		event ScriptAnswer OnScriptAnswer;
          
         LLVector3 StartPos { get; set; }
 
@@ -695,6 +698,7 @@ namespace OpenSim.Framework
 
         void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember, string flAbout,
                                   uint flags, LLUUID flImageID, LLUUID imageID, string profileURL, LLUUID partnerID);
+		void SendScriptQuestion(LLUUID taskID, string taskName, string ownerName, LLUUID itemID, int question);
 
         byte[] GetThrottlesPacked(float multiplier);
         

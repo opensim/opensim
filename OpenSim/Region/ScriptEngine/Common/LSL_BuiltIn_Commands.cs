@@ -69,6 +69,8 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         private DateTime m_timer = DateTime.Now;
         private string m_state = "default";
+		private bool m_waitingForScriptAnswer=false;
+
 
         public string State
         {
@@ -1950,11 +1952,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             m_host.AddScriptLPS(1);
 
-			// Cannot combine debit with anything else since the new debit perms dialog has been introduced.
-			if((perm & BuiltIn_Commands_BaseClass.PERMISSION_DEBIT) != 0 &&
-					perm != BuiltIn_Commands_BaseClass.PERMISSION_DEBIT) 
-				perm &= ~BuiltIn_Commands_BaseClass.PERMISSION_DEBIT;// Silently ignore debit request
-
 			bool attachment=false; // Attachments not implemented yet. TODO: reflect real attachemnt state
 
 			if(attachment && agent == m_host.OwnerID)
@@ -1993,14 +1990,47 @@ namespace OpenSim.Region.ScriptEngine.Common
 				}
 			}
 
-			// TODO: Implement perms dialog sending
+			if (World.m_innerScene.ScenePresences.ContainsKey(agentID))
+			{
+				string ownerName=resolveName(m_host.ParentGroup.RootPart.OwnerID);
+				if(ownerName == String.Empty)
+					ownerName="(hippos)";
 
-			// Refuse perms for now
+				ScenePresence presence = World.m_innerScene.ScenePresences[agentID];
+				if(!m_waitingForScriptAnswer)
+				{
+					m_host.TaskInventory[invItemID].PermsGranter=agentID;
+					m_host.TaskInventory[invItemID].PermsMask=0;
+					presence.ControllingClient.OnScriptAnswer+=handleScriptAnswer;
+					m_waitingForScriptAnswer=true;
+				}
+
+				presence.ControllingClient.SendScriptQuestion(m_host.UUID, m_host.ParentGroup.RootPart.Name, ownerName, invItemID, perm);
+				return;
+			}
+
+			// Requested agent is not in range, refuse perms
 			m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
 				m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {(int)0});
-
-			NotImplemented("llRequestPermissions");
         }
+
+		void handleScriptAnswer(IClientAPI client, LLUUID taskID, LLUUID itemID, int answer)
+		{
+			if(taskID != m_host.UUID)
+				return;
+
+			LLUUID invItemID=InventorySelf();
+
+			if(invItemID == LLUUID.Zero)
+				return;
+
+			client.OnScriptAnswer-=handleScriptAnswer;
+			m_waitingForScriptAnswer=false;
+
+			m_host.TaskInventory[invItemID].PermsMask=answer;
+			m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+				m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {(int)answer});
+		}
 
         public string llGetPermissionsKey()
         {
@@ -3924,9 +3954,24 @@ namespace OpenSim.Region.ScriptEngine.Common
                 LSLError("First parameter to llDialog needs to be a key");
                 return;
             }
+			if(buttons.Length > 12)
+			{
+                LSLError("No more than 12 buttons can be shown");
+                return;
+			}
             string[] buts = new string[buttons.Length];
             for(int i = 0; i < buttons.Length; i++)
             {
+				if(buttons.Data[i].ToString() == String.Empty)
+				{
+					LSLError("button label cannot be blank");
+					return;
+				}
+				if(buttons.Data[i].ToString().Length > 24)
+				{
+					LSLError("button label cannot be longer than 24 characters");
+					return;
+				}
                 buts[i] = buttons.Data[i].ToString();
             }
             World.SendDialogToUser(av, m_host.Name, m_host.UUID, m_host.OwnerID, message, new LLUUID("00000000-0000-2222-3333-100000001000"), chat_channel, buts);

@@ -233,6 +233,7 @@ namespace OpenSim.Region.ClientStack
         private RequestAsset handlerRequestAsset = null; // OnRequestAsset;
         private UUIDNameRequest handlerTeleportHomeRequest = null;
 
+		private ScriptAnswer handlerScriptAnswer = null;
 
         /* Properties */
 
@@ -788,6 +789,8 @@ namespace OpenSim.Region.ClientStack
         public event ParcelBuy OnParcelBuy;
 
         public event UUIDNameRequest OnTeleportHomeRequest;
+
+		public event ScriptAnswer OnScriptAnswer;
 
         #region Scene/Avatar to Client
 
@@ -2484,6 +2487,20 @@ namespace OpenSim.Region.ClientStack
             return true;
         }
 
+		public void SendScriptQuestion(LLUUID taskID, string taskName, string ownerName, LLUUID itemID, int question)
+		{
+            ScriptQuestionPacket scriptQuestion = (ScriptQuestionPacket)PacketPool.Instance.GetPacket(PacketType.ScriptQuestion);
+            scriptQuestion.Data = new ScriptQuestionPacket.DataBlock();
+            // TODO: don't create new blocks if recycling an old packet
+            scriptQuestion.Data.TaskID = taskID;
+            scriptQuestion.Data.ItemID = itemID;
+            scriptQuestion.Data.Questions = question;
+            scriptQuestion.Data.ObjectName = Helpers.StringToField(taskName);
+            scriptQuestion.Data.ObjectOwner = Helpers.StringToField(ownerName);
+
+            OutPacket(scriptQuestion, ThrottleOutPacketType.Task);
+		}
+
         protected virtual bool Logout(IClientAPI client, Packet packet)
         {
             m_log.Info("[CLIENT]: Got a logout request");
@@ -3838,6 +3855,16 @@ namespace OpenSim.Region.ClientStack
                                 handlerObjectIncludeInSearch(this, inSearch, localID);
                             }
                         }
+                        break;
+
+					case PacketType.ScriptAnswerYes:
+                        ScriptAnswerYesPacket scriptAnswer = (ScriptAnswerYesPacket)Pack;
+
+						handlerScriptAnswer = OnScriptAnswer;
+						if (handlerScriptAnswer != null)
+						{
+							handlerScriptAnswer(this, scriptAnswer.Data.TaskID, scriptAnswer.Data.ItemID, scriptAnswer.Data.Questions);
+						}
                         break;
 
                     #endregion
