@@ -26,7 +26,9 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Diagnostics;
 using System.Net;
 using System.Reflection;
@@ -368,23 +370,27 @@ namespace OpenSim.Framework.Console
             RunCommand(tempstr);
         }
 
-        public void RunCommand(string command)
+        public void RunCommand(string cmdline)
         {
-            string[] tempstrarray;
-            tempstrarray = command.Split(' ');
-            string cmd = tempstrarray[0];
-            Array.Reverse(tempstrarray);
-            Array.Resize<string>(ref tempstrarray, tempstrarray.Length - 1);
-            Array.Reverse(tempstrarray);
-            string[] cmdparams = (string[]) tempstrarray;
-            
+            Regex Extractor = new Regex(@"(['""][^""]+['""])\s*|([^\s]+)\s*", RegexOptions.Compiled);
+            char[] delims = {' ', '"'};
+            MatchCollection matches = Extractor.Matches(cmdline);
+            // Get matches
+            string cmd = matches[0].Value.Trim(delims);
+            string[] cmdparams = new string[matches.Count - 1];
+
+            for (int i = 1; i < matches.Count; i++)
+            {
+                cmdparams[i-1] = matches[i].Value.Trim(delims);
+            }
+
             try
             {
                 RunCmd(cmd, cmdparams);
             }
             catch (Exception e)
             {
-                m_log.ErrorFormat("[Console]: Command [{0}] failed with exception {1}", command, e.ToString());
+                m_log.ErrorFormat("[Console]: Command [{0}] failed with exception {1}", cmdline, e.ToString());
             }
         }
 
