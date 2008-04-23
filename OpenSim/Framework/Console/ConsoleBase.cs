@@ -235,7 +235,7 @@ namespace OpenSim.Framework.Console
             {
             }
         }
-
+         
         public string ReadLine()
         {
             try
@@ -248,7 +248,7 @@ namespace OpenSim.Framework.Console
                 return String.Empty;
             }
         }
-
+         
         public int Read()
         {
             return System.Console.Read();

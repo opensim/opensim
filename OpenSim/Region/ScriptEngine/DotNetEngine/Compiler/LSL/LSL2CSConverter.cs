@@ -362,7 +362,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
                 // Returns text of state entry match, 
                 scriptCopy += eventmatches[pos]; pos++;
-                
+                 
                 // Returns which state we're matching and writes a method call to the end of the above state_entry
                 scriptCopy += "\r\n\t\tosSetStateEvents((int)" + (int)state_events[eventmatches[pos]] + ");"; //pos++;
                 
@@ -406,7 +406,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             unUsedStates.Clear();
             state_events.Clear();
             quotes.Clear();
-
+             
             return Return;
         }
         public scriptEvents convertnametoFlag(string eventname)

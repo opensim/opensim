@@ -2792,7 +2792,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             return false;
                         }
-                    }
+                    } 
                     else
                     {
                         if (part.OwnerID == parcel.landData.ownerID)

@@ -258,9 +258,17 @@ namespace OpenSim.Region.Environment.Modules
                 }
                 else
                 {
+                    bool childYN = true;
+                    ScenePresence agent = null;
                     //client.SecureSessionId;
-                    Scene s = GetRandomScene();
+                    Scene s = LocateSceneClientIn(client.AgentId);
                     if (s != null)
+                    {
+                        agent = s.GetScenePresence(client.AgentId);
+                        if (agent != null)
+                            childYN = agent.IsChildAgent;
+                    }
+                    if (s != null && agent != null && childYN == false)
                     {
                         //s.RegionInfo.RegionHandle;
                         LLUUID agentID = LLUUID.Zero;
@@ -846,7 +854,7 @@ namespace OpenSim.Region.Environment.Modules
                 }
                 else
                 {
-                    throw new Exception("Unable to get funds.");
+                    //throw new Exception("Unable to get funds.");
                 }
             }
             return returnfunds;

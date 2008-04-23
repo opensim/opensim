@@ -650,7 +650,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #endregion
-
+         
         public LLUUID ObjectOwner
         {
             get { return OwnerID; }
@@ -797,7 +797,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             return newobject;
         }
-
+         
         public void ApplyPhysics(uint rootObjectFlags, bool m_physicalPrim)
         {
 
