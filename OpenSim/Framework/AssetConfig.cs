@@ -38,7 +38,9 @@ namespace OpenSim.Framework
 
         public string DatabaseProvider = String.Empty;
 
-        public static uint DefaultHttpPort = 8003;
+        public string DatabaseConnect = String.Empty;
+
+        public const uint DefaultHttpPort = 8003;
         public uint HttpPort = DefaultHttpPort;
 
         private ConfigurationMember configMember;
@@ -59,6 +61,9 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Data.MySQL.dll", false);
 
+            configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                "Database connection string", "", false);
+
             configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Http Listener port", DefaultHttpPort.ToString(), false);
         }
@@ -72,6 +77,9 @@ namespace OpenSim.Framework
                     break;
                 case "database_provider":
                     DatabaseProvider = (string) configuration_result;
+                    break;
+                case "database_connect":
+                    DatabaseConnect = (string) configuration_result;
                     break;
                 case "http_port":
                     HttpPort = (uint) configuration_result;

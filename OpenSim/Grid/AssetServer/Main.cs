@@ -116,7 +116,7 @@ namespace OpenSim.Grid.AssetServer
             return null;
         }
 
-        public IAssetProvider LoadDatabasePlugin(string FileName)
+        public IAssetProvider LoadDatabasePlugin(string FileName, string connect)
         {
             m_log.Info("[ASSET SERVER]: LoadDatabasePlugin: Attempting to load " + FileName);
             Assembly pluginAssembly = Assembly.LoadFrom(FileName);
@@ -132,7 +132,7 @@ namespace OpenSim.Grid.AssetServer
                         IAssetProvider plug =
                             (IAssetProvider) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         assetPlugin = plug;
-                        assetPlugin.Initialise();
+                        assetPlugin.Initialise(connect);
 
                         m_log.Info("[ASSET SERVER]: Added " + assetPlugin.Name + " " + assetPlugin.Version);
                         break;
@@ -150,7 +150,7 @@ namespace OpenSim.Grid.AssetServer
         {
             try
             {
-                m_assetProvider = LoadDatabasePlugin(config.DatabaseProvider);
+                m_assetProvider = LoadDatabasePlugin(config.DatabaseProvider, config.DatabaseConnect);
                 if (m_assetProvider == null)
                 {
                     m_log.Error("[ASSET]: Failed to load a database plugin, server halting");
