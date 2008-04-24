@@ -65,10 +65,22 @@ namespace OpenSim.Data.MySQL
         public MySQLManager(string hostname, string database, string username, string password, string cpooling,
                             string port)
         {
+            string s = "Server=" + hostname + ";Port=" + port + ";Database=" + database + ";User ID=" +
+                username + ";Password=" + password + ";Pooling=" + cpooling + ";";
+
+            Initialise(s);
+        }
+
+        public MySQLManager(String connect)
+        {
+            Initialise(connect);
+        }
+
+        public void Initialise(String connect)
+        {
             try
             {
-                connectionString = "Server=" + hostname + ";Port=" + port + ";Database=" + database + ";User ID=" +
-                                   username + ";Password=" + password + ";Pooling=" + cpooling + ";";
+                connectionString = connect;
                 dbcon = new MySqlConnection(connectionString);
 
                 try

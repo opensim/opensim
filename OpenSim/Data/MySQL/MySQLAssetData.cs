@@ -174,7 +174,13 @@ namespace OpenSim.Data.MySQL
         {
             // TODO: This will let you pass in the connect string in
             // the config, though someone will need to write that.
-            Initialise();
+            if (connect == String.Empty) {
+                // This is old seperate config file
+                Initialise();
+            } else {
+                _dbConnection = new MySQLManager(connect);
+                TestTables();
+            }
         }
 
         override public void Initialise()
