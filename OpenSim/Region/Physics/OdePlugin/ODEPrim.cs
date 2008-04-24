@@ -1192,11 +1192,26 @@ namespace OpenSim.Region.Physics.OdePlugin
                         PID_D = 2200.0f;
                         //PID_P = 900.0f;
                     }
-                    PID_D = 1.0f;
-                    //PID_P = 1.0f;
+                    PID_D = 35f;
 
                     
+                    //PID_P = 1.0f;
+                    float PID_G = 25;
+
+                    if ((m_PIDTau < 1))
+                    {
+                        PID_G = PID_G / m_PIDTau;
+                    }
+                        
+
+                    if ((PID_G - m_PIDTau) <= 0)
+                    {
+                        PID_G = m_PIDTau + 1;
+                    }
                     //PidStatus = true;
+
+                   
+
 
                     PhysicsVector vec = new PhysicsVector();
                     d.Vector3 vel = d.BodyGetLinearVel(Body);
@@ -1205,9 +1220,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.Vector3 pos = d.BodyGetPosition(Body);
                     _target_velocity = 
                         new PhysicsVector(
-                            (m_PIDTarget.X - pos.X) / m_PIDTau,
-                            (m_PIDTarget.Y - pos.Y) / m_PIDTau, 
-                            (m_PIDTarget.Z - pos.Z) / m_PIDTau
+                            (m_PIDTarget.X - pos.X) * ((PID_G - m_PIDTau) * timestep),
+                            (m_PIDTarget.Y - pos.Y) * ((PID_G - m_PIDTau) * timestep),
+                            (m_PIDTarget.Z - pos.Z) * ((PID_G - m_PIDTau) * timestep)
                             );
 
 
@@ -1239,8 +1254,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         _zeroFlag = false;
                         
                         // We're flying and colliding with something
-                        fx = ((_target_velocity.X / m_PIDTau) - vel.X) * (PID_D / 6);
-                        fy = ((_target_velocity.Y / m_PIDTau) - vel.Y) * (PID_D / 6);
+                        fx = ((_target_velocity.X) - vel.X) * (PID_D);
+                        fy = ((_target_velocity.Y) - vel.Y) * (PID_D);
                     
 
                    
@@ -1262,6 +1277,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //m_taintdisable = true;
                     //base.RaiseOutOfBounds(Position);
                     //d.BodySetLinearVel(Body, fx, fy, 0f);
+                    enableBodySoft();
                     d.BodyAddForce(Body, fx, fy, fz);
                 }
             }
@@ -2146,7 +2162,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
         public override PhysicsVector PIDTarget { set { m_PIDTarget = value; ; } }
         public override bool PIDActive { set { m_usePID = value; } }
-        public override float PIDTau { set { m_PIDTau = (value * 0.6f); } }
+        public override float PIDTau { set { m_PIDTau = value; } }
 
         private void createAMotor(PhysicsVector axis)
         {

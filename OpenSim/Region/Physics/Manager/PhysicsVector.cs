@@ -130,6 +130,14 @@ namespace OpenSim.Region.Physics.Manager
             return (float) Math.Sqrt(X*X + Y*Y + Z*Z);
         }
 
+        public static float GetDistanceTo(PhysicsVector a, PhysicsVector b)
+        {
+            float dx = a.X - b.X;
+            float dy = a.Y - b.Y;
+            float dz = a.Z - b.Z;
+            return (float) Math.Sqrt(dx * dx + dy * dy + dz * dz);
+        }
+
         public static PhysicsVector operator /(PhysicsVector v, float f)
         {
             return new PhysicsVector(v.X/f, v.Y/f, v.Z/f);
@@ -154,5 +162,6 @@ namespace OpenSim.Region.Physics.Manager
 
             return false;
         }
+
     }
 }
