@@ -3280,7 +3280,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             if(index < 0)
             {
-                index = index+src.Length;
+                index = index+dest.Length;
                 if(index < 0)
                 {
                     index = 0;
