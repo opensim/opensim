@@ -29,12 +29,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using libsecondlife;
 using log4net;
 using NHibernate;
 using NHibernate.Cfg;
 using NHibernate.Expression;
 using NHibernate.Mapping.Attributes;
+using NHibernate.Tool.hbm2ddl;
 using OpenSim.Framework;
 using Environment=NHibernate.Cfg.Environment;
 
@@ -55,6 +57,10 @@ namespace OpenSim.Data.NHibernate
             // Split out the dialect, driver, and connect string
             char[] split = {';'};
             string[] parts = connect.Split(split);
+            if (parts.Length != 3) {
+                // TODO: make this a real exception type
+                throw new Exception("Malformed Inventory connection string '" + connect + "'");
+            }
             
             // Establish NHibernate Connection
             cfg = new Configuration();
@@ -79,7 +85,30 @@ namespace OpenSim.Data.NHibernate
             // new SchemaExport(cfg).Create(true, true);
 
             factory  = cfg.BuildSessionFactory();
+
+            InitDB();
         }
+
+
+        private void InitDB()
+        {
+            string regex = @"no such table: Inventory";
+            Regex RE = new Regex(regex, RegexOptions.Multiline);
+            try {
+                using(ISession session = factory.OpenSession()) {
+                    session.Load(typeof(InventoryItemBase), LLUUID.Zero);
+                }
+            } catch (ObjectNotFoundException e) {
+                // yes, we know it's not there, but that's ok
+            } catch (ADOException e) {
+                Match m = RE.Match(e.ToString());
+                if(m.Success) {
+                    // We don't have this table, so create it.
+                    new SchemaExport(cfg).Create(true, true);
+                }
+            }
+        }
+
 
         /*****************************************************************
          *
