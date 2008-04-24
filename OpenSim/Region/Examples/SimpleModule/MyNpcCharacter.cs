@@ -61,6 +61,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event AvatarNowWearing OnAvatarNowWearing;
         public event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
         public event ObjectAttach OnObjectAttach;
+        public event ObjectDeselect OnObjectDetach;
         public event StartAnim OnStartAnim;
         public event StopAnim OnStopAnim;
         public event LinkObjects OnLinkObjects;
@@ -380,7 +381,8 @@ namespace OpenSim.Region.Examples.SimpleModule
                                                   PrimitiveBaseShape primShape, LLVector3 pos, uint flags,
                                                   LLUUID objectID, LLUUID ownerID, string text, byte[] color,
                                                   uint parentID,
-                                                  byte[] particleSystem, LLQuaternion rotation, byte clickAction, byte[] textureanimation)
+                                                  byte[] particleSystem, LLQuaternion rotation, byte clickAction, byte[] textureanimation,
+                                                  bool attachment, uint AttachmentPoint)
         {
         }
         public virtual void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID,

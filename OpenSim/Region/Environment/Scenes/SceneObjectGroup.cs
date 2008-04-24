@@ -180,7 +180,7 @@ namespace OpenSim.Region.Environment.Scenes
             set
             {
                 LLVector3 val = value;
-                if (val.X > 257f || val.X < -1f || val.Y > 257f || val.Y < -1f)
+                if ((val.X > 257f || val.X < -1f || val.Y > 257f || val.Y < -1f) && !m_rootPart.m_IsAttachment)
                 {
                     m_scene.CrossPrimGroupIntoNewRegion(val, this);
                 }
@@ -612,6 +612,42 @@ namespace OpenSim.Region.Environment.Scenes
             m_rootPart = part;
         }
 
+
+        public void AttachToAgent(LLUUID agentID, uint attachmentpoint)
+        {
+            ScenePresence avatar = m_scene.GetScenePresence(agentID);
+            if (avatar != null)
+            {
+                m_rootPart.m_attachedAvatar = agentID;
+                m_rootPart.SetParentLocalId(avatar.LocalId);
+                m_rootPart.SetAttachmentPoint(attachmentpoint);
+                m_rootPart.m_IsAttachment = true;
+                if (m_rootPart.PhysActor != null)
+                {
+                    m_scene.PhysicsScene.RemovePrim(m_rootPart.PhysActor);
+                    m_rootPart.PhysActor = null;
+                    AbsolutePosition = LLVector3.Zero;
+                }
+                m_rootPart.ScheduleFullUpdate();
+            }
+        }
+
+        public void DetachToGround()
+        {
+            ScenePresence avatar = m_scene.GetScenePresence(m_rootPart.m_attachedAvatar);
+            LLVector3 detachedpos = new LLVector3(127f,127f,127f);
+            if (avatar != null)
+            {
+                detachedpos = avatar.AbsolutePosition;
+            }
+            AbsolutePosition = detachedpos;
+            m_rootPart.m_attachedAvatar = LLUUID.Zero;
+            m_rootPart.SetParentLocalId(0);
+            m_rootPart.SetAttachmentPoint((byte)0);
+            m_rootPart.m_IsAttachment = false;
+            m_rootPart.ApplyPhysics(m_rootPart.ObjectFlags, m_scene.m_physicalPrim);
+            m_rootPart.ScheduleFullUpdate();
+        }
         /// <summary>
         /// 
         /// </summary>

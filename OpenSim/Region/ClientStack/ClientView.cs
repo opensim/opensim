@@ -235,6 +235,7 @@ namespace OpenSim.Region.ClientStack
 
 		private ScriptAnswer handlerScriptAnswer = null;
 		private RequestPayPrice handlerRequestPayPrice = null;
+        private ObjectDeselect handlerObjectDetach = null;
 
         /* Properties */
 
@@ -689,6 +690,7 @@ namespace OpenSim.Region.ClientStack
         public event AvatarNowWearing OnAvatarNowWearing;
         public event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
         public event ObjectAttach OnObjectAttach;
+        public event ObjectDeselect OnObjectDetach;
         public event GenericCall2 OnCompleteMovementToRegion;
         public event UpdateAgent OnAgentUpdate;
         public event AgentRequestSit OnAgentRequestSit;
@@ -1989,6 +1991,7 @@ namespace OpenSim.Region.ClientStack
         /// <param name="attachPoint"></param>
         public void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint)
         {
+            
             ObjectAttachPacket attach = (ObjectAttachPacket)PacketPool.Instance.GetPacket(PacketType.ObjectAttach);
             Console.WriteLine("Attach object!");
             // TODO: don't create new blocks if recycling an old packet
@@ -2013,13 +2016,13 @@ namespace OpenSim.Region.ClientStack
 
             SendPrimitiveToClient(regionHandle, timeDilation, localID, primShape, pos, flags,
                                   objectID, ownerID, text, color, parentID, particleSystem,
-                                    rotation, clickAction, textureanim);
+                                    rotation, clickAction, textureanim, false,(uint)0);
         }
         public void SendPrimitiveToClient(
             ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos,
             uint flags,
             LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem,
-            LLQuaternion rotation, byte clickAction, byte[] textureanim)
+            LLQuaternion rotation, byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint)
         {
             ObjectUpdatePacket outPacket = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
             // TODO: don't create new blocks if recycling an old packet
@@ -2049,6 +2052,18 @@ namespace OpenSim.Region.ClientStack
             outPacket.ObjectData[0].PSBlock = particleSystem;
             outPacket.ObjectData[0].ClickAction = clickAction;
             //outPacket.ObjectData[0].Flags = 0;
+
+            if (attachment)
+            {
+                // Necessary???
+                outPacket.ObjectData[0].JointAxisOrAnchor = new LLVector3(0, 0, 2);
+                outPacket.ObjectData[0].JointPivot = new LLVector3(0, 0, 0);
+                
+                // Item from inventory???
+                outPacket.ObjectData[0].NameValue =
+                           Helpers.StringToField("AttachItemID STRING RW SV " + objectID.UUID);
+                outPacket.ObjectData[0].State = (byte)(((byte)AttachPoint) << 4);
+            }
 
             // Sound Radius
             outPacket.ObjectData[0].Radius = 20;
@@ -3435,6 +3450,21 @@ namespace OpenSim.Region.ClientStack
                             {
                                 handlerObjectAttach(this, att.ObjectData[0].ObjectLocalID, att.AgentData.AttachmentPoint, att.ObjectData[0].Rotation);
                             }
+                        }
+
+                        break;
+                    case PacketType.ObjectDetach:
+
+                        ObjectDetachPacket dett = (ObjectDetachPacket)Pack;
+                        for (int j = 0; j < dett.ObjectData.Length; j++)
+                        {
+                            uint obj = dett.ObjectData[j].ObjectLocalID;
+                            handlerObjectDetach = OnObjectDetach;
+                            if (handlerObjectDetach != null)
+                            {
+                                handlerObjectDetach(obj,this);
+                            }
+
                         }
 
                         break;

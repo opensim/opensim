@@ -99,6 +99,11 @@ namespace OpenSim.Region.Environment.Scenes
         // TODO: This needs to be persisted in next XML version update!
 		[XmlIgnore] public int[] PayPrice = {0,0,0,0,0};
 
+
+        [XmlIgnore] public bool m_IsAttachment = false;
+        [XmlIgnore] public uint m_attachmentPoint = (byte)0;
+        [XmlIgnore] public LLUUID m_attachedAvatar = LLUUID.Zero;
+
         public Int32 CreationDate;
         public uint ParentID = 0;
 
@@ -1271,7 +1276,17 @@ namespace OpenSim.Region.Environment.Scenes
             }
             return returnresult;
         }
+        
+        // Use this for attachments!  LocalID should be avatar's localid
+        public void SetParentLocalId(uint localID)
+        {
+            ParentID = localID;
+        }
 
+        public void SetAttachmentPoint(uint AttachmentPoint)
+        {
+            m_attachmentPoint = AttachmentPoint;
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -2212,7 +2227,7 @@ namespace OpenSim.Region.Environment.Scenes
             byte[] color = new byte[] {m_color.R, m_color.G, m_color.B, m_color.A};
             remoteClient.SendPrimitiveToClient(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, m_shape, lPos, clientFlags, m_uuid,
                                                OwnerID,
-                                               m_text, color, ParentID, m_particleSystem, lRot, m_clickAction, m_TextureAnimation);
+                                               m_text, color, ParentID, m_particleSystem, lRot, m_clickAction, m_TextureAnimation, m_IsAttachment, m_attachmentPoint);
         }
 
         /// Terse updates
@@ -2271,15 +2286,22 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendTerseUpdateToClient(IClientAPI remoteClient, LLVector3 lPos)
         {
             LLQuaternion mRot = RotationOffset;
-            if ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) == 0)
+            if (m_IsAttachment)
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Shape.State);
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, (byte)(((byte)m_attachmentPoint) << 4));
             }
             else
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity,
-                                                 RotationalVelocity);
-                //System.Console.WriteLine("LID: " + LocalID + "RVel:" + RotationalVelocity.ToString() + " TD: " + ((ushort)(m_parentGroup.Scene.TimeDilation * 500000f)).ToString() + ":" + m_parentGroup.Scene.TimeDilation.ToString());
+                if ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) == 0)
+                {
+                    remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Shape.State);
+                }
+                else
+                {
+                    remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity,
+                                                     RotationalVelocity);
+                    //System.Console.WriteLine("LID: " + LocalID + "RVel:" + RotationalVelocity.ToString() + " TD: " + ((ushort)(m_parentGroup.Scene.TimeDilation * 500000f)).ToString() + ":" + m_parentGroup.Scene.TimeDilation.ToString());
+                }
             }
         }
 

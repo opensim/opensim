@@ -454,6 +454,7 @@ namespace OpenSim.Framework
         event AvatarNowWearing OnAvatarNowWearing;
         event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
         event ObjectAttach OnObjectAttach;
+        event ObjectDeselect OnObjectDetach;
         event StartAnim OnStartAnim;
         event StopAnim OnStopAnim;
         event LinkObjects OnLinkObjects;
@@ -638,7 +639,8 @@ namespace OpenSim.Framework
 
         void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
                                    LLVector3 pos, uint flags, LLUUID objectID, LLUUID ownerID, string text, byte[] color,
-                                   uint parentID, byte[] particleSystem, LLQuaternion rotation, byte clickAction, byte[] textureanimation);
+                                   uint parentID, byte[] particleSystem, LLQuaternion rotation, byte clickAction, byte[] textureanimation, 
+                                    bool attachment, uint AttachmentPoint);
         
         void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
                                    LLVector3 pos, uint flags, LLUUID objectID, LLUUID ownerID, string text, byte[] color,

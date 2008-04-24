@@ -819,7 +819,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_taintparent.PhysicsActorType == (int)ActorTypes.Prim)
                 {
                     OdePrim obj = (OdePrim)m_taintparent;
-                    if (obj.Body != (IntPtr)0 && Body != (IntPtr)0)
+                    if (obj.Body != (IntPtr)0 && Body != (IntPtr)0 && obj.Body != Body)
                     {
                         _linkJointGroup = d.JointGroupCreate(0);
                         m_linkJoint = d.JointCreateFixed(_parent_scene.world, _linkJointGroup);
@@ -1098,7 +1098,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (_parent != null)
                 {
                     OdePrim odParent = (OdePrim)_parent;
-                    if (Body != (IntPtr)0 && odParent.Body != (IntPtr)0)
+                    if (Body != (IntPtr)0 && odParent.Body != (IntPtr)0 && Body != odParent.Body)
                     {
                         m_linkJoint = d.JointCreateFixed(_parent_scene.world, _linkJointGroup);
                         d.JointAttach(m_linkJoint, Body, odParent.Body);
@@ -1978,12 +1978,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             _position = l_position;
                             //_parent_scene.remActivePrim(this);
-                            base.RequestPhysicsterseUpdate();
+                            if (_parent == null)
+                                base.RequestPhysicsterseUpdate();
                             return;
                         }
                         else
                         {
-                            base.RaiseOutOfBounds(l_position);
+                            if (_parent == null)
+                                base.RaiseOutOfBounds(l_position);
                             return;
                         }
                     }
@@ -1998,7 +2000,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
                         //IsPhysical = false;
-                        base.RaiseOutOfBounds(_position);
+                        if (_parent == null)
+                            base.RaiseOutOfBounds(_position);
                         
                         _acceleration.X = 0;
                         _acceleration.Y = 0;
@@ -2010,7 +2013,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                         m_rotationalVelocity.X = 0;
                         m_rotationalVelocity.Y = 0;
                         m_rotationalVelocity.Z = 0;
-                        base.RequestPhysicsterseUpdate();
+                        
+                        if (_parent == null)
+                            base.RequestPhysicsterseUpdate();
+                        
                         m_throttleUpdates = false;
                         throttleCounter = 0;
                         _zeroFlag = true;
@@ -2054,14 +2060,20 @@ namespace OpenSim.Region.Physics.OdePlugin
                             m_throttleUpdates = false;
                             throttleCounter = 0;
                             m_rotationalVelocity = pv;
-                            base.RequestPhysicsterseUpdate();
+                            
+                            if (_parent == null)
+                                base.RequestPhysicsterseUpdate();
+                            
                             m_lastUpdateSent = true;
                         }
                     }
                     else
                     {
                         if (lastZeroFlag != _zeroFlag)
-                            base.RequestPhysicsterseUpdate();
+                        {
+                            if (_parent == null)
+                                base.RequestPhysicsterseUpdate();
+                        }
 
                         m_lastVelocity = _velocity;
 
@@ -2092,8 +2104,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         m_lastUpdateSent = false;
                         if (!m_throttleUpdates || throttleCounter > 15)
                         {
-
-                            base.RequestPhysicsterseUpdate();
+                            if (_parent == null)
+                                base.RequestPhysicsterseUpdate();
                         }
                         else
                         {

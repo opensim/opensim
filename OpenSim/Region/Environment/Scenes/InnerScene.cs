@@ -293,8 +293,45 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+        public void DetachObject(uint objectLocalID, IClientAPI remoteClient)
+        {
+            List<EntityBase> EntityList = GetEntities();
 
+            foreach (EntityBase obj in EntityList)
+            {
+                if (obj is SceneObjectGroup)
+                {
+                    if (((SceneObjectGroup)obj).LocalId == objectLocalID)
+                    {
+                        SceneObjectGroup group = (SceneObjectGroup)obj;
+                        group.DetachToGround();
+                    }
+                }
+            }
+
+        }
         public void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, LLQuaternion rot)
+        {
+            List<EntityBase> EntityList = GetEntities();
+
+            foreach (EntityBase obj in EntityList)
+            {
+                if (obj is SceneObjectGroup)
+                {
+                    if (((SceneObjectGroup)obj).LocalId == objectLocalID)
+                    {
+                        SceneObjectGroup group = (SceneObjectGroup)obj;
+                        group.AttachToAgent(remoteClient.AgentId, AttachmentPt);
+                        
+                    }
+
+                }
+            }
+
+        }
+        // Use the above method.
+        public void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, LLQuaternion rot, 
+            bool deadMethod)
         {
             Console.WriteLine("Attaching object " + objectLocalID + " to " + AttachmentPt);
             SceneObjectPart p = GetSceneObjectPart(objectLocalID);
@@ -1005,15 +1042,23 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
+                
                 LLVector3 oldPos = group.AbsolutePosition;
-                if (!PermissionsMngr.CanObjectEntry(remoteClient.AgentId, oldPos, pos))
-                {
-                    group.SendGroupTerseUpdate();
-                    return;
-                }
-                if (PermissionsMngr.CanEditObjectPosition(remoteClient.AgentId, group.UUID))
+                if (group.RootPart.m_IsAttachment)
                 {
                     group.UpdateGroupPosition(pos);
+                }
+                else 
+                {
+                    if (!PermissionsMngr.CanObjectEntry(remoteClient.AgentId, oldPos, pos))
+                    {
+                        group.SendGroupTerseUpdate();
+                        return;
+                    }
+                    if (PermissionsMngr.CanEditObjectPosition(remoteClient.AgentId, group.UUID))
+                    {
+                        group.UpdateGroupPosition(pos);
+                    }
                 }
             }
         }
