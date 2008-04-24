@@ -73,20 +73,20 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
 
         public LandData landData
         {
-	        get 
-	        { 
-		        return m_landData;
-	        }
+            get 
+            { 
+                return m_landData;
+            }
 
-	        set 
-	        { 
-		        m_landData = value; 
-	        }
+            set 
+            { 
+                m_landData = value; 
+            }
         }
 
         public LLUUID  regionUUID
         {
-	        get { return m_scene.RegionInfo.RegionID; }
+            get { return m_scene.RegionInfo.RegionID; }
         }
 
         #endregion

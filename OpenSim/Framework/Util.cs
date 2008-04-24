@@ -622,15 +622,15 @@ namespace OpenSim.Framework
             }
             return returnstring;
         }
-		
-		static public XmlRpcResponse XmlRpcCommand(string url, string methodName, params object[] args)
+        
+        static public XmlRpcResponse XmlRpcCommand(string url, string methodName, params object[] args)
         {
             return SendXmlRpcCommand(url, methodName, args);
         }
-		
+        
         static public XmlRpcResponse SendXmlRpcCommand(string url, string methodName, object[] args)
         {
-			XmlRpcRequest client = new XmlRpcRequest(methodName, args);
+            XmlRpcRequest client = new XmlRpcRequest(methodName, args);
             return client.Send(url, 6000);
         }
 

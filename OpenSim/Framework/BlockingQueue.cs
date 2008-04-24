@@ -68,9 +68,9 @@ namespace OpenSim.Framework
         public int Count()
         {
             lock(m_queueSync)
-	    {
-		return m_queue.Count;
-	    }
+        {
+        return m_queue.Count;
+        }
         }
 
         public T[] GetQueueArray()

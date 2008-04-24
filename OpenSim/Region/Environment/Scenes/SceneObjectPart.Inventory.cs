@@ -258,32 +258,32 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-		// Assumes a lock is held on the inventory
-		private bool InventoryContainsName(string name)
-		{
-			foreach (TaskInventoryItem item in m_taskInventory.Values)
-			{
-				if(item.Name == name)
-					return true;
-			}
-			return false;
-		}
+        // Assumes a lock is held on the inventory
+        private bool InventoryContainsName(string name)
+        {
+            foreach (TaskInventoryItem item in m_taskInventory.Values)
+            {
+                if(item.Name == name)
+                    return true;
+            }
+            return false;
+        }
 
-		private string FindAvailableInventoryName(string name)
-		{
-			if(!InventoryContainsName(name))
-				return name;
+        private string FindAvailableInventoryName(string name)
+        {
+            if(!InventoryContainsName(name))
+                return name;
 
-			int suffix=1;
-			while(suffix < 256)
-			{
-				string tryName=String.Format("{0} {1}", name, suffix);
-				if(!InventoryContainsName(tryName))
-					return tryName;
-				suffix++;
-			}
-			return String.Empty;
-		}
+            int suffix=1;
+            while(suffix < 256)
+            {
+                string tryName=String.Format("{0} {1}", name, suffix);
+                if(!InventoryContainsName(tryName))
+                    return tryName;
+                suffix++;
+            }
+            return String.Empty;
+        }
 
         /// <summary>
         /// Add an item to this prim's inventory.
@@ -295,11 +295,11 @@ namespace OpenSim.Region.Environment.Scenes
             item.CreationDate = 1000;
             item.ParentPartID = UUID;
 
-			string name=FindAvailableInventoryName(item.Name);
-			if(name == String.Empty)
-				return;
+            string name=FindAvailableInventoryName(item.Name);
+            if(name == String.Empty)
+                return;
 
-			item.Name=name;
+            item.Name=name;
 
             lock (m_taskInventory)
             {

@@ -34,7 +34,7 @@ namespace OpenSim.Framework
     public class OSUUID: IComparable
     {
         public Guid UUID;
-	
+    
         public OSUUID() {}
 
         /* Constructors */

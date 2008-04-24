@@ -97,7 +97,7 @@ namespace OpenSim.Region.Environment.Scenes
         public uint Category;
         
         // TODO: This needs to be persisted in next XML version update!
-		[XmlIgnore] public int[] PayPrice = {0,0,0,0,0};
+        [XmlIgnore] public int[] PayPrice = {0,0,0,0,0};
 
 
         [XmlIgnore] public bool m_IsAttachment = false;
@@ -2038,18 +2038,18 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
 
-			if(soundID == LLUUID.Zero)
-				return;
+            if(soundID == LLUUID.Zero)
+                return;
 
             List<ScenePresence> avatarts = m_parentGroup.Scene.GetAvatars();
             foreach (ScenePresence p in avatarts)
             {
-				double dis=Util.GetDistanceTo(p.AbsolutePosition, position);
-				if(dis > 100.0) // Max audio distance
-					continue;
+                double dis=Util.GetDistanceTo(p.AbsolutePosition, position);
+                if(dis > 100.0) // Max audio distance
+                    continue;
 
-				// Scale by distance
-				volume*=((100.0-dis)/100.0);
+                // Scale by distance
+                volume*=((100.0-dis)/100.0);
 
                 if (triggered)
                 {

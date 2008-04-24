@@ -71,11 +71,11 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 myScriptEngine.World.EventManager.OnRemoveScript += OnRemoveScript;
                 myScriptEngine.World.EventManager.OnScriptChangedEvent += changed;
                 // TODO: HOOK ALL EVENTS UP TO SERVER!
-				IMoneyModule money=myScriptEngine.World.RequestModuleInterface<IMoneyModule>();
-				if(money != null)
-				{
-					money.OnObjectPaid+=HandleObjectPaid;
-				}
+                IMoneyModule money=myScriptEngine.World.RequestModuleInterface<IMoneyModule>();
+                if(money != null)
+                {
+                    money.OnObjectPaid+=HandleObjectPaid;
+                }
 
             }
         }

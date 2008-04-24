@@ -270,7 +270,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
                 m_pos = value;
-				m_parentPosition=new LLVector3(0, 0, 0);
+                m_parentPosition=new LLVector3(0, 0, 0);
             }
         }
 
@@ -362,7 +362,7 @@ namespace OpenSim.Region.Environment.Scenes
             // Move them into an object to (hopefully) avoid threading issues.
             try
             {
-				SetMovementAnimation(Animations.AnimsLLUUID["STAND"]);
+                SetMovementAnimation(Animations.AnimsLLUUID["STAND"]);
             }
             catch (KeyNotFoundException)
             {
@@ -547,7 +547,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             AddToPhysicalScene();
             m_physicsActor.Flying = isFlying;
-			SendAnimPack();
+            SendAnimPack();
 
             m_scene.SwapRootAgentCount(false);
             m_scene.CommsManager.UserProfileCacheService.RequestInventoryForUser(m_uuid);
@@ -570,15 +570,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void MakeChildAgent()
         {
-			if(m_animations.Count > 0)
-			{
-				LLUUID movement=m_animations[0];
+            if(m_animations.Count > 0)
+            {
+                LLUUID movement=m_animations[0];
 
-				m_animations.Clear();
-				m_animationSeqs.Clear();
+                m_animations.Clear();
+                m_animationSeqs.Clear();
 
-				SetMovementAnimation(movement);
-			}
+                SetMovementAnimation(movement);
+            }
 //            m_log.DebugFormat(
 //                 "[SCENEPRESENCE]: Downgrading child agent {0}, {1} to a root agent in {2}", 
 //                 Name, UUID, m_scene.RegionInfo.RegionName);
@@ -611,10 +611,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="pos"></param>
         public void Teleport(LLVector3 pos)
         {
-			RemoveFromPhysicalScene();
-			Velocity = new LLVector3(0, 0, 0);
+            RemoveFromPhysicalScene();
+            Velocity = new LLVector3(0, 0, 0);
             AbsolutePosition = pos;
-			AddToPhysicalScene();
+            AddToPhysicalScene();
             SendTerseUpdateToAllClients();
         }
 
@@ -1055,12 +1055,12 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AddAnimation(LLUUID animID)
         {
-			if(m_isChildAgent)
-				return;
+            if(m_isChildAgent)
+                return;
 
-			// Don't let this animation become the movement animation
-			if(m_animations.Count < 1)
-				SetMovementAnimation(Animations.AnimsLLUUID["STAND"]);
+            // Don't let this animation become the movement animation
+            if(m_animations.Count < 1)
+                SetMovementAnimation(Animations.AnimsLLUUID["STAND"]);
 
             if (!m_animations.Contains(animID))
             {
@@ -1072,8 +1072,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void RemoveAnimation(LLUUID animID)
         {
-			if(m_isChildAgent)
-				return;
+            if(m_isChildAgent)
+                return;
 
             if (m_animations.Contains(animID))
             {
@@ -1083,21 +1083,21 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-					// What a HACK!! Anim list really needs to be an object!
-					int idx;
+                    // What a HACK!! Anim list really needs to be an object!
+                    int idx;
 
-					for(idx=0;idx < m_animations.Count;idx++)
-					{
-						if(m_animations[idx] == animID)
-						{
-							int seq=m_animationSeqs[idx];
+                    for(idx=0;idx < m_animations.Count;idx++)
+                    {
+                        if(m_animations[idx] == animID)
+                        {
+                            int seq=m_animationSeqs[idx];
 
-							m_animations.Remove(animID);
-							m_animationSeqs.Remove(seq);
-							SendAnimPack();
-							break;
-						}
-					}
+                            m_animations.Remove(animID);
+                            m_animationSeqs.Remove(seq);
+                            SendAnimPack();
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -1119,33 +1119,33 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         protected void SetMovementAnimation(LLUUID anim)
         {
-			if(m_animations.Count < 1)
-			{
-				m_animations.Add(Animations.AnimsLLUUID["STAND"]);
-				m_animationSeqs.Add(1);
+            if(m_animations.Count < 1)
+            {
+                m_animations.Add(Animations.AnimsLLUUID["STAND"]);
+                m_animationSeqs.Add(1);
 
-				SendAnimPack();
-			}
-			else
-			{
-				try
-				{
-					if (m_animations[0] != anim)
-					{
-						m_animations[0] = anim;
-						m_animationSeqs[0] = m_controllingClient.NextAnimationSequenceNumber;
-					}
-					SendAnimPack();
-				}
-				catch
-				{
-					m_log.Warn("[AVATAR]: SetMovementAnimation for avatar failed. Attempting recovery...");
-					m_animations[0] = anim;
-					m_animationSeqs[0] = m_controllingClient.NextAnimationSequenceNumber;
-					SendAnimPack();
-				}
-			}
-		}
+                SendAnimPack();
+            }
+            else
+            {
+                try
+                {
+                    if (m_animations[0] != anim)
+                    {
+                        m_animations[0] = anim;
+                        m_animationSeqs[0] = m_controllingClient.NextAnimationSequenceNumber;
+                    }
+                    SendAnimPack();
+                }
+                catch
+                {
+                    m_log.Warn("[AVATAR]: SetMovementAnimation for avatar failed. Attempting recovery...");
+                    m_animations[0] = anim;
+                    m_animationSeqs[0] = m_controllingClient.NextAnimationSequenceNumber;
+                    SendAnimPack();
+                }
+            }
+        }
 
         /// <summary>
         /// This method handles agent movement related animations
@@ -1536,8 +1536,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="seqs"></param>
         public void SendAnimPack(LLUUID[] animations, int[] seqs)
         {
-			if(m_isChildAgent)
-				return;
+            if(m_isChildAgent)
+                return;
 
             m_scene.Broadcast(
                 delegate(IClientAPI client) { client.SendAnimations(animations, seqs, m_controllingClient.AgentId); });

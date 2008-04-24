@@ -91,7 +91,7 @@ namespace OpenSim.Region.ClientStack
         private readonly uint m_circuitCode;
         private int m_moneyBalance;
 
-		private int m_animationSequenceNumber = 1;
+        private int m_animationSequenceNumber = 1;
 
         private byte[] m_channelVersion = Helpers.StringToField("OpenSimulator 0.5"); // Dummy value needed by libSL
 
@@ -233,8 +233,8 @@ namespace OpenSim.Region.ClientStack
         private RequestAsset handlerRequestAsset = null; // OnRequestAsset;
         private UUIDNameRequest handlerTeleportHomeRequest = null;
 
-		private ScriptAnswer handlerScriptAnswer = null;
-		private RequestPayPrice handlerRequestPayPrice = null;
+        private ScriptAnswer handlerScriptAnswer = null;
+        private RequestPayPrice handlerRequestPayPrice = null;
         private ObjectDeselect handlerObjectDetach = null;
 
         /* Properties */
@@ -307,10 +307,10 @@ namespace OpenSim.Region.ClientStack
             get { return m_moneyBalance; }
         }
 
-		public int NextAnimationSequenceNumber
-		{
-			get { return m_animationSequenceNumber++; }
-		}
+        public int NextAnimationSequenceNumber
+        {
+            get { return m_animationSequenceNumber++; }
+        }
 
         /* METHODS */
 
@@ -793,8 +793,8 @@ namespace OpenSim.Region.ClientStack
 
         public event UUIDNameRequest OnTeleportHomeRequest;
 
-		public event ScriptAnswer OnScriptAnswer;
-		public event RequestPayPrice OnRequestPayPrice;
+        public event ScriptAnswer OnScriptAnswer;
+        public event RequestPayPrice OnRequestPayPrice;
 
         #region Scene/Avatar to Client
 
@@ -1171,28 +1171,28 @@ namespace OpenSim.Region.ClientStack
             OutPacket(money, ThrottleOutPacketType.Task);
         }
 
-		public void SendPayPrice(LLUUID objectID, int[] payPrice)
-		{
-			if(payPrice[0] == 0 &&
-			   payPrice[1] == 0 &&
-			   payPrice[2] == 0 &&
-			   payPrice[3] == 0 &&
-			   payPrice[4] == 0)
-			   	return;
+        public void SendPayPrice(LLUUID objectID, int[] payPrice)
+        {
+            if(payPrice[0] == 0 &&
+               payPrice[1] == 0 &&
+               payPrice[2] == 0 &&
+               payPrice[3] == 0 &&
+               payPrice[4] == 0)
+                   return;
 
-			PayPriceReplyPacket payPriceReply = (PayPriceReplyPacket)PacketPool.Instance.GetPacket(PacketType.PayPriceReply);
-			payPriceReply.ObjectData.ObjectID = objectID;
-			payPriceReply.ObjectData.DefaultPayPrice = payPrice[0];
+            PayPriceReplyPacket payPriceReply = (PayPriceReplyPacket)PacketPool.Instance.GetPacket(PacketType.PayPriceReply);
+            payPriceReply.ObjectData.ObjectID = objectID;
+            payPriceReply.ObjectData.DefaultPayPrice = payPrice[0];
 
-			payPriceReply.ButtonData=new PayPriceReplyPacket.ButtonDataBlock[4];
-			payPriceReply.ButtonData[0]=new PayPriceReplyPacket.ButtonDataBlock();
-			payPriceReply.ButtonData[0].PayButton = payPrice[1];
-			payPriceReply.ButtonData[1]=new PayPriceReplyPacket.ButtonDataBlock();
-			payPriceReply.ButtonData[1].PayButton = payPrice[2];
-			payPriceReply.ButtonData[2]=new PayPriceReplyPacket.ButtonDataBlock();
-			payPriceReply.ButtonData[2].PayButton = payPrice[3];
-			payPriceReply.ButtonData[3]=new PayPriceReplyPacket.ButtonDataBlock();
-			payPriceReply.ButtonData[3].PayButton = payPrice[4];
+            payPriceReply.ButtonData=new PayPriceReplyPacket.ButtonDataBlock[4];
+            payPriceReply.ButtonData[0]=new PayPriceReplyPacket.ButtonDataBlock();
+            payPriceReply.ButtonData[0].PayButton = payPrice[1];
+            payPriceReply.ButtonData[1]=new PayPriceReplyPacket.ButtonDataBlock();
+            payPriceReply.ButtonData[1].PayButton = payPrice[2];
+            payPriceReply.ButtonData[2]=new PayPriceReplyPacket.ButtonDataBlock();
+            payPriceReply.ButtonData[2].PayButton = payPrice[3];
+            payPriceReply.ButtonData[3]=new PayPriceReplyPacket.ButtonDataBlock();
+            payPriceReply.ButtonData[3].PayButton = payPrice[4];
 
             OutPacket(payPriceReply, ThrottleOutPacketType.Task);
         }
@@ -2530,8 +2530,8 @@ namespace OpenSim.Region.ClientStack
             return true;
         }
 
-		public void SendScriptQuestion(LLUUID taskID, string taskName, string ownerName, LLUUID itemID, int question)
-		{
+        public void SendScriptQuestion(LLUUID taskID, string taskName, string ownerName, LLUUID itemID, int question)
+        {
             ScriptQuestionPacket scriptQuestion = (ScriptQuestionPacket)PacketPool.Instance.GetPacket(PacketType.ScriptQuestion);
             scriptQuestion.Data = new ScriptQuestionPacket.DataBlock();
             // TODO: don't create new blocks if recycling an old packet
@@ -2542,7 +2542,7 @@ namespace OpenSim.Region.ClientStack
             scriptQuestion.Data.ObjectOwner = Helpers.StringToField(ownerName);
 
             OutPacket(scriptQuestion, ThrottleOutPacketType.Task);
-		}
+        }
 
         protected virtual bool Logout(IClientAPI client, Packet packet)
         {
@@ -3915,14 +3915,14 @@ namespace OpenSim.Region.ClientStack
                         }
                         break;
 
-					case PacketType.ScriptAnswerYes:
+                    case PacketType.ScriptAnswerYes:
                         ScriptAnswerYesPacket scriptAnswer = (ScriptAnswerYesPacket)Pack;
 
-						handlerScriptAnswer = OnScriptAnswer;
-						if (handlerScriptAnswer != null)
-						{
-							handlerScriptAnswer(this, scriptAnswer.Data.TaskID, scriptAnswer.Data.ItemID, scriptAnswer.Data.Questions);
-						}
+                        handlerScriptAnswer = OnScriptAnswer;
+                        if (handlerScriptAnswer != null)
+                        {
+                            handlerScriptAnswer(this, scriptAnswer.Data.TaskID, scriptAnswer.Data.ItemID, scriptAnswer.Data.Questions);
+                        }
                         break;
 
                     #endregion
@@ -4613,14 +4613,14 @@ namespace OpenSim.Region.ClientStack
                         // TODO: handle this packet
                         //m_log.Warn("[CLIENT]: unhandled EconomyDataRequest packet");
                         break;
-					case PacketType.RequestPayPrice:
+                    case PacketType.RequestPayPrice:
                         RequestPayPricePacket requestPayPricePacket = (RequestPayPricePacket)Pack;
-						handlerRequestPayPrice = OnRequestPayPrice;
-						if (handlerRequestPayPrice != null)
-						{
-							handlerRequestPayPrice(this, requestPayPricePacket.ObjectData.ObjectID);
-						}
-						break;
+                        handlerRequestPayPrice = OnRequestPayPrice;
+                        if (handlerRequestPayPrice != null)
+                        {
+                            handlerRequestPayPrice(this, requestPayPricePacket.ObjectData.ObjectID);
+                        }
+                        break;
 
                     #endregion
 

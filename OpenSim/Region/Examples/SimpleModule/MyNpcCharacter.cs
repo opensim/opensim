@@ -167,8 +167,8 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event ObjectIncludeInSearch OnObjectIncludeInSearch;
         public event UUIDNameRequest OnTeleportHomeRequest;
 
-		public event ScriptAnswer OnScriptAnswer;
-		public event RequestPayPrice OnRequestPayPrice;
+        public event ScriptAnswer OnScriptAnswer;
+        public event RequestPayPrice OnRequestPayPrice;
 
 
 #pragma warning restore 67
@@ -221,10 +221,10 @@ namespace OpenSim.Region.Examples.SimpleModule
             get { return FirstName + LastName; }
         }
 
-		public virtual int NextAnimationSequenceNumber
-		{
-			get { return 1; }
-		}
+        public virtual int NextAnimationSequenceNumber
+        {
+            get { return 1; }
+        }
 
         public virtual void OutPacket(Packet newPack, ThrottleOutPacketType packType)
         {
@@ -344,9 +344,9 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-		public virtual void SendPayPrice(LLUUID objectID, int[] payPrice)
-		{
-		}
+        public virtual void SendPayPrice(LLUUID objectID, int[] payPrice)
+        {
+        }
 
         public virtual void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID,
                                            uint avatarLocalID, LLVector3 Pos, byte[] textureEntry, uint parentID)
@@ -603,8 +603,8 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-		public void SendScriptQuestion(LLUUID objectID, string taskName, string ownerName, LLUUID itemID, int question)
-		{
-		}
+        public void SendScriptQuestion(LLUUID objectID, string taskName, string ownerName, LLUUID itemID, int question)
+        {
+        }
     }
 }

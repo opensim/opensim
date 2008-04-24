@@ -100,120 +100,120 @@ namespace OpenSim.Framework
         private uint _everyOnePermissions;
         
         public LLUUID ID {
-        	get {
-        		return _id;
-        	}
-        	set {
-        		_id = value;
-        	}
+            get {
+                return _id;
+            }
+            set {
+                _id = value;
+            }
         }
 
         public int InvType {
-        	get {
-        		return _invType;
-        	}
-        	set {
-        		_invType = value;
-        	}
+            get {
+                return _invType;
+            }
+            set {
+                _invType = value;
+            }
         }
 
         public LLUUID Folder {
-        	get {
-        		return _folder;
-        	}
-        	set {
-        		_folder = value;
-        	}
+            get {
+                return _folder;
+            }
+            set {
+                _folder = value;
+            }
         }
 
         public LLUUID Owner {
-        	get {
-        		return _owner;
-        	}
-        	set {
-        		_owner = value;
-        	}
+            get {
+                return _owner;
+            }
+            set {
+                _owner = value;
+            }
         }
 
         public LLUUID Creator {
-        	get {
-        		return _creator;
-        	}
-        	set {
-        		_creator = value;
-        	}
+            get {
+                return _creator;
+            }
+            set {
+                _creator = value;
+            }
         }
 
         public string Name {
-        	get {
-        		return _name;
-        	}
-        	set {
-        		_name = value;
-        	}
+            get {
+                return _name;
+            }
+            set {
+                _name = value;
+            }
         }
 
         public string Description {
-        	get {
-        		return _description;
-        	}
-        	set {
-        		_description = value;
-        	}
+            get {
+                return _description;
+            }
+            set {
+                _description = value;
+            }
         }
 
         public uint NextPermissions {
-        	get {
-        		return _nextPermissions;
-        	}
-        	set {
-        		_nextPermissions = value;
-        	}
+            get {
+                return _nextPermissions;
+            }
+            set {
+                _nextPermissions = value;
+            }
         }
 
         public uint CurrentPermissions {
-        	get {
-        		return _currentPermissions;
-        	}
-        	set {
-        		_currentPermissions = value;
-        	}
+            get {
+                return _currentPermissions;
+            }
+            set {
+                _currentPermissions = value;
+            }
         }
 
         public uint BasePermissions {
-        	get {
-        		return _basePermissions;
-        	}
-        	set {
-        		_basePermissions = value;
-        	}
+            get {
+                return _basePermissions;
+            }
+            set {
+                _basePermissions = value;
+            }
         }
 
         public uint EveryOnePermissions {
-        	get {
-        		return _everyOnePermissions;
-        	}
-        	set {
-        		_everyOnePermissions = value;
-        	}
+            get {
+                return _everyOnePermissions;
+            }
+            set {
+                _everyOnePermissions = value;
+            }
         }
 
         public int AssetType {
-        	get {
-        		return _assetType;
-        	}
-        	set {
-        		_assetType = value;
-        	}
+            get {
+                return _assetType;
+            }
+            set {
+                _assetType = value;
+            }
         }
 
         public LLUUID AssetID {
-        	get {
-        		return _assetID;
-        	}
-        	set {
-        		_assetID = value;
-        	}
+            get {
+                return _assetID;
+            }
+            set {
+                _assetID = value;
+            }
         }
     }
 }

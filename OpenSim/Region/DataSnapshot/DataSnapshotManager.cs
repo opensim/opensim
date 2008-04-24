@@ -69,7 +69,7 @@ namespace OpenSim.Region.DataSnapshot
         #region IRegionModule
         public void Close()
         {
-         	
+             
         }
         
         public void Initialise(Scene scene, IConfigSource config)
@@ -81,7 +81,7 @@ namespace OpenSim.Region.DataSnapshot
                 m_configLoaded = true;
                 m_log.Info("[DATASNAPSHOT]: Loading configuration");
                 //Read from the config for options
-             	lock (m_syncInit) {
+                 lock (m_syncInit) {
                     try {
                         m_enabled = config.Configs["DataSnapshot"].GetBoolean("index_sims", m_enabled);
                         if (config.Configs["Startup"].GetBoolean("gridmode", true))
@@ -152,7 +152,7 @@ namespace OpenSim.Region.DataSnapshot
 
         public string Name
         {
-        	get { return "External Data Generator"; }
+            get { return "External Data Generator"; }
         }
 
         public void PostInitialise()

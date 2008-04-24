@@ -70,7 +70,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         private DateTime m_timer = DateTime.Now;
         private string m_state = "default";
-		private bool m_waitingForScriptAnswer=false;
+        private bool m_waitingForScriptAnswer=false;
 
 
         public string State
@@ -121,50 +121,50 @@ namespace OpenSim.Region.ScriptEngine.Common
             return World.GetCommander(name);
         }
 
-		private LLUUID InventorySelf()
-		{
-			LLUUID invItemID=new LLUUID();
+        private LLUUID InventorySelf()
+        {
+            LLUUID invItemID=new LLUUID();
 
             foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
                 if(inv.Value.Type == 10 && inv.Value.ItemID == m_itemID)
                 {
-					invItemID=inv.Key;
-					break;
+                    invItemID=inv.Key;
+                    break;
                 }
             }
 
-			return invItemID;
-		}
+            return invItemID;
+        }
 
-		private LLUUID InventoryKey(string name, int type)
-		{
+        private LLUUID InventoryKey(string name, int type)
+        {
             m_host.AddScriptLPS(1);
             foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
-				if(inv.Value.Name == name)
-				{
-					if(inv.Value.Type != type)
-						return LLUUID.Zero;
+                if(inv.Value.Name == name)
+                {
+                    if(inv.Value.Type != type)
+                        return LLUUID.Zero;
 
-					return inv.Value.AssetID.ToString();
-				}
-			}
-			return LLUUID.Zero;
-		}
+                    return inv.Value.AssetID.ToString();
+                }
+            }
+            return LLUUID.Zero;
+        }
 
-		private LLUUID InventoryKey(string name)
-		{
+        private LLUUID InventoryKey(string name)
+        {
             m_host.AddScriptLPS(1);
             foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
-				if(inv.Value.Name == name)
-				{
-					return inv.Value.AssetID.ToString();
-				}
-			}
-			return LLUUID.Zero;
-		}
+                if(inv.Value.Name == name)
+                {
+                    return inv.Value.AssetID.ToString();
+                }
+            }
+            return LLUUID.Zero;
+        }
 
         //These are the implementations of the various ll-functions used by the LSL scripts.
         //starting out, we use the System.Math library for trig functions. - ckrinke 8-14-07
@@ -947,15 +947,15 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
 
-			LLUUID textureID=new LLUUID();
+            LLUUID textureID=new LLUUID();
 
-			if(!LLUUID.TryParse(texture, out textureID))
-			{
-				textureID=InventoryKey(texture, (int)AssetType.Texture);
-			}
+            if(!LLUUID.TryParse(texture, out textureID))
+            {
+                textureID=InventoryKey(texture, (int)AssetType.Texture);
+            }
 
-			if(textureID == LLUUID.Zero)
-				return;
+            if(textureID == LLUUID.Zero)
+                return;
 
             LLObject.TextureEntry tex = m_host.Shape.Textures;
 
@@ -1610,41 +1610,41 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public int llGiveMoney(string destination, int amount)
         {
-			LLUUID invItemID=InventorySelf();
-			if(invItemID == LLUUID.Zero)
-				return 0;
+            LLUUID invItemID=InventorySelf();
+            if(invItemID == LLUUID.Zero)
+                return 0;
 
             m_host.AddScriptLPS(1);
 
-			if(m_host.TaskInventory[invItemID].PermsGranter == LLUUID.Zero)
-				return 0;
+            if(m_host.TaskInventory[invItemID].PermsGranter == LLUUID.Zero)
+                return 0;
 
-			if((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_DEBIT) == 0)
-			{
-				LSLError("No permissions to give money");
-				return 0;
-			}
+            if((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_DEBIT) == 0)
+            {
+                LSLError("No permissions to give money");
+                return 0;
+            }
 
-			LLUUID toID=new LLUUID();
+            LLUUID toID=new LLUUID();
 
-			if(!LLUUID.TryParse(destination, out toID))
-			{
-				LSLError("Bad key in llGiveMoney");
-				return 0;
-			}
+            if(!LLUUID.TryParse(destination, out toID))
+            {
+                LSLError("Bad key in llGiveMoney");
+                return 0;
+            }
 
-			IMoneyModule money=World.RequestModuleInterface<IMoneyModule>();
+            IMoneyModule money=World.RequestModuleInterface<IMoneyModule>();
 
-			if(money == null)
-			{
-				NotImplemented("llGiveMoney");
-				return 0;
-			}
+            if(money == null)
+            {
+                NotImplemented("llGiveMoney");
+                return 0;
+            }
 
-			bool result=money.ObjectGiveMoney(m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount);
+            bool result=money.ObjectGiveMoney(m_host.ParentGroup.RootPart.UUID, m_host.ParentGroup.RootPart.OwnerID, toID, amount);
 
-			if(result)
-				return 1;
+            if(result)
+                return 1;
 
             return 0;
         }
@@ -1883,57 +1883,57 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
 
-			LLUUID invItemID=InventorySelf();
-			if(invItemID == LLUUID.Zero)
-				return;
+            LLUUID invItemID=InventorySelf();
+            if(invItemID == LLUUID.Zero)
+                return;
 
-			if(m_host.TaskInventory[invItemID].PermsGranter == LLUUID.Zero)
-				return;
+            if(m_host.TaskInventory[invItemID].PermsGranter == LLUUID.Zero)
+                return;
 
-			if((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TRIGGER_ANIMATION) != 0)
-			{
-				// Do NOT try to parse LLUUID, animations cannot be triggered by ID
-				LLUUID animID=InventoryKey(anim, (int)AssetType.Animation);
-				if(animID == LLUUID.Zero)
-					return;
+            if((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TRIGGER_ANIMATION) != 0)
+            {
+                // Do NOT try to parse LLUUID, animations cannot be triggered by ID
+                LLUUID animID=InventoryKey(anim, (int)AssetType.Animation);
+                if(animID == LLUUID.Zero)
+                    return;
 
                 if (World.m_innerScene.ScenePresences.ContainsKey(m_host.TaskInventory[invItemID].PermsGranter))
                 {
                     ScenePresence presence = World.m_innerScene.ScenePresences[m_host.TaskInventory[invItemID].PermsGranter];
-					presence.AddAnimation(animID);
-				}
-			}
+                    presence.AddAnimation(animID);
+                }
+            }
         }
 
         public void llStopAnimation(string anim)
         {
             m_host.AddScriptLPS(1);
 
-			LLUUID invItemID=InventorySelf();
-			if(invItemID == LLUUID.Zero)
-				return;
+            LLUUID invItemID=InventorySelf();
+            if(invItemID == LLUUID.Zero)
+                return;
 
-			if(m_host.TaskInventory[invItemID].PermsGranter == LLUUID.Zero)
-				return;
+            if(m_host.TaskInventory[invItemID].PermsGranter == LLUUID.Zero)
+                return;
 
-			if((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TRIGGER_ANIMATION) != 0)
-			{
-				LLUUID animID = new LLUUID();
+            if((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TRIGGER_ANIMATION) != 0)
+            {
+                LLUUID animID = new LLUUID();
 
-				if(!LLUUID.TryParse(anim, out animID))
-				{
-					animID=InventoryKey(anim);
-				}
+                if(!LLUUID.TryParse(anim, out animID))
+                {
+                    animID=InventoryKey(anim);
+                }
 
-				if(animID == LLUUID.Zero)
-					return;
+                if(animID == LLUUID.Zero)
+                    return;
 
                 if (World.m_innerScene.ScenePresences.ContainsKey(m_host.TaskInventory[invItemID].PermsGranter))
                 {
                     ScenePresence presence = World.m_innerScene.ScenePresences[m_host.TaskInventory[invItemID].PermsGranter];
-					presence.RemoveAnimation(animID);
-				}
-			}
+                    presence.RemoveAnimation(animID);
+                }
+            }
         }
 
         public void llPointAt()
@@ -1972,108 +1972,108 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llRequestPermissions(string agent, int perm)
         {
-			LLUUID agentID=new LLUUID();
+            LLUUID agentID=new LLUUID();
 
-			if(!LLUUID.TryParse(agent, out agentID))
-				return;
+            if(!LLUUID.TryParse(agent, out agentID))
+                return;
 
-			LLUUID invItemID=InventorySelf();
+            LLUUID invItemID=InventorySelf();
 
-			if(invItemID == LLUUID.Zero)
-				return; // Not in a prim? How??
+            if(invItemID == LLUUID.Zero)
+                return; // Not in a prim? How??
 
-			if(agentID == LLUUID.Zero || perm == 0) // Releasing permissions
-			{
-				m_host.TaskInventory[invItemID].PermsGranter=LLUUID.Zero;
-				m_host.TaskInventory[invItemID].PermsMask=0;
+            if(agentID == LLUUID.Zero || perm == 0) // Releasing permissions
+            {
+                m_host.TaskInventory[invItemID].PermsGranter=LLUUID.Zero;
+                m_host.TaskInventory[invItemID].PermsMask=0;
 
-				m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-					m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {(int)0});
+                m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                    m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {(int)0});
 
-				return;
-			}
+                return;
+            }
 
             m_host.AddScriptLPS(1);
 
-			bool attachment=false; // Attachments not implemented yet. TODO: reflect real attachemnt state
+            bool attachment=false; // Attachments not implemented yet. TODO: reflect real attachemnt state
 
-			if(attachment && agent == m_host.OwnerID)
-			{
-				// When attached, certain permissions are implicit if requested from owner
-				int implicitPerms = BuiltIn_Commands_BaseClass.PERMISSION_TAKE_CONTROLS |
-						BuiltIn_Commands_BaseClass.PERMISSION_TRIGGER_ANIMATION |
-						BuiltIn_Commands_BaseClass.PERMISSION_ATTACH;
+            if(attachment && agent == m_host.OwnerID)
+            {
+                // When attached, certain permissions are implicit if requested from owner
+                int implicitPerms = BuiltIn_Commands_BaseClass.PERMISSION_TAKE_CONTROLS |
+                        BuiltIn_Commands_BaseClass.PERMISSION_TRIGGER_ANIMATION |
+                        BuiltIn_Commands_BaseClass.PERMISSION_ATTACH;
 
-				if((perm & (~implicitPerms)) == 0) // Requested only implicit perms
-				{
-					m_host.TaskInventory[invItemID].PermsGranter=agentID;
-					m_host.TaskInventory[invItemID].PermsMask=perm;
+                if((perm & (~implicitPerms)) == 0) // Requested only implicit perms
+                {
+                    m_host.TaskInventory[invItemID].PermsGranter=agentID;
+                    m_host.TaskInventory[invItemID].PermsMask=perm;
 
-					m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-						m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {(int)perm});
+                    m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                        m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {(int)perm});
 
-					return;
-				}
-			}
-			else if(m_host.m_sitTargetAvatar == agentID) // Sitting avatar
-			{
-				// When agent is sitting, certain permissions are implicit if requested from sitting agent
-				int implicitPerms = BuiltIn_Commands_BaseClass.PERMISSION_TRIGGER_ANIMATION |
-						BuiltIn_Commands_BaseClass.PERMISSION_TRACK_CAMERA;
+                    return;
+                }
+            }
+            else if(m_host.m_sitTargetAvatar == agentID) // Sitting avatar
+            {
+                // When agent is sitting, certain permissions are implicit if requested from sitting agent
+                int implicitPerms = BuiltIn_Commands_BaseClass.PERMISSION_TRIGGER_ANIMATION |
+                        BuiltIn_Commands_BaseClass.PERMISSION_TRACK_CAMERA;
 
-				if((perm & (~implicitPerms)) == 0) // Requested only implicit perms
-				{
-					m_host.TaskInventory[invItemID].PermsGranter=agentID;
-					m_host.TaskInventory[invItemID].PermsMask=perm;
+                if((perm & (~implicitPerms)) == 0) // Requested only implicit perms
+                {
+                    m_host.TaskInventory[invItemID].PermsGranter=agentID;
+                    m_host.TaskInventory[invItemID].PermsMask=perm;
 
-					m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-						m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {(int)perm});
+                    m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                        m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {(int)perm});
 
-					return;
-				}
-			}
+                    return;
+                }
+            }
 
-			if (World.m_innerScene.ScenePresences.ContainsKey(agentID))
-			{
-				string ownerName=resolveName(m_host.ParentGroup.RootPart.OwnerID);
-				if(ownerName == String.Empty)
-					ownerName="(hippos)";
+            if (World.m_innerScene.ScenePresences.ContainsKey(agentID))
+            {
+                string ownerName=resolveName(m_host.ParentGroup.RootPart.OwnerID);
+                if(ownerName == String.Empty)
+                    ownerName="(hippos)";
 
-				ScenePresence presence = World.m_innerScene.ScenePresences[agentID];
-				if(!m_waitingForScriptAnswer)
-				{
-					m_host.TaskInventory[invItemID].PermsGranter=agentID;
-					m_host.TaskInventory[invItemID].PermsMask=0;
-					presence.ControllingClient.OnScriptAnswer+=handleScriptAnswer;
-					m_waitingForScriptAnswer=true;
-				}
+                ScenePresence presence = World.m_innerScene.ScenePresences[agentID];
+                if(!m_waitingForScriptAnswer)
+                {
+                    m_host.TaskInventory[invItemID].PermsGranter=agentID;
+                    m_host.TaskInventory[invItemID].PermsMask=0;
+                    presence.ControllingClient.OnScriptAnswer+=handleScriptAnswer;
+                    m_waitingForScriptAnswer=true;
+                }
 
-				presence.ControllingClient.SendScriptQuestion(m_host.UUID, m_host.ParentGroup.RootPart.Name, ownerName, invItemID, perm);
-				return;
-			}
+                presence.ControllingClient.SendScriptQuestion(m_host.UUID, m_host.ParentGroup.RootPart.Name, ownerName, invItemID, perm);
+                return;
+            }
 
-			// Requested agent is not in range, refuse perms
-			m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-				m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {(int)0});
+            // Requested agent is not in range, refuse perms
+            m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {(int)0});
         }
 
-		void handleScriptAnswer(IClientAPI client, LLUUID taskID, LLUUID itemID, int answer)
-		{
-			if(taskID != m_host.UUID)
-				return;
+        void handleScriptAnswer(IClientAPI client, LLUUID taskID, LLUUID itemID, int answer)
+        {
+            if(taskID != m_host.UUID)
+                return;
 
-			LLUUID invItemID=InventorySelf();
+            LLUUID invItemID=InventorySelf();
 
-			if(invItemID == LLUUID.Zero)
-				return;
+            if(invItemID == LLUUID.Zero)
+                return;
 
-			client.OnScriptAnswer-=handleScriptAnswer;
-			m_waitingForScriptAnswer=false;
+            client.OnScriptAnswer-=handleScriptAnswer;
+            m_waitingForScriptAnswer=false;
 
-			m_host.TaskInventory[invItemID].PermsMask=answer;
-			m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
-				m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {(int)answer});
-		}
+            m_host.TaskInventory[invItemID].PermsMask=answer;
+            m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                m_localID, m_itemID, "run_time_permissions", EventQueueManager.llDetectNull, new Object[] {(int)answer});
+        }
 
         public string llGetPermissionsKey()
         {
@@ -2083,7 +2083,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 if(item.Type == 10 && item.ItemID == m_itemID)
                 {
-					return item.PermsGranter.ToString();
+                    return item.PermsGranter.ToString();
                 }
             }
 
@@ -2098,7 +2098,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 if(item.Type == 10 && item.ItemID == m_itemID)
                 {
-					return item.PermsMask;
+                    return item.PermsMask;
                 }
             }
 
@@ -3997,24 +3997,24 @@ namespace OpenSim.Region.ScriptEngine.Common
                 LSLError("First parameter to llDialog needs to be a key");
                 return;
             }
-			if(buttons.Length > 12)
-			{
+            if(buttons.Length > 12)
+            {
                 LSLError("No more than 12 buttons can be shown");
                 return;
-			}
+            }
             string[] buts = new string[buttons.Length];
             for(int i = 0; i < buttons.Length; i++)
             {
-				if(buttons.Data[i].ToString() == String.Empty)
-				{
-					LSLError("button label cannot be blank");
-					return;
-				}
-				if(buttons.Data[i].ToString().Length > 24)
-				{
-					LSLError("button label cannot be longer than 24 characters");
-					return;
-				}
+                if(buttons.Data[i].ToString() == String.Empty)
+                {
+                    LSLError("button label cannot be blank");
+                    return;
+                }
+                if(buttons.Data[i].ToString().Length > 24)
+                {
+                    LSLError("button label cannot be longer than 24 characters");
+                    return;
+                }
                 buts[i] = buttons.Data[i].ToString();
             }
             World.SendDialogToUser(av, m_host.Name, m_host.UUID, m_host.OwnerID, message, new LLUUID("00000000-0000-2222-3333-100000001000"), chat_channel, buts);
@@ -5137,16 +5137,16 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
 
-			if(quick_pay_buttons.Data.Length != 4)
-			{
-				LSLError("List must have 4 elements");
-				return;
-			}
-			m_host.ParentGroup.RootPart.PayPrice[0]=price;
-			m_host.ParentGroup.RootPart.PayPrice[1]=(int)quick_pay_buttons.Data[0];
-			m_host.ParentGroup.RootPart.PayPrice[2]=(int)quick_pay_buttons.Data[1];
-			m_host.ParentGroup.RootPart.PayPrice[3]=(int)quick_pay_buttons.Data[2];
-			m_host.ParentGroup.RootPart.PayPrice[4]=(int)quick_pay_buttons.Data[3];
+            if(quick_pay_buttons.Data.Length != 4)
+            {
+                LSLError("List must have 4 elements");
+                return;
+            }
+            m_host.ParentGroup.RootPart.PayPrice[0]=price;
+            m_host.ParentGroup.RootPart.PayPrice[1]=(int)quick_pay_buttons.Data[0];
+            m_host.ParentGroup.RootPart.PayPrice[2]=(int)quick_pay_buttons.Data[1];
+            m_host.ParentGroup.RootPart.PayPrice[3]=(int)quick_pay_buttons.Data[2];
+            m_host.ParentGroup.RootPart.PayPrice[4]=(int)quick_pay_buttons.Data[3];
         }
 
         public LSL_Types.Vector3 llGetCameraPos()

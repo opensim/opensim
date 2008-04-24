@@ -154,14 +154,14 @@ namespace OpenSim.Framework
             "lsl_text",
             String.Empty,
             String.Empty,
-			"bodypart",
+            "bodypart",
             String.Empty,
             "snapshot",
             String.Empty,
             String.Empty,
             "wearable",
-			"animation",
-			"gesture"
+            "animation",
+            "gesture"
 
         };
         
@@ -183,15 +183,15 @@ namespace OpenSim.Framework
             "lsltext",
             "lslbyte",
             "txtr_tga",
-			"bodypart",
+            "bodypart",
             "trash",
             "snapshot",
             "lstndfnd",
             "snd_wav",
             "img_tga",
             "jpeg",
-			"animatn",
-			"gesture"
+            "animatn",
+            "gesture"
         };              
 
         public LLUUID ItemID = LLUUID.Zero;
@@ -214,8 +214,8 @@ namespace OpenSim.Framework
         public string Name = String.Empty;
         public string Description = String.Empty;
         public uint CreationDate = 0;
-		public LLUUID PermsGranter;
-		public int PermsMask;
+        public LLUUID PermsGranter;
+        public int PermsMask;
 
         public LLUUID ParentPartID = LLUUID.Zero;
         

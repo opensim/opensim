@@ -35,7 +35,7 @@ namespace OpenSim.Framework
         public int Version;
         public LLVector3 Position;
         public LLUUID RegionID;
-		public ulong RegionHandle;
+        public ulong RegionHandle;
 
         public AssetLandmark(AssetBase a)
         {

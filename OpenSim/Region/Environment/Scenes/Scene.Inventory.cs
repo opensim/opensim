@@ -730,11 +730,11 @@ namespace OpenSim.Region.Environment.Scenes
 
                         if (item != null)
                         {
-							group.AddInventoryItem(remoteClient, primLocalID, item, copyID);
-							m_log.InfoFormat(
-								"[PRIM INVENTORY]: Update with item {0} requested of prim {1} for {2}", 
-								item.Name, primLocalID, remoteClient.Name);
-							group.GetProperties(remoteClient);
+                            group.AddInventoryItem(remoteClient, primLocalID, item, copyID);
+                            m_log.InfoFormat(
+                                "[PRIM INVENTORY]: Update with item {0} requested of prim {1} for {2}", 
+                                item.Name, primLocalID, remoteClient.Name);
+                            group.GetProperties(remoteClient);
                         }
                         else
                         {

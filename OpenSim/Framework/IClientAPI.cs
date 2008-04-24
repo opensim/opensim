@@ -440,9 +440,9 @@ namespace OpenSim.Framework
 
     public delegate void ObjectIncludeInSearch(IClientAPI remoteClient, bool IncludeInSearch, uint localID);
 
-	public delegate void ScriptAnswer(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID, int answer);
-	public delegate void RequestPayPrice(IClientAPI remoteClient, LLUUID objectID);
-	
+    public delegate void ScriptAnswer(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID, int answer);
+    public delegate void RequestPayPrice(IClientAPI remoteClient, LLUUID objectID);
+    
     public interface IClientAPI
     {
         event ImprovedInstantMessage OnInstantMessage;
@@ -559,13 +559,13 @@ namespace OpenSim.Framework
         event MoneyBalanceRequest OnMoneyBalanceRequest;
         event UpdateAvatarProperties OnUpdateAvatarProperties;
         event ParcelBuy OnParcelBuy;
-		event RequestPayPrice  OnRequestPayPrice ;
+        event RequestPayPrice  OnRequestPayPrice ;
 
         event ObjectIncludeInSearch OnObjectIncludeInSearch;
 
         event UUIDNameRequest OnTeleportHomeRequest;
-		
-		event ScriptAnswer OnScriptAnswer;
+        
+        event ScriptAnswer OnScriptAnswer;
          
         LLVector3 StartPos { get; set; }
 
@@ -578,8 +578,8 @@ namespace OpenSim.Framework
         string FirstName { get; }
 
         string LastName { get; }
-		
-		int NextAnimationSequenceNumber { get; }
+        
+        int NextAnimationSequenceNumber { get; }
 
         /// <summary>
         /// Returns the full name of the agent/avatar represented by this client
@@ -624,7 +624,7 @@ namespace OpenSim.Framework
         void SendTeleportFailed(string reason);
         void SendTeleportLocationStart();
         void SendMoneyBalance(LLUUID transaction, bool success, byte[] description, int balance);
-		void SendPayPrice(LLUUID objectID, int[] payPrice);
+        void SendPayPrice(LLUUID objectID, int[] payPrice);
 
         void SendAvatarData(ulong regionHandle, string firstName, string lastName, LLUUID avatarID, uint avatarLocalID,
                             LLVector3 Pos, byte[] textureEntry, uint parentID);
@@ -703,7 +703,7 @@ namespace OpenSim.Framework
 
         void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember, string flAbout,
                                   uint flags, LLUUID flImageID, LLUUID imageID, string profileURL, LLUUID partnerID);
-		void SendScriptQuestion(LLUUID taskID, string taskName, string ownerName, LLUUID itemID, int question);
+        void SendScriptQuestion(LLUUID taskID, string taskName, string ownerName, LLUUID itemID, int question);
 
         byte[] GetThrottlesPacked(float multiplier);
         

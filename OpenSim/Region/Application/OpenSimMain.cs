@@ -249,7 +249,7 @@ namespace OpenSim
                 config.Set("enabled", "false");
             }
 
-	    if (DefaultConfig.Configs["Voice"] == null)
+        if (DefaultConfig.Configs["Voice"] == null)
                 DefaultConfig.AddConfig("Voice");
             config = DefaultConfig.Configs["Voice"];
             if (config != null)
@@ -522,8 +522,8 @@ namespace OpenSim
             m_log.Info("[MODULES]: Loading Region's modules");
 
             List<IRegionModule> modules = m_moduleLoader.PickupModules(scene, ".");
-			// This needs to be ahead of the script engine load, so the
-			// script module can pick up events exposed by a module
+            // This needs to be ahead of the script engine load, so the
+            // script module can pick up events exposed by a module
             m_moduleLoader.InitialiseSharedModules(scene);
 
             //m_moduleLoader.PickupModules(scene, "ScriptEngines");

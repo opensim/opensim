@@ -67,57 +67,57 @@ namespace OpenSim.Framework
         private ushort _version;
         
         public string Name {
-        	get {
-        		return _name;
-        	}
-        	set {
-        		_name = value;
-        	}
+            get {
+                return _name;
+            }
+            set {
+                _name = value;
+            }
         }
 
         public LLUUID Owner {
-        	get {
-        		return _owner;
-        	}
-        	set {
-        		_owner = value;
-        	}
+            get {
+                return _owner;
+            }
+            set {
+                _owner = value;
+            }
         }
 
         public LLUUID ParentID {
-        	get {
-        		return _parentID;
-        	}
-        	set {
-        		_parentID = value;
-        	}
+            get {
+                return _parentID;
+            }
+            set {
+                _parentID = value;
+            }
         }
 
         public LLUUID ID {
-        	get {
-        		return _id;
-        	}
-        	set {
-        		_id = value;
-        	}
+            get {
+                return _id;
+            }
+            set {
+                _id = value;
+            }
         }
 
         public short Type {
-        	get {
-        		return _type;
-        	}
-        	set {
-        		_type = value;
-        	}
+            get {
+                return _type;
+            }
+            set {
+                _type = value;
+            }
         }
 
         public ushort Version {
-        	get {
-        		return _version;
-        	}
-        	set {
-        		_version = value;
-        	}
+            get {
+                return _version;
+            }
+            set {
+                _version = value;
+            }
         }
     }
 }
