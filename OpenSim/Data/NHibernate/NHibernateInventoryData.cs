@@ -56,7 +56,7 @@ namespace OpenSim.Data.NHibernate
         {
             // Split out the dialect, driver, and connect string
             char[] split = {';'};
-            string[] parts = connect.Split(split);
+            string[] parts = connect.Split(split, 3);
             if (parts.Length != 3) {
                 // TODO: make this a real exception type
                 throw new Exception("Malformed Inventory connection string '" + connect + "'");
