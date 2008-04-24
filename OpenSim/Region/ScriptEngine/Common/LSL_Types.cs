@@ -403,6 +403,68 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return ret;
             }
 
+			public list DeleteSublist(int start, int end)
+			{
+				// Not an easy one
+				// If start <= end, remove that part
+				// if either is negative, count from the end of the array
+				// if the resulting start > end, remove all BUT that part
+
+				Object[] ret;
+
+				if(start < 0)
+					start=m_data.Length-start;
+
+				if(start < 0)
+					start=0;
+
+				if(end < 0)
+					end=m_data.Length-end;
+				if(end < 0)
+					end=0;
+
+				if(start > end)
+				{
+					if(end >= m_data.Length)
+						return new list(new Object[0]);
+
+					if(start >= m_data.Length)
+						start=m_data.Length-1;
+
+					return GetSublist(end, start);
+				}
+
+				// start >= 0 && end >= 0 here
+				if(start >= m_data.Length)
+				{
+					ret=new Object[m_data.Length];
+					Array.Copy(m_data, 0, ret, 0, m_data.Length);
+
+					return new list(ret);
+				}
+
+				if(end >= m_data.Length)
+					end=m_data.Length-1;
+
+				// now, this makes the math easier
+				int remove=end+1-start;
+				
+				ret=new Object[m_data.Length-remove];
+				if(ret.Length == 0)
+					return new list(ret);
+
+				int src;
+				int dest=0;
+
+				for(src = 0 ; src < m_data.Length ; src++)
+				{
+					if(src < start || src > end)
+						ret[dest++]=m_data[src];
+				}
+
+				return new list(ret);
+			}
+
             public list GetSublist(int start, int end)
             {
 

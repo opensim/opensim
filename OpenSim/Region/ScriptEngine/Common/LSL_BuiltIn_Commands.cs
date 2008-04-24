@@ -2269,7 +2269,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             int count = 0;
             foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
-                if (inv.Value.InvType == type)
+                if (inv.Value.Type == type || type == -1)
                 {
                     count = count + 1;
                 }
@@ -2283,7 +2283,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             ArrayList keys = new ArrayList();
             foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
-                if (inv.Value.InvType == type)
+                if (inv.Value.Type == type || type == -1)
                 {
                     keys.Add(inv.Value.Name);
                 }
@@ -2972,12 +2972,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.list llDeleteSubList(LSL_Types.list src, int start, int end)
         {
-            //LSL_Types.list ret = new LSL_Types.list(src);
-            //ret.RemoveRange(start, end - start);
-            //return ret;
-
-            // Just a hunch - needs testing
-            return src.GetSublist(end, start);
+            return src.DeleteSublist(end, start);
         }
 
         public int llGetListEntryType(LSL_Types.list src, int index)
