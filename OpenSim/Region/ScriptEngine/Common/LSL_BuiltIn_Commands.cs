@@ -166,6 +166,18 @@ namespace OpenSim.Region.ScriptEngine.Common
             return LLUUID.Zero;
         }
 
+        public void osSetRegionWaterHeight(double height)
+        {
+            m_host.AddScriptLPS(1);
+            //Check to make sure that the script's owner is the estate manager/master
+            //World.PermissionsMngr.GenericEstatePermission(
+            if (World.PermissionsMngr.GenericEstatePermission(m_host.OwnerID))
+            {
+                World.EstateManager.setRegionSettings((float)height, 0f, 0f, false, 0.5f);
+                World.EstateManager.sendRegionInfoPacketToAll();
+            }
+        }
+     
         //These are the implementations of the various ll-functions used by the LSL scripts.
         //starting out, we use the System.Math library for trig functions. - ckrinke 8-14-07
         public double llSin(double f)

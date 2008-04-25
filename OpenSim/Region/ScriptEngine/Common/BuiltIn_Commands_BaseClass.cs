@@ -111,7 +111,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             
         }
 
-
         public void Start(BuilIn_Commands LSL_Functions)
         {
             m_LSL_Functions = LSL_Functions;
@@ -159,7 +158,10 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             return m_LSL_Functions.llSin(f);
         }
-
+        public void osSetRegionWaterHeight(double height)
+        {
+            m_LSL_Functions.osSetRegionWaterHeight(height);
+        }
         public double llCos(double f)
         {
             return m_LSL_Functions.llCos(f);

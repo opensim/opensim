@@ -639,5 +639,6 @@ namespace OpenSim.Region.ScriptEngine.Common
         string llStringTrim(string src, int type);
         LSL_Types.list llGetObjectDetails(string id, LSL_Types.list args);
 
+        void osSetRegionWaterHeight(double height);
     }
 }

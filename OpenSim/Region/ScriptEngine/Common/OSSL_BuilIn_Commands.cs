@@ -268,7 +268,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return 0;
             }
         }
-
+     
         public double osTerrainGetHeight(int x, int y)
         {
             m_host.AddScriptLPS(1);
@@ -530,5 +530,6 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.setScriptEvents(m_itemID, events);
         }
+
     }
 }
