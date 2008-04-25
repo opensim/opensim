@@ -97,7 +97,7 @@ namespace OpenSim.Region.Environment.Scenes
         public uint Category;
         
         // TODO: This needs to be persisted in next XML version update!
-        [XmlIgnore] public int[] PayPrice = {0,0,0,0,0};
+        [XmlIgnore] public int[] PayPrice = {-2,-2,-2,-2,-2};
 
 
         [XmlIgnore] public bool m_IsAttachment = false;
