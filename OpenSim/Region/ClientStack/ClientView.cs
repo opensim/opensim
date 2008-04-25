@@ -2062,7 +2062,7 @@ namespace OpenSim.Region.ClientStack
                 // Item from inventory???
                 outPacket.ObjectData[0].NameValue =
                            Helpers.StringToField("AttachItemID STRING RW SV " + objectID.UUID);
-                outPacket.ObjectData[0].State = (byte)(((byte)AttachPoint) << 4);
+                outPacket.ObjectData[0].State = (byte)((AttachPoint % 16) * 16 + (AttachPoint / 16));
             }
 
             // Sound Radius

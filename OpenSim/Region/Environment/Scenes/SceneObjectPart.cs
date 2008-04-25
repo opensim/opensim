@@ -2288,7 +2288,7 @@ namespace OpenSim.Region.Environment.Scenes
             LLQuaternion mRot = RotationOffset;
             if (m_IsAttachment)
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, (byte)(((byte)m_attachmentPoint) << 4));
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, (byte)((m_attachmentPoint % 16) * 16 + (m_attachmentPoint / 16)));
             }
             else
             {
