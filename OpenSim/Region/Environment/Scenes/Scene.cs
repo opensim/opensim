@@ -1368,13 +1368,18 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneXmlLoader.SavePrimsToXml2(fileName);
         }
 
+        /// <summary>
+        /// Locate New region Handle and offset the prim position for the new region
+        /// 
+        /// </summary>
+        /// <param name="position">current position of Group</param>
+        /// <param name="grp">Scene Object Group that we're crossing</param>
+ 
         public void CrossPrimGroupIntoNewRegion(LLVector3 position, SceneObjectGroup grp)
         {
             m_log.Warn("Prim crossing: " + grp.UUID.ToString());
             int thisx = (int)RegionInfo.RegionLocX;
             int thisy = (int)RegionInfo.RegionLocY;
-
-            int primcrossingXMLmethod = 0;
 
             ulong newRegionHandle = 0;
             LLVector3 pos = position;
@@ -1410,6 +1415,12 @@ namespace OpenSim.Region.Environment.Scenes
             // Offset the positions for the new region across the border
             grp.OffsetForNewRegion(pos);
             
+            CrossPrimGroupIntoNewRegion(newRegionHandle, grp);
+
+        }
+        public void CrossPrimGroupIntoNewRegion(ulong newRegionHandle, SceneObjectGroup grp)
+        {
+            int primcrossingXMLmethod = 0;
             if (newRegionHandle != 0)
             {
                 bool successYN = false;

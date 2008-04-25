@@ -168,11 +168,24 @@ namespace OpenSim.Region.Environment
         /// <returns>Has permission?</returns>
         public virtual bool CanObjectEntry(LLUUID user, LLVector3 oldPos, LLVector3 newPos)
         {
+            
+
+            if ((newPos.X > 257f || newPos.X < -1f || newPos.Y > 257f || newPos.Y < -1f))
+            {
+                return true;
+            }
+
             ILandObject land1 = m_scene.LandChannel.getLandObject(oldPos.X, oldPos.Y);
             ILandObject land2 = m_scene.LandChannel.getLandObject(newPos.X, newPos.Y);
+
             if (land1 == null || land2 == null)
             {
                 return false;
+            }
+            if (land2 == null)
+            {
+                // need this for crossing borders
+                return true;
             }
 
             if (land1.landData.globalID == land2.landData.globalID)

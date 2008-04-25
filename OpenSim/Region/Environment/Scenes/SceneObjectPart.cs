@@ -103,6 +103,7 @@ namespace OpenSim.Region.Environment.Scenes
         [XmlIgnore] public bool m_IsAttachment = false;
         [XmlIgnore] public uint m_attachmentPoint = (byte)0;
         [XmlIgnore] public LLUUID m_attachedAvatar = LLUUID.Zero;
+        [XmlIgnore] public LLVector3 m_attachedPos = LLVector3.Zero;
 
         public Int32 CreationDate;
         public uint ParentID = 0;
@@ -276,6 +277,15 @@ namespace OpenSim.Region.Environment.Scenes
                     m_groupPosition.Y = PhysActor.Position.Y;
                     m_groupPosition.Z = PhysActor.Position.Z;
                 }
+                if (m_IsAttachment)
+                {
+                    ScenePresence sp = m_parentGroup.Scene.GetScenePresence(m_attachedAvatar);
+                    if (sp != null)
+                    {
+                        return sp.AbsolutePosition;
+                    }
+                }
+
                 return m_groupPosition;
             }
             set
@@ -340,7 +350,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public LLVector3 AbsolutePosition
         {
-            get { return m_offsetPosition + m_groupPosition; }
+            get {
+                if (m_IsAttachment)
+                    return GroupPosition;
+
+                return m_offsetPosition + m_groupPosition; }
         }
 
         protected LLQuaternion m_rotationOffset;

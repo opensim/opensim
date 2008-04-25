@@ -314,6 +314,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             List<EntityBase> EntityList = GetEntities();
 
+            if (AttachmentPt == 0)
+                AttachmentPt = (uint)AttachmentPoint.LeftHand;
+
             foreach (EntityBase obj in EntityList)
             {
                 if (obj is SceneObjectGroup)

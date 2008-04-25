@@ -1077,7 +1077,14 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_rootPart.UUID == part.UUID)
             {
-                part.SendFullUpdateToClient(remoteClient, AbsolutePosition, clientFlags);
+                if (m_rootPart.m_IsAttachment)
+                {
+                    part.SendFullUpdateToClient(remoteClient, m_rootPart.m_attachedPos, clientFlags);
+                }
+                else
+                {
+                    part.SendFullUpdateToClient(remoteClient, AbsolutePosition, clientFlags);
+                }
             }
             else
             {
@@ -1094,7 +1101,14 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_rootPart.UUID == part.UUID)
             {
-                part.SendTerseUpdateToClient(remoteClient, AbsolutePosition);
+                if (m_rootPart.m_IsAttachment)
+                {
+                    part.SendTerseUpdateToClient(remoteClient, m_rootPart.m_attachedPos);
+                }
+                else
+                {
+                    part.SendTerseUpdateToClient(remoteClient, AbsolutePosition);
+                }
             }
             else
             {
@@ -2143,6 +2157,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_scene.EventManager.TriggerGroupMove(UUID, pos))
             {
+                if (m_rootPart.m_IsAttachment)
+                {
+                    m_rootPart.m_attachedPos = pos;
+                }
+
                 AbsolutePosition = pos;
             }
             //we need to do a terse update even if the move wasn't allowed
