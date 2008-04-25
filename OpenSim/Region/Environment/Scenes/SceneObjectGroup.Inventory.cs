@@ -151,6 +151,11 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
+        /// <summary>
+        /// Return serialized inventory metadata for the given constituent prim
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <param name="xferManager"></param>
         public void RequestInventoryFile(uint localID, IXfer xferManager)
         {
             SceneObjectPart part = GetChildPart(localID);

@@ -308,6 +308,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             m_inventorySerial++;
+            //m_inventorySerial += 2;
             HasInventoryChanged = true;
         }
 
@@ -479,9 +480,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="xferManager"></param>
         public void RequestInventoryFile(IXfer xferManager)
-        {
+        {            
             byte[] fileData = new byte[0];
             InventoryStringBuilder invString = new InventoryStringBuilder(m_folderID, UUID);
+            //InventoryStringBuilder invString = new InventoryStringBuilder(UUID, LLUUID.Zero);
 
             lock (m_taskInventory)
             {
@@ -489,27 +491,46 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     invString.AddItemStart();
                     invString.AddNameValueLine("item_id", item.ItemID.ToString());
+                    
                     invString.AddNameValueLine("parent_id", item.ParentID.ToString());
+//                    invString.AddNameValueLine("parent_id", UUID.ToString());
 
                     invString.AddPermissionsStart();
-                    invString.AddNameValueLine("base_mask", "0x7FFFFFFF");
-                    invString.AddNameValueLine("owner_mask", "0x7FFFFFFF");
-                    invString.AddNameValueLine("group_mask", "0x7FFFFFFF");
-                    invString.AddNameValueLine("everyone_mask", "0x7FFFFFFF");
-                    invString.AddNameValueLine("next_owner_mask", "0x7FFFFFFF");
+                    invString.AddNameValueLine("base_mask", "7fffffff");
+                    invString.AddNameValueLine("owner_mask", "7fffffff");
+
+                    invString.AddNameValueLine("group_mask", "7fffffff");
+                    invString.AddNameValueLine("everyone_mask", "7fffffff");
+                    invString.AddNameValueLine("next_owner_mask", "7fffffff");
+//                    invString.AddNameValueLine("group_mask", "00000000");
+//                    invString.AddNameValueLine("everyone_mask", "00000000");
+//                    invString.AddNameValueLine("next_owner_mask", "00086000");
+                    
                     invString.AddNameValueLine("creator_id", item.CreatorID.ToString());
                     invString.AddNameValueLine("owner_id", item.OwnerID.ToString());
+                    
                     invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
+//                    invString.AddNameValueLine("last_owner_id", item.OwnerID.ToString());
+                    
                     invString.AddNameValueLine("group_id", item.GroupID.ToString());
                     invString.AddSectionEnd();
-
+                        
                     invString.AddNameValueLine("asset_id", item.AssetID.ToString());
                     invString.AddNameValueLine("type", TaskInventoryItem.Types[item.Type]);
                     invString.AddNameValueLine("inv_type", TaskInventoryItem.InvTypes[item.InvType]);
-                    invString.AddNameValueLine("flags", "0x00");
+                    invString.AddNameValueLine("flags", "00000000");
+                                        
+                    invString.AddSaleStart();
+                    invString.AddNameValueLine("sale_type", "not");
+                    invString.AddNameValueLine("sale_price", "0");
+                    invString.AddSectionEnd();
+                    
                     invString.AddNameValueLine("name", item.Name + "|");
                     invString.AddNameValueLine("desc", item.Description + "|");
+                                    
                     invString.AddNameValueLine("creation_date", item.CreationDate.ToString());
+//                    invString.AddNameValueLine("creation_date", "1209151453");
+                    
                     invString.AddSectionEnd();
                 }
             }
@@ -552,19 +573,30 @@ namespace OpenSim.Region.Environment.Scenes
                 AddNameValueLine("obj_id", folderID.ToString());
                 AddNameValueLine("parent_id", parentID.ToString());
                 AddNameValueLine("type", "category");
-                AddNameValueLine("name", "Contents");
+                AddNameValueLine("name", "Contents|");
                 AddSectionEnd();
             }
 
             public void AddItemStart()
             {
                 BuildString += "\tinv_item\t0\n";
-                BuildString += "\t{\n";
+                AddSectionStart();
             }
 
             public void AddPermissionsStart()
             {
                 BuildString += "\tpermissions 0\n";
+                AddSectionStart();
+            }
+            
+            public void AddSaleStart()
+            {
+                BuildString += "\tsale_info\t0\n";
+                AddSectionStart();
+            }            
+            
+            protected void AddSectionStart()
+            {
                 BuildString += "\t{\n";
             }
 

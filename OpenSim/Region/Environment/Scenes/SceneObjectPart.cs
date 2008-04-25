@@ -683,7 +683,7 @@ namespace OpenSim.Region.Environment.Scenes
         public SceneObjectPart()
         {
             // It's not necessary to persist this
-            m_inventoryFileName = "taskinventory" + LLUUID.Random().ToString();
+            m_inventoryFileName = "inventory_" + LLUUID.Random().ToString() + ".tmp";
             m_TextureAnimation = new byte[0];
         }
 
@@ -732,7 +732,7 @@ namespace OpenSim.Region.Environment.Scenes
             AngularVelocity = new LLVector3(0, 0, 0);
             Acceleration = new LLVector3(0, 0, 0);
             m_TextureAnimation = new byte[0];
-            m_inventoryFileName = "taskinventory" + LLUUID.Random().ToString();
+            m_inventoryFileName = "inventory_" + LLUUID.Random().ToString() + ".tmp";
             m_folderID = LLUUID.Random();
 
             Flags = 0;

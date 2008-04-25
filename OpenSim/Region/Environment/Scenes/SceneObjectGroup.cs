@@ -1880,7 +1880,10 @@ namespace OpenSim.Region.Environment.Scenes
             proper.ObjectData[0].FromTaskID = LLUUID.Zero;
             proper.ObjectData[0].GroupID = LLUUID.Zero;
             proper.ObjectData[0].InventorySerial = (short) m_rootPart.InventorySerial;
+            
             proper.ObjectData[0].LastOwnerID = m_rootPart.LastOwnerID;
+//            proper.ObjectData[0].LastOwnerID = LLUUID.Zero;
+            
             proper.ObjectData[0].ObjectID = UUID;
             proper.ObjectData[0].OwnerID = m_rootPart.OwnerID;
             proper.ObjectData[0].TouchName = Helpers.StringToField(m_rootPart.TouchName);
@@ -1893,6 +1896,9 @@ namespace OpenSim.Region.Environment.Scenes
             proper.ObjectData[0].GroupMask = m_rootPart.GroupMask;
             proper.ObjectData[0].EveryoneMask = m_rootPart.EveryoneMask;
             proper.ObjectData[0].BaseMask = m_rootPart.BaseMask;
+//            proper.ObjectData[0].AggregatePerms = 53;
+//            proper.ObjectData[0].AggregatePermTextures = 0;
+//            proper.ObjectData[0].AggregatePermTexturesOwner = 0;
 
             client.OutPacket(proper, ThrottleOutPacketType.Task);
         }
