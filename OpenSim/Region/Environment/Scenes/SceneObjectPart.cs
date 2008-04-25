@@ -2367,7 +2367,21 @@ namespace OpenSim.Region.Environment.Scenes
                 m_parentGroup.SetScriptEvents(scriptID, events);
             }
         }
-
+        public int registerTargetWaypoint(LLVector3 target, float tolerance)
+        {
+            if (m_parentGroup != null)
+            {
+                return m_parentGroup.registerTargetWaypoint(target, tolerance);
+            }
+            return 0;
+        }
+        public void unregisterTargetWaypoint(int handle)
+        {
+            if (m_parentGroup != null)
+            {
+                m_parentGroup.unregisterTargetWaypoint(handle);
+            }
+        }
         protected SceneObjectPart(SerializationInfo info, StreamingContext context)
         {
             //System.Console.WriteLine("SceneObjectPart Deserialize BGN");

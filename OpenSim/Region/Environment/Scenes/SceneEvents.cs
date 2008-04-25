@@ -132,8 +132,16 @@ namespace OpenSim.Region.Environment.Scenes
         public event ClientClosed OnClientClosed;
 
         public delegate void ScriptChangedEvent(uint localID, uint change);
-       
+
         public event ScriptChangedEvent OnScriptChangedEvent;
+
+        public delegate void ScriptAtTargetEvent(uint localID, uint handle, LLVector3 targetpos, LLVector3 atpos);
+
+        public event ScriptAtTargetEvent OnScriptAtTargetEvent;
+
+        public delegate void ScriptNotAtTargetEvent(uint localID);
+
+        public event ScriptNotAtTargetEvent OnScriptNotAtTargetEvent;
 
         public event OnNewPresenceDelegate OnMakeChildAgent;
 
@@ -224,6 +232,8 @@ namespace OpenSim.Region.Environment.Scenes
         /* Designated Event Deletage Instances */
 
         private ScriptChangedEvent handlerScriptChangedEvent = null; //OnScriptChangedEvent;
+        private ScriptAtTargetEvent handlerScriptAtTargetEvent = null;
+        private ScriptNotAtTargetEvent handlerScriptNotAtTargetEvent = null;
         private ClientMovement handlerClientMovement = null; //OnClientMovement;
         private OnPermissionErrorDelegate handlerPermissionError = null; //OnPermissionError;
         private OnPluginConsoleDelegate handlerPluginConsole = null; //OnPluginConsole;
@@ -532,6 +542,24 @@ namespace OpenSim.Region.Environment.Scenes
             if (handlerValidateLandBuy != null)
             {
                 handlerValidateLandBuy(sender, e);
+            }
+        }
+        
+        public void TriggerAtTargetEvent(uint localID, uint handle, LLVector3 targetpos, LLVector3 currentpos)
+        {
+            handlerScriptAtTargetEvent = OnScriptAtTargetEvent;
+            if (handlerScriptAtTargetEvent != null)
+            {
+                handlerScriptAtTargetEvent(localID, handle, targetpos, currentpos);
+            }
+        }
+
+        public void TriggerNotAtTargetEvent(uint localID)
+        {
+            handlerScriptNotAtTargetEvent = OnScriptNotAtTargetEvent;
+            if (handlerScriptNotAtTargetEvent != null)
+            {
+                handlerScriptNotAtTargetEvent(localID);
             }
         }
     }

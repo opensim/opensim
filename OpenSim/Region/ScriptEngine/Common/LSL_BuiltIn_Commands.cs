@@ -1181,14 +1181,14 @@ namespace OpenSim.Region.ScriptEngine.Common
         public int llTarget(LSL_Types.Vector3 position, double range)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llTarget");
-            return 0;
+            return m_host.registerTargetWaypoint(new LLVector3((float)position.x, (float)position.y, (float)position.z), (float)range);
+           
         }
 
         public void llTargetRemove(int number)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llTargetRemove");
+            m_host.unregisterTargetWaypoint(number);
         }
 
         public int llRotTarget(LSL_Types.Quaternion rot, double error)

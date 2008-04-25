@@ -70,6 +70,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 myScriptEngine.World.EventManager.OnRezScript += OnRezScript;
                 myScriptEngine.World.EventManager.OnRemoveScript += OnRemoveScript;
                 myScriptEngine.World.EventManager.OnScriptChangedEvent += changed;
+                myScriptEngine.World.EventManager.OnScriptAtTargetEvent += at_target;
+                myScriptEngine.World.EventManager.OnScriptNotAtTargetEvent += not_at_target;
+
                 // TODO: HOOK ALL EVENTS UP TO SERVER!
                 IMoneyModule money=myScriptEngine.World.RequestModuleInterface<IMoneyModule>();
                 if(money != null)
@@ -222,14 +225,14 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "email", EventQueueManager.llDetectNull);
         }
 
-        public void at_target(uint localID, LLUUID itemID)
+        public void at_target(uint localID, uint handle, LLVector3 targetpos, LLVector3 atpos)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "at_target", EventQueueManager.llDetectNull);
+            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "at_target", EventQueueManager.llDetectNull, new object[] { (int)handle, new LSL_Types.Vector3(targetpos.X,targetpos.Y,targetpos.Z), new LSL_Types.Vector3(atpos.X,atpos.Y,atpos.Z) });
         }
 
-        public void not_at_target(uint localID, LLUUID itemID)
+        public void not_at_target(uint localID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "not_at_target", EventQueueManager.llDetectNull);
+            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "not_at_target", EventQueueManager.llDetectNull);
         }
 
         public void at_rot_target(uint localID, LLUUID itemID)

@@ -54,7 +54,7 @@ namespace OpenSim.Region.Environment.Scenes
         land_collision = 2048,
         land_collision_end = 4096,
         land_collision_start = 8192,
-        link_message = 16384,
+        at_target = 16384,
         listen = 32768,
         money = 65536,
         moving_end = 131072,
@@ -70,6 +70,12 @@ namespace OpenSim.Region.Environment.Scenes
         touch_end = 536870912,
         touch_start = 2097152,
         object_rez = 4194304
+    }
+
+    struct scriptPosTarget
+    {
+        public LLVector3 targetPos;
+        public float tolerance;
     }
 
     public delegate void PrimCountTaintedDelegate();
@@ -98,6 +104,12 @@ namespace OpenSim.Region.Environment.Scenes
         protected ulong m_regionHandle;
         protected SceneObjectPart m_rootPart;
         private Dictionary<LLUUID, scriptEvents> m_scriptEvents = new Dictionary<LLUUID, scriptEvents>();
+
+        private Dictionary<uint, scriptPosTarget> m_targets = new Dictionary<uint, scriptPosTarget>();
+
+        private bool m_scriptListens_atTarget = false;
+        private bool m_scriptListens_notAtTarget = false;
+
 
         #region Properties
 
@@ -175,6 +187,8 @@ namespace OpenSim.Region.Environment.Scenes
                         string.Format("[SCENE OBJECT GROUP]: Object {0} has no root part.", m_uuid));
                 }
 
+                
+
                 return m_rootPart.GroupPosition;
             }
             set
@@ -193,6 +207,7 @@ namespace OpenSim.Region.Environment.Scenes
                         part.GroupPosition = val;
                     }
                 }
+                
                 //if (m_rootPart.PhysActor != null)
                 //{
                 //m_rootPart.PhysActor.Position =
@@ -202,7 +217,7 @@ namespace OpenSim.Region.Environment.Scenes
                 //}
             }
         }
-
+        
         public override uint LocalId
         {
             get
@@ -928,6 +943,33 @@ namespace OpenSim.Region.Environment.Scenes
                     part.ObjectFlags = objectflagupdate;
                 }
             }
+
+            if ((m_aggregateScriptEvents & scriptEvents.at_target) != 0)
+            {
+                m_scriptListens_atTarget = true;
+            }
+            else
+            {
+                m_scriptListens_atTarget = false;
+            }
+
+            if ((m_aggregateScriptEvents & scriptEvents.not_at_target) != 0)
+            {
+                m_scriptListens_notAtTarget = true;
+            }
+            else
+            {
+                m_scriptListens_notAtTarget = false;
+            }
+
+            if (m_scriptListens_atTarget || m_scriptListens_notAtTarget)
+            {
+            }
+            else
+            {
+                lock (m_targets)
+                    m_targets.Clear();
+            }
             ScheduleGroupForFullUpdate();
         }
 
@@ -1336,6 +1378,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public override void Update()
         {
+            
             lock (m_parts)
             {
                 if (Util.GetDistanceTo(lastPhysGroupPos, AbsolutePosition) > 0.02)
@@ -1346,6 +1389,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
 
                     lastPhysGroupPos = AbsolutePosition;
+                    checkAtTargets();
                 }
 
                 if ((Math.Abs(lastPhysGroupRot.W - GroupRotation.W) > 0.1)
@@ -1396,7 +1440,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void ScheduleGroupForFullUpdate()
         {
             HasGroupChanged = true;
-
+            checkAtTargets();
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
@@ -2299,6 +2343,108 @@ namespace OpenSim.Region.Environment.Scenes
                     m_rootPart.SetPhysicsAxisRotation();
                 }
 
+            }
+        }
+
+        public int registerTargetWaypoint(LLVector3 target, float tolerance)
+        {
+            scriptPosTarget waypoint = new scriptPosTarget();
+            waypoint.targetPos = target;
+            waypoint.tolerance = tolerance;
+            uint handle = m_scene.PrimIDAllocate();
+            lock (m_targets)
+            {
+                m_targets.Add(handle, waypoint);
+            }
+            return (int)handle;
+        }
+        public void unregisterTargetWaypoint(int handle)
+        {
+            lock (m_targets)
+            {
+                if (m_targets.ContainsKey((uint)handle))
+                    m_targets.Remove((uint)handle);
+            }
+        }
+
+        private void checkAtTargets()
+        {
+            if (m_scriptListens_atTarget || m_scriptListens_notAtTarget)
+            {
+                if (m_targets.Count > 0)
+                {
+                    bool at_target = false;
+                    //LLVector3 targetPos;
+                    //uint targetHandle;
+                    Dictionary<uint, scriptPosTarget> atTargets = new Dictionary<uint, scriptPosTarget>();
+                    lock (m_targets)
+                    {
+                        foreach (uint idx in m_targets.Keys)
+                        {
+                            scriptPosTarget target = m_targets[idx];
+                            if (Util.GetDistanceTo(target.targetPos, m_rootPart.GroupPosition) <= target.tolerance)
+                            {
+                                // trigger at_target
+                                if (m_scriptListens_atTarget)
+                                {
+                                    // Reusing att.tolerance to hold the index of the target in the targets dictionary
+                                    // to avoid deadlocking the sim.
+                                    at_target = true;
+                                    scriptPosTarget att = new scriptPosTarget();
+                                    att.targetPos = target.targetPos;
+                                    att.tolerance = (float)idx;
+                                    atTargets.Add(idx, att);
+                                }
+                            }
+                        }
+                    }
+                    if (atTargets.Count > 0)
+                    {
+                        uint[] localids = new uint[0];
+                        lock (m_parts)
+                        {
+                            localids = new uint[m_parts.Count];
+                            int cntr = 0;
+                            foreach (SceneObjectPart part in m_parts.Values)
+                            {
+                                localids[cntr] = part.LocalId;
+                                cntr++;
+                            }
+                        }
+                        for (int ctr = 0; ctr < localids.Length; ctr++)
+                        {
+                            foreach (uint target in atTargets.Keys)
+                            {
+                                scriptPosTarget att = atTargets[target];
+                                // Reusing att.tolerance to hold the index of the target in the targets dictionary
+                                // to avoid deadlocking the sim.
+                                m_scene.TriggerAtTargetEvent(localids[ctr], (uint)att.tolerance, att.targetPos, m_rootPart.GroupPosition);
+                                
+
+                            }
+                        }
+                        return;
+                    }
+                    if (m_scriptListens_notAtTarget && !at_target)
+                    {
+                        //trigger not_at_target
+                        uint[] localids = new uint[0];
+                        lock (m_parts)
+                        {
+                            localids = new uint[m_parts.Count];
+                            int cntr = 0;
+                            foreach (SceneObjectPart part in m_parts.Values)
+                            {
+                                localids[cntr] = part.LocalId;
+                                cntr++;
+                            }
+                        }
+                        for (int ctr = 0; ctr < localids.Length; ctr++)
+                        {
+                            m_scene.TriggerNotAtTargetEvent(localids[ctr]);
+                        }
+                    }
+                }
             }
         }
     }

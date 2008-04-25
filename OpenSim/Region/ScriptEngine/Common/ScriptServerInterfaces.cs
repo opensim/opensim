@@ -57,8 +57,8 @@ namespace OpenSim.Region.ScriptEngine.Common
             void control(uint localID, LLUUID itemID);
             void money(uint LocalID, LLUUID agentID, int amount);
             void email(uint localID, LLUUID itemID);
-            void at_target(uint localID, LLUUID itemID);
-            void not_at_target(uint localID, LLUUID itemID);
+            void at_target(uint localID, uint handle, LLVector3 targetpos, LLVector3 atpos);
+            void not_at_target(uint localID);
             void at_rot_target(uint localID, LLUUID itemID);
             void not_at_rot_target(uint localID, LLUUID itemID);
             void run_time_permissions(uint localID, LLUUID itemID);

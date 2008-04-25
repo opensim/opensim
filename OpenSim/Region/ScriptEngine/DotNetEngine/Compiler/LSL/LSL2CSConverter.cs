@@ -419,8 +419,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                // case "at_rot_target":
                     //return (long)scriptEvents.at_rot_target;
                     //break;
-                //case "at_target":
-                    //return (long)scriptEvents.at_target;
+                case "at_target":
+                    return scriptEvents.at_target;
                     //break;
                 //case "changed":
                     //return (long)scriptEvents.changed;
@@ -455,8 +455,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 case "land_collision_start":
                     return scriptEvents.land_collision_start;
                    // break;
-                case "link_message":
-                    return scriptEvents.link_message;
+                //case "link_message":
+                    //return scriptEvents.link_message;
                   //  break;
                 case "listen":
                     return scriptEvents.listen;
@@ -534,7 +534,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         land_collision = 2048,
         land_collision_end = 4096,
         land_collision_start = 8192,
-        link_message = 16384,
+        at_target = 16384,
         listen = 32768,
         money = 65536,
         moving_end = 131072,

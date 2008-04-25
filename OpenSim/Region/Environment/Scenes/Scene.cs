@@ -2772,6 +2772,17 @@ namespace OpenSim.Region.Environment.Scenes
             m_eventManager.TriggerOnScriptChangedEvent(localID, change);
         }
 
+        public void TriggerAtTargetEvent(uint localID, uint handle, LLVector3 targetpos, LLVector3 currentpos)
+        {
+
+            m_eventManager.TriggerAtTargetEvent(localID, handle, targetpos, currentpos);
+        }
+
+        public void TriggerNotAtTargetEvent(uint localID)
+        {
+            m_eventManager.TriggerNotAtTargetEvent(localID);
+        }
+
         private bool scriptDanger(SceneObjectPart part,LLVector3 pos)
         {
             ILandObject parcel = LandChannel.getLandObject(pos.X, pos.Y);
