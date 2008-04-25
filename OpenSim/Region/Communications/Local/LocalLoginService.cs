@@ -29,6 +29,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using libsecondlife;
 using log4net;
 using OpenSim.Framework;
@@ -119,9 +120,18 @@ namespace OpenSim.Region.Communications.Local
             }
         }
 
+        private Regex reURI = new Regex(@"^uri:(?<region>[^&]+)&(?<x>\d+)&(?<y>\d+)&(?<z>\d+)$");
+
         public override void CustomiseResponse(LoginResponse response, UserProfileData theUser, string startLocationRequest)
         {
             ulong currentRegion = 0;
+
+            uint locX = 0;
+            uint locY = 0;
+            uint locZ = 0;
+            bool specificStartLocation = false;
+
+            // get start location
             if (startLocationRequest == "last")
             {
                 currentRegion = theUser.CurrentAgent.Handle;
@@ -132,27 +142,62 @@ namespace OpenSim.Region.Communications.Local
             }
             else
             {
-                m_log.Info("[LOGIN]: Got Custom Login URL, but can't process it");
-                // LocalBackEndServices can't possibly look up a region by name :(
-                // TODO: Parse string in the following format: 'uri:RegionName&X&Y&Z'
+                // use last location as default
                 currentRegion = theUser.CurrentAgent.Handle;
+
+                Match uriMatch = reURI.Match(startLocationRequest);
+                if (null == uriMatch)
+                {
+                    m_log.InfoFormat("[LOGIN]: Got Custom Login URL {0}, but can't process it", startLocationRequest);
+                }
+                else
+                {
+                    string region = uriMatch.Groups["region"].ToString();
+
+                    RegionInfo r = m_Parent.GridService.RequestClosestRegion(region);
+                    if (null == r)
+                    {
+                        m_log.InfoFormat("[LOGIN]: Got Custom Login URL {0}, can't locate region {1}", 
+                                         startLocationRequest, region);
+                    }
+                    else
+                    {
+                        currentRegion = r.RegionHandle;
+                        locX = UInt32.Parse(uriMatch.Groups["x"].ToString());
+                        locY = UInt32.Parse(uriMatch.Groups["y"].ToString());
+                        locZ = UInt32.Parse(uriMatch.Groups["z"].ToString());
+                        specificStartLocation = true;
+                    }
+                }
             }
 
+            RegionInfo homeReg = m_Parent.GridService.RequestNeighbourInfo(theUser.HomeRegion);
             RegionInfo reg = m_Parent.GridService.RequestNeighbourInfo(currentRegion);
 
-            if (reg != null)
+            if ((homeReg != null) && (reg != null))
             {
-                response.Home = "{'region_handle':[r" + (reg.RegionLocX * Constants.RegionSize).ToString() + ",r" +
-                                (reg.RegionLocY * Constants.RegionSize).ToString() + "], " +
-                                "'position':[r" + theUser.HomeLocation.X.ToString() + ",r" +
-                                theUser.HomeLocation.Y.ToString() + ",r" + theUser.HomeLocation.Z.ToString() + "], " +
-                                "'look_at':[r" + theUser.HomeLocation.X.ToString() + ",r" +
-                                theUser.HomeLocation.Y.ToString() + ",r" + theUser.HomeLocation.Z.ToString() + "]}";
+                response.Home = "{'region_handle':[r" + 
+                    (homeReg.RegionLocX * Constants.RegionSize).ToString() + ",r" +
+                    (homeReg.RegionLocY * Constants.RegionSize).ToString() + "], " +
+                    "'position':[r" + 
+                    theUser.HomeLocation.X.ToString() + ",r" + 
+                    theUser.HomeLocation.Y.ToString() + ",r" + 
+                    theUser.HomeLocation.Z.ToString() + "], " +
+                    "'look_at':[r" + 
+                    theUser.HomeLocation.X.ToString() + ",r" + 
+                    theUser.HomeLocation.Y.ToString() + ",r" + 
+                    theUser.HomeLocation.Z.ToString() + "]}";
                 string capsPath = Util.GetRandomCapsPath();
                 response.SimAddress = reg.ExternalEndPoint.Address.ToString();
                 response.SimPort = (uint) reg.ExternalEndPoint.Port;
                 response.RegionX = reg.RegionLocX;
-                response.RegionY = reg.RegionLocY ;
+                response.RegionY = reg.RegionLocY;
+
+                m_log.DebugFormat(
+                    "[CAPS][LOGIN]: RegionX {0} RegionY {0}", response.RegionX, response.RegionY);
+
+                // can be: last, home, safe, url
+                if (specificStartLocation) response.StartLocation = "url";
 
                 response.SeedCapability = "http://" + reg.ExternalHostName + ":" +
                                           serversInfo.HttpListenerPort.ToString() + "/CAPS/" + capsPath + "0000/";
@@ -176,7 +221,10 @@ namespace OpenSim.Region.Communications.Local
                 _login.Session = response.SessionID;
                 _login.SecureSession = response.SecureSessionID;
                 _login.CircuitCode = (uint) response.CircuitCode;
-                _login.StartPos = new LLVector3(128, 128, 70);
+                if (specificStartLocation)
+                    _login.StartPos = new LLVector3(locX, locY, locZ);
+                else
+                    _login.StartPos = new LLVector3(128, 128, 128);
                 _login.CapsPath = capsPath;
 
                 m_log.InfoFormat(

@@ -180,7 +180,10 @@ namespace OpenSim.Region.Communications.Local
 
         public RegionInfo RequestClosestRegion(string regionName)
         {
-            // Don't use this method.  It's only for SLURLS and Logins
+            foreach(RegionInfo regInfo in m_regions.Values)
+            {
+                if (regInfo.RegionName == regionName) return regInfo;
+            }
             return null;
         }
 
