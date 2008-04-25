@@ -1911,7 +1911,7 @@ namespace OpenSim.Region.Environment.Scenes
             data[pos] = ConvertScriptUintToByte(pTexAnim.Flags); pos++;
             data[pos] = (byte)pTexAnim.Face; pos++;
             data[pos] = (byte)pTexAnim.SizeX; pos++;
-            data[pos] = (byte)pTexAnim.SizeX; pos++;
+            data[pos] = (byte)pTexAnim.SizeY; pos++;
 
             Helpers.FloatToBytes(pTexAnim.Start).CopyTo(data, pos);
             Helpers.FloatToBytes(pTexAnim.Length ).CopyTo(data, pos + 4);
