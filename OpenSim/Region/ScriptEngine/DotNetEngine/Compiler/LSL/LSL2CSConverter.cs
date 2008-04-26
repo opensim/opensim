@@ -85,6 +85,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             string quote = String.Empty;
             bool last_was_escape = false;
             int quote_replaced_count = 0;
+
+            Match SecurityM = Regex.Match(Script, "[;}][^\"']+System\\.[^\"']", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.IgnoreCase);
+            if (SecurityM.Success)
+                throw new Exception("BC20002: 'System' is null or not an object");
+
             for (int p = 0; p < Script.Length; p++)
             {
                 C = Script.Substring(p, 1);
