@@ -628,23 +628,38 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
 
-        public void AttachToAgent(LLUUID agentID, uint attachmentpoint)
+        public void AttachToAgent(LLUUID agentID, uint attachmentpoint, LLVector3 AttachOffset)
         {
             ScenePresence avatar = m_scene.GetScenePresence(agentID);
             if (avatar != null)
             {
+                DetachFromBackup(this);
                 m_rootPart.m_attachedAvatar = agentID;
-                m_rootPart.SetParentLocalId(avatar.LocalId);
-                m_rootPart.SetAttachmentPoint(attachmentpoint);
-                m_rootPart.m_IsAttachment = true;
+
+               
                 if (m_rootPart.PhysActor != null)
                 {
                     m_scene.PhysicsScene.RemovePrim(m_rootPart.PhysActor);
                     m_rootPart.PhysActor = null;
-                    AbsolutePosition = LLVector3.Zero;
+                    AbsolutePosition = AttachOffset;
+                    m_rootPart.m_attachedPos = AttachOffset;
                 }
+                m_rootPart.m_IsAttachment = true;
+
+                m_rootPart.SetParentLocalId(avatar.LocalId);
+                m_rootPart.SetAttachmentPoint(attachmentpoint);
+
+                avatar.AddAttachment(this);
                 m_rootPart.ScheduleFullUpdate();
             }
+        }
+        public byte GetAttachmentPoint()
+        {
+            if (m_rootPart != null)
+            {
+                return m_rootPart.Shape.State;
+            }
+            return (byte)0;
         }
 
         public void DetachToGround()
@@ -654,6 +669,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (avatar != null)
             {
                 detachedpos = avatar.AbsolutePosition;
+                avatar.RemoveAttachment(this);
             }
             AbsolutePosition = detachedpos;
             m_rootPart.m_attachedAvatar = LLUUID.Zero;
@@ -661,6 +677,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_rootPart.SetAttachmentPoint((byte)0);
             m_rootPart.m_IsAttachment = false;
             m_rootPart.ApplyPhysics(m_rootPart.ObjectFlags, m_scene.m_physicalPrim);
+            AttachToBackup();
             m_rootPart.ScheduleFullUpdate();
         }
         /// <summary>
@@ -1395,26 +1412,36 @@ namespace OpenSim.Region.Environment.Scenes
             
             lock (m_parts)
             {
+                //if (m_rootPart.m_IsAttachment)
+                //{
+                    //foreach (SceneObjectPart part in m_parts.Values)
+                    //{
+                        //part.SendScheduledUpdates();
+                    //}
+                    //return;
+                //}
+            
                 if (Util.GetDistanceTo(lastPhysGroupPos, AbsolutePosition) > 0.02)
                 {
-                    foreach (SceneObjectPart part in m_parts.Values)
-                    {
-                        if (part.UpdateFlag == 0) part.UpdateFlag = 1;
-                    }
-
+                    m_rootPart.UpdateFlag = 1;
                     lastPhysGroupPos = AbsolutePosition;
-                    checkAtTargets();
                 }
+                    //foreach (SceneObjectPart part in m_parts.Values)
+                    //{
+                        //if (part.UpdateFlag == 0) part.UpdateFlag = 1;
+                    //}
+
+                    
+                    
+                    checkAtTargets();
+                
 
                 if ((Math.Abs(lastPhysGroupRot.W - GroupRotation.W) > 0.1)
                     || (Math.Abs(lastPhysGroupRot.X - GroupRotation.X) > 0.1)
                     || (Math.Abs(lastPhysGroupRot.Y - GroupRotation.Y) > 0.1)
                     || (Math.Abs(lastPhysGroupRot.Z - GroupRotation.Z) > 0.1))
                 {
-                    foreach (SceneObjectPart part in m_parts.Values)
-                    {
-                        if (part.UpdateFlag == 0) part.UpdateFlag = 1;
-                    }
+                    m_rootPart.UpdateFlag = 1;
 
                     lastPhysGroupRot = GroupRotation;
                 }

@@ -1300,6 +1300,13 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetAttachmentPoint(uint AttachmentPoint)
         {
             m_attachmentPoint = AttachmentPoint;
+            
+            // save the attachment point.
+            //if (AttachmentPoint != 0)
+            //{
+                m_shape.State = (byte)AttachmentPoint;
+            //}
+           
         }
         /// <summary>
         /// 

@@ -1457,6 +1457,28 @@ namespace OpenSim.Region.Environment.Scenes
             if (XMLMethod == 0)
             {
                 m_sceneXmlLoader.LoadGroupFromXml2String(objXMLData);
+                SceneObjectPart RootPrim = GetSceneObjectPart(primID);
+                if (RootPrim != null)
+                {
+                    if (RootPrim.Shape.PCode == (byte)PCode.Prim)
+                    {
+                        SceneObjectGroup grp = RootPrim.ParentGroup;
+                        if (grp != null)
+                        {
+                            if (RootPrim.Shape.State != 0)
+                            {
+                                // Attachment
+                                ScenePresence sp = GetScenePresence(grp.OwnerID);
+                                if (sp != null)
+                                {
+                                    m_innerScene.AttachObject(sp.ControllingClient, grp.LocalId, (uint)0, grp.GroupRotation, grp.AbsolutePosition);
+                                }
+                            }
+                        }
+                    
+
+                    }
+                }
                 return true;
             }
             else

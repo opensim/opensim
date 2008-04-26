@@ -310,13 +310,22 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
         }
+        /// <summary>
+        /// Event Handling routine for Attach Object
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="objectLocalID"></param>
+        /// <param name="AttachmentPt"></param>
+        /// <param name="rot"></param>
         public void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, LLQuaternion rot)
         {
+            // Calls attach with a Zero position
+            AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, LLVector3.Zero);
+        }
+
+        public void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, LLQuaternion rot, LLVector3 attachPos)
+        {
             List<EntityBase> EntityList = GetEntities();
-
-            if (AttachmentPt == 0)
-                AttachmentPt = (uint)AttachmentPoint.LeftHand;
-
             foreach (EntityBase obj in EntityList)
             {
                 if (obj is SceneObjectGroup)
@@ -324,7 +333,20 @@ namespace OpenSim.Region.Environment.Scenes
                     if (((SceneObjectGroup)obj).LocalId == objectLocalID)
                     {
                         SceneObjectGroup group = (SceneObjectGroup)obj;
-                        group.AttachToAgent(remoteClient.AgentId, AttachmentPt);
+                        if (AttachmentPt == 0)
+                        {
+                            // Check object for stored attachment point
+                            AttachmentPt = (uint)group.GetAttachmentPoint();
+
+                            // if we still didn't find a suitable attachment point.......
+                            if (AttachmentPt == 0)
+                            {
+                                AttachmentPt = (uint)AttachmentPoint.LeftHand;
+                            }
+                            
+                        }
+
+                        group.AttachToAgent(remoteClient.AgentId, AttachmentPt, attachPos);
                         
                     }
 

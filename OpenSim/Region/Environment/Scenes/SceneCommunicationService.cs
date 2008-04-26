@@ -580,6 +580,8 @@ namespace OpenSim.Region.Environment.Scenes
                         avatar.ControllingClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4),
                                                                     capsPath);
                         avatar.MakeChildAgent();
+                        System.Threading.Thread.Sleep(5000);
+                        avatar.CrossAttachmentsIntoNewRegion(regionHandle);
                         if (KillObject != null)
                         {
                             KillObject(avatar.LocalId);

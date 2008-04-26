@@ -117,6 +117,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected AvatarAppearance m_appearance;
 
+        protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
+
         //neighbouring regions we have enabled a child agent in
         private readonly List<ulong> m_knownChildRegions = new List<ulong>();
 
@@ -1672,8 +1674,8 @@ namespace OpenSim.Region.Environment.Scenes
                 // When the neighbour is informed of the border crossing, it will set up CAPS handlers for the avatar
                 // This means we need to remove the current caps handler here and possibly compensate later, 
                 // in case both scenes are being hosted on the same region server.  Messy
-                m_scene.RemoveCapsHandler(UUID);                
-                
+                m_scene.RemoveCapsHandler(UUID);
+                newpos = newpos + (vel);
                 bool res =
                     m_scene.InformNeighbourOfCrossing(neighbourHandle, m_controllingClient.AgentId, newpos,
                                                       m_physicsActor.Flying);
@@ -1692,6 +1694,7 @@ namespace OpenSim.Region.Environment.Scenes
                     m_controllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint,
                                                     capsPath);
                     MakeChildAgent();
+                    CrossAttachmentsIntoNewRegion(neighbourHandle);
                     m_scene.SendKillObject(m_localId);
                     m_scene.NotifyMyCoarseLocationChange();
                 }
@@ -1943,7 +1946,43 @@ namespace OpenSim.Region.Environment.Scenes
                 DefaultTexture = textu.ToBytes();
             }
         }
+        public void AddAttachment(SceneObjectGroup gobj)
+        {
+            lock (m_attachments)
+            {
+                m_attachments.Add(gobj);
+            }
+        }
+        public void RemoveAttachment(SceneObjectGroup gobj)
+        {
+            lock (m_attachments)
+            {
+                if (m_attachments.Contains(gobj))
+                {
+                    m_attachments.Remove(gobj);
+                }
+            }
+        }
+        public void CrossAttachmentsIntoNewRegion(ulong regionHandle)
+        {
+            lock (m_attachments)
+            {
+                foreach (SceneObjectGroup gobj in m_attachments)
+                {
+                    // If the prim group is null then something must have happened to it!
+                    if (gobj != null)
+                    {
+                        // Set the parent localID to 0 so it transfers over properly.
+                        gobj.RootPart.SetParentLocalId(0);
+                        gobj.RootPart.m_IsAttachment = false;
+                        gobj.AbsolutePosition = gobj.RootPart.m_attachedPos;
+                        m_scene.CrossPrimGroupIntoNewRegion(regionHandle, gobj);
+                    }
+                }
+                m_attachments.Clear();
+            }
 
+        }
         public void initializeScenePresence(IClientAPI client, RegionInfo region, Scene scene)
         {
             m_controllingClient = client;
