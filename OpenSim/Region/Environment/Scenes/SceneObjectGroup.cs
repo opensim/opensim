@@ -1904,7 +1904,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Return metadata about a prim (name, description, sale price, etc.)
         /// </summary>
         /// <param name="client"></param>
         public void GetProperties(IClientAPI client)

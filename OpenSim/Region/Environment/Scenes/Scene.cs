@@ -1608,6 +1608,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnRequestTaskInventory += RequestTaskInventory;
             client.OnRemoveTaskItem += RemoveTaskInventory;
             client.OnUpdateTaskInventory += UpdateTaskInventory;
+            client.OnMoveTaskItem += MoveTaskInventoryItem;
 
             client.OnGrabObject += ProcessObjectGrab;
             client.OnMoneyTransferRequest += ProcessMoneyTransferRequest;

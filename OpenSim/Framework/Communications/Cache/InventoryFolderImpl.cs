@@ -92,7 +92,7 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Does this folder contain the given item?
+        /// Does this folder or any of its subfolders contain the given item?
         /// </summary>
         /// <param name="itemID"></param>
         /// <returns></returns>

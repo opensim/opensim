@@ -198,6 +198,13 @@ namespace OpenSim.Region.Environment.Scenes
                 taskItem.CreatorID = item.Creator;
                 taskItem.Type = item.AssetType;
                 taskItem.InvType = item.InvType;
+                
+                taskItem.BaseMask = item.BasePermissions;
+                taskItem.OwnerMask = item.CurrentPermissions;
+                // FIXME: ignoring group permissions for now as they aren't stored in item
+                taskItem.EveryoneMask = item.EveryOnePermissions;
+                taskItem.NextOwnerMask = item.NextPermissions;
+                    
                 part.AddInventoryItem(taskItem);
                 
                 return true;

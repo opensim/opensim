@@ -408,6 +408,8 @@ namespace OpenSim.Framework
 
     public delegate void UpdateTaskInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID folderID, uint localID);
 
+    public delegate void MoveTaskInventory(IClientAPI remoteClient, LLUUID folderID, uint localID, LLUUID itemID);
+    
     public delegate void RemoveTaskInventory(IClientAPI remoteClient, LLUUID itemID, uint localID);
 
     public delegate void UDPAssetUploadRequest(
@@ -530,6 +532,7 @@ namespace OpenSim.Framework
         event ConfirmXfer OnConfirmXfer;
         event RezScript OnRezScript;
         event UpdateTaskInventory OnUpdateTaskInventory;
+        event MoveTaskInventory OnMoveTaskItem;
         event RemoveTaskInventory OnRemoveTaskItem;
         event RequestAsset OnRequestAsset;
 

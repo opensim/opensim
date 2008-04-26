@@ -83,6 +83,14 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 EventManager.TriggerOnNewInventoryItemUploadComplete(remoteClient.AgentId, item.AssetID, item.Name, userlevel);
             }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[AGENT INVENTORY]: Agent {0} {1} was not found for add of item {2} {3}",
+                    remoteClient.Name, remoteClient.AgentId, item.Name, item.ID);
+                
+                return;
+            }             
         }
 
         /// <summary> 
@@ -695,6 +703,79 @@ namespace OpenSim.Region.Environment.Scenes
                     itemID,
                     localID);
             }
+        }
+        
+        /// <summary>
+        /// Move the given item in the given prim to a folder in the client's inventory
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="folderID"></param>
+        /// <param name="primLocalID"></param>
+        /// <param name="itemID"></param>
+        public void MoveTaskInventoryItem(IClientAPI remoteClient, LLUUID folderId, uint primLocalId, LLUUID itemId)
+        {
+            SceneObjectGroup group = GetGroupByPrim(primLocalId);
+            
+            if (null == group)
+            {
+                m_log.WarnFormat(
+                    "[PRIM INVENTORY]: " +
+                    "Move of inventory item {0} from prim with local id {1} failed because the prim could not be found",
+                    itemId, primLocalId);
+                
+                return;
+            }      
+            
+            TaskInventoryItem taskItem = group.GetInventoryItem(primLocalId, itemId);
+            
+            if (null == taskItem)
+            {
+                // Console already notified of error in GetInventoryItem
+                return;
+            }
+            
+//                        bool permission;
+//                            permission = PermissionsMngr.CanCopyObject(remoteClient.AgentId, 
+//                                                                ((SceneObjectGroup) selectedEnt).UUID);
+            
+            // Pending resolving upstream problems with permissions, we just won't allow anybody who is not the owner
+            // to copy
+            if (remoteClient.AgentId != taskItem.OwnerID)
+            {
+                m_log.InfoFormat(
+                    "[PRIM INVENTORY]: Attempt made by {0} {1} to copy inventory item {2} {3} in prim {4} {5},"
+                        + " but temporarily not allowed pending upstream bugfixes/feature implementation",
+                    remoteClient.Name, remoteClient.AgentId, taskItem.Name, taskItem.ItemID, group.Name, group.UUID);
+
+                return;
+            }
+            
+            InventoryItemBase agentItem = new InventoryItemBase();
+            
+            agentItem.ID = LLUUID.Random();
+            agentItem.Creator = taskItem.CreatorID;
+            agentItem.Owner = remoteClient.AgentId;
+            agentItem.AssetID = taskItem.AssetID;
+            agentItem.Description = taskItem.Description;
+            agentItem.Name = taskItem.Name;
+            agentItem.AssetType = taskItem.Type;
+            agentItem.InvType = taskItem.InvType;
+            agentItem.Folder = folderId;
+            agentItem.EveryOnePermissions = taskItem.EveryoneMask;
+            
+            if (remoteClient.AgentId != taskItem.OwnerID) {
+                agentItem.BasePermissions = taskItem.NextOwnerMask;
+                agentItem.CurrentPermissions = taskItem.NextOwnerMask;
+                agentItem.NextPermissions = taskItem.NextOwnerMask;
+            }
+            else
+            {
+                agentItem.BasePermissions = taskItem.BaseMask;
+                agentItem.CurrentPermissions = taskItem.OwnerMask;
+                agentItem.NextPermissions = taskItem.NextOwnerMask;                    
+            }
+                
+            AddInventoryItem(remoteClient, agentItem);
         }
 
         /// <summary>

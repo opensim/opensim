@@ -747,12 +747,15 @@ namespace OpenSim.Region.Environment.Scenes
             Acceleration = new LLVector3(0, 0, 0);
             m_TextureAnimation = new byte[0];
             m_inventoryFileName = "inventory_" + LLUUID.Random().ToString() + ".tmp";
-            m_folderID = LLUUID.Random();
+            
+            // Prims currently only contain a single folder (Contents).  From looking at the Second Life protocol,
+            // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from 
+            // the prim into an agent inventory (Linden client reports that the "Object not found for drop" in its log
+            m_folderID = UUID;
 
             Flags = 0;
-            Flags |=   LLObject.ObjectFlags.AllowInventoryDrop |
-                       LLObject.ObjectFlags.CreateSelected;
-
+            Flags |=  LLObject.ObjectFlags.AllowInventoryDrop |
+                      LLObject.ObjectFlags.CreateSelected;
 
             TrimPermissions();
 

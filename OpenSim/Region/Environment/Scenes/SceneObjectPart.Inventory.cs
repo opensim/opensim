@@ -482,8 +482,9 @@ namespace OpenSim.Region.Environment.Scenes
         public void RequestInventoryFile(IXfer xferManager)
         {            
             byte[] fileData = new byte[0];
-            InventoryStringBuilder invString = new InventoryStringBuilder(m_folderID, UUID);
-            //InventoryStringBuilder invString = new InventoryStringBuilder(UUID, LLUUID.Zero);
+            //InventoryStringBuilder invString = new InventoryStringBuilder(m_folderID, UUID);
+//            InventoryStringBuilder invString = new InventoryStringBuilder(UUID, LLUUID.Zero);
+            InventoryStringBuilder invString = new InventoryStringBuilder(m_folderID, LLUUID.Zero);
 
             lock (m_taskInventory)
             {
@@ -492,19 +493,27 @@ namespace OpenSim.Region.Environment.Scenes
                     invString.AddItemStart();
                     invString.AddNameValueLine("item_id", item.ItemID.ToString());
                     
-                    invString.AddNameValueLine("parent_id", item.ParentID.ToString());
-//                    invString.AddNameValueLine("parent_id", UUID.ToString());
+                    //invString.AddNameValueLine("parent_id", item.ParentID.ToString());
+                    invString.AddNameValueLine("parent_id", m_folderID.ToString());
 
                     invString.AddPermissionsStart();
+                    
+                    // FIXME: Temporary until permissions are properly sorted.
                     invString.AddNameValueLine("base_mask", "7fffffff");
                     invString.AddNameValueLine("owner_mask", "7fffffff");
-
                     invString.AddNameValueLine("group_mask", "7fffffff");
                     invString.AddNameValueLine("everyone_mask", "7fffffff");
                     invString.AddNameValueLine("next_owner_mask", "7fffffff");
+                    
 //                    invString.AddNameValueLine("group_mask", "00000000");
 //                    invString.AddNameValueLine("everyone_mask", "00000000");
 //                    invString.AddNameValueLine("next_owner_mask", "00086000");
+                    
+//                    invString.AddNameValueLine("base_mask", Helpers.UIntToHexString(item.BaseMask));
+//                    invString.AddNameValueLine("owner_mask", Helpers.UIntToHexString(item.OwnerMask));
+//                    invString.AddNameValueLine("group_mask", Helpers.UIntToHexString(item.GroupMask));
+//                    invString.AddNameValueLine("everyone_mask", Helpers.UIntToHexString(item.EveryoneMask));
+//                    invString.AddNameValueLine("next_owner_mask", Helpers.UIntToHexString(item.NextOwnerMask));
                     
                     invString.AddNameValueLine("creator_id", item.CreatorID.ToString());
                     invString.AddNameValueLine("owner_id", item.OwnerID.ToString());
@@ -537,8 +546,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             fileData = Helpers.StringToField(invString.BuildString);
 
-//            m_log.DebugFormat(
-//                "[PRIM INVENTORY]: RequestInventoryFile fileData: {0}", Helpers.FieldToUTF8String(fileData));
+            //m_log.Debug("[PRIM INVENTORY]: RequestInventoryFile fileData: " + Helpers.FieldToUTF8String(fileData));
 
             if (fileData.Length > 2)
             {

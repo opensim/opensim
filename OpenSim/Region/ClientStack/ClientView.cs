@@ -196,6 +196,7 @@ namespace OpenSim.Region.ClientStack
         private RemoveInventoryFolder handlerRemoveInventoryFolder = null;
         private RequestTaskInventory handlerRequestTaskInventory = null; //OnRequestTaskInventory;
         private UpdateTaskInventory handlerUpdateTaskInventory = null; //OnUpdateTaskInventory;
+        private MoveTaskInventory handlerMoveTaskItem = null;             
         private RemoveTaskInventory handlerRemoveTaskItem = null; //OnRemoveTaskItem;
         private RezScript handlerRezScript = null; //OnRezScript;
         private RequestMapBlocks handlerRequestMapBlocks = null; //OnRequestMapBlocks;
@@ -762,6 +763,7 @@ namespace OpenSim.Region.ClientStack
         public event ConfirmXfer OnConfirmXfer;
         public event RezScript OnRezScript;
         public event UpdateTaskInventory OnUpdateTaskInventory;
+        public event MoveTaskInventory OnMoveTaskItem;
         public event RemoveTaskInventory OnRemoveTaskItem;
         public event RequestAsset OnRequestAsset;
 
@@ -4250,8 +4252,11 @@ namespace OpenSim.Region.ClientStack
                                 }
                             }
                         }
+                    
                         break;
+                    
                     case PacketType.RemoveTaskInventory:
+                    
                         RemoveTaskInventoryPacket removeTask = (RemoveTaskInventoryPacket)Pack;
 
                         handlerRemoveTaskItem = OnRemoveTaskItem;
@@ -4260,11 +4265,27 @@ namespace OpenSim.Region.ClientStack
                         {
                             handlerRemoveTaskItem(this, removeTask.InventoryData.ItemID, removeTask.InventoryData.LocalID);
                         }
+                    
                         break;
+                    
                     case PacketType.MoveTaskInventory:
-                        m_log.Warn("[CLIENT]: unhandled MoveTaskInventory packet");
+                    
+                        MoveTaskInventoryPacket moveTaskInventoryPacket = (MoveTaskInventoryPacket)Pack;
+                    
+                        handlerMoveTaskItem = OnMoveTaskItem;
+                    
+                        if (handlerMoveTaskItem != null)
+                        {
+                            handlerMoveTaskItem(
+                                this, moveTaskInventoryPacket.AgentData.FolderID, 
+                                moveTaskInventoryPacket.InventoryData.LocalID, 
+                                moveTaskInventoryPacket.InventoryData.ItemID);
+                        }
+                    
                         break;
+                    
                     case PacketType.RezScript:
+                    
                         //Console.WriteLine(Pack.ToString());
                         RezScriptPacket rezScriptx = (RezScriptPacket)Pack;
 
@@ -4275,6 +4296,7 @@ namespace OpenSim.Region.ClientStack
                             handlerRezScript(this, rezScriptx.InventoryBlock.ItemID, rezScriptx.UpdateBlock.ObjectLocalID);
                         }
                         break;
+                    
                     case PacketType.MapLayerRequest:
                         RequestMapLayer();
                         break;
