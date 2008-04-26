@@ -560,6 +560,70 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
             }
 
+			public list Sort(int stride, int ascending)
+			{
+				if(Data.Length == 0)
+					return new list(); // Don't even bother
+
+				if(stride == 1) // The simple case
+				{
+					Object[] ret=new Object[Data.Length];
+
+					Array.Copy(Data, 0, ret, 0, Data.Length);
+
+					Array.Sort(ret);
+
+					if(ascending == 0)
+						Array.Reverse(ret);
+					return new list(ret);
+				}
+
+				int src=0;
+
+				int len=(Data.Length+stride-1)/stride;
+
+				string[] keys=new string[len];
+				Object[][] vals=new Object[len][];
+
+				int i;
+
+				while(src < Data.Length)
+				{
+					Object[] o=new Object[stride];
+
+					for(i=0;i<stride;i++)
+					{
+						if(src < Data.Length)
+							o[i]=Data[src++];
+						else
+						{
+							o[i]=new Object();
+							src++;
+						}
+					}
+
+					int idx=src/stride-1;
+					keys[idx]=o[0].ToString();
+					vals[idx]=o;
+				}
+
+				Array.Sort(keys, vals);
+				if(ascending == 0)
+				{
+					Array.Reverse(vals);
+				}
+
+				Object[] sorted=new Object[stride*vals.Length];
+
+				int j;
+
+				for(i=0;i<vals.Length;i++)
+					for(j=0;j<stride;j++)
+						sorted[i*stride+j]=vals[i][j];
+
+				return new list(sorted);
+			}
+
             #region CSV Methods
 
             public static list FromCSV(string csv)

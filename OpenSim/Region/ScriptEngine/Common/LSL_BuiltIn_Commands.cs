@@ -2874,42 +2874,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.list llListSort(LSL_Types.list src, int stride, int ascending)
         {
             m_host.AddScriptLPS(1);
-            // SortedList<string, LSL_Types.list> sorted = new SortedList<string, LSL_Types.list>();
-            // Add chunks to an array
-            //int s = stride;
-            //if (s < 1)
-            //    s = 1;
-            //int c = 0;
-            //LSL_Types.list chunk = new LSL_Types.list();
-            //string chunkString = String.Empty;
-            //foreach (string element in src)
-            //{
-            //    c++;
-            //    if (c > s)
-            //    {
-            //        sorted.Add(chunkString, chunk);
-            //        chunkString = String.Empty;
-            //        chunk = new LSL_Types.list();
-            //        c = 0;
-            //    }
-            //    chunk.Add(element);
-            //    chunkString += element.ToString();
-            //}
-            //if (chunk.Count > 0)
-            //    sorted.Add(chunkString, chunk);
-
-            //LSL_Types.list ret = new LSL_Types.list();
-            //foreach (LSL_Types.list ls in sorted.Values)
-            //{
-            //    ret.AddRange(ls);
-            //}
-
-            //if (ascending == LSL_BaseClass.TRUE)
-            //    return ret;
-            //ret.Reverse();
-            //return ret;
-            NotImplemented("llListSort");
-            return new LSL_Types.list();
+			return src.Sort(stride, ascending);
         }
 
         public int llGetListLength(LSL_Types.list src)
