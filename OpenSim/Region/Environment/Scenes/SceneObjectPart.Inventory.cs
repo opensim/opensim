@@ -482,8 +482,10 @@ namespace OpenSim.Region.Environment.Scenes
         public void RequestInventoryFile(IXfer xferManager)
         {            
             byte[] fileData = new byte[0];
-            //InventoryStringBuilder invString = new InventoryStringBuilder(m_folderID, UUID);
-//            InventoryStringBuilder invString = new InventoryStringBuilder(UUID, LLUUID.Zero);
+            
+            // Confusingly, the folder item has to be the object id, while the 'parent id' has to be zero.  This matches
+            // what appears to happen in the Second Life protocol.  If this isn't the case. then various functionality
+            // isn't available (such as drag from prim inventory to agent inventory)
             InventoryStringBuilder invString = new InventoryStringBuilder(m_folderID, LLUUID.Zero);
 
             lock (m_taskInventory)
@@ -491,9 +493,7 @@ namespace OpenSim.Region.Environment.Scenes
                 foreach (TaskInventoryItem item in m_taskInventory.Values)
                 {
                     invString.AddItemStart();
-                    invString.AddNameValueLine("item_id", item.ItemID.ToString());
-                    
-                    //invString.AddNameValueLine("parent_id", item.ParentID.ToString());
+                    invString.AddNameValueLine("item_id", item.ItemID.ToString());                    
                     invString.AddNameValueLine("parent_id", m_folderID.ToString());
 
                     invString.AddPermissionsStart();
