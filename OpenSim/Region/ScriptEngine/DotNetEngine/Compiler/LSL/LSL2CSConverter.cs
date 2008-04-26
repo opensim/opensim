@@ -86,9 +86,22 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             bool last_was_escape = false;
             int quote_replaced_count = 0;
 
-            Match SecurityM = Regex.Match(Script, "[;}][^\"']+System\\.[^\"']", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.IgnoreCase);
-            if (SecurityM.Success)
-                throw new Exception("BC20002: 'System' is null or not an object");
+            
+
+            string[] blocked = new string[] {"Axiom","Db4objects","libsecondlife","log4net","Microsoft",
+                                             "Modified","Mono","MonoXnaCompactMaths","mscorlib","MySql",
+                                             "NHibernate","Nini","nunit","Ode","OpenSim","PhysX_Wrapper_Dotnet",
+                                             "PumaCode","RAIL","XMLRPC","System"};
+            
+
+            for (int p = 0; p < blocked.Length;p++)
+            {
+                
+                Match SecurityM = Regex.Match(Script, "[;}][^\"']+" + blocked[p].Replace(".", "\\.") + "\\.[^\"']", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                if (SecurityM.Success)
+                    throw new Exception("CS0103: 'The name '" + blocked[p] + "' does not exist in the current context'");
+
+            }
 
             for (int p = 0; p < Script.Length; p++)
             {
