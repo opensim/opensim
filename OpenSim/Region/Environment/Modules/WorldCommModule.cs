@@ -186,11 +186,6 @@ namespace OpenSim.Region.Environment.Modules
 
                     if (sPart != null)
                     {
-                        // Dont process if this message is from itself!
-                        if (li.GetHostID().ToString().Equals(sourceItemID) ||
-                            sPart.UUID.ToString().Equals(sourceItemID))
-                            continue;
-
                         double dis = 0;
 
                         if (source != null)
@@ -260,21 +255,25 @@ namespace OpenSim.Region.Environment.Modules
                                 break;
 
                             case ChatTypeEnum.Broadcast:
-                                ListenerInfo isListen =
-                                    m_listenerManager.IsListenerMatch(sourceItemID, li.GetItemID(), channel, name, msg);
-                                if (isListen != null)
-                                {
-                                    ListenerInfo isListener = m_listenerManager.IsListenerMatch(
-                                        sourceItemID, sPart.UUID, channel, name, msg
-                                        );
-                                    if (isListener != null)
-                                    {
-                                        lock (m_pending.SyncRoot)
-                                        {
-                                            m_pending.Enqueue(isListener);
-                                        }
-                                    }
-                                }
+								// Dont process if this message is from itself!
+								if (li.GetHostID().ToString().Equals(sourceItemID) ||
+										sPart.UUID.ToString().Equals(sourceItemID))
+									continue;
+
+								if (li.GetChannel() == channel)
+								{
+									ListenerInfo isListener = m_listenerManager.IsListenerMatch(
+										sourceItemID, sPart.UUID, channel, name, msg
+									);
+									if (isListener != null)
+									{
+										lock (m_pending.SyncRoot)
+										{
+											m_pending.Enqueue(isListener);
+										}
+									}
+								}
+
                                 break;
                         }
                     }

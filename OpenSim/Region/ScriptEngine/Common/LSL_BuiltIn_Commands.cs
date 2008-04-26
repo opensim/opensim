@@ -404,6 +404,20 @@ namespace OpenSim.Region.ScriptEngine.Common
             wComm.DeliverMessage(m_host.UUID.ToString(), ChatTypeEnum.Shout, channelID, m_host.Name, text);
         }
 
+        public void llRegionSay(int channelID, string text)
+        {
+			if(channelID == 0)
+			{
+				LSLError("Cannot use llRegionSay() on channel 0");
+				return;
+			}
+
+            m_host.AddScriptLPS(1);
+
+            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            wComm.DeliverMessage(m_host.UUID.ToString(), ChatTypeEnum.Broadcast, channelID, m_host.Name, text);
+        }
+
         public int llListen(int channelID, string name, string ID, string msg)
         {
             m_host.AddScriptLPS(1);
@@ -817,13 +831,18 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSetScale(LSL_Types.Vector3 scale)
         {
             m_host.AddScriptLPS(1);
+			SetScale(m_host, scale);
+		}
+
+        private void SetScale(SceneObjectPart part, LSL_Types.Vector3 scale)
+		{
             // TODO: this needs to trigger a persistance save as well
-            LLVector3 tmp = m_host.Scale;
+            LLVector3 tmp = part.Scale;
             tmp.X = (float)scale.x;
             tmp.Y = (float)scale.y;
             tmp.Z = (float)scale.z;
-            m_host.Scale = tmp;
-            m_host.SendFullUpdateToAllClients();
+            part.Scale = tmp;
+            part.SendFullUpdateToAllClients();
             return;
         }
 
@@ -836,7 +855,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSetColor(LSL_Types.Vector3 color, int face)
         {
             m_host.AddScriptLPS(1);
-            LLObject.TextureEntry tex = m_host.Shape.Textures;
+
+			SetColor(m_host, color, face);
+		}
+
+        private void SetColor(SceneObjectPart part, LSL_Types.Vector3 color, int face)
+		{
+            LLObject.TextureEntry tex = part.Shape.Textures;
             LLColor texcolor;
             if (face > -1)
             {
@@ -845,7 +870,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 texcolor.G = (float)Math.Abs(color.y - 1);
                 texcolor.B = (float)Math.Abs(color.z - 1);
                 tex.FaceTextures[face].RGBA = texcolor;
-                m_host.UpdateTexture(tex);
+                part.UpdateTexture(tex);
                 return;
             }
             else if (face == -1)
@@ -866,7 +891,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     texcolor.B = (float)Math.Abs(color.z - 1);
                     tex.DefaultTexture.RGBA = texcolor;
                 }
-                m_host.UpdateTexture(tex);
+                part.UpdateTexture(tex);
                 return;
             }
             else
@@ -893,14 +918,20 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSetAlpha(double alpha, int face)
         {
             m_host.AddScriptLPS(1);
-            LLObject.TextureEntry tex = m_host.Shape.Textures;
+
+			SetAlpha(m_host, alpha, face);
+		}
+
+        private void SetAlpha(SceneObjectPart part, double alpha, int face)
+		{
+            LLObject.TextureEntry tex = part.Shape.Textures;
             LLColor texcolor;
             if (face > -1)
             {
                 texcolor = tex.CreateFace((uint)face).RGBA;
                 texcolor.A = (float)Math.Abs(alpha - 1);
                 tex.FaceTextures[face].RGBA = texcolor;
-                m_host.UpdateTexture(tex);
+                part.UpdateTexture(tex);
                 return;
             }
             else if (face == -1)
@@ -917,7 +948,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 texcolor = tex.DefaultTexture.RGBA;
                 texcolor.A = (float)Math.Abs(alpha - 1);
                 tex.DefaultTexture.RGBA = texcolor;
-                m_host.UpdateTexture(tex);
+                part.UpdateTexture(tex);
                 return;
             }
             else
@@ -958,7 +989,11 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSetTexture(string texture, int face)
         {
             m_host.AddScriptLPS(1);
+			SetTexture(m_host, texture, face);
+		}
 
+        private void SetTexture(SceneObjectPart part, string texture, int face)
+		{
             LLUUID textureID=new LLUUID();
 
             if(!LLUUID.TryParse(texture, out textureID))
@@ -969,14 +1004,14 @@ namespace OpenSim.Region.ScriptEngine.Common
             if(textureID == LLUUID.Zero)
                 return;
 
-            LLObject.TextureEntry tex = m_host.Shape.Textures;
+            LLObject.TextureEntry tex = part.Shape.Textures;
 
             if (face > -1)
             {
                 LLObject.TextureEntryFace texface = tex.CreateFace((uint)face);
                 texface.TextureID = textureID;
                 tex.FaceTextures[face] = texface;
-                m_host.UpdateTexture(tex);
+                part.UpdateTexture(tex);
                 return;
             }
             else if (face == -1)
@@ -989,7 +1024,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     }
                 }
                 tex.DefaultTexture.TextureID = textureID;
-                m_host.UpdateTexture(tex);
+                part.UpdateTexture(tex);
                 return;
             }
             else
@@ -1001,14 +1036,20 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llScaleTexture(double u, double v, int face)
         {
             m_host.AddScriptLPS(1);
-            LLObject.TextureEntry tex = m_host.Shape.Textures;
+
+			ScaleTexture(m_host, u, v, face);
+		}
+
+        private void ScaleTexture(SceneObjectPart part, double u, double v, int face)
+		{
+            LLObject.TextureEntry tex = part.Shape.Textures;
             if (face > -1)
             {
                 LLObject.TextureEntryFace texface = tex.CreateFace((uint)face);
                 texface.RepeatU = (float)u;
                 texface.RepeatV = (float)v;
                 tex.FaceTextures[face] = texface;
-                m_host.UpdateTexture(tex);
+                part.UpdateTexture(tex);
                 return;
             }
             if (face == -1)
@@ -1023,7 +1064,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
                 tex.DefaultTexture.RepeatU = (float)u;
                 tex.DefaultTexture.RepeatV = (float)v;
-                m_host.UpdateTexture(tex);
+                part.UpdateTexture(tex);
                 return;
             }
             else
@@ -1035,14 +1076,19 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llOffsetTexture(double u, double v, int face)
         {
             m_host.AddScriptLPS(1);
-            LLObject.TextureEntry tex = m_host.Shape.Textures;
+			OffsetTexture(m_host, u, v, face);
+		}
+
+        private void OffsetTexture(SceneObjectPart part, double u, double v, int face)
+		{
+            LLObject.TextureEntry tex = part.Shape.Textures;
             if (face > -1)
             {
                 LLObject.TextureEntryFace texface = tex.CreateFace((uint)face);
                 texface.OffsetU = (float)u;
                 texface.OffsetV = (float)v;
                 tex.FaceTextures[face] = texface;
-                m_host.UpdateTexture(tex);
+                part.UpdateTexture(tex);
                 return;
             }
             if (face == -1)
@@ -1057,7 +1103,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
                 tex.DefaultTexture.OffsetU = (float)u;
                 tex.DefaultTexture.OffsetV = (float)v;
-                m_host.UpdateTexture(tex);
+                part.UpdateTexture(tex);
                 return;
             }
             else
@@ -1069,13 +1115,18 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llRotateTexture(double rotation, int face)
         {
             m_host.AddScriptLPS(1);
-            LLObject.TextureEntry tex = m_host.Shape.Textures;
+			RotateTexture(m_host, rotation, face);
+		}
+
+        private void RotateTexture(SceneObjectPart part, double rotation, int face)
+		{
+            LLObject.TextureEntry tex = part.Shape.Textures;
             if (face > -1)
             {
                 LLObject.TextureEntryFace texface = tex.CreateFace((uint)face);
                 texface.Rotation = (float)rotation;
                 tex.FaceTextures[face] = texface;
-                m_host.UpdateTexture(tex);
+                part.UpdateTexture(tex);
                 return;
             }
             if (face == -1)
@@ -1088,7 +1139,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     }
                 }
                 tex.DefaultTexture.Rotation = (float)rotation;
-                m_host.UpdateTexture(tex);
+                part.UpdateTexture(tex);
                 return;
             }
             else
@@ -1121,13 +1172,19 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSetPos(LSL_Types.Vector3 pos)
         {
             m_host.AddScriptLPS(1);
-            if (m_host.ParentID != 0)
+
+			SetPos(m_host, pos);
+		}
+
+		private void SetPos(SceneObjectPart part, LSL_Types.Vector3 pos)
+		{
+            if (part.ParentID != 0)
             {
-                m_host.UpdateOffSet(new LLVector3((float)pos.x, (float)pos.y, (float)pos.z));
+                part.UpdateOffSet(new LLVector3((float)pos.x, (float)pos.y, (float)pos.z));
             }
             else
             {
-                m_host.UpdateGroupPosition(new LLVector3((float)pos.x, (float)pos.y, (float)pos.z));
+                part.UpdateGroupPosition(new LLVector3((float)pos.x, (float)pos.y, (float)pos.z));
             }
         }
 
@@ -1159,9 +1216,15 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSetRot(LSL_Types.Quaternion rot)
         {
             m_host.AddScriptLPS(1);
-            m_host.UpdateRotation(new LLQuaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s));
+
+			SetRot(m_host, rot);
+		}
+
+        private void SetRot(SceneObjectPart part, LSL_Types.Quaternion rot)
+		{
+            part.UpdateRotation(new LLQuaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s));
             // Update rotation does not move the object in the physics scene if it's a linkset.
-            m_host.ParentGroup.AbsolutePosition = m_host.ParentGroup.AbsolutePosition;
+            part.ParentGroup.AbsolutePosition = part.ParentGroup.AbsolutePosition;
         }
 
         public LSL_Types.Quaternion llGetRot()
@@ -4159,14 +4222,107 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSetPrimitiveParams(LSL_Types.list rules)
         {
-            m_host.AddScriptLPS(1);
-            NotImplemented("llSetPrimitiveParams");
+			llSetLinkPrimitiveParams(m_host.LinkNum+1, rules);
         }
 
         public void llSetLinkPrimitiveParams(int linknumber, LSL_Types.list rules)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetLinkPrimitiveParams");
+
+			SceneObjectPart part=null;
+
+			if(m_host.LinkNum+1 != linknumber)
+			{
+				foreach (SceneObjectPart partInst in m_host.ParentGroup.GetParts())
+				{
+					if ((partInst.LinkNum + 1) == linknumber)
+					{
+						part=partInst;
+						break;
+					}
+				}
+			}
+			else
+			{
+				part=m_host;
+			}
+
+			if(part == null)
+				return;
+
+
+			int idx=0;
+
+			while(idx < rules.Length)
+			{
+				int code=Convert.ToInt32(rules.Data[idx++]);
+
+				int remain=rules.Length-idx;
+
+				int face;
+				LSL_Types.Vector3 v;
+
+				switch(code)
+				{
+					case 6: // PRIM_POSITION
+						if(remain < 1)
+							return;
+
+						v=new LSL_Types.Vector3(rules.Data[idx++].ToString());
+						SetPos(part, v);
+
+						break;
+
+					case 8: // PRIM_ROTATION
+						if(remain < 1)
+							return;
+
+						LSL_Types.Quaternion q = new LSL_Types.Quaternion(rules.Data[idx++].ToString());
+						SetRot(part, q);
+
+						break;
+
+					case 17: // PRIM_TEXTURE
+						if(remain < 5)
+							return;
+
+						face=Convert.ToInt32(rules.Data[idx++]);
+						string tex=rules.Data[idx++].ToString();
+						LSL_Types.Vector3 repeats=new LSL_Types.Vector3(rules.Data[idx++].ToString());
+						LSL_Types.Vector3 offsets=new LSL_Types.Vector3(rules.Data[idx++].ToString());
+						double rotation=Convert.ToDouble(rules.Data[idx++]);
+
+						SetTexture(part, tex, face);
+						ScaleTexture(part, repeats.x, repeats.y, face);
+						OffsetTexture(part, offsets.x, offsets.y, face);
+						RotateTexture(part, rotation, face);
+
+						break;
+
+					case 18: // PRIM_COLOR
+						if(remain < 3)
+							return;
+
+						face=Convert.ToInt32(rules.Data[idx++]);
+						LSL_Types.Vector3 color=new LSL_Types.Vector3(rules.Data[idx++].ToString());
+						double alpha=Convert.ToDouble(rules.Data[idx++]);
+
+						SetColor(part, color, face);
+						SetAlpha(part, alpha, face);
+
+						break;
+
+					case 7: // PRIM_SIZE
+						if(remain < 1)
+							return;
+
+						v=new LSL_Types.Vector3(rules.Data[idx++].ToString());
+						SetScale(part, v);
+
+						break;
+
+				}
+			}
         }
 
         public string llStringToBase64(string str)

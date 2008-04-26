@@ -285,6 +285,11 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llShout(channelID, text);
         }
 
+        public void llRegionSay(int channelID, string text)
+        {
+            m_LSL_Functions.llRegionSay(channelID, text);
+        }
+
         public int llListen(int channelID, string name, string ID, string msg)
         {
             return m_LSL_Functions.llListen(channelID, name, ID, msg);

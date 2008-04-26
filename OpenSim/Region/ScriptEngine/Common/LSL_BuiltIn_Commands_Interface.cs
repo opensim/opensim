@@ -63,6 +63,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //void llSay(int channelID, string text);
         void llSay(int channelID, string text);
         void llShout(int channelID, string text);
+        void llRegionSay(int channelID, string text);
         int llListen(int channelID, string name, string ID, string msg);
         void llListenControl(int number, int active);
         void llListenRemove(int number);
