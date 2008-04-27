@@ -67,6 +67,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             {
                 myScriptEngine.Log.Info("[" + myScriptEngine.ScriptEngineName + "]: Hooking up to server events");
                 myScriptEngine.World.EventManager.OnObjectGrab += touch_start;
+                myScriptEngine.World.EventManager.OnObjectDeGrab += touch_end;
                 myScriptEngine.World.EventManager.OnRezScript += OnRezScript;
                 myScriptEngine.World.EventManager.OnRemoveScript += OnRemoveScript;
                 myScriptEngine.World.EventManager.OnScriptChangedEvent += changed;
@@ -115,6 +116,15 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             detstruct._key = new LSL_Types.key[1];
             detstruct._key[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
             myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_start", detstruct, new object[] { (int)1 });
+        }
+
+        public void touch_end(uint localID, IClientAPI remoteClient)
+        {
+            // Add to queue for all scripts in ObjectID object
+            EventQueueManager.Queue_llDetectParams_Struct detstruct = new EventQueueManager.Queue_llDetectParams_Struct();
+            detstruct._key = new LSL_Types.key[1];
+            detstruct._key[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
+            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_end", detstruct, new object[] { (int)1 });
         }
 
         public void OnRezScript(uint localID, LLUUID itemID, string script)

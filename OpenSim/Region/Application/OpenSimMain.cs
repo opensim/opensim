@@ -212,7 +212,7 @@ namespace OpenSim
             if (config != null)
             {
                 config.Set("accounts_authenticate", false);
-                config.Set("welcome_message", "Welcome to OpenSim");
+                config.Set("welcome_message", "Welcome to Krynn");
                 config.Set("inventory_plugin", "OpenSim.Data.SQLite.dll");
                 config.Set("inventory_source", "");
                 config.Set("userDatabase_plugin", "OpenSim.Data.SQLite.dll");
@@ -978,18 +978,63 @@ namespace OpenSim
                     CreateRegion(new RegionInfo(cmdparams[0], "Regions/" + cmdparams[1],false), true);
                     break;
                 case "remove-region":
+                   
                     string regName = CombineParams(cmdparams, 0);
-
+                    
+                    Console.WriteLine("Trying to kill: " + regName);
                     Scene killScene;
-                    if (m_sceneManager.TryGetScene(regName, out killScene))
+
+                    /*  if (m_sceneManager.TryGetScene(regName, out killScene))
                     {
+                        Console.WriteLine("Returned object ID: ", killScene.RegionInfo.RegionID.ToString());
+                        Console.WriteLine("Returned object Name: ", killScene.RegionInfo.RegionName);
+
+                        
+                        if (killScene == null)
+                        {
+                            Console.WriteLine("Returned object is null!");
+                        }
+
                         if (m_sceneManager.CurrentScene.RegionInfo.RegionID == killScene.RegionInfo.RegionID)
                         {
                             m_sceneManager.TrySetCurrentScene("..");
                         }
+                        
                         m_regionData.Remove(killScene.RegionInfo);
                         m_sceneManager.CloseScene(killScene);
+                            
+
+                    }*/
+
+
+                    /// note from John R Sohn aka XenReborn (irc.freenode.net)
+                    /// the trygetscene function does not work
+                    /// when debugging it i noticed it did indeed find the region by name
+                    /// but the OUT parameter "scene" return an empty object
+                    /// hence the reason it threw an exception
+                    /// when the server code in this block tried to kill it
+                    /// i know its not supposed to work that way... but it seems..
+                    /// that it is.. given a flaw in the langauge or concurrency error.. 
+                    /// i have no idea, but for some reason, performing the search here
+                    /// locally does work, as does dynamically killing the region
+                    /// however on server restart, the region returns, i dunno if this was
+                    /// intentional or not.... i suggest creating a seperate function
+                    /// which will permanently remove all data relating to the region
+                    /// as an administrative option... maybe something like "Purge Region"
+                    /// 
+                    /// i made editations with debug console output in above commented code..
+                    /// and the trygetscene(string,out scene) function to show whats happening.
+
+                    for (int x = 0; x < m_sceneManager.Scenes.Count; x++)
+                    {
+                        if (m_sceneManager.Scenes[x].RegionInfo.RegionName.CompareTo(regName) == 0)
+                        {
+                            killScene = m_sceneManager.Scenes[x];
+                            m_regionData.Remove(killScene.RegionInfo);
+                            m_sceneManager.CloseScene(killScene);
+                        }
                     }
+
                     break;
 
                 case "exit":

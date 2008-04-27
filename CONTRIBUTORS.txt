@@ -52,6 +52,7 @@ Patches
 * A_Biondi
 * lulurun 
 * Melanie Thielker
+* John R Sohn(XenReborn)
 
 
 LSL Devs

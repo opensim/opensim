@@ -151,22 +151,57 @@ namespace OpenSim.Region.Environment.Scenes
                 if (ent is SceneObjectGroup)
                 {
                     SceneObjectGroup obj = ent as SceneObjectGroup;
+                    if (obj != null)
+                    {
+                        // Is this prim part of the group
+                        if (obj.HasChildPrim(localID))
+                        {
+                            // Currently only grab/touch for the single prim
+                            // the client handles rez correctly
+                            obj.ObjectGrabHandler(localID, offsetPos, remoteClient);
+
+                            SceneObjectPart part = obj.GetChildPart(localID);
+
+                            // If the touched prim handles touches, deliver it
+                            // If not, deliver to root prim
+                            if ((part.ObjectFlags & (uint)LLObject.ObjectFlags.Touch) != 0)
+                                EventManager.TriggerObjectGrab(part.LocalId, part.OffsetPosition, remoteClient);
+                            else
+                                EventManager.TriggerObjectGrab(obj.RootPart.LocalId, part.OffsetPosition, remoteClient);
+
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        public virtual void ProcessObjectDeGrab(uint localID, IClientAPI remoteClient)
+        {
+
+            List<EntityBase> EntitieList = GetEntities();
+
+            foreach (EntityBase ent in EntitieList)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    SceneObjectGroup obj = ent as SceneObjectGroup;
 
                     // Is this prim part of the group
                     if (obj.HasChildPrim(localID))
                     {
-                        // Currently only grab/touch for the single prim
-                        // the client handles rez correctly
-                        obj.ObjectGrabHandler(localID, offsetPos, remoteClient);
-
-                        // trigger event, one for each prim part in the group
-                        // so that a touch to a non-root prim in a group will still
-                        // trigger a touch_start for a script in the root prim
-                        foreach (SceneObjectPart part in obj.Children.Values)
+						SceneObjectPart part=obj.GetChildPart(localID);
+                        if (part != null)
                         {
-                            EventManager.TriggerObjectGrab(part.LocalId, part.OffsetPosition, remoteClient);
-                        }
+                            // If the touched prim handles touches, deliver it
+                            // If not, deliver to root prim
+                            if ((part.ObjectFlags & (uint)LLObject.ObjectFlags.Touch) != 0)
+                                EventManager.TriggerObjectDeGrab(part.LocalId, remoteClient);
+                            else
+                                EventManager.TriggerObjectDeGrab(obj.RootPart.LocalId, remoteClient);
 
+                            return;
+                        }
                         return;
                     }
                 }

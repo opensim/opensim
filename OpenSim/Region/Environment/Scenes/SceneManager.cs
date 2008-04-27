@@ -268,15 +268,26 @@ namespace OpenSim.Region.Environment.Scenes
 
         public bool TryGetScene(string regionName, out Scene scene)
         {
+            scene = null;
+
             foreach (Scene mscene in m_localScenes)
             {
-                if (String.Compare(mscene.RegionInfo.RegionName, regionName, true) == 0)
+                Console.Write("Region tested: " + mscene.RegionInfo.RegionName+"  With ID: "+mscene.RegionInfo.RegionID.ToString());
+                
+                
+                bool b = String.Compare(mscene.RegionInfo.RegionName.Trim(), regionName.Trim(), true) == 0;
+
+                Console.WriteLine(" <==> Result: " + b.ToString());
+
+                if (b)
                 {
+
+                    Console.WriteLine("FOUND assigning region to out parameter");
                     scene = mscene;
                     return true;
                 }
             }
-            scene = null;
+           
             return false;
         }
 

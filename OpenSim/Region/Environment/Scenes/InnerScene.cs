@@ -324,8 +324,7 @@ namespace OpenSim.Region.Environment.Scenes
             // Calls attach with a Zero position
             AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, LLVector3.Zero);
         }
-        public void RezSingleAttachment(IClientAPI remoteClient, LLUUID itemID, uint AttachmentPt,
-                                    uint ItemFlags, uint NextOwnerMask)
+        public void RezSingleAttachment(IClientAPI remoteClient, LLUUID itemID, uint AttachmentPt,uint ItemFlags, uint NextOwnerMask)
         {
             SceneObjectGroup objatt = m_parentScene.RezObject(remoteClient, itemID, LLVector3.Zero, LLVector3.Zero, LLUUID.Zero, (byte)1, true,
                 (uint)(PermissionMask.Copy | PermissionMask.Move | PermissionMask.Modify | PermissionMask.Transfer),
