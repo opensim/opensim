@@ -884,12 +884,10 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_physicsActor == null)
                 {
                     AddToPhysicalScene();
-                    
                 }
 
                 m_pos += m_parentPosition + new LLVector3(0.0f, 0.0f, 2.0f*m_sitAvatarHeight);
                 m_parentPosition = new LLVector3();
-
                 
                 m_parentID = 0;
                 SendFullUpdateToAllClients();
@@ -897,7 +895,6 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_physicsActor != null)
                 {
                     SetHeight(m_avHeight);
-                    
                 }
             }
 
@@ -984,7 +981,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 StandUp();
             }
-
 
             SceneObjectPart part = m_scene.GetSceneObjectPart(targetID);
 
