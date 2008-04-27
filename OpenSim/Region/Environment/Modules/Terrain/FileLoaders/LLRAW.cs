@@ -132,6 +132,12 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
             s.Close();
         }
 
+
+        public string FileExtension
+        {
+            get { return ".raw"; }
+        }
+
         #endregion
 
         public override string ToString()

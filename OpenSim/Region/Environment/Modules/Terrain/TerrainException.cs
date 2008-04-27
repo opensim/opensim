@@ -31,15 +31,15 @@ namespace OpenSim.Region.Environment.Modules.Terrain
 {
     public class TerrainException : Exception
     {
-        public TerrainException(): base()
+        public TerrainException() : base()
         {
         }
 
-        public TerrainException(string msg): base(msg)
+        public TerrainException(string msg) : base(msg)
         {
         }
 
-        public TerrainException(string msg, Exception e): base(msg, e)
+        public TerrainException(string msg, Exception e) : base(msg, e)
         {
         }
     }

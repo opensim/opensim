@@ -36,6 +36,11 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
     {
         #region ITerrainLoader Members
 
+        public string FileExtension
+        {
+            get { return ".jpg"; }
+        }
+
         public ITerrainChannel LoadFile(string filename)
         {
             throw new NotImplementedException();

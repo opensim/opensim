@@ -185,7 +185,8 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                         {
                             m_log.Error(
                                 "[TERRAIN]: Unable to load heightmap, file not found. (A directory permissions error may also cause this)");
-                            throw new TerrainException(String.Format("unable to load heightmap: file {0} not found (or permissions do not allow access", filename));
+                            throw new TerrainException(
+                                String.Format("unable to load heightmap: file {0} not found (or permissions do not allow access", filename));
                         }
                     }
                     CheckForTerrainUpdates();
@@ -244,8 +245,20 @@ namespace OpenSim.Region.Environment.Modules.Terrain
                             if (pluginType.GetInterface("ITerrainEffect", false) != null)
                             {
                                 ITerrainEffect terEffect = (ITerrainEffect) Activator.CreateInstance(library.GetType(pluginType.ToString()));
-                                m_plugineffects.Add(pluginType.Name, terEffect);
-                                m_log.Info("... " + pluginType.Name);
+                                if (!m_plugineffects.ContainsKey(pluginType.Name))
+                                {
+                                    m_plugineffects.Add(pluginType.Name, terEffect);
+                                    m_log.Info("E ... " + pluginType.Name);
+                                } else
+                                {
+                                    m_log.Warn("E ... " + pluginType.Name + " (Already added)");
+                                }
+                            }
+                            else if (pluginType.GetInterface("ITerrainLoader", false) != null)
+                            {
+                                ITerrainLoader terLoader = (ITerrainLoader) Activator.CreateInstance(library.GetType(pluginType.ToString()));
+                                m_loaders[terLoader.FileExtension] = terLoader;
+                                m_log.Info("L ... " + pluginType.Name);
                             }
                         }
                         catch (AmbiguousMatchException)

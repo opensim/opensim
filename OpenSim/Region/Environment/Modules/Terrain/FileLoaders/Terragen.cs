@@ -107,6 +107,11 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
             throw new NotImplementedException();
         }
 
+        public string FileExtension
+        {
+            get { return ".ter"; }
+        }
+
         public ITerrainChannel LoadFile(string filename, int x, int y, int fileWidth, int fileHeight, int w, int h)
         {
             throw new NotImplementedException();

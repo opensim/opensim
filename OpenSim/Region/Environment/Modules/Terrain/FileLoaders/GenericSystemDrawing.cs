@@ -42,6 +42,11 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
     {
         #region ITerrainLoader Members
 
+        public string FileExtension
+        {
+            get { return ".gsd"; }
+        }
+
         /// <summary>
         /// Loads a file from a specified filename on the disk,
         /// parses the image using the System.Drawing parsers

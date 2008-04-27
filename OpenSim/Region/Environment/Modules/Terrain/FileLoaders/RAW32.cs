@@ -34,6 +34,11 @@ namespace OpenSim.Region.Environment.Modules.Terrain.FileLoaders
     {
         #region ITerrainLoader Members
 
+        public string FileExtension
+        {
+            get { return ".r32"; }
+        }
+
         public ITerrainChannel LoadFile(string filename)
         {
             TerrainChannel retval = new TerrainChannel();
