@@ -1002,6 +1002,93 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+        public void updateKnownAsset(IClientAPI remoteClient, SceneObjectGroup grp, LLUUID assetID, LLUUID agentID)
+        {
+            SceneObjectGroup objectGroup = grp;
+            if (objectGroup != null)
+            {
+                string sceneObjectXml = objectGroup.ToXmlString();
+
+                CachedUserInfo userInfo =
+                    CommsManager.UserProfileCacheService.GetUserDetails(agentID);
+                if (userInfo != null)
+                {
+                    Queue<InventoryFolderImpl> searchfolders = new Queue<InventoryFolderImpl>();
+                    searchfolders.Enqueue(userInfo.RootFolder);
+
+                    LLUUID foundFolder = userInfo.RootFolder.ID;
+
+                    // search through folders to find the asset.
+                    while (searchfolders.Count > 0)
+                    {
+
+                        InventoryFolderImpl fld = searchfolders.Dequeue();
+                        lock (fld)
+                        {
+                            if (fld != null)
+                            {
+                                if (fld.Items.ContainsKey(assetID))
+                                {
+                                    foundFolder = fld.ID;
+                                    searchfolders.Clear();
+                                    break;
+                                }
+                                else
+                                {
+                                    foreach (InventoryFolderImpl subfld in fld.SubFolders.Values)
+                                    {
+                                        searchfolders.Enqueue(subfld);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    AssetBase asset = CreateAsset(
+                        objectGroup.GetPartName(objectGroup.LocalId),
+                        objectGroup.GetPartDescription(objectGroup.LocalId),
+                        (sbyte)InventoryType.Object,
+                        (sbyte)AssetType.Object,
+                        Helpers.StringToField(sceneObjectXml));
+                    AssetCache.AddAsset(asset);
+
+                    InventoryItemBase item = new InventoryItemBase();
+                    item.Creator = objectGroup.RootPart.CreatorID;
+                    item.Owner = agentID;
+                    item.ID = assetID;
+                    item.AssetID = asset.FullID;
+                    item.Description = asset.Description;
+                    item.Name = asset.Name;
+                    item.AssetType = asset.Type;
+                    item.InvType = asset.InvType;
+
+                    // Sticking it in root folder for now..    objects folder later?
+
+                    item.Folder = foundFolder;// DeRezPacket.AgentBlock.DestinationID;
+                    item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
+                    if (agentID != objectGroup.RootPart.OwnerID)
+                    {
+                        item.BasePermissions = objectGroup.RootPart.NextOwnerMask;
+                        item.CurrentPermissions = objectGroup.RootPart.NextOwnerMask;
+                        item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
+                    }
+                    else
+                    {
+                        item.BasePermissions = objectGroup.RootPart.BaseMask;
+                        item.CurrentPermissions = objectGroup.RootPart.OwnerMask;
+                        item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
+                    }
+
+                    userInfo.AddItem(agentID, item);
+
+                    // this gets called when the agent loggs off!
+                    if (remoteClient != null)
+                    {
+                        remoteClient.SendInventoryItemCreateUpdate(item);
+                    }
+                    
+                }
+            }
+        }
         public LLUUID attachObjectAssetStore(IClientAPI remoteClient, SceneObjectGroup grp, LLUUID AgentId)
         {
             SceneObjectGroup objectGroup = grp;
@@ -1184,7 +1271,17 @@ namespace OpenSim.Region.Environment.Scenes
                             }
  
                             rootPart.TrimPermissions();
-                            group.ApplyPhysics(m_physicalPrim);
+
+                            if (!attachment)
+                            {
+                                if (group.RootPart.Shape.PCode == (byte)PCode.Prim)
+                                {
+                                    group.RootPart.Shape.State = (byte)0;
+                                }
+                                group.ApplyPhysics(m_physicalPrim);
+                            }
+                            
+
                             group.StartScripts();
 
                             

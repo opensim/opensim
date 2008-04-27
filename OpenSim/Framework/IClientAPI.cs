@@ -455,6 +455,7 @@ namespace OpenSim.Framework
         event SetAppearance OnSetAppearance;
         event AvatarNowWearing OnAvatarNowWearing;
         event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
+        event UUIDNameRequest OnDetachAttachmentIntoInv;
         event ObjectAttach OnObjectAttach;
         event ObjectDeselect OnObjectDetach;
         event StartAnim OnStartAnim;

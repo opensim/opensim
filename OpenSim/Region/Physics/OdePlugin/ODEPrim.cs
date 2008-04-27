@@ -150,22 +150,22 @@ namespace OpenSim.Region.Physics.OdePlugin
             _velocity = new PhysicsVector();
             _position = pos;
             m_taintposition = pos;
-            if (_position.X > 257)
-            {
-                _position.X = 257;
-            }
-            if (_position.X < 0)
-            {
-                _position.X = 0;
-            }
-            if (_position.Y > 257)
-            {
-                _position.Y = 257;
-            }
-            if (_position.Y < 0)
-            {
-                _position.Y = 0;
-            }
+            //if (_position.X > 257)
+            //{
+                //_position.X = 257;
+            //}
+            //if (_position.X < 0)
+            //{
+                //_position.X = 0;
+            //}
+            //if (_position.Y > 257)
+            //{
+                //_position.Y = 257;
+            //}
+            //if (_position.Y < 0)
+            //{
+               // _position.Y = 0;
+            //}
 
             prim_geom = (IntPtr)0;
             prev_geom = (IntPtr)0;

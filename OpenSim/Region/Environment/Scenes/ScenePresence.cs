@@ -1906,6 +1906,15 @@ namespace OpenSim.Region.Environment.Scenes
 
         internal void Close()
         {
+            lock (m_attachments)
+            {
+                foreach (SceneObjectGroup grp in m_attachments)
+                {
+                    // ControllingClient may be null at this point!
+                    m_scene.m_innerScene.DetachSingleAttachmentToInv(grp.GetFromAssetID(), ControllingClient);
+                }
+                m_attachments.Clear();
+            }
             lock (m_knownPrimUUID)
             {
                 m_knownPrimUUID.Clear();
@@ -1972,6 +1981,7 @@ namespace OpenSim.Region.Environment.Scenes
                         gobj.RootPart.SetParentLocalId(0);
                         gobj.RootPart.m_IsAttachment = false;
                         gobj.AbsolutePosition = gobj.RootPart.m_attachedPos;
+                        gobj.RootPart.LastOwnerID = gobj.GetFromAssetID();
                         m_scene.CrossPrimGroupIntoNewRegion(regionHandle, gobj);
                     }
                 }

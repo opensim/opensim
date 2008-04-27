@@ -663,9 +663,11 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     m_scene.PhysicsScene.RemovePrim(m_rootPart.PhysActor);
                     m_rootPart.PhysActor = null;
-                    AbsolutePosition = AttachOffset;
-                    m_rootPart.m_attachedPos = AttachOffset;
+
                 }
+
+                AbsolutePosition = AttachOffset;
+                m_rootPart.m_attachedPos = AttachOffset;
                 m_rootPart.m_IsAttachment = true;
 
                 m_rootPart.SetParentLocalId(avatar.LocalId);
@@ -701,6 +703,26 @@ namespace OpenSim.Region.Environment.Scenes
             m_rootPart.ApplyPhysics(m_rootPart.ObjectFlags, m_scene.m_physicalPrim);
             AttachToBackup();
             m_rootPart.ScheduleFullUpdate();
+        }
+        public void DetachToInventoryPrep()
+        {
+            ScenePresence avatar = m_scene.GetScenePresence(m_rootPart.m_attachedAvatar);
+            //LLVector3 detachedpos = new LLVector3(127f, 127f, 127f);
+            if (avatar != null)
+            {
+                //detachedpos = avatar.AbsolutePosition;
+                avatar.RemoveAttachment(this);
+            }
+            
+            m_rootPart.m_attachedAvatar = LLUUID.Zero;
+            m_rootPart.SetParentLocalId(0);
+            //m_rootPart.SetAttachmentPoint((byte)0);
+            m_rootPart.m_IsAttachment = false;
+            AbsolutePosition = m_rootPart.m_attachedPos;
+            //m_rootPart.ApplyPhysics(m_rootPart.ObjectFlags, m_scene.m_physicalPrim);
+            //AttachToBackup();
+            //m_rootPart.ScheduleFullUpdate();
+            
         }
         /// <summary>
         /// 

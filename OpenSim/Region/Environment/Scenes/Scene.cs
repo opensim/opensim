@@ -1471,6 +1471,11 @@ namespace OpenSim.Region.Environment.Scenes
                                 ScenePresence sp = GetScenePresence(grp.OwnerID);
                                 if (sp != null)
                                 {
+                                    // hack assetID until we get assetID into the XML format.
+                                    // LastOwnerID is used for group deeding, so when you do stuff 
+                                    // with the deeded object, it goes back to them
+
+                                    grp.SetFromAssetID(grp.RootPart.LastOwnerID);
                                     m_innerScene.AttachObject(sp.ControllingClient, grp.LocalId, (uint)0, grp.GroupRotation, grp.AbsolutePosition);
                                 }
                             }
@@ -1560,6 +1565,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnDeRezObject += DeRezObject;
             client.OnRezObject += RezObject;
             client.OnRezSingleAttachmentFromInv += m_innerScene.RezSingleAttachment;
+            client.OnDetachAttachmentIntoInv += m_innerScene.DetachSingleAttachmentToInv;
             client.OnObjectAttach += m_innerScene.AttachObject;
             client.OnObjectDetach += m_innerScene.DetachObject;
             client.OnNameFromUUIDRequest += CommsManager.HandleUUIDNameRequest;

@@ -145,6 +145,7 @@ namespace OpenSim.Region.ClientStack
         private SetAppearance handlerSetAppearance = null; //OnSetAppearance;
         private AvatarNowWearing handlerAvatarNowWearing = null; //OnAvatarNowWearing;
         private RezSingleAttachmentFromInv handlerRezSingleAttachment = null; //OnRezSingleAttachmentFromInv;
+        private UUIDNameRequest handlerDetachAttachmentIntoInv = null; // Detach attachment!
         private ObjectAttach handlerObjectAttach = null; //OnObjectAttach;
         private SetAlwaysRun handlerSetAlwaysRun = null; //OnSetAlwaysRun;
         private GenericCall2 handlerCompleteMovementToRegion = null; //OnCompleteMovementToRegion;
@@ -690,6 +691,7 @@ namespace OpenSim.Region.ClientStack
         public event SetAppearance OnSetAppearance;
         public event AvatarNowWearing OnAvatarNowWearing;
         public event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
+        public event UUIDNameRequest OnDetachAttachmentIntoInv;
         public event ObjectAttach OnObjectAttach;
         public event ObjectDeselect OnObjectDetach;
         public event GenericCall2 OnCompleteMovementToRegion;
@@ -3442,6 +3444,18 @@ namespace OpenSim.Region.ClientStack
                         }
 
                         break;
+                    case PacketType.DetachAttachmentIntoInv:
+                        handlerDetachAttachmentIntoInv = OnDetachAttachmentIntoInv;
+                        if (handlerDetachAttachmentIntoInv != null)
+                        {
+                            DetachAttachmentIntoInvPacket detachtoInv = (DetachAttachmentIntoInvPacket)Pack;
+                            
+                            LLUUID itemID = detachtoInv.ObjectData.ItemID;
+                            LLUUID ATTACH_agentID = detachtoInv.ObjectData.AgentID;
+
+                            handlerDetachAttachmentIntoInv(itemID, this);
+                        }
+                        break;
                     case PacketType.ObjectAttach:
                         if (OnObjectAttach != null)
                         {
@@ -3451,7 +3465,10 @@ namespace OpenSim.Region.ClientStack
 
                             if (handlerObjectAttach != null)
                             {
-                                handlerObjectAttach(this, att.ObjectData[0].ObjectLocalID, att.AgentData.AttachmentPoint, att.ObjectData[0].Rotation);
+                                if (att.ObjectData.Length > 0)
+                                {
+                                    handlerObjectAttach(this, att.ObjectData[0].ObjectLocalID, att.AgentData.AttachmentPoint, att.ObjectData[0].Rotation);
+                                }
                             }
                         }
 

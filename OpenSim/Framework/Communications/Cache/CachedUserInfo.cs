@@ -272,7 +272,12 @@ namespace OpenSim.Framework.Communications.Cache
                     {
                         if (!RootFolder.Items.ContainsKey(itemInfo.ID))
                         {
+
                             RootFolder.Items.Add(itemInfo.ID, itemInfo);
+                        }
+                        else 
+                        {
+                            RootFolder.Items[itemInfo.ID] = itemInfo;
                         }
                     }
                 }
@@ -286,6 +291,10 @@ namespace OpenSim.Framework.Communications.Cache
                             if (!folder.Items.ContainsKey(itemInfo.ID))
                             {
                                 folder.Items.Add(itemInfo.ID, itemInfo);
+                            }
+                            else
+                            {
+                                folder.Items[itemInfo.ID] = itemInfo;
                             }
                         }
                     }

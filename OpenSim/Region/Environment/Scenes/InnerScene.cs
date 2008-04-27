@@ -304,7 +304,9 @@ namespace OpenSim.Region.Environment.Scenes
                     if (((SceneObjectGroup)obj).LocalId == objectLocalID)
                     {
                         SceneObjectGroup group = (SceneObjectGroup)obj;
-                        group.DetachToGround();
+
+                        //group.DetachToGround();
+                        DetachSingleAttachmentToInv(group.GetFromAssetID(),remoteClient);
                     }
                 }
             }
@@ -339,6 +341,33 @@ namespace OpenSim.Region.Environment.Scenes
 
         }
 
+        // What makes this method odd and unique is it tries to detach using an LLUUID....     Yay for standards.
+        // To LocalId or LLUUID, *THAT* is the question. How now Brown LLUUID??
+        public void DetachSingleAttachmentToInv(LLUUID itemID, IClientAPI remoteClient)
+        {
+            
+            if (itemID == LLUUID.Zero) // If this happened, someone made a mistake....  
+                return;
+
+            List<EntityBase> EntityList = GetEntities();
+
+            foreach (EntityBase obj in EntityList)
+            {
+                if (obj is SceneObjectGroup)
+                {
+                    if (((SceneObjectGroup)obj).GetFromAssetID() == itemID)
+                    {
+                        SceneObjectGroup group = (SceneObjectGroup)obj;
+                        group.DetachToInventoryPrep();
+                        m_log.Debug("[DETACH]: Saving attachpoint: " + ((uint)group.GetAttachmentPoint()).ToString());
+                        m_parentScene.updateKnownAsset(remoteClient, group, group.GetFromAssetID(),group.OwnerID);
+                        m_parentScene.DeleteSceneObjectGroup(group);
+                    }
+                }
+            }
+
+        }
+
         public void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, LLQuaternion rot, LLVector3 attachPos)
         {
             List<EntityBase> EntityList = GetEntities();
@@ -349,21 +378,36 @@ namespace OpenSim.Region.Environment.Scenes
                     if (((SceneObjectGroup)obj).LocalId == objectLocalID)
                     {
                         SceneObjectGroup group = (SceneObjectGroup)obj;
+                        
+                        // If the attachment point isn't the same as the one previously used
+                        // set it's offset position = 0 so that it appears on the attachment point
+                        // and not in a weird location somewhere unknown.
+                        if (AttachmentPt != 0 && AttachmentPt != (uint)group.GetAttachmentPoint())
+                        {
+
+                            attachPos = LLVector3.Zero;
+                        }
+
+                        // AttachmentPt 0 means the client chose to 'wear' the attachment.
                         if (AttachmentPt == 0)
                         {
+                            
                             // Check object for stored attachment point
                             AttachmentPt = (uint)group.GetAttachmentPoint();
-
-
-                            // if we still didn't find a suitable attachment point.......
-                            if (AttachmentPt == 0)
-                            {
-                                AttachmentPt = (uint)AttachmentPoint.LeftHand;
-                                attachPos = LLVector3.Zero;
-                            }
                             
-                            
+
                         }
+
+                        // if we still didn't find a suitable attachment point.......
+                        if (AttachmentPt == 0)
+                        {
+                            // Stick it on left hand with Zero Offset from the attachment point.
+                            AttachmentPt = (uint)AttachmentPoint.LeftHand;
+                            attachPos = LLVector3.Zero;
+                        }
+                            m_log.Debug("[ATTACH]: Using attachpoint: " + AttachmentPt.ToString());
+                            
+                        
 
                         // Saves and gets assetID
                         if (group.GetFromAssetID() == LLUUID.Zero)
@@ -1071,12 +1115,12 @@ namespace OpenSim.Region.Environment.Scenes
             if (group != null)
             {
                 LLVector3 oldPos = group.AbsolutePosition;
-                if (!PermissionsMngr.CanObjectEntry(remoteClient.AgentId, oldPos, pos))
+                if (!PermissionsMngr.CanObjectEntry(remoteClient.AgentId, oldPos, pos) && !group.RootPart.m_IsAttachment)
                 {
                     group.SendGroupTerseUpdate();
                     return;
                 }
-                if (PermissionsMngr.CanEditObjectPosition(remoteClient.AgentId, group.UUID))
+                if (PermissionsMngr.CanEditObjectPosition(remoteClient.AgentId, group.UUID) || group.RootPart.m_IsAttachment)
                 {
                     group.UpdateSinglePosition(pos, localID);
                 }
@@ -1102,12 +1146,12 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else 
                 {
-                    if (!PermissionsMngr.CanObjectEntry(remoteClient.AgentId, oldPos, pos))
+                    if (!PermissionsMngr.CanObjectEntry(remoteClient.AgentId, oldPos, pos) && !group.RootPart.m_IsAttachment)
                     {
                         group.SendGroupTerseUpdate();
                         return;
                     }
-                    if (PermissionsMngr.CanEditObjectPosition(remoteClient.AgentId, group.UUID))
+                    if (PermissionsMngr.CanEditObjectPosition(remoteClient.AgentId, group.UUID) || group.RootPart.m_IsAttachment)
                     {
                         group.UpdateGroupPosition(pos);
                     }
