@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Xml;
+using System.Xml.Serialization;
 using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
@@ -89,6 +90,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// since the group's last persistent backup
         /// </summary>
         public bool HasGroupChanged = false;
+        
 
 
         private LLVector3 lastPhysGroupPos;
@@ -482,6 +484,26 @@ namespace OpenSim.Region.Environment.Scenes
                                 PrimitiveBaseShape shape)
             : this(scene, regionHandle, ownerID, localID, pos, LLQuaternion.Identity, shape)
         {
+        }
+
+        public void SetFromAssetID(LLUUID AssetId)
+        {
+            lock (m_parts)
+            {
+                foreach (SceneObjectPart part in m_parts.Values)
+                {
+                    part.fromAssetID = AssetId;
+                }
+            }
+        }
+
+        public LLUUID GetFromAssetID()
+        {
+            if (m_rootPart != null)
+            {
+                return m_rootPart.fromAssetID;
+            }
+            return LLUUID.Zero;
         }
 
         /// <summary>

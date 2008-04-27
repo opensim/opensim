@@ -2018,13 +2018,13 @@ namespace OpenSim.Region.ClientStack
 
             SendPrimitiveToClient(regionHandle, timeDilation, localID, primShape, pos, flags,
                                   objectID, ownerID, text, color, parentID, particleSystem,
-                                    rotation, clickAction, textureanim, false,(uint)0);
+                                    rotation, clickAction, textureanim, false,(uint)0, LLUUID.Zero);
         }
         public void SendPrimitiveToClient(
             ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos,
             uint flags,
             LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem,
-            LLQuaternion rotation, byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint)
+            LLQuaternion rotation, byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, LLUUID AssetId)
         {
             ObjectUpdatePacket outPacket = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
             // TODO: don't create new blocks if recycling an old packet
@@ -2063,7 +2063,7 @@ namespace OpenSim.Region.ClientStack
                 
                 // Item from inventory???
                 outPacket.ObjectData[0].NameValue =
-                           Helpers.StringToField("AttachItemID STRING RW SV " + objectID.UUID);
+                           Helpers.StringToField("AttachItemID STRING RW SV " + AssetId.UUID);
                 outPacket.ObjectData[0].State = (byte)((AttachPoint % 16) * 16 + (AttachPoint / 16));
             }
 
@@ -2093,7 +2093,7 @@ namespace OpenSim.Region.ClientStack
         /// <param name="position"></param>
         /// <param name="rotation"></param>
         public void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
-                                        LLQuaternion rotation, byte state)
+                                        LLQuaternion rotation, byte state, LLUUID AssetId)
         {
             LLVector3 velocity = new LLVector3(0f, 0f, 0f);
             LLVector3 rotationalvelocity = new LLVector3(0f, 0f, 0f);
@@ -2102,7 +2102,7 @@ namespace OpenSim.Region.ClientStack
             terse.RegionData.RegionHandle = regionHandle;
             terse.RegionData.TimeDilation = timeDilation;
             terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
-            terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation, velocity, rotationalvelocity, state);
+            terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation, velocity, rotationalvelocity, state); // AssetID should fall into here probably somehow...   
             terse.Header.Reliable = false;
             OutPacket(terse, ThrottleOutPacketType.Task);
         }
@@ -2305,8 +2305,9 @@ namespace OpenSim.Region.ClientStack
             bytes[i++] = (byte)((rvely >> 8) % 256);
             bytes[i++] = (byte)(rvelz % 256);
             bytes[i++] = (byte)((rvelz >> 8) % 256);
-
             dat.Data = bytes;
+            
+            
             return dat;
         }
 

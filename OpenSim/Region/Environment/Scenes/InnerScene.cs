@@ -322,6 +322,22 @@ namespace OpenSim.Region.Environment.Scenes
             // Calls attach with a Zero position
             AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, LLVector3.Zero);
         }
+        public void RezSingleAttachment(IClientAPI remoteClient, LLUUID itemID, uint AttachmentPt,
+                                    uint ItemFlags, uint NextOwnerMask)
+        {
+            SceneObjectGroup objatt = m_parentScene.RezObject(remoteClient, itemID, LLVector3.Zero, LLVector3.Zero, LLUUID.Zero, (byte)1, true,
+                (uint)(PermissionMask.Copy | PermissionMask.Move | PermissionMask.Modify | PermissionMask.Transfer),
+                (uint)(PermissionMask.Copy | PermissionMask.Move | PermissionMask.Modify | PermissionMask.Transfer),
+                (uint)(PermissionMask.Copy | PermissionMask.Move | PermissionMask.Modify | PermissionMask.Transfer),
+                ItemFlags, false, false, remoteClient.AgentId, true);
+
+            if (objatt != null)
+            {
+                AttachObject(remoteClient,objatt.LocalId,AttachmentPt,new LLQuaternion(0,0,0,1),objatt.AbsolutePosition);
+                objatt.ScheduleGroupForFullUpdate();
+            }
+
+        }
 
         public void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, LLQuaternion rot, LLVector3 attachPos)
         {
@@ -338,14 +354,25 @@ namespace OpenSim.Region.Environment.Scenes
                             // Check object for stored attachment point
                             AttachmentPt = (uint)group.GetAttachmentPoint();
 
+
                             // if we still didn't find a suitable attachment point.......
                             if (AttachmentPt == 0)
                             {
                                 AttachmentPt = (uint)AttachmentPoint.LeftHand;
+                                attachPos = LLVector3.Zero;
                             }
+                            
                             
                         }
 
+                        // Saves and gets assetID
+                        if (group.GetFromAssetID() == LLUUID.Zero)
+                        {
+                            LLUUID newAssetID = m_parentScene.attachObjectAssetStore(remoteClient, group, remoteClient.AgentId);
+
+                            // sets assetID so client can show asset as 'attached' in inventory
+                            group.SetFromAssetID(newAssetID);
+                        }
                         group.AttachToAgent(remoteClient.AgentId, AttachmentPt, attachPos);
                         
                     }

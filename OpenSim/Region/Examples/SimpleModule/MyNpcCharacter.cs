@@ -383,11 +383,11 @@ namespace OpenSim.Region.Examples.SimpleModule
                                                   LLUUID objectID, LLUUID ownerID, string text, byte[] color,
                                                   uint parentID,
                                                   byte[] particleSystem, LLQuaternion rotation, byte clickAction, byte[] textureanimation,
-                                                  bool attachment, uint AttachmentPoint)
+                                                  bool attachment, uint AttachmentPoint, LLUUID AssetId)
         {
         }
         public virtual void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID,
-                                                LLVector3 position, LLQuaternion rotation, byte state)
+                                                LLVector3 position, LLQuaternion rotation, byte state, LLUUID AssetId)
         {
         }
 

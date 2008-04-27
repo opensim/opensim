@@ -104,6 +104,7 @@ namespace OpenSim.Region.Environment.Scenes
         [XmlIgnore] public uint m_attachmentPoint = (byte)0;
         [XmlIgnore] public LLUUID m_attachedAvatar = LLUUID.Zero;
         [XmlIgnore] public LLVector3 m_attachedPos = LLVector3.Zero;
+        [XmlIgnore] public LLUUID fromAssetID = LLUUID.Zero;
 
         public Int32 CreationDate;
         public uint ParentID = 0;
@@ -2251,7 +2252,7 @@ namespace OpenSim.Region.Environment.Scenes
             byte[] color = new byte[] {m_color.R, m_color.G, m_color.B, m_color.A};
             remoteClient.SendPrimitiveToClient(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, m_shape, lPos, clientFlags, m_uuid,
                                                OwnerID,
-                                               m_text, color, ParentID, m_particleSystem, lRot, m_clickAction, m_TextureAnimation, m_IsAttachment, m_attachmentPoint);
+                                               m_text, color, ParentID, m_particleSystem, lRot, m_clickAction, m_TextureAnimation, m_IsAttachment, m_attachmentPoint,fromAssetID);
         }
 
         /// Terse updates
@@ -2297,7 +2298,7 @@ namespace OpenSim.Region.Environment.Scenes
             LLQuaternion mRot = RotationOffset;
             if ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) == 0)
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Shape.State);
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Shape.State, fromAssetID);
             }
             else
             {
@@ -2312,13 +2313,13 @@ namespace OpenSim.Region.Environment.Scenes
             LLQuaternion mRot = RotationOffset;
             if (m_IsAttachment)
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, (byte)((m_attachmentPoint % 16) * 16 + (m_attachmentPoint / 16)));
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, (byte)((m_attachmentPoint % 16) * 16 + (m_attachmentPoint / 16)),fromAssetID);
             }
             else
             {
                 if ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) == 0)
                 {
-                    remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Shape.State);
+                    remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Shape.State, fromAssetID);
                 }
                 else
                 {

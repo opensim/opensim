@@ -1559,7 +1559,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnGrabUpdate += m_innerScene.MoveObject;
             client.OnDeRezObject += DeRezObject;
             client.OnRezObject += RezObject;
-            client.OnRezSingleAttachmentFromInv += RezSingleAttachment;
+            client.OnRezSingleAttachmentFromInv += m_innerScene.RezSingleAttachment;
             client.OnObjectAttach += m_innerScene.AttachObject;
             client.OnObjectDetach += m_innerScene.DetachObject;
             client.OnNameFromUUIDRequest += CommsManager.HandleUUIDNameRequest;

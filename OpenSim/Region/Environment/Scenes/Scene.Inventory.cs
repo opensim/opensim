@@ -1002,9 +1002,65 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+        public LLUUID attachObjectAssetStore(IClientAPI remoteClient, SceneObjectGroup grp, LLUUID AgentId)
+        {
+            SceneObjectGroup objectGroup = grp;
+            if (objectGroup != null)
+            {
+                string sceneObjectXml = objectGroup.ToXmlString();
+
+                CachedUserInfo userInfo =
+                    CommsManager.UserProfileCacheService.GetUserDetails(AgentId);
+                if (userInfo != null)
+                {
+                    AssetBase asset = CreateAsset(
+                        objectGroup.GetPartName(objectGroup.LocalId),
+                        objectGroup.GetPartDescription(objectGroup.LocalId),
+                        (sbyte)InventoryType.Object,
+                        (sbyte)AssetType.Object,
+                        Helpers.StringToField(sceneObjectXml));
+                    AssetCache.AddAsset(asset);
+
+                    InventoryItemBase item = new InventoryItemBase();
+                    item.Creator = objectGroup.RootPart.CreatorID;
+                    item.Owner = remoteClient.AgentId;
+                    item.ID = LLUUID.Random();
+                    item.AssetID = asset.FullID;
+                    item.Description = asset.Description;
+                    item.Name = asset.Name;
+                    item.AssetType = asset.Type;
+                    item.InvType = asset.InvType;
+                    
+                    // Sticking it in root folder for now..    objects folder later?
+
+                    item.Folder = userInfo.RootFolder.ID;// DeRezPacket.AgentBlock.DestinationID;
+                    item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
+                    if (remoteClient.AgentId != objectGroup.RootPart.OwnerID)
+                    {
+                        item.BasePermissions = objectGroup.RootPart.NextOwnerMask;
+                        item.CurrentPermissions = objectGroup.RootPart.NextOwnerMask;
+                        item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
+                    }
+                    else
+                    {
+                        item.BasePermissions = objectGroup.RootPart.BaseMask;
+                        item.CurrentPermissions = objectGroup.RootPart.OwnerMask;
+                        item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
+                    }
+
+                    userInfo.AddItem(remoteClient.AgentId, item);
+                    remoteClient.SendInventoryItemCreateUpdate(item);
+                    return item.AssetID;
+                }
+                return LLUUID.Zero;
+            }
+            return LLUUID.Zero;
+
+        }
 
         /// <summary>
-        /// Rez an object into a scene
+        /// Event Handler Rez an object into a scene
+        /// Calls the non-void event handler
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="itemID"></param>
@@ -1025,6 +1081,38 @@ namespace OpenSim.Region.Environment.Scenes
                                     uint EveryoneMask, uint GroupMask, uint NextOwnerMask, uint ItemFlags,
                                     bool RezSelected, bool RemoveItem, LLUUID fromTaskID)
         {
+            SceneObjectGroup sog = RezObject(remoteClient, itemID, RayEnd, RayStart,
+                                    RayTargetID, BypassRayCast, RayEndIsIntersection,
+                                    EveryoneMask, GroupMask, NextOwnerMask, ItemFlags,
+                                    RezSelected, RemoveItem, fromTaskID, false);
+        }
+
+
+
+       /// <summary>
+       /// Returns SceneObjectGroup or null from asset request.
+       /// </summary>
+       /// <param name="remoteClient"></param>
+       /// <param name="itemID"></param>
+       /// <param name="RayEnd"></param>
+       /// <param name="RayStart"></param>
+       /// <param name="RayTargetID"></param>
+       /// <param name="BypassRayCast"></param>
+       /// <param name="RayEndIsIntersection"></param>
+       /// <param name="EveryoneMask"></param>
+       /// <param name="GroupMask"></param>
+       /// <param name="NextOwnerMask"></param>
+       /// <param name="ItemFlags"></param>
+       /// <param name="RezSelected"></param>
+       /// <param name="RemoveItem"></param>
+       /// <param name="fromTaskID"></param>
+       /// <param name="difference"></param>
+       /// <returns></returns>
+        public virtual SceneObjectGroup RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 RayEnd, LLVector3 RayStart,
+                                    LLUUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
+                                    uint EveryoneMask, uint GroupMask, uint NextOwnerMask, uint ItemFlags,
+                                    bool RezSelected, bool RemoveItem, LLUUID fromTaskID, bool attachment)
+        {
             // Work out position details
             byte bRayEndIsIntersection = (byte)0;
 
@@ -1042,9 +1130,9 @@ namespace OpenSim.Region.Environment.Scenes
                       RayStart, RayEnd, RayTargetID, new LLQuaternion(0, 0, 0, 1), 
                       BypassRayCast, bRayEndIsIntersection);
             
-            if (!PermissionsMngr.CanRezObject(remoteClient.AgentId, pos))
+            if (!PermissionsMngr.CanRezObject(remoteClient.AgentId, pos) && !attachment)
             {
-                return;         
+                return null;         
             }
 
             // Rez object
@@ -1064,7 +1152,14 @@ namespace OpenSim.Region.Environment.Scenes
                             SceneObjectGroup group = new SceneObjectGroup(this, m_regionHandle, xmlData);
                             group.ResetIDs();
                             AddEntity(group);
-                            group.AbsolutePosition = pos;
+
+                            // if attachment we set it's asset id so object updates can reflect that
+                            // if not, we set it's position in world.
+                            if (!attachment)
+                                group.AbsolutePosition = pos;
+                            else
+                                group.SetFromAssetID(itemID);
+
                             SceneObjectPart rootPart = group.GetChildPart(group.UUID);
                             
                             // Since renaming the item in the inventory does not affect the name stored
@@ -1092,34 +1187,18 @@ namespace OpenSim.Region.Environment.Scenes
                             group.ApplyPhysics(m_physicalPrim);
                             group.StartScripts();
 
-                            //bool UsePhysics = (((rootPart.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) > 0)&& m_physicalPrim);
-                            //if ((rootPart.ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
-                            //{
-                            //PrimitiveBaseShape pbs = rootPart.Shape;
-                            //rootPart.PhysActor = PhysicsScene.AddPrimShape(
-                            //rootPart.Name,
-                            //pbs,
-                            //new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y,
-                            //                  rootPart.AbsolutePosition.Z),
-                            //new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
-                            //new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
-                            //               rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
+                            
+                            if (!attachment)
+                                rootPart.ScheduleFullUpdate();
 
-                            // rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
-
-                            // }
-                            //
-                            rootPart.ScheduleFullUpdate();
+                            return rootPart.ParentGroup;
                         }
                     }
                 }
             }
+            return null;
         }
         
-        public void RezSingleAttachment(IClientAPI remoteClient, LLUUID itemID, uint AttachmentPt,
-                                    uint ItemFlags, uint NextOwnerMask)
-        {
-            Console.WriteLine("RezSingleAttachment: unimplemented yet");
-        }
+        
     }
 }
