@@ -772,19 +772,28 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
             }
         }
 
+        /// <summary>
+        /// Notify the parcel owner each avatar that owns prims situated on their land.  This notification includes
+        /// aggreagete details such as the number of prims.
+        ///  
+        /// </summary>
+        /// <param name="remote_client">
+        /// A <see cref="IClientAPI"/>
+        /// </param>
         public void sendLandObjectOwners(IClientAPI remote_client)
         {
-            Dictionary<LLUUID, int> ownersAndCount = new Dictionary<LLUUID, int>();
-            ParcelObjectOwnersReplyPacket pack = (ParcelObjectOwnersReplyPacket) PacketPool.Instance.GetPacket(PacketType.ParcelObjectOwnersReply);
+            Dictionary<LLUUID, int> primCount = new Dictionary<LLUUID, int>();
+            ParcelObjectOwnersReplyPacket pack 
+                = (ParcelObjectOwnersReplyPacket) PacketPool.Instance.GetPacket(PacketType.ParcelObjectOwnersReply);
             // TODO: don't create new blocks if recycling an old packet
 
             foreach (SceneObjectGroup obj in primsOverMe)
             {
                 try
                 {
-                    if (!ownersAndCount.ContainsKey(obj.OwnerID))
+                    if (!primCount.ContainsKey(obj.OwnerID))
                     {
-                        ownersAndCount.Add(obj.OwnerID, 0);
+                        primCount.Add(obj.OwnerID, 0);
                     }
                 }
                 catch (NullReferenceException)
@@ -793,36 +802,50 @@ namespace OpenSim.Region.Environment.Modules.LandManagement
                 }
                 try
                 {
-                    ownersAndCount[obj.OwnerID] += obj.PrimCount;
+                    primCount[obj.OwnerID] += obj.PrimCount;
                 }
                 catch (KeyNotFoundException)
                 {
                     m_log.Error("[LAND]: Unable to match a prim with it's owner.");
                 }
             }
-            if (ownersAndCount.Count > 0)
+            
+            int notifyCount = primCount.Count;
+            
+            if (notifyCount > 0)
             {
-                ParcelObjectOwnersReplyPacket.DataBlock[] dataBlock = new ParcelObjectOwnersReplyPacket.DataBlock[32];
-
-                if (ownersAndCount.Count < 32)
+                if (notifyCount > 32)
                 {
-                    dataBlock = new ParcelObjectOwnersReplyPacket.DataBlock[ownersAndCount.Count];
+                    m_log.InfoFormat(
+                        "[LAND]: More than {0} avatars own prims on this parcel.  Only sending back details of first {0}"
+                                     + " - a developer might want to investigate whether this is a hard limit", 32); 
+                    
+                    notifyCount = 32;
                 }
-
+                
+                ParcelObjectOwnersReplyPacket.DataBlock[] dataBlock 
+                    = new ParcelObjectOwnersReplyPacket.DataBlock[notifyCount];
 
                 int num = 0;
-                foreach (LLUUID owner in ownersAndCount.Keys)
+                foreach (LLUUID owner in primCount.Keys)
                 {
                     dataBlock[num] = new ParcelObjectOwnersReplyPacket.DataBlock();
-                    dataBlock[num].Count = ownersAndCount[owner];
+                    dataBlock[num].Count = primCount[owner];
                     dataBlock[num].IsGroupOwned = false; //TODO: fix me when group support is added
                     dataBlock[num].OnlineStatus = true; //TODO: fix me later
                     dataBlock[num].OwnerID = owner;
 
                     num++;
+                    
+                    if (num >= notifyCount)
+                    {
+                        break;
+                    }
                 }
+                
                 pack.Data = dataBlock;
             }
+            
             remote_client.OutPacket(pack, ThrottleOutPacketType.Task);
         }
 
