@@ -37,6 +37,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     /// </summary>
     public class MaintenanceThread : iScriptEngineFunctionModule
     {
+        
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         //public ScriptEngine m_ScriptEngine;
         private int MaintenanceLoopms;
         private int MaintenanceLoopTicks_ScriptLoadUnload;
@@ -213,11 +216,13 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                         //}
                     }
                 }
+                catch(System.Threading.ThreadAbortException ex)
+                {
+                    m_log.Error("Thread aborted in MaintenanceLoopThread.  If this is during shutdown, please ignore");
+                }
                 catch (Exception ex)
                 {
-                    if (lastScriptEngine != null)
-                        lastScriptEngine.Log.Error("[" + lastScriptEngine.ScriptEngineName + "]: Exception in MaintenanceLoopThread. Thread will recover after 5 sec throttle. Exception: " + ex.ToString());
-                    Thread.Sleep(5000);
+                    m_log.ErrorFormat("Exception in MaintenanceLoopThread. Thread will recover after 5 sec throttle. Exception: {0}", ex.ToString());
                 }
             }
         }
@@ -231,6 +236,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         //    get { return _PleaseShutdown; }
         //    set { _PleaseShutdown = value; }
         //}
-        //private bool _PleaseShutdown = false;
+        //private bool _PleaseShutdown = false;    
     }
 }
