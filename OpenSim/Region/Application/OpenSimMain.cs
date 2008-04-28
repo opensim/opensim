@@ -54,15 +54,14 @@ using Timer=System.Timers.Timer;
 
 namespace OpenSim
 {
-    public delegate void ConsoleCommand(string[] comParams);
-
-    public class OpenSimMain : RegionApplicationBase, conscmd_callback
+    public class OpenSimMain : RegionApplicationBase
     {        
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private string proxyUrl;
-        private int proxyOffset = 0;
 
-        private const string DEFAULT_PRIM_BACKUP_FILENAME = "prim-backup.xml";
+        protected string proxyUrl;
+        protected int proxyOffset = 0;
+
+        protected const string DEFAULT_PRIM_BACKUP_FILENAME = "prim-backup.xml";
 
         public string m_physicsEngine;
         public string m_meshEngineName;
@@ -76,35 +75,29 @@ namespace OpenSim
 
         protected string m_storageDll;
 
-        protected string m_startupCommandsFile;
-        protected string m_shutdownCommandsFile;
-
         protected List<UDPServer> m_udpServers = new List<UDPServer>();
         protected List<RegionInfo> m_regionData = new List<RegionInfo>();
 
-        private bool m_physicalPrim;
-        private bool m_permissions = false;
+        protected bool m_physicalPrim;
+        protected bool m_permissions = false;
 
-        private bool m_standaloneAuthenticate = false;
-        private string m_standaloneWelcomeMessage = null;
-        private string m_standaloneInventoryPlugin;
-        private string m_standaloneAssetPlugin;
-        private string m_standaloneUserPlugin;
+        protected bool m_standaloneAuthenticate = false;
+        protected string m_standaloneWelcomeMessage = null;
+        protected string m_standaloneInventoryPlugin;
+        protected string m_standaloneAssetPlugin;
+        protected string m_standaloneUserPlugin;
         private string m_standaloneInventorySource;
         private string m_standaloneAssetSource;
         private string m_standaloneUserSource;
 
-        private string m_assetStorage = "local";
-
-        private string m_timedScript = "disabled";
-        private Timer m_scriptTimer;
+        protected string m_assetStorage = "local";
 
         public ConsoleCommand CreateAccount = null;
-        private bool m_dumpAssetsToFile;
+        protected bool m_dumpAssetsToFile;
 
-        private List<IApplicationPlugin> m_plugins = new List<IApplicationPlugin>();
+        protected List<IApplicationPlugin> m_plugins = new List<IApplicationPlugin>();
 
-        private IniConfigSource m_config;
+        protected IniConfigSource m_config;
 
         public IniConfigSource ConfigSource
         {
@@ -127,7 +120,7 @@ namespace OpenSim
             get { return m_regionData; }
         }
 
-        private ModuleLoader m_moduleLoader;
+        protected ModuleLoader m_moduleLoader;
 
         public ModuleLoader ModuleLoader
         {
@@ -260,7 +253,7 @@ namespace OpenSim
 
         }
 
-        protected void ReadConfigSettings()
+        protected virtual void ReadConfigSettings()
         {
             m_networkServersInfo = new NetworkServersInfo();
 
@@ -290,13 +283,8 @@ namespace OpenSim
                 m_storagePersistPrimInventories
                     = startupConfig.GetBoolean("storage_prim_inventories", true);
 
-                m_startupCommandsFile = startupConfig.GetString("startup_console_commands_file", String.Empty);
-                m_shutdownCommandsFile = startupConfig.GetString("shutdown_console_commands_file", String.Empty);
-
                 m_scriptEngine = startupConfig.GetString("script_engine", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
                 m_assetStorage = startupConfig.GetString("asset_database", "local");
-
-                m_timedScript = startupConfig.GetString("timer_Script", "disabled");
             }
 
             IConfig standaloneConfig = m_config.Configs["StandAlone"];
@@ -325,6 +313,8 @@ namespace OpenSim
             m_networkServersInfo.loadFromConfiguration(m_config);
         }
 
+        private ManualResetEvent WorldHasComeToAnEnd = new ManualResetEvent(false);
+
         /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.
         /// </summary>
@@ -334,14 +324,30 @@ namespace OpenSim
             // Called from app startup (OpenSim.Application)
             //
             
-            m_log.Info("====================================================================");
-            m_log.Info("========================= STARTING OPENSIM =========================");
-            m_log.Info("====================================================================");
+            m_log.Info("[OPENSIM]: Starting Opensim");
             m_log.InfoFormat("[OPENSIM MAIN]: Running in {0} mode", (m_sandbox ? "sandbox" : "grid"));
             
-            m_console = CreateConsole();
-            MainConsole.Instance = m_console;
+            InternalStartUp();
 
+            // We are done with startup
+            m_log.Info("[OPENSIM MAIN]: Startup complete, serving " + m_udpServers.Count.ToString() + " region(s)");
+            WorldHasComeToAnEnd.WaitOne();
+        }
+
+        
+        /// <summary>
+        /// Signal that the end of the world is now.
+        /// </summary>
+        public void ApocalypseNow()
+        {
+            WorldHasComeToAnEnd.Set();
+        }
+
+        /// <summary>
+        /// Performs initialisation of the scene, such as loading configuration from disk.
+        /// </summary>
+        protected void InternalStartUp()
+        {
             StatsManager.StartCollectingSimExtraStats();
             
             // Do baseclass startup sequence: OpenSim.Region.ClientStack.RegionApplicationBase.StartUp
@@ -411,28 +417,6 @@ namespace OpenSim
             // m_udpServers[i].ServerListener();
             // }
 
-            //Run Startup Commands
-            if (m_startupCommandsFile != String.Empty)
-            {
-                RunCommandScript(m_startupCommandsFile);
-            }
-            else
-            {
-                m_log.Info("[STARTUP]: No startup command script specified. Moving on...");
-            }
-
-            // Start timer script (run a script every xx seconds)
-            if (m_timedScript != "disabled")
-            {
-                m_scriptTimer = new Timer();
-                m_scriptTimer.Enabled = true;
-                m_scriptTimer.Interval = (int)(1200 * 1000);
-                m_scriptTimer.Elapsed += new ElapsedEventHandler(RunAutoTimerScript);
-            }
-
-            // We are done with startup
-            PrintFileToConsole("startuplogo.txt");
-            m_log.Info("[OPENSIM MAIN]: Startup complete, serving " + m_udpServers.Count.ToString() + " region(s)");
         }
 
         protected override void Initialize()
@@ -644,11 +628,6 @@ namespace OpenSim
             //m_sceneManager.SendSimOnlineNotification(restartingRegion.RegionHandle);
         }
 
-        protected override ConsoleBase CreateConsole()
-        {
-            return new ConsoleBase("Region", this);
-        }
-
         # region Setup methods
 
         protected override PhysicsScene GetPhysicsScene()
@@ -656,7 +635,7 @@ namespace OpenSim
             return GetPhysicsScene(m_physicsEngine, m_meshEngineName);
         }
 
-        private class SimStatusHandler : IStreamedRequestHandler
+        protected class SimStatusHandler : IStreamedRequestHandler
         {
             public byte[] Handle(string path, Stream request)
             {
@@ -684,16 +663,11 @@ namespace OpenSim
         /// <summary>
         /// Performs any last-minute sanity checking and shuts down the region server
         /// </summary>
-        public virtual void Shutdown()
+        protected virtual void InternalShutdown()
         {
             if (proxyUrl.Length > 0) 
             {
                 Util.XmlRpcCommand(proxyUrl, "Stop"); 
-            }
-
-            if (m_startupCommandsFile != String.Empty)
-            {
-                RunCommandScript(m_shutdownCommandsFile);
             }
 
             m_log.Info("[SHUTDOWN]: Closing all threads");
@@ -703,618 +677,15 @@ namespace OpenSim
             m_log.Info("[SHUTDOWN]: Closing console and terminating");
 
             m_sceneManager.Close();
+            // needs to be called by Shutdown() method
+            // Environment.Exit(0);
+        }
 
-            m_console.Close();
+        public virtual void Shutdown()
+        {
+            InternalShutdown();
             Environment.Exit(0);
         }
-
-        private void RunAutoTimerScript(object sender, EventArgs e)
-        {
-            if (m_timedScript != "disabled")
-            {
-                RunCommandScript(m_timedScript);
-            }
-        }
-
-        #region Console Commands
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="fileName"></param>
-        private void RunCommandScript(string fileName)
-        {
-            m_log.Info("[COMMANDFILE]: Running " + fileName);
-            if (File.Exists(fileName))
-            {
-                StreamReader readFile = File.OpenText(fileName);
-                string currentCommand = String.Empty;
-                while ((currentCommand = readFile.ReadLine()) != null)
-                {
-                    if (currentCommand != String.Empty)
-                    {
-                        m_log.Info("[COMMANDFILE]: Running '" + currentCommand + "'");
-                        m_console.RunCommand(currentCommand);
-                    }
-                }
-            }
-            else
-            {
-                m_log.Error("[COMMANDFILE]: Command script missing. Can not run commands");
-            }
-        }
-
-        private void PrintFileToConsole(string fileName)
-        {
-            if (File.Exists(fileName))
-            {
-                StreamReader readFile = File.OpenText(fileName);
-                string currentLine = String.Empty;
-                while ((currentLine = readFile.ReadLine()) != null)
-                {
-                    m_log.Info("[!]" + currentLine);
-                }
-            }
-        }
-
-
-        /// <summary>
-        /// Runs commands issued by the server console from the operator
-        /// </summary>
-        /// <param name="command">The first argument of the parameter (the command)</param>
-        /// <param name="cmdparams">Additional arguments passed to the command</param>
-        public override void RunCmd(string command, string[] cmdparams)
-        {
-            base.RunCmd(command, cmdparams);
-            
-            switch (command)
-            {
-                case "clear-assets":
-                    m_assetCache.Clear();
-                    break;
-
-                case "set-time":
-                    m_sceneManager.SetCurrentSceneTimePhase(Convert.ToInt32(cmdparams[0]));
-                    break;
-
-                case "force-update":
-                    m_console.Notice("Updating all clients");
-                    m_sceneManager.ForceCurrentSceneClientUpdate();
-                    break;
-
-                case "edit-scale":
-                    if (cmdparams.Length == 4)
-                    {
-                        m_sceneManager.HandleEditCommandOnCurrentScene(cmdparams);
-                    }
-                    break;
-
-                case "debug":
-                    if (cmdparams.Length > 0)
-                    {
-                        Debug(cmdparams);
-                    }
-                    break;
-
-                case "scene-debug":
-                    if (cmdparams.Length == 3)
-                    {
-                        if (m_sceneManager.CurrentScene == null)
-                        {
-                            m_console.Error("CONSOLE", "Please use 'change-region <regioname>' first");
-                        }
-                        else
-                        {
-                            m_sceneManager.CurrentScene.SetSceneCoreDebug(!Convert.ToBoolean(cmdparams[0]), !Convert.ToBoolean(cmdparams[1]), !Convert.ToBoolean(cmdparams[2]));
-                        }
-                    }
-                    else
-                    {
-                        m_console.Error("scene-debug <scripting> <collisions> <physics> (where inside <> is true/false)");
-                    }
-                    break;
-
-                case "help":
-                    m_console.Notice("alert - send alert to a designated user or all users.");
-                    m_console.Notice("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
-                    m_console.Notice("  alert general [Message] - send an alert to all users.");
-                    m_console.Notice("backup - trigger a simulator backup");
-                    m_console.Notice("change-region [name] - sets the region that many of these commands affect.");
-                    m_console.Notice("clear-assets - clear asset cache");
-                    m_console.Notice("command-script [filename] - Execute command in a file.");
-                    m_console.Notice("config get section field - get a config value");
-                    m_console.Notice("config save - save OpenSim.ini");
-                    m_console.Notice("config set section field value - set a config value");
-                    m_console.Notice("create-region <name> <regionfile.xml> - creates a new region");
-                    m_console.Notice("create user - adds a new user.");
-                    m_console.Notice("debug - debugging commands");
-                    m_console.Notice("  packet 0..255 - print incoming/outgoing packets (0=off)");
-                    m_console.Notice("scene-debug [scripting] [collision] [physics] - Enable/Disable debug stuff, each can be True/False");
-                    m_console.Notice("edit-scale [prim name] [x] [y] [z] - resize given prim");
-                    m_console.Notice("export-map [filename] - save image of world map");
-                    m_console.Notice("force-update - force an update of prims in the scene");
-                    m_console.Notice("load-xml2 [filename] - load prims from XML using version 2 format");
-                    m_console.Notice("permissions [true/false] - turn on/off permissions on the scene");
-                    m_console.Notice("quit - equivalent to shutdown.");
-                    m_console.Notice("remove-region [name] - remove a region");
-                    m_console.Notice("restart - disconnects all clients and restarts the sims in the instance.");
-                    m_console.Notice("save-xml2 [filename] - save prims to XML using version 2 format");
-                    m_console.Notice("script - manually trigger scripts? or script commands?");
-                    m_console.Notice("set-time [x] - set the current scene time phase");
-                    m_console.Notice("show assets - show state of asset cache.");
-                    m_console.Notice("show modules - shows info about loaded modules.");
-                    m_console.Notice("show regions - shows info about active regions.");
-                    m_console.Notice("show users - show info about connected users.");
-                    m_console.Notice("show stats - statistical information for this server not displayed in the client");
-                    m_console.Notice("shutdown - disconnect all clients and shutdown.");
-                    m_console.Notice("terrain help - show help for terrain commands.");
-                    m_console.Notice("threads - list threads");
-                    break;
-
-                case "threads":
-//                     m_console.Notice("THREAD", Process.GetCurrentProcess().Threads.Count + " threads running:");
-//                     int _tc = 0;
-                    
-//                     foreach (ProcessThread pt in Process.GetCurrentProcess().Threads)
-//                     {
-//                         _tc++;
-//                         m_console.Notice("THREAD", _tc + ": ID: " + pt.Id + ", Started: " + pt.StartTime.ToString() + ", CPU time: " + pt.TotalProcessorTime + ", Pri: " + pt.BasePriority.ToString() + ", State: " + pt.ThreadState.ToString());
-//                     }
-
-                    List<Thread> threads = ThreadTracker.GetThreads();
-                    if (threads == null)
-                    {
-                        m_console.Notice("THREAD", "Thread tracking is only enabled in DEBUG mode.");
-                    }
-                    else
-                    {
-                        int _tc = 0;
-                        m_console.Notice("THREAD", threads.Count + " threads are being tracked:");
-                        foreach (Thread t in threads)
-                        {
-                            _tc++;
-                            m_console.Notice("THREAD", _tc + ": ID: " + t.ManagedThreadId.ToString() + ", Name: " + t.Name + ", Alive: " + t.IsAlive.ToString() + ", Pri: " + t.Priority.ToString() + ", State: " + t.ThreadState.ToString());
-                        }
-                    }
-
-                    break;
-                case "save-xml":
-                    if (cmdparams.Length > 0)
-                    {
-                        m_sceneManager.SaveCurrentSceneToXml(cmdparams[0]);
-                    }
-                    else
-                    {
-                        m_sceneManager.SaveCurrentSceneToXml(DEFAULT_PRIM_BACKUP_FILENAME);
-                    }
-                    break;
-
-                case "load-xml":
-                    LLVector3 loadOffset = new LLVector3(0, 0, 0);
-                    if (cmdparams.Length > 0)
-                    {
-                        bool generateNewIDS = false;
-                        if (cmdparams.Length > 1)
-                        {
-                            if (cmdparams[1] == "-newUID")
-                            {
-                                generateNewIDS = true;
-                            }
-                            if (cmdparams.Length > 2)
-                            {
-                                loadOffset.X = (float) Convert.ToDecimal(cmdparams[2]);
-                                if (cmdparams.Length > 3)
-                                {
-                                    loadOffset.Y = (float) Convert.ToDecimal(cmdparams[3]);
-                                }
-                                if (cmdparams.Length > 4)
-                                {
-                                    loadOffset.Z = (float) Convert.ToDecimal(cmdparams[4]);
-                                }
-                                m_console.Error("loadOffsets <X,Y,Z> = <" + loadOffset.X + "," + loadOffset.Y + "," +
-                                                loadOffset.Z + ">");
-                            }
-                        }
-                        m_sceneManager.LoadCurrentSceneFromXml(cmdparams[0], generateNewIDS, loadOffset);
-                    }
-                    else
-                    {
-                        m_sceneManager.LoadCurrentSceneFromXml(DEFAULT_PRIM_BACKUP_FILENAME, false, loadOffset);
-                    }
-                    break;
-
-                case "save-xml2":
-                    if (cmdparams.Length > 0)
-                    {
-                        m_sceneManager.SaveCurrentSceneToXml2(cmdparams[0]);
-                    }
-                    else
-                    {
-                        m_sceneManager.SaveCurrentSceneToXml2(DEFAULT_PRIM_BACKUP_FILENAME);
-                    }
-                    break;
-
-                case "load-xml2":
-                    if (cmdparams.Length > 0)
-                    {
-                        m_sceneManager.LoadCurrentSceneFromXml2(cmdparams[0]);
-                    }
-                    else
-                    {
-                        m_sceneManager.LoadCurrentSceneFromXml2(DEFAULT_PRIM_BACKUP_FILENAME);
-                    }
-                    break;
-
-                case "plugin":
-                    m_sceneManager.SendCommandToPluginModules(cmdparams);
-                    break;
-
-                case "command-script":
-                    if (cmdparams.Length > 0)
-                    {
-                        RunCommandScript(cmdparams[0]);
-                    }
-                    break;
-
-                case "permissions":
-                    // Treats each user as a super-admin when disabled
-                    bool permissions = Convert.ToBoolean(cmdparams[0]);
-                    m_sceneManager.SetBypassPermissionsOnCurrentScene(!permissions);
-                    break;
-
-                case "backup":
-                    m_sceneManager.BackupCurrentScene();
-                    break;
-
-                case "alert":
-                    m_sceneManager.HandleAlertCommandOnCurrentScene(cmdparams);
-                    break;
-
-                case "create":
-                    CreateAccount(cmdparams);
-                    break;
-
-                case "create-region":
-                    CreateRegion(new RegionInfo(cmdparams[0], "Regions/" + cmdparams[1],false), true);
-                    break;
-                case "remove-region":
-                   
-                    string regName = CombineParams(cmdparams, 0);
-                    
-                    Console.WriteLine("Trying to kill: " + regName);
-                    Scene killScene;
-
-                    /*  if (m_sceneManager.TryGetScene(regName, out killScene))
-                    {
-                        Console.WriteLine("Returned object ID: ", killScene.RegionInfo.RegionID.ToString());
-                        Console.WriteLine("Returned object Name: ", killScene.RegionInfo.RegionName);
-
-                        
-                        if (killScene == null)
-                        {
-                            Console.WriteLine("Returned object is null!");
-                        }
-
-                        if (m_sceneManager.CurrentScene.RegionInfo.RegionID == killScene.RegionInfo.RegionID)
-                        {
-                            m_sceneManager.TrySetCurrentScene("..");
-                        }
-                        
-                        m_regionData.Remove(killScene.RegionInfo);
-                        m_sceneManager.CloseScene(killScene);
-                            
-
-                    }*/
-
-
-                    /// note from John R Sohn aka XenReborn (irc.freenode.net)
-                    /// the trygetscene function does not work
-                    /// when debugging it i noticed it did indeed find the region by name
-                    /// but the OUT parameter "scene" return an empty object
-                    /// hence the reason it threw an exception
-                    /// when the server code in this block tried to kill it
-                    /// i know its not supposed to work that way... but it seems..
-                    /// that it is.. given a flaw in the langauge or concurrency error.. 
-                    /// i have no idea, but for some reason, performing the search here
-                    /// locally does work, as does dynamically killing the region
-                    /// however on server restart, the region returns, i dunno if this was
-                    /// intentional or not.... i suggest creating a seperate function
-                    /// which will permanently remove all data relating to the region
-                    /// as an administrative option... maybe something like "Purge Region"
-                    /// 
-                    /// i made editations with debug console output in above commented code..
-                    /// and the trygetscene(string,out scene) function to show whats happening.
-
-                    for (int x = 0; x < m_sceneManager.Scenes.Count; x++)
-                    {
-                        if (m_sceneManager.Scenes[x].RegionInfo.RegionName.CompareTo(regName) == 0)
-                        {
-                            killScene = m_sceneManager.Scenes[x];
-                            m_regionData.Remove(killScene.RegionInfo);
-                            m_sceneManager.CloseScene(killScene);
-                        }
-                    }
-
-                    break;
-
-                case "exit":
-                case "quit":
-                case "shutdown":
-                    Shutdown();
-                    break;
-
-                case "restart":
-                    m_sceneManager.RestartCurrentScene();
-                    break;
-
-                case "change-region":
-                    if (cmdparams.Length > 0)
-                    {
-                        string regionName = CombineParams(cmdparams, 0);
-
-                        if (!m_sceneManager.TrySetCurrentScene(regionName))
-                        {
-                            m_console.Error("Couldn't set current region to: " + regionName);
-                        }
-                    }
-
-                    if (m_sceneManager.CurrentScene == null)
-                    {
-                        m_console.Error("CONSOLE", "Currently at Root level. To change region please use 'change-region <regioname>'");
-                    }
-                    else
-                    {
-                        m_console.Error("CONSOLE", "Current Region: " + m_sceneManager.CurrentScene.RegionInfo.RegionName +
-                                        ". To change region please use 'change-region <regioname>'");
-                    }
-
-                    break;
-
-                case "export-map":
-                    if (cmdparams.Length > 0)
-                    {
-                        m_sceneManager.CurrentOrFirstScene.ExportWorldMap(cmdparams[0]);
-                    }
-                    else
-                    {
-                        m_sceneManager.CurrentOrFirstScene.ExportWorldMap("exportmap.jpg");
-                    }
-                    break;
-
-                case "config":
-                    string n = command.ToUpper();
-                    if (cmdparams.Length > 0)
-                    {
-                        switch (cmdparams[0].ToLower())
-                        {
-                            case "set":
-                                if (cmdparams.Length < 4)
-                                {
-                                    m_console.Error(n, "SYNTAX: " + n + " SET SECTION KEY VALUE");
-                                    m_console.Error(n, "EXAMPLE: " + n + " SET ScriptEngine.DotNetEngine NumberOfScriptThreads 5");
-                                }
-                                else
-                                {
-                                    IConfig c = DefaultConfig().Configs[cmdparams[1]];
-                                    if (c == null)
-                                        c = DefaultConfig().AddConfig(cmdparams[1]);
-                                    string _value = String.Join(" ", cmdparams, 3, cmdparams.Length - 3);
-                                    c.Set(cmdparams[2], _value);
-                                    m_config.Merge(c.ConfigSource);
-
-                                    m_console.Error(n, n + " " + n + " " + cmdparams[1] + " " + cmdparams[2] + " " +
-                                                    _value);
-                                }
-                                break;
-                            case "get":
-                                if (cmdparams.Length < 3)
-                                {
-                                    m_console.Error(n, "SYNTAX: " + n + " GET SECTION KEY");
-                                    m_console.Error(n, "EXAMPLE: " + n + " GET ScriptEngine.DotNetEngine NumberOfScriptThreads");
-                                }
-                                else
-                                {
-                                    IConfig c = DefaultConfig().Configs[cmdparams[1]];
-                                    if (c == null)
-                                    {
-                                        m_console.Notice(n, "Section \"" + cmdparams[1] + "\" does not exist.");
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        m_console.Notice(n + " GET " + cmdparams[1] + " " + cmdparams[2] + ": " +
-                                                         c.GetString(cmdparams[2]));
-                                    }
-                                }
-
-                                break;
-                            case "save":
-                                m_console.Notice("Saving configuration file: " + Application.iniFilePath);
-                                m_config.Save(Application.iniFilePath);
-                                break;
-                        }
-                    }
-                    break;
-                case "modules":
-                    if (cmdparams.Length > 0)
-                    {
-                        switch (cmdparams[0].ToLower())
-                        {
-                            case "list":
-                                foreach (IRegionModule irm in m_moduleLoader.GetLoadedSharedModules)
-                                {
-                                    m_console.Notice("Shared region module: " + irm.Name);
-                                }
-                                break;
-                            case "unload":
-                                if (cmdparams.Length > 1)
-                                {
-                                    foreach (IRegionModule rm in new ArrayList(m_moduleLoader.GetLoadedSharedModules))
-                                    {
-                                        if (rm.Name.ToLower() == cmdparams[1].ToLower())
-                                        {
-                                            m_console.Notice("Unloading module: " + rm.Name);
-                                            m_moduleLoader.UnloadModule(rm);
-                                        }
-                                    }
-                                }
-                                break;
-                            case "load":
-                                if (cmdparams.Length > 1)
-                                {
-                                    foreach (Scene s in new ArrayList(m_sceneManager.Scenes))
-                                    {
-                                        
-                                        m_console.Notice("Loading module: " + cmdparams[1]);
-                                        m_moduleLoader.LoadRegionModules(cmdparams[1], s);
-                                    }
-                                }
-                                break;
-                        }
-                    }
-
-                    break;  
-
-                default:
-                    string[] tmpPluginArgs = new string[cmdparams.Length + 1];
-                    cmdparams.CopyTo(tmpPluginArgs, 1);
-                    tmpPluginArgs[0] = command;
-
-                    m_sceneManager.SendCommandToPluginModules(tmpPluginArgs);
-                    break;
-            }
-        }
-
-        public void Debug(string[] args)
-        {
-            switch (args[0])
-            {
-                case "packet":
-                    if (args.Length > 1)
-                    {
-                        int newDebug;
-                        if (int.TryParse(args[1], out newDebug))
-                        {
-                            m_sceneManager.SetDebugPacketOnCurrentScene(newDebug);
-                        }
-                        else
-                        {
-                            m_console.Error("packet debug should be 0..2");
-                        }
-                        m_console.Notice("New packet debug: " + newDebug.ToString());
-                    }
-
-                    break;
-                default:
-                    m_console.Error("Unknown debug");
-                    break;
-            }
-        }
-
-        // see BaseOpenSimServer
-        public override void Show(string ShowWhat)
-        {
-            base.Show(ShowWhat);
-            
-            switch (ShowWhat)
-            {
-                case "assets":
-                    m_assetCache.ShowState();
-                    break;
-
-                case "users":
-                    IList agents = m_sceneManager.GetCurrentSceneAvatars();
-                
-                    m_console.Notice(String.Format("\nAgents connected: {0}\n", agents.Count));
-                                 
-                    m_console.Notice(
-                        String.Format("{0,-16}{1,-16}{2,-37}{3,-16}{4,-22}{5,-16}{6,-15}", "Firstname", "Lastname",
-                                      "Agent ID", "Circuit", "IP", "Region", "Status"));
-
-                    foreach (ScenePresence presence in agents)
-                    {
-                        RegionInfo regionInfo = m_sceneManager.GetRegionInfo(presence.RegionHandle);
-                        string regionName;
-                        EndPoint ep = null;
-
-                        if (regionInfo == null)
-                        {
-                            regionName = "Unresolvable";
-                        }
-                        else
-                        {
-                            regionName = regionInfo.RegionName;
-                        }
-
-                        for (int i = 0; i < m_udpServers.Count; i++)
-                        {
-                            if (m_udpServers[i].RegionHandle == presence.RegionHandle)
-                            {
-
-                                m_udpServers[i].clientCircuits_reverse.TryGetValue(presence.ControllingClient.CircuitCode, out ep);
-                            }
-                        }
-
-                        m_console.Notice(
-                            String.Format(
-                                 "{0,-16}{1,-16}{2,-37}{3,-16}{4,-22}{5,-16}{6,-15}",
-                                 presence.Firstname,
-                                 presence.Lastname,
-                                 presence.UUID,
-                                 presence.ControllingClient.CircuitCode,
-                                 ep,
-                                 regionName,
-                                 ((((ClientView)presence.ControllingClient).PacketProcessingEnabled)
-                                     ?"Active client":"Standby client")));
-                    }
-                
-                    m_console.Notice("");
-
-                    break;
-                case "modules":
-                    m_console.Notice("The currently loaded shared modules are:");
-                    foreach (IRegionModule module in m_moduleLoader.GetLoadedSharedModules)
-                    {
-                        m_console.Notice("Shared Module: " + module.Name);
-                    }
-                    break;
-
-                case "regions":
-                    m_sceneManager.ForEachScene(
-                        delegate(Scene scene)
-                        {
-                            m_console.Notice("Region Name: " + scene.RegionInfo.RegionName + " , Region XLoc: " +
-                                             scene.RegionInfo.RegionLocX + " , Region YLoc: " +
-                                             scene.RegionInfo.RegionLocY);
-                        });
-                    break;
-                                    
-                case "stats":
-                    if (StatsManager.SimExtraStats != null)
-                    {
-                        m_console.Notice(
-                            "STATS", Environment.NewLine + StatsManager.SimExtraStats.Report());                    
-                    }
-                    else
-                    {
-                        m_console.Notice("Extra sim statistics collection has not been enabled");
-                    }
-                    break;                    
-            }
-        }
-
-        private string CombineParams(string[] commandParams, int pos)
-        {
-            string result = String.Empty;
-            for (int i = pos; i < commandParams.Length; i++)
-            {
-                result += commandParams[i] + " ";
-            }
-            result = result.TrimEnd(' ');
-            return result;
-        }
-
-        #endregion
 
         /// <summary>
         /// Get the start time and up time of Region server

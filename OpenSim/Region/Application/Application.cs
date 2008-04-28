@@ -65,6 +65,12 @@ namespace OpenSim
 
             ArgvConfigSource configSource = new ArgvConfigSource(args);
 
+            configSource.Alias.AddAlias("On", true);
+            configSource.Alias.AddAlias("Off", false);
+            configSource.Alias.AddAlias("True", true);
+            configSource.Alias.AddAlias("False", false);
+
+            configSource.AddSwitch("Startup", "background");
             configSource.AddSwitch("Startup", "inifile");
             configSource.AddSwitch("Startup", "gridmode");
             configSource.AddSwitch("Startup", "physics");
@@ -73,13 +79,23 @@ namespace OpenSim
             configSource.AddConfig("StandAlone");
             configSource.AddConfig("Network");
 
-            OpenSimMain sim = new OpenSimMain(configSource);
+            bool background = configSource.Configs["Startup"].GetBoolean("background", false);
 
-            sim.StartUp();
-
-            while (true)
+            if (background)
             {
-                MainConsole.Instance.Prompt();
+                Console.WriteLine("background mode");
+                OpenSimMain sim = new OpenSimMain(configSource);
+                sim.StartUp();
+            }
+            else
+            {
+                OpenSimMain sim = new OpenSimMainConsole(configSource);
+                sim.StartUp();
+
+                while (true)
+                {
+                    MainConsole.Instance.Prompt();
+                }
             }
         }
 
