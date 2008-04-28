@@ -78,6 +78,7 @@ namespace OpenSim.Region.Environment.Scenes
         private readonly Mutex updateLock;
         public bool m_physicalPrim;
         public bool m_seeIntoRegionFromNeighbor;
+        public int MaxUndoCount = 5;
         private int m_RestartTimerCounter;
         private readonly Timer m_restartTimer = new Timer(15000); // Wait before firing
         private int m_incrementsof15seconds = 0;
@@ -1628,6 +1629,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnTeleportHomeRequest += TeleportClientHome;
 
             client.OnSetStartLocationRequest += SetHomeRezPoint;
+            client.OnUndo += m_innerScene.HandleUndo;
              
             EventManager.TriggerOnNewClient(client);
         }

@@ -378,6 +378,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 part.RegionHandle = m_regionHandle;
 
                                 part.TrimPermissions();
+                                part.StoreUndoState();
                             }
                             break;
                         case XmlNodeType.EndElement:
@@ -436,6 +437,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             SceneObjectPart Part = SceneObjectPart.FromXml(reader);
                             AddPart(Part);
+                            Part.StoreUndoState();
                         }
                         else
                         {
@@ -703,6 +705,8 @@ namespace OpenSim.Region.Environment.Scenes
             m_rootPart.ApplyPhysics(m_rootPart.ObjectFlags, m_scene.m_physicalPrim);
             AttachToBackup();
             m_rootPart.ScheduleFullUpdate();
+            m_rootPart.ClearUndoState();
+           
         }
         public void DetachToInventoryPrep()
         {
@@ -731,6 +735,7 @@ namespace OpenSim.Region.Environment.Scenes
         private void SetPartAsNonRoot(SceneObjectPart part)
         {
             part.ParentID = m_rootPart.LocalId;
+            part.ClearUndoState();
         }
 
         /// <summary>
@@ -783,6 +788,7 @@ namespace OpenSim.Region.Environment.Scenes
                 try
                 {
                     m_parts.Add(part.UUID, part);
+                    
                 }
                 catch (Exception e)
                 {
@@ -803,6 +809,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (part.UUID != m_rootPart.UUID)
                     {
                         part.ParentID = m_rootPart.LocalId;
+                        
                     }
                 }
             }
@@ -815,10 +822,17 @@ namespace OpenSim.Region.Environment.Scenes
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
                     part.UUID = LLUUID.Random();
+                    
                 }
             }
         }
-
+        // helper provided for parts.
+        public int GetSceneMaxUndo()
+        {
+            if (m_scene != null)
+                return m_scene.MaxUndoCount;
+            return 5;
+        }
         public void ResetChildPrimPhysicsPositions()
         {
             AbsolutePosition = AbsolutePosition;
@@ -845,12 +859,15 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 SceneObjectPart part = GetChildPart(localId);
                 OnGrabPart(part, offsetPos, remoteClient);
+                
             }
         }
 
         public virtual void OnGrabPart(SceneObjectPart part, LLVector3 offsetPos, IClientAPI remoteClient)
         {
+            part.StoreUndoState();
             part.OnGrab(offsetPos, remoteClient);
+            
         }
 
         public virtual void OnGrabGroup(LLVector3 offsetPos, IClientAPI remoteClient)
@@ -1382,8 +1399,9 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_parts.Add(newPart.UUID, newPart);
             }
-
+            
             SetPartAsNonRoot(newPart);
+            
         }
 
         /// <summary>
@@ -1758,6 +1776,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     LinkNonRootPart(part, oldGroupPosition, oldRootRotation);
                 }
+                part.ClearUndoState();
             }
 
             DetachFromBackup(objectGroup);
@@ -1781,7 +1800,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void DelinkFromGroup(uint partID)
         {
             SceneObjectPart linkPart = GetChildPart(partID);
-
+            linkPart.ClearUndoState();
             if (null != linkPart)
             {
 //                m_log.DebugFormat(

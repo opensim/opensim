@@ -171,6 +171,7 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         public event ScriptAnswer OnScriptAnswer;
         public event RequestPayPrice OnRequestPayPrice;
+        public event AgentSit OnUndo;
 
 
 #pragma warning restore 67

@@ -238,6 +238,7 @@ namespace OpenSim.Region.ClientStack
         private ScriptAnswer handlerScriptAnswer = null;
         private RequestPayPrice handlerRequestPayPrice = null;
         private ObjectDeselect handlerObjectDetach = null;
+        private AgentSit handlerOnUndo = null;
 
         /* Properties */
 
@@ -799,6 +800,7 @@ namespace OpenSim.Region.ClientStack
 
         public event ScriptAnswer OnScriptAnswer;
         public event RequestPayPrice OnRequestPayPrice;
+        public event AgentSit OnUndo;
 
         #region Scene/Avatar to Client
 
@@ -3883,6 +3885,23 @@ namespace OpenSim.Region.ClientStack
                         // Unfortunately, we have to pass the event the packet because objData is an array
                         // That means multiple object perms may be updated in a single packet.
 
+                        break;
+
+                    case PacketType.Undo:
+                        UndoPacket undoitem = (UndoPacket)Pack;
+                        if (undoitem.ObjectData.Length > 0)
+                        {
+                            for (int i = 0; i < undoitem.ObjectData.Length; i++)
+                            {
+                                LLUUID objiD = undoitem.ObjectData[i].ObjectID;
+                                handlerOnUndo = OnUndo;
+                                if (handlerOnUndo != null)
+                                {
+                                    handlerOnUndo(this, objiD);
+                                }
+
+                            }
+                        }
                         break;
                     case PacketType.ObjectDuplicateOnRay:
                         ObjectDuplicateOnRayPacket dupeOnRay = (ObjectDuplicateOnRayPacket)Pack;

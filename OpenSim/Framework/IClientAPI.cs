@@ -570,6 +570,8 @@ namespace OpenSim.Framework
         event UUIDNameRequest OnTeleportHomeRequest;
         
         event ScriptAnswer OnScriptAnswer;
+
+        event AgentSit OnUndo;
          
         LLVector3 StartPos { get; set; }
 

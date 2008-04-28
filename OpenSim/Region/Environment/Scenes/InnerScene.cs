@@ -312,6 +312,20 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
         }
+
+        public void HandleUndo(IClientAPI remoteClient, LLUUID primId)
+        {
+            if (primId != LLUUID.Zero)
+            {
+                SceneObjectPart part =  m_parentScene.GetSceneObjectPart(primId);
+                if (part != null)
+                    part.Undo();
+
+            }
+                
+
+        }
+
         /// <summary>
         /// Event Handling routine for Attach Object
         /// </summary>

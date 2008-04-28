@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.Serialization;
@@ -106,6 +107,8 @@ namespace OpenSim.Region.Environment.Scenes
         [XmlIgnore] public LLVector3 m_attachedPos = LLVector3.Zero;
         [XmlIgnore] public LLUUID fromAssetID = LLUUID.Zero;
 
+        [XmlIgnore] public bool m_undoing = false;
+
         public Int32 CreationDate;
         public uint ParentID = 0;
 
@@ -122,6 +125,8 @@ namespace OpenSim.Region.Environment.Scenes
         public uint GroupMask = (uint)PermissionMask.None;
         public uint EveryoneMask = (uint)PermissionMask.None;
         public uint NextOwnerMask = (uint)PermissionMask.All;
+
+        private UndoStack<UndoState> m_undo = new UndoStack<UndoState>(5);
 
         public LLObject.ObjectFlags Flags = LLObject.ObjectFlags.None;
 
@@ -266,6 +271,40 @@ namespace OpenSim.Region.Environment.Scenes
             //return new LLQuaternion(axiomPartRotation.x, axiomPartRotation.y, axiomPartRotation.z, axiomPartRotation.w);
 
         }
+        
+        public void StoreUndoState()
+        {
+            if (!m_undoing)
+            {
+                if (m_parentGroup != null)
+                {
+                    if (m_undo.Count > 0)
+                    {
+                        UndoState last = m_undo.Peek();
+                        if (last != null)
+                        {
+                            if (last.Compare(this))
+                                return;
+                        }
+                    }
+
+
+                    if (m_parentGroup.GetSceneMaxUndo() > 0)
+                    {
+                        UndoState nUndo = new UndoState(this);
+                        
+                        m_undo.Push(nUndo);
+
+                    }
+                }
+            }
+        }
+
+        public void ClearUndoState()
+        {
+            m_undo.Clear();
+            StoreUndoState();
+        }
 
         public LLVector3 GroupPosition
         {
@@ -290,7 +329,9 @@ namespace OpenSim.Region.Environment.Scenes
                 return m_groupPosition;
             }
             set
-            {   
+            {
+                StoreUndoState();
+
                 m_groupPosition = value;
 
                 if (PhysActor != null)
@@ -334,7 +375,10 @@ namespace OpenSim.Region.Environment.Scenes
         public LLVector3 OffsetPosition
         {
             get { return m_offsetPosition; }
-            set { m_offsetPosition = value;
+            set
+            {
+                StoreUndoState();
+                m_offsetPosition = value;
             try
             {
                 // Hack to get the child prim to update world positions in the physics engine
@@ -380,6 +424,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             set
             {
+                StoreUndoState();
                 m_rotationOffset = value;
 
                 if (PhysActor != null)
@@ -650,7 +695,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_shape.Scale; }
             set 
-            { 
+            {
+                StoreUndoState();
                 m_shape.Scale = value;
                 TriggerScriptChangedEvent(Changed.SCALE);
             }
@@ -759,7 +805,8 @@ namespace OpenSim.Region.Environment.Scenes
                       LLObject.ObjectFlags.CreateSelected;
 
             TrimPermissions();
-
+            //m_undo = new UndoStack<UndoState>(ParentGroup.GetSceneMaxUndo());
+            
             ScheduleFullUpdate();
         }
 
@@ -802,7 +849,7 @@ namespace OpenSim.Region.Environment.Scenes
             
             TrimPermissions();
             // ApplyPhysics();
-
+           
             ScheduleFullUpdate();
         }
 
@@ -1982,6 +2029,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void UpdateRotation(LLQuaternion rot)
         {
+            //StoreUndoState();
             RotationOffset = new LLQuaternion(rot.X, rot.Y, rot.Z, rot.W);
             ScheduleTerseUpdate();
         }
@@ -2097,6 +2145,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="scale"></param>
         public void Resize(LLVector3 scale)
         {
+            StoreUndoState();
             m_shape.Scale = scale;
             
             ScheduleFullUpdate();
@@ -2522,5 +2571,15 @@ namespace OpenSim.Region.Environment.Scenes
             info.AddValue("PayPrice", PayPrice);
         }
 
+
+        public void Undo()
+        {
+            if (m_undo.Count > 0)
+            {
+                UndoState goback = m_undo.Pop();
+                if (goback != null)
+                    goback.PlaybackState(this);
+            }
+        }
     }
 }
