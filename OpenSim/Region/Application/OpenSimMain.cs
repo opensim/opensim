@@ -212,7 +212,7 @@ namespace OpenSim
             if (config != null)
             {
                 config.Set("accounts_authenticate", false);
-                config.Set("welcome_message", "Welcome to Krynn");
+                config.Set("welcome_message", "Welcome to OpenSimulator");
                 config.Set("inventory_plugin", "OpenSim.Data.SQLite.dll");
                 config.Set("inventory_source", "");
                 config.Set("userDatabase_plugin", "OpenSim.Data.SQLite.dll");
