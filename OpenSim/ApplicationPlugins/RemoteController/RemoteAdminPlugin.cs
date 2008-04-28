@@ -58,7 +58,8 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
         {
             try
             {
-                if (openSim.ConfigSource.Configs["RemoteAdmin"] != null && openSim.ConfigSource.Configs["RemoteAdmin"].GetBoolean("enabled", false))
+                if (openSim.ConfigSource.Configs["RemoteAdmin"] != null && 
+                    openSim.ConfigSource.Configs["RemoteAdmin"].GetBoolean("enabled", false))
                 {
                     m_log.Info("[RADMIN]: Remote Admin Plugin Enabled");
                     requiredPassword = openSim.ConfigSource.Configs["RemoteAdmin"].GetString("access_password", String.Empty);
@@ -86,34 +87,38 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable) request.Params[0];
 
-            LLUUID regionID = new LLUUID((string) requestData["regionID"]);
-
             Hashtable responseData = new Hashtable();
 
             m_log.Info("[RADMIN]: Request to restart Region.");
+            try {
+                checkStringParameters(request, new string[] { "password", "regionID" });
 
-            if (requiredPassword != String.Empty &&
-                (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
-            {
-                responseData["accepted"] = "false";
-                response.Value = responseData;
-            }
-            else
-            {
+                if (requiredPassword != String.Empty &&
+                    (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
+                    throw new Exception("wrong password");
+                
+                LLUUID regionID = new LLUUID((string) requestData["regionID"]);
+
                 responseData["accepted"] = "true";
                 response.Value = responseData;
 
-                Scene RebootedScene;
+                Scene rebootedScene;
 
-                if (m_app.SceneManager.TryGetScene(regionID, out RebootedScene))
-                {
-                    responseData["rebooting"] = "true";
-                    RebootedScene.Restart(30);
-                }
-                else
-                {
-                    responseData["rebooting"] = "false";
-                }
+                if (!m_app.SceneManager.TryGetScene(regionID, out rebootedScene))
+                    throw new Exception("region not found");
+                
+                responseData["rebooting"] = "true";
+                rebootedScene.Restart(30);
+            } 
+            catch(Exception e)
+            {
+                m_log.ErrorFormat("[RADMIN]: Restart region: failed: {0}", e.Message);
+                m_log.DebugFormat("[RADMIN]: Restart region: failed: {0}", e.ToString());
+                responseData["accepted"] = "false";
+                responseData["success"] = "false";
+                responseData["rebooting"] = "false";
+                responseData["error"] = e.Message;
+                response.Value = responseData;
             }
 
             return response;
@@ -144,7 +149,10 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             {
                 m_log.ErrorFormat("[RADMIN]: Broadcasting: failed: {0}", e.Message);
                 m_log.DebugFormat("[RADMIN]: Broadcasting: failed: {0}", e.ToString());
+
                 responseData["accepted"] = "false";
+                responseData["success"] = "false";
+                responseData["error"] = e.Message;
                 response.Value = responseData;
             }
 
