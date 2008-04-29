@@ -32,10 +32,10 @@ namespace OpenSim.Framework
 {
     public class AssetLandmark : AssetBase
     {
-        public int Version;
         public LLVector3 Position;
-        public LLUUID RegionID;
         public ulong RegionHandle;
+        public LLUUID RegionID;
+        public int Version;
 
         public AssetLandmark(AssetBase a)
         {

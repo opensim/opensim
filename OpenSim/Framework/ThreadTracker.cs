@@ -34,9 +34,9 @@ namespace OpenSim.Framework
 {
     public static class ThreadTracker
     {
+        private static readonly long ThreadTimeout = 30 * 10000000;
         public static List<ThreadTrackerItem> m_Threads;
         public static Thread ThreadTrackerThread;
-        private static readonly long ThreadTimeout = 30 * 10000000;
 
         static ThreadTracker()
         {
@@ -123,10 +123,14 @@ namespace OpenSim.Framework
             return threads;
         }
 
+        #region Nested type: ThreadTrackerItem
+
         public class ThreadTrackerItem
         {
-            public Thread Thread;
             public long LastSeenActive;
+            public Thread Thread;
         }
+
+        #endregion
     }
 }

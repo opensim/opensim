@@ -36,20 +36,9 @@ namespace OpenSim.Framework
     public class UserAgentData
     {
         /// <summary>
-        /// The UUID of the users avatar (not the agent!)
-        /// </summary>
-        private LLUUID UUID;
-
-        /// <summary>
         /// The IP address of the user
         /// </summary>
         private string agentIP = String.Empty;
-
-        /// <summary>
-        /// The port of the user
-        
-        /// </summary>
-        private uint agentPort;
 
         /// <summary>
         /// Is the user online?
@@ -57,20 +46,24 @@ namespace OpenSim.Framework
         private bool agentOnline;
 
         /// <summary>
-        /// The session ID for the user (also the agent ID)
+        /// The port of the user
         /// </summary>
-        private LLUUID sessionID;
+        private uint agentPort;
 
         /// <summary>
-        /// The "secure" session ID for the user
+        /// Region handle of the current region the user is in
         /// </summary>
-        /// <remarks>Not very secure. Dont rely on it for anything more than Linden Lab does.</remarks>
-        private LLUUID secureSessionID;
+        private ulong currentHandle;
 
         /// <summary>
-        /// The region the user logged into initially
+        /// The position of the user within the region
         /// </summary>
-        private LLUUID regionID;
+        private LLVector3 currentPos;
+
+        /// <summary>
+        /// Current region the user is logged into
+        /// </summary>
+        private LLUUID currentRegion;
 
         /// <summary>
         /// A unix timestamp from when the user logged in
@@ -83,137 +76,112 @@ namespace OpenSim.Framework
         private int logoutTime;
 
         /// <summary>
-        /// Current region the user is logged into
+        /// The region the user logged into initially
         /// </summary>
-        private LLUUID currentRegion;
+        private LLUUID regionID;
 
         /// <summary>
-        /// Region handle of the current region the user is in
+        /// The "secure" session ID for the user
         /// </summary>
-        private ulong currentHandle;
+        /// <remarks>Not very secure. Dont rely on it for anything more than Linden Lab does.</remarks>
+        private LLUUID secureSessionID;
 
         /// <summary>
-        /// The position of the user within the region
+        /// The session ID for the user (also the agent ID)
         /// </summary>
-        private LLVector3 currentPos;
-        
-        public LLUUID ProfileID {
-            get {
-                return UUID;
-            }
-            set {
-                UUID = value;
-            }
+        private LLUUID sessionID;
+
+        /// <summary>
+        /// The UUID of the users avatar (not the agent!)
+        /// </summary>
+        private LLUUID UUID;
+
+        public LLUUID ProfileID
+        {
+            get { return UUID; }
+            set { UUID = value; }
         }
 
-        public string AgentIP {
-            get {
-                return agentIP;
-            }
-            set {
-                agentIP = value;
-            }
+        public string AgentIP
+        {
+            get { return agentIP; }
+            set { agentIP = value; }
         }
 
-        public uint AgentPort {
-            get {
-                return agentPort;
-            }
-            set {
-                agentPort = value;
-            }
+        public uint AgentPort
+        {
+            get { return agentPort; }
+            set { agentPort = value; }
         }
 
-        public bool AgentOnline {
-            get {
-                return agentOnline;
-            }
-            set {
-                agentOnline = value;
-            }
+        public bool AgentOnline
+        {
+            get { return agentOnline; }
+            set { agentOnline = value; }
         }
 
-        public LLUUID SessionID {
-            get {
-                return sessionID;
-            }
-            set {
-                sessionID = value;
-            }
+        public LLUUID SessionID
+        {
+            get { return sessionID; }
+            set { sessionID = value; }
         }
 
-        public LLUUID SecureSessionID {
-            get {
-                return secureSessionID;
-            }
-            set {
-                secureSessionID = value;
-            }
+        public LLUUID SecureSessionID
+        {
+            get { return secureSessionID; }
+            set { secureSessionID = value; }
         }
 
-        public LLUUID InitialRegion {
-            get {
-                return regionID;
-            }
-            set {
-                regionID = value;
-            }
+        public LLUUID InitialRegion
+        {
+            get { return regionID; }
+            set { regionID = value; }
         }
 
-        public int LoginTime {
-            get {
-                return loginTime;
-            }
-            set {
-                loginTime = value;
-            }
+        public int LoginTime
+        {
+            get { return loginTime; }
+            set { loginTime = value; }
         }
 
-        public int LogoutTime {
-            get {
-                return logoutTime;
-            }
-            set {
-                logoutTime = value;
-            }
+        public int LogoutTime
+        {
+            get { return logoutTime; }
+            set { logoutTime = value; }
         }
 
-        public LLUUID Region {
-            get {
-                return currentRegion;
-            }
-            set {
-                currentRegion = value;
-            }
+        public LLUUID Region
+        {
+            get { return currentRegion; }
+            set { currentRegion = value; }
         }
 
-        public ulong Handle {
-            get {
-                return currentHandle;
-            }
-            set {
-                currentHandle = value;
-            }
+        public ulong Handle
+        {
+            get { return currentHandle; }
+            set { currentHandle = value; }
         }
 
-        public LLVector3 Position {
-            get {
-                return currentPos;
-            }
-            set {
-                currentPos = value;
-            }
+        public LLVector3 Position
+        {
+            get { return currentPos; }
+            set { currentPos = value; }
         }
 
-        public float PositionX {
+        public float PositionX
+        {
             get { return currentPos.X; }
             set { currentPos.X = value; }
         }
-        public float PositionY {
+
+        public float PositionY
+        {
             get { return currentPos.Y; }
             set { currentPos.Y = value; }
         }
-        public float PositionZ {
+
+        public float PositionZ
+        {
             get { return currentPos.Z; }
             set { currentPos.Z = value; }
         }

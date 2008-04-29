@@ -33,6 +33,10 @@ namespace OpenSim.Framework
     [Serializable]
     public class sLLVector3
     {
+        public float x = 0;
+        public float y = 0;
+        public float z = 0;
+
         public sLLVector3()
         {
         }
@@ -43,9 +47,5 @@ namespace OpenSim.Framework
             y = v.Y;
             z = v.Z;
         }
-
-        public float x=0;
-        public float y=0;
-        public float z=0;
     }
 }

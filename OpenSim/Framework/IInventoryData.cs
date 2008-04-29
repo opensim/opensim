@@ -56,14 +56,14 @@ namespace OpenSim.Framework
         /// </summary>
         /// <returns>A string containing the plugin version</returns>
         string getVersion();
-        
+
         /// <summary>
         /// Returns all child folders in the hierarchy from the parent folder and down.
         /// Does not return the parent folder itself.
         /// </summary>
         /// <param name="parentID">The folder to get subfolders for</param>
         /// <returns>A list of inventory folders</returns>
-        List<InventoryFolderBase> getFolderHierarchy(LLUUID parentID);        
+        List<InventoryFolderBase> getFolderHierarchy(LLUUID parentID);
 
         /// <summary>
         /// Returns a list of inventory items contained within the specified folder

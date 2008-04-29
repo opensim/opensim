@@ -32,23 +32,22 @@ namespace OpenSim.Framework
 {
     public class NetworkServersInfo
     {
-        public string AssetURL = "http://127.0.0.1:" + AssetConfig.DefaultHttpPort.ToString() + "/";
-        public string AssetSendKey = String.Empty;
-
-        public string GridURL = String.Empty;
-        public string GridSendKey = String.Empty;
-        public string GridRecvKey = String.Empty;
-        public string UserURL = String.Empty;
-        public string UserSendKey = String.Empty;
-        public string UserRecvKey = String.Empty;
-        public bool isSandbox;
-
-        public string InventoryURL = String.Empty;
-
         public static readonly uint DefaultHttpListenerPort = 9000;
-        public uint HttpListenerPort = DefaultHttpListenerPort;
-
         public static uint RemotingListenerPort = 8895;
+        public string AssetSendKey = String.Empty;
+        public string AssetURL = "http://127.0.0.1:" + AssetConfig.DefaultHttpPort.ToString() + "/";
+
+        public string GridRecvKey = String.Empty;
+        public string GridSendKey = String.Empty;
+        public string GridURL = String.Empty;
+        public uint HttpListenerPort = DefaultHttpListenerPort;
+        public string InventoryURL = String.Empty;
+        public bool isSandbox;
+        private uint? m_defaultHomeLocX;
+        private uint? m_defaultHomeLocY;
+        public string UserRecvKey = String.Empty;
+        public string UserSendKey = String.Empty;
+        public string UserURL = String.Empty;
 
 
         public NetworkServersInfo()
@@ -61,14 +60,10 @@ namespace OpenSim.Framework
             m_defaultHomeLocY = defaultHomeLocY;
         }
 
-        private uint? m_defaultHomeLocX;
-
         public uint DefaultHomeLocX
         {
             get { return m_defaultHomeLocX.Value; }
         }
-
-        private uint? m_defaultHomeLocY;
 
         public uint DefaultHomeLocY
         {

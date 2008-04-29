@@ -31,14 +31,14 @@ namespace OpenSim.Framework
 {
     public class FriendListItem
     {
-        public LLUUID FriendListOwner;
         public LLUUID Friend;
+        public LLUUID FriendListOwner;
 
         // These are what the list owner gives the friend permission to do
-        public uint FriendPerms;
 
         // These are what the friend gives the listowner permission to do
         public uint FriendListOwnerPerms;
+        public uint FriendPerms;
 
         public bool onlinestatus = false;
     }

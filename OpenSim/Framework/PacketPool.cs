@@ -35,18 +35,31 @@ namespace OpenSim.Framework
 {
     public sealed class PacketPool
     {
-        static public void EncodeProxyMessage(byte[] bytes, ref int numBytes, EndPoint trueEP)
+        private static readonly PacketPool instance = new PacketPool();
+
+        private Hashtable pool = new Hashtable();
+
+        static PacketPool()
         {
-            if( numBytes > 4090 ) // max UPD size = 4096
+        }
+
+        public static PacketPool Instance
+        {
+            get { return instance; }
+        }
+
+        public static void EncodeProxyMessage(byte[] bytes, ref int numBytes, EndPoint trueEP)
+        {
+            if (numBytes > 4090) // max UPD size = 4096
             {
                 throw new Exception("ERROR: No space to encode the proxy EP");
             }
 
             ushort port = (ushort) ((IPEndPoint) trueEP).Port;
-            bytes[numBytes++] = (byte)(port % 256);
-            bytes[numBytes++] = (byte)(port / 256);
-            
-            foreach (byte b in ((IPEndPoint)trueEP).Address.GetAddressBytes())
+            bytes[numBytes++] = (byte) (port % 256);
+            bytes[numBytes++] = (byte) (port / 256);
+
+            foreach (byte b in ((IPEndPoint) trueEP).Address.GetAddressBytes())
             {
                 bytes[numBytes++] = b;
             }
@@ -57,8 +70,8 @@ namespace OpenSim.Framework
 
             numBytes = x;
         }
-        
-        static public EndPoint DecodeProxyMessage(byte[] bytes, ref int numBytes)
+
+        public static EndPoint DecodeProxyMessage(byte[] bytes, ref int numBytes)
         {
             // IPv4 Only
             byte[] addr = new byte[4];
@@ -68,35 +81,19 @@ namespace OpenSim.Framework
             addr[1] = bytes[--numBytes];
             addr[0] = bytes[--numBytes];
 
-            ushort port = (ushort)(bytes[--numBytes] * 256);
-            port += (ushort)bytes[--numBytes];
+            ushort port = (ushort) (bytes[--numBytes] * 256);
+            port += (ushort) bytes[--numBytes];
 
-            return (EndPoint) new IPEndPoint(new IPAddress(addr), (int)port);
+            return (EndPoint) new IPEndPoint(new IPAddress(addr), (int) port);
         }
 
-        // Set up a thread-safe singleton pattern
-        static PacketPool()
+        public Packet GetPacket(PacketType type)
         {
-        }
-
-        static readonly PacketPool instance = new PacketPool();
-
-        public static PacketPool Instance
-        {
-            get
-            {
-                return instance;
-            }
-        }
-
-        private Hashtable pool = new Hashtable();
-
-        public Packet GetPacket(PacketType type) {
             Packet packet = null;
 
-            lock(pool)
+            lock (pool)
             {
-                if(pool[type] == null || ((Stack) pool[type]).Count == 0)
+                if (pool[type] == null || ((Stack) pool[type]).Count == 0)
                 {
                     // Creating a new packet if we cannot reuse an old package
                     packet = Packet.BuildPacket(type);
@@ -104,14 +101,14 @@ namespace OpenSim.Framework
                 else
                 {
                     // Recycle old packages
-                    packet=(Packet) ((Stack) pool[type]).Pop();
+                    packet = (Packet) ((Stack) pool[type]).Pop();
                 }
             }
 
             return packet;
         }
 
-       // private byte[] decoded_header = new byte[10];
+        // private byte[] decoded_header = new byte[10];
         private PacketType GetType(byte[] bytes)
         {
             byte[] decoded_header = new byte[10 + 8];
@@ -120,7 +117,7 @@ namespace OpenSim.Framework
 
             Buffer.BlockCopy(bytes, 0, decoded_header, 0, 10);
 
-            if((bytes[0] & Helpers.MSG_ZEROCODED)!=0)
+            if ((bytes[0] & Helpers.MSG_ZEROCODED) != 0)
             {
                 Helpers.ZeroDecodeCommand(bytes, decoded_header);
             }
@@ -129,21 +126,21 @@ namespace OpenSim.Framework
             {
                 if (decoded_header[7] == 0xFF)
                 {
-                    id = (ushort)((decoded_header[8] << 8) + decoded_header[9]);
+                    id = (ushort) ((decoded_header[8] << 8) + decoded_header[9]);
                     freq = PacketFrequency.Low;
                 }
                 else
                 {
-                    id = (ushort)decoded_header[7];
+                    id = (ushort) decoded_header[7];
                     freq = PacketFrequency.Medium;
                 }
             }
             else
             {
-                id = (ushort)decoded_header[6];
+                id = (ushort) decoded_header[6];
                 freq = PacketFrequency.High;
             }
- 
+
             return Packet.GetType(id, freq);
         }
 
@@ -157,7 +154,8 @@ namespace OpenSim.Framework
             return packet;
         }
 
-        public void ReturnPacket(Packet packet) {
+        public void ReturnPacket(Packet packet)
+        {
             return; // packet pool disabled
 
             /* // Commented out to remove a compiler warning. :)

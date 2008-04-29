@@ -31,6 +31,11 @@ namespace OpenSim.Framework
 {
     public class AssetStorage
     {
+        public byte[] Data;
+        public string Name;
+        public sbyte Type;
+        public LLUUID UUID;
+
         public AssetStorage()
         {
         }
@@ -39,10 +44,5 @@ namespace OpenSim.Framework
         {
             UUID = assetUUID;
         }
-
-        public byte[] Data;
-        public sbyte Type;
-        public string Name;
-        public LLUUID UUID;
     }
 }

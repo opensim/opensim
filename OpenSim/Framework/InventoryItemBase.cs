@@ -35,11 +35,6 @@ namespace OpenSim.Framework
     public class InventoryItemBase
     {
         /// <summary>
-        /// A UUID containing the ID for the inventory item itself
-        /// </summary>
-        private LLUUID _id;
-
-        /// <summary>
         /// The UUID of the associated asset on the asset server
         /// </summary>
         private LLUUID _assetID;
@@ -50,19 +45,9 @@ namespace OpenSim.Framework
         private int _assetType;
 
         /// <summary>
-        /// The type of inventory item. (Can be slightly different to the asset type
+        /// 
         /// </summary>
-        private int _invType;
-
-        /// <summary>
-        /// The folder this item is contained in 
-        /// </summary>
-        private LLUUID _folder;
-
-        /// <summary>
-        /// The owner of this inventory item
-        /// </summary>
-        private LLUUID _owner;
+        private uint _basePermissions;
 
         /// <summary>
         /// The creator of this item
@@ -70,9 +55,9 @@ namespace OpenSim.Framework
         private LLUUID _creator;
 
         /// <summary>
-        /// The name of the inventory item (must be less than 64 characters)
+        /// A mask containing permissions for the current owner (cannot be enforced)
         /// </summary>
-        private string _name;
+        private uint _currentPermissions;
 
         /// <summary>
         /// The description of the inventory item (must be less than 64 characters)
@@ -80,140 +65,116 @@ namespace OpenSim.Framework
         private string _description;
 
         /// <summary>
+        /// 
+        /// </summary>
+        private uint _everyOnePermissions;
+
+        /// <summary>
+        /// The folder this item is contained in 
+        /// </summary>
+        private LLUUID _folder;
+
+        /// <summary>
+        /// A UUID containing the ID for the inventory item itself
+        /// </summary>
+        private LLUUID _id;
+
+        /// <summary>
+        /// The type of inventory item. (Can be slightly different to the asset type
+        /// </summary>
+        private int _invType;
+
+        /// <summary>
+        /// The name of the inventory item (must be less than 64 characters)
+        /// </summary>
+        private string _name;
+
+        /// <summary>
         /// A mask containing the permissions for the next owner (cannot be enforced)
         /// </summary>
         private uint _nextPermissions;
 
         /// <summary>
-        /// A mask containing permissions for the current owner (cannot be enforced)
+        /// The owner of this inventory item
         /// </summary>
-        private uint _currentPermissions;
+        private LLUUID _owner;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        private uint _basePermissions;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private uint _everyOnePermissions;
-        
-        public LLUUID ID {
-            get {
-                return _id;
-            }
-            set {
-                _id = value;
-            }
+        public LLUUID ID
+        {
+            get { return _id; }
+            set { _id = value; }
         }
 
-        public int InvType {
-            get {
-                return _invType;
-            }
-            set {
-                _invType = value;
-            }
+        public int InvType
+        {
+            get { return _invType; }
+            set { _invType = value; }
         }
 
-        public LLUUID Folder {
-            get {
-                return _folder;
-            }
-            set {
-                _folder = value;
-            }
+        public LLUUID Folder
+        {
+            get { return _folder; }
+            set { _folder = value; }
         }
 
-        public LLUUID Owner {
-            get {
-                return _owner;
-            }
-            set {
-                _owner = value;
-            }
+        public LLUUID Owner
+        {
+            get { return _owner; }
+            set { _owner = value; }
         }
 
-        public LLUUID Creator {
-            get {
-                return _creator;
-            }
-            set {
-                _creator = value;
-            }
+        public LLUUID Creator
+        {
+            get { return _creator; }
+            set { _creator = value; }
         }
 
-        public string Name {
-            get {
-                return _name;
-            }
-            set {
-                _name = value;
-            }
+        public string Name
+        {
+            get { return _name; }
+            set { _name = value; }
         }
 
-        public string Description {
-            get {
-                return _description;
-            }
-            set {
-                _description = value;
-            }
+        public string Description
+        {
+            get { return _description; }
+            set { _description = value; }
         }
 
-        public uint NextPermissions {
-            get {
-                return _nextPermissions;
-            }
-            set {
-                _nextPermissions = value;
-            }
+        public uint NextPermissions
+        {
+            get { return _nextPermissions; }
+            set { _nextPermissions = value; }
         }
 
-        public uint CurrentPermissions {
-            get {
-                return _currentPermissions;
-            }
-            set {
-                _currentPermissions = value;
-            }
+        public uint CurrentPermissions
+        {
+            get { return _currentPermissions; }
+            set { _currentPermissions = value; }
         }
 
-        public uint BasePermissions {
-            get {
-                return _basePermissions;
-            }
-            set {
-                _basePermissions = value;
-            }
+        public uint BasePermissions
+        {
+            get { return _basePermissions; }
+            set { _basePermissions = value; }
         }
 
-        public uint EveryOnePermissions {
-            get {
-                return _everyOnePermissions;
-            }
-            set {
-                _everyOnePermissions = value;
-            }
+        public uint EveryOnePermissions
+        {
+            get { return _everyOnePermissions; }
+            set { _everyOnePermissions = value; }
         }
 
-        public int AssetType {
-            get {
-                return _assetType;
-            }
-            set {
-                _assetType = value;
-            }
+        public int AssetType
+        {
+            get { return _assetType; }
+            set { _assetType = value; }
         }
 
-        public LLUUID AssetID {
-            get {
-                return _assetID;
-            }
-            set {
-                _assetID = value;
-            }
+        public LLUUID AssetID
+        {
+            get { return _assetID; }
+            set { _assetID = value; }
         }
     }
 }

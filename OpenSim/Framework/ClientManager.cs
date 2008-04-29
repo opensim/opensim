@@ -42,6 +42,11 @@ namespace OpenSim.Framework
 
         private Dictionary<uint, IClientAPI> m_clients;
 
+        public ClientManager()
+        {
+            m_clients = new Dictionary<uint, IClientAPI>();
+        }
+
         public void ForEachClient(ForEachClientDelegate whatToDo)
         {
             // Wasteful, I know
@@ -63,11 +68,6 @@ namespace OpenSim.Framework
                     m_log.Warn("[CLIENT]: Unable to do ForEachClient for one of the clients" + "\n Reason: " + e.ToString());
                 }
             }
-        }
-
-        public ClientManager()
-        {
-            m_clients = new Dictionary<uint, IClientAPI>();
         }
 
         public void Remove(uint id)
@@ -94,7 +94,7 @@ namespace OpenSim.Framework
             bool tryGetRet = false;
             lock (m_clients)
                 tryGetRet = m_clients.TryGetValue(circuitCode, out client);
-            if(tryGetRet)
+            if (tryGetRet)
             {
                 client.InPacket(packet);
             }
@@ -106,7 +106,7 @@ namespace OpenSim.Framework
             bool tryGetRet = false;
             lock (m_clients)
                 tryGetRet = m_clients.TryGetValue(circuitCode, out client);
-            if (tryGetRet) 
+            if (tryGetRet)
             {
                 CloseAllCircuits(client.AgentId);
             }
@@ -125,7 +125,7 @@ namespace OpenSim.Framework
                     bool tryGetRet = false;
                     lock (m_clients)
                         tryGetRet = m_clients.TryGetValue(circuits[i], out client);
-                    if(tryGetRet)
+                    if (tryGetRet)
                     {
                         Remove(client.CircuitCode);
                         client.Close(false);
@@ -138,7 +138,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public uint[] GetAllCircuits(LLUUID agentId) 
+        public uint[] GetAllCircuits(LLUUID agentId)
         {
             List<uint> circuits = new List<uint>();
             // Wasteful, I know
@@ -149,7 +149,7 @@ namespace OpenSim.Framework
                 m_clients.Values.CopyTo(LocalClients, 0);
             }
 
-            for (int i = 0; i < LocalClients.Length; i++ )
+            for (int i = 0; i < LocalClients.Length; i++)
             {
                 if (LocalClients[i].AgentId == agentId)
                 {
@@ -173,7 +173,7 @@ namespace OpenSim.Framework
 
         public void ViewerEffectHandler(IClientAPI sender, ViewerEffectPacket.EffectBlock[] effectBlock)
         {
-            ViewerEffectPacket packet = (ViewerEffectPacket)  PacketPool.Instance.GetPacket(PacketType.ViewerEffect);
+            ViewerEffectPacket packet = (ViewerEffectPacket) PacketPool.Instance.GetPacket(PacketType.ViewerEffect);
             // TODO: don't create new blocks if recycling an old packet
             packet.Effect = effectBlock;
 

@@ -31,27 +31,22 @@ namespace OpenSim.Framework
 {
     public class GridConfig
     {
-        public string GridOwner = String.Empty;
-        public string DefaultAssetServer = String.Empty;
-        public string AssetSendKey = String.Empty;
-        public string AssetRecvKey = String.Empty;
-
-        public string DefaultUserServer = String.Empty;
-        public string UserSendKey = String.Empty;
-        public string UserRecvKey = String.Empty;
-
-        public string SimSendKey = String.Empty;
-        public string SimRecvKey = String.Empty;
-
-        public string DatabaseProvider = String.Empty;
-
-
         public static uint DefaultHttpPort = 8001;
-        public uint HttpPort = DefaultHttpPort;
 
         public string AllowForcefulBanlines = "TRUE";
+        public string AssetRecvKey = String.Empty;
+        public string AssetSendKey = String.Empty;
 
         private ConfigurationMember configMember;
+        public string DatabaseProvider = String.Empty;
+        public string DefaultAssetServer = String.Empty;
+        public string DefaultUserServer = String.Empty;
+        public string GridOwner = String.Empty;
+        public uint HttpPort = DefaultHttpPort;
+        public string SimRecvKey = String.Empty;
+        public string SimSendKey = String.Empty;
+        public string UserRecvKey = String.Empty;
+        public string UserSendKey = String.Empty;
 
         public GridConfig(string description, string filename)
         {

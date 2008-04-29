@@ -50,7 +50,7 @@ namespace OpenSim.Framework
         /// <param name="asset"></param>
         /// <param name="IsTexture"></param>
         void AssetReceived(AssetBase asset, bool IsTexture);
-        
+
         /// <summary>
         /// Call back made when an asset server could not retrieve a requested asset
         /// </summary>

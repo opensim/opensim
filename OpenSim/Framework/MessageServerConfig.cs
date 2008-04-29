@@ -34,25 +34,21 @@ namespace OpenSim.Framework
     /// </summary>
     public class MessageServerConfig
     {
-        public string DefaultStartupMsg = String.Empty;
-        public string UserServerURL = String.Empty;
-        public string UserSendKey = String.Empty;
-        public string UserRecvKey = String.Empty;
-
-        public string GridServerURL = String.Empty;
-        public string GridSendKey = String.Empty;
-        public string GridRecvKey = String.Empty;
-        public string MessageServerIP = String.Empty;
-
-        public string DatabaseProvider = String.Empty;
-        public string GridCommsProvider = String.Empty;
-
         public static uint DefaultHttpPort = 8006;
         public static bool DefaultHttpSSL = false;
+        private ConfigurationMember configMember;
+        public string DatabaseProvider = String.Empty;
+        public string DefaultStartupMsg = String.Empty;
+        public string GridCommsProvider = String.Empty;
+        public string GridRecvKey = String.Empty;
+        public string GridSendKey = String.Empty;
+        public string GridServerURL = String.Empty;
         public uint HttpPort = DefaultHttpPort;
         public bool HttpSSL = DefaultHttpSSL;
-
-        private ConfigurationMember configMember;
+        public string MessageServerIP = String.Empty;
+        public string UserRecvKey = String.Empty;
+        public string UserSendKey = String.Empty;
+        public string UserServerURL = String.Empty;
 
         public MessageServerConfig(string description, string filename)
         {
@@ -60,9 +56,9 @@ namespace OpenSim.Framework
                 new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration, true);
             configMember.performConfigurationRetrieve();
         }
+
         public void loadConfigurationOptions()
         {
-
             configMember.addConfigurationOption("default_user_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default User Server URI",
@@ -82,7 +78,7 @@ namespace OpenSim.Framework
 
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Data.MySQL.dll", false);
-            
+
             configMember.addConfigurationOption("region_comms_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for comms provider", "OpenSim.Region.Communications.OGS1.dll", false);
 
@@ -91,49 +87,47 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("http_ssl", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
                                                 "Use SSL? true/false", DefaultHttpSSL.ToString(), false);
             configMember.addConfigurationOption("published_ip", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                    "My Published IP Address", "127.0.0.1", false);
-
+                                                "My Published IP Address", "127.0.0.1", false);
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
         {
             switch (configuration_key)
             {
-                
                 case "default_user_server":
-                    UserServerURL = (string)configuration_result;
+                    UserServerURL = (string) configuration_result;
                     break;
                 case "user_send_key":
-                    UserSendKey = (string)configuration_result;
+                    UserSendKey = (string) configuration_result;
                     break;
                 case "user_recv_key":
-                    UserRecvKey = (string)configuration_result;
+                    UserRecvKey = (string) configuration_result;
                     break;
                 case "default_grid_server":
-                    GridServerURL = (string)configuration_result;
+                    GridServerURL = (string) configuration_result;
                     break;
                 case "grid_send_key":
-                    GridSendKey = (string)configuration_result;
+                    GridSendKey = (string) configuration_result;
                     break;
                 case "grid_recv_key":
-                    GridRecvKey = (string)configuration_result;
+                    GridRecvKey = (string) configuration_result;
                     break;
                 case "database_provider":
-                    DatabaseProvider = (string)configuration_result;
+                    DatabaseProvider = (string) configuration_result;
                     break;
                 case "http_port":
-                    HttpPort = (uint)configuration_result;
+                    HttpPort = (uint) configuration_result;
                     break;
                 case "http_ssl":
-                    HttpSSL = (bool)configuration_result;
+                    HttpSSL = (bool) configuration_result;
                     break;
                 case "region_comms_provider":
-                    GridCommsProvider = (string)configuration_result;
+                    GridCommsProvider = (string) configuration_result;
                     break;
                 case "published_ip":
-                    MessageServerIP = (string)configuration_result;
+                    MessageServerIP = (string) configuration_result;
                     break;
-                }
+            }
 
             return true;
         }

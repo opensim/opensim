@@ -35,11 +35,11 @@ namespace OpenSim.Framework
     public class AgentInventory
     {
         //Holds the local copy of Inventory info for a agent
+        public LLUUID AgentID;
         public Dictionary<LLUUID, InventoryFolder> InventoryFolders;
         public Dictionary<LLUUID, InventoryItem> InventoryItems;
         public InventoryFolder InventoryRoot;
         public int LastCached; //maybe used by opensim app, time this was last stored/compared to user server
-        public LLUUID AgentID;
         public AvatarWearable[] Wearables;
 
         public AgentInventory()
@@ -206,13 +206,13 @@ namespace OpenSim.Framework
 
     public class InventoryFolder
     {
-        public List<InventoryItem> Items;
         //public List<InventoryFolder> Subfolders;
+        public ushort DefaultType;
         public LLUUID FolderID;
+        public string FolderName;
+        public List<InventoryItem> Items;
         public LLUUID OwnerID;
         public LLUUID ParentID = LLUUID.Zero;
-        public string FolderName;
-        public ushort DefaultType;
         public ushort Version;
 
         public InventoryFolder()
@@ -224,15 +224,15 @@ namespace OpenSim.Framework
 
     public class InventoryItem
     {
-        public LLUUID FolderID;
-        public LLUUID OwnerID;
-        public LLUUID ItemID;
         public LLUUID AssetID;
         public LLUUID CreatorID;
-        public sbyte InvType;
-        public sbyte Type;
-        public string Name = String.Empty;
         public string Description;
+        public LLUUID FolderID;
+        public sbyte InvType;
+        public LLUUID ItemID;
+        public string Name = String.Empty;
+        public LLUUID OwnerID;
+        public sbyte Type;
 
         public InventoryItem()
         {

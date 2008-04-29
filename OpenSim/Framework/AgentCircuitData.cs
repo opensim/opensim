@@ -32,6 +32,18 @@ namespace OpenSim.Framework
 {
     public class AgentCircuitData
     {
+        public LLUUID AgentID;
+        public LLUUID BaseFolder;
+        public string CapsPath = String.Empty;
+        public bool child;
+        public uint circuitcode;
+        public string firstname;
+        public LLUUID InventoryFolder;
+        public string lastname;
+        public LLUUID SecureSessionID;
+        public LLUUID SessionID;
+        public LLVector3 startpos;
+
         public AgentCircuitData()
         {
         }
@@ -50,23 +62,25 @@ namespace OpenSim.Framework
             BaseFolder = new LLUUID(cAgent.BaseFolder);
             CapsPath = cAgent.CapsPath;
         }
-
-        public LLUUID AgentID;
-        public LLUUID SessionID;
-        public LLUUID SecureSessionID;
-        public LLVector3 startpos;
-        public string firstname;
-        public string lastname;
-        public uint circuitcode;
-        public bool child;
-        public LLUUID InventoryFolder;
-        public LLUUID BaseFolder;
-        public string CapsPath = String.Empty;
     }
 
     [Serializable]
     public class sAgentCircuitData
     {
+        public Guid AgentID;
+        public Guid BaseFolder;
+        public string CapsPath = String.Empty;
+        public bool child;
+        public uint circuitcode;
+        public string firstname;
+        public Guid InventoryFolder;
+        public string lastname;
+        public Guid SecureSessionID;
+        public Guid SessionID;
+        public float startposx;
+        public float startposy;
+        public float startposz;
+
         public sAgentCircuitData()
         {
         }
@@ -87,19 +101,5 @@ namespace OpenSim.Framework
             BaseFolder = cAgent.BaseFolder.UUID;
             CapsPath = cAgent.CapsPath;
         }
-
-        public Guid AgentID;
-        public Guid SessionID;
-        public Guid SecureSessionID;
-        public float startposx;
-        public float startposy;
-        public float startposz;
-        public string firstname;
-        public string lastname;
-        public uint circuitcode;
-        public bool child;
-        public Guid InventoryFolder;
-        public Guid BaseFolder;
-        public string CapsPath = String.Empty;
     }
 }

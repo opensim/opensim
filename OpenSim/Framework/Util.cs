@@ -45,18 +45,17 @@ namespace OpenSim.Framework
 {
     public class Util
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);        
-        
-        private static Random randomClass = new Random();
-        private static uint nextXferID = 5000;
-        private static object XferLock = new object();
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        // Get a list of invalid path characters (OS dependent)
-        private static string regexInvalidPathChars = "[" + new String(Path.GetInvalidPathChars()) + "]";
+        private static uint nextXferID = 5000;
+        private static Random randomClass = new Random();
         // Get a list of invalid file characters (OS dependent)
         private static string regexInvalidFileChars = "[" + new String(Path.GetInvalidFileNameChars()) + "]";
+        private static string regexInvalidPathChars = "[" + new String(Path.GetInvalidPathChars()) + "]";
+        private static object XferLock = new object();
 
         #region Vector Equasions
+
         /// <summary>
         /// Get the distance between two 3d vectors
         /// </summary>
@@ -92,7 +91,7 @@ namespace OpenSim.Framework
             if (IsZeroVector(a))
                 throw new ArgumentException("Vector paramater cannot be a zero vector.");
 
-            float Mag = (float)GetMagnitude(a);
+            float Mag = (float) GetMagnitude(a);
             return new LLVector3(a.X / Mag, a.Y / Mag, a.Z / Mag);
         }
 
@@ -112,14 +111,18 @@ namespace OpenSim.Framework
 
         # endregion
 
-        public static ulong UIntsToLong(uint X, uint Y)
+        public Util()
         {
-            return Helpers.UIntsToLong(X, Y);
         }
 
         public static Random RandomClass
         {
             get { return randomClass; }
+        }
+
+        public static ulong UIntsToLong(uint X, uint Y)
+        {
+            return Helpers.UIntsToLong(X, Y);
         }
 
         public static uint GetNextXferID()
@@ -131,10 +134,6 @@ namespace OpenSim.Framework
                 nextXferID++;
             }
             return id;
-        }
-
-        public Util()
-        {
         }
 
         public static string GetFileName(string file)
@@ -199,7 +198,7 @@ namespace OpenSim.Framework
         public static int ToUnixTime(DateTime stamp)
         {
             TimeSpan t = (stamp.ToUniversalTime() - Convert.ToDateTime("1/1/1970 8:00:00 AM"));
-            return (int)t.TotalSeconds;
+            return (int) t.TotalSeconds;
         }
 
         public static DateTime ToDateTime(ulong seconds)
@@ -309,7 +308,7 @@ namespace OpenSim.Framework
                     for (int j = 0; j < 16 && (i + j) < bytes.Length; j++)
                     {
                         if (bytes[i + j] >= 0x20 && bytes[i + j] < 0x7E)
-                            output.Append((char)bytes[i + j]);
+                            output.Append((char) bytes[i + j]);
                         else
                             output.Append(".");
                     }
@@ -332,7 +331,7 @@ namespace OpenSim.Framework
                 return ipa;
 
             IPAddress[] hosts = null;
-            
+
             // Not an IP, lookup required
             try
             {
@@ -341,7 +340,7 @@ namespace OpenSim.Framework
             catch (Exception e)
             {
                 m_log.ErrorFormat("[UTIL]: An error occurred while resolving {0}, {1}", dnsAddress, e);
-                
+
                 // Still going to throw the exception on for now, since this was what was happening in the first place
                 throw e;
             }
@@ -397,7 +396,8 @@ namespace OpenSim.Framework
         /// <returns>safe filename</returns>
         public static string safeFileName(string filename)
         {
-            return Regex.Replace(filename, @regexInvalidFileChars, string.Empty); ;
+            return Regex.Replace(filename, @regexInvalidFileChars, string.Empty);
+            ;
         }
 
         //
@@ -454,10 +454,10 @@ namespace OpenSim.Framework
 
         public static void AddDataRowToConfig(IConfigSource config, DataRow row)
         {
-            config.Configs.Add((string)row[0]);
+            config.Configs.Add((string) row[0]);
             for (int i = 0; i < row.Table.Columns.Count; i++)
             {
-                config.Configs[(string)row[0]].Set(row.Table.Columns[i].ColumnName, row[i]);
+                config.Configs[(string) row[0]].Set(row.Table.Columns[i].ColumnName, row[i]);
             }
         }
 
@@ -594,19 +594,19 @@ namespace OpenSim.Framework
             returnstring[2] = "127";
             returnstring[3] = "0";
             // This is the crappy way of doing it.
-            
+
             if (startLocationRequest.Contains(":") && startLocationRequest.Contains("&"))
             {
                 //System.Console.WriteLine("StartLocationRequest Contains proper elements");
 
-                string[] splitstr = startLocationRequest.Split(':');//,2,StringSplitOptions.RemoveEmptyEntries);
-                
+                string[] splitstr = startLocationRequest.Split(':'); //,2,StringSplitOptions.RemoveEmptyEntries);
+
                 //System.Console.WriteLine("Found " + splitstr.GetLength(0) + " elements in 1st split result");
-                
+
                 if (splitstr.GetLength(0) == 2)
                 {
-                    string[] splitstr2 = splitstr[1].Split('&');//, 4, StringSplitOptions.RemoveEmptyEntries);
-                    
+                    string[] splitstr2 = splitstr[1].Split('&'); //, 4, StringSplitOptions.RemoveEmptyEntries);
+
                     //System.Console.WriteLine("Found " + splitstr2.GetLength(0) + " elements in 2nd split result");
 
                     int len = Math.Min(splitstr2.GetLength(0), 4);
@@ -622,17 +622,16 @@ namespace OpenSim.Framework
             }
             return returnstring;
         }
-        
-        static public XmlRpcResponse XmlRpcCommand(string url, string methodName, params object[] args)
+
+        public static XmlRpcResponse XmlRpcCommand(string url, string methodName, params object[] args)
         {
             return SendXmlRpcCommand(url, methodName, args);
         }
-        
-        static public XmlRpcResponse SendXmlRpcCommand(string url, string methodName, object[] args)
+
+        public static XmlRpcResponse SendXmlRpcCommand(string url, string methodName, object[] args)
         {
             XmlRpcRequest client = new XmlRpcRequest(methodName, args);
             return client.Send(url, 6000);
         }
-
     }
 }

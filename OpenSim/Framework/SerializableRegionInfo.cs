@@ -35,6 +35,28 @@ namespace OpenSim.Framework
     [Serializable]
     public class SearializableRegionInfo
     {
+        public bool m_allow_alternate_ports;
+        protected string m_externalHostName;
+
+        /// <value>
+        /// The port by which http communication occurs with the region (most noticeably, CAPS communication)
+        /// 
+        /// FIXME: Defaulting to 9000 temporarily (on the basis that this is the http port most region 
+        /// servers are running) until the revision in which this change is made propogates around grids.
+        /// </value>
+        protected uint m_httpPort = 9000;
+
+        protected IPEndPoint m_internalEndPoint;
+        protected Guid m_originRegionID = LLUUID.Zero.UUID;
+        protected string m_proxyUrl;
+        protected uint? m_regionLocX;
+        protected uint? m_regionLocY;
+        protected string m_regionName;
+        public uint m_remotingPort;
+        protected string m_serverURI;
+        public Guid RegionID = LLUUID.Zero.UUID;
+        public string RemotingAddress;
+
         /// <summary>
         /// This is a serializable version of RegionInfo
         /// </summary>
@@ -52,7 +74,7 @@ namespace OpenSim.Framework
             m_httpPort = ConvertFrom.HttpPort;
             m_allow_alternate_ports = ConvertFrom.m_allow_alternate_ports;
             RemotingAddress = ConvertFrom.RemotingAddress;
-            m_proxyUrl = ConvertFrom.proxyUrl; 
+            m_proxyUrl = ConvertFrom.proxyUrl;
             OriginRegionID = ConvertFrom.originRegionID;
             RegionName = ConvertFrom.RegionName;
             ServerURI = ConvertFrom.ServerURI;
@@ -77,31 +99,17 @@ namespace OpenSim.Framework
             m_internalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), (int) port);
         }
 
-        public Guid RegionID = LLUUID.Zero.UUID;
-
-        public uint m_remotingPort;
         public uint RemotingPort
         {
             get { return m_remotingPort; }
             set { m_remotingPort = value; }
         }
-        
-        /// <value>
-        /// The port by which http communication occurs with the region (most noticeably, CAPS communication)
-        /// 
-        /// FIXME: Defaulting to 9000 temporarily (on the basis that this is the http port most region 
-        /// servers are running) until the revision in which this change is made propogates around grids.
-        /// </value>
-        protected uint m_httpPort = 9000;
+
         public uint HttpPort
         {
             get { return m_httpPort; }
             set { m_httpPort = value; }
-        }        
-        
-        public bool m_allow_alternate_ports;
-
-        public string RemotingAddress;
+        }
 
         public IPEndPoint ExternalEndPoint
         {
@@ -138,15 +146,11 @@ namespace OpenSim.Framework
             set { m_externalHostName = value.ToString(); }
         }
 
-        protected string m_externalHostName;
-
         public string ExternalHostName
         {
             get { return m_externalHostName; }
             set { m_externalHostName = value; }
         }
-
-        protected IPEndPoint m_internalEndPoint;
 
         public IPEndPoint InternalEndPoint
         {
@@ -154,15 +158,11 @@ namespace OpenSim.Framework
             set { m_internalEndPoint = value; }
         }
 
-        protected uint? m_regionLocX;
-
         public uint RegionLocX
         {
             get { return m_regionLocX.Value; }
             set { m_regionLocX = value; }
         }
-
-        protected uint? m_regionLocY;
 
         public uint RegionLocY
         {
@@ -172,59 +172,31 @@ namespace OpenSim.Framework
 
         public ulong RegionHandle
         {
-            get { return Util.UIntsToLong((RegionLocX * (uint)Constants.RegionSize), (RegionLocY * (uint)Constants.RegionSize)); }
+            get { return Util.UIntsToLong((RegionLocX * (uint) Constants.RegionSize), (RegionLocY * (uint) Constants.RegionSize)); }
         }
 
-        protected string m_proxyUrl;
         public string ProxyUrl
         {
-            get
-            {
-                return m_proxyUrl;
-            }
-            set
-            {
-                m_proxyUrl = value;
-            }
+            get { return m_proxyUrl; }
+            set { m_proxyUrl = value; }
         }
 
-        protected Guid m_originRegionID = LLUUID.Zero.UUID;
         public LLUUID OriginRegionID
         {
-            get
-            {
-                return new LLUUID(m_originRegionID);
-            }
-            set
-            {
-                m_originRegionID = value.UUID;
-            }
+            get { return new LLUUID(m_originRegionID); }
+            set { m_originRegionID = value.UUID; }
         }
 
-        protected string m_regionName;
         public string RegionName
         {
-            get
-            {
-                return m_regionName;
-            }
-            set
-            {
-                m_regionName = value;
-            }
+            get { return m_regionName; }
+            set { m_regionName = value; }
         }
 
-        protected string m_serverURI;
         public string ServerURI
         {
-            get
-            {
-                return m_serverURI;
-            }
-            set
-            {
-                m_serverURI = value;
-            }
+            get { return m_serverURI; }
+            set { m_serverURI = value; }
         }
     }
 }

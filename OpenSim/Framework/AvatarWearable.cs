@@ -48,6 +48,20 @@ namespace OpenSim.Framework
             ItemID = itemId;
         }
 
+        protected AvatarWearable(SerializationInfo info, StreamingContext context)
+        {
+            //System.Console.WriteLine("AvatarWearable Deserialize BGN");
+            if (info == null)
+            {
+                throw new ArgumentNullException("info");
+            }
+
+            AssetID = new LLUUID((Guid) info.GetValue("AssetID", typeof (Guid)));
+            ItemID = new LLUUID((Guid) info.GetValue("ItemID", typeof (Guid)));
+
+            //System.Console.WriteLine("AvatarWearable Deserialize END");
+        }
+
         public static AvatarWearable[] DefaultWearables
         {
             get
@@ -72,24 +86,12 @@ namespace OpenSim.Framework
             }
         }
 
-        protected AvatarWearable(SerializationInfo info, StreamingContext context)
-        {
-            //System.Console.WriteLine("AvatarWearable Deserialize BGN");
-            if (info == null)
-            {
-                throw new ArgumentNullException("info");
-            }
-
-            AssetID = new LLUUID((Guid)info.GetValue("AssetID", typeof(Guid)));
-            ItemID = new LLUUID((Guid)info.GetValue("ItemID", typeof(Guid)));
-
-            //System.Console.WriteLine("AvatarWearable Deserialize END");
-        }
+        #region ISerializable Members
 
         [SecurityPermission(SecurityAction.LinkDemand,
             Flags = SecurityPermissionFlag.SerializationFormatter)]
         public virtual void GetObjectData(
-                        SerializationInfo info, StreamingContext context)
+            SerializationInfo info, StreamingContext context)
         {
             if (info == null)
             {
@@ -99,5 +101,7 @@ namespace OpenSim.Framework
             info.AddValue("AssetID", AssetID.UUID);
             info.AddValue("ItemID", ItemID.UUID);
         }
+
+        #endregion
     }
 }

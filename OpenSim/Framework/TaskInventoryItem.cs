@@ -35,19 +35,38 @@ using libsecondlife;
 using log4net;
 
 namespace OpenSim.Framework
-{        
+{
     /// <summary>
     /// A dictionary for task inventory.
     /// 
     /// This class is not thread safe.  Callers must synchronize on Dictionary methods.
     /// </summary>
-    public class TaskInventoryDictionary : Dictionary<LLUUID, TaskInventoryItem>, 
-        ICloneable, IXmlSerializable
+    public class TaskInventoryDictionary : Dictionary<LLUUID, TaskInventoryItem>,
+                                           ICloneable, IXmlSerializable
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);            
-        
-        private static XmlSerializer tiiSerializer = new XmlSerializer(typeof(TaskInventoryItem));        
-        
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private static XmlSerializer tiiSerializer = new XmlSerializer(typeof (TaskInventoryItem));
+
+        #region ICloneable Members
+
+        public Object Clone()
+        {
+            TaskInventoryDictionary clone = new TaskInventoryDictionary();
+
+            lock (this)
+            {
+                foreach (LLUUID uuid in Keys)
+                {
+                    clone.Add(uuid, (TaskInventoryItem) this[uuid].Clone());
+                }
+            }
+
+            return clone;
+        }
+
+        #endregion
+
         // The alternative of simply serializing the list doesn't appear to work on mono, since
         // we get a
         //
@@ -58,43 +77,46 @@ namespace OpenSim.Framework
         // ...
 //        private static XmlSerializer tiiSerializer 
 //            = new XmlSerializer(typeof(Dictionary<LLUUID, TaskInventoryItem>.ValueCollection));
-        
+
         // see IXmlSerializable
+
+        #region IXmlSerializable Members
+
         public XmlSchema GetSchema()
         {
             return null;
         }
-        
+
         // see IXmlSerializable
         public void ReadXml(XmlReader reader)
         {
-            m_log.DebugFormat("[TASK INVENTORY]: ReadXml current node before actions, {0}", reader.Name);           
+            m_log.DebugFormat("[TASK INVENTORY]: ReadXml current node before actions, {0}", reader.Name);
 
             if (!reader.IsEmptyElement)
             {
                 reader.Read();
                 while (tiiSerializer.CanDeserialize(reader))
                 {
-                    TaskInventoryItem item = (TaskInventoryItem)tiiSerializer.Deserialize(reader);
+                    TaskInventoryItem item = (TaskInventoryItem) tiiSerializer.Deserialize(reader);
                     Add(item.ItemID, item);
-                    
+
                     m_log.DebugFormat("[TASK INVENTORY]: Instanted prim item {0}, {1} from xml", item.Name, item.ItemID);
                 }
-                
+
                 m_log.DebugFormat("[TASK INVENTORY]: Instantiated {0} prim items in total from xml", Count);
             }
             else
             {
                 m_log.DebugFormat("[TASK INVENTORY]: Skipping empty element {0}", reader.Name);
             }
-            
+
             // For some .net implementations, this last read is necessary so that we advance beyond the end tag 
             // of the element wrapping this object so that the rest of the serialization can complete normally.
             reader.Read();
-            
-            m_log.DebugFormat("[TASK INVENTORY]: ReadXml current node after actions, {0}", reader.Name);            
+
+            m_log.DebugFormat("[TASK INVENTORY]: ReadXml current node after actions, {0}", reader.Name);
         }
-        
+
         // see IXmlSerializable
         public void WriteXml(XmlWriter writer)
         {
@@ -105,27 +127,15 @@ namespace OpenSim.Framework
                     tiiSerializer.Serialize(writer, item);
                 }
             }
-            
+
             //tiiSerializer.Serialize(writer, Values);
         }
-        
+
+        #endregion
+
         // see ICloneable
-        public Object Clone()
-        {
-            TaskInventoryDictionary clone = new TaskInventoryDictionary();
-            
-            lock (this)
-            {
-                foreach (LLUUID uuid in Keys)
-                {
-                    clone.Add(uuid, (TaskInventoryItem)this[uuid].Clone());
-                }
-            }
-            
-            return clone;
-        }
     }
-    
+
     /// <summary>
     /// Represents an item in a task inventory
     /// </summary>
@@ -135,90 +145,99 @@ namespace OpenSim.Framework
         /// XXX This should really be factored out into some constants class.
         /// </summary>
         private const uint FULL_MASK_PERMISSIONS_GENERAL = 2147483647;
-        
+
         /// <summary>
         /// Inventory types
         /// </summary>
         public static string[] InvTypes = new string[]
-        {
-            "texture",
-            "sound",
-            "calling_card",
-            "landmark",
-            String.Empty,
-            String.Empty,
-            "object",
-            "notecard",
-            String.Empty,
-            String.Empty,
-            "lsl_text",
-            String.Empty,
-            String.Empty,
-            "bodypart",
-            String.Empty,
-            "snapshot",
-            String.Empty,
-            String.Empty,
-            "wearable",
-            "animation",
-            "gesture"
+            {
+                "texture",
+                "sound",
+                "calling_card",
+                "landmark",
+                String.Empty,
+                String.Empty,
+                "object",
+                "notecard",
+                String.Empty,
+                String.Empty,
+                "lsl_text",
+                String.Empty,
+                String.Empty,
+                "bodypart",
+                String.Empty,
+                "snapshot",
+                String.Empty,
+                String.Empty,
+                "wearable",
+                "animation",
+                "gesture"
+            };
 
-        };
-        
         /// <summary>
         /// Asset types
         /// </summary>
         public static string[] Types = new string[]
-        {
-            "texture",
-            "sound",
-            "callcard",
-            "landmark",
-            "clothing", // Deprecated
-            "clothing",
-            "object",
-            "notecard",
-            "category",
-            "root",
-            "lsltext",
-            "lslbyte",
-            "txtr_tga",
-            "bodypart",
-            "trash",
-            "snapshot",
-            "lstndfnd",
-            "snd_wav",
-            "img_tga",
-            "jpeg",
-            "animatn",
-            "gesture"
-        };              
-
-        public LLUUID ItemID = LLUUID.Zero;
-        public LLUUID ParentID = LLUUID.Zero; //parent folder id 
-
-        public uint BaseMask = FULL_MASK_PERMISSIONS_GENERAL;
-        public uint OwnerMask = FULL_MASK_PERMISSIONS_GENERAL;
-        public uint GroupMask = FULL_MASK_PERMISSIONS_GENERAL;
-        public uint EveryoneMask = FULL_MASK_PERMISSIONS_GENERAL;
-        public uint NextOwnerMask = FULL_MASK_PERMISSIONS_GENERAL;
-        public LLUUID CreatorID = LLUUID.Zero;
-        public LLUUID OwnerID = LLUUID.Zero;
-        public LLUUID LastOwnerID = LLUUID.Zero;
-        public LLUUID GroupID = LLUUID.Zero;
+            {
+                "texture",
+                "sound",
+                "callcard",
+                "landmark",
+                "clothing", // Deprecated
+                "clothing",
+                "object",
+                "notecard",
+                "category",
+                "root",
+                "lsltext",
+                "lslbyte",
+                "txtr_tga",
+                "bodypart",
+                "trash",
+                "snapshot",
+                "lstndfnd",
+                "snd_wav",
+                "img_tga",
+                "jpeg",
+                "animatn",
+                "gesture"
+            };
 
         public LLUUID AssetID = LLUUID.Zero;
-        public int Type = 0;
-        public int InvType = 0;
-        public uint Flags = 0;
-        public string Name = String.Empty;
-        public string Description = String.Empty;
+
+        public uint BaseMask = FULL_MASK_PERMISSIONS_GENERAL;
         public uint CreationDate = 0;
+        public LLUUID CreatorID = LLUUID.Zero;
+        public string Description = String.Empty;
+        public uint EveryoneMask = FULL_MASK_PERMISSIONS_GENERAL;
+        public uint Flags = 0;
+        public LLUUID GroupID = LLUUID.Zero;
+        public uint GroupMask = FULL_MASK_PERMISSIONS_GENERAL;
+
+        public int InvType = 0;
+        public LLUUID ItemID = LLUUID.Zero;
+        public LLUUID LastOwnerID = LLUUID.Zero;
+        public string Name = String.Empty;
+        public uint NextOwnerMask = FULL_MASK_PERMISSIONS_GENERAL;
+        public LLUUID OwnerID = LLUUID.Zero;
+        public uint OwnerMask = FULL_MASK_PERMISSIONS_GENERAL;
+        public LLUUID ParentID = LLUUID.Zero; //parent folder id 
+        public LLUUID ParentPartID = LLUUID.Zero;
         public LLUUID PermsGranter;
         public int PermsMask;
+        public int Type = 0;
 
-        public LLUUID ParentPartID = LLUUID.Zero;
-        
+        // See ICloneable
+
+        #region ICloneable Members
+
+        public Object Clone()
+        {
+            return MemberwiseClone();
+        }
+
+        #endregion
+
         /// <summary>
         /// Reset the LLUUIDs for this item.
         /// </summary>
@@ -227,12 +246,6 @@ namespace OpenSim.Framework
         {
             ItemID = LLUUID.Random();
             ParentPartID = partID;
-        }   
-
-        // See ICloneable
-        public Object Clone()
-        {
-            return MemberwiseClone();
         }
     }
 }

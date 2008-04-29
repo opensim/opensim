@@ -32,15 +32,15 @@ namespace OpenSim.Framework
 {
     public class Login
     {
-        public string First = "Test";
-        public string Last = "User";
         public LLUUID Agent;
-        public LLUUID Session;
-        public LLUUID SecureSession = LLUUID.Zero;
-        public LLUUID InventoryFolder;
         public LLUUID BaseFolder;
-        public uint CircuitCode;
         public string CapsPath = String.Empty;
+        public uint CircuitCode;
+        public string First = "Test";
+        public LLUUID InventoryFolder;
+        public string Last = "User";
+        public LLUUID SecureSession = LLUUID.Zero;
+        public LLUUID Session;
         public LLVector3 StartPos;
 
         public Login()

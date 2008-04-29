@@ -35,6 +35,11 @@ namespace OpenSim.Framework
     public class InventoryFolderBase
     {
         /// <summary>
+        /// The UUID for this folder
+        /// </summary>
+        private LLUUID _id;
+
+        /// <summary>
         /// The name of the folder (64 characters or less)
         /// </summary>
         private string _name;
@@ -50,11 +55,6 @@ namespace OpenSim.Framework
         private LLUUID _parentID;
 
         /// <summary>
-        /// The UUID for this folder
-        /// </summary>
-        private LLUUID _id;
-
-        /// <summary>
         /// Type of items normally stored in this folder
         /// </summary>
         private short _type;
@@ -65,59 +65,41 @@ namespace OpenSim.Framework
         /// time to time (1.19.1 caused us some fits there).
         /// </summary>
         private ushort _version;
-        
-        public string Name {
-            get {
-                return _name;
-            }
-            set {
-                _name = value;
-            }
+
+        public string Name
+        {
+            get { return _name; }
+            set { _name = value; }
         }
 
-        public LLUUID Owner {
-            get {
-                return _owner;
-            }
-            set {
-                _owner = value;
-            }
+        public LLUUID Owner
+        {
+            get { return _owner; }
+            set { _owner = value; }
         }
 
-        public LLUUID ParentID {
-            get {
-                return _parentID;
-            }
-            set {
-                _parentID = value;
-            }
+        public LLUUID ParentID
+        {
+            get { return _parentID; }
+            set { _parentID = value; }
         }
 
-        public LLUUID ID {
-            get {
-                return _id;
-            }
-            set {
-                _id = value;
-            }
+        public LLUUID ID
+        {
+            get { return _id; }
+            set { _id = value; }
         }
 
-        public short Type {
-            get {
-                return _type;
-            }
-            set {
-                _type = value;
-            }
+        public short Type
+        {
+            get { return _type; }
+            set { _type = value; }
         }
 
-        public ushort Version {
-            get {
-                return _version;
-            }
-            set {
-                _version = value;
-            }
+        public ushort Version
+        {
+            get { return _version; }
+            set { _version = value; }
         }
     }
 }

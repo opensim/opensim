@@ -202,7 +202,7 @@ namespace OpenSim.Framework
 
         public void SetRadius(float radius)
         {
-            Scale.X = Scale.Y = radius*2f;
+            Scale.X = Scale.Y = radius * 2f;
         }
 
         // TODO: void returns need to change of course

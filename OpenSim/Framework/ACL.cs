@@ -43,8 +43,8 @@ namespace OpenSim.Framework
     /// </summary>
     public class ACL
     {
-        private Dictionary<string, Role> Roles = new Dictionary<string, Role>();
         private Dictionary<string, Resource> Resources = new Dictionary<string, Resource>();
+        private Dictionary<string, Role> Roles = new Dictionary<string, Role>();
 
         public ACL AddRole(Role role)
         {
@@ -125,14 +125,14 @@ namespace OpenSim.Framework
     {
         protected Role m_role;
 
-        public Role ErrorRole
-        {
-            get { return m_role; }
-        }
-
         public AlreadyContainsRoleException(Role role)
         {
             m_role = role;
+        }
+
+        public Role ErrorRole
+        {
+            get { return m_role; }
         }
 
         public override string ToString()
@@ -163,6 +163,18 @@ namespace OpenSim.Framework
         private string m_name;
         private Role[] m_parents;
         private Dictionary<string, Permission> m_resources = new Dictionary<string, Permission>();
+
+        public Role(string name)
+        {
+            m_name = name;
+            m_parents = null;
+        }
+
+        public Role(string name, Role[] parents)
+        {
+            m_name = name;
+            m_parents = parents;
+        }
 
         public string Name
         {
@@ -201,32 +213,20 @@ namespace OpenSim.Framework
         {
             m_resources[resource] = perm;
         }
-
-        public Role(string name)
-        {
-            m_name = name;
-            m_parents = null;
-        }
-
-        public Role(string name, Role[] parents)
-        {
-            m_name = name;
-            m_parents = parents;
-        }
     }
 
     public class Resource
     {
         private string m_name;
 
-        public string Name
-        {
-            get { return m_name; }
-        }
-
         public Resource(string name)
         {
             m_name = name;
+        }
+
+        public string Name
+        {
+            get { return m_name; }
         }
     }
 

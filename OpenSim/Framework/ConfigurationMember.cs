@@ -39,25 +39,32 @@ namespace OpenSim.Framework
 {
     public class ConfigurationMember
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        #region Delegates
 
         public delegate bool ConfigurationOptionResult(string configuration_key, object configuration_result);
 
         public delegate void ConfigurationOptionsLoad();
 
-        private List<ConfigurationOption> configurationOptions = new List<ConfigurationOption>();
-        private string configurationFilename = String.Empty;
-        private string configurationDescription = String.Empty;
-        private XmlNode configurationFromXMLNode = null;
-        private ConfigurationOptionsLoad loadFunction;
-        private ConfigurationOptionResult resultFunction;
+        #endregion
 
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private int cE = 0;
+
+        private string configurationDescription = String.Empty;
+        private string configurationFilename = String.Empty;
+        private XmlNode configurationFromXMLNode = null;
+        private List<ConfigurationOption> configurationOptions = new List<ConfigurationOption>();
         private IGenericConfig configurationPlugin = null;
-        private bool useConsoleToPromptOnError = true;
+
         /// <summary>
         /// This is the default configuration DLL loaded
         /// </summary>
         private string configurationPluginFilename = "OpenSim.Framework.Configuration.XML.dll";
+
+        private ConfigurationOptionsLoad loadFunction;
+        private ConfigurationOptionResult resultFunction;
+
+        private bool useConsoleToPromptOnError = true;
 
         public ConfigurationMember(string configuration_filename, string configuration_description,
                                    ConfigurationOptionsLoad load_function, ConfigurationOptionResult result_function, bool use_console_to_prompt_on_error)
@@ -150,7 +157,6 @@ namespace OpenSim.Framework
         }
 
         // TEMP - REMOVE
-        private int cE = 0;
         public void performConfigurationRetrieve()
         {
             if (cE > 1)
@@ -162,14 +168,14 @@ namespace OpenSim.Framework
             if (loadFunction == null)
             {
                 m_log.Error("Load Function for '" + configurationDescription +
-                                       "' is null. Refusing to run configuration.");
+                            "' is null. Refusing to run configuration.");
                 return;
             }
 
             if (resultFunction == null)
             {
                 m_log.Error("Result Function for '" + configurationDescription +
-                                       "' is null. Refusing to run configuration.");
+                            "' is null. Refusing to run configuration.");
                 return;
             }
 
@@ -261,7 +267,7 @@ namespace OpenSim.Framework
                                 {
                                     console_result =
                                         MainConsole.Instance.CmdPrompt(configOption.configurationQuestion,
-                                                                      configOption.configurationDefault);
+                                                                       configOption.configurationDefault);
                                 }
                             }
                             else

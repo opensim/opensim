@@ -31,13 +31,17 @@ using libsecondlife;
 namespace OpenSim.Framework
 {
     [Serializable]
-    public class OSUUID: IComparable
+    public class OSUUID : IComparable
     {
+        public static readonly OSUUID Zero = new OSUUID();
         public Guid UUID;
-    
-        public OSUUID() {}
+
+        public OSUUID()
+        {
+        }
 
         /* Constructors */
+
         public OSUUID(string s)
         {
             if (s == null)
@@ -61,6 +65,21 @@ namespace OpenSim.Framework
             UUID = new Guid(0, 0, 0, BitConverter.GetBytes(u));
         }
 
+        #region IComparable Members
+
+        public int CompareTo(object obj)
+        {
+            if (obj is OSUUID)
+            {
+                OSUUID ID = (OSUUID) obj;
+                return UUID.CompareTo(ID.UUID);
+            }
+
+            throw new ArgumentException("object is not a OSUUID");
+        }
+
+        #endregion
+
         // out conversion
         public override string ToString()
         {
@@ -81,20 +100,9 @@ namespace OpenSim.Framework
         public override bool Equals(object o)
         {
             if (!(o is LLUUID)) return false;
-            
-            OSUUID uuid = (OSUUID)o;
+
+            OSUUID uuid = (OSUUID) o;
             return UUID == uuid.UUID;
-        }
-
-        public int CompareTo(object obj)
-        {
-            if (obj is OSUUID)
-            {
-                OSUUID ID = (OSUUID)obj;
-                return this.UUID.CompareTo(ID.UUID);
-            }
-
-            throw new ArgumentException("object is not a OSUUID");
         }
 
         // Static methods
@@ -102,7 +110,5 @@ namespace OpenSim.Framework
         {
             return new OSUUID(Guid.NewGuid());
         }
-
-        public static readonly OSUUID Zero = new OSUUID();
     }
 }

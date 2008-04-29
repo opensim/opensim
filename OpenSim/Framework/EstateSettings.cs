@@ -36,9 +36,71 @@ namespace OpenSim.Framework
     public class EstateSettings
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private ConfigurationMember configMember;
 
         //Settings to this island
         private float m_billableFactor;
+
+        private uint m_estateID;
+        private LLUUID m_estateManager0;
+        private LLUUID m_estateManager1;
+        private LLUUID m_estateManager2;
+        private LLUUID m_estateManager3;
+        private LLUUID m_estateManager4;
+        private LLUUID m_estateManager5;
+        private LLUUID m_estateManager6;
+        private LLUUID m_estateManager7;
+        private LLUUID m_estateManager8;
+        private LLUUID m_estateManager9;
+        private string m_estateName;
+        private byte m_maxAgents;
+        private float m_objectBonusFactor;
+
+        private uint m_parentEstateID;
+        private int m_pricePerMeter;
+        private int m_redirectGridX;
+        private int m_redirectGridY;
+        private bool m_regionAllowTerraform;
+        private Simulator.RegionFlags m_regionFlags;
+        private ushort m_regionWaterHeight;
+        private Simulator.SimAccess m_simAccess;
+        private float m_sunHour;
+        private LLVector3 m_sunPosition;
+        private LLUUID m_terrainBase0;
+        private LLUUID m_terrainBase1;
+        private LLUUID m_terrainBase2;
+        private LLUUID m_terrainBase3;
+        private LLUUID m_terrainDetail0;
+        private LLUUID m_terrainDetail1;
+        private LLUUID m_terrainDetail2;
+        private LLUUID m_terrainDetail3;
+        private string m_terrainFile;
+        private float m_terrainHeightRange0;
+        private float m_terrainHeightRange1;
+        private float m_terrainHeightRange2;
+        private float m_terrainHeightRange3;
+        private LLUUID m_terrainImageID;
+        private float m_terrainLowerLimit;
+        private double m_terrainMultiplier;
+        private float m_terrainRaiseLimit;
+        private float m_terrainStartHeight0;
+        private float m_terrainStartHeight1;
+        private float m_terrainStartHeight2;
+        private float m_terrainStartHeight3;
+        private bool m_useFixedSun;
+        private float m_waterHeight;
+
+        public EstateSettings()
+        {
+            // Temporary hack to prevent multiple loadings.
+            if (configMember == null)
+            {
+                configMember =
+                    new ConfigurationMember(Path.Combine(Util.configDir(), "estate_settings.xml"), "ESTATE SETTINGS",
+                                            loadConfigurationOptions, handleIncomingConfiguration, true);
+                configMember.performConfigurationRetrieve();
+            }
+        }
 
         public float billableFactor
         {
@@ -50,8 +112,6 @@ namespace OpenSim.Framework
             }
         }
 
-        private uint m_estateID;
-
         public uint estateID
         {
             get { return m_estateID; }
@@ -61,8 +121,6 @@ namespace OpenSim.Framework
                 configMember.forceSetConfigurationOption("estate_id", m_estateID.ToString());
             }
         }
-
-        private uint m_parentEstateID;
 
         public uint parentEstateID
         {
@@ -74,8 +132,6 @@ namespace OpenSim.Framework
             }
         }
 
-        private byte m_maxAgents;
-
         public byte maxAgents
         {
             get { return m_maxAgents; }
@@ -85,8 +141,6 @@ namespace OpenSim.Framework
                 configMember.forceSetConfigurationOption("max_agents", m_maxAgents.ToString());
             }
         }
-
-        private float m_objectBonusFactor;
 
         public float objectBonusFactor
         {
@@ -98,8 +152,6 @@ namespace OpenSim.Framework
             }
         }
 
-        private int m_redirectGridX;
-
         public int redirectGridX
         {
             get { return m_redirectGridX; }
@@ -109,8 +161,6 @@ namespace OpenSim.Framework
                 configMember.forceSetConfigurationOption("redirect_grid_x", m_redirectGridX.ToString());
             }
         }
-
-        private int m_redirectGridY;
 
         public int redirectGridY
         {
@@ -122,8 +172,6 @@ namespace OpenSim.Framework
             }
         }
 
-        private Simulator.RegionFlags m_regionFlags;
-
         public Simulator.RegionFlags regionFlags
         {
             get { return m_regionFlags; }
@@ -131,11 +179,9 @@ namespace OpenSim.Framework
             {
                 //m_regionFlags = (Simulator.RegionFlags)0x400000;
                 m_regionFlags = value;
-                configMember.forceSetConfigurationOption("region_flags", ((uint)m_regionFlags).ToString());
+                configMember.forceSetConfigurationOption("region_flags", ((uint) m_regionFlags).ToString());
             }
         }
-
-        private Simulator.SimAccess m_simAccess;
 
         public Simulator.SimAccess simAccess
         {
@@ -143,11 +189,9 @@ namespace OpenSim.Framework
             set
             {
                 m_simAccess = value;
-                configMember.forceSetConfigurationOption("sim_access", ((byte)m_simAccess).ToString());
+                configMember.forceSetConfigurationOption("sim_access", ((byte) m_simAccess).ToString());
             }
         }
-
-        private float m_sunHour;
 
         public float sunHour
         {
@@ -159,8 +203,6 @@ namespace OpenSim.Framework
             }
         }
 
-        private LLVector3 m_sunPosition;
-
         public LLVector3 sunPosition
         {
             get { return m_sunPosition; }
@@ -170,8 +212,6 @@ namespace OpenSim.Framework
                 m_sunPosition = value;
             }
         }
-
-        private float m_terrainRaiseLimit;
 
         public float terrainRaiseLimit
         {
@@ -183,8 +223,6 @@ namespace OpenSim.Framework
             }
         }
 
-        private float m_terrainLowerLimit;
-
         public float terrainLowerLimit
         {
             get { return m_terrainLowerLimit; }
@@ -195,8 +233,6 @@ namespace OpenSim.Framework
             }
         }
 
-        private bool m_useFixedSun;
-
         public bool useFixedSun
         {
             get { return m_useFixedSun; }
@@ -206,8 +242,6 @@ namespace OpenSim.Framework
                 configMember.forceSetConfigurationOption("use_fixed_sun", m_useFixedSun.ToString());
             }
         }
-
-        private int m_pricePerMeter;
 
         public int pricePerMeter
         {
@@ -220,8 +254,6 @@ namespace OpenSim.Framework
         }
 
 
-        private ushort m_regionWaterHeight;
-
         public ushort regionWaterHeight
         {
             get { return m_regionWaterHeight; }
@@ -232,8 +264,6 @@ namespace OpenSim.Framework
             }
         }
 
-
-        private bool m_regionAllowTerraform;
 
         public bool regionAllowTerraform
         {
@@ -248,7 +278,6 @@ namespace OpenSim.Framework
 
         // Region Information
         // Low resolution 'base' textures. No longer used.
-        private LLUUID m_terrainBase0;
 
         public LLUUID terrainBase0
         {
@@ -260,8 +289,6 @@ namespace OpenSim.Framework
             }
         }
 
-        private LLUUID m_terrainBase1;
-
         public LLUUID terrainBase1
         {
             get { return m_terrainBase1; }
@@ -272,8 +299,6 @@ namespace OpenSim.Framework
             }
         }
 
-        private LLUUID m_terrainBase2;
-
         public LLUUID terrainBase2
         {
             get { return m_terrainBase2; }
@@ -283,8 +308,6 @@ namespace OpenSim.Framework
                 configMember.forceSetConfigurationOption("terrain_base_2", m_terrainBase2.ToString());
             }
         }
-
-        private LLUUID m_terrainBase3;
 
         public LLUUID terrainBase3
         {
@@ -298,7 +321,6 @@ namespace OpenSim.Framework
 
 
         // Higher resolution terrain textures
-        private LLUUID m_terrainDetail0;
 
         public LLUUID terrainDetail0
         {
@@ -310,8 +332,6 @@ namespace OpenSim.Framework
             }
         }
 
-        private LLUUID m_terrainDetail1;
-
         public LLUUID terrainDetail1
         {
             get { return m_terrainDetail1; }
@@ -322,8 +342,6 @@ namespace OpenSim.Framework
             }
         }
 
-        private LLUUID m_terrainDetail2;
-
         public LLUUID terrainDetail2
         {
             get { return m_terrainDetail2; }
@@ -333,8 +351,6 @@ namespace OpenSim.Framework
                 configMember.forceSetConfigurationOption("terrain_detail_2", m_terrainDetail2.ToString());
             }
         }
-
-        private LLUUID m_terrainDetail3;
 
         public LLUUID terrainDetail3
         {
@@ -347,7 +363,6 @@ namespace OpenSim.Framework
         }
 
         // First quad - each point is bilinearly interpolated at each meter of terrain
-        private float m_terrainStartHeight0;
 
         public float terrainStartHeight0
         {
@@ -360,8 +375,6 @@ namespace OpenSim.Framework
         }
 
 
-        private float m_terrainStartHeight1;
-
         public float terrainStartHeight1
         {
             get { return m_terrainStartHeight1; }
@@ -372,8 +385,6 @@ namespace OpenSim.Framework
             }
         }
 
-        private float m_terrainStartHeight2;
-
         public float terrainStartHeight2
         {
             get { return m_terrainStartHeight2; }
@@ -383,8 +394,6 @@ namespace OpenSim.Framework
                 configMember.forceSetConfigurationOption("terrain_start_height_2", m_terrainStartHeight2.ToString());
             }
         }
-
-        private float m_terrainStartHeight3;
 
         public float terrainStartHeight3
         {
@@ -399,7 +408,6 @@ namespace OpenSim.Framework
         // Second quad - also bilinearly interpolated.
         // Terrain texturing is done that:
         // 0..3 (0 = base0, 3 = base3) = (terrain[x,y] - start[x,y]) / range[x,y]
-        private float m_terrainHeightRange0;
 
         public float terrainHeightRange0
         {
@@ -411,8 +419,6 @@ namespace OpenSim.Framework
             }
         }
 
-        private float m_terrainHeightRange1;
-
         public float terrainHeightRange1
         {
             get { return m_terrainHeightRange1; }
@@ -423,8 +429,6 @@ namespace OpenSim.Framework
             }
         }
 
-        private float m_terrainHeightRange2;
-
         public float terrainHeightRange2
         {
             get { return m_terrainHeightRange2; }
@@ -434,8 +438,6 @@ namespace OpenSim.Framework
                 configMember.forceSetConfigurationOption("terrain_height_range_2", m_terrainHeightRange2.ToString());
             }
         }
-
-        private float m_terrainHeightRange3;
 
         public float terrainHeightRange3
         {
@@ -448,7 +450,6 @@ namespace OpenSim.Framework
         }
 
         // Terrain Default (Must be in F32 Format!)
-        private string m_terrainFile;
 
         public string terrainFile
         {
@@ -460,8 +461,6 @@ namespace OpenSim.Framework
             }
         }
 
-        private double m_terrainMultiplier;
-
         public double terrainMultiplier
         {
             get { return m_terrainMultiplier; }
@@ -472,8 +471,6 @@ namespace OpenSim.Framework
             }
         }
 
-        private float m_waterHeight;
-
         public float waterHeight
         {
             get { return m_waterHeight; }
@@ -483,8 +480,6 @@ namespace OpenSim.Framework
                 configMember.forceSetConfigurationOption("water_height", m_waterHeight.ToString());
             }
         }
-
-        private LLUUID m_terrainImageID;
 
         public LLUUID terrainImageID
         {
@@ -501,7 +496,6 @@ namespace OpenSim.Framework
         }
 
         // Estate name
-        private string m_estateName;
 
         public string estateName
         {
@@ -513,24 +507,14 @@ namespace OpenSim.Framework
             }
         }
 
-        private LLUUID m_estateManager0;
-        private LLUUID m_estateManager1;
-        private LLUUID m_estateManager2;
-        private LLUUID m_estateManager3;
-        private LLUUID m_estateManager4;
-        private LLUUID m_estateManager5;
-        private LLUUID m_estateManager6;
-        private LLUUID m_estateManager7;
-        private LLUUID m_estateManager8;
-        private LLUUID m_estateManager9;
-
         public LLUUID[] estateManagers
         {
-            get {
+            get
+            {
                 // returns a condensed array of LLUUIDs
                 return GetEstateManagers();
             }
-            set 
+            set
             {
                 // Sets a Condensed array of LLUUIDS
                 int i = 0;
@@ -611,8 +595,8 @@ namespace OpenSim.Framework
 
                 for (i = 0; i < 10; i++)
                 {
-                   // Writes out the Estate managers to the XML file.
-                   configMember.forceSetConfigurationOption("estate_manager_" + i, (GetEstateManagerAtPos(i)).ToString());
+                    // Writes out the Estate managers to the XML file.
+                    configMember.forceSetConfigurationOption("estate_manager_" + i, (GetEstateManagerAtPos(i)).ToString());
                 }
             }
         }
@@ -626,37 +610,36 @@ namespace OpenSim.Framework
             {
                 case 0:
                     return m_estateManager0;
-                    
+
                 case 1:
                     return m_estateManager1;
-                    
+
                 case 2:
                     return m_estateManager2;
-                    
+
                 case 3:
                     return m_estateManager3;
-                    
+
                 case 4:
                     return m_estateManager4;
-                    
+
                 case 5:
                     return m_estateManager5;
-                    
+
                 case 6:
                     return m_estateManager6;
-                    
+
                 case 7:
                     return m_estateManager7;
-                    
+
                 case 8:
                     return m_estateManager8;
-                    
+
                 case 9:
                     return m_estateManager9;
-                    
+
                 default:
                     return LLUUID.Zero;
-                    
             }
         }
 
@@ -671,8 +654,8 @@ namespace OpenSim.Framework
             {
                 pos = GetNextEstateManager(pos);
 
-                rEstateManagers[i] = GetEstateManagerAtPos(pos); pos++;
-         
+                rEstateManagers[i] = GetEstateManagerAtPos(pos);
+                pos++;
             }
             return rEstateManagers;
         }
@@ -681,12 +664,11 @@ namespace OpenSim.Framework
         {
             // This is a utility function that skips over estate managers set to LLUUID.Zero
             int i = startpos;
-            for (i=startpos;i<10;i++) 
+            for (i = startpos; i < 10; i++)
             {
                 if (GetEstateManagerAtPos(i) != LLUUID.Zero) return i;
             }
             return i;
-
         }
 
         private int GetNumberOfEstateManagers()
@@ -723,14 +705,13 @@ namespace OpenSim.Framework
 
             //Saves it to the estate settings file
             estateManagers = nestateManagers;
-
         }
 
         public void RemoveEstateManager(LLUUID avatarID)
         {
             int notfoundparam = 11; // starting high so the condense routine (max ten) doesn't run if we don't find it.
             LLUUID[] testateManagers = GetEstateManagers(); // temporary estate managers list
- 
+
 
             int i = 0;
             int foundpos = notfoundparam;
@@ -765,20 +746,6 @@ namespace OpenSim.Framework
         }
 
         #endregion
-
-        private ConfigurationMember configMember;
-
-        public EstateSettings()
-        {
-            // Temporary hack to prevent multiple loadings.
-            if (configMember == null)
-            {
-                configMember =
-                    new ConfigurationMember(Path.Combine(Util.configDir(), "estate_settings.xml"), "ESTATE SETTINGS",
-                                            loadConfigurationOptions, handleIncomingConfiguration, true);
-                configMember.performConfigurationRetrieve();
-            }
-        }
 
         public void loadConfigurationOptions()
         {
@@ -1010,34 +977,34 @@ namespace OpenSim.Framework
                     break;
 
                 case "estate_manager_0":
-                    m_estateManager0 = (LLUUID)configuration_result;
+                    m_estateManager0 = (LLUUID) configuration_result;
                     break;
                 case "estate_manager_1":
-                    m_estateManager1 = (LLUUID)configuration_result;
+                    m_estateManager1 = (LLUUID) configuration_result;
                     break;
                 case "estate_manager_2":
-                    m_estateManager2 = (LLUUID)configuration_result;
+                    m_estateManager2 = (LLUUID) configuration_result;
                     break;
                 case "estate_manager_3":
-                    m_estateManager3 = (LLUUID)configuration_result;
+                    m_estateManager3 = (LLUUID) configuration_result;
                     break;
                 case "estate_manager_4":
-                    m_estateManager4 = (LLUUID)configuration_result;
+                    m_estateManager4 = (LLUUID) configuration_result;
                     break;
                 case "estate_manager_5":
-                    m_estateManager5 = (LLUUID)configuration_result;
+                    m_estateManager5 = (LLUUID) configuration_result;
                     break;
                 case "estate_manager_6":
-                    m_estateManager6 = (LLUUID)configuration_result;
+                    m_estateManager6 = (LLUUID) configuration_result;
                     break;
                 case "estate_manager_7":
-                    m_estateManager7 = (LLUUID)configuration_result;
+                    m_estateManager7 = (LLUUID) configuration_result;
                     break;
                 case "estate_manager_8":
-                    m_estateManager8 = (LLUUID)configuration_result;
+                    m_estateManager8 = (LLUUID) configuration_result;
                     break;
                 case "estate_manager_9":
-                    m_estateManager9 = (LLUUID)configuration_result;
+                    m_estateManager9 = (LLUUID) configuration_result;
                     break;
             }
 

@@ -139,6 +139,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="friendlistowner">The agent that we're retreiving the friends Data.</param>
         List<FriendListItem> GetUserFriendList(LLUUID friendlistowner);
+
         /// <summary>
         /// Attempts to move currency units between accounts (NOT RELIABLE / TRUSTWORTHY. DONT TRY RUN YOUR OWN CURRENCY EXCHANGE WITH REAL VALUES)
         /// </summary>

@@ -31,7 +31,13 @@ namespace OpenSim.Framework
 {
     public class ConfigurationOption
     {
+        #region Delegates
+
         public delegate bool ConfigurationOptionShouldBeAsked(string configuration_key);
+
+        #endregion
+
+        #region ConfigurationTypes enum
 
         public enum ConfigurationTypes
         {
@@ -53,9 +59,12 @@ namespace OpenSim.Framework
             TYPE_DOUBLE
         } ;
 
+        #endregion
+
+        public string configurationDefault = String.Empty;
+
         public string configurationKey = String.Empty;
         public string configurationQuestion = String.Empty;
-        public string configurationDefault = String.Empty;
 
         public ConfigurationTypes configurationType = ConfigurationTypes.TYPE_STRING;
         public bool configurationUseDefaultNoPrompt = false;

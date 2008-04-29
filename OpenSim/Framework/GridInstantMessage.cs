@@ -32,16 +32,15 @@ namespace OpenSim.Framework
     [Serializable]
     public class GridInstantMessage
     {
+        public byte[] binaryBucket;
+        public byte dialog;
         public Guid fromAgentID;
-        public Guid fromAgentSession;
-        public Guid toAgentID;
-        public Guid imSessionID;
-        public uint timestamp;
         public string fromAgentName;
+        public Guid fromAgentSession;
+        public bool fromGroup;
+        public Guid imSessionID;
 
         public string message;
-        public byte dialog;
-        public bool fromGroup;
         public byte offline;
 
         public uint ParentEstateID;
@@ -49,11 +48,11 @@ namespace OpenSim.Framework
         public sLLVector3 Position;
 
         public Guid RegionID;
-
-        public byte[] binaryBucket;
+        public uint timestamp;
+        public Guid toAgentID;
 
         public GridInstantMessage()
         {
-        }       
+        }
     }
 }

@@ -34,28 +34,24 @@ namespace OpenSim.Framework
     /// </summary>
     public class UserConfig
     {
-        public string DefaultStartupMsg = String.Empty;
-        public string GridServerURL = String.Empty;
-        public string GridSendKey = String.Empty;
-        public string GridRecvKey = String.Empty;
-
-        public string InventoryUrl = String.Empty;
-
-        public string DatabaseProvider = String.Empty;
-
         public static uint DefaultHttpPort = 8002;
         public static bool DefaultHttpSSL = false;
-        public uint HttpPort = DefaultHttpPort;
-        public bool HttpSSL = DefaultHttpSSL;
+        private ConfigurationMember configMember;
+        public string DatabaseProvider = String.Empty;
+        public string DefaultStartupMsg = String.Empty;
         public uint DefaultX = 1000;
         public uint DefaultY = 1000;
-
-        private ConfigurationMember configMember;
+        public string GridRecvKey = String.Empty;
+        public string GridSendKey = String.Empty;
+        public string GridServerURL = String.Empty;
+        public uint HttpPort = DefaultHttpPort;
+        public bool HttpSSL = DefaultHttpSSL;
+        public string InventoryUrl = String.Empty;
 
         public UserConfig(string description, string filename)
         {
             configMember =
-                new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration,true);
+                new ConfigurationMember(filename, description, loadConfigurationOptions, handleIncomingConfiguration, true);
             configMember.performConfigurationRetrieve();
         }
 

@@ -26,8 +26,6 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace OpenSim.Framework
 {
@@ -38,35 +36,39 @@ namespace OpenSim.Framework
     [Serializable]
     public class UndoStack<T>
     {
-
         private int m_new = 1;
         private int m_old = 0;
         private T[] m_Undos;
 
-        public bool IsFull
-        {
-            get
-            {
-                return m_new == m_old;
-            }
-        }
-
-
-        public int Capacity
-        {
-            get
-            {
-                return m_Undos.Length - 1;
-            }
-        }
-
-       
         public UndoStack(int capacity)
         {
             m_Undos = new T[capacity + 1];
         }
 
-       public void Push(T item)
+        public bool IsFull
+        {
+            get { return m_new == m_old; }
+        }
+
+
+        public int Capacity
+        {
+            get { return m_Undos.Length - 1; }
+        }
+
+        public int Count
+        {
+            get
+            {
+                int count = m_new - m_old - 1;
+                if (count < 0)
+                    count += m_Undos.Length;
+                return count;
+            }
+        }
+
+
+        public void Push(T item)
         {
             if (IsFull)
             {
@@ -93,24 +95,13 @@ namespace OpenSim.Framework
                 throw new InvalidOperationException("Cannot pop from emtpy stack");
         }
 
-        public int Count
-        {
-            get
-            {
-                int count = m_new - m_old - 1;
-                if (count < 0)
-                    count += m_Undos.Length;
-                return count;
-            }
-        }
-
 
         public T Peek()
         {
             return m_Undos[m_new];
         }
 
-       
+
         public void Clear()
         {
             if (Count > 0)
@@ -123,6 +114,5 @@ namespace OpenSim.Framework
                 m_old = 0;
             }
         }
-
     }
 }

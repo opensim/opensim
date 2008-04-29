@@ -39,11 +39,16 @@ namespace OpenSim.Framework
         Up = 1,
         Crashed = 2,
         Starting = 3,
-        SlaveScene = 4 
-    };
+        SlaveScene = 4
+    } ;
 
     public interface IScene
     {
+        RegionInfo RegionInfo { get; }
+        uint NextLocalId { get; }
+        RegionStatus Region_Status { get; set; }
+
+        ClientManager ClientManager { get; }
         event restart OnRestart;
 
         void AddNewClient(IClientAPI client, bool child);
@@ -55,15 +60,8 @@ namespace OpenSim.Framework
 
         string GetSimulatorVersion();
 
-        RegionInfo RegionInfo { get; }
-        uint NextLocalId { get; }
-
         bool PresenceChildStatus(LLUUID avatarID);
 
-        RegionStatus Region_Status { get; set; }
-
-        ClientManager ClientManager { get; }
-        
-        string GetCapsPath(LLUUID agentId);       
+        string GetCapsPath(LLUUID agentId);
     }
 }

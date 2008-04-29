@@ -34,16 +34,13 @@ namespace OpenSim.Framework
     /// </summary>
     public class AssetConfig
     {
-        public string DefaultStartupMsg = String.Empty;
-
-        public string DatabaseProvider = String.Empty;
-
-        public string DatabaseConnect = String.Empty;
-
         public const uint DefaultHttpPort = 8003;
-        public uint HttpPort = DefaultHttpPort;
 
         private ConfigurationMember configMember;
+        public string DatabaseConnect = String.Empty;
+        public string DatabaseProvider = String.Empty;
+        public string DefaultStartupMsg = String.Empty;
+        public uint HttpPort = DefaultHttpPort;
 
         public AssetConfig(string description, string filename)
         {

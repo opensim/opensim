@@ -33,6 +33,21 @@ namespace OpenSim.Framework
 {
     public class RegionCommsListener : IRegionCommsListener
     {
+        public string debugRegionName = String.Empty;
+        private AcknowledgeAgentCross handlerAcknowledgeAgentCrossed = null; // OnAcknowledgeAgentCrossed;
+        private AcknowledgePrimCross handlerAcknowledgePrimCrossed = null; // OnAcknowledgePrimCrossed;
+        private AgentCrossing handlerAvatarCrossingIntoRegion = null; // OnAvatarCrossingIntoRegion;
+        private ChildAgentUpdate handlerChildAgentUpdate = null; // OnChildAgentUpdate;
+        private CloseAgentConnection handlerCloseAgentConnection = null; // OnCloseAgentConnection;
+        private GenericCall2 handlerExpectChildAgent = null; // OnExpectChildAgent;
+        private ExpectPrimDelegate handlerExpectPrim = null; // OnExpectPrim;
+        private ExpectUserDelegate handlerExpectUser = null; // OnExpectUser
+        private UpdateNeighbours handlerNeighboursUpdate = null; // OnNeighboursUpdate;
+        private PrimCrossing handlerPrimCrossingIntoRegion = null; // OnPrimCrossingIntoRegion;
+        private RegionUp handlerRegionUp = null; // OnRegionUp;
+
+        #region IRegionCommsListener Members
+
         public event ExpectUserDelegate OnExpectUser;
         public event ExpectPrimDelegate OnExpectPrim;
         public event GenericCall2 OnExpectChildAgent;
@@ -45,20 +60,7 @@ namespace OpenSim.Framework
         public event RegionUp OnRegionUp;
         public event ChildAgentUpdate OnChildAgentUpdate;
 
-        private ExpectUserDelegate handlerExpectUser = null; // OnExpectUser
-        private ExpectPrimDelegate handlerExpectPrim = null; // OnExpectPrim;
-        private GenericCall2 handlerExpectChildAgent = null; // OnExpectChildAgent;
-        private AgentCrossing handlerAvatarCrossingIntoRegion = null; // OnAvatarCrossingIntoRegion;
-        private PrimCrossing handlerPrimCrossingIntoRegion = null; // OnPrimCrossingIntoRegion;
-        private UpdateNeighbours handlerNeighboursUpdate = null; // OnNeighboursUpdate;
-        private AcknowledgeAgentCross handlerAcknowledgeAgentCrossed = null; // OnAcknowledgeAgentCrossed;
-        private AcknowledgePrimCross handlerAcknowledgePrimCrossed = null; // OnAcknowledgePrimCrossed;
-        private CloseAgentConnection handlerCloseAgentConnection = null; // OnCloseAgentConnection;
-        private RegionUp handlerRegionUp = null; // OnRegionUp;
-        private ChildAgentUpdate handlerChildAgentUpdate = null; // OnChildAgentUpdate;
-
-        public string debugRegionName = String.Empty;
-
+        #endregion
 
         /// <summary>
         /// 
@@ -164,7 +166,6 @@ namespace OpenSim.Framework
             {
                 handlerCloseAgentConnection(regionHandle, agentID);
                 return true;
-
             }
             return false;
         }

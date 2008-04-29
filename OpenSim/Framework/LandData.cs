@@ -33,28 +33,20 @@ namespace OpenSim.Framework
 {
     public class LandData
     {
-        public byte[] landBitmapByteArray = new byte[512];
-        public string landName = "Your Parcel";
-        public string landDesc = String.Empty;
-        public LLUUID ownerID = LLUUID.Zero;
-        public bool isGroupOwned = false;
-        public LLVector3 AABBMin = new LLVector3();
         public LLVector3 AABBMax = new LLVector3();
+        public LLVector3 AABBMin = new LLVector3();
         public int area = 0;
         public uint auctionID = 0; //Unemplemented. If set to 0, not being auctioned
         public LLUUID authBuyerID = LLUUID.Zero; //Unemplemented. Authorized Buyer's UUID
         public Parcel.ParcelCategory category = new Parcel.ParcelCategory(); //Unemplemented. Parcel's chosen category
         public int claimDate = 0; //Unemplemented
         public int claimPrice = 0; //Unemplemented
+        public LLUUID globalID = LLUUID.Zero;
         public LLUUID groupID = LLUUID.Zero; //Unemplemented
         public int groupPrims = 0;
-        public int otherPrims = 0;
-        public int ownerPrims = 0;
-        public int selectedPrims = 0;
-        public int simwidePrims = 0;
-        public int simwideArea = 0;
-        public int salePrice = 0; //Unemeplemented. Parcels price.
-        public Parcel.ParcelStatus landStatus = Parcel.ParcelStatus.Leased;
+        public bool isGroupOwned = false;
+        public byte[] landBitmapByteArray = new byte[512];
+        public string landDesc = String.Empty;
 
 
         public uint landFlags = (uint) Parcel.ParcelFlags.AllowFly | (uint) Parcel.ParcelFlags.AllowLandmark |
@@ -64,20 +56,27 @@ namespace OpenSim.Framework
                                 (uint) Parcel.ParcelFlags.SoundLocal;
 
         public byte landingType = 0;
+        public string landName = "Your Parcel";
+        public Parcel.ParcelStatus landStatus = Parcel.ParcelStatus.Leased;
+        public int localID = 0;
         public byte mediaAutoScale = 0;
         public LLUUID mediaID = LLUUID.Zero;
-        public int localID = 0;
-        public LLUUID globalID = LLUUID.Zero;
 
         public string mediaURL = String.Empty;
         public string musicURL = String.Empty;
+        public int otherPrims = 0;
+        public LLUUID ownerID = LLUUID.Zero;
+        public int ownerPrims = 0;
+        public List<ParcelManager.ParcelAccessEntry> parcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
         public float passHours = 0;
         public int passPrice = 0;
+        public int salePrice = 0; //Unemeplemented. Parcels price.
+        public int selectedPrims = 0;
+        public int simwideArea = 0;
+        public int simwidePrims = 0;
         public LLUUID snapshotID = LLUUID.Zero;
         public LLVector3 userLocation = new LLVector3();
         public LLVector3 userLookAt = new LLVector3();
-
-        public List<ParcelManager.ParcelAccessEntry> parcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
 
         public LandData()
         {

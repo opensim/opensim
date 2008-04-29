@@ -39,16 +39,20 @@ namespace OpenSim.Framework
     [XmlRoot(ElementName = "inventory", IsNullable = true)]
     public class SerializableInventory
     {
+        [XmlElement(ElementName = "folder", IsNullable = true)] public SerializableFolder root;
+
+        #region Nested type: SerializableFolder
+
         [XmlRoot(ElementName = "folder", IsNullable = true)]
         public class SerializableFolder : InventoryFolderBase
         {
-            [XmlArray(ElementName = "folders", IsNullable = true)] [XmlArrayItem(ElementName = "folder", IsNullable = true, Type = typeof (SerializableFolder))] public
-                ArrayList SubFolders;
-
             [XmlArray(ElementName = "items", IsNullable = true)] [XmlArrayItem(ElementName = "item", IsNullable = true, Type = typeof (InventoryItemBase))] public ArrayList
                 Items;
+
+            [XmlArray(ElementName = "folders", IsNullable = true)] [XmlArrayItem(ElementName = "folder", IsNullable = true, Type = typeof (SerializableFolder))] public
+                ArrayList SubFolders;
         }
 
-        [XmlElement(ElementName = "folder", IsNullable = true)] public SerializableFolder root;
+        #endregion
     }
 }

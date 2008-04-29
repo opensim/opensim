@@ -32,21 +32,21 @@ namespace OpenSim.Framework
     [Serializable]
     public class ChildAgentDataUpdate
     {
+        public Guid ActiveGroupID;
+        public Guid AgentID;
+        public bool alwaysrun;
+        public float AVHeight;
+        public sLLVector3 cameraPosition;
+        public float drawdistance;
+        public float godlevel;
+        public uint GroupAccess;
+        public sLLVector3 Position;
+        public ulong regionHandle;
+        public byte[] throttles;
+        public sLLVector3 Velocity;
+
         public ChildAgentDataUpdate()
         {
         }
-
-        public sLLVector3 Position;
-        public ulong regionHandle;
-        public float drawdistance;
-        public sLLVector3 cameraPosition;
-        public sLLVector3 Velocity;
-        public float AVHeight;
-        public Guid AgentID;
-        public float godlevel;
-        public byte[] throttles;
-        public bool alwaysrun;
-        public Guid ActiveGroupID;
-        public uint GroupAccess;
     }
 }

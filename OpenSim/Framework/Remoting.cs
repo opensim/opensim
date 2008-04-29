@@ -108,7 +108,7 @@ namespace OpenSim.Framework
             byte[] bytes = new byte[64];
             RNG.GetBytes(bytes);
 
-            StringBuilder sb = new StringBuilder(bytes.Length*2);
+            StringBuilder sb = new StringBuilder(bytes.Length * 2);
             foreach (byte b in bytes)
             {
                 sb.AppendFormat("{0:x2}", b);

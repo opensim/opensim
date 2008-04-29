@@ -34,13 +34,13 @@ namespace OpenSim.Framework
     public class AssetBase
     {
         private byte[] _data;
-        private LLUUID _fullid;
-        private sbyte _type;
-        private sbyte _invtype;
-        private string _name = String.Empty;
         private string _description = String.Empty;
+        private LLUUID _fullid;
+        private sbyte _invtype;
         private bool _local = false;
+        private string _name = String.Empty;
         private bool _temporary = false;
+        private sbyte _type;
 
         public AssetBase()
         {
@@ -52,47 +52,56 @@ namespace OpenSim.Framework
             Name = name;
         }
 
-        public virtual LLUUID FullID {
+        public virtual LLUUID FullID
+        {
             get { return _fullid; }
             set { _fullid = value; }
         }
 
-        public virtual string ID {
+        public virtual string ID
+        {
             get { return _fullid.ToString(); }
             set { _fullid = new LLUUID(value); }
         }
-        
-        public virtual byte[] Data {
+
+        public virtual byte[] Data
+        {
             get { return _data; }
             set { _data = value; }
         }
 
-        public virtual sbyte Type {
+        public virtual sbyte Type
+        {
             get { return _type; }
             set { _type = value; }
         }
 
-        public virtual sbyte InvType {
+        public virtual sbyte InvType
+        {
             get { return _invtype; }
             set { _invtype = value; }
         }
 
-        public virtual string Name {
+        public virtual string Name
+        {
             get { return _name; }
             set { _name = value; }
         }
 
-        public virtual string Description {
+        public virtual string Description
+        {
             get { return _description; }
             set { _description = value; }
         }
 
-        public virtual bool Local {
+        public virtual bool Local
+        {
             get { return _local; }
             set { _local = value; }
         }
 
-        public virtual bool Temporary {
+        public virtual bool Temporary
+        {
             get { return _temporary; }
             set { _temporary = value; }
         }
