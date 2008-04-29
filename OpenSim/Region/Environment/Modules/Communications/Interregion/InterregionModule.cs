@@ -36,6 +36,7 @@ namespace OpenSim.Region.Environment.Modules.Communications.Interregion
         private IConfigSource m_config;
         private RemotingObject m_myRemote;
 
+        private Object m_lockObject = new object();
         private TcpChannel m_tcpChannel;
         private int m_tcpPort = 10101;
 
@@ -84,7 +85,7 @@ namespace OpenSim.Region.Environment.Modules.Communications.Interregion
 
         public void internal_CreateRemotingObjects()
         {
-            lock (m_tcpChannel)
+            lock (m_lockObject)
             {
                 if (m_tcpChannel == null)
                 {
