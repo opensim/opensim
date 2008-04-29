@@ -225,13 +225,23 @@ namespace OpenSim.Region.Environment.Modules
 
                     for (int j = 0; j < flfli.Count; j++)
                     {
-                        if (flfli[i].Friend == AgentId)
+                        try
                         {
-                            flfli[i].onlinestatus = false;
-                        }
+                            if (flfli[i].Friend == AgentId)
+                            {
+                                flfli[i].onlinestatus = false;
+                            }
 
+                        }
+                    
+                        catch (IndexOutOfRangeException)
+                        {
+                            // Ignore the index out of range exception.  
+                            // This causes friend lists to get out of sync slightly..  however
+                            // prevents a sim crash.
+                            m_log.Info("[FRIEND]: Unable to enumerate last friendlist user.  User logged off");
+                        }
                     }
-                  
 
                 }
             
