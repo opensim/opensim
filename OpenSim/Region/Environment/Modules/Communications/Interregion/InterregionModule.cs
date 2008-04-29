@@ -39,31 +39,38 @@ namespace OpenSim.Region.Environment.Modules.Communications.Interregion
         private Object m_lockObject = new object();
         private TcpChannel m_tcpChannel;
         private int m_tcpPort = 10101;
+        private bool m_enabled = false;
 
         #region IRegionModule Members
 
         //TODO: This prevents us from registering new scenes after PostInitialise if we want comms updated.
         public void Initialise(Scene scene, IConfigSource source)
         {
-            m_myLocations.Add(new Location((int) scene.RegionInfo.RegionLocX,
-                                           (int) scene.RegionInfo.RegionLocY));
-            m_config = source;
+            if (m_enabled)
+            {
+                m_myLocations.Add(new Location((int) scene.RegionInfo.RegionLocX,
+                                               (int) scene.RegionInfo.RegionLocY));
+                m_config = source;
 
-            scene.RegisterModuleInterface<IInterregionModule>(this);
+                scene.RegisterModuleInterface<IInterregionModule>(this);
+            }
         }
 
         //TODO: This prevents us from registering new scenes after PostInitialise if we want comms updated.
         public void PostInitialise()
         {
-            try
+            if (m_enabled)
             {
-                m_tcpPort = m_config.Configs["Comms"].GetInt("remoting_port", m_tcpPort);
-            }
-            catch
-            {
-            }
+                try
+                {
+                    m_tcpPort = m_config.Configs["Comms"].GetInt("remoting_port", m_tcpPort);
+                }
+                catch
+                {
+                }
 
-            internal_CreateRemotingObjects();
+                internal_CreateRemotingObjects();
+            }
         }
 
         public void Close()
