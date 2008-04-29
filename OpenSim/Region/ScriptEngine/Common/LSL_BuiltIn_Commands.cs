@@ -283,6 +283,41 @@ namespace OpenSim.Region.ScriptEngine.Common
         }
 
         //Now we start getting into quaternions which means sin/cos, matrices and vectors. ckrinke
+
+        // Xantor's new llRot2Euler
+        public LSL_Types.Vector3 llRot2Euler(LSL_Types.Quaternion r)
+        {
+            m_host.AddScriptLPS(1);
+            double x, y, z;
+            double sqw = r.s*r.s;
+            double sqx = r.x*r.x;
+            double sqy = r.y*r.y;
+            double sqz = r.z*r.z;
+        	double unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
+	        double test = r.x*r.y + r.z*r.s;
+            if (test > 0.499 * unit)  // singularity at north pole
+            {
+                x = 0;
+                y = 2 * Math.Atan2(r.x, r.s);
+       		    z = Math.PI/2;
+                return new LSL_Types.Vector3(x, y, z);
+	        }
+            if (test < -0.499 * unit) // singularity at south pole
+            {
+                x = 0;
+                y = -2 * Math.Atan2(r.x,r.s);
+		        z = -Math.PI/2;
+                return new LSL_Types.Vector3(x, y, z);
+    	    }
+            x = Math.Atan2(2 * r.x * r.s - 2 * r.y * r.z, -sqx + sqy - sqz + sqw);
+            y = Math.Atan2(2*r.y*r.s-2*r.x*r.z , sqx - sqy - sqz + sqw);
+    	    z = Math.Asin(2*test/unit);
+    	    return new LSL_Types.Vector3(x, y, z);
+        }
+        
+
+        // Old implementation of llRot2Euler
+        /*  
         public LSL_Types.Vector3 llRot2Euler(LSL_Types.Quaternion r)
         {
             m_host.AddScriptLPS(1);
@@ -301,7 +336,42 @@ namespace OpenSim.Region.ScriptEngine.Common
             else
                 return new LSL_Types.Vector3(0.0, -Math.PI / 2, Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z));
         }
+        */
+         
+        // Xantor's new llEuler2Rot()
+        /* From wiki:
+        The Euler angle vector (in radians) is converted to a rotation by doing the rotations around the 3 axes 
+        in Z, Y, X order. So llEuler2Rot(<1.0, 2.0, 3.0> * DEG_TO_RAD) generates a rotation by taking the zero rotation, 
+        a vector pointing along the X axis, first rotating it 3 degrees around the global Z axis, then rotating the resulting 
+        vector 2 degrees around the global Y axis, and finally rotating that 1 degree around the global X axis.
+        */
+        public LSL_Types.Quaternion llEuler2Rot(LSL_Types.Vector3 v)
+        {
+            m_host.AddScriptLPS(1);
 
+            double x,y,z,s;
+
+            double c1 = Math.Cos(v.y / 2);  
+            double s1 = Math.Sin(v.y / 2 );
+            double c2 = Math.Cos(v.z / 2 );
+            double s2 = Math.Sin(v.z / 2 );
+            double c3 = Math.Cos(v.x / 2 );
+            double s3 = Math.Sin(v.x / 2 );
+
+            double c1c2 = c1 * c2;
+            double s1s2 = s1 * s2;
+
+            s = c1c2 * c3 - s1s2 * s3;
+            x = c1c2 * s3 + s1s2 * c3;
+            y = s1 * c2 * c3 + c1 * s2 * s3;
+            z = c1 * s2 * c3 - s1 * c2 * s3;
+
+            return new LSL_Types.Quaternion(x, y, z, s);
+        }
+        
+        
+        /*
+        // Old implementation
         public LSL_Types.Quaternion llEuler2Rot(LSL_Types.Vector3 v)
         {
             m_host.AddScriptLPS(1);
@@ -337,6 +407,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
             return a;
         }
+          
+        */
+        
 
         public LSL_Types.Quaternion llAxes2Rot(LSL_Types.Vector3 fwd, LSL_Types.Vector3 left, LSL_Types.Vector3 up)
         {
@@ -2721,24 +2794,115 @@ namespace OpenSim.Region.ScriptEngine.Common
             return 0;
         }
 
+
+        /* The new / changed functions were tested with the following LSL script:
+         
+        default
+        {
+            state_entry()
+            {
+                rotation rot = llEuler2Rot(<0,70,0> * DEG_TO_RAD);
+                
+                llOwnerSay("to get here, we rotate over: "+ (string) llRot2Axis(rot) );
+                llOwnerSay("and we rotate for: "+ (llRot2Angle(rot) * RAD_TO_DEG));
+    
+                // convert back and forth between quaternion <-> vector and angle
+            
+                rotation newrot = llAxisAngle2Rot(llRot2Axis(rot),llRot2Angle(rot));
+            
+                llOwnerSay("Old rotation was: "+(string) rot);
+                llOwnerSay("re-converted rotation is: "+(string) newrot);
+    
+                llSetRot(rot);  // to check the parameters in the prim
+            }
+        }
+        */
+
+
+
+        // Xantor 29/apr/2008
+        // Returns rotation described by rotating angle radians about axis.
+        // q = cos(a/2) + i ( x * sin(a/2)) + j (y * sin(a/2)) + k ( z * sin(a/2))        
         public LSL_Types.Quaternion llAxisAngle2Rot(LSL_Types.Vector3 axis, double angle)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llAxisAngle2Rot");
-            return new LSL_Types.Quaternion();
+
+            double x, y, z, s, t;
+
+            s = Math.Cos(angle / 2);
+            t = Math.Sin(angle / 2); // temp value to avoid 2 more sin() calcs
+            x = axis.x * t;
+            y = axis.y * t;
+            z = axis.z * t;
+
+            return new LSL_Types.Quaternion(x,y,z,s);
+            // NotImplemented("llAxisAngle2Rot");
         }
 
+        
+        // Xantor 29/apr/2008
+        // converts a Quaternion to X,Y,Z axis rotations
         public LSL_Types.Vector3 llRot2Axis(LSL_Types.Quaternion rot)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRot2Axis");
-            return new LSL_Types.Vector3();
+            double x,y,z;
+
+            if (rot.s > 1) // normalization needed
+            {
+                double length = Math.Sqrt(rot.x * rot.x + rot.y * rot.y +
+                        rot.z * rot.z + rot.s * rot.s);
+
+                rot.x /= length;
+                rot.y /= length;
+                rot.z /= length;
+                rot.s /= length;
+
+            }
+
+            double angle = 2 * Math.Acos(rot.s);
+            double s = Math.Sqrt(1 - rot.s * rot.s);
+            if (s < 0.001)
+            {
+                x = 1;
+                y = z = 0;
+            }
+            else
+            {
+                x = rot.x / s; // normalise axis
+                y = rot.y / s;
+                z = rot.z / s;
+            }
+
+
+            return new LSL_Types.Vector3(x,y,z);
+
+
+//            NotImplemented("llRot2Axis");
         }
 
-        public void llRot2Angle()
+
+        // Returns the angle of a quaternion (see llRot2Axis for the axis)
+        public double llRot2Angle(LSL_Types.Quaternion rot)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRot2Angle");
+
+            if (rot.s > 1) // normalization needed
+            {
+                double length = Math.Sqrt(rot.x * rot.x + rot.y * rot.y +
+                        rot.z * rot.z + rot.s * rot.s);
+
+                rot.x /= length;
+                rot.y /= length;
+                rot.z /= length;
+                rot.s /= length;
+
+            }
+
+            double angle = 2 * Math.Acos(rot.s);
+
+            return angle;
+
+//            NotImplemented("llRot2Angle");
         }
 
         public double llAcos(double val)

@@ -53,6 +53,7 @@ Patches
 * lulurun 
 * Melanie Thielker
 * John R Sohn(XenReborn)
+* Xantor
 
 
 LSL Devs

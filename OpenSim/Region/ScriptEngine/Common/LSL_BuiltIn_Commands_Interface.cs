@@ -323,7 +323,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         LSL_Types.Quaternion llAxisAngle2Rot(LSL_Types.Vector3 axis, double angle);
         //wiki: vector llRot2Axis(rotation rot)
         LSL_Types.Vector3 llRot2Axis(LSL_Types.Quaternion rot);
-        void llRot2Angle();
+        //wiki: double llRot2Angle(rotation rot);
+        double llRot2Angle(LSL_Types.Quaternion rot);
         //wiki: double llAcos(double val)
         double llAcos(double val);
         //wiki: double llAsin(double val)

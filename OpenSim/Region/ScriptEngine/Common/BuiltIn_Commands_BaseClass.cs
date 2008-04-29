@@ -1044,9 +1044,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llRot2Axis(rot);
         }
 
-        public void llRot2Angle()
+        public double llRot2Angle(LSL_Types.Quaternion rot)
         {
-            m_LSL_Functions.llRot2Angle();
+            return m_LSL_Functions.llRot2Angle(rot);
         }
 
         public double llAcos(double val)
