@@ -1814,9 +1814,10 @@ namespace OpenSim.Region.Environment.Scenes
         public void DelinkFromGroup(uint partID)
         {
             SceneObjectPart linkPart = GetChildPart(partID);
-            linkPart.ClearUndoState();
+            
             if (null != linkPart)
             {
+                linkPart.ClearUndoState();
 //                m_log.DebugFormat(
 //                    "[SCENE OBJECT GROUP]: Delinking part {0}, {1} from group with root part {2}, {3}", 
 //                    linkPart.Name, linkPart.UUID, RootPart.Name, RootPart.UUID);
