@@ -783,6 +783,7 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
+	  <Reference name="System.Runtime.Remoting"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll"/>
       <Reference name="OpenSim.Framework"/>
