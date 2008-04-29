@@ -1045,7 +1045,33 @@ namespace OpenSim.Region.Environment.Modules
         public bool ObjectGiveMoney(LLUUID objectID, LLUUID fromID, LLUUID toID, int amount)
         {
             string description=String.Format("Object {0} pays {1}", resolveObjectName(objectID), resolveAgentName(toID));
-            return doMoneyTransfer(fromID, toID, amount, 2, description);
+
+            bool give_result = doMoneyTransfer(fromID, toID, amount, 2, description);
+
+            if (m_MoneyAddress.Length == 0)
+                BalanceUpdate(fromID, toID, give_result, description);
+
+            return give_result;
+
+
+        }
+       private void BalanceUpdate(LLUUID senderID, LLUUID receiverID, bool transactionresult, string description)
+       {
+            IClientAPI sender = LocateClientObject(senderID);
+            IClientAPI receiver = LocateClientObject(receiverID);
+
+            if (senderID != receiverID)
+            {
+                if (sender != null)
+                {
+                    sender.SendMoneyBalance(LLUUID.Random(), transactionresult, Helpers.StringToField(description), GetFundsForAgentID(senderID));
+                }
+
+                if (receiver != null)
+                {
+                    receiver.SendMoneyBalance(LLUUID.Random(), transactionresult, Helpers.StringToField(description), GetFundsForAgentID(receiverID));
+                }
+            }
         }
 
         /// <summary>
