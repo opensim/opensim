@@ -259,6 +259,8 @@ namespace OpenSim.Region.ScriptEngine.Common
                 y = (float)Quat.y;
                 z = (float)Quat.z;
                 s = (float)Quat.s;
+                if (x == 0 && y == 0 && z == 0 && s == 0)
+                    s = 1;
             }
 
             public Quaternion(double X, double Y, double Z, double S)
@@ -267,6 +269,8 @@ namespace OpenSim.Region.ScriptEngine.Common
                 y = Y;
                 z = Z;
                 s = S;
+                if (x == 0 && y == 0 && z == 0 && s == 0)
+                    s = 1;
             }
 
             public Quaternion(string str)
@@ -279,6 +283,8 @@ namespace OpenSim.Region.ScriptEngine.Common
                 res = res & Double.TryParse(tmps[1], out y);
                 res = res & Double.TryParse(tmps[2], out z);
                 res = res & Double.TryParse(tmps[3], out s);
+                if (x == 0 && y == 0 && z == 0 && s == 0)
+                    s = 1;
             }
 
             #endregion

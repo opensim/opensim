@@ -2979,7 +2979,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
             else
             {
-                return new LSL_Types.Vector3(0, 0, 0);
+                return new LSL_Types.Vector3(src.Data[index].ToString());
             }
         }
 
@@ -3000,7 +3000,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
             else
             {
-                return new LSL_Types.Quaternion(0, 0, 0, 1);
+                return new LSL_Types.Quaternion(src.Data[index].ToString());
             }
         }
 
