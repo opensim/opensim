@@ -83,7 +83,6 @@ namespace OpenSim
 
             if (background)
             {
-                Console.WriteLine("background mode");
                 OpenSimMain sim = new OpenSimMain(configSource);
                 sim.StartUp();
             }

@@ -218,9 +218,6 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             Hashtable responseData = new Hashtable();
 
             try {
-                checkStringParameters(request, new string[] { "password", "shutdown" });
-                checkIntegerParams(request, new string[] { "milliseconds"});
-                
                 if (requiredPassword != String.Empty &&
                     (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
                     throw new Exception("wrong password");
@@ -228,28 +225,28 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 responseData["accepted"] = "true";
                 response.Value = responseData;
 
-                if ((string) requestData["shutdown"] == "delayed")
+                int timeout = 2000;
+
+                if (requestData.ContainsKey("shutdown") && 
+                    ((string) requestData["shutdown"] == "delayed") &&
+                    requestData.ContainsKey("milliseconds"))
                 {
-                    int timeout = (Int32) requestData["milliseconds"];
+                    timeout = (Int32) requestData["milliseconds"];
                     m_app.SceneManager.SendGeneralMessage("Region is going down in " + ((int) (timeout/1000)).ToString() +
                                                           " second(s). Please save what you are doing and log out.");
-                    
-                    // Perform shutdown
-                    Timer shutdownTimer = new Timer(timeout); // Wait before firing
-                    shutdownTimer.AutoReset = false;
-                    shutdownTimer.Elapsed += new ElapsedEventHandler(shutdownTimer_Elapsed);
-                    shutdownTimer.Start();
                 } 
                 else
                 {
                     m_app.SceneManager.SendGeneralMessage("Region is going down now.");
-
-                    // Perform shutdown
-                    Timer shutdownTimer = new Timer(2000); // Wait 2 seconds before firing
-                    shutdownTimer.AutoReset = false;
-                    shutdownTimer.Elapsed += new ElapsedEventHandler(shutdownTimer_Elapsed);
-                    shutdownTimer.Start();
                 }
+
+                // Perform shutdown
+                Timer shutdownTimer = new Timer(timeout); // Wait before firing
+                shutdownTimer.AutoReset = false;
+                shutdownTimer.Elapsed += new ElapsedEventHandler(shutdownTimer_Elapsed);
+                shutdownTimer.Start();
+
+                responseData["success"] = "true";
             }
             catch (Exception e) 
             {

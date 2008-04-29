@@ -323,15 +323,19 @@ namespace OpenSim
             //
             // Called from app startup (OpenSim.Application)
             //
-            
-            m_log.Info("[OPENSIM]: Starting Opensim");
-            m_log.InfoFormat("[OPENSIM MAIN]: Running in {0} mode", (m_sandbox ? "sandbox" : "grid"));
+            m_log.Info("====================================================================");
+            m_log.Info("========================= STARTING OPENSIM =========================");
+            m_log.Info("====================================================================");
+            m_log.InfoFormat("[OPENSIM MAIN]: Running in background {0} mode", m_sandbox ? "sandbox" : "grid");
             
             InternalStartUp();
 
             // We are done with startup
-            m_log.Info("[OPENSIM MAIN]: Startup complete, serving " + m_udpServers.Count.ToString() + " region(s)");
+            m_log.InfoFormat("[OPENSIM MAIN]: Startup complete, serving {0} region{1}",
+                             m_udpServers.Count.ToString(), m_udpServers.Count > 1 ? "s" : "");
             WorldHasComeToAnEnd.WaitOne();
+            m_log.Info("[OPENSIM MAIN]: Shutdown complete, goodbye.");
+            Environment.Exit(0);
         }
 
         
@@ -684,7 +688,7 @@ namespace OpenSim
         public virtual void Shutdown()
         {
             InternalShutdown();
-            Environment.Exit(0);
+            ApocalypseNow();
         }
 
         /// <summary>
