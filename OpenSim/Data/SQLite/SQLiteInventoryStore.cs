@@ -74,12 +74,12 @@ namespace OpenSim.Data.SQLite
             ds.Tables.Add(createInventoryFoldersTable());
             invFoldersDa.Fill(ds.Tables["inventoryfolders"]);
             setupFoldersCommands(invFoldersDa, conn);
-            m_log.Info("[DATASTORE]: Populated Intentory Folders Definitions");
+            m_log.Info("[DATASTORE]: Populated Inventory Folders Definitions");
 
             ds.Tables.Add(createInventoryItemsTable());
             invItemsDa.Fill(ds.Tables["inventoryitems"]);
             setupItemsCommands(invItemsDa, conn);
-            m_log.Info("[DATASTORE]: Populated Intentory Items Definitions");
+            m_log.Info("[DATASTORE]: Populated Inventory Items Definitions");
 
             ds.AcceptChanges();
         }
@@ -651,6 +651,40 @@ namespace OpenSim.Data.SQLite
             pDa.Fill(tmpDS, "inventoryitems");
             sDa.Fill(tmpDS, "inventoryfolders");
 
+            // Very clumsy way of checking whether we need to upgrade the database table version and then updating.  Only
+            // putting up with this because this code should be blown away soon by nhibernate...
+            conn.Open();
+            
+            SqliteCommand cmd;
+            try
+            {
+                cmd = new SqliteCommand("select salePrice from inventoryitems limit 1;", conn);
+                cmd.ExecuteNonQuery();
+            }
+            catch (SqliteSyntaxException)
+            {
+                m_log.Info("[DATASTORE]: Upgrading sqlite inventory database to version 2");
+                
+                cmd = new SqliteCommand("alter table inventoryitems add column salePrice integer default 99;", conn);
+                cmd.ExecuteNonQuery();
+                cmd = new SqliteCommand("alter table inventoryitems add column saleType integer default 0;", conn);
+                cmd.ExecuteNonQuery();
+                cmd = new SqliteCommand("alter table inventoryitems add column creationDate integer default 2000;", conn);
+                cmd.ExecuteNonQuery();
+                cmd = new SqliteCommand("alter table inventoryitems add column groupID varchar(255) default '00000000-0000-0000-0000-000000000000';", conn);
+                cmd.ExecuteNonQuery();
+                cmd = new SqliteCommand("alter table inventoryitems add column groupOwned integer default 0;", conn);
+                cmd.ExecuteNonQuery();
+                cmd = new SqliteCommand("alter table inventoryitems add column flags integer default 0;", conn);
+                cmd.ExecuteNonQuery();  
+                
+                pDa.Fill(tmpDS, "inventoryitems");
+            }
+            finally
+            {
+                conn.Close();
+            }
+            
             foreach (DataColumn col in createInventoryItemsTable().Columns)
             {
                 if (! tmpDS.Tables["inventoryitems"].Columns.Contains(col.ColumnName))
