@@ -43,6 +43,8 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        #region IApplicationPlugin Members
+
         public void Initialise(OpenSimMain openSim)
         {
             m_log.Info("[LOADREGIONS]: Load Regions addin being initialised");
@@ -66,13 +68,20 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
             for (int i = 0; i < regionsToLoad.Length; i++)
             {
-                m_log.Debug("[LOADREGIONS]: Creating Region: " + regionsToLoad[i].RegionName + " (ThreadID: " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
-                openSim.CreateRegion(regionsToLoad[i], true); 
+                m_log.Debug("[LOADREGIONS]: Creating Region: " + regionsToLoad[i].RegionName + " (ThreadID: " + Thread.CurrentThread.ManagedThreadId.ToString() +
+                            ")");
+                openSim.CreateRegion(regionsToLoad[i], true);
             }
 
             openSim.ModuleLoader.PostInitialise();
             openSim.ModuleLoader.ClearCache();
         }
+
+        public void Close()
+        {
+        }
+
+        #endregion
 
         public void LoadRegionFromConfig(OpenSimMain openSim, ulong regionhandle)
         {
@@ -96,14 +105,11 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             {
                 if (regionhandle == regionsToLoad[i].RegionHandle)
                 {
-                    m_log.Debug("[LOADREGIONS]: Creating Region: " + regionsToLoad[i].RegionName + " (ThreadID: " + Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+                    m_log.Debug("[LOADREGIONS]: Creating Region: " + regionsToLoad[i].RegionName + " (ThreadID: " +
+                                Thread.CurrentThread.ManagedThreadId.ToString() + ")");
                     openSim.CreateRegion(regionsToLoad[i], true);
                 }
             }
-        }
-
-        public void Close()
-        {
         }
     }
 }

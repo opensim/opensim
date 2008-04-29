@@ -37,8 +37,8 @@ using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 
-[assembly:Addin ("RegionProxy", "0.1")]
-[assembly:AddinDependency ("OpenSim", "0.5")]
+[assembly : Addin("RegionProxy", "0.1")]
+[assembly : AddinDependency("OpenSim", "0.5")]
 
 namespace OpenSim.ApplicationPlugins.RegionProxy
 {
@@ -63,17 +63,19 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
     [Extension("/OpenSim/Startup")]
     public class RegionProxyPlugin : IApplicationPlugin
     {
-        private ProxyServer proxy;
-        private BaseHttpServer command_server;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private BaseHttpServer command_server;
+        private ProxyServer proxy;
+
+        #region IApplicationPlugin Members
 
         public void Initialise(OpenSimMain openSim)
         {
             Console.WriteLine("Starting proxy");
             string proxyURL = openSim.ConfigSource.Configs["Network"].GetString("proxy_url", "");
-            if(proxyURL.Length==0) return;
+            if (proxyURL.Length == 0) return;
 
-            uint port = (uint) Int32.Parse(proxyURL.Split(new char[] { ':' })[2]);
+            uint port = (uint) Int32.Parse(proxyURL.Split(new char[] {':'})[2]);
             command_server = new BaseHttpServer(port);
             command_server.Start();
             command_server.AddXmlRPCHandler("AddPort", AddPort);
@@ -84,12 +86,14 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
             command_server.AddXmlRPCHandler("UnblockClientMessages", UnblockClientMessages);
             command_server.AddXmlRPCHandler("Stop", Stop);
 
-            proxy=new ProxyServer(m_log);
+            proxy = new ProxyServer(m_log);
         }
 
         public void Close()
         {
         }
+
+        #endregion
 
         private XmlRpcResponse Stop(XmlRpcRequest request)
         {
@@ -107,176 +111,118 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
 
         private XmlRpcResponse AddPort(XmlRpcRequest request)
         {
-            try {
+            try
+            {
                 int clientPort = (int) request.Params[0];
                 int regionPort = (int) request.Params[1];
                 string regionUrl = (string) request.Params[2];
                 proxy.AddPort(clientPort, regionPort, regionUrl);
-            } catch(Exception e) {
-                m_log.Error("[PROXY]"+e.Message);
-                m_log.Error("[PROXY]"+e.StackTrace);
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[PROXY]" + e.Message);
+                m_log.Error("[PROXY]" + e.StackTrace);
             }
             return new XmlRpcResponse();
         }
 
         private XmlRpcResponse AddRegion(XmlRpcRequest request)
         {
-            try {
+            try
+            {
                 int currentRegionPort = (int) request.Params[0];
                 string currentRegionUrl = (string) request.Params[1];
                 int newRegionPort = (int) request.Params[2];
                 string newRegionUrl = (string) request.Params[3];
                 proxy.AddRegion(currentRegionPort, currentRegionUrl, newRegionPort, newRegionUrl);
-            } catch(Exception e) {
-                m_log.Error("[PROXY]"+e.Message);
-                m_log.Error("[PROXY]"+e.StackTrace);
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[PROXY]" + e.Message);
+                m_log.Error("[PROXY]" + e.StackTrace);
             }
             return new XmlRpcResponse();
         }
 
         private XmlRpcResponse ChangeRegion(XmlRpcRequest request)
         {
-            try {
+            try
+            {
                 int currentRegionPort = (int) request.Params[0];
                 string currentRegionUrl = (string) request.Params[1];
                 int newRegionPort = (int) request.Params[2];
                 string newRegionUrl = (string) request.Params[3];
                 proxy.ChangeRegion(currentRegionPort, currentRegionUrl, newRegionPort, newRegionUrl);
-            } catch(Exception e) {
-                m_log.Error("[PROXY]"+e.Message);
-                m_log.Error("[PROXY]"+e.StackTrace);
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[PROXY]" + e.Message);
+                m_log.Error("[PROXY]" + e.StackTrace);
             }
             return new XmlRpcResponse();
         }
-        
+
         private XmlRpcResponse DeleteRegion(XmlRpcRequest request)
         {
-            try {
+            try
+            {
                 int currentRegionPort = (int) request.Params[0];
                 string currentRegionUrl = (string) request.Params[1];
                 proxy.DeleteRegion(currentRegionPort, currentRegionUrl);
-            } catch(Exception e) {
-                m_log.Error("[PROXY]"+e.Message);
-                m_log.Error("[PROXY]"+e.StackTrace);
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[PROXY]" + e.Message);
+                m_log.Error("[PROXY]" + e.StackTrace);
             }
             return new XmlRpcResponse();
         }
 
         private XmlRpcResponse BlockClientMessages(XmlRpcRequest request)
         {
-            try {
+            try
+            {
                 string regionUrl = (string) request.Params[0];
                 int regionPort = (int) request.Params[1];
                 proxy.BlockClientMessages(regionUrl, regionPort);
-            } catch(Exception e) {
-                m_log.Error("[PROXY]"+e.Message);
-                m_log.Error("[PROXY]"+e.StackTrace);
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[PROXY]" + e.Message);
+                m_log.Error("[PROXY]" + e.StackTrace);
             }
             return new XmlRpcResponse();
         }
 
         private XmlRpcResponse UnblockClientMessages(XmlRpcRequest request)
         {
-            try {
+            try
+            {
                 string regionUrl = (string) request.Params[0];
                 int regionPort = (int) request.Params[1];
                 proxy.UnblockClientMessages(regionUrl, regionPort);
-            } catch(Exception e) {
-                m_log.Error("[PROXY]"+e.Message); 
-                m_log.Error("[PROXY]"+e.StackTrace);
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[PROXY]" + e.Message);
+                m_log.Error("[PROXY]" + e.StackTrace);
             }
             return new XmlRpcResponse();
         }
     }
 
 
-    public class ProxyServer {
-        protected AsyncCallback receivedData;
-        protected ProxyMap proxy_map = new ProxyMap();
+    public class ProxyServer
+    {
         protected readonly ILog m_log;
+        protected ProxyMap proxy_map = new ProxyMap();
+        protected AsyncCallback receivedData;
         protected bool running;
-
-        protected class ProxyMap
-        {
-            public class RegionData
-            {
-                public bool isBlocked = false;
-                public Queue storedMessages = new Queue();
-                public List<EndPoint> regions = new List<EndPoint>();
-            }
-
-            private Dictionary<EndPoint, RegionData> map;
-
-            public ProxyMap() {
-                map = new Dictionary<EndPoint, RegionData>();
-            }
-
-            public void Add(EndPoint client, EndPoint region)
-            {
-                if(map.ContainsKey(client)) 
-                {
-                    map[client].regions.Add(region);
-                }
-                else
-                {
-                    RegionData regions = new RegionData();
-                    map.Add(client, regions);
-                    regions.regions.Add(region);
-                }
-            }
-
-            public RegionData GetRegionData(EndPoint client)
-            {
-                return map[client];
-            }
-
-            public EndPoint GetClient(EndPoint region)
-            {
-                foreach (KeyValuePair<EndPoint, RegionData> pair in map)
-                {
-                    if(pair.Value.regions.Contains(region))
-                    {
-                        return pair.Key;
-                    }
-                }
-                return null;
-            }
-        }
-
-        protected class ServerData {
-            public Socket server;
-            public EndPoint clientEP;
-            public EndPoint senderEP;
-            public IPEndPoint serverIP;
-            public byte[] recvBuffer = new byte[4096];
-
-            public ServerData()
-            {
-                server = null;
-            }
-        }
-
-        protected class StoredMessage
-        {
-            public byte[] buffer;
-            public int length;
-            public EndPoint senderEP;
-            public ServerData sd;
-
-            public StoredMessage(byte[] buffer, int length, int maxLength, EndPoint senderEP, ServerData sd)
-            {
-                this.buffer = new byte[maxLength];
-                this.length = length;
-                for(int i=0; i<length; i++) this.buffer[i]=buffer[i];
-                this.senderEP = senderEP;
-                this.sd = sd;
-            }
-        }
 
         public ProxyServer(ILog log)
         {
             m_log = log;
-            running=false;
+            running = false;
             receivedData = new AsyncCallback(OnReceivedData);
         }
 
@@ -293,7 +239,8 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
             ProxyMap.RegionData rd = proxy_map.GetRegionData(client);
 
             rd.isBlocked = false;
-            while(rd.storedMessages.Count > 0) {
+            while (rd.storedMessages.Count > 0)
+            {
                 StoredMessage msg = (StoredMessage) rd.storedMessages.Dequeue();
                 //m_log.Verbose("[PROXY]"+"Resending blocked message from {0}", msg.senderEP);
                 SendMessage(msg.buffer, msg.length, msg.senderEP, msg.sd);
@@ -316,10 +263,10 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
             data.regions.Clear();
             data.regions.Add(new IPEndPoint(IPAddress.Parse(newRegionUrl), newRegionPort));
         }
-        
+
         public void DeleteRegion(int oldRegionPort, string oldRegionUrl)
         {
-            m_log.InfoFormat("[PROXY]"+"DeleteRegion {0} {1}", oldRegionPort, oldRegionUrl);
+            m_log.InfoFormat("[PROXY]" + "DeleteRegion {0} {1}", oldRegionPort, oldRegionUrl);
             EndPoint regionEP = new IPEndPoint(IPAddress.Parse(oldRegionUrl), oldRegionPort);
             EndPoint client = proxy_map.GetClient(regionEP);
             ProxyMap.RegionData data = proxy_map.GetRegionData(client);
@@ -348,9 +295,8 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
 
             try
             {
-                   
                 m_log.InfoFormat("[PROXY] Opening UDP socket on {0}", sd.clientEP);
-                sd.serverIP = new IPEndPoint(IPAddress.Parse("0.0.0.0"), ((IPEndPoint)sd.clientEP).Port);
+                sd.serverIP = new IPEndPoint(IPAddress.Parse("0.0.0.0"), ((IPEndPoint) sd.clientEP).Port);
                 sd.server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 sd.server.Bind(sd.serverIP);
 
@@ -385,15 +331,14 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
         {
             running = false;
             m_log.InfoFormat("[PROXY] Stopping the proxy server");
-
         }
 
 
         protected virtual void OnReceivedData(IAsyncResult result)
         {
-            if(!running) return;
-                
-            ServerData sd = (ServerData)result.AsyncState;
+            if (!running) return;
+
+            ServerData sd = (ServerData) result.AsyncState;
             sd.senderEP = new IPEndPoint(IPAddress.Parse("0.0.0.0"), 0);
 
             try
@@ -431,7 +376,7 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
                     m_log.ErrorFormat("[PROXY] BeginReceiveFrom failed, retrying... {0}", sd.clientEP);
                     m_log.Error("[PROXY]" + e.Message);
                     m_log.Error("[PROXY]" + e.StackTrace);
-                    OpenPort(sd); 
+                    OpenPort(sd);
                 }
             }
         }
@@ -471,7 +416,6 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
                     m_log.Error("[PROXY]" + e.StackTrace);
                     return;
                 }
-
             }
             else
             {
@@ -480,7 +424,8 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
                 ProxyMap.RegionData rd = proxy_map.GetRegionData(sd.clientEP);
                 foreach (EndPoint region in rd.regions)
                 {
-                    if(rd.isBlocked) {
+                    if (rd.isBlocked)
+                    {
                         rd.storedMessages.Enqueue(new StoredMessage(buffer, length, numBytes, senderEP, sd));
                     }
                     else
@@ -502,5 +447,100 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
                 }
             }
         }
+
+        #region Nested type: ProxyMap
+
+        protected class ProxyMap
+        {
+            private Dictionary<EndPoint, RegionData> map;
+
+            public ProxyMap()
+            {
+                map = new Dictionary<EndPoint, RegionData>();
+            }
+
+            public void Add(EndPoint client, EndPoint region)
+            {
+                if (map.ContainsKey(client))
+                {
+                    map[client].regions.Add(region);
+                }
+                else
+                {
+                    RegionData regions = new RegionData();
+                    map.Add(client, regions);
+                    regions.regions.Add(region);
+                }
+            }
+
+            public RegionData GetRegionData(EndPoint client)
+            {
+                return map[client];
+            }
+
+            public EndPoint GetClient(EndPoint region)
+            {
+                foreach (KeyValuePair<EndPoint, RegionData> pair in map)
+                {
+                    if (pair.Value.regions.Contains(region))
+                    {
+                        return pair.Key;
+                    }
+                }
+                return null;
+            }
+
+            #region Nested type: RegionData
+
+            public class RegionData
+            {
+                public bool isBlocked = false;
+                public List<EndPoint> regions = new List<EndPoint>();
+                public Queue storedMessages = new Queue();
+            }
+
+            #endregion
+        }
+
+        #endregion
+
+        #region Nested type: ServerData
+
+        protected class ServerData
+        {
+            public EndPoint clientEP;
+            public byte[] recvBuffer = new byte[4096];
+            public EndPoint senderEP;
+            public Socket server;
+            public IPEndPoint serverIP;
+
+            public ServerData()
+            {
+                server = null;
+            }
+        }
+
+        #endregion
+
+        #region Nested type: StoredMessage
+
+        protected class StoredMessage
+        {
+            public byte[] buffer;
+            public int length;
+            public ServerData sd;
+            public EndPoint senderEP;
+
+            public StoredMessage(byte[] buffer, int length, int maxLength, EndPoint senderEP, ServerData sd)
+            {
+                this.buffer = new byte[maxLength];
+                this.length = length;
+                for (int i = 0; i < length; i++) this.buffer[i] = buffer[i];
+                this.senderEP = senderEP;
+                this.sd = sd;
+            }
+        }
+
+        #endregion
     }
 }

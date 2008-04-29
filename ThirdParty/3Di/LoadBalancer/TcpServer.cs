@@ -31,42 +31,58 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace OpenSim.ApplicationPlugins.LoadBalancer {
-
-    public class StateObject {
-        public Socket workSocket = null;
+namespace OpenSim.ApplicationPlugins.LoadBalancer
+{
+    public class StateObject
+    {
         public const int BufferSize = 2048;
         public byte[] buffer = new byte[BufferSize];
-        public MemoryStream ms_ptr = new MemoryStream();
         public InternalPacketHeader header = null;
+        public MemoryStream ms_ptr = new MemoryStream();
+        public Socket workSocket = null;
     }
 
-    public class AsynchronousSocketListener {
-        public static string data = null;
+    public class AsynchronousSocketListener
+    {
         public static ManualResetEvent allDone = new ManualResetEvent(false);
+        public static string data = null;
 
-#region KIRYU
+        #region KIRYU
+
+        #region Delegates
+
         public delegate void PacketRecieveHandler(InternalPacketHeader header, byte[] buff);
+
+        #endregion
+
         public static PacketRecieveHandler PacketHandler = null;
-#endregion
 
-        public AsynchronousSocketListener() { }
+        #endregion
 
-        public static void StartListening(int port) {
+        public AsynchronousSocketListener()
+        {
+        }
+
+        public static void StartListening(int port)
+        {
             IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
             IPAddress ipAddress = ipHostInfo.AddressList[0];
             IPEndPoint localEndPoint = new IPEndPoint(ipAddress, port);
 
-            Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp );
-            try {
+            Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            try
+            {
                 listener.Bind(localEndPoint);
                 listener.Listen(100);
-                while (true) {
+                while (true)
+                {
                     allDone.Reset();
-                    listener.BeginAccept( new AsyncCallback(AcceptCallback), listener );
+                    listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
                     allDone.WaitOne();
                 }
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 Console.WriteLine(e.ToString());
             }
             /*
@@ -75,38 +91,41 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer {
             */
         }
 
-        public static void AcceptCallback(IAsyncResult ar) {
+        public static void AcceptCallback(IAsyncResult ar)
+        {
             allDone.Set();
             Socket listener = (Socket) ar.AsyncState;
             Socket handler = listener.EndAccept(ar);
             StateObject state = new StateObject();
             state.workSocket = handler;
-            handler.BeginReceive( state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReadCallback), state);
+            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReadCallback), state);
         }
 
-        public static void ReadCallback(IAsyncResult ar) {
+        public static void ReadCallback(IAsyncResult ar)
+        {
             StateObject state = (StateObject) ar.AsyncState;
             Socket handler = state.workSocket;
 
             try
             {
                 int bytesRead = handler.EndReceive(ar);
-                
+
                 //MainLog.Instance.Verbose("TCPSERVER", "Received packet [{0}]", bytesRead);
 
-                if (bytesRead > 0) {
+                if (bytesRead > 0)
+                {
                     state.ms_ptr.Write(state.buffer, 0, bytesRead);
                 }
                 else
-                {        
+                {
                     //MainLog.Instance.Verbose("TCPSERVER", "Connection terminated");
                     return;
                 }
 
                 long rest_size = state.ms_ptr.Length;
                 long current_pos = 0;
-                while (rest_size > TcpClient.internalPacketHeaderSize) {
-
+                while (rest_size > TcpClient.internalPacketHeaderSize)
+                {
                     if ((state.header == null) && (rest_size >= TcpClient.internalPacketHeaderSize))
                     {
                         //MainLog.Instance.Verbose("TCPSERVER", "Processing header");
@@ -136,7 +155,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer {
                         }
                         System.Console.WriteLine();
 */
-                        
+
                         state.ms_ptr.Seek(0, SeekOrigin.End);
                         // call loadbarancer function
                         if (PacketHandler != null)
@@ -155,20 +174,18 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer {
                         rest_size -= read_size;
                         current_pos += read_size;
 
-                        if (rest_size < TcpClient.internalPacketHeaderSize) {
-                            
+                        if (rest_size < TcpClient.internalPacketHeaderSize)
+                        {
                             byte[] rest_bytes = new byte[rest_size];
                             state.ms_ptr.Position = read_size;
-                            state.ms_ptr.Read(rest_bytes, 0, (int)rest_size);
+                            state.ms_ptr.Read(rest_bytes, 0, (int) rest_size);
                             state.ms_ptr.Close();
                             state.ms_ptr = new MemoryStream();
-                            state.ms_ptr.Write(rest_bytes, 0, (int)rest_size);
+                            state.ms_ptr.Write(rest_bytes, 0, (int) rest_size);
                             break;
                         }
                     }
-
                 } // while (true)
-
             }
             catch (Exception)
             {
@@ -176,18 +193,25 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer {
                 //MainLog.Instance.Verbose("TCPSERVER", e.StackTrace);
             }
 
-            handler.BeginReceive( state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReadCallback), state);
+            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReadCallback), state);
         }
     }
 
-    public class TcpServer {
+    public class TcpServer
+    {
         private int mPort = 11000;
-        public TcpServer() {
+
+        public TcpServer()
+        {
         }
-        public TcpServer(int port) {
+
+        public TcpServer(int port)
+        {
             mPort = port;
         }
-        public void start() {
+
+        public void start()
+        {
             AsynchronousSocketListener.StartListening(mPort);
         }
     }
