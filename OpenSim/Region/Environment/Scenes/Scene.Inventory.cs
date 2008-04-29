@@ -1276,7 +1276,7 @@ namespace OpenSim.Region.Environment.Scenes
                             {
                                 if (group.RootPart.Shape.PCode == (byte)PCode.Prim)
                                 {
-                                    group.RootPart.Shape.State = (byte)0;
+                                    group.ClearPartAttachmentData();
                                 }
                                 group.ApplyPhysics(m_physicalPrim);
                             }

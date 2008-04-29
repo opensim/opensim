@@ -673,7 +673,13 @@ namespace OpenSim.Region.Environment.Scenes
                 m_rootPart.m_IsAttachment = true;
 
                 m_rootPart.SetParentLocalId(avatar.LocalId);
-                m_rootPart.SetAttachmentPoint(attachmentpoint);
+                lock (m_parts)
+                {
+                    foreach (SceneObjectPart part in m_parts.Values)
+                    {
+                        part.SetAttachmentPoint(attachmentpoint);
+                    }
+                }
 
                 avatar.AddAttachment(this);
                 m_rootPart.ScheduleFullUpdate();
@@ -686,6 +692,14 @@ namespace OpenSim.Region.Environment.Scenes
                 return m_rootPart.Shape.State;
             }
             return (byte)0;
+        }
+
+        public void ClearPartAttachmentData()
+        {
+            foreach (SceneObjectPart part in m_parts.Values)
+            {
+                part.SetAttachmentPoint((Byte)0);
+            }
         }
 
         public void DetachToGround()
