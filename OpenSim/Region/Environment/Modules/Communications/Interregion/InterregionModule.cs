@@ -41,6 +41,7 @@ namespace OpenSim.Region.Environment.Modules.Communications.Interregion
 
         #region IRegionModule Members
 
+        //TODO: This prevents us from registering new scenes after PostInitialise if we want comms updated.
         public void Initialise(Scene scene, IConfigSource source)
         {
             m_myLocations.Add(new Location((int) scene.RegionInfo.RegionLocX,
@@ -61,7 +62,7 @@ namespace OpenSim.Region.Environment.Modules.Communications.Interregion
             {
             }
 
-            CreateRemotingObjects();
+            internal_CreateRemotingObjects();
         }
 
         public void Close()
@@ -81,13 +82,19 @@ namespace OpenSim.Region.Environment.Modules.Communications.Interregion
 
         #endregion
 
-        private void CreateRemotingObjects()
+        public void internal_CreateRemotingObjects()
         {
-            m_myRemote = new RemotingObject(m_interfaces, m_myLocations.ToArray());
-            m_tcpChannel = new TcpChannel(m_tcpPort);
+            lock (m_tcpChannel)
+            {
+                if (m_tcpChannel == null)
+                {
+                    m_myRemote = new RemotingObject(m_interfaces, m_myLocations.ToArray());
+                    m_tcpChannel = new TcpChannel(m_tcpPort);
 
-            ChannelServices.RegisterChannel(m_tcpChannel, false);
-            RemotingServices.Marshal(m_myRemote, "OpenSimRemote2", typeof (RemotingObject));
+                    ChannelServices.RegisterChannel(m_tcpChannel, false);
+                    RemotingServices.Marshal(m_myRemote, "OpenSimRemote2", typeof (RemotingObject));
+                }
+            }
         }
 
         public void RegisterRemoteRegion(string uri)
@@ -155,7 +162,5 @@ namespace OpenSim.Region.Environment.Modules.Communications.Interregion
         {
             return new Location(0, 0);
         }
-
-        //TODO: This prevents us from registering new scenes after PostInitialise if we want comms updated.
     }
 }
