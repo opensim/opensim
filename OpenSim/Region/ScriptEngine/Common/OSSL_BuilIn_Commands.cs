@@ -528,7 +528,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void osSetStateEvents(int events)
         {
-            m_host.setScriptEvents(m_itemID, events);
+            m_host.SetScriptEvents(m_itemID, events);
         }
 
     }

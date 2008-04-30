@@ -99,6 +99,9 @@ namespace OpenSim.Region.Environment.Scenes
         
         // TODO: This needs to be persisted in next XML version update!
         [XmlIgnore] public int[] PayPrice = {-2,-2,-2,-2,-2};
+		[XmlIgnore] private Dictionary<LLUUID, scriptEvents> m_scriptEvents = new Dictionary<LLUUID, scriptEvents>();
+		[XmlIgnore] public scriptEvents m_aggregateScriptEvents=0;
+        [XmlIgnore] private LLObject.ObjectFlags LocalFlags = LLObject.ObjectFlags.None;
 
 
         [XmlIgnore] public bool m_IsAttachment = false;
@@ -187,7 +190,10 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_name = value; }
         }
 
-      
+      	public scriptEvents ScriptEvents
+		{
+			get { return m_aggregateScriptEvents; }
+		}
 
         protected LLObject.MaterialType m_material = 0;
 
@@ -204,6 +210,15 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_regionHandle; }
             set { m_regionHandle = value; }
         }
+
+		public uint GetEffectiveObjectFlags()
+		{
+			LLObject.ObjectFlags f=Flags;
+			if(m_parentGroup == null || m_parentGroup.RootPart == this)
+				f &= ~(LLObject.ObjectFlags.Touch | LLObject.ObjectFlags.Money);
+
+			return (uint)Flags | (uint)LocalFlags;
+		}
 
         //unkown if this will be kept, added as a way of removing the group position from the group class
         protected LLVector3 m_groupPosition;
@@ -2434,13 +2449,6 @@ namespace OpenSim.Region.Environment.Scenes
             SetText( text );
         }
 
-        public void setScriptEvents(LLUUID scriptID, int events)
-        {
-            if (m_parentGroup != null)
-            {
-                m_parentGroup.SetScriptEvents(scriptID, events);
-            }
-        }
         public int registerTargetWaypoint(LLVector3 target, float tolerance)
         {
             if (m_parentGroup != null)
@@ -2581,5 +2589,86 @@ namespace OpenSim.Region.Environment.Scenes
                     goback.PlaybackState(this);
             }
         }
+
+		public void SetScriptEvents(LLUUID scriptid, int events)
+		{
+			scriptEvents oldparts;
+			lock (m_scriptEvents)
+			{
+				if (m_scriptEvents.ContainsKey(scriptid))
+				{
+					oldparts = m_scriptEvents[scriptid];
+
+					// remove values from aggregated script events
+					m_scriptEvents[scriptid] = (scriptEvents) events;
+				}
+				else
+				{
+					m_scriptEvents.Add(scriptid, (scriptEvents) events);
+				}
+			}
+			aggregateScriptEvents();
+		}
+
+        public void RemoveScriptEvents(LLUUID scriptid)
+        {
+            lock (m_scriptEvents)
+            {
+                if (m_scriptEvents.ContainsKey(scriptid))
+                {
+                    scriptEvents oldparts = scriptEvents.None;
+                    oldparts = (scriptEvents) m_scriptEvents[scriptid];
+
+                    // remove values from aggregated script events
+                    m_aggregateScriptEvents &= ~oldparts;
+                    m_scriptEvents.Remove(scriptid);
+                }
+            }
+            aggregateScriptEvents();
+        }
+
+        public void aggregateScriptEvents()
+        {
+            // Aggregate script events
+            lock (m_scriptEvents)
+            {
+                foreach (scriptEvents s in m_scriptEvents.Values)
+                {
+                    m_aggregateScriptEvents |= s;
+                }
+            }
+
+            uint objectflagupdate = 0;
+
+            if (
+                ((m_aggregateScriptEvents & scriptEvents.touch) != 0) ||
+                ((m_aggregateScriptEvents & scriptEvents.touch_end) != 0) ||
+                ((m_aggregateScriptEvents & scriptEvents.touch_start) != 0)
+                )
+            {
+                objectflagupdate |= (uint) LLObject.ObjectFlags.Touch;
+            }
+
+            if ((m_aggregateScriptEvents & scriptEvents.money) != 0)
+            {
+                objectflagupdate |= (uint) LLObject.ObjectFlags.Money;
+            }
+
+            if (
+                ((m_aggregateScriptEvents & scriptEvents.collision) != 0) ||
+                ((m_aggregateScriptEvents & scriptEvents.collision_end) != 0) ||
+                ((m_aggregateScriptEvents & scriptEvents.collision_start) != 0)
+                )
+            {
+                // subscribe to physics updates.
+            }
+
+			LocalFlags=(LLObject.ObjectFlags)objectflagupdate;
+
+			if(m_parentGroup != null && m_parentGroup.RootPart == this)
+				m_parentGroup.aggregateScriptEvents();
+			else
+				ScheduleFullUpdate();
+		}
     }
 }

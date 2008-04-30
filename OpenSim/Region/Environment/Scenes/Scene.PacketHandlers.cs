@@ -164,7 +164,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                             // If the touched prim handles touches, deliver it
                             // If not, deliver to root prim
-                            if ((part.ObjectFlags & (uint)LLObject.ObjectFlags.Touch) != 0)
+                            if ((part.ScriptEvents & scriptEvents.touch_start) != 0)
                                 EventManager.TriggerObjectGrab(part.LocalId, part.OffsetPosition, remoteClient);
                             else
                                 EventManager.TriggerObjectGrab(obj.RootPart.LocalId, part.OffsetPosition, remoteClient);
@@ -195,7 +195,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             // If the touched prim handles touches, deliver it
                             // If not, deliver to root prim
-                            if ((part.ObjectFlags & (uint)LLObject.ObjectFlags.Touch) != 0)
+                            if ((part.ScriptEvents & scriptEvents.touch_end) != 0)
                                 EventManager.TriggerObjectDeGrab(part.LocalId, remoteClient);
                             else
                                 EventManager.TriggerObjectDeGrab(obj.RootPart.LocalId, remoteClient);

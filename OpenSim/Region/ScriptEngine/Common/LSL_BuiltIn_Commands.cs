@@ -863,23 +863,23 @@ namespace OpenSim.Region.ScriptEngine.Common
         public int llGetStatus(int status)
         {
             m_host.AddScriptLPS(1);
-            Console.WriteLine(m_host.UUID.ToString() + " status is " + m_host.ObjectFlags.ToString());
+            Console.WriteLine(m_host.UUID.ToString() + " status is " + m_host.GetEffectiveObjectFlags().ToString());
             switch (status)
             {
                 case BuiltIn_Commands_BaseClass.STATUS_PHYSICS:
-                    if ((m_host.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) == (uint)LLObject.ObjectFlags.Physics)
+                    if ((m_host.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Physics) == (uint)LLObject.ObjectFlags.Physics)
                     {
                         return 1;
                     }
                     return 0;
                 case BuiltIn_Commands_BaseClass.STATUS_PHANTOM:
-                    if ((m_host.ObjectFlags & (uint)LLObject.ObjectFlags.Phantom) == (uint)LLObject.ObjectFlags.Phantom)
+                    if ((m_host.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Phantom) == (uint)LLObject.ObjectFlags.Phantom)
                     {
                         return 1;
                     }
                     return 0;
                 case BuiltIn_Commands_BaseClass.STATUS_CAST_SHADOWS:
-                    if ((m_host.ObjectFlags & (uint)LLObject.ObjectFlags.CastShadows) == (uint)LLObject.ObjectFlags.CastShadows)
+                    if ((m_host.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.CastShadows) == (uint)LLObject.ObjectFlags.CastShadows)
                     {
                         return 1;
                     }
@@ -2154,7 +2154,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             bool attachment=false; // Attachments not implemented yet. TODO: reflect real attachemnt state
 
-            if(attachment && agent == m_host.OwnerID)
+            if(m_host.ParentGroup.RootPart.m_IsAttachment && agent == m_host.ParentGroup.RootPart.m_attachedAvatar)
             {
                 // When attached, certain permissions are implicit if requested from owner
                 int implicitPerms = BuiltIn_Commands_BaseClass.PERMISSION_TAKE_CONTROLS |

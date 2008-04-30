@@ -152,7 +152,7 @@ namespace OpenSim.Data.MSSQL
             {
                 foreach (SceneObjectPart prim in obj.Children.Values)
                 {
-                    if ((prim.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) == 0)
+                    if ((prim.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Physics) == 0)
                     {
                         m_log.Info("[DATASTORE]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
                         addPrim(prim, obj.UUID, regionUUID);

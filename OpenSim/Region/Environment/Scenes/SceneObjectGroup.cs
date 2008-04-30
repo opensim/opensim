@@ -96,8 +96,6 @@ namespace OpenSim.Region.Environment.Scenes
         private LLVector3 lastPhysGroupPos;
         private LLQuaternion lastPhysGroupRot;
 
-        private scriptEvents m_aggregateScriptEvents = scriptEvents.None;
-
         /// <summary>
         /// The constituent parts of this group
         /// </summary>
@@ -716,7 +714,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_rootPart.SetParentLocalId(0);
             m_rootPart.SetAttachmentPoint((byte)0);
             m_rootPart.m_IsAttachment = false;
-            m_rootPart.ApplyPhysics(m_rootPart.ObjectFlags, m_scene.m_physicalPrim);
+            m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_scene.m_physicalPrim);
             AttachToBackup();
             m_rootPart.ScheduleFullUpdate();
             m_rootPart.ClearUndoState();
@@ -737,7 +735,7 @@ namespace OpenSim.Region.Environment.Scenes
             //m_rootPart.SetAttachmentPoint((byte)0);
             m_rootPart.m_IsAttachment = false;
             AbsolutePosition = m_rootPart.m_attachedPos;
-            //m_rootPart.ApplyPhysics(m_rootPart.ObjectFlags, m_scene.m_physicalPrim);
+            //m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_scene.m_physicalPrim);
             //AttachToBackup();
             //m_rootPart.ScheduleFullUpdate();
             
@@ -943,100 +941,25 @@ namespace OpenSim.Region.Environment.Scenes
             d.AddActiveScripts(count);
         }
 
-        public void RemoveScriptEvents(LLUUID scriptid)
-        {
-            lock (m_scriptEvents)
-            {
-                if (m_scriptEvents.ContainsKey(scriptid))
-                {
-                    scriptEvents oldparts = scriptEvents.None;
-                    oldparts = (scriptEvents) m_scriptEvents[scriptid];
-
-                    // remove values from aggregated script events
-                    m_aggregateScriptEvents &= ~oldparts;
-                    m_scriptEvents.Remove(scriptid);
-                }
-            }
-            aggregateScriptEvents();
-        }
-
-        public void SetScriptEvents(LLUUID scriptid, int events)
-        {
-            scriptEvents oldparts;
-            lock (m_scriptEvents)
-            {
-                if (m_scriptEvents.ContainsKey(scriptid))
-                {
-                    oldparts = m_scriptEvents[scriptid];
-
-                    // remove values from aggregated script events
-                    m_aggregateScriptEvents &= ~oldparts;
-                    m_scriptEvents[scriptid] = (scriptEvents) events;
-                }
-                else
-                {
-                    m_scriptEvents.Add(scriptid, (scriptEvents) events);
-                }
-            }
-
-            aggregateScriptEvents();
-        }
-
         public void aggregateScriptEvents()
         {
-            // Aggregate script events
-            lock (m_scriptEvents)
-            {
-                foreach (scriptEvents s in m_scriptEvents.Values)
-                {
-                    m_aggregateScriptEvents |= s;
-                }
-            }
-            uint objectflagupdate = m_rootPart.ObjectFlags;
+			uint objectflagupdate=(uint)RootPart.GetEffectiveObjectFlags();
 
-            if (
-                ((m_aggregateScriptEvents & scriptEvents.touch) != 0) ||
-                ((m_aggregateScriptEvents & scriptEvents.touch_end) != 0) ||
-                ((m_aggregateScriptEvents & scriptEvents.touch_start) != 0)
-                )
-            {
-                objectflagupdate |= (uint) LLObject.ObjectFlags.Touch;
-            }
-            else
-            {
-                objectflagupdate &= ~(uint) LLObject.ObjectFlags.Touch;
-            }
+			scriptEvents aggregateScriptEvents=0;
 
-            if ((m_aggregateScriptEvents & scriptEvents.money) != 0)
-            {
-                objectflagupdate |= (uint) LLObject.ObjectFlags.Money;
-            }
-            else
-            {
-                objectflagupdate &= ~(uint) LLObject.ObjectFlags.Money;
-            }
-
-            if (
-                ((m_aggregateScriptEvents & scriptEvents.collision) != 0) ||
-                ((m_aggregateScriptEvents & scriptEvents.collision_end) != 0) ||
-                ((m_aggregateScriptEvents & scriptEvents.collision_start) != 0)
-                )
-            {
-                // subscribe to physics updates.
-            }
-            else
-            {
-                // unsubscribe to physics updates.
-            }
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    part.ObjectFlags = objectflagupdate;
+					if(part == null)
+						continue;
+					if(part != RootPart)
+  						part.ObjectFlags = objectflagupdate;
+					aggregateScriptEvents |= part.m_aggregateScriptEvents;
                 }
             }
 
-            if ((m_aggregateScriptEvents & scriptEvents.at_target) != 0)
+            if ((aggregateScriptEvents & scriptEvents.at_target) != 0)
             {
                 m_scriptListens_atTarget = true;
             }
@@ -1045,7 +968,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_scriptListens_atTarget = false;
             }
 
-            if ((m_aggregateScriptEvents & scriptEvents.not_at_target) != 0)
+            if ((aggregateScriptEvents & scriptEvents.not_at_target) != 0)
             {
                 m_scriptListens_notAtTarget = true;
             }
@@ -1082,12 +1005,12 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_parts.Count > 1)
                 {
-                    m_rootPart.ApplyPhysics(m_rootPart.ObjectFlags, m_physicalPrim);
+                    m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_physicalPrim);
                     foreach (SceneObjectPart part in m_parts.Values)
                     {
                         if (part.LocalId != m_rootPart.LocalId)
                         {
-                            part.ApplyPhysics(m_rootPart.ObjectFlags, m_physicalPrim);
+                            part.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_physicalPrim);
                         }
                         // Hack to get the physics scene geometries in the right spot
                         ResetChildPrimPhysicsPositions();
@@ -1095,7 +1018,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else
                 {
-                    m_rootPart.ApplyPhysics(m_rootPart.ObjectFlags, m_physicalPrim);
+                    m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_physicalPrim);
                 }
             }
         }
@@ -1333,7 +1256,7 @@ namespace OpenSim.Region.Environment.Scenes
                     else
                     {
                         part.RemFlag(LLObject.ObjectFlags.Phantom);
-                        if ((part.ObjectFlags & (int) LLObject.ObjectFlags.Physics) != 0)
+                        if ((part.GetEffectiveObjectFlags() & (int) LLObject.ObjectFlags.Physics) != 0)
                         {
                             part.DoPhysicsPropertyUpdate(true, false);
                         }

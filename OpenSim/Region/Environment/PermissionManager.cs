@@ -226,21 +226,14 @@ namespace OpenSim.Region.Environment
             // Outside of this method, they should never be added to objectflags!
             // -teravus
 
-            if (!m_scene.Entities.ContainsKey(objID))
-            {
-                return 0;
-            }
+			SceneObjectPart task=m_scene.GetSceneObjectPart(objID);
+            
+            // this shouldn't ever happen..     return no permissions/objectflags.
+            if (task == null)
+                return (uint)0;
 
-            // If it's not an object, we cant edit it.
-            if (!(m_scene.Entities[objID] is SceneObjectGroup))
-            {
-                return 0;
-            }
-
-            SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objID];
-            LLUUID objectOwner = task.OwnerID;
-
-            uint objflags = task.RootPart.ObjectFlags;
+			uint objflags = task.GetEffectiveObjectFlags();
+			LLUUID objectOwner = task.OwnerID;
 
 
             // Remove any of the objectFlags that are temporary.  These will get added back if appropriate 
@@ -257,14 +250,14 @@ namespace OpenSim.Region.Environment
 
             // Creating the three ObjectFlags options for this method to choose from.
             // Customize the OwnerMask
-            uint objectOwnerMask = ApplyObjectModifyMasks(task.RootPart.OwnerMask, objflags);
+            uint objectOwnerMask = ApplyObjectModifyMasks(task.OwnerMask, objflags);
             objectOwnerMask |= (uint)LLObject.ObjectFlags.ObjectYouOwner;
 
             // Customize the GroupMask
-            uint objectGroupMask = ApplyObjectModifyMasks(task.RootPart.GroupMask, objflags);
+            uint objectGroupMask = ApplyObjectModifyMasks(task.GroupMask, objflags);
 
             // Customize the EveryoneMask
-            uint objectEveryoneMask = ApplyObjectModifyMasks(task.RootPart.EveryoneMask, objflags);
+            uint objectEveryoneMask = ApplyObjectModifyMasks(task.EveryoneMask, objflags);
 
 
             // Hack to allow collaboration until Groups and Group Permissions are implemented
