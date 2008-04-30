@@ -64,6 +64,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                 str = str.Replace('<', ' ');
                 str = str.Replace('>', ' ');
                 string[] tmps = str.Split(new Char[] { ',', '<', '>' });
+				if(tmps.Length < 3)
+				{
+					x=y=z=0;
+					return;
+				}
                 bool res;
                 res = Double.TryParse(tmps[0], out x);
                 res = res & Double.TryParse(tmps[1], out y);
@@ -76,13 +81,26 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             public override string ToString()
             {
-                return "<" + x.ToString() + ", " + y.ToString() + ", " + z.ToString() + ">";
+				string s=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000}>", x, y, z);
+                return s;
+            }
+
+            public static explicit operator LSLString(Vector3 vec)
+            {
+				string s=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000}>", vec.x, vec.y, vec.z);
+                return new LSLString(s);
             }
 
             public static explicit operator string(Vector3 vec)
             {
-                return "<" + vec.x.ToString() + ", " + vec.y.ToString() + ", " + vec.z.ToString() + ">";
+				string s=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000}>", vec.x, vec.y, vec.z);
+                return s;
             }
+
+			public static explicit operator Vector3(string s)
+			{
+				return new Vector3(s);
+			}
 
             public static bool operator ==(Vector3 lhs, Vector3 rhs)
             {
@@ -278,6 +296,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                 str = str.Replace('<', ' ');
                 str = str.Replace('>', ' ');
                 string[] tmps = str.Split(new Char[] { ',', '<', '>' });
+				if(tmps.Length < 4)
+				{
+					x=y=z=s=0;
+					return;
+				}
                 bool res;
                 res = Double.TryParse(tmps[0], out x);
                 res = res & Double.TryParse(tmps[1], out y);
@@ -307,13 +330,26 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             public override string ToString()
             {
-                return "<" + x.ToString() + ", " + y.ToString() + ", " + z.ToString() + ", " + s.ToString() + ">";
+				string st=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000},{3:0.000000}>", x, y, z, s);
+                return st;
             }
 
             public static explicit operator string(Quaternion r)
             {
-                return "<" + r.x.ToString() + ", " + r.y.ToString() + ", " + r.z.ToString() + ", " + r.s.ToString() + ">";
+				string s=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000},{3:0.000000}>", r.x, r.y, r.z, r.s);
+                return s;
             }
+
+            public static explicit operator LSLString(Quaternion r)
+            {
+				string s=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000},{3:0.000000}>", r.x, r.y, r.z, r.s);
+                return new LSLString(s);
+            }
+
+			public static explicit operator Quaternion(string s)
+			{
+				return new Quaternion(s);
+			}
 
             public static bool operator ==(Quaternion lhs, Quaternion rhs)
             {
@@ -369,12 +405,20 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             public int Length
             {
-                get { return m_data.Length; }
+                get {
+					if(m_data == null)
+						m_data=new Object[0];
+					return m_data.Length;
+				}
             }
 
             public object[] Data
             {
-                get { return m_data; }
+                get {
+					if(m_data == null)
+						m_data=new Object[0];
+					return m_data;
+				}
             }
 
             public static list operator +(list a, list b)
@@ -571,13 +615,20 @@ namespace OpenSim.Region.ScriptEngine.Common
 				if(Data.Length == 0)
 					return new list(); // Don't even bother
 
+				string[] keys;
+
 				if(stride == 1) // The simple case
 				{
 					Object[] ret=new Object[Data.Length];
 
 					Array.Copy(Data, 0, ret, 0, Data.Length);
 
-					Array.Sort(ret);
+					keys=new string[Data.Length];
+					int k;
+					for(k=0;k<Data.Length;k++)
+						keys[k]=Data[k].ToString();
+
+					Array.Sort(keys, ret);
 
 					if(ascending == 0)
 						Array.Reverse(ret);
@@ -588,7 +639,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
 				int len=(Data.Length+stride-1)/stride;
 
-				string[] keys=new string[len];
+				keys=new string[len];
 				Object[][] vals=new Object[len][];
 
 				int i;
@@ -1016,17 +1067,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             public override bool Equals(object o)
             {
-                if (o is String)
-                {
-                    string s = (string)o;
-                    return s == this.value;
-                }
-                if (o is key)
-                {
-                    key k = (key)o;
-                    return this.value == k.value;
-                }
-                return false;
+				return o.ToString() == value;
             }
 
             public override int GetHashCode()
@@ -1046,6 +1087,13 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 m_string = s;
             }
+
+			public LSLString(double d)
+			{
+				string s=String.Format("{0:0.000000}", d);
+				m_string=s;
+			}
+
             #endregion
 
             #region Operators
@@ -1071,44 +1119,47 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return new LSLString(s);
             }
 
-            // Commented out:
-            /*
-                 [echo] Build Directory is /home/tedd/opensim/trunk/OpenSim/Region/ScriptEngine/Common/bin/Debug
-                  [csc] Compiling 5 files to '/home/tedd/opensim/trunk/OpenSim/Region/ScriptEngine/Common/bin/Debug/OpenSim.Region.ScriptEngine.Common.dll'.
-                  [csc] error CS0121: The call is ambiguous between the following methods or properties: `OpenSim.Region.ScriptEngine.Common.LSL_Types.LSLString.operator /(OpenSim.Region.ScriptEngine.Common.LSL_Types.LSLString, OpenSim.Region.ScriptEngine.Common.LSL_Types.LSLString)' and `string.operator /(string, string)'
-                  [csc] /home/tedd/opensim/trunk/OpenSim/Region/ScriptEngine/Common/LSL_Types.cs(602,32): (Location of the symbol related to previous error)
-                  [csc] /usr/lib/mono/2.0/mscorlib.dll (Location of the symbol related to previous error)
-                  [csc] Compilation failed: 1 error(s), 0 warnings
-             */
-            //public static bool operator ==(LSLString s1, LSLString s2)
-            //{
-            //    return s1.m_string == s2.m_string;
-            //}
-            //public static bool operator !=(LSLString s1, LSLString s2)
-            //{
-            //    return s1.m_string != s2.m_string;
-            //}
+			public static string ToString(LSLString s)
+			{
+				return s.m_string;
+			}
+
+            public override string ToString()
+            {
+                return m_string;
+            }
+
+            public static bool operator ==(LSLString s1, string s2)
+            {
+                return s1.m_string == s2;
+            }
+
+            public static bool operator !=(LSLString s1, string s2)
+            {
+                return s1.m_string != s2;
+            }
+
+			public static explicit operator double(LSLString s)
+			{
+				return Convert.ToDouble(s.m_string);
+			}
+
+			public static explicit operator LSLInteger(LSLString s)
+			{
+				return new LSLInteger(Convert.ToInt32(s.m_string));
+			}
+
+			public static explicit operator LSLString(double d)
+			{
+				return new LSLString(d);
+			}
+
             #endregion
 
             #region Overriders
             public override bool Equals(object o)
             {
-                if (o is String)
-                {
-                    string s = (string)o;
-                    return s == this.m_string;
-                }
-                if (o is key)
-                {
-                    key k = (key)o;
-                    return this.m_string == k.value;
-                }
-                if (o is LSLString)
-                {
-                    LSLString s = (string)o;
-                    return this.m_string == s;
-                }
-                return false;
+				return m_string == o.ToString();
             }
 
             public override int GetHashCode()
@@ -1154,6 +1205,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return i.value;
             }
 
+			static public explicit operator LSLString(LSLInteger i)
+			{
+				return new LSLString(i.ToString());
+			}
+
             static public implicit operator Boolean(LSLInteger i)
             {
                 if (i.value == 0)
@@ -1171,6 +1227,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return new LSLInteger(i);
             }
 
+			static public explicit operator LSLInteger(string s)
+			{
+				return new LSLInteger(int.Parse(s));
+			}
+
             static public implicit operator LSLInteger(double d)
             {
                 return new LSLInteger(d);
@@ -1182,6 +1243,17 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return ret;
             }
 
+			public static LSLInteger operator ++(LSLInteger i)
+			{
+				i.value++;
+				return i;
+			}
+
+			public static LSLInteger operator --(LSLInteger i)
+			{
+				i.value--;
+				return i;
+			}
 
             //static public implicit operator System.Double(LSLInteger i)
             //{

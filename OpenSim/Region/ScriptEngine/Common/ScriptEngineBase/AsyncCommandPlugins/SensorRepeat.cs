@@ -314,7 +314,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                 else
                 {
                     m_CmdManager.m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "sensor", EventQueueManager.llDetectNull,
-                                                                        new object[] { SensedObjects.Length });
+                                                                        new object[] { new LSL_Types.LSLInteger(SensedObjects.Length) });
                 }
             }
         }

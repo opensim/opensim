@@ -100,7 +100,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public void changed(uint localID, uint change)
         {
             // Add to queue for all scripts in localID, Object pass change.
-            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "changed", EventQueueManager.llDetectNull, new object[] { (int)change });
+            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "changed", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(change) });
         }
 
         public void state_entry(uint localID)
@@ -115,7 +115,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             EventQueueManager.Queue_llDetectParams_Struct detstruct = new EventQueueManager.Queue_llDetectParams_Struct();
             detstruct._key = new LSL_Types.key[1];
             detstruct._key[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
-            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_start", detstruct, new object[] { (int)1 });
+            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_start", detstruct, new object[] { new LSL_Types.LSLInteger(1) });
         }
 
         public void touch_end(uint localID, IClientAPI remoteClient)
@@ -124,7 +124,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             EventQueueManager.Queue_llDetectParams_Struct detstruct = new EventQueueManager.Queue_llDetectParams_Struct();
             detstruct._key = new LSL_Types.key[1];
             detstruct._key[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
-            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_end", detstruct, new object[] { (int)1 });
+            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_end", detstruct, new object[] { new LSL_Types.LSLInteger(1) });
         }
 
         public void OnRezScript(uint localID, LLUUID itemID, string script)
@@ -145,7 +145,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void money(uint localID, LLUUID agentID, int amount)
         {
-            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "money", EventQueueManager.llDetectNull, new object[] { agentID.ToString(), (int)amount });
+            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "money", EventQueueManager.llDetectNull, new object[] { agentID.ToString(), new LSL_Types.LSLInteger(amount) });
         }
 
         // TODO: Replace placeholders below
@@ -154,9 +154,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         //   then queued in EventQueueManager.
         // When queued in EventQueueManager they need to be LSL compatible (name and params)
 
-        public void state_exit(uint localID, LLUUID itemID)
+        public void state_exit(uint localID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "state_exit", EventQueueManager.llDetectNull);
+            // Add to queue for all scripts in ObjectID object
+            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "state_exit", EventQueueManager.llDetectNull, new object[] { });
         }
 
         public void touch(uint localID, LLUUID itemID)
@@ -166,22 +167,22 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void touch_end(uint localID, LLUUID itemID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "touch_end", EventQueueManager.llDetectNull);
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "touch_end", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(1) });
         }
 
         public void collision_start(uint localID, LLUUID itemID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "collision_start", EventQueueManager.llDetectNull, new object[] { (int)1 });
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "collision_start", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(1) });
         }
 
         public void collision(uint localID, LLUUID itemID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "collision", EventQueueManager.llDetectNull, new object[] { (int)1 });
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "collision", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(1) });
         }
 
         public void collision_end(uint localID, LLUUID itemID)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "collision_end", EventQueueManager.llDetectNull, new object[] { (int)1 });
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "collision_end", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(1) });
         }
 
         public void land_collision_start(uint localID, LLUUID itemID)
@@ -237,7 +238,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void at_target(uint localID, uint handle, LLVector3 targetpos, LLVector3 atpos)
         {
-            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "at_target", EventQueueManager.llDetectNull, new object[] { (int)handle, new LSL_Types.Vector3(targetpos.X,targetpos.Y,targetpos.Z), new LSL_Types.Vector3(atpos.X,atpos.Y,atpos.Z) });
+            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "at_target", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(handle), new LSL_Types.Vector3(targetpos.X,targetpos.Y,targetpos.Z), new LSL_Types.Vector3(atpos.X,atpos.Y,atpos.Z) });
         }
 
         public void not_at_target(uint localID)

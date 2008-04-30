@@ -60,9 +60,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                         //Deliver data to prim's remote_data handler
                         object[] resobj = new object[]
                         {
-                            2, rInfo.GetChannelKey().ToString(), rInfo.GetMessageID().ToString(), String.Empty,
-                            rInfo.GetIntValue(),
-                            rInfo.GetStrVal()
+                            new LSL_Types.LSLInteger(2), new LSL_Types.LSLString(rInfo.GetChannelKey().ToString()), new LSL_Types.LSLString(rInfo.GetMessageID().ToString()), new LSL_Types.LSLString(String.Empty),
+                            new LSL_Types.LSLInteger(rInfo.GetIntValue()),
+                            new LSL_Types.LSLString(rInfo.GetStrVal())
                         };
                         m_CmdManager.m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
                             rInfo.GetLocalID(), rInfo.GetItemID(), "remote_data", EventQueueManager.llDetectNull, resobj
@@ -83,9 +83,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                         //Deliver data to prim's remote_data handler
                         object[] resobj = new object[]
                         {
-                            3, srdInfo.channel.ToString(), srdInfo.GetReqID().ToString(), String.Empty,
-                            srdInfo.idata,
-                            srdInfo.sdata
+                            new LSL_Types.LSLInteger(3), new LSL_Types.LSLString(srdInfo.channel.ToString()), new LSL_Types.LSLString(srdInfo.GetReqID().ToString()), new LSL_Types.LSLString(String.Empty),
+                            new LSL_Types.LSLInteger(srdInfo.idata),
+                            new LSL_Types.LSLString(srdInfo.sdata)
                         };
                         m_CmdManager.m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
                             srdInfo.m_localID, srdInfo.m_itemID, "remote_data", EventQueueManager.llDetectNull, resobj

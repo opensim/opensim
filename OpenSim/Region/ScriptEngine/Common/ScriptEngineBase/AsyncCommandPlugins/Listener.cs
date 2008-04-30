@@ -58,7 +58,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                         object[] resobj = new object[]
                         {
                         //lInfo.GetChannel(), lInfo.GetName(), lInfo.GetID().ToString(), lInfo.GetMessage()
-                            lInfo.GetChannel(), lInfo.GetName(), lInfo.GetSourceItemID().ToString(), lInfo.GetMessage()
+                            new LSL_Types.LSLInteger(lInfo.GetChannel()), new LSL_Types.LSLString(lInfo.GetName()), new LSL_Types.LSLString(lInfo.GetSourceItemID().ToString()), new LSL_Types.LSLString(lInfo.GetMessage())
                         };
 
                         m_CmdManager.m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(

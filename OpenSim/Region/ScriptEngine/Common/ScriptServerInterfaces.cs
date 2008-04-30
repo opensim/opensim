@@ -40,7 +40,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             void touch_start(uint localID, LLVector3 offsetPos, IClientAPI remoteClient);
             void OnRezScript(uint localID, LLUUID itemID, string script);
             void OnRemoveScript(uint localID, LLUUID itemID);
-            void state_exit(uint localID, LLUUID itemID);
+            void state_exit(uint localID);
             void touch(uint localID, LLUUID itemID);
             void touch_end(uint localID, LLUUID itemID);
             void collision_start(uint localID, LLUUID itemID);

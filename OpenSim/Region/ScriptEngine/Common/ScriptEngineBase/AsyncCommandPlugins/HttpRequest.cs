@@ -72,7 +72,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                     {
                         object[] resobj = new object[]
                         {
-                            httpInfo.reqID.ToString(), httpInfo.status, null, httpInfo.response_body
+                            new LSL_Types.LSLString(httpInfo.reqID.ToString()), new LSL_Types.LSLInteger(httpInfo.status), null, new LSL_Types.LSLString(httpInfo.response_body)
                         };
 
                         sman.m_EventQueueManager.AddToScriptQueue(

@@ -319,6 +319,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
         private static string CreateCSCompilerScript(string compileScript)
         {
+            compileScript = EventReaderRewriter.ReWriteScriptWithPublishedEventsCS(compileScript);
+
             compileScript = String.Empty +
                         "using OpenSim.Region.ScriptEngine.Common; using System.Collections.Generic;\r\n" +
                         String.Empty + "namespace SecondLife { " +
