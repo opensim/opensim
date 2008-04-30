@@ -50,6 +50,12 @@ namespace OpenSim.Data.MySQL
         private const string m_terrainSelect = "select * from terrain limit 1";
         private const string m_landSelect = "select * from land";
         private const string m_landAccessListSelect = "select * from landaccesslist";
+        
+        
+        /// <summary>
+        /// We're only using this to version the table!
+        /// </summary>
+       
 
         private DataSet m_dataSet;
         private MySqlDataAdapter m_primDataAdapter;
@@ -85,6 +91,8 @@ namespace OpenSim.Data.MySQL
             m_log.Info("[DATASTORE]: MySql - connecting: " + connectionstring);
             m_connection = new MySqlConnection(connectionstring);
 
+            TestTablesVersionable(m_connection);
+
             MySqlCommand primSelectCmd = new MySqlCommand(m_primSelect, m_connection);
             m_primDataAdapter = new MySqlDataAdapter(primSelectCmd);
 
@@ -103,6 +111,7 @@ namespace OpenSim.Data.MySQL
             MySqlCommand landAccessListSelectCmd = new MySqlCommand(m_landAccessListSelect, m_connection);
             m_landAccessListDataAdapter = new MySqlDataAdapter(landAccessListSelectCmd);
 
+            
             TestTables(m_connection);
 
             lock (m_dataSet)
@@ -141,7 +150,104 @@ namespace OpenSim.Data.MySQL
                 m_landAccessListDataAdapter.Fill(m_landAccessListTable);
             }
         }
+        /// <summary>
+        /// Given a list of tables, return the version of the tables, as seen in the database
+        /// </summary>
+        /// <param name="tableList"></param>
+        public void GetTableVersion(Dictionary<string, string> tableList, MySqlConnection dbcon)
+        {
+            lock (dbcon)
+            {
+                MySqlCommand tablesCmd =
+                    new MySqlCommand(
+                        "SELECT TABLE_NAME, TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=?dbname",
+                        dbcon);
+                tablesCmd.Parameters.AddWithValue("?dbname", dbcon.Database);
+                using (MySqlDataReader tables = tablesCmd.ExecuteReader())
+                {
+                    while (tables.Read())
+                    {
+                        try
+                        {
+                            string tableName = (string)tables["TABLE_NAME"];
+                            string comment = (string)tables["TABLE_COMMENT"];
+                            if (tableList.ContainsKey(tableName))
+                            {
+                                tableList[tableName] = comment;
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.Error(e.ToString());
+                        }
+                    }
+                    tables.Close();
+                }
+            }
+        }
+        private void TestTablesVersionable(MySqlConnection dbconn)
+        {
+            Dictionary<string, string> tableList = new Dictionary<string, string>();
 
+            tableList["land"] = null;
+            dbconn.Open();
+            GetTableVersion(tableList,dbconn);
+
+            UpgradeLandTable(tableList["land"], dbconn);
+            //database.Close();
+            
+        }
+
+        /// <summary>
+        /// Execute a SQL statement stored in a resource, as a string
+        /// </summary>
+        /// <param name="name"></param>
+        public void ExecuteResourceSql(string name, MySqlConnection dbcon)
+        {
+            MySqlCommand cmd = new MySqlCommand(getResourceString(name), dbcon);
+            cmd.ExecuteNonQuery();
+        }
+
+        /// <summary>
+        /// Extract a named string resource from the embedded resources
+        /// </summary>
+        /// <param name="name">name of embedded resource</param>
+        /// <returns>string contained within the embedded resource</returns>
+        private string getResourceString(string name)
+        {
+            Assembly assem = GetType().Assembly;
+            string[] names = assem.GetManifestResourceNames();
+
+            foreach (string s in names)
+            {
+                if (s.EndsWith(name))
+                {
+                    using (Stream resource = assem.GetManifestResourceStream(s))
+                    {
+                        using (StreamReader resourceReader = new StreamReader(resource))
+                        {
+                            string resourceString = resourceReader.ReadToEnd();
+                            return resourceString;
+                        }
+                    }
+                }
+            }
+            throw new Exception(string.Format("Resource '{0}' was not found", name));
+        }
+
+        private void UpgradeLandTable(string oldVersion, MySqlConnection dbconn)
+        {
+            // null as the version, indicates that the table didn't exist
+            if (oldVersion == null)
+            {
+                ExecuteResourceSql("CreateLandTable.sql",dbconn);
+                oldVersion = "Rev. 2; InnoDB free: 0 kB";
+            }
+            if (!oldVersion.Contains("Rev."))
+            {
+                ExecuteResourceSql("UpgradeLandTableToVersion2.sql", dbconn);
+            }
+        }
         public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
             lock (m_dataSet)
@@ -673,6 +779,7 @@ namespace OpenSim.Data.MySQL
             createCol(land, "UserLookAtX", typeof (Double));
             createCol(land, "UserLookAtY", typeof (Double));
             createCol(land, "UserLookAtZ", typeof (Double));
+            createCol(land, "AuthBuyerID", typeof (String));
 
             land.PrimaryKey = new DataColumn[] {land.Columns["UUID"]};
 
@@ -925,7 +1032,14 @@ namespace OpenSim.Data.MySQL
             newData.musicURL = (String) row["MusicURL"];
             newData.passHours = Convert.ToSingle(row["PassHours"]);
             newData.passPrice = Convert.ToInt32(row["PassPrice"]);
-            newData.snapshotID = (String) row["SnapshotUUID"];
+            LLUUID authedbuyer = LLUUID.Zero;
+            LLUUID snapshotID = LLUUID.Zero;
+
+            Helpers.TryParse((string)row["AuthBuyerID"], out authedbuyer);
+            Helpers.TryParse((string)row["SnapshotUUID"], out snapshotID);
+
+            newData.authBuyerID = authedbuyer;
+            newData.snapshotID = snapshotID;
 
             newData.userLocation =
                 new LLVector3(Convert.ToSingle(row["UserLocationX"]), Convert.ToSingle(row["UserLocationY"]),
@@ -1096,6 +1210,7 @@ namespace OpenSim.Data.MySQL
             row["UserLookAtX"] = land.userLookAt.X;
             row["UserLookAtY"] = land.userLookAt.Y;
             row["UserLookAtZ"] = land.userLookAt.Z;
+            row["AuthBuyerID"] = land.authBuyerID;
         }
 
         private void fillLandAccessRow(DataRow row, ParcelManager.ParcelAccessEntry entry, LLUUID parcelID)
@@ -1479,14 +1594,16 @@ namespace OpenSim.Data.MySQL
             string createShapes = defineTable(createShapeTable());
             string createItems = defineTable(createItemsTable());
             string createTerrain = defineTable(createTerrainTable());
-            string createLand = defineTable(createLandTable());
+
+            // Land table is created from the Versionable Test Table routine now.
+            //string createLand = defineTable(createLandTable());
             string createLandAccessList = defineTable(createLandAccessListTable());
 
             MySqlCommand pcmd = new MySqlCommand(createPrims, conn);
             MySqlCommand scmd = new MySqlCommand(createShapes, conn);
             MySqlCommand icmd = new MySqlCommand(createItems, conn);
             MySqlCommand tcmd = new MySqlCommand(createTerrain, conn);
-            MySqlCommand lcmd = new MySqlCommand(createLand, conn);
+            //MySqlCommand lcmd = new MySqlCommand(createLand, conn);
             MySqlCommand lalcmd = new MySqlCommand(createLandAccessList, conn);
 
             if (conn.State != ConnectionState.Open)
@@ -1539,14 +1656,14 @@ namespace OpenSim.Data.MySQL
                 m_log.WarnFormat("[MySql]: Terrain Table Already Exists: {0}", e);
             }
 
-            try
-            {
-                lcmd.ExecuteNonQuery();
-            }
-            catch (MySqlException e)
-            {
-                m_log.WarnFormat("[MySql]: Land Table Already Exists: {0}", e);
-            }
+            //try
+            //{
+                //lcmd.ExecuteNonQuery();
+            //}
+            //catch (MySqlException e)
+            //{
+                //m_log.WarnFormat("[MySql]: Land Table Already Exists: {0}", e);
+            //}
 
             try
             {
