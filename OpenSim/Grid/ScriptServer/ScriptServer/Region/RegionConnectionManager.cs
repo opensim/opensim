@@ -38,18 +38,5 @@ namespace OpenSim.Grid.ScriptServer
             m_ScriptServerMain = scm;
             m_Connection = Connection;
         }
-
-// TODO: unused:
-//         private void DataReceived(object objectID, object scriptID)
-//         {
-//             // TODO: HOW DO WE RECEIVE DATA? ASYNC?
-//             // ANYHOW WE END UP HERE?
-
-//             // NEW SCRIPT? ASK SCRIPTENGINE TO INITIALIZE IT
-//             ScriptRez();
-
-//             // EVENT? DELIVER EVENT DIRECTLY TO SCRIPTENGINE
-//             touch_start();
-//         }
     }
 }

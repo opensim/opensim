@@ -1350,14 +1350,6 @@ namespace OpenSim.Data.MSSQL
             return param;
         }
 
-// TODO: unused
-//         private SqlParameter createParamWithValue(string name, Type type, Object o)
-//         {
-//             SqlParameter param = createSqlParameter(name, type);
-//             param.Value = o;
-//             return param;
-//         }
-
         private void setupPrimCommands(SqlDataAdapter da, SqlConnection conn)
         {
             da.InsertCommand = createInsertCommand("prims", m_dataSet.Tables["prims"]);

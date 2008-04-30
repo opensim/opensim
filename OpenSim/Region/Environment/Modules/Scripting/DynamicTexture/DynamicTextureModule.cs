@@ -239,12 +239,6 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
                 part.ScheduleFullUpdate();
             }
 
-// TODO: unused
-//             private byte[] BlendTextures(byte[] frontImage, byte[] backImage)
-//             {
-//                 return BlendTextures(frontImage, backImage, false, 0);
-//             }
-
             private byte[] BlendTextures(byte[] frontImage, byte[] backImage, bool setNewAlpha, byte newAlpha)
             {
                 Bitmap image1 = new Bitmap(OpenJPEG.DecodeToImage(frontImage));
