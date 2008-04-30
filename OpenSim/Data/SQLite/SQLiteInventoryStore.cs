@@ -101,6 +101,14 @@ namespace OpenSim.Data.SQLite
             item.CurrentPermissions = Convert.ToUInt32(row["inventoryCurrentPermissions"]);
             item.BasePermissions = Convert.ToUInt32(row["inventoryBasePermissions"]);
             item.EveryOnePermissions = Convert.ToUInt32(row["inventoryEveryOnePermissions"]);
+
+            // new fields
+            item.SalePrice = Convert.ToInt32(row["salePrice"]);
+            item.SaleType = Convert.ToByte(row["saleType"]);
+            item.CreationDate = Convert.ToInt32(row["creationDate"]);
+            item.GroupID = new LLUUID((string)row["groupID"]);
+            item.GroupOwned = Convert.ToBoolean(row["groupOwned"]);
+            item.Flags = Convert.ToUInt32(row["Flags"]);
             return item;
         }
 
@@ -120,6 +128,14 @@ namespace OpenSim.Data.SQLite
             row["inventoryCurrentPermissions"] = item.CurrentPermissions;
             row["inventoryBasePermissions"] = item.BasePermissions;
             row["inventoryEveryOnePermissions"] = item.EveryOnePermissions;
+
+            // new fields
+            row["salePrice"] = item.SalePrice;
+            row["saleType"] = item.SaleType;
+            row["creationDate"] = item.CreationDate;
+            row["groupID"] = item.GroupID;
+            row["groupOwned"] = item.GroupOwned;
+            row["flags"] = item.Flags;
         }
 
         private void addFolder(InventoryFolderBase folder, bool add)
@@ -530,7 +546,21 @@ namespace OpenSim.Data.SQLite
             createCol(inv, "inventoryBasePermissions", typeof (Int32));
             createCol(inv, "inventoryEveryOnePermissions", typeof (Int32));
 
-            inv.PrimaryKey = new DataColumn[] {inv.Columns["UUID"]};
+            // sale info
+            createCol(inv, "salePrice", typeof(Int32));
+            createCol(inv, "saleType", typeof(Byte));
+
+            // creation date
+            createCol(inv, "creationDate", typeof(Int32));
+
+            // group info
+            createCol(inv, "groupID", typeof(String));
+            createCol(inv, "groupOwned", typeof(Boolean));
+
+            // Flags
+            createCol(inv, "flags", typeof(UInt32));
+
+            inv.PrimaryKey = new DataColumn[] { inv.Columns["UUID"] };
             return inv;
         }
 

@@ -325,7 +325,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             if ((userID == UserProfile.ID) && HasInventory)
             {
-                m_commsManager.InventoryService.AddNewInventoryItem(userID, itemInfo);
+                m_commsManager.InventoryService.UpdateInventoryItem(userID, itemInfo);
             }
         }
 

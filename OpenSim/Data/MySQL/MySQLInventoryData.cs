@@ -332,6 +332,15 @@ namespace OpenSim.Data.MySQL
                 item.Creator = new LLUUID((string) reader["creatorID"]);
                 item.BasePermissions = (uint) reader["inventoryBasePermissions"];
                 item.EveryOnePermissions = (uint) reader["inventoryEveryOnePermissions"];
+ 
+				// new fields
+				item.SalePrice = (int) reader["salePrice"];
+				item.SaleType = Convert.ToByte(reader["saleType"]);
+				item.CreationDate = (int) reader["creationDate"];
+				item.GroupID = new LLUUID(reader["groupID"].ToString());
+				item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
+				item.Flags = (uint) reader["flags"];
+
                 return item;
             }
             catch (MySqlException e)
@@ -353,8 +362,6 @@ namespace OpenSim.Data.MySQL
             {
                 lock (database)
                 {
-                    Dictionary<string, string> param = new Dictionary<string, string>();
-
                     MySqlCommand result =
                         new MySqlCommand("SELECT * FROM inventoryitems WHERE inventoryID = ?uuid", database.Connection);
                     result.Parameters.AddWithValue("?uuid", itemID.ToString());
@@ -444,9 +451,9 @@ namespace OpenSim.Data.MySQL
         public void addInventoryItem(InventoryItemBase item)
         {
             string sql =
-                "REPLACE INTO inventoryitems (inventoryID, assetID, assetType, parentFolderID, avatarID, inventoryName, inventoryDescription, inventoryNextPermissions, inventoryCurrentPermissions, invType, creatorID, inventoryBasePermissions, inventoryEveryOnePermissions) VALUES ";
+                "REPLACE INTO inventoryitems (inventoryID, assetID, assetType, parentFolderID, avatarID, inventoryName, inventoryDescription, inventoryNextPermissions, inventoryCurrentPermissions, invType, creatorID, inventoryBasePermissions, inventoryEveryOnePermissions, salePrice, saleType, creationDate, groupID, groupOwned, flags) VALUES ";
             sql +=
-                "(?inventoryID, ?assetID, ?assetType, ?parentFolderID, ?avatarID, ?inventoryName, ?inventoryDescription, ?inventoryNextPermissions, ?inventoryCurrentPermissions, ?invType, ?creatorID, ?inventoryBasePermissions, ?inventoryEveryOnePermissions)";
+                "(?inventoryID, ?assetID, ?assetType, ?parentFolderID, ?avatarID, ?inventoryName, ?inventoryDescription, ?inventoryNextPermissions, ?inventoryCurrentPermissions, ?invType, ?creatorID, ?inventoryBasePermissions, ?inventoryEveryOnePermissions, ?salePrice, ?saleType, ?creationDate, ?groupID, ?groupOwned, ?flags)";
 
             try
             {
@@ -465,6 +472,12 @@ namespace OpenSim.Data.MySQL
                 result.Parameters.AddWithValue("?creatorID", item.Creator.ToString());
                 result.Parameters.AddWithValue("?inventoryBasePermissions", item.BasePermissions);
                 result.Parameters.AddWithValue("?inventoryEveryOnePermissions", item.EveryOnePermissions);
+                result.Parameters.AddWithValue("?salePrice", item.SalePrice);
+                result.Parameters.AddWithValue("?saleType", item.SaleType);
+                result.Parameters.AddWithValue("?creationDate", item.CreationDate);
+                result.Parameters.AddWithValue("?groupID", item.GroupID);
+                result.Parameters.AddWithValue("?groupOwned", item.GroupOwned);
+                result.Parameters.AddWithValue("?flags", item.Flags);
                 
                 lock (database)
                 {

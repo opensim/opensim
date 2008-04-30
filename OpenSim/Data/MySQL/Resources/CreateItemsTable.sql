@@ -12,7 +12,13 @@ CREATE TABLE `inventoryitems` (
   `creatorID` varchar(36) default NULL,
   `inventoryBasePermissions` int(10) unsigned NOT NULL default 0,
   `inventoryEveryOnePermissions` int(10) unsigned NOT NULL default 0,
+  `salePrice` int(11) default NULL,
+  `saleType` tinyint(4) default NULL,
+  `creationDate` int(11) default NULL,
+  `groupID` varchar(63) default NULL,
+  `groupOwned` tinyint(4) default NULL,
+  `flags` int(11) unsigned default NULL,
   PRIMARY KEY  (`inventoryID`),
   KEY `owner` (`avatarID`),
   KEY `folder` (`parentFolderID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev. 2';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev. 3';

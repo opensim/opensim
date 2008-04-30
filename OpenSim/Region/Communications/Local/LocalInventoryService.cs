@@ -95,6 +95,11 @@ namespace OpenSim.Region.Communications.Local
             AddItem(item);
         }
 
+        public override void UpdateInventoryItem(LLUUID userID, InventoryItemBase item)
+        {
+            UpdateItem(item);
+        }
+
         public override void DeleteInventoryItem(LLUUID userID, InventoryItemBase item)
         {
             DeleteItem(item);

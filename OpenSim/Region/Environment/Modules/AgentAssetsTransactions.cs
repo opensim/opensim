@@ -150,6 +150,7 @@ namespace OpenSim.Region.Environment.Modules
             private string m_description = String.Empty;
             private sbyte type = 0;
             private sbyte invType = 0;
+            private byte wearableType = 0;
             private uint nextPerm = 0;
             private bool m_finished = false;
             private bool m_createItem = false;
@@ -314,6 +315,7 @@ namespace OpenSim.Region.Environment.Modules
                     m_description = description;
                     this.type = type;
                     this.invType = invType;
+                    this.wearableType = wearableType;
                     nextPerm = nextOwnerMask;
                     Asset.Name = name;
                     Asset.Description = description;
@@ -386,6 +388,7 @@ namespace OpenSim.Region.Environment.Modules
                     item.BasePermissions = 2147483647;
                     item.CurrentPermissions = 2147483647;
                     item.NextPermissions = nextPerm;
+                    item.Flags = (uint)wearableType;
 
                     userInfo.AddItem(ourClient.AgentId, item);
                     ourClient.SendInventoryItemCreateUpdate(item);

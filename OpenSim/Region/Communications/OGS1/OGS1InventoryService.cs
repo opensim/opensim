@@ -229,6 +229,21 @@ namespace OpenSim.Region.Communications.OGS1
             }                
         }
 
+        // TODO: this is a temporary workaround, the UpdateInventoryItem method need to be implemented
+        public void UpdateInventoryItem(LLUUID userID, InventoryItemBase item)
+        {
+            try
+            {
+                SynchronousRestObjectPoster.BeginPostObject<InventoryItemBase, bool>(
+                    "POST", _inventoryServerUrl + "/NewItem/", item);
+            }
+            catch (System.Net.WebException e)
+            {
+                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Add new inventory item operation failed, {0} {1}",
+                     e.Source, e.Message);
+            }
+        }
+
         /// <summary>
         /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
         /// </summary>

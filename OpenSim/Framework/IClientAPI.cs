@@ -393,9 +393,12 @@ namespace OpenSim.Framework
 
     public delegate void RequestTaskInventory(IClientAPI remoteClient, uint localID);
 
-    public delegate void UpdateInventoryItem(
+/*    public delegate void UpdateInventoryItem(
         IClientAPI remoteClient, LLUUID transactionID, LLUUID itemID, string name, string description,
-        uint nextOwnerMask);
+        uint nextOwnerMask);*/
+
+    public delegate void UpdateInventoryItem(
+        IClientAPI remoteClient, LLUUID transactionID, LLUUID itemID, InventoryItemBase itemUpd);
 
     public delegate void CopyInventoryItem(
         IClientAPI remoteClient, uint callbackID, LLUUID oldAgentID, LLUUID oldItemID, LLUUID newFolderID,

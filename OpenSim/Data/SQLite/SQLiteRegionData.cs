@@ -721,7 +721,7 @@ namespace OpenSim.Data.SQLite
             createCol(items, "everyonePermissions", typeof (UInt32));
             createCol(items, "groupPermissions", typeof (UInt32));
 
-            items.PrimaryKey = new DataColumn[] {items.Columns["itemID"]};
+            items.PrimaryKey = new DataColumn[] { items.Columns["itemID"] };
 
             return items;
         }

@@ -260,9 +260,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="name">The name of the updated item</param>
         /// <param name="description">The description of the updated item</param>
         /// <param name="nextOwnerMask">The permissions of the updated item</param>
-        public void UpdateInventoryItemAsset(IClientAPI remoteClient, LLUUID transactionID,
+/*        public void UpdateInventoryItemAsset(IClientAPI remoteClient, LLUUID transactionID,
                                              LLUUID itemID, string name, string description,
-                                             uint nextOwnerMask)
+                                             uint nextOwnerMask)*/
+        public void UpdateInventoryItemAsset(IClientAPI remoteClient, LLUUID transactionID,
+                                             LLUUID itemID, InventoryItemBase itemUpd)
         {
             CachedUserInfo userInfo
                 = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
@@ -275,9 +277,22 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (LLUUID.Zero == transactionID)
                     {
-                        item.Name = name;
-                        item.Description = description;
-                        item.NextPermissions = nextOwnerMask;
+                        item.Name = itemUpd.Name;
+                        item.Description = itemUpd.Description;
+                        item.NextPermissions = itemUpd.NextPermissions;
+                        item.EveryOnePermissions = itemUpd.EveryOnePermissions;
+
+                        // TODO: Requires sanity checks
+                        //item.GroupID = itemUpd.GroupID;
+                        //item.GroupOwned = itemUpd.GroupOwned;
+                        //item.CreationDate = itemUpd.CreationDate;
+
+                        // TODO: Check if folder changed and move item
+                        //item.NextPermissions = itemUpd.Folder;
+                        item.InvType = itemUpd.InvType;
+                        item.SalePrice = itemUpd.SalePrice;
+                        item.SaleType = itemUpd.SaleType;
+                        item.Flags = itemUpd.Flags;
 
                         userInfo.UpdateItem(remoteClient.AgentId, item);
                     }
@@ -350,6 +365,12 @@ namespace OpenSim.Region.Environment.Scenes
                         itemCopy.EveryOnePermissions = item.EveryOnePermissions;
                         itemCopy.BasePermissions = item.BasePermissions;
                         itemCopy.CurrentPermissions = item.CurrentPermissions;
+
+                        itemCopy.GroupID = item.GroupID;
+                        itemCopy.GroupOwned = item.GroupOwned;
+                        itemCopy.Flags = item.Flags;
+                        itemCopy.SalePrice = item.SalePrice;
+                        itemCopy.SaleType = item.SaleType;
 
                         recipientUserInfo.AddItem(recipientClient.AgentId, itemCopy);
                         
@@ -987,6 +1008,8 @@ namespace OpenSim.Region.Environment.Scenes
                                     item.CurrentPermissions = objectGroup.RootPart.OwnerMask;
                                     item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
                                 }
+
+                                // TODO: add the new fields (Flags, Sale info, etc)
 
                                 userInfo.AddItem(remoteClient.AgentId, item);
                                 remoteClient.SendInventoryItemCreateUpdate(item);

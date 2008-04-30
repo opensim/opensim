@@ -172,6 +172,9 @@ namespace OpenSim.Framework.Communications
         
         // See IInventoryServices
         public abstract void AddNewInventoryItem(LLUUID userID, InventoryItemBase item);
+
+        // See IInventoryServices
+        public abstract void UpdateInventoryItem(LLUUID userID, InventoryItemBase item);
         
         // See IInventoryServices
         public abstract void DeleteInventoryItem(LLUUID userID, InventoryItemBase item);        
@@ -227,6 +230,14 @@ namespace OpenSim.Framework.Communications
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
                 plugin.Value.addInventoryItem(item);
+            }
+        }
+
+        protected void UpdateItem(InventoryItemBase item)
+        {
+            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+            {
+                plugin.Value.updateInventoryItem(item);
             }
         }
 

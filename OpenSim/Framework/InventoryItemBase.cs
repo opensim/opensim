@@ -54,6 +54,10 @@ namespace OpenSim.Framework
         /// </summary>
         private LLUUID _creator;
 
+        private LLUUID _owner;
+
+        private uint _nextPermissions;
+
         /// <summary>
         /// A mask containing permissions for the current owner (cannot be enforced)
         /// </summary>
@@ -89,20 +93,44 @@ namespace OpenSim.Framework
         /// </summary>
         private string _name;
 
+        
         /// <summary>
-        /// A mask containing the permissions for the next owner (cannot be enforced)
+        /// 
         /// </summary>
-        private uint _nextPermissions;
+        private LLUUID _groupID;
 
         /// <summary>
-        /// The owner of this inventory item
+        /// 
         /// </summary>
-        private LLUUID _owner;
+        private bool _groupOwned;
 
-        public LLUUID ID
-        {
-            get { return _id; }
-            set { _id = value; }
+        /// <summary>
+        /// 
+        /// </summary>
+        private int _salePrice;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private byte _saleType;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private uint _flags;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public int _creationDate;
+
+        public LLUUID ID {
+            get {
+                return _id;
+            }
+            set {
+                _id = value;
+            }
         }
 
         public int InvType
@@ -175,6 +203,78 @@ namespace OpenSim.Framework
         {
             get { return _assetID; }
             set { _assetID = value; }
+        }
+
+        public LLUUID GroupID
+        {
+            get
+            {
+                return _groupID;
+            }
+            set
+            {
+                _groupID = value;
+            }
+        }
+
+        public bool GroupOwned
+        {
+            get
+            {
+                return _groupOwned;
+            }
+            set
+            {
+                _groupOwned = value;
+            }
+        }
+
+        public int SalePrice
+        {
+            get
+            {
+                return _salePrice;
+            }
+            set
+            {
+                _salePrice = value;
+            }
+        }
+
+        public byte SaleType
+        {
+            get
+            {
+                return _saleType;
+            }
+            set
+            {
+                _saleType = value;
+            }
+        }
+
+        public uint Flags
+        {
+            get
+            {
+                return _flags;
+            }
+            set
+            {
+                _flags = value;
+            }
+        }
+
+        public int CreationDate
+        {
+            get
+            {
+                return _creationDate;
+            }
+            set
+            {
+                _creationDate = value;
+            }
         }
     }
 }

@@ -78,6 +78,13 @@ namespace OpenSim.Framework.Communications
         void AddNewInventoryItem(LLUUID userID, InventoryItemBase item);
         
         /// <summary>
+        /// Update an item in the given user's inventory
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="item"></param>
+        void UpdateInventoryItem(LLUUID userID, InventoryItemBase item);
+        
+        /// <summary>
         /// Delete an item from the given user's inventory
         /// </summary>
         /// <param name="userID"></param>

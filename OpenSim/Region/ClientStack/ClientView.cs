@@ -1284,21 +1284,25 @@ namespace OpenSim.Region.ClientStack
                     descend.ItemData[i].AssetID = item.AssetID;
                     descend.ItemData[i].CreatorID = item.Creator;
                     descend.ItemData[i].BaseMask = item.BasePermissions;
-                    descend.ItemData[i].CreationDate = 1000;
                     descend.ItemData[i].Description = Helpers.StringToField(item.Description);
                     descend.ItemData[i].EveryoneMask = item.EveryOnePermissions;
-                    descend.ItemData[i].Flags = 1;
+                    descend.ItemData[i].OwnerMask = item.CurrentPermissions;
                     descend.ItemData[i].FolderID = item.Folder;
-                    descend.ItemData[i].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
-                    descend.ItemData[i].GroupMask = 0;
-                    descend.ItemData[i].InvType = (sbyte) item.InvType;
+                    descend.ItemData[i].InvType = (sbyte)item.InvType;
                     descend.ItemData[i].Name = Helpers.StringToField(item.Name);
                     descend.ItemData[i].NextOwnerMask = item.NextPermissions;
                     descend.ItemData[i].OwnerID = item.Owner;
-                    descend.ItemData[i].OwnerMask = item.CurrentPermissions;
-                    descend.ItemData[i].SalePrice = 0;
-                    descend.ItemData[i].SaleType = 0;
-                    descend.ItemData[i].Type = (sbyte) item.AssetType;
+                    descend.ItemData[i].Type = (sbyte)item.AssetType;
+
+                    //descend.ItemData[i].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
+                    descend.ItemData[i].GroupID = item.GroupID;
+                    descend.ItemData[i].GroupOwned = item.GroupOwned;
+                    descend.ItemData[i].GroupMask = 0;
+                    descend.ItemData[i].CreationDate = item.CreationDate;
+                    descend.ItemData[i].SalePrice = item.SalePrice;
+                    descend.ItemData[i].SaleType = item.SaleType;
+                    descend.ItemData[i].Flags = item.Flags;
+
                     descend.ItemData[i].CRC =
                         Helpers.InventoryCRC(descend.ItemData[i].CreationDate, descend.ItemData[i].SaleType,
                                              descend.ItemData[i].InvType, descend.ItemData[i].Type,
@@ -1433,18 +1437,22 @@ namespace OpenSim.Region.ClientStack
                 (int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
             inventoryReply.InventoryData[0].Description = Helpers.StringToField(item.Description);
             inventoryReply.InventoryData[0].EveryoneMask = item.EveryOnePermissions;
-            inventoryReply.InventoryData[0].Flags = 0;
             inventoryReply.InventoryData[0].FolderID = item.Folder;
-            inventoryReply.InventoryData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
-            inventoryReply.InventoryData[0].GroupMask = 0;
             inventoryReply.InventoryData[0].InvType = (sbyte)item.InvType;
             inventoryReply.InventoryData[0].Name = Helpers.StringToField(item.Name);
             inventoryReply.InventoryData[0].NextOwnerMask = item.NextPermissions;
             inventoryReply.InventoryData[0].OwnerID = item.Owner;
             inventoryReply.InventoryData[0].OwnerMask = item.CurrentPermissions;
-            inventoryReply.InventoryData[0].SalePrice = 0;
-            inventoryReply.InventoryData[0].SaleType = 0;
             inventoryReply.InventoryData[0].Type = (sbyte)item.AssetType;
+
+            //inventoryReply.InventoryData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
+            inventoryReply.InventoryData[0].GroupID = item.GroupID;
+            inventoryReply.InventoryData[0].GroupOwned = item.GroupOwned;
+            inventoryReply.InventoryData[0].GroupMask = 0;
+            inventoryReply.InventoryData[0].Flags = item.Flags;
+            inventoryReply.InventoryData[0].SalePrice = item.SalePrice;
+            inventoryReply.InventoryData[0].SaleType = item.SaleType;
+
             inventoryReply.InventoryData[0].CRC =
                 Helpers.InventoryCRC(1000, 0, inventoryReply.InventoryData[0].InvType,
                                      inventoryReply.InventoryData[0].Type, inventoryReply.InventoryData[0].AssetID,
@@ -1484,18 +1492,22 @@ namespace OpenSim.Region.ClientStack
             bulkUpdate.ItemData[0].CreationDate = 1000;
             bulkUpdate.ItemData[0].Description = Helpers.StringToField(item.Description);
             bulkUpdate.ItemData[0].EveryoneMask = item.EveryOnePermissions;
-            bulkUpdate.ItemData[0].Flags = 0;
             bulkUpdate.ItemData[0].FolderID = item.Folder;
-            bulkUpdate.ItemData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
-            bulkUpdate.ItemData[0].GroupMask = 0;
             bulkUpdate.ItemData[0].InvType = (sbyte)item.InvType;
             bulkUpdate.ItemData[0].Name = Helpers.StringToField(item.Name);
             bulkUpdate.ItemData[0].NextOwnerMask = item.NextPermissions;
             bulkUpdate.ItemData[0].OwnerID = item.Owner;
             bulkUpdate.ItemData[0].OwnerMask = item.CurrentPermissions;
-            bulkUpdate.ItemData[0].SalePrice = 100;
-            bulkUpdate.ItemData[0].SaleType = 0;
             bulkUpdate.ItemData[0].Type = (sbyte)item.AssetType;
+
+            //bulkUpdate.ItemData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
+            bulkUpdate.ItemData[0].GroupID = item.GroupID;
+            bulkUpdate.ItemData[0].GroupOwned = item.GroupOwned;
+            bulkUpdate.ItemData[0].GroupMask = 0;
+            bulkUpdate.ItemData[0].Flags = item.Flags;
+            bulkUpdate.ItemData[0].SalePrice = item.SalePrice;
+            bulkUpdate.ItemData[0].SaleType = item.SaleType;
+
             bulkUpdate.ItemData[0].CRC =
                 Helpers.InventoryCRC(1000, 0, bulkUpdate.ItemData[0].InvType,
                                      bulkUpdate.ItemData[0].Type, bulkUpdate.ItemData[0].AssetID,
@@ -1526,21 +1538,24 @@ namespace OpenSim.Region.ClientStack
             InventoryReply.InventoryData[0].AssetID = Item.AssetID;
             InventoryReply.InventoryData[0].CreatorID = Item.Creator;
             InventoryReply.InventoryData[0].BaseMask = Item.BasePermissions;
-            InventoryReply.InventoryData[0].CreationDate = 1000;
             InventoryReply.InventoryData[0].Description = Helpers.StringToField(Item.Description);
             InventoryReply.InventoryData[0].EveryoneMask = Item.EveryOnePermissions;
-            InventoryReply.InventoryData[0].Flags = 0;
             InventoryReply.InventoryData[0].FolderID = Item.Folder;
-            InventoryReply.InventoryData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
-            InventoryReply.InventoryData[0].GroupMask = 0;
             InventoryReply.InventoryData[0].InvType = (sbyte)Item.InvType;
             InventoryReply.InventoryData[0].Name = Helpers.StringToField(Item.Name);
             InventoryReply.InventoryData[0].NextOwnerMask = Item.NextPermissions;
             InventoryReply.InventoryData[0].OwnerID = Item.Owner;
             InventoryReply.InventoryData[0].OwnerMask = Item.CurrentPermissions;
-            InventoryReply.InventoryData[0].SalePrice = 100;
-            InventoryReply.InventoryData[0].SaleType = 0;
             InventoryReply.InventoryData[0].Type = (sbyte)Item.AssetType;
+
+            //InventoryReply.InventoryData[0].GroupID = new LLUUID("00000000-0000-0000-0000-000000000000");
+            InventoryReply.InventoryData[0].GroupID = Item.GroupID;
+            InventoryReply.InventoryData[0].GroupOwned = Item.GroupOwned;
+            InventoryReply.InventoryData[0].GroupMask = 0;
+            InventoryReply.InventoryData[0].Flags = Item.Flags;
+            InventoryReply.InventoryData[0].SalePrice = Item.SalePrice;
+            InventoryReply.InventoryData[0].SaleType = Item.SaleType;
+
             InventoryReply.InventoryData[0].CRC =
                 Helpers.InventoryCRC(1000, 0, InventoryReply.InventoryData[0].InvType,
                                      InventoryReply.InventoryData[0].Type, InventoryReply.InventoryData[0].AssetID,
@@ -4162,11 +4177,30 @@ namespace OpenSim.Region.ClientStack
 
                                 if (handlerUpdateInventoryItem != null)
                                 {
+                                    InventoryItemBase itemUpd = new InventoryItemBase();
+                                    itemUpd.ID = update.InventoryData[i].ItemID;
+                                    itemUpd.Name = Util.FieldToString(update.InventoryData[i].Name);
+                                    itemUpd.Description = Util.FieldToString(update.InventoryData[i].Description);
+                                    itemUpd.GroupID = update.InventoryData[i].GroupID;
+                                    itemUpd.GroupOwned = update.InventoryData[i].GroupOwned;
+                                    itemUpd.NextPermissions = update.InventoryData[i].NextOwnerMask;
+                                    itemUpd.EveryOnePermissions = update.InventoryData[i].EveryoneMask;
+                                    itemUpd.CreationDate = update.InventoryData[i].CreationDate;
+                                    itemUpd.Folder = update.InventoryData[i].FolderID;
+                                    itemUpd.InvType = update.InventoryData[i].InvType;
+                                    itemUpd.SalePrice = update.InventoryData[i].SalePrice;
+                                    itemUpd.SaleType = update.InventoryData[i].SaleType;
+                                    itemUpd.Flags = update.InventoryData[i].Flags;
+                                    /*
                                     OnUpdateInventoryItem(this, update.InventoryData[i].TransactionID,
                                                           update.InventoryData[i].ItemID,
                                                           Util.FieldToString(update.InventoryData[i].Name),
                                                           Util.FieldToString(update.InventoryData[i].Description),
                                                           update.InventoryData[i].NextOwnerMask);
+                                    */
+                                    OnUpdateInventoryItem(this, update.InventoryData[i].TransactionID,
+                                                          update.InventoryData[i].ItemID,
+                                                          itemUpd);
                                 }
                             }
                         }

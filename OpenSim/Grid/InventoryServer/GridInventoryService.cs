@@ -209,6 +209,11 @@ namespace OpenSim.Grid.InventoryServer
             AddItem(item);
         }
 
+        public override void UpdateInventoryItem(LLUUID userID, InventoryItemBase item)
+        {
+            UpdateItem(item);
+        }
+
         public bool AddInventoryFolder(InventoryFolderBase folder)
         {
             // Right now, this actions act more like an update/insert combination than a simple create.
