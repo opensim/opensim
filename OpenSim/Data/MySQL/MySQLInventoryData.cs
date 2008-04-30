@@ -333,8 +333,6 @@ namespace OpenSim.Data.MySQL
                 item.Creator = new LLUUID((string) reader["creatorID"]);
                 item.BasePermissions = (uint) reader["inventoryBasePermissions"];
                 item.EveryOnePermissions = (uint) reader["inventoryEveryOnePermissions"];
- 
-				// new fields
 				item.SalePrice = (int) reader["salePrice"];
 				item.SaleType = Convert.ToByte(reader["saleType"]);
 				item.CreationDate = (int) reader["creationDate"];
@@ -452,9 +450,15 @@ namespace OpenSim.Data.MySQL
         public void addInventoryItem(InventoryItemBase item)
         {
             string sql =
-                "REPLACE INTO inventoryitems (inventoryID, assetID, assetType, parentFolderID, avatarID, inventoryName, inventoryDescription, inventoryNextPermissions, inventoryCurrentPermissions, invType, creatorID, inventoryBasePermissions, inventoryEveryOnePermissions, salePrice, saleType, creationDate, groupID, groupOwned, flags) VALUES ";
+                "REPLACE INTO inventoryitems (inventoryID, assetID, assetType, parentFolderID, avatarID, inventoryName"
+                    + ", inventoryDescription, inventoryNextPermissions, inventoryCurrentPermissions, invType"
+                    + ", creatorID, inventoryBasePermissions, inventoryEveryOnePermissions, salePrice, saleType"
+                    + ", creationDate, groupID, groupOwned, flags) VALUES ";
             sql +=
-                "(?inventoryID, ?assetID, ?assetType, ?parentFolderID, ?avatarID, ?inventoryName, ?inventoryDescription, ?inventoryNextPermissions, ?inventoryCurrentPermissions, ?invType, ?creatorID, ?inventoryBasePermissions, ?inventoryEveryOnePermissions, ?salePrice, ?saleType, ?creationDate, ?groupID, ?groupOwned, ?flags)";
+                "(?inventoryID, ?assetID, ?assetType, ?parentFolderID, ?avatarID, ?inventoryName, ?inventoryDescription"
+                    + ", ?inventoryNextPermissions, ?inventoryCurrentPermissions, ?invType, ?creatorID"
+                    + ", ?inventoryBasePermissions, ?inventoryEveryOnePermissions, ?salePrice, ?saleType, ?creationDate"
+                    + ", ?groupID, ?groupOwned, ?flags)";
 
             try
             {

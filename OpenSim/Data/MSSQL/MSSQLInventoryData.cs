@@ -321,6 +321,13 @@ namespace OpenSim.Data.MSSQL
                 item.Creator = new LLUUID((string) reader["creatorID"]);
                 item.BasePermissions = Convert.ToUInt32(reader["inventoryBasePermissions"]);
                 item.EveryOnePermissions = Convert.ToUInt32(reader["inventoryEveryOnePermissions"]);
+ 				item.SalePrice = (int) reader["salePrice"];
+				item.SaleType = Convert.ToByte(reader["saleType"]);
+				item.CreationDate = (int) reader["creationDate"];
+				item.GroupID = new LLUUID(reader["groupID"].ToString());
+				item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
+				item.Flags = (uint) reader["flags"];
+                
                 return item;
             }
             catch (SqlException e)
@@ -440,10 +447,16 @@ namespace OpenSim.Data.MSSQL
 
             string sql = "INSERT INTO inventoryitems";
             sql +=
-                "([inventoryID], [assetID], [assetType], [parentFolderID], [avatarID], [inventoryName], [inventoryDescription], [inventoryNextPermissions], [inventoryCurrentPermissions], [invType], [creatorID], [inventoryBasePermissions], [inventoryEveryOnePermissions]) VALUES ";
+                "([inventoryID], [assetID], [assetType], [parentFolderID], [avatarID], [inventoryName]"
+                    + ", [inventoryDescription], [inventoryNextPermissions], [inventoryCurrentPermissions]"
+                    + ", [invType], [creatorID], [inventoryBasePermissions], [inventoryEveryOnePermissions]"
+                    + ", [salePrice], [saleType], [creationDate], [groupID], [groupOwned], [flags]) VALUES ";
             sql +=
-                "(@inventoryID, @assetID, @assetType, @parentFolderID, @avatarID, @inventoryName, @inventoryDescription, @inventoryNextPermissions, @inventoryCurrentPermissions, @invType, @creatorID, @inventoryBasePermissions, @inventoryEveryOnePermissions);";
-
+                "(@inventoryID, @assetID, @assetType, @parentFolderID, @avatarID, @inventoryName, @inventoryDescription"
+                    + ", @inventoryNextPermissions, @inventoryCurrentPermissions, @invType, @creatorID"
+                    + ", @inventoryBasePermissions, @inventoryEveryOnePermissions, @salePrice, @saleType"
+                    + ", @creationDate, @groupID, @groupOwned, @flags);";
+            
             try
             {
                 Dictionary<string, string> param = new Dictionary<string, string>();
@@ -460,6 +473,13 @@ namespace OpenSim.Data.MSSQL
                 param["creatorID"] = item.Creator.ToString();
                 param["inventoryBasePermissions"] = Convert.ToString(item.BasePermissions);
                 param["inventoryEveryOnePermissions"] = Convert.ToString(item.EveryOnePermissions);
+                
+                param["salePrice"] = Convert.ToString(item.SalePrice);
+                param["saleType"] = Convert.ToString(item.SaleType);
+                param["creationDate"] = Convert.ToString(item.CreationDate);
+                param["groupID"] = item.GroupID.ToString();
+                param["groupOwned"] = Convert.ToString(item.GroupOwned);
+                param["flags"] = Convert.ToString(item.Flags);
 
                 IDbCommand result = database.Query(sql, param);
                 result.ExecuteNonQuery();
