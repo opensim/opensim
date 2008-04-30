@@ -55,7 +55,7 @@ namespace OpenSim.Data.SQLite
             if (dbconnect == string.Empty) {
                 dbconnect = "URI=file:inventoryStore.db,version=3";
             }
-            m_log.Info("[Inventory]: Sqlite - connecting: " + dbconnect);
+            m_log.Info("[INVENTORY DB]: Sqlite - connecting: " + dbconnect);
             SqliteConnection conn = new SqliteConnection(dbconnect);
 
             conn.Open();
@@ -74,12 +74,12 @@ namespace OpenSim.Data.SQLite
             ds.Tables.Add(createInventoryFoldersTable());
             invFoldersDa.Fill(ds.Tables["inventoryfolders"]);
             setupFoldersCommands(invFoldersDa, conn);
-            m_log.Info("[DATASTORE]: Populated Inventory Folders Definitions");
+            m_log.Info("[INVENTORY DB]: Populated Inventory Folders Definitions");
 
             ds.Tables.Add(createInventoryItemsTable());
             invItemsDa.Fill(ds.Tables["inventoryitems"]);
             setupItemsCommands(invItemsDa, conn);
-            m_log.Info("[DATASTORE]: Populated Inventory Items Definitions");
+            m_log.Info("[INVENTORY DB]: Populated Inventory Items Definitions");
 
             ds.AcceptChanges();
         }
@@ -674,7 +674,7 @@ namespace OpenSim.Data.SQLite
             }
             catch (SqliteSyntaxException)
             {
-                m_log.Info("[DATASTORE]: SQLite Database doesn't exist... creating");
+                m_log.Info("[INVENTORY DB]: SQLite Database doesn't exist... creating");
                 InitDB(conn);
             }
 
@@ -693,7 +693,7 @@ namespace OpenSim.Data.SQLite
             }
             catch (SqliteSyntaxException)
             {
-                m_log.Info("[DATASTORE]: Upgrading sqlite inventory database to version 2");
+                m_log.Info("[INVENTORY DB]: Upgrading sqlite inventory database to version 2");
                 
                 cmd = new SqliteCommand("alter table inventoryitems add column salePrice integer default 99;", conn);
                 cmd.ExecuteNonQuery();
@@ -719,7 +719,7 @@ namespace OpenSim.Data.SQLite
             {
                 if (! tmpDS.Tables["inventoryitems"].Columns.Contains(col.ColumnName))
                 {
-                    m_log.Info("[DATASTORE]: Missing required column:" + col.ColumnName);
+                    m_log.Info("[INVENTORY DB]: Missing required column:" + col.ColumnName);
                     return false;
                 }
             }
@@ -727,7 +727,7 @@ namespace OpenSim.Data.SQLite
             {
                 if (! tmpDS.Tables["inventoryfolders"].Columns.Contains(col.ColumnName))
                 {
-                    m_log.Info("[DATASTORE]: Missing required column:" + col.ColumnName);
+                    m_log.Info("[INVENTORY DB]: Missing required column:" + col.ColumnName);
                     return false;
                 }
             }
