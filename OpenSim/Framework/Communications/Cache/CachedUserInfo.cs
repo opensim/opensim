@@ -229,7 +229,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 else
                 {
-                    InventoryFolderImpl folder = RootFolder.HasSubFolder(folderInfo.ParentID);
+                    InventoryFolderImpl folder = RootFolder.GetDescendentFolder(folderInfo.ParentID);
                     lock (folder.SubFolders)
                     {
                         if (folder != null)
@@ -283,7 +283,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 else
                 {
-                    InventoryFolderImpl folder = RootFolder.HasSubFolder(itemInfo.Folder);
+                    InventoryFolderImpl folder = RootFolder.GetDescendentFolder(itemInfo.Folder);
                     if (folder != null)
                     {
                         lock (folder.Items)

@@ -168,10 +168,10 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Does this folder contain the given subfolder?
+        /// Returns the folder requested if it exists as a descendent of this folder
         /// </summary>
-        /// <returns></returns>
-        public InventoryFolderImpl HasSubFolder(LLUUID folderID)
+        /// <returns>The requested folder if it exists, null if it does not.</returns>
+        public InventoryFolderImpl GetDescendentFolder(LLUUID folderID)
         {            
             InventoryFolderImpl returnFolder = null;
             
@@ -185,7 +185,7 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     foreach (InventoryFolderImpl folder in SubFolders.Values)
                     {
-                        returnFolder = folder.HasSubFolder(folderID);
+                        returnFolder = folder.GetDescendentFolder(folderID);
                         if (returnFolder != null)
                         {
                             break;

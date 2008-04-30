@@ -193,7 +193,7 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                     else
                     {
-                        InventoryFolderImpl folder = userProfile.RootFolder.HasSubFolder(parentID);
+                        InventoryFolderImpl folder = userProfile.RootFolder.GetDescendentFolder(parentID);
                         if (folder != null)
                         {
                             InventoryFolderImpl createdFolder = folder.CreateNewSubFolder(folderID, folderName, folderType);
@@ -336,7 +336,7 @@ namespace OpenSim.Framework.Communications.Cache
                 return;
             }
 
-            if ((fold = libraryRoot.HasSubFolder(folderID)) != null)
+            if ((fold = libraryRoot.GetDescendentFolder(folderID)) != null)
             {
                 remoteClient.SendInventoryFolderDetails(
                     libraryRoot.Owner, folderID, fold.RequestListOfItems(),
@@ -385,7 +385,7 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                     else
                     {
-                        if ((fold = userProfile.RootFolder.HasSubFolder(folderID)) != null)
+                        if ((fold = userProfile.RootFolder.GetDescendentFolder(folderID)) != null)
                         {
 //                            m_log.DebugFormat(
 //                                "[AGENT INVENTORY]: Found folder {0} for client {1}", 
@@ -446,7 +446,7 @@ namespace OpenSim.Framework.Communications.Cache
                 return libraryRoot.RequestListOfItems();
             }
 
-            if ((fold = libraryRoot.HasSubFolder(folderID)) != null)
+            if ((fold = libraryRoot.GetDescendentFolder(folderID)) != null)
             {
                 return fold.RequestListOfItems();
             }         
@@ -487,7 +487,7 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                     else
                     {
-                        if ((fold = userProfile.RootFolder.HasSubFolder(folderID)) != null)
+                        if ((fold = userProfile.RootFolder.GetDescendentFolder(folderID)) != null)
                         {
                             return fold.RequestListOfItems();
                         }
@@ -533,7 +533,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 if (userProfile.HasInventory)
                 {
-                    InventoryFolderImpl purgedFolder = userProfile.RootFolder.HasSubFolder(folderID);
+                    InventoryFolderImpl purgedFolder = userProfile.RootFolder.GetDescendentFolder(folderID);
                     if (purgedFolder != null)
                     {                        
                         // XXX Nasty - have to create a new object to hold details we already have
