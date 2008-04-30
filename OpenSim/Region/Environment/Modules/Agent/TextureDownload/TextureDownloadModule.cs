@@ -40,14 +40,11 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
     {
         //private static readonly log4net.ILog m_log 
         //    = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        
-        private Scene m_scene;
-        private List<Scene> m_scenes = new List<Scene>();
 
         /// <summary>
         /// There is one queue for all textures waiting to be sent, regardless of the requesting user.
         /// </summary>
-        private readonly BlockingQueue<ITextureSender> m_queueSenders 
+        private readonly BlockingQueue<ITextureSender> m_queueSenders
             = new BlockingQueue<ITextureSender>();
 
         /// <summary>
@@ -56,11 +53,16 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         private readonly Dictionary<LLUUID, UserTextureDownloadService> m_userTextureServices =
             new Dictionary<LLUUID, UserTextureDownloadService>();
 
+        private Scene m_scene;
+        private List<Scene> m_scenes = new List<Scene>();
+
         private Thread m_thread;
 
         public TextureDownloadModule()
         {
         }
+
+        #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
         {
@@ -83,6 +85,26 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
             }
         }
 
+        public void PostInitialise()
+        {
+        }
+
+        public void Close()
+        {
+        }
+
+        public string Name
+        {
+            get { return "TextureDownloadModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return false; }
+        }
+
+        #endregion
+
         /// <summary>
         /// Cleanup the texture service related objects for the removed presence.
         /// </summary>
@@ -100,24 +122,6 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
                     m_userTextureServices.Remove(agentId);
                 }
             }
-        }
-
-        public void PostInitialise()
-        {
-        }
-
-        public void Close()
-        {
-        }
-
-        public string Name
-        {
-            get { return "TextureDownloadModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
         }
 
         public void NewClient(IClientAPI client)
@@ -143,7 +147,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
 
                 textureService = new UserTextureDownloadService(client, m_scene, m_queueSenders);
                 m_userTextureServices.Add(client.AgentId, textureService);
-                
+
                 return true;
             }
         }
@@ -157,11 +161,11 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         {
             IClientAPI client = (IClientAPI) sender;
             UserTextureDownloadService textureService;
-            
+
             if (TryGetUserTextureService(client, out textureService))
             {
                 textureService.HandleTextureRequest(e);
-            }            
+            }
         }
 
         /// <summary>
@@ -170,11 +174,11 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         public void ProcessTextureSenders()
         {
             ITextureSender sender = null;
-            
+
             while (true)
             {
                 sender = m_queueSenders.Dequeue();
-                
+
                 if (sender.Cancel)
                 {
                     TextureSent(sender);
@@ -193,10 +197,10 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
                         m_queueSenders.Enqueue(sender);
                     }
                 }
-                
+
                 // Make sure that any sender we currently have can get garbage collected
                 sender = null;
-                
+
                 //m_log.InfoFormat("[TEXTURE DOWNLOAD] Texture sender queue size: {0}", m_queueSenders.Count());
             }
         }
@@ -207,9 +211,9 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         /// <param name="sender"></param>
         private void TextureSent(ITextureSender sender)
         {
-            sender.Sending = false;    
+            sender.Sending = false;
             //m_log.DebugFormat("[TEXTURE DOWNLOAD]: Removing download stat for {0}", sender.assetID);            
-            m_scene.AddPendingDownloads(-1);            
+            m_scene.AddPendingDownloads(-1);
         }
     }
 }

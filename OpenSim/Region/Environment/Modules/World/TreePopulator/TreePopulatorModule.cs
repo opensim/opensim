@@ -44,13 +44,14 @@ namespace OpenSim.Region.Environment.Modules
     /// </summary>
     public class TreePopulatorModule : IRegionModule
     {
-        private Scene m_scene;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        private List<LLUUID> m_trees;
+        private Scene m_scene;
 
         public double m_tree_density = 50.0; // Aim for this many per region
         public double m_tree_updates = 1000.0; // MS between updates
+        private List<LLUUID> m_trees;
+
+        #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
         {
@@ -59,7 +60,8 @@ namespace OpenSim.Region.Environment.Modules
                 m_tree_density = config.Configs["Trees"].GetDouble("tree_density", m_tree_density);
             }
             catch (Exception)
-            { }
+            {
+            }
 
             m_trees = new List<LLUUID>();
             m_scene = scene;
@@ -72,7 +74,27 @@ namespace OpenSim.Region.Environment.Modules
             m_log.Debug("[TREES]: Initialised tree module");
         }
 
-        void EventManager_OnPluginConsole(string[] args)
+        public void PostInitialise()
+        {
+        }
+
+        public void Close()
+        {
+        }
+
+        public string Name
+        {
+            get { return "TreePopulatorModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return false; }
+        }
+
+        #endregion
+
+        private void EventManager_OnPluginConsole(string[] args)
         {
             if (args[0] == "tree")
             {
@@ -81,13 +103,13 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
-        void growTrees()
+        private void growTrees()
         {
             foreach (LLUUID tree in m_trees)
             {
                 if (m_scene.Entities.ContainsKey(tree))
                 {
-                    SceneObjectPart s_tree = ((SceneObjectGroup)m_scene.Entities[tree]).RootPart;
+                    SceneObjectPart s_tree = ((SceneObjectGroup) m_scene.Entities[tree]).RootPart;
 
                     // 100 seconds to grow 1m
                     s_tree.Scale += new LLVector3(0.1f, 0.1f, 0.1f);
@@ -101,13 +123,13 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
-        void seedTrees()
+        private void seedTrees()
         {
             foreach (LLUUID tree in m_trees)
             {
                 if (m_scene.Entities.ContainsKey(tree))
                 {
-                    SceneObjectPart s_tree = ((SceneObjectGroup)m_scene.Entities[tree]).RootPart;
+                    SceneObjectPart s_tree = ((SceneObjectGroup) m_scene.Entities[tree]).RootPart;
 
                     if (s_tree.Scale.X > 0.5)
                     {
@@ -116,7 +138,6 @@ namespace OpenSim.Region.Environment.Modules
                             SpawnChild(s_tree);
                         }
                     }
-                    
                 }
                 else
                 {
@@ -125,7 +146,7 @@ namespace OpenSim.Region.Environment.Modules
             }
         }
 
-        void killTrees()
+        private void killTrees()
         {
             foreach (LLUUID tree in m_trees)
             {
@@ -133,7 +154,7 @@ namespace OpenSim.Region.Environment.Modules
 
                 if (m_scene.Entities.ContainsKey(tree))
                 {
-                    SceneObjectPart selectedTree = ((SceneObjectGroup)m_scene.Entities[tree]).RootPart;
+                    SceneObjectPart selectedTree = ((SceneObjectGroup) m_scene.Entities[tree]).RootPart;
                     double selectedTreeScale = Math.Sqrt(Math.Pow(selectedTree.Scale.X, 2) +
                                                          Math.Pow(selectedTree.Scale.Y, 2) +
                                                          Math.Pow(selectedTree.Scale.Z, 2));
@@ -142,7 +163,7 @@ namespace OpenSim.Region.Environment.Modules
                     {
                         if (picktree != tree)
                         {
-                            SceneObjectPart pickedTree = ((SceneObjectGroup)m_scene.Entities[picktree]).RootPart;
+                            SceneObjectPart pickedTree = ((SceneObjectGroup) m_scene.Entities[picktree]).RootPart;
 
                             double pickedTreeScale = Math.Sqrt(Math.Pow(pickedTree.Scale.X, 2) +
                                                                Math.Pow(pickedTree.Scale.Y, 2) +
@@ -162,10 +183,10 @@ namespace OpenSim.Region.Environment.Modules
                         m_trees.Remove(selectedTree.ParentGroup.UUID);
 
                         m_scene.ForEachClient(delegate(IClientAPI controller)
-                                {
-                                    controller.SendKillObject(m_scene.RegionInfo.RegionHandle,
-                                        selectedTree.LocalId);
-                                });
+                                                  {
+                                                      controller.SendKillObject(m_scene.RegionInfo.RegionHandle,
+                                                                                selectedTree.LocalId);
+                                                  });
 
                         break;
                     }
@@ -199,15 +220,15 @@ namespace OpenSim.Region.Environment.Modules
             double randX = ((Util.RandomClass.NextDouble() * 2.0) - 1.0) * (s_tree.Scale.X * 3);
             double randY = ((Util.RandomClass.NextDouble() * 2.0) - 1.0) * (s_tree.Scale.X * 3);
 
-            position.X += (float)randX;
-            position.Y += (float)randY;
+            position.X += (float) randX;
+            position.Y += (float) randY;
 
             CreateTree(position);
         }
 
         private void CreateTree(LLVector3 position)
         {
-            position.Z = (float)m_scene.Heightmap[(int)position.X, (int)position.Y];
+            position.Z = (float) m_scene.Heightmap[(int) position.X, (int) position.Y];
 
             SceneObjectGroup tree =
                 m_scene.AddTree(new LLVector3(0.1f, 0.1f, 0.1f),
@@ -220,29 +241,11 @@ namespace OpenSim.Region.Environment.Modules
             tree.SendGroupFullUpdate();
         }
 
-        void CalculateTrees_Elapsed(object sender, ElapsedEventArgs e)
+        private void CalculateTrees_Elapsed(object sender, ElapsedEventArgs e)
         {
             growTrees();
             seedTrees();
             killTrees();
-        }
-
-        public void PostInitialise()
-        {
-        }
-
-        public void Close()
-        {
-        }
-
-        public string Name
-        {
-            get { return "TreePopulatorModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return false; }
         }
     }
 }

@@ -33,7 +33,6 @@ using log4net;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Modules.Agent.AssetTransaction;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
@@ -41,8 +40,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
     public class AssetTransactionModule : IRegionModule, IAgentAssetTransactions
     {
         private readonly Dictionary<LLUUID, Scene> RegisteredScenes = new Dictionary<LLUUID, Scene>();
-        private Scene m_scene = null;
         private bool m_dumpAssetsToFile = false;
+        private Scene m_scene = null;
 
         private AgentAssetTransactionsManager m_transactionManager;
 
@@ -50,6 +49,31 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         {
             // System.Console.WriteLine("creating AgentAssetTransactionModule");
         }
+
+        #region IAgentAssetTransactions Members
+
+        public void HandleItemCreationFromTransaction(IClientAPI remoteClient, LLUUID transactionID, LLUUID folderID,
+                                                      uint callbackID, string description, string name, sbyte invType,
+                                                      sbyte type, byte wearableType, uint nextOwnerMask)
+        {
+            m_transactionManager.HandleItemCreationFromTransaction(remoteClient, transactionID, folderID, callbackID, description, name, invType, type,
+                                                                   wearableType, nextOwnerMask);
+        }
+
+        public void HandleItemUpdateFromTransaction(IClientAPI remoteClient, LLUUID transactionID,
+                                                    InventoryItemBase item)
+        {
+            m_transactionManager.HandleItemUpdateFromTransaction(remoteClient, transactionID, item);
+        }
+
+        public void RemoveAgentAssetTransactions(LLUUID userID)
+        {
+            m_transactionManager.RemoveAgentAssetTransactions(userID);
+        }
+
+        #endregion
+
+        #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
         {
@@ -81,13 +105,11 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                 {
                     m_transactionManager = new AgentAssetTransactionsManager(m_scene, false);
                 }
-               
             }
         }
 
         public void PostInitialise()
         {
-
         }
 
         public void Close()
@@ -104,28 +126,12 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
             get { return true; }
         }
 
+        #endregion
+
         public void NewClient(IClientAPI client)
         {
             client.OnAssetUploadRequest += m_transactionManager.HandleUDPUploadRequest;
             client.OnXferReceive += m_transactionManager.HandleXfer;
-        }
-
-        public void HandleItemCreationFromTransaction(IClientAPI remoteClient, LLUUID transactionID, LLUUID folderID,
-                                                      uint callbackID, string description, string name, sbyte invType,
-                                                      sbyte type, byte wearableType, uint nextOwnerMask)
-        {
-            m_transactionManager.HandleItemCreationFromTransaction(remoteClient, transactionID, folderID, callbackID, description, name, invType, type, wearableType, nextOwnerMask);
-        }
-
-        public void HandleItemUpdateFromTransaction(IClientAPI remoteClient, LLUUID transactionID,
-                                                    InventoryItemBase item)
-        {
-            m_transactionManager.HandleItemUpdateFromTransaction(remoteClient, transactionID, item);
-        }
-
-        public void RemoveAgentAssetTransactions(LLUUID userID)
-        {
-            m_transactionManager.RemoveAgentAssetTransactions(userID);
         }
     }
 
@@ -135,7 +141,6 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // Fields
-        public Scene MyScene;
 
         /// <summary>
         /// Each agent has its own singleton collection of transactions
@@ -147,6 +152,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         /// Should we dump uploaded assets to the filesystem?
         /// </summary>
         private bool m_dumpAssetsToFile;
+
+        public Scene MyScene;
 
         public AgentAssetTransactionsManager(Scene scene, bool dumpAssetsToFile)
         {
@@ -260,10 +267,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
             AgentAssetTransactions.AssetXferUploader uploader = transactions.RequestXferUploader(transaction);
             if (uploader != null)
             {
-
                 if (uploader.Initialise(remoteClient, assetID, transaction, type, data, storeLocal, tempFile))
                 {
-
                 }
             }
         }

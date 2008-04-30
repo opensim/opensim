@@ -79,20 +79,21 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private object XMLRPCListLock = new object();
         private string m_name = "XMLRPCModule";
-        private int RemoteReplyScriptWait = 300;
-        private int RemoteReplyScriptTimeout = 9000;
-        private int m_remoteDataPort = 0;
-        private List<Scene> m_scenes = new List<Scene>();
 
         // <channel id, RPCChannelInfo>
         private Dictionary<LLUUID, RPCChannelInfo> m_openChannels;
+        private Dictionary<LLUUID, SendRemoteDataRequest> m_pendingSRDResponses;
+        private int m_remoteDataPort = 0;
 
         private Dictionary<LLUUID, RPCRequestInfo> m_rpcPending;
         private Dictionary<LLUUID, RPCRequestInfo> m_rpcPendingResponses;
+        private List<Scene> m_scenes = new List<Scene>();
+        private int RemoteReplyScriptTimeout = 9000;
+        private int RemoteReplyScriptWait = 300;
+        private object XMLRPCListLock = new object();
 
-        private Dictionary<LLUUID, SendRemoteDataRequest> m_pendingSRDResponses;
+        #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
         {
@@ -125,7 +126,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
                 // Attach xmlrpc handlers
                 m_log.Info("[REMOTE_DATA]: " +
                            "Starting XMLRPC Server on port " + m_remoteDataPort + " for llRemoteData commands.");
-                BaseHttpServer httpServer = new BaseHttpServer((uint)m_remoteDataPort);
+                BaseHttpServer httpServer = new BaseHttpServer((uint) m_remoteDataPort);
                 httpServer.AddXmlRPCHandler("llRemoteData", XmlRpcRemoteData);
                 httpServer.Start();
             }
@@ -144,6 +145,10 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
         {
             get { return true; }
         }
+
+        #endregion
+
+        #region IXMLRPC Members
 
         public bool IsEnabled()
         {
@@ -196,7 +201,6 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
         // for when a script is deleted
         public void DeleteChannels(LLUUID itemID)
         {
-
             if (m_openChannels != null)
             {
                 ArrayList tmp = new ArrayList();
@@ -212,12 +216,10 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
                     }
 
                     IEnumerator tmpEnumerator = tmp.GetEnumerator();
-                    while ( tmpEnumerator.MoveNext() )
-                        m_openChannels.Remove((LLUUID)tmpEnumerator.Current);
+                    while (tmpEnumerator.MoveNext())
+                        m_openChannels.Remove((LLUUID) tmpEnumerator.Current);
                 }
-
             }
-
         }
 
         /**********************************************
@@ -255,67 +257,6 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
         }
 
 
-        public XmlRpcResponse XmlRpcRemoteData(XmlRpcRequest request)
-        {
-            XmlRpcResponse response = new XmlRpcResponse();
-
-            Hashtable requestData = (Hashtable)request.Params[0];
-            bool GoodXML = (requestData.Contains("Channel") && requestData.Contains("IntValue") &&
-                            requestData.Contains("StringValue"));
-
-            if (GoodXML)
-            {
-                LLUUID channel = new LLUUID((string)requestData["Channel"]);
-                RPCChannelInfo rpcChanInfo;
-                if (m_openChannels.TryGetValue(channel, out rpcChanInfo))
-                {
-                    string intVal = (string)requestData["IntValue"];
-                    string strVal = (string)requestData["StringValue"];
-
-                    RPCRequestInfo rpcInfo;
-
-                    lock (XMLRPCListLock)
-                    {
-                        rpcInfo =
-                            new RPCRequestInfo(rpcChanInfo.GetLocalID(), rpcChanInfo.GetItemID(), channel, strVal,
-                                               intVal);
-                        m_rpcPending.Add(rpcInfo.GetMessageID(), rpcInfo);
-                    }
-
-                    int timeoutCtr = 0;
-
-                    while (!rpcInfo.IsProcessed() && (timeoutCtr < RemoteReplyScriptTimeout))
-                    {
-                        Thread.Sleep(RemoteReplyScriptWait);
-                        timeoutCtr += RemoteReplyScriptWait;
-                    }
-                    if (rpcInfo.IsProcessed())
-                    {
-                        Hashtable param = new Hashtable();
-                        param["StringValue"] = rpcInfo.GetStrRetval();
-                        param["IntValue"] = Convert.ToString(rpcInfo.GetIntRetval());
-
-                        ArrayList parameters = new ArrayList();
-                        parameters.Add(param);
-
-                        response.Value = parameters;
-                        rpcInfo = null;
-                    }
-                    else
-                    {
-                        response.SetFault(-1, "Script timeout");
-                        rpcInfo = null;
-                    }
-                }
-                else
-                {
-                    response.SetFault(-1, "Invalid channel");
-                }
-            }
-
-            return response;
-        }
-
         public bool hasRequests()
         {
             lock (XMLRPCListLock)
@@ -339,7 +280,6 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
 
                         if (m_rpcPending.TryGetValue(luid, out tmpReq))
                         {
-
                             if (!tmpReq.IsProcessed()) return tmpReq;
                         }
                     }
@@ -367,13 +307,11 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
 
         public LLUUID SendRemoteData(uint localID, LLUUID itemID, string channel, string dest, int idata, string sdata)
         {
-
             SendRemoteDataRequest req = new SendRemoteDataRequest(
                 localID, itemID, channel, dest, idata, sdata
                 );
             m_pendingSRDResponses.Add(req.GetReqID(), req);
             return req.process();
-
         }
 
         public SendRemoteDataRequest GetNextCompletedSRDRequest()
@@ -423,19 +361,82 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
                 }
             }
         }
+
+        #endregion
+
+        public XmlRpcResponse XmlRpcRemoteData(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+
+            Hashtable requestData = (Hashtable) request.Params[0];
+            bool GoodXML = (requestData.Contains("Channel") && requestData.Contains("IntValue") &&
+                            requestData.Contains("StringValue"));
+
+            if (GoodXML)
+            {
+                LLUUID channel = new LLUUID((string) requestData["Channel"]);
+                RPCChannelInfo rpcChanInfo;
+                if (m_openChannels.TryGetValue(channel, out rpcChanInfo))
+                {
+                    string intVal = (string) requestData["IntValue"];
+                    string strVal = (string) requestData["StringValue"];
+
+                    RPCRequestInfo rpcInfo;
+
+                    lock (XMLRPCListLock)
+                    {
+                        rpcInfo =
+                            new RPCRequestInfo(rpcChanInfo.GetLocalID(), rpcChanInfo.GetItemID(), channel, strVal,
+                                               intVal);
+                        m_rpcPending.Add(rpcInfo.GetMessageID(), rpcInfo);
+                    }
+
+                    int timeoutCtr = 0;
+
+                    while (!rpcInfo.IsProcessed() && (timeoutCtr < RemoteReplyScriptTimeout))
+                    {
+                        Thread.Sleep(RemoteReplyScriptWait);
+                        timeoutCtr += RemoteReplyScriptWait;
+                    }
+                    if (rpcInfo.IsProcessed())
+                    {
+                        Hashtable param = new Hashtable();
+                        param["StringValue"] = rpcInfo.GetStrRetval();
+                        param["IntValue"] = Convert.ToString(rpcInfo.GetIntRetval());
+
+                        ArrayList parameters = new ArrayList();
+                        parameters.Add(param);
+
+                        response.Value = parameters;
+                        rpcInfo = null;
+                    }
+                    else
+                    {
+                        response.SetFault(-1, "Script timeout");
+                        rpcInfo = null;
+                    }
+                }
+                else
+                {
+                    response.SetFault(-1, "Invalid channel");
+                }
+            }
+
+            return response;
+        }
     }
 
     public class RPCRequestInfo
     {
-        private string m_StrVal;
-        private string m_IntVal;
-        private bool m_processed;
-        private string m_respStr;
-        private int m_respInt;
-        private uint m_localID;
-        private LLUUID m_ItemID;
-        private LLUUID m_MessageID;
         private LLUUID m_ChannelKey;
+        private string m_IntVal;
+        private LLUUID m_ItemID;
+        private uint m_localID;
+        private LLUUID m_MessageID;
+        private bool m_processed;
+        private int m_respInt;
+        private string m_respStr;
+        private string m_StrVal;
 
         public RPCRequestInfo(uint localID, LLUUID itemID, LLUUID channelKey, string strVal, string intVal)
         {
@@ -474,6 +475,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
         {
             return m_respStr;
         }
+
         public void SetIntRetval(int resp)
         {
             m_respInt = resp;
@@ -483,6 +485,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
         {
             return m_respInt;
         }
+
         public uint GetLocalID()
         {
             return m_localID;
@@ -511,9 +514,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
 
     public class RPCChannelInfo
     {
+        private LLUUID m_ChannelKey;
         private LLUUID m_itemID;
         private uint m_localID;
-        private LLUUID m_ChannelKey;
 
         public RPCChannelInfo(uint localID, LLUUID itemID, LLUUID channelID)
         {
@@ -536,38 +539,34 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
         {
             return m_localID;
         }
-
     }
 
     public class SendRemoteDataRequest
     {
-
-        public LLUUID reqID;
-        public string destURL;
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public string channel;
-        public string sdata;
-        public int idata;
+        public string destURL;
         public bool finished;
-        public string response_sdata;
-        public int response_idata;
-        public XmlRpcRequest request;
         private Thread httpThread;
+        public int idata;
         public LLUUID m_itemID;
         public uint m_localID;
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        public LLUUID reqID;
+        public XmlRpcRequest request;
+        public int response_idata;
+        public string response_sdata;
+        public string sdata;
 
         public SendRemoteDataRequest(uint localID, LLUUID itemID, string channel, string dest, int idata, string sdata)
         {
-
             this.channel = channel;
-            this.destURL = dest;
+            destURL = dest;
             this.idata = idata;
             this.sdata = sdata;
             m_itemID = itemID;
             m_localID = localID;
 
             reqID = LLUUID.Random();
-
         }
 
         public LLUUID process()
@@ -581,7 +580,6 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
             ThreadTracker.Add(httpThread);
 
             return reqID;
-
         }
 
         /*
@@ -597,8 +595,8 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
             // if not, use as method name
             LLUUID parseUID;
             string mName = "llRemoteData";
-            if( (channel != null) && (channel != "") )
-                if( !LLUUID.TryParse(channel, out parseUID) )
+            if ((channel != null) && (channel != ""))
+                if (!LLUUID.TryParse(channel, out parseUID))
                     mName = channel;
                 else
                     param["Channel"] = channel;
@@ -615,26 +613,28 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
                 if (resp != null)
                 {
                     Hashtable respParms;
-                    if(resp.Value.GetType().Equals(Type.GetType("System.Collections.Hashtable"))) {
-                        respParms = (Hashtable)resp.Value;
+                    if (resp.Value.GetType().Equals(Type.GetType("System.Collections.Hashtable")))
+                    {
+                        respParms = (Hashtable) resp.Value;
                     }
-                    else {
-                        ArrayList respData = (ArrayList)resp.Value;
-                        respParms = (Hashtable)respData[0];
+                    else
+                    {
+                        ArrayList respData = (ArrayList) resp.Value;
+                        respParms = (Hashtable) respData[0];
                     }
                     if (respParms != null)
                     {
                         if (respParms.Contains("StringValue"))
                         {
-                            sdata = (string)respParms["StringValue"];
+                            sdata = (string) respParms["StringValue"];
                         }
                         if (respParms.Contains("IntValue"))
                         {
-                            idata = Convert.ToInt32((string)respParms["IntValue"]);
+                            idata = Convert.ToInt32((string) respParms["IntValue"]);
                         }
                         if (respParms.Contains("faultString"))
                         {
-                            sdata = (string)respParms["faultString"];
+                            sdata = (string) respParms["faultString"];
                         }
                         if (respParms.Contains("faultCode"))
                         {

@@ -37,23 +37,26 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetDownload
 {
     public class AssetDownloadModule : IRegionModule
     {
-        private Scene m_scene;
-        private Dictionary<LLUUID, Scene> RegisteredScenes = new Dictionary<LLUUID, Scene>();
-        ///
-        /// Assets requests (for each user) which are waiting for asset server data.  This includes texture requests
-        /// </summary>
-        private Dictionary<LLUUID, Dictionary<LLUUID,AssetRequest>> RequestedAssets;
-
         /// <summary>
         /// Asset requests with data which are ready to be sent back to requesters.  This includes textures.
         /// </summary>
         private List<AssetRequest> AssetRequests;
+
+        private Scene m_scene;
+        private Dictionary<LLUUID, Scene> RegisteredScenes = new Dictionary<LLUUID, Scene>();
+
+        ///
+        /// Assets requests (for each user) which are waiting for asset server data.  This includes texture requests
+        /// </summary>
+        private Dictionary<LLUUID, Dictionary<LLUUID, AssetRequest>> RequestedAssets;
 
         public AssetDownloadModule()
         {
             RequestedAssets = new Dictionary<LLUUID, Dictionary<LLUUID, AssetRequest>>();
             AssetRequests = new List<AssetRequest>();
         }
+
+        #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
         {
@@ -91,6 +94,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetDownload
         {
             get { return true; }
         }
+
+        #endregion
 
         public void NewClient(IClientAPI client)
         {
@@ -301,33 +306,37 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetDownload
             {
                 // over max number of bytes so split up file
                 long restData = data.LongLength - m_maxPacketSize;
-                int restPackets = (int)((restData + m_maxPacketSize - 1) / m_maxPacketSize);
+                int restPackets = (int) ((restData + m_maxPacketSize - 1) / m_maxPacketSize);
                 numPackets += restPackets;
             }
 
             return numPackets;
         }
 
+        #region Nested type: AssetRequest
+
         public class AssetRequest
         {
-            public IClientAPI RequestUser;
-            public LLUUID RequestAssetID;
             public AssetBase AssetInf;
-            public AssetBase ImageInfo;
-            public LLUUID TransferRequestID;
+            public byte AssetRequestSource = 2;
             public long DataPointer = 0;
+            public int DiscardLevel = -1;
+            public AssetBase ImageInfo;
+            public bool IsTextureRequest;
             public int NumPackets = 0;
             public int PacketCounter = 0;
-            public bool IsTextureRequest;
-            public byte AssetRequestSource = 2;
             public byte[] Params = null;
+            public LLUUID RequestAssetID;
+            public IClientAPI RequestUser;
+            public LLUUID TransferRequestID;
             //public bool AssetInCache;
             //public int TimeRequested; 
-            public int DiscardLevel = -1;
 
             public AssetRequest()
             {
             }
         }
+
+        #endregion
     }
 }

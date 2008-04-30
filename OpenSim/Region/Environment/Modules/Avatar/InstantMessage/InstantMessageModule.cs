@@ -38,6 +38,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
     {
         private readonly List<Scene> m_scenes = new List<Scene>();
 
+        #region IRegionModule Members
+
         public void Initialise(Scene scene, IConfigSource config)
         {
             lock (m_scenes)
@@ -56,27 +58,47 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             }
         }
 
+        public void PostInitialise()
+        {
+        }
+
+        public void Close()
+        {
+        }
+
+        public string Name
+        {
+            get { return "InstantMessageModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
+        }
+
+        #endregion
+
         private void OnNewClient(IClientAPI client)
         {
             client.OnInstantMessage += OnInstantMessage;
         }
 
-        private void OnInstantMessage(IClientAPI client,LLUUID fromAgentID,
+        private void OnInstantMessage(IClientAPI client, LLUUID fromAgentID,
                                       LLUUID fromAgentSession, LLUUID toAgentID,
                                       LLUUID imSessionID, uint timestamp, string fromAgentName,
-                                      string message, byte dialog, bool fromGroup, byte offline, 
-                                      uint ParentEstateID, LLVector3 Position, LLUUID RegionID, 
+                                      string message, byte dialog, bool fromGroup, byte offline,
+                                      uint ParentEstateID, LLVector3 Position, LLUUID RegionID,
                                       byte[] binaryBucket)
         {
-            bool dialogHandledElsewhere 
+            bool dialogHandledElsewhere
                 = ((dialog == 38) || (dialog == 39) || (dialog == 40)
-                   || dialog == (byte)InstantMessageDialog.InventoryOffered
-                   || dialog == (byte)InstantMessageDialog.InventoryAccepted
-                   || dialog == (byte)InstantMessageDialog.InventoryDeclined);
+                   || dialog == (byte) InstantMessageDialog.InventoryOffered
+                   || dialog == (byte) InstantMessageDialog.InventoryAccepted
+                   || dialog == (byte) InstantMessageDialog.InventoryDeclined);
 
             // IM dialogs need to be pre-processed and have their sessionID filled by the server
             // so the sim can match the transaction on the return packet.
-            
+
             // Don't send a Friend Dialog IM with a LLUUID.Zero session.
             if (!(dialogHandledElsewhere && imSessionID == LLUUID.Zero))
             {
@@ -86,7 +108,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                     if (scene.Entities.ContainsKey(toAgentID) && scene.Entities[toAgentID] is ScenePresence)
                     {
                         // Local message
-                        ScenePresence user = (ScenePresence)scene.Entities[toAgentID];
+                        ScenePresence user = (ScenePresence) scene.Entities[toAgentID];
                         if (!user.IsChildAgent)
                         {
                             user.ControllingClient.SendInstantMessage(fromAgentID, fromAgentSession, message,
@@ -104,54 +126,33 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                     if (scene.Entities.ContainsKey(toAgentID) && scene.Entities[toAgentID] is ScenePresence)
                     {
                         // Local message
-                        ScenePresence user = (ScenePresence)scene.Entities[toAgentID];
-                        
+                        ScenePresence user = (ScenePresence) scene.Entities[toAgentID];
+
                         user.ControllingClient.SendInstantMessage(fromAgentID, fromAgentSession, message,
                                                                   toAgentID, imSessionID, fromAgentName, dialog,
                                                                   timestamp);
                         // Message sent
                         return;
-                        
                     }
                 }
-
             }
 
 
             // Still here, try send via Grid
             // TODO
         }
-        
+
         // Trusty OSG1 called method.  This method also gets called from the FriendsModule
         // Turns out the sim has to send an instant message to the user to get it to show an accepted friend.
 
         private void OnGridInstantMessage(GridInstantMessage msg)
         {
             // Trigger the above event handler
-            OnInstantMessage(null,new LLUUID(msg.fromAgentID), new LLUUID(msg.fromAgentSession), 
-                             new LLUUID(msg.toAgentID), new LLUUID(msg.imSessionID), msg.timestamp, msg.fromAgentName, 
-                             msg.message, msg.dialog, msg.fromGroup, msg.offline, msg.ParentEstateID, 
-                             new LLVector3(msg.Position.x,msg.Position.y,msg.Position.z), new LLUUID(msg.RegionID), 
+            OnInstantMessage(null, new LLUUID(msg.fromAgentID), new LLUUID(msg.fromAgentSession),
+                             new LLUUID(msg.toAgentID), new LLUUID(msg.imSessionID), msg.timestamp, msg.fromAgentName,
+                             msg.message, msg.dialog, msg.fromGroup, msg.offline, msg.ParentEstateID,
+                             new LLVector3(msg.Position.x, msg.Position.y, msg.Position.z), new LLUUID(msg.RegionID),
                              msg.binaryBucket);
-
-        }
-
-        public void PostInitialise()
-        {
-        }
-
-        public void Close()
-        {
-        }
-
-        public string Name
-        {
-            get { return "InstantMessageModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return true; }
         }
     }
 }

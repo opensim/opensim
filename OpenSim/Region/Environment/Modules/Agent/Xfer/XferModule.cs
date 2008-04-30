@@ -37,14 +37,15 @@ namespace OpenSim.Region.Environment.Modules.Agent.Xfer
 {
     public class XferModule : IRegionModule, IXfer
     {
+        private Scene m_scene;
         public Dictionary<string, byte[]> NewFiles = new Dictionary<string, byte[]>();
         public Dictionary<ulong, XferDownLoad> Transfers = new Dictionary<ulong, XferDownLoad>();
-
-        private Scene m_scene;
 
         public XferModule()
         {
         }
+
+        #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
         {
@@ -72,6 +73,28 @@ namespace OpenSim.Region.Environment.Modules.Agent.Xfer
             get { return false; }
         }
 
+        #endregion
+
+        #region IXfer Members
+
+        public bool AddNewFile(string fileName, byte[] data)
+        {
+            lock (NewFiles)
+            {
+                if (NewFiles.ContainsKey(fileName))
+                {
+                    NewFiles[fileName] = data;
+                }
+                else
+                {
+                    NewFiles.Add(fileName, data);
+                }
+            }
+            return true;
+        }
+
+        #endregion
+
         public void NewClient(IClientAPI client)
         {
             client.OnRequestXfer += RequestXfer;
@@ -96,7 +119,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.Xfer
                         XferDownLoad transaction = new XferDownLoad(fileName, fileData, xferID, remoteClient);
                         Transfers.Add(xferID, transaction);
                         NewFiles.Remove(fileName);
-                        
+
                         if (transaction.StartSend())
                         {
                             Transfers.Remove(xferID);
@@ -119,33 +142,18 @@ namespace OpenSim.Region.Environment.Modules.Agent.Xfer
             }
         }
 
-        public bool AddNewFile(string fileName, byte[] data)
-        {
-            lock (NewFiles)
-            {
-                if (NewFiles.ContainsKey(fileName))
-                {
-                    NewFiles[fileName] = data;
-                }
-                else
-                {
-                    NewFiles.Add(fileName, data);
-                }
-            }
-            return true;
-        }
-
+        #region Nested type: XferDownLoad
 
         public class XferDownLoad
         {
-            public byte[] Data = new byte[0];
-            public string FileName = String.Empty;
-            public ulong XferID = 0;
-            public int DataPointer = 0;
-            public uint Packet = 0;
             public IClientAPI Client;
-            public uint Serial = 1;
             private bool complete;
+            public byte[] Data = new byte[0];
+            public int DataPointer = 0;
+            public string FileName = String.Empty;
+            public uint Packet = 0;
+            public uint Serial = 1;
+            public ulong XferID = 0;
 
             public XferDownLoad(string fileName, byte[] data, ulong xferID, IClientAPI client)
             {
@@ -172,7 +180,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.Xfer
                     Array.Copy(Helpers.IntToBytes(Data.Length), 0, transferData, 0, 4);
                     Array.Copy(Data, 0, transferData, 4, Data.Length);
                     Client.SendXferPacket(XferID, 0 + 0x80000000, transferData);
-                    
+
                     complete = true;
                 }
                 else
@@ -182,10 +190,10 @@ namespace OpenSim.Region.Environment.Modules.Agent.Xfer
                     Array.Copy(Data, 0, transferData, 4, 1000);
                     Client.SendXferPacket(XferID, 0, transferData);
                     Packet++;
-                    DataPointer = 1000;                 
+                    DataPointer = 1000;
                 }
-                
-                return complete;                
+
+                return complete;
             }
 
             /// <summary>
@@ -213,13 +221,15 @@ namespace OpenSim.Region.Environment.Modules.Agent.Xfer
                         Client.SendXferPacket(XferID, endPacket, transferData);
                         Packet++;
                         DataPointer += (Data.Length - DataPointer);
-                        
+
                         complete = true;
                     }
                 }
-                
+
                 return complete;
             }
         }
+
+        #endregion
     }
 }

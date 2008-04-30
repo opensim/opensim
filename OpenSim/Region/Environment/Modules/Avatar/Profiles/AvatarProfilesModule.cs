@@ -45,6 +45,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Profiles
         {
         }
 
+        #region IRegionModule Members
+
         public void Initialise(Scene scene, IConfigSource config)
         {
             m_scene = scene;
@@ -68,6 +70,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Profiles
         {
             get { return false; }
         }
+
+        #endregion
 
         public void NewClient(IClientAPI client)
         {
@@ -107,7 +111,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Profiles
         public void UpdateAvatarProperties(IClientAPI remoteClient, UserProfileData newProfile)
         {
             UserProfileData Profile = m_scene.CommsManager.UserService.GetUserProfile(newProfile.ID);
-           
+
             // if it's the profile of the user requesting the update, then we change only a few things.
             if (remoteClient.AgentId.CompareTo(Profile.ID) == 0)
             {

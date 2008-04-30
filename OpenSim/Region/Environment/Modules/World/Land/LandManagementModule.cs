@@ -27,7 +27,6 @@
 
 using Nini.Config;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Modules.World.Land;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.World.Land
@@ -43,7 +42,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         {
             m_scene = scene;
             landChannel = new LandChannel(scene);
-                   
+
             m_scene.EventManager.OnParcelPrimCountAdd += landChannel.addPrimToLandPrimCounts;
             m_scene.EventManager.OnParcelPrimCountUpdate += landChannel.updateLandPrimCounts;
             m_scene.EventManager.OnAvatarEnteringNewParcel += new EventManager.AvatarEnteringNewParcel(landChannel.handleAvatarChangingParcel);
@@ -53,18 +52,16 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
             lock (m_scene)
             {
-                m_scene.LandChannel = (ILandChannel)landChannel;
+                m_scene.LandChannel = (ILandChannel) landChannel;
             }
         }
 
         public void PostInitialise()
         {
-            
         }
 
         public void Close()
         {
-            
         }
 
         public string Name
@@ -76,10 +73,6 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         {
             get { return false; }
         }
-
-        
-
-        
 
         #endregion
     }

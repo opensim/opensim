@@ -35,7 +35,6 @@ using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.Framework;
-using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders;
 using OpenSim.Region.Environment.Modules.World.Terrain.FloodBrushes;
 using OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes;
@@ -79,9 +78,8 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
         private readonly Dictionary<StandardTerrainEffects, ITerrainPaintableEffect> m_painteffects =
             new Dictionary<StandardTerrainEffects, ITerrainPaintableEffect>();
 
-        private Dictionary<Location, ITerrainChannel> m_channels;
-
         private ITerrainChannel m_channel;
+        private Dictionary<Location, ITerrainChannel> m_channels;
         private Dictionary<string, ITerrainEffect> m_plugineffects;
         private ITerrainChannel m_revert;
         private Scene m_scene;
@@ -252,7 +250,8 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                                 {
                                     m_plugineffects.Add(pluginType.Name, terEffect);
                                     m_log.Info("E ... " + pluginType.Name);
-                                } else
+                                }
+                                else
                                 {
                                     m_log.Warn("E ... " + pluginType.Name + " (Already added)");
                                 }

@@ -40,39 +40,10 @@ namespace OpenSim.Region.Environment.Modules.Scripting.LoadImageURL
     public class LoadImageURLModule : IRegionModule, IDynamicTextureRender
     {
         private string m_name = "LoadImageURL";
-        private IDynamicTextureManager m_textureManager;
         private Scene m_scene;
+        private IDynamicTextureManager m_textureManager;
 
-        public void Initialise(Scene scene, IConfigSource config)
-        {
-            if (m_scene == null)
-            {
-                m_scene = scene;
-            }
-        }
-
-        public void PostInitialise()
-        {
-            m_textureManager = m_scene.RequestModuleInterface<IDynamicTextureManager>();
-            if (m_textureManager != null)
-            {
-                m_textureManager.RegisterRender(GetContentType(), this);
-            }
-        }
-
-        public void Close()
-        {
-        }
-
-        public string Name
-        {
-            get { return m_name; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return true; }
-        }
+        #region IDynamicTextureRender Members
 
         public string GetName()
         {
@@ -110,6 +81,43 @@ namespace OpenSim.Region.Environment.Modules.Scripting.LoadImageURL
             return false;
         }
 
+        #endregion
+
+        #region IRegionModule Members
+
+        public void Initialise(Scene scene, IConfigSource config)
+        {
+            if (m_scene == null)
+            {
+                m_scene = scene;
+            }
+        }
+
+        public void PostInitialise()
+        {
+            m_textureManager = m_scene.RequestModuleInterface<IDynamicTextureManager>();
+            if (m_textureManager != null)
+            {
+                m_textureManager.RegisterRender(GetContentType(), this);
+            }
+        }
+
+        public void Close()
+        {
+        }
+
+        public string Name
+        {
+            get { return m_name; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
+        }
+
+        #endregion
+
         private void MakeHttpRequest(string url, LLUUID requestID)
         {
             WebRequest request = HttpWebRequest.Create(url);
@@ -138,8 +146,8 @@ namespace OpenSim.Region.Environment.Modules.Scripting.LoadImageURL
                 else if ((image.Height < 128) && (image.Width < 128))
                 {
                     newsize = new Size(64, 64);
-                } 
-                else if ((image.Height <256) && (image.Width < 256))
+                }
+                else if ((image.Height < 256) && (image.Width < 256))
                 {
                     newsize = new Size(128, 128);
                 }
@@ -153,8 +161,8 @@ namespace OpenSim.Region.Environment.Modules.Scripting.LoadImageURL
                 }
                 else
                 {
-                    newsize = new Size(1024,1024);
-                }    
+                    newsize = new Size(1024, 1024);
+                }
 
                 Bitmap resize = new Bitmap(image, newsize);
                 byte[] imageJ2000 = OpenJPEG.EncodeFromImage(resize, true);
@@ -162,6 +170,8 @@ namespace OpenSim.Region.Environment.Modules.Scripting.LoadImageURL
                 m_textureManager.ReturnData(state.RequestID, imageJ2000);
             }
         }
+
+        #region Nested type: RequestState
 
         public class RequestState
         {
@@ -175,5 +185,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.LoadImageURL
                 RequestID = requestID;
             }
         }
+
+        #endregion
     }
 }

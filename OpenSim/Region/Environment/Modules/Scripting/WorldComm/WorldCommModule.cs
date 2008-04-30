@@ -67,17 +67,19 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
 {
     public class WorldCommModule : IRegionModule, IWorldComm
     {
-        private Scene m_scene;
         private object CommListLock = new object();
         private object ListLock = new object();
-        private string m_name = "WorldCommModule";
         private ListenerManager m_listenerManager;
-        private Queue m_pendingQ;
+        private string m_name = "WorldCommModule";
         private Queue m_pending;
+        private Queue m_pendingQ;
+        private Scene m_scene;
 
         public WorldCommModule()
         {
         }
+
+        #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
         {
@@ -107,23 +109,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             get { return false; }
         }
 
-        public void NewClient(IClientAPI client)
-        {
-            client.OnChatFromViewer += DeliverClientMessage;
-        }
+        #endregion
 
-        /********************************************************************
-         * 
-         * Listener Stuff
-         * 
-         * *****************************************************************/
-        private void DeliverClientMessage(Object sender, ChatFromViewerArgs e)
-        {
-            DeliverMessage(e.Sender.AgentId.ToString(),
-                           e.Type, e.Channel,
-                           e.Sender.FirstName + " " + e.Sender.LastName,
-                           e.Message);
-        }
+        #region IWorldComm Members
 
         public int Listen(uint localID, LLUUID itemID, LLUUID hostID, int channel, string name, string id, string msg)
         {
@@ -295,7 +283,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
 
             lock (m_pending.SyncRoot)
             {
-                li = (ListenerInfo)m_pending.Dequeue();
+                li = (ListenerInfo) m_pending.Dequeue();
             }
 
             return li;
@@ -303,20 +291,41 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
 
         public uint PeekNextMessageLocalID()
         {
-            return ((ListenerInfo)m_pending.Peek()).GetLocalID();
+            return ((ListenerInfo) m_pending.Peek()).GetLocalID();
         }
 
         public LLUUID PeekNextMessageItemID()
         {
-            return ((ListenerInfo)m_pending.Peek()).GetItemID();
+            return ((ListenerInfo) m_pending.Peek()).GetItemID();
+        }
+
+        #endregion
+
+        public void NewClient(IClientAPI client)
+        {
+            client.OnChatFromViewer += DeliverClientMessage;
+        }
+
+        /********************************************************************
+         * 
+         * Listener Stuff
+         * 
+         * *****************************************************************/
+
+        private void DeliverClientMessage(Object sender, ChatFromViewerArgs e)
+        {
+            DeliverMessage(e.Sender.AgentId.ToString(),
+                           e.Type, e.Channel,
+                           e.Sender.FirstName + " " + e.Sender.LastName,
+                           e.Message);
         }
     }
 
     public class ListenerManager
     {
         //private Dictionary<int, ListenerInfo> m_listeners;
-        private Hashtable m_listeners = Hashtable.Synchronized(new Hashtable());
         private object ListenersLock = new object();
+        private Hashtable m_listeners = Hashtable.Synchronized(new Hashtable());
         private int m_MaxListeners = 100;
 
         public int AddListener(uint localID, LLUUID itemID, LLUUID hostID, int channel, string name, string id, string msg)
@@ -363,7 +372,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
                 IDictionaryEnumerator en = m_listeners.GetEnumerator();
                 while (en.MoveNext())
                 {
-                    ListenerInfo li = (ListenerInfo)en.Value;
+                    ListenerInfo li = (ListenerInfo) en.Value;
                     if (li.GetItemID().Equals(itemID))
                     {
                         removedListeners.Add(li.GetHandle());
@@ -400,12 +409,11 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
 
         public void Activate(int handle)
         {
-
             if (m_listeners.ContainsKey(handle))
             {
                 lock (m_listeners.SyncRoot)
                 {
-                    ListenerInfo li = (ListenerInfo)m_listeners[handle];
+                    ListenerInfo li = (ListenerInfo) m_listeners[handle];
                     li.Activate();
                 }
             }
@@ -413,10 +421,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
 
         public void Dectivate(int handle)
         {
-
             if (m_listeners.ContainsKey(handle))
             {
-                ListenerInfo li = (ListenerInfo)m_listeners[handle];
+                ListenerInfo li = (ListenerInfo) m_listeners[handle];
                 li.Deactivate();
             }
         }
@@ -432,9 +439,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
                 IDictionaryEnumerator en = m_listeners.GetEnumerator();
                 while (en.MoveNext())
                 {
-                    ListenerInfo li = (ListenerInfo)en.Value;
+                    ListenerInfo li = (ListenerInfo) en.Value;
 
-                    if (li.IsActive()) 
+                    if (li.IsActive())
                     {
                         if (li.GetHostID().Equals(listenerKey))
                         {
@@ -478,16 +485,16 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
 
     public class ListenerInfo
     {
-        private LLUUID m_itemID; // ID of the host script engine
-        private LLUUID m_hostID; // ID of the host/scene part
-        private LLUUID m_sourceItemID; // ID of the scenePart or avatar source of the message
+        private bool m_active; // Listener is active or not
         private int m_channel; // Channel
         private int m_handle; // Assigned handle of this listener
-        private uint m_localID; // Local ID from script engine
-        private string m_name; // Object name to filter messages from
+        private LLUUID m_hostID; // ID of the host/scene part
         private LLUUID m_id; // ID to filter messages from
+        private LLUUID m_itemID; // ID of the host script engine
+        private uint m_localID; // Local ID from script engine
         private string m_message; // The message
-        private bool m_active; // Listener is active or not
+        private string m_name; // Object name to filter messages from
+        private LLUUID m_sourceItemID; // ID of the scenePart or avatar source of the message
 
         public ListenerInfo(uint localID, int handle, LLUUID ItemID, LLUUID hostID, int channel, string name, LLUUID id, string message)
         {

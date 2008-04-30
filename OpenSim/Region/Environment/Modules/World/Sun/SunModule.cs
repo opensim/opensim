@@ -39,15 +39,17 @@ namespace OpenSim.Region.Environment.Modules
     {
         //private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private const double m_real_day = 24.0;
         private const int m_default_frame = 100;
-        private int m_frame_mod;
+        private const double m_real_day = 24.0;
         private double m_day_length;
         private int m_dilation;
         private int m_frame;
-        private long m_start;
+        private int m_frame_mod;
 
         private Scene m_scene;
+        private long m_start;
+
+        #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
         {
@@ -66,7 +68,7 @@ namespace OpenSim.Region.Environment.Modules
                 m_frame_mod = m_default_frame;
             }
 
-            m_dilation = (int) (m_real_day/m_day_length);
+            m_dilation = (int) (m_real_day / m_day_length);
             m_scene = scene;
             scene.EventManager.OnFrame += SunUpdate;
             scene.EventManager.OnNewClient += SunToClient;
@@ -89,6 +91,8 @@ namespace OpenSim.Region.Environment.Modules
         {
             get { return false; }
         }
+
+        #endregion
 
         public void SunToClient(IClientAPI client)
         {
@@ -121,15 +125,15 @@ namespace OpenSim.Region.Environment.Modules
         // ticks don't get out of hand
         private double HourOfTheDay()
         {
-            long m_addticks = (DateTime.Now.Ticks - m_start)*m_dilation;
+            long m_addticks = (DateTime.Now.Ticks - m_start) * m_dilation;
             DateTime dt = new DateTime(m_start + m_addticks);
-            return (double) dt.Hour + ((double) dt.Minute/60.0);
+            return (double) dt.Hour + ((double) dt.Minute / 60.0);
         }
 
         private LLVector3 SunPos(double hour)
         {
             // now we have our radian position
-            double rad = (hour/m_real_day)*2*Math.PI - (Math.PI/2.0);
+            double rad = (hour / m_real_day) * 2 * Math.PI - (Math.PI / 2.0);
             double z = Math.Sin(rad);
             double x = Math.Cos(rad);
             return new LLVector3((float) x, 0f, (float) z);

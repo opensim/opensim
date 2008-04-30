@@ -41,10 +41,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private List<Scene> m_scene = new List<Scene>();
-        private Dictionary<LLUUID, IClientAPI> m_iclientmap = new Dictionary<LLUUID, IClientAPI>();
-        private Dictionary<LLUUID, GroupData> m_groupmap = new Dictionary<LLUUID, GroupData>();
         private Dictionary<LLUUID, GroupList> m_grouplistmap = new Dictionary<LLUUID, GroupList>();
+        private Dictionary<LLUUID, GroupData> m_groupmap = new Dictionary<LLUUID, GroupData>();
+        private Dictionary<LLUUID, IClientAPI> m_iclientmap = new Dictionary<LLUUID, IClientAPI>();
+        private List<Scene> m_scene = new List<Scene>();
+
+        #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
         {
@@ -57,6 +59,42 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
             scene.EventManager.OnGridInstantMessageToGroupsModule += OnGridInstantMessage;
             //scene.EventManager.
         }
+
+        public void PostInitialise()
+        {
+        }
+
+        public void Close()
+        {
+            m_log.Info("[GROUP]: Shutting down group module.");
+            lock (m_iclientmap)
+            {
+                m_iclientmap.Clear();
+            }
+
+            lock (m_groupmap)
+            {
+                m_groupmap.Clear();
+            }
+
+            lock (m_grouplistmap)
+            {
+                m_grouplistmap.Clear();
+            }
+            GC.Collect();
+        }
+
+        public string Name
+        {
+            get { return "GroupsModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
+        }
+
+        #endregion
 
         private void OnNewClient(IClientAPI client)
         {
@@ -115,7 +153,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
             string ActiveGroupTitle = "";
 
             bool foundUser = false;
-            
+
             lock (m_iclientmap)
             {
                 if (m_iclientmap.ContainsKey(remoteClient.AgentId))
@@ -139,11 +177,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
                         }
 
                         //remoteClient.SendAgentDataUpdate(AgentID, ActiveGroupID, firstname, lastname, ActiveGroupPowers, ActiveGroupName, ActiveGroupTitle);
-
                     }
                 }
             }
-
         }
 
         private void OnInstantMessage(IClientAPI client, LLUUID fromAgentID,
@@ -183,7 +219,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
                     m_iclientmap.Remove(agentID);
                 }
             }
-            
+
             lock (m_groupmap)
             {
                 if (m_groupmap.ContainsKey(agentID))
@@ -191,7 +227,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
                     m_groupmap.Remove(agentID);
                 }
             }
-            
+
             lock (m_grouplistmap)
             {
                 if (m_grouplistmap.ContainsKey(agentID))
@@ -201,63 +237,16 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
             }
             GC.Collect();
         }
-
-        public void PostInitialise()
-        {
-        }
-
-        public void Close()
-        {
-            m_log.Info("[GROUP]: Shutting down group module.");
-            lock (m_iclientmap)
-            {
-                m_iclientmap.Clear();
-            }
-
-            lock (m_groupmap)
-            {
-                m_groupmap.Clear();
-            }
-
-            lock (m_grouplistmap)
-            {
-                m_grouplistmap.Clear();
-            }
-            GC.Collect();
-        }
-
-        public string Name
-        {
-            get { return "GroupsModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return true; }
-        }
-        
     }
 
     public class GroupData
     {
-        public LLUUID GroupID;
-        public string groupName;
         public string ActiveGroupTitle;
-        public List<string> GroupTitles;
+        public LLUUID GroupID;
         public List<LLUUID> GroupMembers;
-        public uint groupPowers = (uint)(GroupPowers.LandAllowLandmark | GroupPowers.LandAllowSetHome);
-
-        public GroupPowers ActiveGroupPowers
-        {
-            set 
-            {
-                groupPowers = (uint) value;
-            }
-            get 
-            {
-                return (GroupPowers)groupPowers;
-            }
-        }
+        public string groupName;
+        public uint groupPowers = (uint) (GroupPowers.LandAllowLandmark | GroupPowers.LandAllowSetHome);
+        public List<string> GroupTitles;
 
         public GroupData()
         {
@@ -265,11 +254,17 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
             GroupMembers = new List<LLUUID>();
         }
 
+        public GroupPowers ActiveGroupPowers
+        {
+            set { groupPowers = (uint) value; }
+            get { return (GroupPowers) groupPowers; }
+        }
     }
 
     public class GroupList
     {
         public List<LLUUID> m_GroupList;
+
         public GroupList()
         {
             m_GroupList = new List<LLUUID>();

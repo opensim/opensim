@@ -42,12 +42,12 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
     {
         //private static readonly log4net.ILog m_log 
         //   = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         // Fields
+        private bool m_dumpAssetsToFile;
+        public AgentAssetTransactionsManager Manager;
         public LLUUID UserID;
         public Dictionary<LLUUID, AssetXferUploader> XferUploaders = new Dictionary<LLUUID, AssetXferUploader>();
-        public AgentAssetTransactionsManager Manager;
-        private bool m_dumpAssetsToFile;
 
         // Methods
         public AgentAssetTransactions(LLUUID agentID, AgentAssetTransactionsManager manager, bool dumpAssetsToFile)
@@ -67,7 +67,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                 {
                     XferUploaders.Add(transactionID, uploader);
                 }
-                
+
                 return uploader;
             }
             return null;
@@ -76,7 +76,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         public void HandleXfer(ulong xferID, uint packetID, byte[] data)
         {
             // AssetXferUploader uploaderFound = null;
-            
+
             lock (XferUploaders)
             {
                 foreach (AssetXferUploader uploader in XferUploaders.Values)
@@ -86,7 +86,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                         uploader.HandleXferPacket(xferID, packetID, data);
                         break;
                     }
-                }             
+                }
             }
         }
 
@@ -101,15 +101,15 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                                                                         wearableType, nextOwnerMask);
             }
         }
-        
-        public void RequestUpdateInventoryItem(IClientAPI remoteClient, LLUUID transactionID, 
+
+        public void RequestUpdateInventoryItem(IClientAPI remoteClient, LLUUID transactionID,
                                                InventoryItemBase item)
         {
             if (XferUploaders.ContainsKey(transactionID))
             {
                 XferUploaders[transactionID].RequestUpdateInventoryItem(remoteClient, transactionID, item);
             }
-        }        
+        }
 
         /// <summary>
         /// Get an uploaded asset.  If the data is successfully retrieved, the transaction will be removed.
@@ -122,40 +122,43 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
             {
                 AssetXferUploader uploader = XferUploaders[transactionID];
                 AssetBase asset = uploader.GetAssetData();
-                
+
                 lock (XferUploaders)
                 {
                     XferUploaders.Remove(transactionID);
                 }
-                
+
                 return asset;
             }
-            
+
             return null;
         }
 
         // Nested Types
+
+        #region Nested type: AssetXferUploader
+
         public class AssetXferUploader
         {
             // Fields
             public bool AddToInventory;
             public AssetBase Asset;
             public LLUUID InventFolder = LLUUID.Zero;
+            private sbyte invType = 0;
+            private bool m_createItem = false;
+            private string m_description = String.Empty;
+            private bool m_dumpAssetToFile;
+            private bool m_finished = false;
+            private string m_name = String.Empty;
+            private bool m_storeLocal;
+            private AgentAssetTransactions m_userTransactions;
+            private uint nextPerm = 0;
             private IClientAPI ourClient;
             public LLUUID TransactionID = LLUUID.Zero;
-            public bool UploadComplete;
-            public ulong XferID;
-            private string m_name = String.Empty;
-            private string m_description = String.Empty;
             private sbyte type = 0;
-            private sbyte invType = 0;
+            public bool UploadComplete;
             private byte wearableType = 0;
-            private uint nextPerm = 0;
-            private bool m_finished = false;
-            private bool m_createItem = false;
-            private AgentAssetTransactions m_userTransactions;
-            private bool m_storeLocal;
-            private bool m_dumpAssetToFile;
+            public ulong XferID;
 
             public AssetXferUploader(AgentAssetTransactions transactions, bool dumpAssetToFile)
             {
@@ -197,7 +200,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                         return true;
                     }
                 }
-                
+
                 return false;
             }
 
@@ -233,7 +236,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                 {
                     RequestStartXfer();
                 }
-                
+
                 return false;
             }
 
@@ -279,7 +282,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                     SaveAssetToFile(filename, Asset.Data);
                 }
             }
-            
+
             ///Left this in and commented in case there are unforseen issues
             //private void SaveAssetToFile(string filename, byte[] data)
             //{
@@ -327,28 +330,28 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                     }
                 }
             }
-                      
-            public void RequestUpdateInventoryItem(IClientAPI remoteClient, LLUUID transactionID, 
+
+            public void RequestUpdateInventoryItem(IClientAPI remoteClient, LLUUID transactionID,
                                                    InventoryItemBase item)
             {
                 if (TransactionID == transactionID)
-                {            
+                {
                     CachedUserInfo userInfo =
                         m_userTransactions.Manager.MyScene.CommsManager.UserProfileCacheService.GetUserDetails(
                             remoteClient.AgentId);
-                    
+
                     if (userInfo != null)
-                    {                    
+                    {
                         LLUUID assetID = LLUUID.Combine(transactionID, remoteClient.SecureSessionId);
-                        
+
                         AssetBase asset
                             = m_userTransactions.Manager.MyScene.CommsManager.AssetCache.GetAsset(
                                 assetID, (item.AssetType == (int) AssetType.Texture ? true : false));
-                        
+
                         if (asset == null)
                         {
                             asset = m_userTransactions.GetTransactionAsset(transactionID);
-                        }                    
+                        }
 
                         if (asset != null && asset.FullID == assetID)
                         {
@@ -359,10 +362,10 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                             item.AssetID = asset.FullID;
 
                             m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(Asset);
-                        }      
-                        
-                        userInfo.UpdateItem(remoteClient.AgentId, item);                    
-                    }     
+                        }
+
+                        userInfo.UpdateItem(remoteClient.AgentId, item);
+                    }
                 }
             }
 
@@ -387,7 +390,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                     item.BasePermissions = 2147483647;
                     item.CurrentPermissions = 2147483647;
                     item.NextPermissions = nextPerm;
-                    item.Flags = (uint)wearableType;
+                    item.Flags = (uint) wearableType;
 
                     userInfo.AddItem(ourClient.AgentId, item);
                     ourClient.SendInventoryItemCreateUpdate(item);
@@ -403,5 +406,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                 return null;
             }
         }
+
+        #endregion
     }
 }

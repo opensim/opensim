@@ -44,40 +44,43 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.AsterixVoice
 {
     public class AsteriskVoiceModule : IRegionModule
     {
-        private static readonly ILog m_log = 
+        private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Scene m_scene;
-        private IConfig m_config;
+        private static readonly string m_parcelVoiceInfoRequestPath = "0007/";
+        private static readonly string m_provisionVoiceAccountRequestPath = "0008/";
+
         private string m_asterisk;
         private string m_asterisk_password;
         private string m_asterisk_salt;
         private int m_asterisk_timeout;
-        private string m_sipDomain;
         private string m_confDomain;
+        private IConfig m_config;
+        private Scene m_scene;
+        private string m_sipDomain;
 
-        private static readonly string m_parcelVoiceInfoRequestPath = "0007/";
-        private static readonly string m_provisionVoiceAccountRequestPath = "0008/";
+        #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
         {
             m_scene = scene;
             m_config = config.Configs["AsteriskVoice"];
 
-            if (null == m_config) 
+            if (null == m_config)
             {
                 m_log.Info("[ASTERISKVOICE] no config found, plugin disabled");
                 return;
             }
 
-            if (!m_config.GetBoolean("enabled", false)) 
+            if (!m_config.GetBoolean("enabled", false))
             {
                 m_log.Info("[ASTERISKVOICE] plugin disabled by configuration");
                 return;
             }
             m_log.Info("[ASTERISKVOICE] plugin enabled");
 
-            try {
+            try
+            {
                 m_sipDomain = m_config.GetString("sip_domain", String.Empty);
                 m_log.InfoFormat("[ASTERISKVOICE] using SIP domain {0}", m_sipDomain);
 
@@ -91,17 +94,17 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.AsterixVoice
                 if (String.IsNullOrEmpty(m_asterisk)) throw new Exception("missing asterisk_frontend config parameter");
                 if (String.IsNullOrEmpty(m_asterisk_password)) throw new Exception("missing asterisk_password config parameter");
                 m_log.InfoFormat("[ASTERISKVOICE] using asterisk front end {0}", m_asterisk);
-                
+
                 scene.EventManager.OnRegisterCaps += OnRegisterCaps;
             }
-            catch (Exception e) 
+            catch (Exception e)
             {
                 m_log.ErrorFormat("[ASTERISKVOICE] plugin initialization failed: {0}", e.Message);
                 m_log.DebugFormat("[ASTERISKVOICE] plugin initialization failed: {0}", e.ToString());
                 return;
             }
         }
-            
+
         public void PostInitialise()
         {
         }
@@ -120,15 +123,17 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.AsterixVoice
             get { return false; }
         }
 
-        public void OnRegisterCaps(LLUUID agentID, Caps caps) 
+        #endregion
+
+        public void OnRegisterCaps(LLUUID agentID, Caps caps)
         {
             m_log.DebugFormat("[ASTERISKVOICE] OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
-            string capsBase = "/CAPS/" + caps.CapsObjectPath; 
+            string capsBase = "/CAPS/" + caps.CapsObjectPath;
             caps.RegisterHandler("ParcelVoiceInfoRequest",
-                                 new RestStreamHandler("POST", capsBase + m_parcelVoiceInfoRequestPath, 
-                                                       delegate(string request, string path, string param) 
+                                 new RestStreamHandler("POST", capsBase + m_parcelVoiceInfoRequestPath,
+                                                       delegate(string request, string path, string param)
                                                            {
-                                                               return ParcelVoiceInfoRequest(request, path, param, 
+                                                               return ParcelVoiceInfoRequest(request, path, param,
                                                                                              agentID, caps);
                                                            }));
             caps.RegisterHandler("ProvisionVoiceAccountRequest",
@@ -139,7 +144,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.AsterixVoice
                                                                                                    agentID, caps);
                                                            }));
         }
-        
+
         /// <summary>
         /// Callback for a client request for ParcelVoiceInfo
         /// </summary>
@@ -149,30 +154,30 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.AsterixVoice
         /// <param name="agentID"></param>
         /// <param name="caps"></param>
         /// <returns></returns>
-        public string ParcelVoiceInfoRequest(string request, string path, string param, 
-                                             LLUUID agentID, Caps caps) 
+        public string ParcelVoiceInfoRequest(string request, string path, string param,
+                                             LLUUID agentID, Caps caps)
         {
             // we need to do:
             // - send channel_uri: as "sip:regionID@m_sipDomain"
             try
             {
-                m_log.DebugFormat("[ASTERISKVOICE][PARCELVOICE]: request: {0}, path: {1}, param: {2}", 
+                m_log.DebugFormat("[ASTERISKVOICE][PARCELVOICE]: request: {0}, path: {1}, param: {2}",
                                   request, path, param);
 
 
                 // setup response to client
                 Hashtable creds = new Hashtable();
-                creds["channel_uri"] = String.Format("sip:{0}@{1}", 
+                creds["channel_uri"] = String.Format("sip:{0}@{1}",
                                                      m_scene.RegionInfo.RegionID, m_sipDomain);
-                
+
                 string regionName = m_scene.RegionInfo.RegionName;
                 ScenePresence avatar = m_scene.GetScenePresence(agentID);
                 if (null == m_scene.LandChannel) throw new Exception("land data not yet available");
                 LandData land = m_scene.GetLandData(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
-                                
-                LLSDParcelVoiceInfoResponse parcelVoiceInfo = 
+
+                LLSDParcelVoiceInfoResponse parcelVoiceInfo =
                     new LLSDParcelVoiceInfoResponse(regionName, land.localID, creds);
-                
+
                 string r = LLSDHelpers.SerialiseLLSDReply(parcelVoiceInfo);
 
 
@@ -183,17 +188,17 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.AsterixVoice
                 if (!String.IsNullOrEmpty(m_confDomain))
                 {
                     requestData["region"] += String.Format("@{0}", m_confDomain);
-                } 
+                }
 
                 ArrayList SendParams = new ArrayList();
                 SendParams.Add(requestData);
                 XmlRpcRequest updateAccountRequest = new XmlRpcRequest("region_update", SendParams);
                 XmlRpcResponse updateAccountResponse = updateAccountRequest.Send(m_asterisk, m_asterisk_timeout);
-                Hashtable responseData = (Hashtable)updateAccountResponse.Value;
-                
+                Hashtable responseData = (Hashtable) updateAccountResponse.Value;
+
                 if (!responseData.ContainsKey("success")) throw new Exception("region_update call failed");
 
-                bool success = Convert.ToBoolean((string)responseData["success"]);
+                bool success = Convert.ToBoolean((string) responseData["success"]);
                 if (!success) throw new Exception("region_update failed");
 
 
@@ -218,8 +223,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.AsterixVoice
         /// <param name="agentID"></param>
         /// <param name="caps"></param>
         /// <returns></returns>
-        public string ProvisionVoiceAccountRequest(string request, string path, string param, 
-                                                   LLUUID agentID, Caps caps) 
+        public string ProvisionVoiceAccountRequest(string request, string path, string param,
+                                                   LLUUID agentID, Caps caps)
         {
             // we need to 
             // - get user data from UserProfileCacheService
@@ -232,7 +237,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.AsterixVoice
             //   send account details back to client
             try
             {
-                m_log.DebugFormat("[ASTERISKVOICE][PROVISIONVOICE]: request: {0}, path: {1}, param: {2}", 
+                m_log.DebugFormat("[ASTERISKVOICE][PROVISIONVOICE]: request: {0}, path: {1}, param: {2}",
                                   request, path, param);
 
                 // get user data & prepare voice account response
@@ -244,7 +249,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.AsterixVoice
 
                 // we generate a nonce everytime
                 string voicePassword = "$1$" + Util.Md5Hash(DateTime.UtcNow.ToLongTimeString() + m_asterisk_salt);
-                LLSDVoiceAccountResponse voiceAccountResponse = 
+                LLSDVoiceAccountResponse voiceAccountResponse =
                     new LLSDVoiceAccountResponse(voiceUser, voicePassword);
                 string r = LLSDHelpers.SerialiseLLSDReply(voiceAccountResponse);
                 m_log.DebugFormat("[CAPS][PROVISIONVOICE]: {0}", r);
@@ -257,18 +262,18 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.AsterixVoice
                 if (!String.IsNullOrEmpty(m_sipDomain))
                 {
                     requestData["username"] += String.Format("@{0}", m_sipDomain);
-                } 
+                }
                 requestData["password"] = voicePassword;
 
                 ArrayList SendParams = new ArrayList();
                 SendParams.Add(requestData);
                 XmlRpcRequest updateAccountRequest = new XmlRpcRequest("account_update", SendParams);
                 XmlRpcResponse updateAccountResponse = updateAccountRequest.Send(m_asterisk, m_asterisk_timeout);
-                Hashtable responseData = (Hashtable)updateAccountResponse.Value;
-                
+                Hashtable responseData = (Hashtable) updateAccountResponse.Value;
+
                 if (!responseData.ContainsKey("success")) throw new Exception("account_update call failed");
 
-                bool success = Convert.ToBoolean((string)responseData["success"]);
+                bool success = Convert.ToBoolean((string) responseData["success"]);
                 if (!success) throw new Exception("account_update failed");
 
                 return r;

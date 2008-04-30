@@ -43,22 +43,23 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.SIPVoice
 {
     public class SIPVoiceModule : IRegionModule
     {
-        private static readonly ILog m_log = 
+        private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        private Scene m_scene;
-        private IConfig m_config;
-        private string m_sipDomain;
 
         private static readonly string m_parcelVoiceInfoRequestPath = "0007/";
         private static readonly string m_provisionVoiceAccountRequestPath = "0008/";
+        private IConfig m_config;
+        private Scene m_scene;
+        private string m_sipDomain;
+
+        #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
         {
             m_scene = scene;
             m_config = config.Configs["Voice"];
 
-            if (null == m_config || !m_config.GetBoolean("enabled", false)) 
+            if (null == m_config || !m_config.GetBoolean("enabled", false))
             {
                 m_log.Info("[VOICE] plugin disabled");
                 return;
@@ -95,15 +96,17 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.SIPVoice
             get { return false; }
         }
 
-        public void OnRegisterCaps(LLUUID agentID, Caps caps) 
+        #endregion
+
+        public void OnRegisterCaps(LLUUID agentID, Caps caps)
         {
             m_log.DebugFormat("[VOICE] OnRegisterCaps: agentID {0} caps {1}", agentID, caps);
-            string capsBase = "/CAPS/" + caps.CapsObjectPath; 
+            string capsBase = "/CAPS/" + caps.CapsObjectPath;
             caps.RegisterHandler("ParcelVoiceInfoRequest",
-                                 new RestStreamHandler("POST", capsBase + m_parcelVoiceInfoRequestPath, 
-                                                       delegate(string request, string path, string param) 
+                                 new RestStreamHandler("POST", capsBase + m_parcelVoiceInfoRequestPath,
+                                                       delegate(string request, string path, string param)
                                                            {
-                                                               return ParcelVoiceInfoRequest(request, path, param, 
+                                                               return ParcelVoiceInfoRequest(request, path, param,
                                                                                              agentID, caps);
                                                            }));
             caps.RegisterHandler("ProvisionVoiceAccountRequest",
@@ -114,7 +117,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.SIPVoice
                                                                                                    agentID, caps);
                                                            }));
         }
-        
+
         /// <summary>
         /// Callback for a client request for ParcelVoiceInfo
         /// </summary>
@@ -124,8 +127,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.SIPVoice
         /// <param name="agentID"></param>
         /// <param name="caps"></param>
         /// <returns></returns>
-        public string ParcelVoiceInfoRequest(string request, string path, string param, 
-                                             LLUUID agentID, Caps caps) 
+        public string ParcelVoiceInfoRequest(string request, string path, string param,
+                                             LLUUID agentID, Caps caps)
         {
             try
             {
@@ -135,15 +138,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.SIPVoice
                 Hashtable creds = new Hashtable();
 
                 creds["channel_uri"] = String.Format("sip:{0}@{1}", agentID, m_sipDomain);
-                
+
                 string regionName = m_scene.RegionInfo.RegionName;
                 ScenePresence avatar = m_scene.GetScenePresence(agentID);
                 if (null == m_scene.LandChannel) throw new Exception("land data not yet available");
                 LandData land = m_scene.GetLandData(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
-                                
-                LLSDParcelVoiceInfoResponse parcelVoiceInfo = 
+
+                LLSDParcelVoiceInfoResponse parcelVoiceInfo =
                     new LLSDParcelVoiceInfoResponse(regionName, land.localID, creds);
-                
+
                 string r = LLSDHelpers.SerialiseLLSDReply(parcelVoiceInfo);
                 m_log.DebugFormat("[VOICE][PARCELVOICE]: {0}", r);
 
@@ -153,7 +156,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.SIPVoice
             {
                 m_log.ErrorFormat("[CAPS]: {0}, try again later", e.ToString());
             }
-            
+
             return null;
         }
 
@@ -166,12 +169,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.SIPVoice
         /// <param name="agentID"></param>
         /// <param name="caps"></param>
         /// <returns></returns>
-        public string ProvisionVoiceAccountRequest(string request, string path, string param, 
-                                                   LLUUID agentID, Caps caps) 
+        public string ProvisionVoiceAccountRequest(string request, string path, string param,
+                                                   LLUUID agentID, Caps caps)
         {
             try
             {
-                m_log.DebugFormat("[VOICE][PROVISIONVOICE]: request: {0}, path: {1}, param: {2}", 
+                m_log.DebugFormat("[VOICE][PROVISIONVOICE]: request: {0}, path: {1}, param: {2}",
                                   request, path, param);
 
                 string voiceUser = "x" + Convert.ToBase64String(agentID.GetBytes());
@@ -180,7 +183,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.SIPVoice
                 CachedUserInfo userInfo = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(agentID);
                 if (null == userInfo) throw new Exception("cannot get user details");
 
-                LLSDVoiceAccountResponse voiceAccountResponse = 
+                LLSDVoiceAccountResponse voiceAccountResponse =
                     new LLSDVoiceAccountResponse(voiceUser, "$1$" + userInfo.UserProfile.PasswordHash);
                 string r = LLSDHelpers.SerialiseLLSDReply(voiceAccountResponse);
                 m_log.DebugFormat("[CAPS][PROVISIONVOICE]: {0}", r);

@@ -84,45 +84,20 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
 {
     public class HttpRequestModule : IRegionModule, IHttpRequests
     {
-        private Scene m_scene;
-        private Queue<HttpRequestClass> rpcQueue = new Queue<HttpRequestClass>();
         private object HttpListLock = new object();
-        private string m_name = "HttpScriptRequests";
         private int httpTimeout = 30000;
+        private string m_name = "HttpScriptRequests";
 
         // <request id, HttpRequestClass>
         private Dictionary<LLUUID, HttpRequestClass> m_pendingRequests;
+        private Scene m_scene;
+        private Queue<HttpRequestClass> rpcQueue = new Queue<HttpRequestClass>();
 
         public HttpRequestModule()
         {
         }
 
-        public void Initialise(Scene scene, IConfigSource config)
-        {
-            m_scene = scene;
-
-            m_scene.RegisterModuleInterface<IHttpRequests>(this);
-
-            m_pendingRequests = new Dictionary<LLUUID, HttpRequestClass>();
-        }
-
-        public void PostInitialise()
-        {
-        }
-
-        public void Close()
-        {
-        }
-
-        public string Name
-        {
-            get { return m_name; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return true; }
-        }
+        #region IHttpRequests Members
 
         public LLUUID MakeHttpRequest(string url, string parameters, string body)
         {
@@ -141,7 +116,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
             if (parameters != null)
             {
                 string[] parms = parameters.ToArray();
-                for (int i = 0; i < parms.Length/2; i += 2)
+                for (int i = 0; i < parms.Length / 2; i += 2)
                 {
                     switch (Int32.Parse(parms[i]))
                     {
@@ -187,7 +162,8 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
 
         public void StopHttpRequest(uint m_localID, LLUUID m_itemID)
         {
-            if(m_pendingRequests != null) {
+            if (m_pendingRequests != null)
+            {
                 lock (HttpListLock)
                 {
                     HttpRequestClass tmpReq;
@@ -243,36 +219,68 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
             }
         }
 
+        #endregion
+
+        #region IRegionModule Members
+
+        public void Initialise(Scene scene, IConfigSource config)
+        {
+            m_scene = scene;
+
+            m_scene.RegisterModuleInterface<IHttpRequests>(this);
+
+            m_pendingRequests = new Dictionary<LLUUID, HttpRequestClass>();
+        }
+
+        public void PostInitialise()
+        {
+        }
+
+        public void Close()
+        {
+        }
+
+        public string Name
+        {
+            get { return m_name; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
+        }
+
+        #endregion
     }
 
     public class HttpRequestClass
     {
         // Constants for parameters
+        public const int HTTP_BODY_MAXLENGTH = 2;
         public const int HTTP_METHOD = 0;
         public const int HTTP_MIMETYPE = 1;
-        public const int HTTP_BODY_MAXLENGTH = 2;
         public const int HTTP_VERIFY_CERT = 3;
+        public bool finished;
+        public int httpBodyMaxLen = 2048; // not implemented
 
         // Parameter members and default values
         public string httpMethod = "GET";
         public string httpMIMEType = "text/plain;charset=utf-8";
-        public int httpBodyMaxLen = 2048; // not implemented
+        private Thread httpThread;
+        public int httpTimeout;
         public bool httpVerifyCert = true; // not implemented
 
         // Request info
-        public uint localID;
         public LLUUID itemID;
-        public LLUUID reqID;
-        public int httpTimeout;
-        public string url;
-        public string outbound_body;
+        public uint localID;
         public DateTime next;
-        public int status;
-        public bool finished;
-        public List<string> response_metadata;
-        public string response_body;
+        public string outbound_body;
+        public LLUUID reqID;
         public HttpWebRequest request;
-        private Thread httpThread;
+        public string response_body;
+        public List<string> response_metadata;
+        public int status;
+        public string url;
 
         public void process()
         {

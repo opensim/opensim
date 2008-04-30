@@ -110,6 +110,7 @@ namespace OpenSim.Region.Environment.Modules.ExportSerialiser
         private static void CreateCompressedXmlFile(MemoryStream xmlStream, string fileName)
         {
             #region GZip Compressed Version
+
             FileStream objectsFileCompressed = new FileStream(fileName + ".gzs", FileMode.Create);
             MemoryStream gzipMSStream = new MemoryStream();
             GZipStream gzipStream = new GZipStream(gzipMSStream, CompressionMode.Compress);
@@ -117,6 +118,7 @@ namespace OpenSim.Region.Environment.Modules.ExportSerialiser
             gzipMSStream.WriteTo(objectsFileCompressed);
             objectsFileCompressed.Flush();
             objectsFileCompressed.Close();
+
             #endregion
         }
     }

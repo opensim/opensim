@@ -47,32 +47,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
 
         private Dictionary<LLUUID, DynamicTextureUpdater> Updaters = new Dictionary<LLUUID, DynamicTextureUpdater>();
 
-        public void Initialise(Scene scene, IConfigSource config)
-        {
-            if (!RegisteredScenes.ContainsKey(scene.RegionInfo.RegionID))
-            {
-                RegisteredScenes.Add(scene.RegionInfo.RegionID, scene);
-                scene.RegisterModuleInterface<IDynamicTextureManager>(this);
-            }
-        }
-
-        public void PostInitialise()
-        {
-        }
-
-        public void Close()
-        {
-        }
-
-        public string Name
-        {
-            get { return "DynamicTextureModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return true; }
-        }
+        #region IDynamicTextureManager Members
 
         public void RegisterRender(string handleType, IDynamicTextureRender render)
         {
@@ -164,20 +139,55 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
             return LLUUID.Zero;
         }
 
+        #endregion
+
+        #region IRegionModule Members
+
+        public void Initialise(Scene scene, IConfigSource config)
+        {
+            if (!RegisteredScenes.ContainsKey(scene.RegionInfo.RegionID))
+            {
+                RegisteredScenes.Add(scene.RegionInfo.RegionID, scene);
+                scene.RegisterModuleInterface<IDynamicTextureManager>(this);
+            }
+        }
+
+        public void PostInitialise()
+        {
+        }
+
+        public void Close()
+        {
+        }
+
+        public string Name
+        {
+            get { return "DynamicTextureModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
+        }
+
+        #endregion
+
+        #region Nested type: DynamicTextureUpdater
+
         public class DynamicTextureUpdater
         {
-            public LLUUID SimUUID;
-            public LLUUID UpdaterID;
-            public string ContentType;
-            public string Url;
+            public bool BlendWithOldTexture = false;
             public string BodyData;
-            public LLUUID PrimID;
-            public int UpdateTimer;
+            public string ContentType;
+            public byte FrontAlpha = 255;
             public LLUUID LastAssetID;
             public string Params;
-            public bool BlendWithOldTexture = false;
+            public LLUUID PrimID;
             public bool SetNewFrontAlpha = false;
-            public byte FrontAlpha = 255;
+            public LLUUID SimUUID;
+            public LLUUID UpdaterID;
+            public int UpdateTimer;
+            public string Url;
 
             public DynamicTextureUpdater()
             {
@@ -224,7 +234,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
 
                 LastAssetID = asset.FullID;
 
-               
+
                 part.Shape.Textures = new LLObject.TextureEntry(asset.FullID);
                 part.ScheduleFullUpdate();
             }
@@ -273,5 +283,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
                 }
             }
         }
+
+        #endregion
     }
 }

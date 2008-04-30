@@ -44,13 +44,55 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
 {
     public class VectorRenderModule : IRegionModule, IDynamicTextureRender
     {
-        private Scene m_scene;
         private string m_name = "VectorRenderModule";
+        private Scene m_scene;
         private IDynamicTextureManager m_textureManager;
 
         public VectorRenderModule()
         {
         }
+
+        #region IDynamicTextureRender Members
+
+        public string GetContentType()
+        {
+            return ("vector");
+        }
+
+        public string GetName()
+        {
+            return m_name;
+        }
+
+        public bool SupportsAsynchronous()
+        {
+            return true;
+        }
+
+        public byte[] ConvertUrl(string url, string extraParams)
+        {
+            return null;
+        }
+
+        public byte[] ConvertStream(Stream data, string extraParams)
+        {
+            return null;
+        }
+
+        public bool AsyncConvertUrl(LLUUID id, string url, string extraParams)
+        {
+            return false;
+        }
+
+        public bool AsyncConvertData(LLUUID id, string bodyData, string extraParams)
+        {
+            Draw(bodyData, id, extraParams);
+            return true;
+        }
+
+        #endregion
+
+        #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
         {
@@ -83,21 +125,25 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
             get { return true; }
         }
 
+        #endregion
+
         private void Draw(string data, LLUUID id, string extraParams)
         {
             // TODO: this is a brutal hack.  extraParams should actually be parsed reasonably.
             int size = 256;
-            try {
+            try
+            {
                 size = Convert.ToInt32(extraParams);
-            } catch (Exception e) {
-
+            }
+            catch (Exception e)
+            {
 //Ckrinke: Add a WriteLine to remove the warning about 'e' defined but not used
                 Console.WriteLine("Problem with Draw. Please verify parameters." + e.ToString());
             }
-            
+
             if ((size < 128) || (size > 1024))
                 size = 256;
-            
+
             Bitmap bitmap = new Bitmap(size, size, PixelFormat.Format32bppArgb);
 
             Graphics graph = Graphics.FromImage(bitmap);
@@ -121,13 +167,11 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
                 }
             }
 
-           
 
             GDIDraw(data, graph);
 
             byte[] imageJ2000 = OpenJPEG.EncodeFromImage(bitmap, true);
             m_textureManager.ReturnData(id, imageJ2000);
-
         }
 
 /*
@@ -175,10 +219,10 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
             Pen drawPen = new Pen(Color.Black, 7);
             Font myFont = new Font("Times New Roman", 14);
             SolidBrush myBrush = new SolidBrush(Color.Black);
-            char[] lineDelimiter = { ';' };
-            char[] partsDelimiter = { ',' };
+            char[] lineDelimiter = {';'};
+            char[] partsDelimiter = {','};
             string[] lines = data.Split(lineDelimiter);
-             
+
             foreach (string line in lines)
             {
                 string nextLine = line.Trim();
@@ -188,16 +232,16 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
                     float x = 0;
                     float y = 0;
                     GetParams(partsDelimiter, ref nextLine, 6, ref x, ref y);
-                    startPoint.X = (int)x;
-                    startPoint.Y = (int)y;
+                    startPoint.X = (int) x;
+                    startPoint.Y = (int) y;
                 }
                 else if (nextLine.StartsWith("LineTo"))
                 {
                     float x = 0;
                     float y = 0;
                     GetParams(partsDelimiter, ref nextLine, 6, ref x, ref y);
-                    endPoint.X = (int)x;
-                    endPoint.Y = (int)y;
+                    endPoint.X = (int) x;
+                    endPoint.Y = (int) y;
                     graph.DrawLine(drawPen, startPoint, endPoint);
                     startPoint.X = endPoint.X;
                     startPoint.Y = endPoint.Y;
@@ -213,10 +257,10 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
                     float x = 0;
                     float y = 0;
                     GetParams(partsDelimiter, ref nextLine, 5, ref x, ref y);
-                    endPoint.X = (int)x;
-                    endPoint.Y = (int)y;
+                    endPoint.X = (int) x;
+                    endPoint.Y = (int) y;
                     Image image = ImageHttpRequest(nextLine);
-                    graph.DrawImage(image, (float)startPoint.X, (float)startPoint.Y, x, y);
+                    graph.DrawImage(image, (float) startPoint.X, (float) startPoint.Y, x, y);
                     startPoint.X += endPoint.X;
                     startPoint.Y += endPoint.Y;
                 }
@@ -225,8 +269,8 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
                     float x = 0;
                     float y = 0;
                     GetParams(partsDelimiter, ref nextLine, 9, ref x, ref y);
-                    endPoint.X = (int)x;
-                    endPoint.Y = (int)y;
+                    endPoint.X = (int) x;
+                    endPoint.Y = (int) y;
                     graph.DrawRectangle(drawPen, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
                     startPoint.X += endPoint.X;
                     startPoint.Y += endPoint.Y;
@@ -236,8 +280,8 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
                     float x = 0;
                     float y = 0;
                     GetParams(partsDelimiter, ref nextLine, 13, ref x, ref y);
-                    endPoint.X = (int)x;
-                    endPoint.Y = (int)y;
+                    endPoint.X = (int) x;
+                    endPoint.Y = (int) y;
                     graph.FillRectangle(myBrush, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
                     startPoint.X += endPoint.X;
                     startPoint.Y += endPoint.Y;
@@ -247,8 +291,8 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
                     float x = 0;
                     float y = 0;
                     GetParams(partsDelimiter, ref nextLine, 7, ref x, ref y);
-                    endPoint.X = (int)x;
-                    endPoint.Y = (int)y;
+                    endPoint.X = (int) x;
+                    endPoint.Y = (int) y;
                     graph.DrawEllipse(drawPen, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y);
                     startPoint.X += endPoint.X;
                     startPoint.Y += endPoint.Y;
@@ -271,7 +315,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
                 {
                     nextLine = nextLine.Remove(0, 9);
                     nextLine = nextLine.Trim();
-                    
+
                     Color newColour = Color.FromName(nextLine);
 
                     myBrush.Color = newColour;
@@ -312,7 +356,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
             WebRequest request = HttpWebRequest.Create(url);
 //Ckrinke: Comment out for now as 'str' is unused. Bring it back into play later when it is used.
 //Ckrinke            Stream str = null;
-            HttpWebResponse response = (HttpWebResponse)(request).GetResponse();
+            HttpWebResponse response = (HttpWebResponse) (request).GetResponse();
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 Bitmap image = new Bitmap(response.GetResponseStream());
@@ -320,42 +364,6 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
             }
 
             return null;
-        }
-
-        public string GetContentType()
-        {
-            return ("vector");
-        }
-
-        public string GetName()
-        {
-            return m_name;
-        }
-
-        public bool SupportsAsynchronous()
-        {
-            return true;
-        }
-
-        public byte[] ConvertUrl(string url, string extraParams)
-        {
-            return null;
-        }
-
-        public byte[] ConvertStream(Stream data, string extraParams)
-        {
-            return null;
-        }
-
-        public bool AsyncConvertUrl(LLUUID id, string url, string extraParams)
-        {
-            return false;
-        }
-
-        public bool AsyncConvertData(LLUUID id, string bodyData, string extraParams)
-        {
-            Draw(bodyData, id, extraParams);
-            return true;
         }
     }
 }

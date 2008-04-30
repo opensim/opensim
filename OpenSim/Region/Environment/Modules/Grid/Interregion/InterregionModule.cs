@@ -35,61 +35,14 @@ namespace OpenSim.Region.Environment.Modules.Communications.Interregion
         private readonly Dictionary<Location, string[]> m_neighbourInterfaces = new Dictionary<Location, string[]>();
         private readonly Dictionary<Location, RemotingObject> m_neighbourRemote = new Dictionary<Location, RemotingObject>();
         private IConfigSource m_config;
-        private RemotingObject m_myRemote;
-
-        private Object m_lockObject = new object();
-        private TcpChannel m_tcpChannel;
-        private int m_tcpPort = 10101;
         private bool m_enabled = false;
 
-        #region IRegionModule Members
+        private Object m_lockObject = new object();
+        private RemotingObject m_myRemote;
+        private TcpChannel m_tcpChannel;
+        private int m_tcpPort = 10101;
 
-        //TODO: This prevents us from registering new scenes after PostInitialise if we want comms updated.
-        public void Initialise(Scene scene, IConfigSource source)
-        {
-            if (m_enabled)
-            {
-                m_myLocations.Add(new Location((int) scene.RegionInfo.RegionLocX,
-                                               (int) scene.RegionInfo.RegionLocY));
-                m_config = source;
-
-                scene.RegisterModuleInterface<IInterregionModule>(this);
-            }
-        }
-
-        //TODO: This prevents us from registering new scenes after PostInitialise if we want comms updated.
-        public void PostInitialise()
-        {
-            if (m_enabled)
-            {
-                try
-                {
-                    m_tcpPort = m_config.Configs["Comms"].GetInt("remoting_port", m_tcpPort);
-                }
-                catch
-                {
-                }
-
-                internal_CreateRemotingObjects();
-            }
-        }
-
-        public void Close()
-        {
-            ChannelServices.UnregisterChannel(m_tcpChannel);
-        }
-
-        public string Name
-        {
-            get { return "InterregionModule"; }
-        }
-
-        public bool IsSharedModule
-        {
-            get { return true; }
-        }
-
-        #endregion
+        #region IInterregionModule Members
 
         public void internal_CreateRemotingObjects()
         {
@@ -103,22 +56,6 @@ namespace OpenSim.Region.Environment.Modules.Communications.Interregion
                     ChannelServices.RegisterChannel(m_tcpChannel, false);
                     RemotingServices.Marshal(m_myRemote, "OpenSimRemote2", typeof (RemotingObject));
                 }
-            }
-        }
-
-        public void RegisterRemoteRegion(string uri)
-        {
-            RegisterRemotingInterface((RemotingObject) Activator.GetObject(typeof (RemotingObject), uri));
-        }
-
-        private void RegisterRemotingInterface(RemotingObject remote)
-        {
-            Location[] locs = remote.GetLocations();
-            string[] interfaces = remote.GetInterfaces();
-            foreach (Location loc in locs)
-            {
-                m_neighbourInterfaces[loc] = interfaces;
-                m_neighbourRemote[loc] = remote;
             }
         }
 
@@ -170,6 +107,74 @@ namespace OpenSim.Region.Environment.Modules.Communications.Interregion
         public Location GetLocationByDirection(Scene scene, Direction dir)
         {
             return new Location(0, 0);
+        }
+
+        #endregion
+
+        //TODO: This prevents us from registering new scenes after PostInitialise if we want comms updated.
+
+        #region IRegionModule Members
+
+        public void Initialise(Scene scene, IConfigSource source)
+        {
+            if (m_enabled)
+            {
+                m_myLocations.Add(new Location((int) scene.RegionInfo.RegionLocX,
+                                               (int) scene.RegionInfo.RegionLocY));
+                m_config = source;
+
+                scene.RegisterModuleInterface<IInterregionModule>(this);
+            }
+        }
+
+        //TODO: This prevents us from registering new scenes after PostInitialise if we want comms updated.
+        public void PostInitialise()
+        {
+            if (m_enabled)
+            {
+                try
+                {
+                    m_tcpPort = m_config.Configs["Comms"].GetInt("remoting_port", m_tcpPort);
+                }
+                catch
+                {
+                }
+
+                internal_CreateRemotingObjects();
+            }
+        }
+
+        public void Close()
+        {
+            ChannelServices.UnregisterChannel(m_tcpChannel);
+        }
+
+        public string Name
+        {
+            get { return "InterregionModule"; }
+        }
+
+        public bool IsSharedModule
+        {
+            get { return true; }
+        }
+
+        #endregion
+
+        public void RegisterRemoteRegion(string uri)
+        {
+            RegisterRemotingInterface((RemotingObject) Activator.GetObject(typeof (RemotingObject), uri));
+        }
+
+        private void RegisterRemotingInterface(RemotingObject remote)
+        {
+            Location[] locs = remote.GetLocations();
+            string[] interfaces = remote.GetInterfaces();
+            foreach (Location loc in locs)
+            {
+                m_neighbourInterfaces[loc] = interfaces;
+                m_neighbourRemote[loc] = remote;
+            }
         }
     }
 }

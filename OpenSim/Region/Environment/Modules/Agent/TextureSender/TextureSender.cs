@@ -40,56 +40,43 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
     /// </summary>
     public class TextureSender : ITextureSender
     {
-        private static readonly ILog m_log 
+        private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Records the number of times texture send has been called.
         /// </summary>
         public int counter = 0;
-        
+
+        public bool ImageLoaded = false;
+
         /// <summary>
         /// Holds the texture asset to send.
         /// </summary>
         private AssetBase m_asset;
-        
+
         //public LLUUID assetID { get { return m_asset.FullID; } }
-        
+
+        private bool m_cancel = false;
+
+        // See ITextureSender
+
+        private bool m_sending = false;
+
         /// <summary>
         /// This is actually the number of extra packets required to send the texture data!  We always assume
         /// at least one is required.
         /// </summary>
         private int NumPackets = 0;
-        
+
         /// <summary>
         /// Holds the packet number to send next.  In this case, each packet is 1000 bytes long and starts
         /// at the 600th byte (0th indexed).
         /// </summary>
         private int PacketCounter = 0;
-        
-        // See ITextureSender
-        public bool Cancel 
-        { 
-            get { return false; }
-            set { m_cancel = value; }
-        }
-                    
-        private bool m_cancel = false;
-        
-        // See ITextureSender
-        public bool Sending 
-        { 
-            get { return false; }
-            set { m_sending = value; }
-        }
-                    
-        private bool m_sending = false;        
-        
-        public bool ImageLoaded = false;
-
-        private IClientAPI RequestUser;
 
         private int RequestedDiscardLevel = -1;
+        private IClientAPI RequestUser;
         private uint StartPacketNumber = 0;
 
         public TextureSender(IClientAPI client, int discardLevel, uint packetNumber)
@@ -99,18 +86,18 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
             StartPacketNumber = packetNumber;
         }
 
-        /// <summary>
-        /// Load up the texture data to send.
-        /// </summary>
-        /// <param name="asset">
-        /// A <see cref="AssetBase"/>
-        /// </param>
-        public void TextureReceived(AssetBase asset)
+        #region ITextureSender Members
+
+        public bool Cancel
         {
-            m_asset = asset;
-            NumPackets = CalculateNumPackets(asset.Data.Length);
-            PacketCounter = (int) StartPacketNumber;
-            ImageLoaded = true;
+            get { return false; }
+            set { m_cancel = value; }
+        }
+
+        public bool Sending
+        {
+            get { return false; }
+            set { m_sending = value; }
         }
 
         // See ITextureSender
@@ -125,15 +112,31 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
         public bool SendTexturePacket()
         {
             //m_log.DebugFormat("[TEXTURE SENDER]: Sending packet for {0}", m_asset.FullID);
-            
+
             SendPacket();
             counter++;
             if ((NumPackets == 0) || (RequestedDiscardLevel == -1) || (PacketCounter > NumPackets) ||
-                ((RequestedDiscardLevel > 0) && (counter > 50 + (NumPackets/(RequestedDiscardLevel + 1)))))
+                ((RequestedDiscardLevel > 0) && (counter > 50 + (NumPackets / (RequestedDiscardLevel + 1)))))
             {
                 return true;
             }
             return false;
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Load up the texture data to send.
+        /// </summary>
+        /// <param name="asset">
+        /// A <see cref="AssetBase"/>
+        /// </param>
+        public void TextureReceived(AssetBase asset)
+        {
+            m_asset = asset;
+            NumPackets = CalculateNumPackets(asset.Data.Length);
+            PacketCounter = (int) StartPacketNumber;
+            ImageLoaded = true;
         }
 
         /// <summary>
@@ -177,17 +180,17 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
                     im.Header.Reliable = false;
                     im.ImageID.Packet = (ushort) (PacketCounter);
                     im.ImageID.ID = m_asset.FullID;
-                    int size = m_asset.Data.Length - 600 - (1000*(PacketCounter - 1));
+                    int size = m_asset.Data.Length - 600 - (1000 * (PacketCounter - 1));
                     if (size > 1000) size = 1000;
                     im.ImageData.Data = new byte[size];
                     try
                     {
-                        Array.Copy(m_asset.Data, 600 + (1000*(PacketCounter - 1)), im.ImageData.Data, 0, size);
+                        Array.Copy(m_asset.Data, 600 + (1000 * (PacketCounter - 1)), im.ImageData.Data, 0, size);
                     }
                     catch (ArgumentOutOfRangeException)
                     {
                         m_log.Error("[TEXTURE SENDER]: Unable to separate texture into multiple packets: Array bounds failure on asset:" +
-                                    m_asset.FullID.ToString() );
+                                    m_asset.FullID.ToString());
                         return;
                     }
                     RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
@@ -210,7 +213,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
             {
                 //over 600 bytes so split up file
                 int restData = (length - 600);
-                int restPackets = ((restData + 999)/1000);
+                int restPackets = ((restData + 999) / 1000);
                 numPackets = restPackets;
             }
 

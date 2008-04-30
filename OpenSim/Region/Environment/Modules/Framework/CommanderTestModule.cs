@@ -28,26 +28,29 @@
 using System;
 using Nini.Config;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Modules.Framework;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.Framework
 {
     public class CommanderTestModule : IRegionModule, ICommandableModule
     {
-        Commander m_commander = new Commander("CommanderTest");
-        Scene m_scene;
+        private Commander m_commander = new Commander("CommanderTest");
+        private Scene m_scene;
+
+        #region ICommandableModule Members
+
+        public ICommander CommandInterface
+        {
+            get { throw new NotImplementedException(); }
+        }
+
+        #endregion
 
         #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource source)
         {
-            m_scene = scene;   
-        }
-
-        private void InterfaceHelloWorld(Object[] args)
-        {
-            Console.WriteLine("Hello World");
+            m_scene = scene;
         }
 
         public void PostInitialise()
@@ -77,13 +80,9 @@ namespace OpenSim.Region.Environment.Modules.Framework
 
         #endregion
 
-        #region ICommandableModule Members
-
-        public ICommander CommandInterface
+        private void InterfaceHelloWorld(Object[] args)
         {
-            get { throw new NotImplementedException(); }
+            Console.WriteLine("Hello World");
         }
-
-        #endregion
     }
 }
