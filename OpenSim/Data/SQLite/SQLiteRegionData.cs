@@ -763,6 +763,7 @@ namespace OpenSim.Data.SQLite
             createCol(land, "UserLookAtX", typeof (Double));
             createCol(land, "UserLookAtY", typeof (Double));
             createCol(land, "UserLookAtZ", typeof (Double));
+            createCol(land, "AuthbuyerID", typeof(String));
 
             land.PrimaryKey = new DataColumn[] {land.Columns["UUID"]};
 
@@ -969,7 +970,40 @@ namespace OpenSim.Data.SQLite
                 new LLVector3(Convert.ToSingle(row["UserLookAtX"]), Convert.ToSingle(row["UserLookAtY"]),
                               Convert.ToSingle(row["UserLookAtZ"]));
             newData.parcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
+            LLUUID authBuyerID = LLUUID.Zero;
 
+            try
+            {
+                Helpers.TryParse((string)row["AuthbuyerID"], out authBuyerID);
+            }
+            catch (InvalidCastException)
+            {
+                // Database table was created before we got here and now has null values :P
+                try
+                {
+                    m_conn.Open();
+                    SqliteCommand cmd =
+                        new SqliteCommand("ALTER TABLE land ADD COLUMN AuthbuyerID varchar(36) NOT NULL default  '00000000-0000-0000-0000-000000000000';", m_conn);
+                    cmd.ExecuteNonQuery();
+                    m_conn.Close();
+                    m_conn.Dispose();
+                   
+                    m_log.Error("[SQLITE]: The land table was recently updated.  You need to restart the simulator.  Exiting now.");
+
+                    System.Threading.Thread.Sleep(10000);
+
+                    // ICK!  but it's better then A thousand red SQLITE error messages!
+                    Environment.Exit(0);
+                   
+                }
+                catch (System.Exception)
+                {
+                    // ICK!  but it's better then A thousand red SQLITE error messages!
+                    m_log.Error("[SQLITE]: The land table was recently updated.  You need to restart the simulator");
+                    Environment.Exit(0);
+                }
+            }
+            
             return newData;
         }
 
