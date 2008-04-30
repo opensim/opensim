@@ -40,7 +40,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Modules.Terrain;
+using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
 using Caps=OpenSim.Region.Capabilities.Caps;

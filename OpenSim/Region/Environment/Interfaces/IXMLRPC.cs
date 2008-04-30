@@ -26,7 +26,7 @@
  */
 
 using libsecondlife;
-using OpenSim.Region.Environment.Modules;
+using OpenSim.Region.Environment.Modules.Scripting.XMLRPC;
 
 namespace OpenSim.Region.Environment.Interfaces
 {

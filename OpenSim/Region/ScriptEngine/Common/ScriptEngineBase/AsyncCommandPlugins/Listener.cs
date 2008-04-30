@@ -26,7 +26,7 @@
  */
 
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Modules;
+using OpenSim.Region.Environment.Modules.Scripting.WorldComm;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugins
 {

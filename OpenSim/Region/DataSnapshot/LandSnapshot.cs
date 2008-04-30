@@ -34,7 +34,7 @@ using libsecondlife;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Modules.LandManagement;
+using OpenSim.Region.Environment.Modules.World.Land;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.DataSnapshot

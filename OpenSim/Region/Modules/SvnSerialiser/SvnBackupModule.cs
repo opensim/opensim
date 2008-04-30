@@ -7,7 +7,7 @@ using log4net;
 using Nini.Config;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.ExportSerialiser;
-using OpenSim.Region.Environment.Modules.Terrain;
+using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes;
 using PumaCode.SvnDotNet.AprSharp;
 using PumaCode.SvnDotNet.SubversionSharp;

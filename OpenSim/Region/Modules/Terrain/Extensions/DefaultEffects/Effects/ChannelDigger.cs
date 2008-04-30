@@ -1,7 +1,7 @@
 ﻿using System;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Modules.Terrain;
-using OpenSim.Region.Environment.Modules.Terrain.FloodBrushes;
+using OpenSim.Region.Environment.Modules.World.Terrain;
+using OpenSim.Region.Environment.Modules.World.Terrain.FloodBrushes;
 
 namespace OpenSim.Region.Modules.Terrain.Extensions.DefaultEffects.Effects
 {

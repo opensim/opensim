@@ -32,7 +32,13 @@ using System.Reflection;
 using log4net;
 using Nini.Config;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Modules;
+//TODO: Why do we reference InstantMessageModule here?
+using OpenSim.Region.Environment.Modules.Agent.AssetTransaction;
+using OpenSim.Region.Environment.Modules.Avatar.Chat;
+using OpenSim.Region.Environment.Modules.Avatar.InstantMessage;
+using OpenSim.Region.Environment.Modules.Scripting.DynamicTexture;
+using OpenSim.Region.Environment.Modules.Scripting.LoadImageURL;
+using OpenSim.Region.Environment.Modules.Scripting.XMLRPC;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment
@@ -139,7 +145,7 @@ namespace OpenSim.Region.Environment
 
             //LoadedSharedModules.Add(textureModule.Name, textureModule);
 
-            AgentAssetTransactionModule transactionsModule = new AgentAssetTransactionModule();
+            AssetTransactionModule transactionsModule = new AssetTransactionModule();
             if (m_loadedSharedModules.ContainsKey(transactionsModule.Name))
             {
                 m_log.ErrorFormat("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", transactionsModule.Name, "TransactionModule");

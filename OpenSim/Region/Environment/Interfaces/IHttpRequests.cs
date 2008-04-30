@@ -27,7 +27,7 @@
 
 using System.Collections.Generic;
 using libsecondlife;
-using OpenSim.Region.Environment.Modules;
+using OpenSim.Region.Environment.Modules.Scripting.HttpRequest;
 
 namespace OpenSim.Region.Environment.Interfaces
 {

@@ -27,7 +27,7 @@
 
 using libsecondlife;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Modules;
+using OpenSim.Region.Environment.Modules.Scripting.WorldComm;
 
 namespace OpenSim.Region.Environment.Interfaces
 {

@@ -37,8 +37,8 @@ using Mono.Addins;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
+using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.Environment.Modules.Terrain;
 
 [assembly : Addin]
 [assembly : AddinDependency("OpenSim", "0.5")]

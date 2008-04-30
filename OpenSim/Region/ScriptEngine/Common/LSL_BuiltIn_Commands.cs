@@ -36,8 +36,8 @@ using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Modules;
-using OpenSim.Region.Environment.Modules.LandManagement;
+using OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney;
+using OpenSim.Region.Environment.Modules.World.Land;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 
