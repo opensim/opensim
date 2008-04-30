@@ -103,12 +103,24 @@ namespace OpenSim.Data.SQLite
             item.EveryOnePermissions = Convert.ToUInt32(row["inventoryEveryOnePermissions"]);
 
             // new fields
-            item.SalePrice = Convert.ToInt32(row["salePrice"]);
-            item.SaleType = Convert.ToByte(row["saleType"]);
-            item.CreationDate = Convert.ToInt32(row["creationDate"]);
-            item.GroupID = new LLUUID((string)row["groupID"]);
-            item.GroupOwned = Convert.ToBoolean(row["groupOwned"]);
-            item.Flags = Convert.ToUInt32(row["Flags"]);
+            if (!Convert.IsDBNull(row["salePrice"]))
+                item.SalePrice = Convert.ToInt32(row["salePrice"]);
+            
+            if (!Convert.IsDBNull(row["saleType"]))
+                item.SaleType = Convert.ToByte(row["saleType"]);
+            
+            if (!Convert.IsDBNull(row["creationDate"]))
+                item.CreationDate = Convert.ToInt32(row["creationDate"]);
+            
+            if (!Convert.IsDBNull(row["groupID"]))
+                item.GroupID = new LLUUID((string)row["groupID"]);
+            
+            if (!Convert.IsDBNull(row["groupOwned"]))
+                item.GroupOwned = Convert.ToBoolean(row["groupOwned"]);
+            
+            if (!Convert.IsDBNull(row["Flags"]))
+                item.Flags = Convert.ToUInt32(row["Flags"]);
+            
             return item;
         }
 
