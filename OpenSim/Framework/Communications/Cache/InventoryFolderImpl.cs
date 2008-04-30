@@ -26,12 +26,17 @@
  */
 
 using System.Collections.Generic;
+//using System.Reflection;
+
 using libsecondlife;
+//using log4net;
 
 namespace OpenSim.Framework.Communications.Cache
 {
     public class InventoryFolderImpl : InventoryFolderBase
     {
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         // Fields
         public Dictionary<LLUUID, InventoryItemBase> Items = new Dictionary<LLUUID, InventoryItemBase>();
         public Dictionary<LLUUID, InventoryFolderImpl> SubFolders = new Dictionary<LLUUID, InventoryFolderImpl>();
@@ -199,6 +204,8 @@ namespace OpenSim.Framework.Communications.Cache
                     itemList.Add(item);
                 }
             }
+            
+            //m_log.DebugFormat("[INVENTORY FOLDER IMPL]: Found {0} items", itemList.Count);
             
             return itemList;
         }

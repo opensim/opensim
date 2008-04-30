@@ -47,8 +47,7 @@ namespace OpenSim.Framework.Communications.Cache
     /// </summary>
     public class UserProfileCacheService
     {
-        private static readonly ILog m_log 
-            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// The comms manager holds references to services (user, grid, inventory, etc.)
@@ -416,6 +415,8 @@ namespace OpenSim.Framework.Communications.Cache
         public List<InventoryItemBase> HandleFetchInventoryDescendentsCAPS(LLUUID agentID, LLUUID folderID, LLUUID ownerID,
                                                    bool fetchFolders, bool fetchItems, int sortOrder)
         {
+            //m_log.DebugFormat("[INVENTORY CACHE]: Fetching folders/items from {0} for agent {1}", folderID, agentID);
+            
             // XXX We're not handling sortOrder yet!
 
             InventoryFolderImpl fold = null;
