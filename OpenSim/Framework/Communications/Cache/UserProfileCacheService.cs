@@ -184,6 +184,12 @@ namespace OpenSim.Framework.Communications.Cache
                             createdBaseFolder.Version = createdFolder.Version;
                             m_commsManager.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, createdBaseFolder);
                         }
+                        else
+                        {
+                            m_log.WarnFormat(
+                                 "[INVENTORY CACHE]: Tried to create folder {0} {1} for user {2} {3} but the folder already exists", 
+                                 folderName, folderID, remoteClient.Name, remoteClient.AgentId);
+                        }
                     }
                     else
                     {
@@ -191,16 +197,31 @@ namespace OpenSim.Framework.Communications.Cache
                         if (folder != null)
                         {
                             InventoryFolderImpl createdFolder = folder.CreateNewSubFolder(folderID, folderName, folderType);
-                            
-                            InventoryFolderBase createdBaseFolder = new InventoryFolderBase();
-                            createdBaseFolder.Owner = createdFolder.Owner;
-                            createdBaseFolder.ID = createdFolder.ID;
-                            createdBaseFolder.Name = createdFolder.Name;
-                            createdBaseFolder.ParentID = createdFolder.ParentID;
-                            createdBaseFolder.Type = createdFolder.Type;
-                            createdBaseFolder.Version = createdFolder.Version;                            
-                            
-                            m_commsManager.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, createdBaseFolder);
+                         
+                            if (createdFolder != null)
+                            {
+                                InventoryFolderBase createdBaseFolder = new InventoryFolderBase();
+                                createdBaseFolder.Owner = createdFolder.Owner;
+                                createdBaseFolder.ID = createdFolder.ID;
+                                createdBaseFolder.Name = createdFolder.Name;
+                                createdBaseFolder.ParentID = createdFolder.ParentID;
+                                createdBaseFolder.Type = createdFolder.Type;
+                                createdBaseFolder.Version = createdFolder.Version;                            
+                                
+                                m_commsManager.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, createdBaseFolder);
+                            }
+                            else
+                            {
+                                m_log.WarnFormat(
+                                     "[INVENTORY CACHE]: Tried to create folder {0} {1} for user {2} {3} but the folder already exists", 
+                                     folderName, folderID, remoteClient.Name, remoteClient.AgentId);
+                            }    
+                        }  
+                        else
+                        {
+                            m_log.WarnFormat(
+                                 "[INVENTORY CACHE]: Could not find parent folder with id {0} in order to create folder {1} {2} for user {3} {4}",
+                                 parentID, folderName, folderID, remoteClient.Name, remoteClient.AgentId);
                         }
                     }
                 }

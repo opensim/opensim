@@ -62,6 +62,13 @@ namespace OpenSim.Framework.Communications.Cache
         {
         }
 
+        /// <summary>
+        /// Create a new subfolder.  This exists only in the cache.
+        /// </summary>
+        /// <param name="folderID"></param>
+        /// <param name="folderName"></param>
+        /// <param name="type"></param>
+        /// <returns>The newly created subfolder.  Returns null if the folder already exists</returns>
         public InventoryFolderImpl CreateNewSubFolder(LLUUID folderID, string folderName, ushort type)
         {
             lock (SubFolders)
