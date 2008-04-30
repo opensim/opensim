@@ -101,10 +101,11 @@ namespace OpenSim.Data.MySQL
             }
 
             // if the table is already at the current version, then we can exit immediately
-//             if (oldVersion == "Rev. 2")
-//                 return;
-
-//             database.ExecuteResourceSql("UpgradeItemsTableToVersion2.sql");
+            if (oldVersion.StartsWith("Rev. 2;"))
+            {
+                m_log.Info("[INVENTORY DB]: Upgrading inventory items table from Rev. 2 to Rev. 3");
+                database.ExecuteResourceSql("UpgradeItemsTableToVersion3.sql");
+            }
         }
 
         private void TestTables(MySqlConnection conn)
@@ -115,8 +116,8 @@ namespace OpenSim.Data.MySQL
             tableList["inventoryitems"] = null;
 
             database.GetTableVersion(tableList);
-            m_log.Info("[MYSQL]: Inventory Folder Version: " + tableList["inventoryfolders"]);
-            m_log.Info("[MYSQL]: Inventory Items Version: " + tableList["inventoryitems"]);
+            m_log.Info("[INVENTORY DB]: Inventory Folder Version: " + tableList["inventoryfolders"]);
+            m_log.Info("[INVENTORY DB]: Inventory Items Version: " + tableList["inventoryitems"]);
 
             UpgradeFoldersTable(tableList["inventoryfolders"]);
             UpgradeItemsTable(tableList["inventoryitems"]);
