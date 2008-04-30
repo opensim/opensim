@@ -76,6 +76,110 @@ namespace OpenSim.Framework
             }
         }
 
+        public LLUUID BodyItem {
+            get { return wearables[BODY].ItemID; }
+            set { wearables[BODY].ItemID = value; }
+        }
+        public LLUUID BodyAsset {
+            get { return wearables[BODY].AssetID; }
+            set { wearables[BODY].AssetID = value; }
+        }
+        public LLUUID SkinItem {
+            get { return wearables[SKIN].ItemID; }
+            set { wearables[SKIN].ItemID = value; }
+        }
+        public LLUUID SkinAsset {
+            get { return wearables[SKIN].AssetID; }
+            set { wearables[SKIN].AssetID = value; }
+        }
+        public LLUUID HairItem {
+            get { return wearables[HAIR].ItemID; }
+            set { wearables[HAIR].ItemID = value; }
+        }
+        public LLUUID HairAsset {
+            get { return wearables[HAIR].AssetID; }
+            set { wearables[HAIR].AssetID = value; }
+        }
+        public LLUUID EyesItem {
+            get { return wearables[EYES].ItemID; }
+            set { wearables[EYES].ItemID = value; }
+        }
+        public LLUUID EyesAsset {
+            get { return wearables[EYES].AssetID; }
+            set { wearables[EYES].AssetID = value; }
+        }
+        public LLUUID ShirtItem {
+            get { return wearables[SHIRT].ItemID; }
+            set { wearables[SHIRT].ItemID = value; }
+        }
+        public LLUUID ShirtAsset {
+            get { return wearables[SHIRT].AssetID; }
+            set { wearables[SHIRT].AssetID = value; }
+        }
+        public LLUUID PantsItem {
+            get { return wearables[PANTS].ItemID; }
+            set { wearables[PANTS].ItemID = value; }
+        }
+        public LLUUID PantsAsset {
+            get { return wearables[BODY].AssetID; }
+            set { wearables[BODY].AssetID = value; }
+        }
+        public LLUUID ShoesItem {
+            get { return wearables[SHOES].ItemID; }
+            set { wearables[SHOES].ItemID = value; }
+        }
+        public LLUUID ShoesAsset {
+            get { return wearables[SHOES].AssetID; }
+            set { wearables[SHOES].AssetID = value; }
+        }
+        public LLUUID SocksItem {
+            get { return wearables[SOCKS].ItemID; }
+            set { wearables[SOCKS].ItemID = value; }
+        }
+        public LLUUID SocksAsset {
+            get { return wearables[SOCKS].AssetID; }
+            set { wearables[SOCKS].AssetID = value; }
+        }
+        public LLUUID JacketItem {
+            get { return wearables[JACKET].ItemID; }
+            set { wearables[JACKET].ItemID = value; }
+        }
+        public LLUUID JacketAsset {
+            get { return wearables[JACKET].AssetID; }
+            set { wearables[JACKET].AssetID = value; }
+        }
+        public LLUUID GlovesItem {
+            get { return wearables[GLOVES].ItemID; }
+            set { wearables[GLOVES].ItemID = value; }
+        }
+        public LLUUID GlovesAsset {
+            get { return wearables[GLOVES].AssetID; }
+            set { wearables[GLOVES].AssetID = value; }
+        }
+        public LLUUID UnderShirtItem {
+            get { return wearables[UNDERSHIRT].ItemID; }
+            set { wearables[UNDERSHIRT].ItemID = value; }
+        }
+        public LLUUID UnderShirtAsset {
+            get { return wearables[UNDERSHIRT].AssetID; }
+            set { wearables[UNDERSHIRT].AssetID = value; }
+        }
+        public LLUUID UnderPantsItem {
+            get { return wearables[UNDERPANTS].ItemID; }
+            set { wearables[UNDERPANTS].ItemID = value; }
+        }
+        public LLUUID UnderPantsAsset {
+            get { return wearables[UNDERPANTS].AssetID; }
+            set { wearables[UNDERPANTS].AssetID = value; }
+        }
+        public LLUUID SkirtItem {
+            get { return wearables[SKIRT].ItemID; }
+            set { wearables[SKIRT].ItemID = value; }
+        }
+        public LLUUID SkirtAsset {
+            get { return wearables[SKIRT].AssetID; }
+            set { wearables[SKIRT].AssetID = value; }
+        }
 
         public void SetDefaultWearables() 
         {
