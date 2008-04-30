@@ -15,7 +15,7 @@ CREATE TABLE `inventoryitems` (
   `salePrice` int(11) default NULL,
   `saleType` tinyint(4) default NULL,
   `creationDate` int(11) default NULL,
-  `groupID` varchar(63) default NULL,
+  `groupID` varchar(36) default NULL,
   `groupOwned` tinyint(4) default NULL,
   `flags` int(11) unsigned default NULL,
   PRIMARY KEY  (`inventoryID`),

@@ -17,7 +17,13 @@ CREATE TABLE [inventoryitems] (
   [invType] [int] default NULL,
   [creatorID] [varchar](36) default NULL,
   [inventoryBasePermissions] [int] NOT NULL default 0,
-  [inventoryEveryOnePermissions] [int] NOT NULL default 0, 
+  [inventoryEveryOnePermissions] [int] NOT NULL default 0,
+  [salePrice] [int] default NULL,
+  [saleType] [smallint] default NULL,
+  [creationDate] [int] default NULL,
+  [groupID] [varchar](36) default NULL,
+  [groupOwned] [smallint] default NULL,
+  [flags] [int] unsigned default NULL,
   PRIMARY KEY CLUSTERED
 (
 	[inventoryID] ASC
