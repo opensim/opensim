@@ -22,13 +22,13 @@
 		   <touch file="../${projectdir}/bin/startup_commands.txt" />
 
 			<zip zipfile="../${projectdir}.zip">
-			<fileset basedir="../">
-				<include name="${projectdir}/**/*" />
+			<fileset basedir="${projectdir}/">
+				<include name="**" />
 			</fileset>
 			</zip>
 			<tar destfile="../${projectdir}.tar.gz" compression="GZip">
-			<fileset basedir="../">
-				<include name="${projectdir}/**/*" />
+			<fileset basedir="${projectdir}/">
+				<include name="**" />
 			</fileset>
 			</tar>
 			
