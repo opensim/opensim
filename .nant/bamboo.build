@@ -23,12 +23,12 @@
 
 			<zip zipfile="../${projectdir}.zip">
 			<fileset basedir="../">
-				<include name="${projectdir}/" />
+				<include name="${projectdir}/**/*" />
 			</fileset>
 			</zip>
 			<tar destfile="../${projectdir}.tar.gz" compression="GZip">
 			<fileset basedir="../">
-				<include name="${projectdir}/" />
+				<include name="${projectdir}/**/*" />
 			</fileset>
 			</tar>
 			
