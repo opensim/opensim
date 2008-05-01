@@ -32,7 +32,12 @@ namespace OpenSim.Grid.ScriptServer.ScriptServer.Region
         // These are events that the region needs to have
 
         // TEMP: Using System.Delegate -- needs replacing with a real delegate
+
+        #region Delegates
+
         public delegate void DefaultDelegate();
+
+        #endregion
 
         public event DefaultDelegate onScriptRez;
         public event DefaultDelegate onstate_entry;

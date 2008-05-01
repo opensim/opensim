@@ -35,21 +35,16 @@ namespace OpenSim.Grid.MessagingServer
 {
     public class PresenceInformer
     {
-        public UserPresenceData presence1 = null;
-        public UserPresenceData presence2 = null;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        public UserPresenceData presence1;
+        public UserPresenceData presence2;
 
-        public PresenceInformer()
-        {
-
-        }
         public void go(object o)
         {
             if (presence1 != null && presence2 != null)
             {
                 SendRegionPresenceUpdate(presence1, presence2);
             }
-
         }
 
         /// <summary>

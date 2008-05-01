@@ -44,6 +44,34 @@ namespace OpenSim.Grid.GridServer
         protected GridManager m_gridManager;
         protected List<IGridPlugin> m_plugins = new List<IGridPlugin>();
 
+        public GridServerBase()
+        {
+            m_console = new ConsoleBase("OpenGrid", this);
+            MainConsole.Instance = m_console;
+        }
+
+        #region conscmd_callback Members
+
+        public override void RunCmd(string cmd, string[] cmdparams)
+        {
+            base.RunCmd(cmd, cmdparams);
+
+            switch (cmd)
+            {
+                case "help":
+                    m_console.Notice("shutdown - shutdown the grid (USE CAUTION!)");
+                    break;
+
+                case "shutdown":
+                    foreach (IGridPlugin plugin in m_plugins) plugin.Close();
+                    m_console.Close();
+                    Environment.Exit(0);
+                    break;
+            }
+        }
+
+        #endregion
+
         public void Work()
         {
             m_console.Notice("Enter help for a list of commands\n");
@@ -52,12 +80,6 @@ namespace OpenSim.Grid.GridServer
             {
                 m_console.Prompt();
             }
-        }
-
-        public GridServerBase()
-        {
-            m_console = new ConsoleBase("OpenGrid", this);
-            MainConsole.Instance = m_console;
         }
 
         public void managercallback(string cmd)
@@ -83,14 +105,14 @@ namespace OpenSim.Grid.GridServer
 
             AddHttpHandlers();
 
-            LoadGridPlugins( );
+            LoadGridPlugins();
 
             m_httpServer.Start();
 
             m_console.Status("[GRID]: Starting sim status checker");
 
             Timer simCheckTimer = new Timer(3600000 * 3); // 3 Hours between updates.
-            simCheckTimer.Elapsed += new ElapsedEventHandler(CheckSims);
+            simCheckTimer.Elapsed += CheckSims;
             simCheckTimer.Enabled = true;
         }
 
@@ -122,7 +144,7 @@ namespace OpenSim.Grid.GridServer
             foreach (TypeExtensionNode node in nodes)
             {
                 m_console.Status("[GRIDPLUGINS]: Loading OpenSim plugin " + node.Path);
-                IGridPlugin plugin = (IGridPlugin)node.CreateInstance();
+                IGridPlugin plugin = (IGridPlugin) node.CreateInstance();
                 plugin.Initialise(this);
                 m_plugins.Add(plugin);
             }
@@ -176,24 +198,6 @@ namespace OpenSim.Grid.GridServer
                 }
             }
             */
-        }
-
-        public override void RunCmd(string cmd, string[] cmdparams)
-        {
-            base.RunCmd(cmd, cmdparams);
-
-            switch (cmd)
-            {
-                case "help":
-                    m_console.Notice("shutdown - shutdown the grid (USE CAUTION!)");
-                    break;
-
-                case "shutdown":
-                    foreach (IGridPlugin plugin in m_plugins) plugin.Close();
-                    m_console.Close();
-                    Environment.Exit(0);
-                    break;
-            }
         }
     }
 }

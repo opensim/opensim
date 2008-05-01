@@ -29,8 +29,8 @@ namespace OpenSim.Grid.ScriptServer.ScriptServer.Region
 {
     public class RegionConnectionManager : RegionBase
     {
-        private ScriptServerMain m_ScriptServerMain;
         private object m_Connection;
+        private ScriptServerMain m_ScriptServerMain;
 
         public RegionConnectionManager(ScriptServerMain scm, object Connection)
         {

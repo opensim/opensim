@@ -44,11 +44,11 @@ namespace OpenSim.Grid.GridServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<string, IGridData> _plugins = new Dictionary<string, IGridData>();
-        private Dictionary<string, ILogData> _logplugins = new Dictionary<string, ILogData>();
+        private readonly Dictionary<string, ILogData> _logplugins = new Dictionary<string, ILogData>();
 
         // This is here so that the grid server can hand out MessageServer settings to regions on registration
-        private List<MessageServerInfo> _MessageServers = new List<MessageServerInfo>();
+        private readonly List<MessageServerInfo> _MessageServers = new List<MessageServerInfo>();
+        private readonly Dictionary<string, IGridData> _plugins = new Dictionary<string, IGridData>();
 
         public GridConfig Config;
 
@@ -72,7 +72,7 @@ namespace OpenSim.Grid.GridServer
                     if (typeInterface != null)
                     {
                         IGridData plug =
-                            (IGridData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                            (IGridData) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         plug.Initialise();
                         _plugins.Add(plug.getName(), plug);
                         m_log.Info("[DATA]: Added IGridData Interface");
@@ -84,7 +84,7 @@ namespace OpenSim.Grid.GridServer
                     if (typeInterface != null)
                     {
                         ILogData plug =
-                            (ILogData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
+                            (ILogData) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                         plug.Initialise();
                         _logplugins.Add(plug.getName(), plug);
                         m_log.Info("[DATA]: Added ILogData Interface");
@@ -152,7 +152,7 @@ namespace OpenSim.Grid.GridServer
                 }
                 catch
                 {
-                    m_log.Warn("[storage]: Unable to find region " + handle.ToString() + " via " + kvp.Key);
+                    m_log.Warn("[storage]: Unable to find region " + handle + " via " + kvp.Key);
                 }
             }
             return null;
@@ -218,20 +218,20 @@ namespace OpenSim.Grid.GridServer
                 {
                     if (
                         GetRegion(
-                            Util.UIntsToLong((uint)((central_region.regionLocX + x) * Constants.RegionSize),
-                                             (uint)(central_region.regionLocY + y) * Constants.RegionSize)) != null)
+                            Util.UIntsToLong((uint) ((central_region.regionLocX + x) * Constants.RegionSize),
+                                             (uint) (central_region.regionLocY + y) * Constants.RegionSize)) != null)
                     {
                         neighbour =
                             GetRegion(
-                                Util.UIntsToLong((uint)((central_region.regionLocX + x) * Constants.RegionSize),
-                                                 (uint)(central_region.regionLocY + y) * Constants.RegionSize));
+                                Util.UIntsToLong((uint) ((central_region.regionLocX + x) * Constants.RegionSize),
+                                                 (uint) (central_region.regionLocY + y) * Constants.RegionSize));
 
                         response += "<neighbour>";
                         response += "<sim_ip>" + neighbour.serverIP + "</sim_ip>";
-                        response += "<sim_port>" + neighbour.serverPort.ToString() + "</sim_port>";
-                        response += "<locx>" + neighbour.regionLocX.ToString() + "</locx>";
-                        response += "<locy>" + neighbour.regionLocY.ToString() + "</locy>";
-                        response += "<regionhandle>" + neighbour.regionHandle.ToString() + "</regionhandle>";
+                        response += "<sim_port>" + neighbour.serverPort + "</sim_port>";
+                        response += "<locx>" + neighbour.regionLocX + "</locx>";
+                        response += "<locy>" + neighbour.regionLocY + "</locy>";
+                        response += "<regionhandle>" + neighbour.regionHandle + "</regionhandle>";
                         response += "</neighbour>";
                     }
                 }
@@ -287,10 +287,10 @@ namespace OpenSim.Grid.GridServer
             RegionProfileData sim;
             RegionProfileData existingSim;
 
-            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable requestData = (Hashtable) request.Params[0];
             LLUUID uuid;
 
-            if (!requestData.ContainsKey("UUID") || !LLUUID.TryParse((string)requestData["UUID"], out uuid))
+            if (!requestData.ContainsKey("UUID") || !LLUUID.TryParse((string) requestData["UUID"], out uuid))
             {
                 m_log.Info("[GRID]: Region connected without a UUID, ignoring.");
                 return ErrorResponse("No UUID passed to grid server - unable to connect you");
@@ -303,7 +303,7 @@ namespace OpenSim.Grid.GridServer
             catch (FormatException e)
             {
                 m_log.Info("[GRID]: Invalid login parameters, ignoring.");
-                return ErrorResponse("Wrong format in login parameters. Please verify parameters." + e.ToString() );
+                return ErrorResponse("Wrong format in login parameters. Please verify parameters." + e);
             }
 
             existingSim = GetRegion(sim.regionHandle);
@@ -329,7 +329,7 @@ namespace OpenSim.Grid.GridServer
                         {
                             DataResponse insertResponse;
 
-                            if( existingSim == null )
+                            if (existingSim == null)
                             {
                                 insertResponse = kvp.Value.AddProfile(sim);
                             }
@@ -348,20 +348,20 @@ namespace OpenSim.Grid.GridServer
                                     break;
                                 case DataResponse.RESPONSE_INVALIDCREDENTIALS:
                                     m_log.Warn("[storage]: " +
-                                                          "New sim creation failed (Invalid Credentials): " + sim.regionName);
+                                               "New sim creation failed (Invalid Credentials): " + sim.regionName);
                                     break;
                                 case DataResponse.RESPONSE_AUTHREQUIRED:
                                     m_log.Warn("[storage]: " +
-                                                          "New sim creation failed (Authentication Required): " +
-                                                          sim.regionName);
+                                               "New sim creation failed (Authentication Required): " +
+                                               sim.regionName);
                                     break;
                             }
                         }
                         catch (Exception e)
                         {
                             m_log.Warn("[storage]: " +
-                                                  "Unable to add region " + sim.UUID.ToString() + " via " + kvp.Key);
-                            m_log.Warn("[storage]: " + e.ToString());
+                                       "Unable to add region " + sim.UUID + " via " + kvp.Key);
+                            m_log.Warn("[storage]: " + e);
                         }
                     }
 
@@ -375,7 +375,8 @@ namespace OpenSim.Grid.GridServer
                     {
                         m_log.Warn("[grid]: Authentication failed when trying to add new region " + sim.regionName +
                                    " at location " + sim.regionLocX +
-                                   " " + sim.regionLocY + " with TheSim.regionRecvKey " + sim.regionRecvKey + "(" + Config.SimSendKey + ") and TheSim.regionRecvKey " + sim.regionSendKey + "(" + Config.SimRecvKey + ") ");
+                                   " " + sim.regionLocY + " with TheSim.regionRecvKey " + sim.regionRecvKey + "(" + Config.SimSendKey +
+                                   ") and TheSim.regionRecvKey " + sim.regionSendKey + "(" + Config.SimRecvKey + ") ");
                     }
                     else
                     {
@@ -389,7 +390,8 @@ namespace OpenSim.Grid.GridServer
             }
             else
             {
-                m_log.Warn("[grid]: Failed to add new region " + sim.regionName + " at location " + sim.regionLocX + " " + sim.regionLocY + " currently occupied by " + existingSim.regionName);
+                m_log.Warn("[grid]: Failed to add new region " + sim.regionName + " at location " + sim.regionLocX + " " + sim.regionLocY +
+                           " currently occupied by " + existingSim.regionName);
                 return ErrorResponse("Another region already exists at that location. Try another");
             }
         }
@@ -464,7 +466,7 @@ namespace OpenSim.Grid.GridServer
                 foreach (KeyValuePair<ulong, RegionProfileData> aSim in neighbours)
                 {
                     NeighbourBlock = new Hashtable();
-                    NeighbourBlock["sim_ip"] = Util.GetHostFromDNS(aSim.Value.serverIP.ToString()).ToString();
+                    NeighbourBlock["sim_ip"] = Util.GetHostFromDNS(aSim.Value.serverIP).ToString();
                     NeighbourBlock["sim_port"] = aSim.Value.serverPort.ToString();
                     NeighbourBlock["region_locx"] = aSim.Value.regionLocX.ToString();
                     NeighbourBlock["region_locy"] = aSim.Value.regionLocY.ToString();
@@ -485,13 +487,13 @@ namespace OpenSim.Grid.GridServer
                     {
                         if (
                             GetRegion(
-                                Helpers.UIntsToLong((uint)((sim.regionLocX + x) * Constants.RegionSize),
-                                                    (uint)(sim.regionLocY + y) * Constants.RegionSize)) != null)
+                                Helpers.UIntsToLong((uint) ((sim.regionLocX + x) * Constants.RegionSize),
+                                                    (uint) (sim.regionLocY + y) * Constants.RegionSize)) != null)
                         {
                             neighbour =
                                 GetRegion(
-                                    Helpers.UIntsToLong((uint)((sim.regionLocX + x) * Constants.RegionSize),
-                                                        (uint)(sim.regionLocY + y) * Constants.RegionSize));
+                                    Helpers.UIntsToLong((uint) ((sim.regionLocX + x) * Constants.RegionSize),
+                                                        (uint) (sim.regionLocY + y) * Constants.RegionSize));
 
                             NeighbourBlock = new Hashtable();
                             NeighbourBlock["sim_ip"] = Util.GetHostFromDNS(neighbour.serverIP).ToString();
@@ -519,27 +521,26 @@ namespace OpenSim.Grid.GridServer
             RegionProfileData sim;
             sim = new RegionProfileData();
 
-            sim.UUID = new LLUUID((string)requestData["UUID"]);
-            sim.originUUID = new LLUUID((string)requestData["originUUID"]);
+            sim.UUID = new LLUUID((string) requestData["UUID"]);
+            sim.originUUID = new LLUUID((string) requestData["originUUID"]);
 
             sim.regionRecvKey = String.Empty;
             sim.regionSendKey = String.Empty;
-            
+
             if (requestData.ContainsKey("region_secret"))
             {
-                string regionsecret = (string)requestData["region_secret"];
+                string regionsecret = (string) requestData["region_secret"];
                 if (regionsecret.Length > 0)
                     sim.regionSecret = regionsecret;
                 else
                     sim.regionSecret = Config.SimRecvKey;
-
             }
             else
             {
                 sim.regionSecret = Config.SimRecvKey;
             }
-            
-            
+
+
             sim.regionDataURI = String.Empty;
             sim.regionAssetURI = Config.DefaultAssetServer;
             sim.regionAssetRecvKey = Config.AssetRecvKey;
@@ -548,16 +549,16 @@ namespace OpenSim.Grid.GridServer
             sim.regionUserSendKey = Config.UserSendKey;
             sim.regionUserRecvKey = Config.UserRecvKey;
 
-            sim.serverIP = (string)requestData["sim_ip"];
-            sim.serverPort = Convert.ToUInt32((string)requestData["sim_port"]);
-            sim.httpPort = Convert.ToUInt32((string)requestData["http_port"]);
-            sim.remotingPort = Convert.ToUInt32((string)requestData["remoting_port"]);
-            sim.regionLocX = Convert.ToUInt32((string)requestData["region_locx"]);
-            sim.regionLocY = Convert.ToUInt32((string)requestData["region_locy"]);
+            sim.serverIP = (string) requestData["sim_ip"];
+            sim.serverPort = Convert.ToUInt32((string) requestData["sim_port"]);
+            sim.httpPort = Convert.ToUInt32((string) requestData["http_port"]);
+            sim.remotingPort = Convert.ToUInt32((string) requestData["remoting_port"]);
+            sim.regionLocX = Convert.ToUInt32((string) requestData["region_locx"]);
+            sim.regionLocY = Convert.ToUInt32((string) requestData["region_locy"]);
             sim.regionLocZ = 0;
 
             LLUUID textureID;
-            if (LLUUID.TryParse((string)requestData["map-image-id"], out textureID))
+            if (LLUUID.TryParse((string) requestData["map-image-id"], out textureID))
             {
                 sim.regionMapTextureID = textureID;
             }
@@ -570,21 +571,23 @@ namespace OpenSim.Grid.GridServer
             //
             // this particular section of the mod attempts to receive a value from the region's xml file by way of 
             // OSG1GridServices for the region's owner
-            sim.owner_uuid = (string)requestData["master_avatar_uuid"];
+            sim.owner_uuid = (string) requestData["master_avatar_uuid"];
 
             try
             {
-                sim.regionRecvKey = (string)requestData["recvkey"];
-                sim.regionSendKey = (string)requestData["authkey"];
+                sim.regionRecvKey = (string) requestData["recvkey"];
+                sim.regionSendKey = (string) requestData["authkey"];
             }
-            catch (KeyNotFoundException) { }
+            catch (KeyNotFoundException)
+            {
+            }
 
             sim.regionHandle = Helpers.UIntsToLong((sim.regionLocX * Constants.RegionSize), (sim.regionLocY * Constants.RegionSize));
-            sim.serverURI = (string)requestData["server_uri"];
+            sim.serverURI = (string) requestData["server_uri"];
 
             sim.httpServerURI = "http://" + sim.serverIP + ":" + sim.httpPort + "/";
 
-            sim.regionName = (string)requestData["sim_name"];
+            sim.regionName = (string) requestData["sim_name"];
             return sim;
         }
 
@@ -604,7 +607,7 @@ namespace OpenSim.Grid.GridServer
 
             //RegionProfileData TheSim = null;
             string uuid;
-            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable requestData = (Hashtable) request.Params[0];
 
             if (requestData.ContainsKey("UUID"))
             {
@@ -624,7 +627,7 @@ namespace OpenSim.Grid.GridServer
                 //OpenSim.Data.MySQL.MySQLGridData dbengine = new OpenSim.Data.MySQL.MySQLGridData();
                 try
                 {
-                    MySQLGridData mysqldata = (MySQLGridData)(kvp.Value);
+                    MySQLGridData mysqldata = (MySQLGridData) (kvp.Value);
                     //DataResponse insertResponse = mysqldata.DeleteProfile(TheSim);
                     DataResponse insertResponse = mysqldata.DeleteProfile(uuid);
                     switch (insertResponse)
@@ -664,22 +667,22 @@ namespace OpenSim.Grid.GridServer
         /// <returns></returns>
         public XmlRpcResponse XmlRpcSimulatorDataRequestMethod(XmlRpcRequest request)
         {
-            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
             RegionProfileData simData = null;
             if (requestData.ContainsKey("region_UUID"))
             {
-                simData = GetRegion(new LLUUID((string)requestData["region_UUID"]));
+                simData = GetRegion(new LLUUID((string) requestData["region_UUID"]));
             }
             else if (requestData.ContainsKey("region_handle"))
             {
                 //CFK: The if/else below this makes this message redundant.
                 //CFK: Console.WriteLine("requesting data for region " + (string) requestData["region_handle"]);
-                simData = GetRegion(Convert.ToUInt64((string)requestData["region_handle"]));
+                simData = GetRegion(Convert.ToUInt64((string) requestData["region_handle"]));
             }
             else if (requestData.ContainsKey("region_name_search"))
             {
-                simData = GetRegion((string)requestData["region_name_search"]);
+                simData = GetRegion((string) requestData["region_name_search"]);
             }
 
             if (simData == null)
@@ -690,8 +693,8 @@ namespace OpenSim.Grid.GridServer
             }
             else
             {
-                m_log.Info("[DATA]: found " + (string)simData.regionName + " regionHandle = " +
-                           (string)requestData["region_handle"]);
+                m_log.Info("[DATA]: found " + simData.regionName + " regionHandle = " +
+                           (string) requestData["region_handle"]);
                 responseData["sim_ip"] = Util.GetHostFromDNS(simData.serverIP).ToString();
                 responseData["sim_port"] = simData.serverPort.ToString();
                 responseData["server_uri"] = simData.serverURI;
@@ -713,22 +716,22 @@ namespace OpenSim.Grid.GridServer
         {
             int xmin = 980, ymin = 980, xmax = 1020, ymax = 1020;
 
-            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable requestData = (Hashtable) request.Params[0];
             if (requestData.ContainsKey("xmin"))
             {
-                xmin = (Int32)requestData["xmin"];
+                xmin = (Int32) requestData["xmin"];
             }
             if (requestData.ContainsKey("ymin"))
             {
-                ymin = (Int32)requestData["ymin"];
+                ymin = (Int32) requestData["ymin"];
             }
             if (requestData.ContainsKey("xmax"))
             {
-                xmax = (Int32)requestData["xmax"];
+                xmax = (Int32) requestData["xmax"];
             }
             if (requestData.ContainsKey("ymax"))
             {
-                ymax = (Int32)requestData["ymax"];
+                ymax = (Int32) requestData["ymax"];
             }
             //CFK: The second log is more meaningful and either standard or fast generally occurs.
             //CFK: m_log.Info("[MAP]: World map request for range (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")");
@@ -743,15 +746,15 @@ namespace OpenSim.Grid.GridServer
             if (fastMode)
             {
                 Dictionary<ulong, RegionProfileData> neighbours =
-                    GetRegions((uint)xmin, (uint)ymin, (uint)xmax, (uint)ymax);
+                    GetRegions((uint) xmin, (uint) ymin, (uint) xmax, (uint) ymax);
 
                 foreach (KeyValuePair<ulong, RegionProfileData> aSim in neighbours)
                 {
                     Hashtable simProfileBlock = new Hashtable();
                     simProfileBlock["x"] = aSim.Value.regionLocX.ToString();
                     simProfileBlock["y"] = aSim.Value.regionLocY.ToString();
-                    Console.WriteLine("send neighbour info for " + aSim.Value.regionLocX.ToString() + " , " +
-                                      aSim.Value.regionLocY.ToString());
+                    Console.WriteLine("send neighbour info for " + aSim.Value.regionLocX + " , " +
+                                      aSim.Value.regionLocY);
                     simProfileBlock["name"] = aSim.Value.regionName;
                     simProfileBlock["access"] = 21;
                     simProfileBlock["region-flags"] = 512;
@@ -761,15 +764,15 @@ namespace OpenSim.Grid.GridServer
 
                     // For Sugilite compatibility
                     simProfileBlock["regionhandle"] = aSim.Value.regionHandle.ToString();
-                    simProfileBlock["sim_ip"] = aSim.Value.serverIP.ToString();
+                    simProfileBlock["sim_ip"] = aSim.Value.serverIP;
                     simProfileBlock["sim_port"] = aSim.Value.serverPort.ToString();
-                    simProfileBlock["sim_uri"] = aSim.Value.serverURI.ToString();
+                    simProfileBlock["sim_uri"] = aSim.Value.serverURI;
                     simProfileBlock["uuid"] = aSim.Value.UUID.ToString();
                     simProfileBlock["remoting_port"] = aSim.Value.remotingPort;
 
                     simProfileList.Add(simProfileBlock);
                 }
-                m_log.Info("[MAP]: Fast map " + simProfileList.Count.ToString() +
+                m_log.Info("[MAP]: Fast map " + simProfileList.Count +
                            " regions @ (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")");
             }
             else
@@ -779,7 +782,7 @@ namespace OpenSim.Grid.GridServer
                 {
                     for (int y = ymin; y < ymax + 1; y++)
                     {
-                        ulong regHandle = Helpers.UIntsToLong((uint)(x * Constants.RegionSize), (uint)(y * Constants.RegionSize));
+                        ulong regHandle = Helpers.UIntsToLong((uint) (x * Constants.RegionSize), (uint) (y * Constants.RegionSize));
                         simProfile = GetRegion(regHandle);
                         if (simProfile != null)
                         {
@@ -795,16 +798,16 @@ namespace OpenSim.Grid.GridServer
 
                             // For Sugilite compatibility
                             simProfileBlock["regionhandle"] = simProfile.regionHandle.ToString();
-                            simProfileBlock["sim_ip"] = simProfile.serverIP.ToString();
+                            simProfileBlock["sim_ip"] = simProfile.serverIP;
                             simProfileBlock["sim_port"] = simProfile.serverPort.ToString();
-                            simProfileBlock["sim_uri"] = simProfile.serverURI.ToString();
+                            simProfileBlock["sim_uri"] = simProfile.serverURI;
                             simProfileBlock["uuid"] = simProfile.UUID.ToString();
 
                             simProfileList.Add(simProfileBlock);
                         }
                     }
                 }
-                m_log.Info("[MAP]: Std map " + simProfileList.Count.ToString() +
+                m_log.Info("[MAP]: Std map " + simProfileList.Count +
                            " regions @ (" + xmin + "," + ymin + ")..(" + xmax + "," + ymax + ")");
             }
 
@@ -860,12 +863,12 @@ namespace OpenSim.Grid.GridServer
                     respstring = "<Root>";
                     respstring += "<authkey>" + TheSim.regionSendKey + "</authkey>";
                     respstring += "<sim>";
-                    respstring += "<uuid>" + TheSim.UUID.ToString() + "</uuid>";
+                    respstring += "<uuid>" + TheSim.UUID + "</uuid>";
                     respstring += "<regionname>" + TheSim.regionName + "</regionname>";
-                    respstring += "<sim_ip>" + Util.GetHostFromDNS(TheSim.serverIP).ToString() + "</sim_ip>";
-                    respstring += "<sim_port>" + TheSim.serverPort.ToString() + "</sim_port>";
-                    respstring += "<region_locx>" + TheSim.regionLocX.ToString() + "</region_locx>";
-                    respstring += "<region_locy>" + TheSim.regionLocY.ToString() + "</region_locy>";
+                    respstring += "<sim_ip>" + Util.GetHostFromDNS(TheSim.serverIP) + "</sim_ip>";
+                    respstring += "<sim_port>" + TheSim.serverPort + "</sim_port>";
+                    respstring += "<region_locx>" + TheSim.regionLocX + "</region_locx>";
+                    respstring += "<region_locy>" + TheSim.regionLocY + "</region_locy>";
                     respstring += "<estate_id>1</estate_id>";
                     respstring += "</sim>";
                     respstring += "</Root>";
@@ -946,12 +949,12 @@ namespace OpenSim.Grid.GridServer
                         break;
 
                     case "region_locx":
-                        theSim.regionLocX = Convert.ToUInt32((string)simnode.ChildNodes[i].InnerText);
+                        theSim.regionLocX = Convert.ToUInt32(simnode.ChildNodes[i].InnerText);
                         theSim.regionHandle = Helpers.UIntsToLong((theSim.regionLocX * Constants.RegionSize), (theSim.regionLocY * Constants.RegionSize));
                         break;
 
                     case "region_locy":
-                        theSim.regionLocY = Convert.ToUInt32((string)simnode.ChildNodes[i].InnerText);
+                        theSim.regionLocY = Convert.ToUInt32(simnode.ChildNodes[i].InnerText);
                         theSim.regionHandle = Helpers.UIntsToLong((theSim.regionLocX * Constants.RegionSize), (theSim.regionLocY * Constants.RegionSize));
                         break;
                 }
@@ -1005,28 +1008,28 @@ namespace OpenSim.Grid.GridServer
                     catch (Exception e)
                     {
                         m_log.Warn("[GRID]: GetRegionPlugin Handle " + kvp.Key + " unable to add new sim: " +
-                                                      e.ToString());
+                                   e);
                     }
                 }
                 return "OK";
             }
             catch (Exception e)
             {
-                return "ERROR! Could not save to database! (" + e.ToString() + ")";
+                return "ERROR! Could not save to database! (" + e + ")";
             }
         }
 
         public XmlRpcResponse XmlRPCRegisterMessageServer(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
 
             if (requestData.Contains("uri"))
             {
-                string URI = (string)requestData["URI"];
-                string sendkey = (string)requestData["sendkey"];
-                string recvkey = (string)requestData["recvkey"];
+                string URI = (string) requestData["URI"];
+                string sendkey = (string) requestData["sendkey"];
+                string recvkey = (string) requestData["recvkey"];
                 MessageServerInfo m = new MessageServerInfo();
                 m.URI = URI;
                 m.sendkey = sendkey;
@@ -1042,14 +1045,14 @@ namespace OpenSim.Grid.GridServer
         public XmlRpcResponse XmlRPCDeRegisterMessageServer(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
 
             if (requestData.Contains("uri"))
             {
-                string URI = (string)requestData["uri"];
-                string sendkey = (string)requestData["sendkey"];
-                string recvkey = (string)requestData["recvkey"];
+                string URI = (string) requestData["uri"];
+                string sendkey = (string) requestData["sendkey"];
+                string recvkey = (string) requestData["recvkey"];
                 MessageServerInfo m = new MessageServerInfo();
                 m.URI = URI;
                 m.sendkey = sendkey;

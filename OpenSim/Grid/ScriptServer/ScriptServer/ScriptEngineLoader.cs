@@ -51,7 +51,7 @@ namespace OpenSim.Grid.ScriptServer.ScriptServer
             {
                 m_log.Error("[ScriptEngine]: " +
                             "Error loading assembly \"" + EngineName + "\": " + e.Message + ", " +
-                            e.StackTrace.ToString());
+                            e.StackTrace);
             }
             return ret;
         }
@@ -104,7 +104,7 @@ namespace OpenSim.Grid.ScriptServer.ScriptServer
             ScriptServerInterfaces.ScriptEngine ret;
             //try
             //{
-            ret = (ScriptServerInterfaces.ScriptEngine)Activator.CreateInstance(t);
+            ret = (ScriptServerInterfaces.ScriptEngine) Activator.CreateInstance(t);
             //}
             //catch (Exception e)
             //{

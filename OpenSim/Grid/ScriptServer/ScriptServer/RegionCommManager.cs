@@ -34,11 +34,9 @@ namespace OpenSim.Grid.ScriptServer.ScriptServer
 {
     internal class RegionCommManager
     {
+        private readonly ScriptServerMain m_ScriptServerMain;
+        private readonly List<RegionConnectionManager> Regions = new List<RegionConnectionManager>();
         private Thread listenThread;
-
-        private List<RegionConnectionManager> Regions = new List<RegionConnectionManager>();
-
-        private ScriptServerMain m_ScriptServerMain;
 
         public RegionCommManager(ScriptServerMain scm)
         {

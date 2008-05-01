@@ -68,7 +68,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
             for (int i = 0; i < regionsToLoad.Length; i++)
             {
-                m_log.Debug("[LOADREGIONS]: Creating Region: " + regionsToLoad[i].RegionName + " (ThreadID: " + Thread.CurrentThread.ManagedThreadId.ToString() +
+                m_log.Debug("[LOADREGIONS]: Creating Region: " + regionsToLoad[i].RegionName + " (ThreadID: " + Thread.CurrentThread.ManagedThreadId +
                             ")");
                 openSim.CreateRegion(regionsToLoad[i], true);
             }
@@ -106,7 +106,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 if (regionhandle == regionsToLoad[i].RegionHandle)
                 {
                     m_log.Debug("[LOADREGIONS]: Creating Region: " + regionsToLoad[i].RegionName + " (ThreadID: " +
-                                Thread.CurrentThread.ManagedThreadId.ToString() + ")");
+                                Thread.CurrentThread.ManagedThreadId + ")");
                     openSim.CreateRegion(regionsToLoad[i], true);
                 }
             }

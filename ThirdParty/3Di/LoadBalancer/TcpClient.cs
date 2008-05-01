@@ -34,8 +34,8 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 {
     public class AsynchronousClient
     {
-        private static ManualResetEvent connectDone = new ManualResetEvent(false);
-        private static ManualResetEvent sendDone = new ManualResetEvent(false);
+        private static readonly ManualResetEvent connectDone = new ManualResetEvent(false);
+        private static readonly ManualResetEvent sendDone = new ManualResetEvent(false);
 
         public static Socket StartClient(string hostname, int port)
         {
@@ -46,7 +46,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
 
                 Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                client.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), client);
+                client.BeginConnect(remoteEP, ConnectCallback, client);
                 connectDone.WaitOne();
                 /*
                   Send(client,"This is a test<EOF>");
@@ -71,7 +71,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             {
                 Socket client = (Socket) ar.AsyncState;
                 client.EndConnect(ar);
-                Console.WriteLine("Socket connected to {0}", client.RemoteEndPoint.ToString());
+                Console.WriteLine("Socket connected to {0}", client.RemoteEndPoint);
                 connectDone.Set();
             }
             catch (Exception e)
@@ -138,8 +138,8 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 
     public class InternalPacketHeader
     {
+        private readonly byte[] buffer = new byte[32];
         public Guid agent_id;
-        private byte[] buffer = new byte[32];
         public int numbytes;
         public int region_port;
         public int throttlePacketType;
@@ -150,16 +150,16 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             int i = 0; // offset
             try
             {
-                type = (int) (bytes[i++] + (bytes[i++] << 8) + (bytes[i++] << 16) + (bytes[i++] << 24));
-                throttlePacketType = (int) (bytes[i++] + (bytes[i++] << 8) + (bytes[i++] << 16) + (bytes[i++] << 24));
-                numbytes = (int) (bytes[i++] + (bytes[i++] << 8) + (bytes[i++] << 16) + (bytes[i++] << 24));
+                type = (bytes[i++] + (bytes[i++] << 8) + (bytes[i++] << 16) + (bytes[i++] << 24));
+                throttlePacketType = (bytes[i++] + (bytes[i++] << 8) + (bytes[i++] << 16) + (bytes[i++] << 24));
+                numbytes = (bytes[i++] + (bytes[i++] << 8) + (bytes[i++] << 16) + (bytes[i++] << 24));
                 agent_id = new Guid(
                     bytes[i++] | (bytes[i++] << 8) | (bytes[i++] << 16) | bytes[i++] << 24,
                     (short) (bytes[i++] | (bytes[i++] << 8)),
                     (short) (bytes[i++] | (bytes[i++] << 8)),
                     bytes[i++], bytes[i++], bytes[i++], bytes[i++],
                     bytes[i++], bytes[i++], bytes[i++], bytes[i++]);
-                region_port = (int) (bytes[i++] + (bytes[i++] << 8) + (bytes[i++] << 16) + (bytes[i++] << 24));
+                region_port = (bytes[i++] + (bytes[i++] << 8) + (bytes[i++] << 16) + (bytes[i++] << 24));
             }
             catch (Exception)
             {
@@ -201,10 +201,10 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
     public class TcpClient
     {
         public static int internalPacketHeaderSize = 4 * 4 + 16 * 1;
-        private Socket mConnection;
 
-        private string mHostname;
-        private int mPort;
+        private readonly string mHostname;
+        private readonly int mPort;
+        private Socket mConnection;
 
         public TcpClient(string hostname, int port)
         {

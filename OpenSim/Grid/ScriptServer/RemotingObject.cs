@@ -34,9 +34,13 @@ namespace OpenSim.Grid.ScriptServer
     {
         // This object will be exposed over remoting. It is a singleton, so it exists only in as one instance.
 
+        #region ServerRemotingObject Members
+
         ScriptServerInterfaces.RemoteEvents ScriptServerInterfaces.ServerRemotingObject.Events()
         {
             return ScriptServerMain.Engine.EventManager();
         }
+
+        #endregion
     }
 }

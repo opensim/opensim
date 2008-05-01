@@ -44,9 +44,42 @@ namespace OpenSim.Grid.MessagingServer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private MessageServerConfig Cfg;
-        private MessageService msgsvc;
-        
+
         private LLUUID m_lastCreatedUser = LLUUID.Random();
+        private MessageService msgsvc;
+
+        private OpenMessage_Main()
+        {
+            m_console = new ConsoleBase("OpenMessage", this);
+            MainConsole.Instance = m_console;
+        }
+
+        #region conscmd_callback Members
+
+        public override void RunCmd(string cmd, string[] cmdparams)
+        {
+            base.RunCmd(cmd, cmdparams);
+
+            switch (cmd)
+            {
+                case "help":
+                    m_console.Notice("shutdown - shutdown the message server (USE CAUTION!)");
+                    break;
+
+                case "shutdown":
+                    msgsvc.deregisterWithUserServer();
+                    m_console.Close();
+                    Environment.Exit(0);
+                    break;
+            }
+        }
+
+        public override void Show(string ShowWhat)
+        {
+            base.Show(ShowWhat);
+        }
+
+        #endregion
 
         [STAThread]
         public static void Main(string[] args)
@@ -55,18 +88,11 @@ namespace OpenSim.Grid.MessagingServer
 
             m_log.Info("Launching MessagingServer...");
 
-            
 
             OpenMessage_Main messageserver = new OpenMessage_Main();
 
             messageserver.Startup();
             messageserver.Work();
-        }
-
-        private OpenMessage_Main()
-        {
-            m_console = new ConsoleBase("OpenMessage", this);
-            MainConsole.Instance = m_console;
         }
 
         private void Work()
@@ -118,12 +144,13 @@ namespace OpenSim.Grid.MessagingServer
             switch (what)
             {
                 case "user":
-                    
+
                     try
                     {
                         //userID =
-                            //m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
-                    } catch (Exception ex)
+                        //m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
+                    }
+                    catch (Exception ex)
                     {
                         m_console.Error("[SERVER]: Error creating user: {0}", ex.ToString());
                     }
@@ -131,7 +158,7 @@ namespace OpenSim.Grid.MessagingServer
                     try
                     {
                         //RestObjectPoster.BeginPostObject<Guid>(m_userManager._config.InventoryUrl + "CreateInventory/",
-                                                               //userID.UUID);
+                        //userID.UUID);
                     }
                     catch (Exception ex)
                     {
@@ -140,29 +167,6 @@ namespace OpenSim.Grid.MessagingServer
                     // m_lastCreatedUser = userID;
                     break;
             }
-        }
-
-        public override void RunCmd(string cmd, string[] cmdparams)
-        {
-            base.RunCmd(cmd, cmdparams);
-            
-            switch (cmd)
-            {
-                case "help":
-                    m_console.Notice("shutdown - shutdown the message server (USE CAUTION!)");
-                    break;
-
-                case "shutdown":
-                    msgsvc.deregisterWithUserServer();
-                    m_console.Close();
-                    Environment.Exit(0);
-                    break;
-            }
-        }
-
-        public override void Show(string ShowWhat)
-        {
-            base.Show(ShowWhat);
         }
     }
 }

@@ -31,9 +31,10 @@ using System.Runtime.Remoting.Channels.Tcp;
 
 namespace OpenSim.Grid.ScriptServer
 {
-    class RemotingServer
+    internal class RemotingServer
     {
-        TcpChannel channel;
+        private readonly TcpChannel channel;
+
         public RemotingServer(int port, string instanceName)
         {
             // Create an instance of a channel
@@ -42,7 +43,7 @@ namespace OpenSim.Grid.ScriptServer
 
             // Register as an available service with the name HelloWorld
             RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(RemotingObject),
+                typeof (RemotingObject),
                 instanceName,
                 WellKnownObjectMode.Singleton);
         }
