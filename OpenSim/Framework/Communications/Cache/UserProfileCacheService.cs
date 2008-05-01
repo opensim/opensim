@@ -181,7 +181,8 @@ namespace OpenSim.Framework.Communications.Cache
                             createdBaseFolder.ParentID = createdFolder.ParentID;
                             createdBaseFolder.Type = createdFolder.Type;
                             createdBaseFolder.Version = createdFolder.Version;
-                            m_commsManager.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, createdBaseFolder);
+                            
+                            m_commsManager.InventoryService.AddFolder(createdBaseFolder);
                         }
                         else
                         {
@@ -207,7 +208,7 @@ namespace OpenSim.Framework.Communications.Cache
                                 createdBaseFolder.Type = createdFolder.Type;
                                 createdBaseFolder.Version = createdFolder.Version;                            
                                 
-                                m_commsManager.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, createdBaseFolder);
+                                m_commsManager.InventoryService.AddFolder(createdBaseFolder);
                             }
                             else
                             {
@@ -265,7 +266,8 @@ namespace OpenSim.Framework.Communications.Cache
                     baseFolder.ParentID = parentID;
                     baseFolder.Type = (short) type;
                     baseFolder.Version = userProfile.RootFolder.Version;
-                    m_commsManager.InventoryService.AddNewInventoryFolder(remoteClient.AgentId, baseFolder);
+                    
+                    m_commsManager.InventoryService.AddFolder(baseFolder);
                 }
                 else
                 {
@@ -299,7 +301,8 @@ namespace OpenSim.Framework.Communications.Cache
                     baseFolder.Owner = remoteClient.AgentId;
                     baseFolder.ID = folderID;
                     baseFolder.ParentID = parentID;
-                    m_commsManager.InventoryService.MoveInventoryFolder(remoteClient.AgentId, baseFolder);
+                    
+                    m_commsManager.InventoryService.MoveFolder(baseFolder);
                 }
                 else
                 {
@@ -544,7 +547,7 @@ namespace OpenSim.Framework.Communications.Cache
                         purgedBaseFolder.Type = purgedFolder.Type;
                         purgedBaseFolder.Version = purgedFolder.Version;                        
                         
-                        m_commsManager.InventoryService.PurgeInventoryFolder(remoteClient.AgentId, purgedBaseFolder);                                              
+                        m_commsManager.InventoryService.PurgeFolder(purgedBaseFolder);                                              
                         
                         purgedFolder.Purge();                        
                     }

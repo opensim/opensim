@@ -80,41 +80,6 @@ namespace OpenSim.Region.Communications.Local
             callback(userID, folders, items);
         }
 
-        public override void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder)
-        {
-            AddFolder(folder);
-        }
-
-        public override void MoveExistingInventoryFolder(InventoryFolderBase folder)
-        {
-            MoveFolder(folder);
-        }
-
-        public override void AddNewInventoryItem(LLUUID userID, InventoryItemBase item)
-        {
-            AddItem(item);
-        }
-
-        public override void UpdateInventoryItem(LLUUID userID, InventoryItemBase item)
-        {
-            UpdateItem(item);
-        }
-
-        public override void DeleteInventoryItem(LLUUID userID, InventoryItemBase item)
-        {
-            DeleteItem(item);
-        }
-
-        /// <summary>
-        /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <param name="folder"></param>
-        public override void PurgeInventoryFolder(LLUUID userID, InventoryFolderBase folder)      
-        {
-            PurgeFolder(folder);
-        }
-
         public override bool HasInventoryForUser(LLUUID userID)
         {
             InventoryFolderBase root = RequestRootFolder(userID);

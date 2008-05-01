@@ -50,46 +50,46 @@ namespace OpenSim.Framework.Communications
         void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback);
         
         /// <summary>
-        /// Add a new folder to the given user's inventory
+        /// Add a new folder to the user's inventory
         /// </summary>
-        /// <param name="userID"></param>
         /// <param name="folder"></param>
-        void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder);
+        /// <returns>true if the folder was successfully added</returns>
+        bool AddFolder(InventoryFolderBase folder);
         
         /// <summary>
         /// Move an inventory folder to a new location
         /// </summary>
-        /// <param name="userID"></param>
         /// <param name="folder">A folder containing the details of the new location</param>
-        void MoveInventoryFolder(LLUUID userID, InventoryFolderBase folder);
+        /// <returns>true if the folder was successfully moved</returns>
+        bool MoveFolder(InventoryFolderBase folder);
         
         /// <summary>
         /// Purge an inventory folder of all its items and subfolders.
         /// </summary>
-        /// <param name="userID"></param>
         /// <param name="folder"></param>
-        void PurgeInventoryFolder(LLUUID userID, InventoryFolderBase folder);
+        /// <returns>true if the folder was successfully purged</returns>
+        bool PurgeFolder(InventoryFolderBase folder);
         
         /// <summary>
-        /// Add a new item to the given user's inventory
+        /// Add a new item to the user's inventory
         /// </summary>
-        /// <param name="userID"></param>
         /// <param name="item"></param>
-        void AddNewInventoryItem(LLUUID userID, InventoryItemBase item);
+        /// <returns>true if the item was successfully added</returns>
+        bool AddItem(InventoryItemBase item);
         
         /// <summary>
-        /// Update an item in the given user's inventory
+        /// Update an item in the user's inventory
         /// </summary>
-        /// <param name="userID"></param>
         /// <param name="item"></param>
-        void UpdateInventoryItem(LLUUID userID, InventoryItemBase item);
+        /// <returns>true if the item was successfully updated</returns>
+        bool UpdateItem(InventoryItemBase item);
         
         /// <summary>
-        /// Delete an item from the given user's inventory
+        /// Delete an item from the user's inventory
         /// </summary>
-        /// <param name="userID"></param>
         /// <param name="item"></param>
-        void DeleteInventoryItem(LLUUID userID, InventoryItemBase item);
+        /// <returns>true if the item was successfully deleted</returns>
+        bool DeleteItem(InventoryItemBase item);
         
         /// <summary>
         /// Create a new inventory for the given user.

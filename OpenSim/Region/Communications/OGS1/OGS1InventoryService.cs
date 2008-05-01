@@ -154,14 +154,12 @@ namespace OpenSim.Region.Communications.OGS1
 
         /// <summary>
         /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <param name="folder"></param>        
-        public void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder)
+        /// </summary>      
+        public bool AddFolder(InventoryFolderBase folder)
         {
             try
             {
-                SynchronousRestObjectPoster.BeginPostObject<InventoryFolderBase, bool>(
+                return SynchronousRestObjectPoster.BeginPostObject<InventoryFolderBase, bool>(
                     "POST", _inventoryServerUrl + "/NewFolder/", folder);
             }
             catch (WebException e)
@@ -169,18 +167,19 @@ namespace OpenSim.Region.Communications.OGS1
                 m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Add new inventory folder operation failed, {0} {1}", 
                      e.Source, e.Message);
             }
+            
+            return false;
         }
 
         /// <summary>
         /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
         /// </summary>
-        /// <param name="userID"></param>
         /// <param name="folder"></param>        
-        public void MoveInventoryFolder(LLUUID userID, InventoryFolderBase folder)
+        public bool MoveFolder(InventoryFolderBase folder)
         {
             try
             {            
-                SynchronousRestObjectPoster.BeginPostObject<InventoryFolderBase, bool>(
+                return SynchronousRestObjectPoster.BeginPostObject<InventoryFolderBase, bool>(
                     "POST", _inventoryServerUrl + "/MoveFolder/", folder);
             }
             catch (WebException e)
@@ -188,19 +187,18 @@ namespace OpenSim.Region.Communications.OGS1
                 m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Move inventory folder operation failed, {0} {1}", 
                      e.Source, e.Message);
             }                
+            
+            return false;
         }
         
         /// <summary>
         /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
         /// </summary>
-        /// <param name="userID"></param>
-        /// <param name="folder"></param>
-        /// <returns></returns>
-        public void PurgeInventoryFolder(LLUUID userID, InventoryFolderBase folder)
+        public bool PurgeFolder(InventoryFolderBase folder)
         {
             try
             {            
-                SynchronousRestObjectPoster.BeginPostObject<InventoryFolderBase, bool>(
+                return SynchronousRestObjectPoster.BeginPostObject<InventoryFolderBase, bool>(
                     "POST", _inventoryServerUrl + "/PurgeFolder/", folder);
             }
             catch (WebException e)
@@ -208,33 +206,35 @@ namespace OpenSim.Region.Communications.OGS1
                 m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Move inventory folder operation failed, {0} {1}", 
                      e.Source, e.Message);
             }    
+            
+            return false;
         }        
 
         /// <summary>
         /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <param name="folder"></param>        
-        public void AddNewInventoryItem(LLUUID userID, InventoryItemBase item)
+        /// </summary>      
+        public bool AddItem(InventoryItemBase item)
         {
             try
             {                
-                SynchronousRestObjectPoster.BeginPostObject<InventoryItemBase, bool>(
+                return SynchronousRestObjectPoster.BeginPostObject<InventoryItemBase, bool>(
                     "POST", _inventoryServerUrl + "/NewItem/", item);
             }
             catch (WebException e)
             {
                 m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Add new inventory item operation failed, {0} {1}", 
                      e.Source, e.Message);
-            }                
+            }              
+            
+            return false;
         }
 
         // TODO: this is a temporary workaround, the UpdateInventoryItem method need to be implemented
-        public void UpdateInventoryItem(LLUUID userID, InventoryItemBase item)
+        public bool UpdateItem(InventoryItemBase item)
         {
             try
             {
-                SynchronousRestObjectPoster.BeginPostObject<InventoryItemBase, bool>(
+                return SynchronousRestObjectPoster.BeginPostObject<InventoryItemBase, bool>(
                     "POST", _inventoryServerUrl + "/NewItem/", item);
             }
             catch (WebException e)
@@ -242,18 +242,18 @@ namespace OpenSim.Region.Communications.OGS1
                 m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Update new inventory item operation failed, {0} {1}",
                      e.Source, e.Message);
             }
+            
+            return false;
         }
 
         /// <summary>
         /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <param name="folder"></param>        
-        public void DeleteInventoryItem(LLUUID userID, InventoryItemBase item)
+        /// </summary>       
+        public bool DeleteItem(InventoryItemBase item)
         {
             try
             {                    
-                SynchronousRestObjectPoster.BeginPostObject<InventoryItemBase, bool>(
+                return SynchronousRestObjectPoster.BeginPostObject<InventoryItemBase, bool>(
                     "POST", _inventoryServerUrl + "/DeleteItem/", item);
             }
             catch (WebException e)
@@ -261,6 +261,8 @@ namespace OpenSim.Region.Communications.OGS1
                 m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Delete inventory item operation failed, {0} {1}", 
                      e.Source, e.Message);
             }                
+            
+            return false;
         }
 
         public bool HasInventoryForUser(LLUUID userID)

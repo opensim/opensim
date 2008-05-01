@@ -166,12 +166,12 @@ namespace OpenSim.Framework.Communications.Cache
             {            
                 foreach (InventoryFolderImpl folder in folders)
                 {
-                    FolderReceive(userID, folder);
+                    FolderReceive(folder);
                 }
                 
                 foreach (InventoryItemBase item in items)
                 {
-                    ItemReceive(userID, item);
+                    ItemReceive(item);
                 }
             }
             catch (Exception e)
@@ -198,56 +198,53 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="userID"></param>
         /// <param name="folderInfo"></param>
-        private void FolderReceive(LLUUID userID, InventoryFolderImpl folderInfo)
+        private void FolderReceive(InventoryFolderImpl folderInfo)
         {
 //            m_log.DebugFormat(
 //                "[INVENTORY CACHE]: Received folder {0} {1} for user {2}", 
 //                folderInfo.Name, folderInfo.ID, userID);
-            
-            if (userID == UserProfile.ID)
+
+            if (RootFolder == null)
             {
-                if (RootFolder == null)
+                if (folderInfo.ParentID == LLUUID.Zero)
                 {
-                    if (folderInfo.ParentID == LLUUID.Zero)
-                    {
-                        m_rootFolder = folderInfo;
-                    }
+                    m_rootFolder = folderInfo;
                 }
-                else if (RootFolder.ID == folderInfo.ParentID)
-                {
-                    lock (RootFolder.SubFolders)
-                    {
-                        if (!RootFolder.SubFolders.ContainsKey(folderInfo.ID))
-                        {
-                            RootFolder.SubFolders.Add(folderInfo.ID, folderInfo);
-                        }
-                        else
-                        {
-                            AddPendingFolder(folderInfo);
-                        }      
-                    }
-                }
-                else
-                {
-                    InventoryFolderImpl folder = RootFolder.GetDescendentFolder(folderInfo.ParentID);
-                    lock (folder.SubFolders)
-                    {
-                        if (folder != null)
-                        {
-                            if (!folder.SubFolders.ContainsKey(folderInfo.ID))
-                            {
-                                folder.SubFolders.Add(folderInfo.ID, folderInfo);
-                            }
-                        }
-                        else
-                        {
-                            AddPendingFolder(folderInfo);
-                        }
-                    }
-                }
-                
-                ResolvePendingFolders(folderInfo);
             }
+            else if (RootFolder.ID == folderInfo.ParentID)
+            {
+                lock (RootFolder.SubFolders)
+                {
+                    if (!RootFolder.SubFolders.ContainsKey(folderInfo.ID))
+                    {
+                        RootFolder.SubFolders.Add(folderInfo.ID, folderInfo);
+                    }
+                    else
+                    {
+                        AddPendingFolder(folderInfo);
+                    }      
+                }
+            }
+            else
+            {
+                InventoryFolderImpl folder = RootFolder.GetDescendentFolder(folderInfo.ParentID);
+                lock (folder.SubFolders)
+                {
+                    if (folder != null)
+                    {
+                        if (!folder.SubFolders.ContainsKey(folderInfo.ID))
+                        {
+                            folder.SubFolders.Add(folderInfo.ID, folderInfo);
+                        }
+                    }
+                    else
+                    {
+                        AddPendingFolder(folderInfo);
+                    }
+                }
+            }
+            
+            ResolvePendingFolders(folderInfo);
         }
 
         /// <summary>
@@ -256,15 +253,14 @@ namespace OpenSim.Framework.Communications.Cache
         /// We're assuming here that items are always received after all the folders have been
         /// received.
         /// </summary>
-        /// <param name="userID"></param>
         /// <param name="folderInfo"></param>        
-        private void ItemReceive(LLUUID userID, InventoryItemBase itemInfo)
+        private void ItemReceive(InventoryItemBase itemInfo)
         {
 //            m_log.DebugFormat(
 //                "[INVENTORY CACHE]: Received item {0} {1} for user {2}", 
 //                itemInfo.Name, itemInfo.ID, userID);
             
-            if ((userID == UserProfile.ID) && (RootFolder != null))
+            if (RootFolder != null)
             {
                 if (itemInfo.Folder == RootFolder.ID)
                 {
@@ -305,14 +301,13 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// Add an item to the user's inventory
         /// </summary>
-        /// <param name="userID"></param>
         /// <param name="itemInfo"></param>
         public void AddItem(LLUUID userID, InventoryItemBase itemInfo)
         {
-            if ((userID == UserProfile.ID) && HasInventory)
+            if (HasInventory)
             {
-                ItemReceive(userID, itemInfo);
-                m_commsManager.InventoryService.AddNewInventoryItem(userID, itemInfo);
+                ItemReceive(itemInfo);
+                m_commsManager.InventoryService.AddItem(itemInfo);
             }
         }
 
@@ -325,7 +320,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             if ((userID == UserProfile.ID) && HasInventory)
             {
-                m_commsManager.InventoryService.UpdateInventoryItem(userID, itemInfo);
+                m_commsManager.InventoryService.UpdateItem(itemInfo);
             }
         }
 
@@ -343,7 +338,7 @@ namespace OpenSim.Framework.Communications.Cache
                 result = RootFolder.DeleteItem(item.ID);
                 if (result)
                 {
-                    m_commsManager.InventoryService.DeleteInventoryItem(userID, item);
+                    m_commsManager.InventoryService.DeleteItem(item);
                 }
             }
             

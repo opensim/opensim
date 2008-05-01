@@ -332,62 +332,13 @@ namespace OpenSim.Data.MySQL
                 item.InvType = (int) reader["invType"];
                 item.Creator = new LLUUID((string) reader["creatorID"]);
                 item.BasePermissions = (uint) reader["inventoryBasePermissions"];
-                item.EveryOnePermissions = (uint) reader["inventoryEveryOnePermissions"];
-                
-                try
-                {
-				    item.SalePrice = (int) reader["salePrice"];
-                }
-                catch (InvalidCastException)
-                {
-                    m_log.WarnFormat("Could not cast salePrice {0} to {1}", reader["salePrice"], "int");
-                }
-                
-                try
-                {
-				    item.SaleType = Convert.ToByte(reader["saleType"]);
-                }
-                catch (InvalidCastException)
-                {                
-				    m_log.WarnFormat("Could not convert saleType {0} to {1}", reader["saleType"], "byte");
-                }
-                
-                try
-                {
-				    item.CreationDate = (int) reader["creationDate"];
-                }
-                catch (InvalidCastException)
-                {
-                    m_log.WarnFormat("Could not cast creationDate {0} to {1}", reader["creationDate"], "int");
-                }
-            
-                try
-                {
-				    item.GroupID = new LLUUID(reader["groupID"].ToString());
-                }
-                catch (Exception)
-                {
-                    item.GroupID = LLUUID.Zero;
-                    m_log.WarnFormat("Could not convert groupID {0} to {1}", reader["groupID"], "LLUUID");
-                }
-                
-                try
-                {                
-				    item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
-                }
-                catch (InvalidCastException)
-                {
-                    m_log.WarnFormat("Could not cast groupOwned {0} to {1}", reader["groupOwned"], "boolean");
-                }                
-            
-                try
-                {
-				    item.Flags = (uint) reader["flags"];
-                }
-                catch (InvalidCastException)
-                {
-                    m_log.WarnFormat("Could not cast flags {0} to {1}", reader["flags"], "uint");
-                }            
+                item.EveryOnePermissions = (uint) reader["inventoryEveryOnePermissions"];                
+				item.SalePrice = (int) reader["salePrice"];
+                item.SaleType = Convert.ToByte(reader["saleType"]);
+                item.CreationDate = (int) reader["creationDate"];
+                item.GroupID = new LLUUID(reader["groupID"].ToString());
+                item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
+                item.Flags = (uint) reader["flags"];         
 
                 return item;
             }

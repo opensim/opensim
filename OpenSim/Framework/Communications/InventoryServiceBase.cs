@@ -106,16 +106,6 @@ namespace OpenSim.Framework.Communications
             
             return userFolders;
         }
-
-        // See IInventoryServices
-        public void MoveInventoryFolder(LLUUID userID, InventoryFolderBase folder)
-        {
-            // FIXME: Probably doesn't do what was originally intended - only ever queries the first plugin
-            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
-            {
-                plugin.Value.moveInventoryFolder(folder);
-            }
-        }
         
         // See IInventoryServices
         public virtual bool HasInventoryForUser(LLUUID userID)
@@ -159,25 +149,7 @@ namespace OpenSim.Framework.Communications
         }      
         
         // See IInventoryServices
-        public abstract void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback);
-        
-        // See IInventoryServices
-        public abstract void AddNewInventoryFolder(LLUUID userID, InventoryFolderBase folder);
-        
-        // See IInventoryServices
-        public abstract void MoveExistingInventoryFolder(InventoryFolderBase folder);
-        
-        // See IInventoryServices
-        public abstract void PurgeInventoryFolder(LLUUID userID, InventoryFolderBase folder);
-        
-        // See IInventoryServices
-        public abstract void AddNewInventoryItem(LLUUID userID, InventoryItemBase item);
-
-        // See IInventoryServices
-        public abstract void UpdateInventoryItem(LLUUID userID, InventoryItemBase item);
-        
-        // See IInventoryServices
-        public abstract void DeleteInventoryItem(LLUUID userID, InventoryItemBase item);        
+        public abstract void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback);       
         
         #endregion
         
@@ -206,47 +178,74 @@ namespace OpenSim.Framework.Communications
         
         #endregion
 
-        protected void AddFolder(InventoryFolderBase folder)
+        public bool AddFolder(InventoryFolderBase folder)
         {
             m_log.DebugFormat(
-                "[INVENTORY SERVICE BASE]: Adding folder {0}, {1} to {2}", folder.Name, folder.ID, folder.ParentID);
+                "[AGENT INVENTORY]: Adding folder {0} {1} to folder {2}", folder.Name, folder.ID, folder.ParentID);
             
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
                 plugin.Value.addInventoryFolder(folder);
             }
+            
+            // FIXME: Should return false on failure 
+            return true;
         }
 
-        protected void MoveFolder(InventoryFolderBase folder)
+        public bool MoveFolder(InventoryFolderBase folder)
         {
+            m_log.DebugFormat(
+                "[AGENT INVENTORY]: Moving folder {0} {1} to folder {2}", folder.Name, folder.ID, folder.ParentID);
+            
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
                 plugin.Value.moveInventoryFolder(folder);
             }
+            
+            // FIXME: Should return false on failure 
+            return true;            
         }
 
-        protected void AddItem(InventoryItemBase item)
+        public bool AddItem(InventoryItemBase item)
         {
+            m_log.DebugFormat(
+                "[AGENT INVENTORY]: Adding item {0} {1} to folder {2}", item.Name, item.ID, item.Folder);
+            
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
                 plugin.Value.addInventoryItem(item);
             }
+            
+            // FIXME: Should return false on failure 
+            return true;            
         }
 
-        protected void UpdateItem(InventoryItemBase item)
+        public bool UpdateItem(InventoryItemBase item)
         {
+            m_log.InfoFormat(
+                "[AGENT INVENTORY]: Updating item {0} {1} in folder {2}", item.Name, item.ID, item.Folder);
+            
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
                 plugin.Value.updateInventoryItem(item);
             }
+            
+            // FIXME: Should return false on failure 
+            return true;            
         }
 
-        protected void DeleteItem(InventoryItemBase item)
+        public bool DeleteItem(InventoryItemBase item)
         {
+            m_log.InfoFormat(
+                "[AGENT INVENTORY]: Deleting item {0} {1} from folder {2}", item.Name, item.ID, item.Folder);
+            
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
                 plugin.Value.deleteInventoryItem(item.ID);
             }
+            
+            // FIXME: Should return false on failure 
+            return true;            
         }
         
         /// <summary>
@@ -256,8 +255,11 @@ namespace OpenSim.Framework.Communications
         /// already know...  Needs heavy refactoring.
         /// </summary>
         /// <param name="folder"></param>
-        protected void PurgeFolder(InventoryFolderBase folder)
+        public bool PurgeFolder(InventoryFolderBase folder)
         {
+            m_log.DebugFormat(
+                "[AGENT INVENTORY]: Purging folder {0} {1} of its contents", folder.Name, folder.ID);
+            
             List<InventoryFolderBase> subFolders = RequestSubFolders(folder.ID);
             
             foreach (InventoryFolderBase subFolder in subFolders)
@@ -276,6 +278,9 @@ namespace OpenSim.Framework.Communications
             {
                 DeleteItem(item);
             }
+            
+            // FIXME: Should return false on failure 
+            return true;            
         }
         
         private void AddNewInventorySet(UsersInventory inventory)
@@ -283,7 +288,7 @@ namespace OpenSim.Framework.Communications
             foreach (InventoryFolderBase folder in inventory.Folders.Values)
             {
                 AddFolder(folder);
-            }
+            }         
         }
 
         /// <summary>

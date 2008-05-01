@@ -95,23 +95,23 @@ namespace OpenSim.Grid.InventoryServer
             
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryFolderBase, bool>(
-                    "POST", "/NewFolder/", m_inventoryService.AddInventoryFolder));
+                    "POST", "/NewFolder/", m_inventoryService.AddFolder));
 
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryFolderBase, bool>(
-                    "POST", "/MoveFolder/", m_inventoryService.MoveInventoryFolder));
+                    "POST", "/MoveFolder/", m_inventoryService.MoveFolder));
             
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryFolderBase, bool>(
-                    "POST", "/PurgeFolder/", m_inventoryService.PurgeInventoryFolder));            
+                    "POST", "/PurgeFolder/", m_inventoryService.PurgeFolder));            
 
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryItemBase, bool>(
-                    "POST", "/NewItem/", m_inventoryService.AddInventoryItem));
+                    "POST", "/NewItem/", m_inventoryService.AddItem));
             
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryItemBase, bool>(
-                    "POST", "/DeleteItem/", m_inventoryService.DeleteInvItem));
+                    "POST", "/DeleteItem/", m_inventoryService.DeleteItem));
 
             // WARNING: Root folders no longer just delivers the root and immediate child folders (e.g
             // system folders such as Objects, Textures), but it now returns the entire inventory skeleton.
