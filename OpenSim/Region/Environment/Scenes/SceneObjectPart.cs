@@ -1060,7 +1060,7 @@ namespace OpenSim.Region.Environment.Scenes
             return Math.Sqrt(dx * dx + dy * dy + dz * dz);
         }
 
-        public EntityIntersection TestIntersectionOBB(Ray iray, Quaternion parentrot, bool FrontFacesOnly)
+        public EntityIntersection TestIntersectionOBB(Ray iray, Quaternion parentrot, bool frontFacesOnly, bool faceCenters)
         {
             // In this case we're using a rectangular prism, which has 6 faces and therefore 6 planes
             // This breaks down into the ray---> plane equation.
@@ -1339,14 +1339,25 @@ namespace OpenSim.Region.Environment.Scenes
                     continue;
 
                 // If the normal is pointing outside the object
-                if (iray.Direction.Dot(normals[i]) < 0 || !FrontFacesOnly)
+                if (iray.Direction.Dot(normals[i]) < 0 || !frontFacesOnly)
                 {
-                    
-                    q = iray.Origin + a * iray.Direction;
 
-                    // Is this the closest hit to the object's origin?
-                    //float distance2 = (float)GetDistanceTo(q, iray.Origin);
+                    if (faceCenters)
+                    {
+                        q = AXpos + a * AAfacenormals[i]; //(FaceA[i] + FaceB[i] + FaceC[1] + FaceD[i]) / 4f;
+                    }
+                    else
+                    {
+                        q = iray.Origin + a * iray.Direction;
+                    }
+
                     float distance2 = (float)GetDistanceTo(q, AXpos);
+                    // Is this the closest hit to the object's origin?
+                    if (faceCenters)
+                    {
+                        distance2 = (float)GetDistanceTo(q, iray.Origin);
+                    }
+                    
 
                     if (distance2 < returnresult.distance)
                     {

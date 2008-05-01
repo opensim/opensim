@@ -543,7 +543,7 @@ namespace OpenSim.Region.Environment.Scenes
             return finalScale;
 
         }
-        public EntityIntersection TestIntersection(Ray hRay, bool frontFacesOnly)
+        public EntityIntersection TestIntersection(Ray hRay, bool frontFacesOnly, bool faceCenters)
         {
             // We got a request from the inner_scene to raytrace along the Ray hRay
             // We're going to check all of the prim in this group for intersection with the ray
@@ -565,7 +565,7 @@ namespace OpenSim.Region.Environment.Scenes
                     // Telling the prim to raytrace.
                     //EntityIntersection inter = part.TestIntersection(hRay, parentrotation);
 
-                    EntityIntersection inter = part.TestIntersectionOBB(hRay, parentrotation,frontFacesOnly);
+                    EntityIntersection inter = part.TestIntersectionOBB(hRay, parentrotation,frontFacesOnly, faceCenters);
 
                     // This may need to be updated to the maximum draw distance possible..  
                     // We might (and probably will) be checking for prim creation from other sims

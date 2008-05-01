@@ -853,7 +853,7 @@ namespace OpenSim.Region.Environment.Scenes
             return null;
         }
 
-        public EntityIntersection GetClosestIntersectingPrim(Ray hray, bool frontFacesOnly)
+        public EntityIntersection GetClosestIntersectingPrim(Ray hray, bool frontFacesOnly, bool faceCenters)
         {
             // Primitive Ray Tracing
             float closestDistance = 280f;
@@ -863,7 +863,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (ent is SceneObjectGroup)
                 {
                     SceneObjectGroup reportingG = (SceneObjectGroup)ent;
-                    EntityIntersection result = reportingG.TestIntersection(hray, frontFacesOnly);
+                    EntityIntersection result = reportingG.TestIntersection(hray, frontFacesOnly, faceCenters);
                     if (result.HitTF)
                     {
                         if (result.distance < closestDistance)

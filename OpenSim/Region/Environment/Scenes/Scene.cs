@@ -1169,7 +1169,7 @@ namespace OpenSim.Region.Environment.Scenes
             return myID;
         }
 
-        public LLVector3 GetNewRezLocation(LLVector3 RayStart, LLVector3 RayEnd, LLUUID RayTargetID, LLQuaternion rot, byte bypassRayCast, byte RayEndIsIntersection, bool frontFacesOnly, LLVector3 scale)
+        public LLVector3 GetNewRezLocation(LLVector3 RayStart, LLVector3 RayEnd, LLUUID RayTargetID, LLQuaternion rot, byte bypassRayCast, byte RayEndIsIntersection, bool frontFacesOnly, LLVector3 scale, bool FaceCenter)
         {
             LLVector3 pos = LLVector3.Zero;
             if (RayEndIsIntersection == (byte)1)
@@ -1196,7 +1196,7 @@ namespace OpenSim.Region.Environment.Scenes
                     Ray NewRay = new Ray(AXOrigin, AXdirection);
 
                     // Ray Trace against target here
-                    EntityIntersection ei = target.TestIntersectionOBB(NewRay, new Quaternion(1,0,0,0), frontFacesOnly);
+                    EntityIntersection ei = target.TestIntersectionOBB(NewRay, new Quaternion(1,0,0,0), frontFacesOnly, FaceCenter);
 
                     // Un-comment out the following line to Get Raytrace results printed to the console.
                    // m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
@@ -1228,7 +1228,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     // We don't have a target here, so we're going to raytrace all the objects in the scene.
 
-                    EntityIntersection ei = m_innerScene.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection), true);
+                    EntityIntersection ei = m_innerScene.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection), true, false);
 
                     // Un-comment the following line to print the raytrace results to the console.
                     //m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
@@ -1254,7 +1254,7 @@ namespace OpenSim.Region.Environment.Scenes
                                        byte RayEndIsIntersection)
         {
            
-            LLVector3 pos = GetNewRezLocation(RayStart, RayEnd, RayTargetID, rot, bypassRaycast, RayEndIsIntersection, true, new LLVector3(0.5f,0.5f,0.5f));
+            LLVector3 pos = GetNewRezLocation(RayStart, RayEnd, RayTargetID, rot, bypassRaycast, RayEndIsIntersection, true, new LLVector3(0.5f,0.5f,0.5f), false);
 
             if (PermissionsMngr.CanRezObject(ownerID, pos))
             {
@@ -1560,6 +1560,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnLinkObjects += m_innerScene.LinkObjects;
             client.OnDelinkObjects += m_innerScene.DelinkObjects;
             client.OnObjectDuplicate += m_innerScene.DuplicateObject;
+            client.OnObjectDuplicateOnRay += doObjectDuplicateOnRay;
             client.OnUpdatePrimFlags += m_innerScene.UpdatePrimFlags;
             client.OnRequestObjectPropertiesFamily += m_innerScene.RequestObjectPropertiesFamily;
             client.OnParcelPropertiesRequest += new ParcelPropertiesRequest(LandChannel.handleParcelPropertiesRequest);
@@ -1632,7 +1633,92 @@ namespace OpenSim.Region.Environment.Scenes
 
 
         }
-        
+        public void doObjectDuplicateOnRay(uint localID, uint dupeFlags, LLUUID AgentID, LLUUID GroupID,
+                                              LLUUID RayTargetObj, LLVector3 RayEnd, LLVector3 RayStart,
+                                              bool BypassRaycast, bool RayEndIsIntersection, bool CopyCenters, bool CopyRotates)
+        {
+           
+            LLVector3 pos = LLVector3.Zero;
+            bool frontFacesOnly = true;
+           
+            SceneObjectPart target = GetSceneObjectPart(localID);
+
+            if (target != null)
+            {
+
+                LLVector3 direction = LLVector3.Norm(RayEnd - RayStart);
+                Vector3 AXOrigin = new Vector3(RayStart.X, RayStart.Y, RayStart.Z);
+                Vector3 AXdirection = new Vector3(direction.X, direction.Y, direction.Z);
+
+                
+                if (target != null)
+                {
+                    if (target.ParentGroup != null)
+                    {
+                        pos = target.AbsolutePosition;
+                        //m_log.Info("[OBJECT_REZ]: TargetPos: " + pos.ToString() + ", RayStart: " + RayStart.ToString() + ", RayEnd: " + RayEnd.ToString() + ", Volume: " + Util.GetDistanceTo(RayStart,RayEnd).ToString() + ", mag1: " + Util.GetMagnitude(RayStart).ToString() + ", mag2: " + Util.GetMagnitude(RayEnd).ToString());
+
+                        // TODO: Raytrace better here
+
+                        //EntityIntersection ei = m_innerScene.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection));
+                        Ray NewRay = new Ray(AXOrigin, AXdirection);
+
+                        // Ray Trace against target here
+                        EntityIntersection ei = target.TestIntersectionOBB(NewRay, new Quaternion(1, 0, 0, 0), frontFacesOnly, false);
+
+                        // Un-comment out the following line to Get Raytrace results printed to the console.
+                        // m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
+                        float ScaleOffset = 0.5f;
+
+                        // If we hit something
+                        if (ei.HitTF)
+                        {
+                            LLVector3 scale = target.Scale;
+                            LLVector3 scaleComponent = new LLVector3(ei.AAfaceNormal.x, ei.AAfaceNormal.y, ei.AAfaceNormal.z);
+                            if (scaleComponent.X != 0) ScaleOffset = scale.X;
+                            if (scaleComponent.Y != 0) ScaleOffset = scale.Y;
+                            if (scaleComponent.Z != 0) ScaleOffset = scale.Z;
+                            ScaleOffset = Math.Abs(ScaleOffset);
+                            LLVector3 intersectionpoint = new LLVector3(ei.ipoint.x, ei.ipoint.y, ei.ipoint.z);
+                           
+                            
+                            
+                            if (CopyCenters)
+                            {
+                                //  now we cast a ray from inside the prim(absolute position) to one of it's faces along the face normal.
+                                LLVector3 direction2 = LLVector3.Norm(pos - target.AbsolutePosition);
+                                Vector3 AXOrigin2 = new Vector3(target.AbsolutePosition.X, target.AbsolutePosition.Y, target.AbsolutePosition.Z);
+                                Vector3 AXdirection2 = ei.AAfaceNormal;
+                                Ray NewRay2 = new Ray(AXOrigin2, AXdirection2);
+                                EntityIntersection ei2 = target.TestIntersectionOBB(NewRay2, new Quaternion(1, 0, 0, 0), false, CopyCenters);
+                                if (ei2.HitTF)
+                                {
+                                    //m_log.Info("[RAYTRACERESULTS]: Hit:" + ei2.HitTF.ToString() + " Point: " + ei2.ipoint.ToString() + " Normal: " + ei2.normal.ToString());
+                                    pos = new LLVector3(ei2.ipoint.x,ei2.ipoint.y,ei2.ipoint.z);
+                                }
+                            }
+                            LLVector3 normal = new LLVector3(ei.normal.x, ei.normal.y, ei.normal.z);
+                            // Set the position to the intersection point
+                            LLVector3 offset = (normal * (ScaleOffset / 2f));
+                            pos = (intersectionpoint + offset);
+
+                            // stick in offset format from the original prim
+                            pos = pos - target.ParentGroup.AbsolutePosition;
+                            m_innerScene.DuplicateObject(target.ParentGroup.LocalId, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID);
+                        }
+
+ 
+                        return;
+                    }
+                    return;
+                }
+              
+            }
+
+
+
+
+        }
         public virtual void SetHomeRezPoint(IClientAPI remoteClient, ulong regionHandle, LLVector3 position, LLVector3 lookAt, uint flags)
         {
             UserProfileData UserProfile = CommsManager.UserService.GetUserProfile(remoteClient.AgentId);

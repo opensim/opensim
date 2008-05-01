@@ -1240,7 +1240,7 @@ namespace OpenSim.Region.Environment.Scenes
             
             LLVector3 pos = GetNewRezLocation(
                       RayStart, RayEnd, RayTargetID, new LLQuaternion(0, 0, 0, 1), 
-                      BypassRayCast, bRayEndIsIntersection,true,scale);
+                      BypassRayCast, bRayEndIsIntersection,true,scale, false);
             
             if (!PermissionsMngr.CanRezObject(remoteClient.AgentId, pos) && !attachment)
             {
@@ -1271,7 +1271,7 @@ namespace OpenSim.Region.Environment.Scenes
                             {
                                 pos = GetNewRezLocation(
                                             RayStart, RayEnd, RayTargetID, new LLQuaternion(0, 0, 0, 1),
-                                               BypassRayCast, bRayEndIsIntersection, true, group.GroupScale());
+                                               BypassRayCast, bRayEndIsIntersection, true, group.GroupScale(), false);
                                 group.AbsolutePosition = pos;
                             }
                             else
