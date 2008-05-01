@@ -71,12 +71,8 @@ namespace OpenSim.Grid.InventoryServer
                                                  "Invenstorage: Added IInventoryData Interface");
                         break;
                     }
-
-                    typeInterface = null;
                 }
             }
-
-            pluginAssembly = null;
         }
 
         protected static SerializableInventory loadInventoryFromXmlFile(string fileName)

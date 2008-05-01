@@ -101,7 +101,7 @@ namespace OpenSim.Framework.Console
             }
         }
 
-        private ConsoleColor DeriveColor(string input)
+        private static ConsoleColor DeriveColor(string input)
         {
             int colIdx = (input.ToUpper().GetHashCode() % 6) + 9;
             return (ConsoleColor) colIdx;

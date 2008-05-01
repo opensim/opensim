@@ -653,7 +653,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             GC.Collect();
         }
 
-        internal void BulletXMessage(string message, bool isWarning)
+        internal static void BulletXMessage(string message, bool isWarning)
         {
             PhysicsPluginManager.PhysicsPluginMessage("[Modified BulletX]:\t" + message, isWarning);
         }
@@ -1455,7 +1455,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             }
             catch (Exception ex)
             {
-                _parent_scene.BulletXMessage(_parent_scene.is_ex_message + ex.Message, true);
+                BulletXScene.BulletXMessage(_parent_scene.is_ex_message + ex.Message, true);
                 rigidBody.ActivationState = ActivationState.DisableSimulation;
                 _parent_scene.AddForgottenRigidBody(rigidBody);
             }
@@ -1532,10 +1532,10 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 }
                 catch (Exception ex)
                 {
-                    _parentscene.BulletXMessage(ex.Message, true);
+                    BulletXScene.BulletXMessage(ex.Message, true);
                 }
             }
-            _parentscene.BulletXMessage("BulletXPlanet created.", false);
+            BulletXScene.BulletXMessage("BulletXPlanet created.", false);
         }
 
         internal float HeightValue(Vector3 position)

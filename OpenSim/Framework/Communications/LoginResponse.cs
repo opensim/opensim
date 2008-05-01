@@ -496,7 +496,7 @@ namespace OpenSim.Framework.Communications
             return llsdBack;
         }
 
-        private LLSDArray WrapLLSDMap(LLSDMap wrapMe)
+        private static LLSDArray WrapLLSDMap(LLSDMap wrapMe)
         {
             LLSDArray array = new LLSDArray();
             array.Add(wrapMe);

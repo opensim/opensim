@@ -472,7 +472,7 @@ namespace OpenSim.Framework
             }
         }
 
-        private IGenericConfig LoadConfigDll(string dllName)
+        private static IGenericConfig LoadConfigDll(string dllName)
         {
             Assembly pluginAssembly = Assembly.LoadFrom(dllName);
             IGenericConfig plug = null;

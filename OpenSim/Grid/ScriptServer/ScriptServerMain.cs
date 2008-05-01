@@ -80,14 +80,14 @@ namespace OpenSim.Grid.ScriptServer
             Console.ReadLine();
         }
 
-        private void RPC_ReceiveCommand(int ID, string Command, object[] p)
+        private static void RPC_ReceiveCommand(int ID, string Command, object[] p)
         {
             m_log.Info("[SERVER]: Received command: '" + Command + "'");
             if (p != null)
             {
                 for (int i = 0; i < p.Length; i++)
                 {
-                    m_log.Info("[SERVER]: Param " + i + ": " + p[i].ToString());
+                    m_log.Info("[SERVER]: Param " + i + ": " + p[i]);
                 }
             }
 

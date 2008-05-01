@@ -123,7 +123,7 @@ namespace OpenSim.Framework
         /// <param name="a">A</param>
         /// <param name="b">B</param>
         /// <returns>C</returns>
-        private byte[] AppendArrays(byte[] a, byte[] b)
+        private static byte[] AppendArrays(byte[] a, byte[] b)
         {
             byte[] c = new byte[a.Length + b.Length];
             Buffer.BlockCopy(a, 0, c, 0, a.Length);

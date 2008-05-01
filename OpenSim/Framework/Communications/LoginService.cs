@@ -728,7 +728,7 @@ namespace OpenSim.Framework.Communications
             return m_welcomeMessage;
         }
 
-        private LoginResponse.BuddyList ConvertFriendListItem(List<FriendListItem> LFL)
+        private static LoginResponse.BuddyList ConvertFriendListItem(List<FriendListItem> LFL)
         {
             LoginResponse.BuddyList buddylistreturn = new LoginResponse.BuddyList();
             foreach (FriendListItem fl in LFL)

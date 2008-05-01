@@ -378,7 +378,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// 
         /// </summary>
         /// <returns></returns>
-        protected LLSDMapLayer GetLLSDMapLayerResponse()
+        protected static LLSDMapLayer GetLLSDMapLayerResponse()
         {
             LLSDMapLayer mapLayer = new LLSDMapLayer();
             mapLayer.Right = 5000;
@@ -758,7 +758,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             //    bw.Close();
             //    fs.Close();
             //}
-            private void SaveAssetToFile(string filename, byte[] data)
+            private static void SaveAssetToFile(string filename, byte[] data)
             {
                 string assetPath = "UserAssets";
                 if (!Directory.Exists(assetPath))
@@ -840,7 +840,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             //    bw.Close();
             //    fs.Close();
             //}
-            private void SaveAssetToFile(string filename, byte[] data)
+            private static void SaveAssetToFile(string filename, byte[] data)
             {
                 string assetPath = "UserAssets";
                 if (!Directory.Exists(assetPath))
@@ -945,7 +945,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             //    bw.Close();
             //    fs.Close();
             //}
-            private void SaveAssetToFile(string filename, byte[] data)
+            private static void SaveAssetToFile(string filename, byte[] data)
             {
                 string assetPath = "UserAssets";
                 if (!Directory.Exists(assetPath))

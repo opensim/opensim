@@ -66,7 +66,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             StartThread();
         }
 
-        private void StartThread()
+        private static void StartThread()
         {
             if (cmdHandlerThread == null)
             {

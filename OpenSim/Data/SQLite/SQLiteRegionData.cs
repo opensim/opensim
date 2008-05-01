@@ -1352,7 +1352,7 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
-        private SqliteCommand createInsertCommand(string table, DataTable dt)
+        private static SqliteCommand createInsertCommand(string table, DataTable dt)
         {
             /**
              *  This is subtle enough to deserve some commentary.
@@ -1387,7 +1387,7 @@ namespace OpenSim.Data.SQLite
             return cmd;
         }
 
-        private SqliteCommand createUpdateCommand(string table, string pk, DataTable dt)
+        private static SqliteCommand createUpdateCommand(string table, string pk, DataTable dt)
         {
             string sql = "update " + table + " set ";
             string subsql = String.Empty;
@@ -1415,7 +1415,7 @@ namespace OpenSim.Data.SQLite
         }
 
 
-        private string defineTable(DataTable dt)
+        private static string defineTable(DataTable dt)
         {
             string sql = "create table " + dt.TableName + "(";
             string subsql = String.Empty;
@@ -1457,7 +1457,7 @@ namespace OpenSim.Data.SQLite
         /// for us.
         ///</summary>
         ///<returns>a built sqlite parameter</returns>
-        private SqliteParameter createSqliteParameter(string name, Type type)
+        private static SqliteParameter createSqliteParameter(string name, Type type)
         {
             SqliteParameter param = new SqliteParameter();
             param.ParameterName = ":" + name;

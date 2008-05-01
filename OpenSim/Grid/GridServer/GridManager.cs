@@ -78,8 +78,6 @@ namespace OpenSim.Grid.GridServer
                         m_log.Info("[DATA]: Added IGridData Interface");
                     }
 
-                    typeInterface = null;
-
                     // Logs go here
                     typeInterface = pluginType.GetInterface("ILogData", true);
 
@@ -91,12 +89,8 @@ namespace OpenSim.Grid.GridServer
                         _logplugins.Add(plug.getName(), plug);
                         m_log.Info("[DATA]: Added ILogData Interface");
                     }
-
-                    typeInterface = null;
                 }
             }
-
-            pluginAssembly = null;
         }
 
         /// <summary>
@@ -274,7 +268,7 @@ namespace OpenSim.Grid.GridServer
                     sim.regionSendKey == Config.SimRecvKey);
         }
 
-        private XmlRpcResponse ErrorResponse(string error)
+        private static XmlRpcResponse ErrorResponse(string error)
         {
             XmlRpcResponse errorResponse = new XmlRpcResponse();
             Hashtable errorResponseData = new Hashtable();
@@ -609,7 +603,7 @@ namespace OpenSim.Grid.GridServer
             response.Value = responseData;
 
             //RegionProfileData TheSim = null;
-            string uuid = String.Empty; ;
+            string uuid;
             Hashtable requestData = (Hashtable)request.Params[0];
 
             if (requestData.ContainsKey("UUID"))
@@ -744,8 +738,7 @@ namespace OpenSim.Grid.GridServer
             response.Value = responseData;
             IList simProfileList = new ArrayList();
 
-            bool fastMode = false; // MySQL Only
-            fastMode = (Config.DatabaseProvider == "OpenSim.Data.MySQL.dll");
+            bool fastMode = (Config.DatabaseProvider == "OpenSim.Data.MySQL.dll");
 
             if (fastMode)
             {

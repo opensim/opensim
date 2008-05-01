@@ -542,7 +542,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        private int CalculateNumPackets(byte[] data)
+        private static int CalculateNumPackets(byte[] data)
         {
             const uint m_maxPacketSize = 600;
             int numPackets = 1;

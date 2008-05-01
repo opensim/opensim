@@ -43,7 +43,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected AssetBase CreateAsset(string assetIdStr, string name, string path, bool isImage)
+        protected static AssetBase CreateAsset(string assetIdStr, string name, string path, bool isImage)
         {
             AssetBase asset = new AssetBase(
                 new LLUUID(assetIdStr),
@@ -64,7 +64,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
             return asset;
         }
         
-        protected void LoadAsset(AssetBase info, bool image, string path)
+        protected static void LoadAsset(AssetBase info, bool image, string path)
         {
             FileInfo fInfo = new FileInfo(path);
             long numBytes = fInfo.Length;
@@ -119,9 +119,9 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
         /// <summary>
         /// Use the asset set information at path to load assets
         /// </summary>
-        /// <param name="path"></param>
+        /// <param name="assetSetPath"></param>
         /// <param name="assets"></param>
-        protected void LoadXmlAssetSet(string assetSetPath, List<AssetBase> assets)
+        protected static void LoadXmlAssetSet(string assetSetPath, List<AssetBase> assets)
         {
             m_log.InfoFormat("[ASSETS]: Loading asset set {0}", assetSetPath);
             

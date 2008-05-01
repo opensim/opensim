@@ -377,9 +377,9 @@ namespace OpenSim.Region.ClientStack
         }
 
 
-        private int ScaleThrottle(int value, int curmax, int newmax)
+        private static int ScaleThrottle(int value, int curmax, int newmax)
         {
-            return (int) (((float) value/(float) curmax)*newmax);
+            return (value / curmax) * newmax;
         }
 
         public byte[] GetThrottlesPacked(float multiplier)

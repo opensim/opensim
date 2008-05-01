@@ -66,7 +66,7 @@ namespace OpenSim.Framework.Console
         /// </summary>
         /// <param name="input">arbitrary string for input</param>
         /// <returns>an ansii color</returns>
-        private ConsoleColor DeriveColor(string input)
+        private static ConsoleColor DeriveColor(string input)
         {
             int colIdx = (input.ToUpper().GetHashCode() % 6) + 9;
             return (ConsoleColor) colIdx;

@@ -496,7 +496,7 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        private void DoHTTPGruntWork(Hashtable responsedata, HttpListenerResponse response)
+        private static void DoHTTPGruntWork(Hashtable responsedata, HttpListenerResponse response)
         {
             int responsecode = (int)responsedata["int_response_code"];
             string responseString = (string)responsedata["str_response_string"];
@@ -505,7 +505,7 @@ namespace OpenSim.Framework.Servers
             //Even though only one other part of the entire code uses HTTPHandlers, we shouldn't expect this
             //and should check for NullReferenceExceptions
 
-            if (contentType == null || contentType == "")
+            if (string.IsNullOrEmpty(contentType))
             {
                 contentType = "text/html";
             }
@@ -677,12 +677,12 @@ namespace OpenSim.Framework.Servers
         }
 
         // Fallback HTTP responses in case the HTTP error response files don't exist
-        private string getDefaultHTTP404(string host)
+        private static string getDefaultHTTP404(string host)
         {
             return "<HTML><HEAD><TITLE>404 Page not found</TITLE><BODY><BR /><H1>Ooops!</H1><P>The page you requested has been obsconded with by knomes. Find hippos quick!</P><P>If you are trying to log-in, your link parameters should have: &quot;-loginpage http://" + host + "/?method=login -loginuri http://" + host + "/&quot; in your link </P></BODY></HTML>";
         }
 
-        private string getDefaultHTTP500()
+        private static string getDefaultHTTP500()
         {
             return "<HTML><HEAD><TITLE>500 Internal Server Error</TITLE><BODY><BR /><H1>Ooops!</H1><P>The server you requested is overun by knomes! Find hippos quick!</P></BODY></HTML>";
         }

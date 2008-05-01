@@ -51,7 +51,7 @@ namespace OpenSim.Framework.Servers
             m_method = binaryMethod;
         }
 
-        private byte[] ReadFully(Stream stream)
+        private static byte[] ReadFully(Stream stream)
         {
             byte[] buffer = new byte[32768];
             using (MemoryStream ms = new MemoryStream())

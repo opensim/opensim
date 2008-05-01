@@ -343,7 +343,7 @@ namespace OpenSim.DataStore.MSSQL
             dt.Columns.Add(col);
         }
 
-        private DataTable createTerrainTable()
+        private static DataTable createTerrainTable()
         {
             DataTable terrain = new DataTable("terrain");
 
@@ -354,7 +354,7 @@ namespace OpenSim.DataStore.MSSQL
             return terrain;
         }
 
-        private DataTable createPrimTable()
+        private static DataTable createPrimTable()
         {
             DataTable prims = new DataTable("prims");
 
@@ -418,7 +418,7 @@ namespace OpenSim.DataStore.MSSQL
             return prims;
         }
 
-        private DataTable createShapeTable()
+        private static DataTable createShapeTable()
         {
             DataTable shapes = new DataTable("primshapes");
             createCol(shapes, "UUID", typeof (String));
@@ -619,7 +619,7 @@ namespace OpenSim.DataStore.MSSQL
             }
         }
 
-        private PrimitiveBaseShape buildShape(DataRow row)
+        private static PrimitiveBaseShape buildShape(DataRow row)
         {
             PrimitiveBaseShape s = new PrimitiveBaseShape();
             s.Scale = new LLVector3(
@@ -675,7 +675,7 @@ namespace OpenSim.DataStore.MSSQL
             return s;
         }
 
-        private void fillShapeRow(DataRow row, SceneObjectPart prim)
+        private static void fillShapeRow(DataRow row, SceneObjectPart prim)
         {
             PrimitiveBaseShape s = prim.Shape;
             row["UUID"] = prim.UUID;
@@ -770,7 +770,7 @@ namespace OpenSim.DataStore.MSSQL
          *
          **********************************************************************/
 
-        private SqlCommand createInsertCommand(string table, DataTable dt)
+        private static SqlCommand createInsertCommand(string table, DataTable dt)
         {
             /**
              *  This is subtle enough to deserve some commentary.
@@ -804,7 +804,7 @@ namespace OpenSim.DataStore.MSSQL
             return cmd;
         }
 
-        private SqlCommand createUpdateCommand(string table, string pk, DataTable dt)
+        private static SqlCommand createUpdateCommand(string table, string pk, DataTable dt)
         {
             string sql = "update " + table + " set ";
             string subsql = String.Empty;
@@ -831,7 +831,7 @@ namespace OpenSim.DataStore.MSSQL
         }
 
 
-        private string defineTable(DataTable dt)
+        private static string defineTable(DataTable dt)
         {
             string sql = "create table " + dt.TableName + "(";
             string subsql = String.Empty;
@@ -854,7 +854,7 @@ namespace OpenSim.DataStore.MSSQL
             return sql;
         }
 
-        private void fillTerrainRow(DataRow row, LLUUID regionUUID, int rev, double[,] val)
+        private static void fillTerrainRow(DataRow row, LLUUID regionUUID, int rev, double[,] val)
         {
             row["RegionUUID"] = regionUUID;
             row["Revision"] = rev;
@@ -890,7 +890,7 @@ namespace OpenSim.DataStore.MSSQL
         /// for us.
         ///</summary>
         ///<returns>a built Sql parameter</returns>
-        private SqlParameter createSqlParameter(string name, Type type)
+        private static SqlParameter createSqlParameter(string name, Type type)
         {
             SqlParameter param = new SqlParameter();
             param.ParameterName = "@" + name;
@@ -934,7 +934,7 @@ namespace OpenSim.DataStore.MSSQL
             da.InsertCommand.Connection = conn;
         }
 
-        private void InitDB(SqlConnection conn)
+        private static void InitDB(SqlConnection conn)
         {
             string createPrims = defineTable(createPrimTable());
             string createShapes = defineTable(createShapeTable());
@@ -977,7 +977,7 @@ namespace OpenSim.DataStore.MSSQL
             conn.Close();
         }
 
-        private bool TestTables(SqlConnection conn)
+        private static bool TestTables(SqlConnection conn)
         {
             SqlCommand primSelectCmd = new SqlCommand(primSelect, conn);
             SqlDataAdapter pDa = new SqlDataAdapter(primSelectCmd);
@@ -1046,7 +1046,7 @@ namespace OpenSim.DataStore.MSSQL
          *
          **********************************************************************/
 
-        private DbType dbtypeFromType(Type type)
+        private static DbType dbtypeFromType(Type type)
         {
             if (type == typeof (String))
             {
@@ -1072,7 +1072,7 @@ namespace OpenSim.DataStore.MSSQL
 
         // this is something we'll need to implement for each db
         // slightly differently.
-        private string SqlType(Type type)
+        private static string SqlType(Type type)
         {
             if (type == typeof (String))
             {

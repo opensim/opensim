@@ -72,7 +72,7 @@ namespace OpenSimExport
             }
         }
 
-        protected ConsoleBase CreateConsole()
+        protected static ConsoleBase CreateConsole()
         {
             return new ConsoleBase("Export", null);
         }

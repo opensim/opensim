@@ -784,7 +784,7 @@ namespace OpenSim.Data.SQLite
             conn.Close();
         }
 
-        private bool TestTables(SqliteConnection conn)
+        private static bool TestTables(SqliteConnection conn)
         {
             SqliteCommand cmd = new SqliteCommand(userSelect, conn);
             SqliteCommand fcmd = new SqliteCommand(userFriendsSelect, conn);

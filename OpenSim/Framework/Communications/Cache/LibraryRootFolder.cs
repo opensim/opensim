@@ -241,7 +241,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="path"></param>
         /// <param name="fileDescription"></param>
         /// <param name="action"></param>
-        private void LoadFromFile(string path, string fileDescription, ConfigAction action)
+        private static void LoadFromFile(string path, string fileDescription, ConfigAction action)
         {            
             if (File.Exists(path))
             {

@@ -434,7 +434,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                              src_region.RegionID.ToString());
         }
 
-        private void SerializeClient(int idx, Scene scene, ScenePresence pre, string export_dir)
+        private static void SerializeClient(int idx, Scene scene, ScenePresence pre, string export_dir)
         {
             string filename;
             IClientAPI controller = null;

@@ -312,7 +312,7 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
             }
         }
 
-        protected void ClosePort(ServerData sd)
+        protected static void ClosePort(ServerData sd)
         {
             // Close the port if it exists and is open
             if (sd.server == null) return;

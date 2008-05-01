@@ -89,7 +89,7 @@ namespace OpenSim.Framework
 
         public Packet GetPacket(PacketType type)
         {
-            Packet packet = null;
+            Packet packet;
 
             lock (pool)
             {
@@ -109,7 +109,7 @@ namespace OpenSim.Framework
         }
 
         // private byte[] decoded_header = new byte[10];
-        private PacketType GetType(byte[] bytes)
+        private static PacketType GetType(byte[] bytes)
         {
             byte[] decoded_header = new byte[10 + 8];
             ushort id;

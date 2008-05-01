@@ -209,7 +209,7 @@ namespace OpenSim.Grid.UserServer
             XmlRpcRequest GridReq = new XmlRpcRequest("logout_of_simulator", SendParams);
             try
             {
-                XmlRpcResponse GridResp = GridReq.Send(serv.URI, 6000);
+                GridReq.Send(serv.URI, 6000);
             }
             catch (WebException)
             {
@@ -243,7 +243,7 @@ namespace OpenSim.Grid.UserServer
             XmlRpcRequest GridReq = new XmlRpcRequest("login_to_simulator", SendParams);
             try
             {
-                XmlRpcResponse GridResp = GridReq.Send(serv.URI, 6000);
+                GridReq.Send(serv.URI, 6000);
                 m_log.Info("[LOGIN]: Notified : " + serv.URI + " about user login");
             }
             catch (WebException)

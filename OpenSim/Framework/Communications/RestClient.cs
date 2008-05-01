@@ -164,7 +164,7 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         /// <param name="s">string to be examined</param>
         /// <returns>true if slash is present</returns>
-        private bool isSlashed(string s)
+        private static bool isSlashed(string s)
         {
             return s.Substring(s.Length - 1, 1) == "/";
         }
@@ -196,7 +196,7 @@ namespace OpenSim.Framework.Communications
                     sb.Append("&");
 
                 sb.Append(kv.Key);
-                if (kv.Value != null && kv.Value.Length != 0)
+                if (!string.IsNullOrEmpty(kv.Value))
                 {
                     sb.Append("=");
                     sb.Append(kv.Value);
