@@ -36,7 +36,6 @@ using System.Drawing;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using Microsoft.Win32;
 
 namespace LaunchSLClient
 {
@@ -96,9 +95,9 @@ namespace LaunchSLClient
 
         private void addLocalSandbox(ref ArrayList menuItems)
         {
-            // build sandbox URL from Regions\default.xml
+            // build sandbox URL from Regions/default.xml
             // this is highly dependant on a standard default.xml
-            if (File.Exists(@"Regions\default.xml"))
+            if (File.Exists("Regions/default.xml"))
             {
                 string sandboxHostName = "";
                 string sandboxPort = "";
@@ -106,7 +105,7 @@ namespace LaunchSLClient
                 
                 Regex myRegex = new Regex(".*internal_ip_port=\\\"(?<port>.*?)\\\".*external_host_name=\\\"(?<name>.*?)\\\".*");
 
-                FileInfo defaultFile = new FileInfo(@"Regions\default.xml");
+                FileInfo defaultFile = new FileInfo("Regions/default.xml");
                 StreamReader stream = defaultFile.OpenText();
                 do
                 {
@@ -136,10 +135,10 @@ namespace LaunchSLClient
         {
             //build local grid URL from network_servers_information.xml
             // this is highly dependant on a standard default.xml
-            if (File.Exists(@"network_servers_information.xml"))
+            if (File.Exists("network_servers_information.xml"))
             {
                 string text;
-                FileInfo defaultFile = new FileInfo(@"network_servers_information.xml");
+                FileInfo defaultFile = new FileInfo("network_servers_information.xml");
                 Regex myRegex = new Regex(".*UserServerURL=\\\"(?<url>.*?)\\\".*");
                 StreamReader stream = defaultFile.OpenText();
 
@@ -168,13 +167,11 @@ namespace LaunchSLClient
 
         private void addLocalSims(ref ArrayList menuItems)
         {
-            // find opensim directory
-            RegistryKey exeKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\OpenSim\OpenSim");
-            if (exeKey != null)
-            {
-                Object simPath = exeKey.GetValue("Path");
+            string configDir = m_machineConfig.GetConfigDir();
 
-                Directory.SetCurrentDirectory(simPath.ToString());  //this should be set to wherever we decide to put the binaries
+            if (!string.IsNullOrEmpty(configDir))
+            {
+                Directory.SetCurrentDirectory(configDir);
 
                 addLocalSandbox(ref menuItems);
                 addLocalGrid(ref menuItems);
@@ -193,10 +190,10 @@ namespace LaunchSLClient
 
             System.Diagnostics.Process proc = new System.Diagnostics.Process();
             proc.StartInfo.FileName = runLine;
-            proc.StartInfo.Arguments = exeFlags.ToString() + " " + runUrl;
+            proc.StartInfo.Arguments = exeFlags + " " + runUrl;
             proc.StartInfo.UseShellExecute = false;
             proc.StartInfo.RedirectStandardOutput = false;
-            proc.StartInfo.WorkingDirectory = exePath.ToString();
+            proc.StartInfo.WorkingDirectory = exePath;
             proc.Start();
             proc.WaitForExit();
         }

@@ -33,5 +33,6 @@ namespace LaunchSLClient
     public abstract class MachineConfig
     {
         public abstract void GetClient(ref string exePath, ref string runLine, ref string exeFlags);
+        public abstract string GetConfigDir();
     }
 }

@@ -46,5 +46,10 @@ namespace LaunchSLClient
             runLine = exePath + "/Second Life";
             exeFlags = "";
         }
+
+        public override string GetConfigDir()
+        {
+            return "";
+        }
     }
 }

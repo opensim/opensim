@@ -51,5 +51,12 @@ namespace LaunchSLClient
             Registry.LocalMachine.Flush();
             Registry.LocalMachine.Close();
         }
+
+        public override string GetConfigDir()
+        {
+            RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\OpenSim\OpenSim");
+
+            return key == null ? "" : key.GetValue("Path").ToString();
+        }
     }
 }
