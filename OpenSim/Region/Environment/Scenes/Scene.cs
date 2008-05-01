@@ -1207,8 +1207,11 @@ namespace OpenSim.Region.Environment.Scenes
                     // If we hit something
                     if (ei.HitTF)
                     {
+                        LLVector3 intersectionpoint = new LLVector3(ei.ipoint.x, ei.ipoint.y, ei.ipoint.z);
+                        LLVector3 normal = new LLVector3(ei.normal.x, ei.normal.y, ei.normal.z);
                         // Set the position to the intersection point
-                        pos = (new LLVector3(ei.ipoint.x, ei.ipoint.y, ei.ipoint.z) + (new LLVector3(ei.normal.x,ei.normal.x,ei.normal.z) * (0.5f/2f)));
+                        LLVector3 offset = (normal * (0.5f / 2f));
+                        pos = (intersectionpoint + offset);
                         
                         // Un-offset the prim (it gets offset later by the consumer method)
                         pos.Z -= 0.25F;
