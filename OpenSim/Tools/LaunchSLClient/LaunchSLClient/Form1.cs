@@ -138,13 +138,9 @@ namespace LaunchSLClient
                 addLocalSandbox(ref menuItems);
                 addLocalGrid(ref menuItems);
             }
-            else
-            {
-                MessageBox.Show("No OpenSim installed. Showing public grids only", "No OpenSim");
-            }
         }
 
-        private void getClient(ref string exePath, ref string runLine, ref string exeFlags)
+        private void getClientWindows(ref string exePath, ref string runLine, ref string exeFlags)
         {
             // get executable path from registry
             RegistryKey regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Linden Research, Inc.\SecondLife");
@@ -162,6 +158,40 @@ namespace LaunchSLClient
             runLine = exePath + "\\" + exe;
             Registry.LocalMachine.Flush();
             Registry.LocalMachine.Close();
+        }
+
+        private void getClientMacOSX(ref string exePath, ref string runLine, ref string exeFlags)
+        {
+            if (Directory.Exists("/Applications/Second Life.app"))
+            {
+                exePath = "/Applications/Second Life.app/Contents/MacOS";
+            }
+
+            runLine = exePath + "/Second Life";
+            exeFlags = "";
+        }
+
+        private void getClientUnix(ref string exePath, ref string runLine, ref string exeFlags)
+        {
+        }
+
+        private void getClient(ref string exePath, ref string runLine, ref string exeFlags)
+        {
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                if (File.Exists("/System/Library/Frameworks/Cocoa.framework/Cocoa"))
+                {
+                    getClientMacOSX(ref exePath, ref runLine, ref exeFlags);
+                }
+                else
+                {
+                    getClientUnix(ref exePath, ref runLine, ref exeFlags);
+                }
+            }
+            else
+            {
+                getClientWindows(ref exePath, ref runLine, ref exeFlags);
+            }
         }
 
         public Form1()
