@@ -600,28 +600,79 @@ namespace OpenSim.Framework.Communications
         /// TODO: stubs for now to get us to a compiling state gently
         public UserAppearance GetUserAppearance(LLUUID user) 
         {
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try
+                {
+                    return plugin.Value.GetUserAppearance(user);
+                }
+                catch (Exception e)
+                {
+                    m_log.InfoFormat("[USERSTORAGE]: Unable to find user appearance {0} via {1} ({2})", user.ToString(), plugin.Key, e.ToString());
+                }
+            }
             return new UserAppearance();
         }
 
         public void UpdateUserAppearance(LLUUID user, UserAppearance appearance)
         {
-            return;
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try
+                {
+                    plugin.Value.UpdateUserAppearance(user, appearance);
+                }
+                catch (Exception e)
+                {
+                    m_log.InfoFormat("[USERSTORAGE]: Unable to update user appearance {0} via {1} ({2})", user.ToString(), plugin.Key, e.ToString());
+                }
+            }
         }
 
         public void AddAttachment(LLUUID user, LLUUID item)
         {
-            return;
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try
+                {
+                    plugin.Value.AddAttachment(user, item);
+                }
+                catch (Exception e)
+                {
+                    m_log.InfoFormat("[USERSTORAGE]: Unable to attach {3} => {0} via {1} ({2})", user.ToString(), plugin.Key, e.ToString(), item.ToString());
+                }
+            }
         }
         
         public void RemoveAttachment(LLUUID user, LLUUID item)
         {
-            return;
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try
+                {
+                    plugin.Value.RemoveAttachment(user, item);
+                }
+                catch (Exception e)
+                {
+                    m_log.InfoFormat("[USERSTORAGE]: Unable to remove attachment {3} => {0} via {1} ({2})", user.ToString(), plugin.Key, e.ToString(), item.ToString());
+                }
+            }
         }
         
         public List<LLUUID> GetAttachments(LLUUID user)
         {
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try
+                {
+                    return plugin.Value.GetAttachments(user);
+                }
+                catch (Exception e)
+                {
+                    m_log.InfoFormat("[USERSTORAGE]: Unable to get attachments for {0} via {1} ({2})", user.ToString(), plugin.Key, e.ToString());
+                }
+            }
             return new List<LLUUID>();
         }
-        
     }
 }
