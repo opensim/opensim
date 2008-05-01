@@ -1200,9 +1200,15 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
 
             #endregion
-            static public implicit operator Int32(LSLInteger i)
+
+            static public implicit operator int(LSLInteger i)
             {
                 return i.value;
+            }
+
+            static public implicit operator uint(LSLInteger i)
+            {
+                return (uint)i.value;
             }
 
 			static public explicit operator LSLString(LSLInteger i)
