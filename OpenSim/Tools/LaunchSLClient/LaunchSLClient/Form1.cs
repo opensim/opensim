@@ -228,6 +228,9 @@ namespace LaunchSLClient
                 }
             }
 
+            comboBox1.DroppedDown = false;
+            Hide();
+
             System.Diagnostics.Process proc = new System.Diagnostics.Process();
             proc.StartInfo.FileName = runLine;
             proc.StartInfo.Arguments = exeFlags + " " + runUrl;
@@ -236,6 +239,8 @@ namespace LaunchSLClient
             proc.StartInfo.WorkingDirectory = exePath;
             proc.Start();
             proc.WaitForExit();
+
+            Application.Exit();
         }
     }
 }
