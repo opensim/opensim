@@ -26,26 +26,17 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Windows.Forms;
+using System.IO;
 
 namespace LaunchSLClient
 {
-    static class Program
+    public class UnixConfig : MachineConfig
     {
-        [STAThread]
-        static void Main()
+        public override void GetClient(ref string exePath, ref string runLine, ref string exeFlags)
         {
-            try
-            {
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new Form1());
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message,"Unhandled Error");
-            }
+            exePath = "";
+            runLine = "secondlife";
+            exeFlags = "";
         }
     }
 }

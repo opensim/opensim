@@ -44,7 +44,7 @@ namespace LaunchSLClient
     {
         const string deepGridUrl = "http://user.deepgrid.com:8002/";
         const string osGridUrl = "http://www.osgrid.org:8002/";
-        const string openLifeGridUrl = "http://logingrid.net:8002";
+        const string openLifeGridUrl = "http://logingrid.net:8002/";
 
         string gridUrl = "";
         string sandboxUrl = "";
@@ -52,6 +52,47 @@ namespace LaunchSLClient
         string runLine = "";
         string exeFlags = "";
         string exePath = "";
+
+        private MachineConfig m_machineConfig;
+
+        public Form1()
+        {
+            InitializeComponent();
+            ArrayList menuItems = new ArrayList();
+
+            m_machineConfig = getMachineConfig();
+            m_machineConfig.GetClient(ref exePath, ref runLine, ref exeFlags);
+
+            menuItems.Add("Please select one:");
+
+            addLocalSims(ref menuItems);
+
+            menuItems.Add("OSGrid - www.osgrid.org");
+            menuItems.Add("DeepGrid - www.deepgrid.com");
+            menuItems.Add("OpenlifeGrid - www.openlifegrid.com");
+            menuItems.Add("Linden Labs - www.secondlife.com");
+
+            comboBox1.DataSource = menuItems;
+        }
+
+        private MachineConfig getMachineConfig()
+        {
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                if (File.Exists("/System/Library/Frameworks/Cocoa.framework/Cocoa"))
+                {
+                    return new OSXConfig();
+                }
+                else
+                {
+                    return new UnixConfig();
+                }
+            }
+            else
+            {
+                return new WindowsConfig();
+            }
+        }
 
         private void addLocalSandbox(ref ArrayList menuItems)
         {
@@ -138,83 +179,6 @@ namespace LaunchSLClient
                 addLocalSandbox(ref menuItems);
                 addLocalGrid(ref menuItems);
             }
-        }
-
-        private void getClientWindows(ref string exePath, ref string runLine, ref string exeFlags)
-        {
-            // get executable path from registry
-            RegistryKey regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Linden Research, Inc.\SecondLife");
-            if (regKey == null)
-            {
-                regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Wow6432Node\Linden Research, Inc.\SecondLife");
-                if (regKey == null)
-                {
-                    throw new LauncherException("Can't find Second Life. Are you sure it is installed?", "LauncherException.Form1");
-                }
-            }
-            string exe = regKey.GetValue("Exe").ToString();
-            exeFlags = regKey.GetValue("Flags").ToString();
-            exePath = regKey.GetValue("").ToString();
-            runLine = exePath + "\\" + exe;
-            Registry.LocalMachine.Flush();
-            Registry.LocalMachine.Close();
-        }
-
-        private void getClientMacOSX(ref string exePath, ref string runLine, ref string exeFlags)
-        {
-            if (Directory.Exists("/Applications/Second Life.app"))
-            {
-                exePath = "/Applications/Second Life.app/Contents/MacOS";
-            }
-
-            runLine = exePath + "/Second Life";
-            exeFlags = "";
-        }
-
-        private void getClientUnix(ref string exePath, ref string runLine, ref string exeFlags)
-        {
-        }
-
-        private void getClient(ref string exePath, ref string runLine, ref string exeFlags)
-        {
-            if (Environment.OSVersion.Platform == PlatformID.Unix)
-            {
-                if (File.Exists("/System/Library/Frameworks/Cocoa.framework/Cocoa"))
-                {
-                    getClientMacOSX(ref exePath, ref runLine, ref exeFlags);
-                }
-                else
-                {
-                    getClientUnix(ref exePath, ref runLine, ref exeFlags);
-                }
-            }
-            else
-            {
-                getClientWindows(ref exePath, ref runLine, ref exeFlags);
-            }
-        }
-
-        public Form1()
-        {
-            InitializeComponent();
-            ArrayList menuItems = new ArrayList();
-
-            getClient(ref exePath, ref runLine, ref exeFlags);
-
-            menuItems.Add("Please select one:");
-
-            addLocalSims(ref menuItems);
-
-            menuItems.Add("OSGrid - www.osgrid.org");
-            menuItems.Add("DeepGrid - www.deepgrid.com");
-            menuItems.Add("OpenlifeGrid - www.openlifegrid.com");
-            menuItems.Add("Linden Labs - www.secondlife.com");
-
-            comboBox1.DataSource = menuItems;
-        }
-
-        private void radioButton1_CheckedChanged(object sender, EventArgs e)
-        {
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)

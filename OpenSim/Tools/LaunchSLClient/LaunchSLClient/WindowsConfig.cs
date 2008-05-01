@@ -26,26 +26,30 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Windows.Forms;
+using System.IO;
+using Microsoft.Win32;
 
 namespace LaunchSLClient
 {
-    static class Program
+    public class WindowsConfig : MachineConfig
     {
-        [STAThread]
-        static void Main()
+        public override void GetClient(ref string exePath, ref string runLine, ref string exeFlags)
         {
-            try
+            RegistryKey regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Linden Research, Inc.\SecondLife");
+            if (regKey == null)
             {
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new Form1());
+                regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Wow6432Node\Linden Research, Inc.\SecondLife");
+                if (regKey == null)
+                {
+                    throw new LauncherException("Can't find Second Life. Are you sure it is installed?", "LauncherException.Form1");
+                }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message,"Unhandled Error");
-            }
+            string exe = regKey.GetValue("Exe").ToString();
+            exeFlags = regKey.GetValue("Flags").ToString();
+            exePath = regKey.GetValue("").ToString();
+            runLine = exePath + "\\" + exe;
+            Registry.LocalMachine.Flush();
+            Registry.LocalMachine.Close();
         }
     }
 }

@@ -26,26 +26,25 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Windows.Forms;
+using System.IO;
 
 namespace LaunchSLClient
 {
-    static class Program
+    public class OSXConfig : UnixConfig
     {
-        [STAThread]
-        static void Main()
+        public override void GetClient(ref string exePath, ref string runLine, ref string exeFlags)
         {
-            try
+            if (Directory.Exists("/Applications/Second Life.app"))
             {
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new Form1());
+                exePath = "/Applications/Second Life.app/Contents/MacOS";
             }
-            catch (Exception ex)
+            else if (Directory.Exists("/Applications/Second Life Release Candidate.app"))
             {
-                MessageBox.Show(ex.Message,"Unhandled Error");
+                exePath = "/Applications/Second Life Release Candidate.app/Contents/MacOS";
             }
+
+            runLine = exePath + "/Second Life";
+            exeFlags = "";
         }
     }
 }
