@@ -43,13 +43,13 @@ namespace LaunchSLClient
                 exePath = "/Applications/Second Life Release Candidate.app/Contents/MacOS";
             }
 
-            runLine = exePath + "/Second Life";
-            exeFlags = "";
+            runLine = Path.Combine(exePath, "Second Life");
+            exeFlags = string.Empty;
         }
 
         public override string GetConfigDir()
         {
-            return "";
+            return string.Empty;
         }
     }
 }

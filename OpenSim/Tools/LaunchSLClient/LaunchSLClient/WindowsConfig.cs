@@ -47,7 +47,7 @@ namespace LaunchSLClient
             string exe = regKey.GetValue("Exe").ToString();
             exeFlags = regKey.GetValue("Flags").ToString();
             exePath = regKey.GetValue("").ToString();
-            runLine = exePath + "\\" + exe;
+            runLine = Path.Combine(exePath, exe);
             Registry.LocalMachine.Flush();
             Registry.LocalMachine.Close();
         }
@@ -56,7 +56,14 @@ namespace LaunchSLClient
         {
             RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\OpenSim\OpenSim");
 
-            return key == null ? "" : key.GetValue("Path").ToString();
+            if (key == null)
+            {
+                return string.Empty;
+            }
+            else
+            {
+                return key.GetValue("Path").ToString();
+            }
         }
     }
 }

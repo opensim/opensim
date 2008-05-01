@@ -34,14 +34,24 @@ namespace LaunchSLClient
     {
         public override void GetClient(ref string exePath, ref string runLine, ref string exeFlags)
         {
-            exePath = "";
-            runLine = "secondlife";
-            exeFlags = "";
+            exePath = string.Empty;
+            exeFlags = string.Empty;
+
+            foreach (string path in Environment.GetEnvironmentVariable("PATH").Split(':'))
+            {
+                if (File.Exists(Path.Combine(path, "secondlife")))
+                {
+                    exePath = path;
+                    break;
+                }
+            }
+
+            runLine = Path.Combine(exePath, "secondlife");
         }
 
         public override string GetConfigDir()
         {
-            return "";
+            return string.Empty;
         }
     }
 }
