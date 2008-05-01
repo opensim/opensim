@@ -62,7 +62,7 @@ namespace LaunchSLClient
             initializeGrids();
 
             ArrayList menuItems = new ArrayList();
-            menuItems.Add("Please select one:");
+            menuItems.Add(string.Empty);
 
             addLocalSims(ref menuItems);
 
@@ -200,7 +200,7 @@ namespace LaunchSLClient
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (comboBox1.Text == "Please select one:")
+            if (comboBox1.Text == string.Empty)
             {
                 return;
             }
