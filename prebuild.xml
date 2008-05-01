@@ -791,6 +791,9 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Framework.Servers"/>
+	  <!-- Unit tests -->
+	  <Reference name="OpenSim.Tests.Common"/>
+	  <Reference name="nunit.framework.dll"/>
       <!-- For scripting in funny languages by default -->
       <Reference name="Microsoft.JScript"/>
       <Reference name="XMLRPC.dll"/>
