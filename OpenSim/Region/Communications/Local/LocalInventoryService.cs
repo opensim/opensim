@@ -77,7 +77,11 @@ namespace OpenSim.Region.Communications.Local
                 }
             }
             
-            callback(userID, folders, items);
+            m_log.InfoFormat(
+                "[LOCAL1 INVENTORY SERVICE]: Received inventory response for user {0} containing {1} folders and {2} items",            
+                userID, folders.Count, items.Count);
+            
+            callback(folders, items);
         }
 
         public override bool HasInventoryForUser(LLUUID userID)

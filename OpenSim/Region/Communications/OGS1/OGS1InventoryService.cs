@@ -44,7 +44,8 @@ namespace OpenSim.Region.Communications.OGS1
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string _inventoryServerUrl;
-        private Dictionary<LLUUID, InventoryRequest> m_RequestingInventory = new Dictionary<LLUUID, InventoryRequest>();
+        private Dictionary<LLUUID, InventoryReceiptCallback> m_RequestingInventory 
+            = new Dictionary<LLUUID, InventoryReceiptCallback>();
 
         public OGS1InventoryService(string inventoryServerUrl)
         {
@@ -62,8 +63,7 @@ namespace OpenSim.Region.Communications.OGS1
         {
             if (!m_RequestingInventory.ContainsKey(userID))
             {
-                InventoryRequest request = new InventoryRequest(userID, callback);
-                m_RequestingInventory.Add(userID, request);
+                m_RequestingInventory.Add(userID, callback);
                 
                 try
                 {
@@ -103,7 +103,7 @@ namespace OpenSim.Region.Communications.OGS1
                                  userID, response.Folders.Count, response.Items.Count);
 
                 InventoryFolderImpl rootFolder = null;
-                InventoryRequest request = m_RequestingInventory[userID];
+                InventoryReceiptCallback callback = m_RequestingInventory[userID];
                 
                 ICollection<InventoryFolderImpl> folders = new List<InventoryFolderImpl>();
                 ICollection<InventoryItemBase> items = new List<InventoryItemBase>();
@@ -139,7 +139,7 @@ namespace OpenSim.Region.Communications.OGS1
                     m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Did not get back an inventory containing a root folder for user {0}", userID);
                 }
                 
-                request.Callback(userID, folders, items);
+                callback(folders, items);
                 
                 m_RequestingInventory.Remove(userID);
             }
@@ -289,20 +289,5 @@ namespace OpenSim.Region.Communications.OGS1
         }
 
         #endregion
-
-        /// <summary>
-        /// Caches a pending inventory request that has yet to be satisfied by the inventory service
-        /// </summary>
-        public class InventoryRequest
-        {
-            public LLUUID UserID;
-            public InventoryReceiptCallback Callback;
-
-            public InventoryRequest(LLUUID userId, InventoryReceiptCallback callback)
-            {
-                UserID = userId;
-                Callback = callback;
-            }
-        }
     }
 }

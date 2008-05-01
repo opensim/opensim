@@ -158,7 +158,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="userID"></param>
         /// <param name="inventoryCollection"></param>
-        public void InventoryReceive(LLUUID userID, ICollection<InventoryFolderImpl> folders, ICollection<InventoryItemBase> items)
+        public void InventoryReceive(ICollection<InventoryFolderImpl> folders, ICollection<InventoryItemBase> items)
         {
             // FIXME: Exceptions thrown upwards never appear on the console.  Could fix further up if these
             // are simply being swallowed
