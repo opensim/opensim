@@ -258,10 +258,11 @@ namespace OpenSim.Region.ScriptEngine.Common
             return (int)Math.Ceiling(f);
         }
 
+        // Xantor 01/May/2008 fixed midpointrounding (2.5 becomes 3.0 instead of 2.0, default = ToEven)
         public int llRound(double f)
         {
             m_host.AddScriptLPS(1);
-            return (int)Math.Round(f, 0);
+            return (int)Math.Round(f, MidpointRounding.AwayFromZero);
         }
 
         //This next group are vector operations involving squaring and square root. ckrinke
@@ -2926,11 +2927,13 @@ namespace OpenSim.Region.ScriptEngine.Common
             return (double)Math.Asin(val);
         }
 
+        // Xantor 30/apr/2008
         public double llAngleBetween(LSL_Types.Quaternion a, LSL_Types.Quaternion b)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llAngleBetween");
-            return 0;
+
+           return (double) Math.Acos(a.x * b.x + a.y * b.y + a.z * b.z + a.s * b.s) * 2;
+//            NotImplemented("llAngleBetween");
         }
 
         public string llGetInventoryKey(string name)
