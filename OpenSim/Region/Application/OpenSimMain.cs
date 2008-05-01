@@ -427,11 +427,7 @@ namespace OpenSim
             m_httpServerPort = m_networkServersInfo.HttpListenerPort;
 
             IAssetServer assetServer;
-            if (m_assetStorage == "db4o")
-            {
-                assetServer = new LocalAssetServer();
-            }
-            else if (m_assetStorage == "grid")
+            if (m_assetStorage == "grid")
             {
                 assetServer = new GridAssetClient(m_networkServersInfo.AssetURL);
             }
