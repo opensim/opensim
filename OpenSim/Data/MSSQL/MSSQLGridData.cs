@@ -87,7 +87,7 @@ namespace OpenSim.Data.MSSQL
             }
             catch (Exception)
             {
-                m_log.Info("[DATASTORE]: MSSQL Database doesn't exist... creating");
+                m_log.Info("[GRID DB]: MSSQL Database doesn't exist... creating");
                 database.ExecuteResourceSql("Mssql-regions.sql");            
             }
         }
@@ -217,7 +217,7 @@ namespace OpenSim.Data.MSSQL
             }
             else
             {
-                m_log.Error("[DATABASE]: Searched for a Region Name shorter then 3 characters");
+                m_log.Error("[GRID DB]: Searched for a Region Name shorter then 3 characters");
                 return null;
             }
         }
@@ -380,7 +380,7 @@ namespace OpenSim.Data.MSSQL
             }
             catch (Exception e)
             {
-                m_log.Error("MSSQLManager : " + e.ToString());
+                m_log.Error("[GRID DB]: " + e.ToString());
             }
 
             return returnval;

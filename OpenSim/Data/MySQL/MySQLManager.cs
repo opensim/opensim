@@ -89,7 +89,7 @@ namespace OpenSim.Data.MySQL
                 }
                 catch(Exception e)
                 {
-                    throw new Exception( "Connection error while using connection string ["+connectionString+"]", e );
+                    throw new Exception("Connection error while using connection string ["+connectionString+"]", e);
                 }
 
                 m_log.Info("[MYSQL]: Connection established");

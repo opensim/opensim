@@ -284,7 +284,7 @@ namespace OpenSim.Data.MySQL
             }
             else
             {
-                m_log.Error("[DATABASE]: Searched for a Region Name shorter then 3 characters");
+                m_log.Error("[GRID DB]: Searched for a Region Name shorter then 3 characters");
                 return null;
             }
         }

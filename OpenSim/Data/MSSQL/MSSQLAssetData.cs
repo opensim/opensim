@@ -49,7 +49,7 @@ namespace OpenSim.Data.MSSQL
             // null as the version, indicates that the table didn't exist
             if (tableName == null)
             {
-                m_log.Info("[ASSETS]: Creating new database tables");
+                m_log.Info("[ASSET DB]: Creating new database tables");
                 database.ExecuteResourceSql("CreateAssetsTable.sql");
                 return;
             }

@@ -79,7 +79,7 @@ namespace OpenSim.Data.SQLite
 
             ds = new DataSet();
 
-            m_log.Info("[DATASTORE]: Sqlite - connecting: " + connectionString);
+            m_log.Info("[REGION DB]: Sqlite - connecting: " + connectionString);
             m_conn = new SqliteConnection(m_connectionString);
             m_conn.Open();
 
@@ -143,7 +143,7 @@ namespace OpenSim.Data.SQLite
                 }
                 catch (Exception)
                 {
-                    m_log.Info("[DATASTORE]: Caught fill error on primshapes table");
+                    m_log.Info("[REGION DB]: Caught fill error on primshapes table");
                 }
 
                 try
@@ -152,7 +152,7 @@ namespace OpenSim.Data.SQLite
                 }
                 catch (Exception)
                 {
-                    m_log.Info("[DATASTORE]: Caught fill error on terrain table");
+                    m_log.Info("[REGION DB]: Caught fill error on terrain table");
                 }
 
                 try
@@ -161,7 +161,7 @@ namespace OpenSim.Data.SQLite
                 }
                 catch (Exception)
                 {
-                    m_log.Info("[DATASTORE]: Caught fill error on land table");
+                    m_log.Info("[REGION DB]: Caught fill error on land table");
                 }
 
                 try
@@ -170,7 +170,7 @@ namespace OpenSim.Data.SQLite
                 }
                 catch (Exception)
                 {
-                    m_log.Info("[DATASTORE]: Caught fill error on landaccesslist table");
+                    m_log.Info("[REGION DB]: Caught fill error on landaccesslist table");
                 }
                 return;
             }
@@ -184,7 +184,7 @@ namespace OpenSim.Data.SQLite
                 {
                     if ((prim.GetEffectiveObjectFlags() & (uint) LLObject.ObjectFlags.Physics) == 0)
                     {
-                        m_log.Info("[DATASTORE]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
+                        m_log.Info("[REGION DB]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
                         addPrim(prim, Util.ToRawUuidString(obj.UUID), Util.ToRawUuidString(regionUUID));
                     }
                     else if (prim.Stopped)
@@ -206,7 +206,7 @@ namespace OpenSim.Data.SQLite
 
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
-            m_log.InfoFormat("[DATASTORE]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
+            m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
             
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
@@ -275,7 +275,7 @@ namespace OpenSim.Data.SQLite
             lock (ds)
             {
                 DataRow[] primsForRegion = prims.Select(byRegion, orderByParent);
-                m_log.Info("[DATASTORE]: " +
+                m_log.Info("[REGION DB]: " +
                                          "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
 
                 foreach (DataRow primRow in primsForRegion)
@@ -298,7 +298,7 @@ namespace OpenSim.Data.SQLite
                             else
                             {
                                 m_log.Info(
-                                    "No shape found for prim in storage, so setting default box shape");
+                                    "[REGION DB]: No shape found for prim in storage, so setting default box shape");
                                 prim.Shape = PrimitiveBaseShape.Default;
                             }
                             group.AddPart(prim);
@@ -318,7 +318,7 @@ namespace OpenSim.Data.SQLite
                             else
                             {
                                 m_log.Info(
-                                    "No shape found for prim in storage, so setting default box shape");
+                                    "[REGION DB]: No shape found for prim in storage, so setting default box shape");
                                 prim.Shape = PrimitiveBaseShape.Default;
                             }
                             createdObjects[new LLUUID(objID)].AddPart(prim);
@@ -331,11 +331,11 @@ namespace OpenSim.Data.SQLite
                     }
                     catch (Exception e)
                     {
-                        m_log.Error("[DATASTORE]: Failed create prim object, exception and data follows");
-                        m_log.Info("[DATASTORE]: " + e.ToString());
+                        m_log.Error("[REGION DB]: Failed create prim object, exception and data follows");
+                        m_log.Info("[REGION DB]: " + e.ToString());
                         foreach (DataColumn col in prims.Columns)
                         {
-                            m_log.Info("[DATASTORE]: Col: " + col.ColumnName + " => " + primRow[col]);
+                            m_log.Info("[REGION DB]: Col: " + col.ColumnName + " => " + primRow[col]);
                         }
                     }
                 }
@@ -384,7 +384,7 @@ namespace OpenSim.Data.SQLite
 
                 // the following is an work around for .NET.  The perf
                 // issues associated with it aren't as bad as you think.
-                m_log.Info("[DATASTORE]: Storing terrain revision r" + revision.ToString());
+                m_log.Info("[REGION DB]: Storing terrain revision r" + revision.ToString());
                 String sql = "insert into terrain(RegionUUID, Revision, Heightfield)" +
                              " values(:RegionUUID, :Revision, :Heightfield)";
 
@@ -448,11 +448,11 @@ namespace OpenSim.Data.SQLite
                         }
                         else
                         {
-                            m_log.Info("[DATASTORE]: No terrain found for region");
+                            m_log.Info("[REGION DB]: No terrain found for region");
                             return null;
                         }
 
-                        m_log.Info("[DATASTORE]: Loaded terrain revision r" + rev.ToString());
+                        m_log.Info("[REGION DB]: Loaded terrain revision r" + rev.ToString());
                     }
                 }
                 return terret;
@@ -988,7 +988,7 @@ namespace OpenSim.Data.SQLite
                     m_conn.Close();
                     m_conn.Dispose();
                    
-                    m_log.Error("[SQLITE]: The land table was recently updated.  You need to restart the simulator.  Exiting now.");
+                    m_log.Error("[REGION DB]: The land table was recently updated.  You need to restart the simulator.  Exiting now.");
 
                     System.Threading.Thread.Sleep(10000);
 
@@ -999,7 +999,7 @@ namespace OpenSim.Data.SQLite
                 catch (System.Exception)
                 {
                     // ICK!  but it's better then A thousand red SQLITE error messages!
-                    m_log.Error("[SQLITE]: The land table was recently updated.  You need to restart the simulator");
+                    m_log.Error("[REGION DB]: The land table was recently updated.  You need to restart the simulator");
                     Environment.Exit(0);
                 }
             }
@@ -1314,7 +1314,7 @@ namespace OpenSim.Data.SQLite
             if (!persistPrimInventories)
                 return;
             
-            m_log.InfoFormat("[DATASTORE]: Entered StorePrimInventory with prim ID {0}", primID);
+            m_log.InfoFormat("[REGION DB]: Entered StorePrimInventory with prim ID {0}", primID);
             
             DataTable dbItems = ds.Tables["primitems"]; 
             
@@ -1555,7 +1555,7 @@ namespace OpenSim.Data.SQLite
             }
             catch (SqliteSyntaxException)
             {
-                m_log.Warn("[SQLITE]: Primitives Table Already Exists");
+                m_log.Warn("[REGION DB]: Primitives Table Already Exists");
             }
 
             try
@@ -1564,7 +1564,7 @@ namespace OpenSim.Data.SQLite
             }
             catch (SqliteSyntaxException)
             {
-                m_log.Warn("[SQLITE]: Shapes Table Already Exists");
+                m_log.Warn("[REGION DB]: Shapes Table Already Exists");
             }
 
             if (persistPrimInventories)
@@ -1575,7 +1575,7 @@ namespace OpenSim.Data.SQLite
                 }
                 catch (SqliteSyntaxException)
                 {
-                    m_log.Warn("[SQLITE]: Primitives Inventory Table Already Exists");
+                    m_log.Warn("[REGION DB]: Primitives Inventory Table Already Exists");
                 }
             }
 
@@ -1585,7 +1585,7 @@ namespace OpenSim.Data.SQLite
             }
             catch (SqliteSyntaxException)
             {
-                m_log.Warn("[SQLITE]: Terrain Table Already Exists");
+                m_log.Warn("[REGION DB]: Terrain Table Already Exists");
             }
 
             try
@@ -1594,7 +1594,7 @@ namespace OpenSim.Data.SQLite
             }
             catch (SqliteSyntaxException)
             {
-                m_log.Warn("[SQLITE]: Land Table Already Exists");
+                m_log.Warn("[REGION DB]: Land Table Already Exists");
             }
 
             try
@@ -1660,7 +1660,7 @@ namespace OpenSim.Data.SQLite
             {
                 if (!tmpDS.Tables["prims"].Columns.Contains(col.ColumnName))
                 {
-                    m_log.Info("[DATASTORE]: Missing required column:" + col.ColumnName);
+                    m_log.Info("[REGION DB]: Missing required column:" + col.ColumnName);
                     return false;
                 }
             }
@@ -1669,7 +1669,7 @@ namespace OpenSim.Data.SQLite
             {
                 if (!tmpDS.Tables["primshapes"].Columns.Contains(col.ColumnName))
                 {
-                    m_log.Info("[DATASTORE]: Missing required column:" + col.ColumnName);
+                    m_log.Info("[REGION DB]: Missing required column:" + col.ColumnName);
                     return false;
                 }
             }
@@ -1680,7 +1680,7 @@ namespace OpenSim.Data.SQLite
             {
                 if (!tmpDS.Tables["terrain"].Columns.Contains(col.ColumnName))
                 {
-                    m_log.Info("[DATASTORE]: Missing require column:" + col.ColumnName);
+                    m_log.Info("[REGION DB]: Missing require column:" + col.ColumnName);
                     return false;
                 }
             }
@@ -1689,7 +1689,7 @@ namespace OpenSim.Data.SQLite
             {
                 if (!tmpDS.Tables["land"].Columns.Contains(col.ColumnName))
                 {
-                    m_log.Info("[DATASTORE]: Missing require column:" + col.ColumnName);
+                    m_log.Info("[REGION DB]: Missing require column:" + col.ColumnName);
                     return false;
                 }
             }

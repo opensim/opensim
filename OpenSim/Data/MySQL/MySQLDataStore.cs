@@ -88,7 +88,7 @@ namespace OpenSim.Data.MySQL
             m_dataSet = new DataSet();
             this.persistPrimInventories = persistPrimInventories;
 
-            m_log.Info("[DATASTORE]: MySql - connecting: " + connectionstring);
+            m_log.Info("[REGION DB]: MySql - connecting: " + connectionstring);
             m_connection = new MySqlConnection(connectionstring);
 
             TestTablesVersionable(m_connection);
@@ -256,7 +256,7 @@ namespace OpenSim.Data.MySQL
                 {
                     if ((prim.GetEffectiveObjectFlags() & (uint) LLObject.ObjectFlags.Physics) == 0)
                     {
-                        m_log.Info("[DATASTORE]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
+                        m_log.Info("[REGION DB]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
                         addPrim(prim, obj.UUID, regionUUID);
                     }
                     else
@@ -270,7 +270,7 @@ namespace OpenSim.Data.MySQL
 
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
-            m_log.InfoFormat("[DATASTORE]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
+            m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
 
             DataTable prims = m_primTable;
             DataTable shapes = m_shapeTable;
@@ -334,7 +334,7 @@ namespace OpenSim.Data.MySQL
             lock (m_dataSet)
             {
                 DataRow[] primsForRegion = prims.Select(byRegion, orderByParent);
-                m_log.Info("[DATASTORE]: " +
+                m_log.Info("[REGION DB]: " +
                                          "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
 
                 foreach (DataRow primRow in primsForRegion)
@@ -390,11 +390,11 @@ namespace OpenSim.Data.MySQL
                     }
                     catch (Exception e)
                     {
-                        m_log.Error("[DATASTORE]: Failed create prim object, exception and data follows");
-                        m_log.Info("[DATASTORE]: " + e.ToString());
+                        m_log.Error("[REGION DB]: Failed create prim object, exception and data follows");
+                        m_log.Info("[REGION DB]: " + e.ToString());
                         foreach (DataColumn col in prims.Columns)
                         {
-                            m_log.Info("[DATASTORE]: Col: " + col.ColumnName + " => " + primRow[col]);
+                            m_log.Info("[REGION DB]: Col: " + col.ColumnName + " => " + primRow[col]);
                         }
                     }
                 }
@@ -438,7 +438,7 @@ namespace OpenSim.Data.MySQL
         public void StoreTerrain(double[,] ter, LLUUID regionID)
         {
             int revision = Util.UnixTimeSinceEpoch();
-            m_log.Info("[DATASTORE]: Storing terrain revision r" + revision.ToString());
+            m_log.Info("[REGION DB]: Storing terrain revision r" + revision.ToString());
 
             DataTable terrain = m_dataSet.Tables["terrain"];
             lock (m_dataSet)
@@ -493,11 +493,11 @@ namespace OpenSim.Data.MySQL
                     }
                     else
                     {
-                        m_log.Info("[DATASTORE]: No terrain found for region");
+                        m_log.Info("[REGION DB]: No terrain found for region");
                         return null;
                     }
                     
-                    m_log.Info("[DATASTORE]: Loaded terrain revision r" + rev.ToString());
+                    m_log.Info("[REGION DB]: Loaded terrain revision r" + rev.ToString());
                 }
             }
             return terret;
@@ -1329,7 +1329,7 @@ namespace OpenSim.Data.MySQL
             if (!persistPrimInventories)
                 return;
                      
-            m_log.InfoFormat("[DATASTORE]: Persisting Prim Inventory with prim ID {0}", primID);
+            m_log.InfoFormat("[REGION DB]: Persisting Prim Inventory with prim ID {0}", primID);
             
             // For now, we're just going to crudely remove all the previous inventory items 
             // no matter whether they have changed or not, and replace them with the current set.
@@ -1341,7 +1341,7 @@ namespace OpenSim.Data.MySQL
                 foreach (TaskInventoryItem newItem in items)
                 {
 //                    m_log.InfoFormat(
-//                        "[DATASTORE]: " +
+//                        "[REGION DB]: " +
 //                        "Adding item {0}, {1} to prim ID {2}", 
 //                        newItem.Name, newItem.ItemID, newItem.ParentPartID);
                     
@@ -1572,8 +1572,8 @@ namespace OpenSim.Data.MySQL
                 }
                 catch (Exception ex)
                 {
-                    m_log.Error("[MySql]: Error connecting to MySQL server: " + ex.Message);
-                    m_log.Error("[MySql]: Application is terminating!");
+                    m_log.Error("[REGION DB]: Error connecting to MySQL server: " + ex.Message);
+                    m_log.Error("[REGION DB]: Application is terminating!");
                     Thread.CurrentThread.Abort();
                 }
             }
@@ -1584,7 +1584,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (MySqlException e)
             {
-                m_log.WarnFormat("[MySql]: Primitives Table Already Exists: {0}", e);
+                m_log.WarnFormat("[REGION DB]: Primitives Table Already Exists: {0}", e);
             }
 
             try
@@ -1593,7 +1593,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (MySqlException e)
             {
-                m_log.WarnFormat("[MySql]: Shapes Table Already Exists: {0}", e);
+                m_log.WarnFormat("[REGION DB]: Shapes Table Already Exists: {0}", e);
             }
             
             try
@@ -1602,7 +1602,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (MySqlException e)
             {
-                m_log.WarnFormat("[MySql]: Items Table Already Exists: {0}", e);
+                m_log.WarnFormat("[REGION DB]: Items Table Already Exists: {0}", e);
             }            
 
             try
@@ -1611,7 +1611,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (MySqlException e)
             {
-                m_log.WarnFormat("[MySql]: Terrain Table Already Exists: {0}", e);
+                m_log.WarnFormat("[REGION DB]: Terrain Table Already Exists: {0}", e);
             }
 
             //try
@@ -1629,7 +1629,7 @@ namespace OpenSim.Data.MySQL
             }
             catch (MySqlException e)
             {
-                m_log.WarnFormat("[MySql]: LandAccessList Table Already Exists: {0}", e);
+                m_log.WarnFormat("[REGION DB]: LandAccessList Table Already Exists: {0}", e);
             }
             conn.Close();
         }
@@ -1682,7 +1682,7 @@ namespace OpenSim.Data.MySQL
             {
                 if (!tmpDS.Tables["prims"].Columns.Contains(col.ColumnName))
                 {
-                    m_log.Info("[DATASTORE]: Missing required column:" + col.ColumnName);
+                    m_log.Info("[REGION DB]: Missing required column:" + col.ColumnName);
                     return false;
                 }
             }
@@ -1691,7 +1691,7 @@ namespace OpenSim.Data.MySQL
             {
                 if (!tmpDS.Tables["primshapes"].Columns.Contains(col.ColumnName))
                 {
-                    m_log.Info("[DATASTORE]: Missing required column:" + col.ColumnName);
+                    m_log.Info("[REGION DB]: Missing required column:" + col.ColumnName);
                     return false;
                 }
             }
@@ -1702,7 +1702,7 @@ namespace OpenSim.Data.MySQL
             {
                 if (!tmpDS.Tables["terrain"].Columns.Contains(col.ColumnName))
                 {
-                    m_log.Info("[DATASTORE]: Missing require column:" + col.ColumnName);
+                    m_log.Info("[REGION DB]: Missing require column:" + col.ColumnName);
                     return false;
                 }
             }
@@ -1711,7 +1711,7 @@ namespace OpenSim.Data.MySQL
             {
                 if (!tmpDS.Tables["land"].Columns.Contains(col.ColumnName))
                 {
-                    m_log.Info("[DATASTORE]: Missing require column:" + col.ColumnName);
+                    m_log.Info("[REGION DB]: Missing require column:" + col.ColumnName);
                     return false;
                 }
             }

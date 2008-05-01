@@ -346,7 +346,7 @@ namespace OpenSim.Data.MySQL
 
         override public void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid)
         {
-            m_log.Info("[USER]: Stub UpdateUserCUrrentRegion called");
+            m_log.Info("[USER DB]: Stub UpdateUserCUrrentRegion called");
         }
 
         override public List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)

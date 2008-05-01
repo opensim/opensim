@@ -84,7 +84,7 @@ namespace OpenSim.Data.MSSQL
             m_dataSet = new DataSet();
             this.persistPrimInventories = persistPrimInventories;
 
-            m_log.Info("[DATASTORE]: MSSql - connecting: " + connectionString);
+            m_log.Info("[REGION DB]: MSSql - connecting: " + connectionString);
             m_connection = new SqlConnection(connectionString);
 
             SqlCommand primSelectCmd = new SqlCommand(m_primSelect, m_connection);
@@ -154,7 +154,7 @@ namespace OpenSim.Data.MSSQL
                 {
                     if ((prim.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Physics) == 0)
                     {
-                        m_log.Info("[DATASTORE]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
+                        m_log.Info("[REGION DB]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
                         addPrim(prim, obj.UUID, regionUUID);
                     }
                     else
@@ -171,7 +171,7 @@ namespace OpenSim.Data.MSSQL
         {
             // Instance.RemoveObject(obj, regionUUID);
             
-            m_log.InfoFormat("[DATASTORE]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
+            m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
 
             DataTable prims = m_primTable;
             DataTable shapes = m_shapeTable;
@@ -238,7 +238,7 @@ namespace OpenSim.Data.MSSQL
             lock (m_dataSet)
             {
                 DataRow[] primsForRegion = prims.Select(byRegion, orderByParent);
-                m_log.Info("[DATASTORE]: " +
+                m_log.Info("[REGION DB]: " +
                                          "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
 
                 foreach (DataRow primRow in primsForRegion)
@@ -342,7 +342,7 @@ namespace OpenSim.Data.MSSQL
         public void StoreTerrain(double[,] ter, LLUUID regionID)
         {
             int revision = Util.UnixTimeSinceEpoch();
-            m_log.Info("[DATASTORE]: Storing terrain revision r" + revision.ToString());
+            m_log.Info("[REGION DB]: Storing terrain revision r" + revision.ToString());
 
             DataTable terrain = m_dataSet.Tables["terrain"];
             lock (m_dataSet)
@@ -395,11 +395,11 @@ namespace OpenSim.Data.MSSQL
                 }
                 else
                 {
-                    m_log.Info("[DATASTORE]: No terrain found for region");
+                    m_log.Info("[REGION DB]: No terrain found for region");
                     return null;
                 }
 
-                m_log.Info("[DATASTORE]: Loaded terrain revision r" + rev.ToString());
+                m_log.Info("[REGION DB]: Loaded terrain revision r" + rev.ToString());
             }
 
             return terret;
@@ -1200,7 +1200,7 @@ namespace OpenSim.Data.MSSQL
             if (!persistPrimInventories)
                 return;
 
-            m_log.InfoFormat("[DATASTORE]: Persisting Prim Inventory with prim ID {0}", primID);
+            m_log.InfoFormat("[REGION DB]: Persisting Prim Inventory with prim ID {0}", primID);
 
             // For now, we're just going to crudely remove all the previous inventory items 
             // no matter whether they have changed or not, and replace them with the current set.
@@ -1212,7 +1212,7 @@ namespace OpenSim.Data.MSSQL
                 foreach (TaskInventoryItem newItem in items)
                 {
                     //                    m_log.InfoFormat(
-                    //                        "[DATASTORE]: " +
+                    //                        "[REGION DB]: " +
                     //                        "Adding item {0}, {1} to prim ID {2}", 
                     //                        newItem.Name, newItem.ItemID, newItem.ParentPartID);
 
@@ -1516,7 +1516,7 @@ namespace OpenSim.Data.MSSQL
             }
             catch (SqlException)
             {
-                m_log.Info("[DATASTORE]: MySql Database doesn't exist... creating");
+                m_log.Info("[REGION DB]: MySql Database doesn't exist... creating");
                 InitDB(conn);
             }
 
@@ -1534,7 +1534,7 @@ namespace OpenSim.Data.MSSQL
             {
                 if (!tmpDS.Tables["prims"].Columns.Contains(col.ColumnName))
                 {
-                    m_log.Info("[DATASTORE]: Missing required column:" + col.ColumnName);
+                    m_log.Info("[REGION DB]: Missing required column:" + col.ColumnName);
                     return false;
                 }
             }
@@ -1543,7 +1543,7 @@ namespace OpenSim.Data.MSSQL
             {
                 if (!tmpDS.Tables["primshapes"].Columns.Contains(col.ColumnName))
                 {
-                    m_log.Info("[DATASTORE]: Missing required column:" + col.ColumnName);
+                    m_log.Info("[REGION DB]: Missing required column:" + col.ColumnName);
                     return false;
                 }
             }
@@ -1554,7 +1554,7 @@ namespace OpenSim.Data.MSSQL
             {
                 if (!tmpDS.Tables["terrain"].Columns.Contains(col.ColumnName))
                 {
-                    m_log.Info("[DATASTORE]: Missing require column:" + col.ColumnName);
+                    m_log.Info("[REGION DB]: Missing require column:" + col.ColumnName);
                     return false;
                 }
             }
@@ -1563,7 +1563,7 @@ namespace OpenSim.Data.MSSQL
             {
                 if (!tmpDS.Tables["land"].Columns.Contains(col.ColumnName))
                 {
-                    m_log.Info("[DATASTORE]: Missing require column:" + col.ColumnName);
+                    m_log.Info("[REGION DB]: Missing require column:" + col.ColumnName);
                     return false;
                 }
             }
@@ -1572,7 +1572,7 @@ namespace OpenSim.Data.MSSQL
             {
                 if (!tmpDS.Tables["landaccesslist"].Columns.Contains(col.ColumnName))
                 {
-                    m_log.Info("[DATASTORE]: Missing require column:" + col.ColumnName);
+                    m_log.Info("[REGION DB]: Missing require column:" + col.ColumnName);
                     return false;
                 }
             }

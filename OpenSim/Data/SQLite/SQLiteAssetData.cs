@@ -92,10 +92,10 @@ namespace OpenSim.Data.SQLite
 
         override public void CreateAsset(AssetBase asset)
         {
-            m_log.Info("[SQLITE]: Creating Asset " + Util.ToRawUuidString(asset.FullID));
+            m_log.Info("[ASSET DB]: Creating Asset " + Util.ToRawUuidString(asset.FullID));
             if (ExistsAsset(asset.FullID))
             {
-                m_log.Info("[SQLITE]: Asset exists already, ignoring.");
+                m_log.Info("[ASSET DB]: Asset exists already, ignoring.");
             }
             else 
             {
@@ -142,7 +142,7 @@ namespace OpenSim.Data.SQLite
 
             int assetLength = (asset.Data != null) ? asset.Data.Length : 0;
 
-            m_log.Info("[SQLITE]: " +
+            m_log.Info("[ASSET DB]: " +
                                      string.Format("Loaded {6} {5} Asset: [{0}][{3}/{4}] \"{1}\":{2} ({7} bytes)",
                                                    asset.FullID, asset.Name, asset.Description, asset.Type,
                                                    asset.InvType, temporary, local, assetLength));
@@ -181,7 +181,7 @@ namespace OpenSim.Data.SQLite
 
         override public void CommitAssets() // force a sync to the database
         {
-            m_log.Info("[SQLITE]: Attempting commit");
+            m_log.Info("[ASSET DB]: Attempting commit");
             // lock (ds)
             //             {
             //                 da.Update(ds, "assets");
@@ -268,7 +268,7 @@ namespace OpenSim.Data.SQLite
             }
             catch (SqliteSyntaxException)
             {
-                m_log.Info("[SQLITE]: SQLite Database doesn't exist... creating");
+                m_log.Info("[ASSET DB]: SQLite Database doesn't exist... creating");
                 InitDB(conn);
             }
             return true;

@@ -49,7 +49,7 @@ namespace OpenSim.Data.MySQL
             // null as the version, indicates that the table didn't exist
             if (oldVersion == null)
             {
-                m_log.Info("[ASSETS]: Creating new database tables");
+                m_log.Info("[ASSETS DB]: Creating new database tables");
                 _dbConnection.ExecuteResourceSql("CreateAssetsTable.sql");
                 return;
             }
@@ -102,7 +102,7 @@ namespace OpenSim.Data.MySQL
                 catch (Exception e)
                 {
                     m_log.ErrorFormat(
-                        "[ASSETS]: MySql failure fetching asset {0}" + Environment.NewLine + e.ToString()
+                        "[ASSETS DB]: MySql failure fetching asset {0}" + Environment.NewLine + e.ToString()
                         + Environment.NewLine + "Attempting reconnection", assetID);
                     _dbConnection.Reconnect();
                 }
@@ -141,7 +141,7 @@ namespace OpenSim.Data.MySQL
                 catch (Exception e)
                 {
                     m_log.ErrorFormat(
-                        "[ASSETS]: " +
+                        "[ASSETS DB]: " +
                         "MySql failure creating asset {0} with name {1}" + Environment.NewLine + e.ToString()
                         + Environment.NewLine + "Attempting reconnection", asset.FullID, asset.Name);
                     _dbConnection.Reconnect();
