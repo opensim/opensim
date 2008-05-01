@@ -35,16 +35,16 @@
     <Project name="LaunchSLClient" path="LaunchSLClient" type="Exe">
       <Configuration name="Debug">
         <Options>
-          <OutputPath>../../../bin/</OutputPath>
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
       <Configuration name="Release">
         <Options>
-          <OutputPath>../../../bin/</OutputPath>
+          <OutputPath>../../../../bin/</OutputPath>
         </Options>
       </Configuration>
 
-      <ReferencePath>../../../bin/</ReferencePath>
+      <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="System.IO" localCopy="false"/>
       <Reference name="System.Collections" localCopy="false"/>
