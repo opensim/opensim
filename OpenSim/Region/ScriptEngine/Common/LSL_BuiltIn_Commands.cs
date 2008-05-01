@@ -425,6 +425,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.Quaternion llAxes2Rot(LSL_Types.Vector3 fwd, LSL_Types.Vector3 left, LSL_Types.Vector3 up)
         {
             m_host.AddScriptLPS(1);
+            NotImplemented("llAxes2Rot");
             return new LSL_Types.Quaternion();
         }
 
@@ -2493,6 +2494,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public double llGetEnergy()
         {
             m_host.AddScriptLPS(1);
+            // TODO: figure out real energy value
             return 1.0f;
         }
 
@@ -3871,6 +3873,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public double llGetRegionFPS()
         {
             m_host.AddScriptLPS(1);
+            //TODO: return actual FPS
             return 10.0f;
         }
 
