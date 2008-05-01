@@ -333,12 +333,38 @@ namespace OpenSim.Data.MySQL
                 item.Creator = new LLUUID((string) reader["creatorID"]);
                 item.BasePermissions = (uint) reader["inventoryBasePermissions"];
                 item.EveryOnePermissions = (uint) reader["inventoryEveryOnePermissions"];
-				item.SalePrice = (int) reader["salePrice"];
+                
+                try
+                {
+				    item.SalePrice = (int) reader["salePrice"];
+                }
+                catch (InvalidCastException)
+                {
+                    m_log.WarnFormat("Could not cast salePrice {0} to {1}", reader["salePrice"], "int");
+                }
+                
 				item.SaleType = Convert.ToByte(reader["saleType"]);
-				item.CreationDate = (int) reader["creationDate"];
+                
+                try
+                {
+				    item.CreationDate = (int) reader["creationDate"];
+                }
+                catch (InvalidCastException)
+                {
+                    m_log.WarnFormat("Could not cast creationDate {0} to {1}", reader["creationDate"], "int");
+                }
+            
 				item.GroupID = new LLUUID(reader["groupID"].ToString());
 				item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
-				item.Flags = (uint) reader["flags"];
+            
+                try
+                {
+				    item.Flags = (uint) reader["flags"];
+                }
+                catch (InvalidCastException)
+                {
+                    m_log.WarnFormat("Could not cast flags {0} to {1}", reader["flags"], "uint");
+                }            
 
                 return item;
             }
