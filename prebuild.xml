@@ -644,33 +644,6 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Data.DB4o" path="OpenSim/Data/DB4o" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Xml"/>
-      <Reference name="System.Data"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="libsecondlife.dll"/>
-      <Reference name="Db4objects.Db4o.dll"/>
-      <Reference name="log4net"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
     <!-- OpenSim.Framework.Communications -->
     <Project name="OpenSim.Framework.Communications" path="OpenSim/Framework/Communications" type="Library">
       <Configuration name="Debug">
