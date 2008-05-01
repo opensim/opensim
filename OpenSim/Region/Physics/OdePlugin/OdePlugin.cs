@@ -377,7 +377,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             int count = 0;
             try
             {
-                //m_log.Warn(g1.ToString() + "|" + g2.ToString());
+                
                 // Colliding Geom To Geom
                 // This portion of the function 'was' blatantly ripped off from BoxStack.cs
                 
@@ -392,10 +392,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 
                 lock (contacts)
                 {
-                    //if (g1 == (IntPtr)0)
-                        //m_log.Info("g1=0");
-                    //if (g2 == (IntPtr)0)
-                        //m_log.Info("g2=0");
+                    
 
                     count = d.Collide(g1, g2, contacts.GetLength(0), contacts, d.ContactGeom.SizeOf);
                 }
@@ -435,8 +432,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // We only need to test p2 for 'jump crouch purposes'
                 p2.IsColliding = true;
 
-                if ((framecount % m_returncollisions) == 0)
-                    collision_accounting_events(p1, p2);
+                //if ((framecount % m_returncollisions) == 0)
+                    //collision_accounting_events(p1, p2);
 
 
                 switch (p1.PhysicsActorType)
@@ -903,16 +900,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             
 
-            // If the sim is running slow this frame, 
-            // don't process collision for prim!
-            //if (timeStep < (m_SkipFramesAtms/3))
-            //{
+            
             lock (_activeprims)
             {
 
                 foreach (OdePrim chr in _activeprims)
                 {
-                    // This if may not need to be there..    it might be skipped anyway.
+                    
                     if (d.BodyIsEnabled(chr.Body) && (!chr.m_disabled))
                     {
                         try
@@ -921,6 +915,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 if (space != (IntPtr)0 && chr.prim_geom != (IntPtr)0 && chr.m_taintremove == false)
                                     d.SpaceCollide2(space, chr.prim_geom, IntPtr.Zero, nearCallback);
+                                else
+                                    m_log.Debug("[PHYSICS]: unable to collide test active prim against space.  The space was zero, the geom was zero or it was in the process of being removed");
                             }
 
                         }
@@ -928,57 +924,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             m_log.Warn("[PHYSICS]: Unable to space collide");
                         }
-                        //calculateSpaceForGeom(chr.Position)
-                        //foreach (OdePrim ch2 in _prims)
-                        /// should be a separate space -- lots of avatars will be N**2 slow
-                        //{
-                        //if (ch2.IsPhysical && d.BodyIsEnabled(ch2.Body))
-                        //{
-                        // Only test prim that are 0.03 meters away in one direction.
-                        // This should be Optimized!
-
-                        //if ((Math.Abs(ch2.Position.X - chr.Position.X) < 0.03) || (Math.Abs(ch2.Position.Y - chr.Position.Y) < 0.03) || (Math.Abs(ch2.Position.X - chr.Position.X) < 0.03))
-                        //{
-                        //d.SpaceCollide2(chr.prim_geom, ch2.prim_geom, IntPtr.Zero, nearCallback);
-                        //}
-                        //}
-                        //}
+                        
                     }
-                    //try
-                    //{
-                        //lock (chr)
-                        //{
-                            //if (LandGeom != (IntPtr)0 && chr.prim_geom != (IntPtr)0)
-                                //d.SpaceCollide2(LandGeom, chr.prim_geom, IntPtr.Zero, nearCallback);
-                        //}
-                    //}
-                    //catch (AccessViolationException)
-                   // {
-                        //m_log.Warn("[PHYSICS]: Unable to space collide");
-                    //}
+                    
                 }
             }
-            #region disabled code
-            //}
-        //else
-        //{
-            // Everything is going slow, so we're skipping object to object collisions
-            // At least collide test against the ground.
-            //foreach (OdePrim chr in _activeprims)
-            //{
-                // This if may not need to be there..    it might be skipped anyway.
-                //if (d.BodyIsEnabled(chr.Body))
-                //{
-                    // Collide test the prims with the terrain..   since if you don't do this, 
-                    // next frame, all of the physical prim in the scene will awaken and explode upwards
-                    //tmpSpace = calculateSpaceForGeom(chr.Position);
-                    //if (tmpSpace != (IntPtr) 0 && d.GeomIsSpace(tmpSpace))
-                    //d.SpaceCollide2(calculateSpaceForGeom(chr.Position), chr.prim_geom, IntPtr.Zero, nearCallback);
-                    //d.SpaceCollide2(LandGeom, chr.prim_geom, IntPtr.Zero, nearCallback);
-                //}
-            //}
-            //}
-            #endregion
+           
         }
 
         #endregion
@@ -1006,6 +957,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             lock (OdeLock)
             {
+                m_log.Debug("[PHYSICS]:ODELOCK");
                 ((OdeCharacter) actor).Destroy();
                 _characters.Remove((OdeCharacter) actor);
             }
@@ -1524,16 +1476,16 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 // Process 10 frames if the sim is running normal..  
                 // process 5 frames if the sim is running slow
-                try
-                {
-                    d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
-                }
-                catch (StackOverflowException)
-                {
-                    m_log.Error("[PHYSICS]: The operating system wasn't able to allocate enough memory for the simulation.  Restarting the sim.");
-                    ode.drelease(world);
-                    base.TriggerPhysicsBasedRestart();
-                }
+                //try
+                //{
+                    //d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
+                //}
+                //catch (StackOverflowException)
+                //{
+                   // m_log.Error("[PHYSICS]: The operating system wasn't able to allocate enough memory for the simulation.  Restarting the sim.");
+                   // ode.drelease(world);
+                    //base.TriggerPhysicsBasedRestart();
+                //}
 
                 int i = 0;
 
@@ -1602,7 +1554,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 d.WorldQuickStep(world, ODE_STEPSIZE);
 
                                 d.JointGroupEmpty(contactgroup);
-                                ode.dunlock(world);
+                                //ode.dunlock(world);
                             } 
                             catch (Exception e)
                             {
