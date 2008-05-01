@@ -976,7 +976,7 @@ namespace OpenSim.Data.SQLite
             {
                 Helpers.TryParse((string)row["AuthbuyerID"], out authBuyerID);
             }
-            catch (InvalidCastException)
+            catch (InvalidCastException e)
             {
                 // Database table was created before we got here and now has null values :P
                 try
@@ -1165,6 +1165,7 @@ namespace OpenSim.Data.SQLite
             row["UserLookAtX"] = land.userLookAt.X;
             row["UserLookAtY"] = land.userLookAt.Y;
             row["UserLookAtZ"] = land.userLookAt.Z;
+            row["AuthbuyerID"] = Util.ToRawUuidString(land.authBuyerID);
         }
 
         private void fillLandAccessRow(DataRow row, ParcelManager.ParcelAccessEntry entry, LLUUID parcelID)
