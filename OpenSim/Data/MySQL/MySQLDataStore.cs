@@ -627,24 +627,24 @@ namespace OpenSim.Data.MySQL
          *
          **********************************************************************/
 
-        private DataColumn createCol(DataTable dt, string name, Type type)
+        private static DataColumn createCol(DataTable dt, string name, Type type)
         {
             DataColumn col = new DataColumn(name, type);
             dt.Columns.Add(col);
             return col;
         }
 
-        private DataTable createTerrainTable()
+        private static DataTable createTerrainTable()
         {
             DataTable terrain = new DataTable("terrain");
 
             createCol(terrain, "RegionUUID", typeof (String));
             createCol(terrain, "Revision", typeof (Int32));
-            DataColumn heightField = createCol(terrain, "Heightfield", typeof (Byte[]));
+            createCol(terrain, "Heightfield", typeof (Byte[]));
             return terrain;
         }
 
-        private DataTable createPrimTable()
+        private static DataTable createPrimTable()
         {
             DataTable prims = new DataTable("prims");
 
@@ -708,7 +708,7 @@ namespace OpenSim.Data.MySQL
             return prims;
         }
 
-        private DataTable createLandTable()
+        private static DataTable createLandTable()
         {
             DataTable land = new DataTable("land");
             createCol(land, "UUID", typeof (String));
@@ -752,7 +752,7 @@ namespace OpenSim.Data.MySQL
             return land;
         }
 
-        private DataTable createLandAccessListTable()
+        private static DataTable createLandAccessListTable()
         {
             DataTable landaccess = new DataTable("landaccesslist");
             createCol(landaccess, "LandUUID", typeof (String));
@@ -762,7 +762,7 @@ namespace OpenSim.Data.MySQL
             return landaccess;
         }
 
-        private DataTable createShapeTable()
+        private static DataTable createShapeTable()
         {
             DataTable shapes = new DataTable("primshapes");
             createCol(shapes, "UUID", typeof (String));
@@ -802,7 +802,7 @@ namespace OpenSim.Data.MySQL
             return shapes;
         }
         
-        private DataTable createItemsTable()
+        private static DataTable createItemsTable()
         {
             DataTable items = new DataTable("primitems");
 
@@ -937,7 +937,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="row"></param>
         /// <returns></returns>
-        private TaskInventoryItem buildItem(DataRow row)
+        private static TaskInventoryItem buildItem(DataRow row)
         {
             TaskInventoryItem taskItem = new TaskInventoryItem();
             
@@ -966,7 +966,7 @@ namespace OpenSim.Data.MySQL
             return taskItem;
         }        
 
-        private LandData buildLandData(DataRow row)
+        private static LandData buildLandData(DataRow row)
         {
             LandData newData = new LandData();
 
@@ -1018,7 +1018,7 @@ namespace OpenSim.Data.MySQL
             return newData;
         }
 
-        private ParcelManager.ParcelAccessEntry buildLandAccessData(DataRow row)
+        private static ParcelManager.ParcelAccessEntry buildLandAccessData(DataRow row)
         {
             ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
             entry.AgentID = new LLUUID((string) row["AccessUUID"]);
@@ -1027,7 +1027,7 @@ namespace OpenSim.Data.MySQL
             return entry;
         }
 
-        private Array serializeTerrain(double[,] val)
+        private static Array serializeTerrain(double[,] val)
         {
             MemoryStream str = new MemoryStream(65536*sizeof (double));
             BinaryWriter bw = new BinaryWriter(str);
@@ -1116,7 +1116,7 @@ namespace OpenSim.Data.MySQL
             }
         }
         
-        private void fillItemRow(DataRow row, TaskInventoryItem taskItem)
+        private static void fillItemRow(DataRow row, TaskInventoryItem taskItem)
         {
             row["itemID"] = taskItem.ItemID;
             row["primID"] = taskItem.ParentPartID;
@@ -1140,7 +1140,7 @@ namespace OpenSim.Data.MySQL
             row["groupPermissions"] = taskItem.GroupMask;
         }        
 
-        private void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
+        private static void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
         {
             row["UUID"] = Util.ToRawUuidString(land.globalID);
             row["RegionUUID"] = Util.ToRawUuidString(regionUUID);
@@ -1179,7 +1179,7 @@ namespace OpenSim.Data.MySQL
             row["AuthBuyerID"] = land.authBuyerID;
         }
 
-        private void fillLandAccessRow(DataRow row, ParcelManager.ParcelAccessEntry entry, LLUUID parcelID)
+        private static void fillLandAccessRow(DataRow row, ParcelManager.ParcelAccessEntry entry, LLUUID parcelID)
         {
             row["LandUUID"] = Util.ToRawUuidString(parcelID);
             row["AccessUUID"] = Util.ToRawUuidString(entry.AgentID);
@@ -1364,7 +1364,7 @@ namespace OpenSim.Data.MySQL
          *
          **********************************************************************/
 
-        private MySqlCommand createInsertCommand(string table, DataTable dt)
+        private static MySqlCommand createInsertCommand(string table, DataTable dt)
         {
             /**
              *  This is subtle enough to deserve some commentary.
@@ -1399,7 +1399,7 @@ namespace OpenSim.Data.MySQL
             return cmd;
         }
 
-        private MySqlCommand createUpdateCommand(string table, string pk, DataTable dt)
+        private static MySqlCommand createUpdateCommand(string table, string pk, DataTable dt)
         {
             string sql = "update " + table + " set ";
             string subsql = String.Empty;
@@ -1426,7 +1426,7 @@ namespace OpenSim.Data.MySQL
             return cmd;
         }
 
-        private string defineTable(DataTable dt)
+        private static string defineTable(DataTable dt)
         {
             string sql = "create table " + dt.TableName + "(";
             string subsql = String.Empty;
@@ -1471,7 +1471,7 @@ namespace OpenSim.Data.MySQL
         /// for us.
         ///</summary>
         ///<returns>a built MySql parameter</returns>
-        private MySqlParameter createMySqlParameter(string name, Type type)
+        private static MySqlParameter createMySqlParameter(string name, Type type)
         {
             MySqlParameter param = new MySqlParameter();
             param.ParameterName = "?" + name;
@@ -1546,7 +1546,7 @@ namespace OpenSim.Data.MySQL
             da.DeleteCommand = delete;
         }
 
-        private void InitDB(MySqlConnection conn)
+        private static void InitDB(MySqlConnection conn)
         {
             string createPrims = defineTable(createPrimTable());
             string createShapes = defineTable(createShapeTable());
@@ -1734,7 +1734,7 @@ namespace OpenSim.Data.MySQL
          *
          **********************************************************************/
 
-        private DbType dbtypeFromType(Type type)
+        private static DbType dbtypeFromType(Type type)
         {
             if (type == typeof (String))
             {
@@ -1768,7 +1768,7 @@ namespace OpenSim.Data.MySQL
 
         // this is something we'll need to implement for each db
         // slightly differently.
-        private string MySqlType(Type type)
+        private static string MySqlType(Type type)
         {
             if (type == typeof (String))
             {

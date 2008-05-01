@@ -536,14 +536,14 @@ namespace OpenSim.Data.MSSQL
          *
          **********************************************************************/
 
-        private DataColumn createCol(DataTable dt, string name, Type type)
+        private static DataColumn createCol(DataTable dt, string name, Type type)
         {
             DataColumn col = new DataColumn(name, type);
             dt.Columns.Add(col);
             return col;
         }
 
-        private DataTable createTerrainTable()
+        private static DataTable createTerrainTable()
         {
             DataTable terrain = new DataTable("terrain");
 
@@ -554,7 +554,7 @@ namespace OpenSim.Data.MSSQL
             return terrain;
         }
 
-        private DataTable createPrimTable()
+        private static DataTable createPrimTable()
         {
             DataTable prims = new DataTable("prims");
 
@@ -618,7 +618,7 @@ namespace OpenSim.Data.MSSQL
             return prims;
         }
 
-        private DataTable createLandTable()
+        private static DataTable createLandTable()
         {
             DataTable land = new DataTable("land");
             createCol(land, "UUID", typeof(String));
@@ -661,7 +661,7 @@ namespace OpenSim.Data.MSSQL
             return land;
         }
 
-        private DataTable createLandAccessListTable()
+        private static DataTable createLandAccessListTable()
         {
             DataTable landaccess = new DataTable("landaccesslist");
             createCol(landaccess, "LandUUID", typeof(String));
@@ -671,7 +671,7 @@ namespace OpenSim.Data.MSSQL
             return landaccess;
         }
 
-        private DataTable createShapeTable()
+        private static DataTable createShapeTable()
         {
             DataTable shapes = new DataTable("primshapes");
             createCol(shapes, "UUID", typeof(String));
@@ -713,7 +713,7 @@ namespace OpenSim.Data.MSSQL
             return shapes;
         }
 
-        private DataTable createItemsTable()
+        private static DataTable createItemsTable()
         {
             DataTable items = new DataTable("primitems");
 
@@ -848,7 +848,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="row"></param>
         /// <returns></returns>
-        private TaskInventoryItem buildItem(DataRow row)
+        private static TaskInventoryItem buildItem(DataRow row)
         {
             TaskInventoryItem taskItem = new TaskInventoryItem();
 
@@ -877,7 +877,7 @@ namespace OpenSim.Data.MSSQL
             return taskItem;
         }
 
-        private LandData buildLandData(DataRow row)
+        private static LandData buildLandData(DataRow row)
         {
             LandData newData = new LandData();
 
@@ -922,7 +922,7 @@ namespace OpenSim.Data.MSSQL
             return newData;
         }
 
-        private ParcelManager.ParcelAccessEntry buildLandAccessData(DataRow row)
+        private static ParcelManager.ParcelAccessEntry buildLandAccessData(DataRow row)
         {
             ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
             entry.AgentID = new LLUUID((string)row["AccessUUID"]);
@@ -931,7 +931,7 @@ namespace OpenSim.Data.MSSQL
             return entry;
         }
 
-        private Array serializeTerrain(double[,] val)
+        private static Array serializeTerrain(double[,] val)
         {
             MemoryStream str = new MemoryStream(65536 * sizeof(double));
             BinaryWriter bw = new BinaryWriter(str);
@@ -1020,7 +1020,7 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
-        private void fillItemRow(DataRow row, TaskInventoryItem taskItem)
+        private static void fillItemRow(DataRow row, TaskInventoryItem taskItem)
         {
             row["itemID"] = taskItem.ItemID;
             row["primID"] = taskItem.ParentPartID;
@@ -1044,7 +1044,7 @@ namespace OpenSim.Data.MSSQL
             row["groupPermissions"] = taskItem.GroupMask;
         }
 
-        private void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
+        private static void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
         {
             row["UUID"] = land.globalID.UUID;
             row["RegionUUID"] = regionUUID.UUID;
@@ -1082,14 +1082,14 @@ namespace OpenSim.Data.MSSQL
             row["UserLookAtZ"] = land.userLookAt.Z;
         }
 
-        private void fillLandAccessRow(DataRow row, ParcelManager.ParcelAccessEntry entry, LLUUID parcelID)
+        private static void fillLandAccessRow(DataRow row, ParcelManager.ParcelAccessEntry entry, LLUUID parcelID)
         {
             row["LandUUID"] = parcelID.UUID;
             row["AccessUUID"] = entry.AgentID.UUID;
             row["Flags"] = entry.Flags;
         }
 
-        private PrimitiveBaseShape buildShape(DataRow row)
+        private static PrimitiveBaseShape buildShape(DataRow row)
         {
             PrimitiveBaseShape s = new PrimitiveBaseShape();
             s.Scale = new LLVector3(
@@ -1128,7 +1128,7 @@ namespace OpenSim.Data.MSSQL
             return s;
         }
 
-        private void fillShapeRow(DataRow row, SceneObjectPart prim)
+        private static void fillShapeRow(DataRow row, SceneObjectPart prim)
         {
             PrimitiveBaseShape s = prim.Shape;
             row["UUID"] = prim.UUID;
@@ -1235,7 +1235,7 @@ namespace OpenSim.Data.MSSQL
          *
          **********************************************************************/
 
-        private SqlCommand createInsertCommand(string table, DataTable dt)
+        private static SqlCommand createInsertCommand(string table, DataTable dt)
         {
             /**
              *  This is subtle enough to deserve some commentary.
@@ -1270,7 +1270,7 @@ namespace OpenSim.Data.MSSQL
             return cmd;
         }
 
-        private SqlCommand createUpdateCommand(string table, string pk, DataTable dt)
+        private static SqlCommand createUpdateCommand(string table, string pk, DataTable dt)
         {
             string sql = "update " + table + " set ";
             string subsql = String.Empty;
@@ -1297,7 +1297,7 @@ namespace OpenSim.Data.MSSQL
             return cmd;
         }
 
-        private string defineTable(DataTable dt)
+        private static string defineTable(DataTable dt)
         {
             string sql = "create table " + dt.TableName + "(";
             string subsql = String.Empty;
@@ -1340,7 +1340,7 @@ namespace OpenSim.Data.MSSQL
         /// for us.
         ///</summary>
         ///<returns>a built Sql parameter</returns>
-        private SqlParameter createSqlParameter(string name, Type type)
+        private static SqlParameter createSqlParameter(string name, Type type)
         {
             SqlParameter param = new SqlParameter();
             param.ParameterName = "@" + name;
@@ -1413,7 +1413,7 @@ namespace OpenSim.Data.MSSQL
             da.DeleteCommand = delete;
         }
 
-        private void InitDB(SqlConnection conn)
+        private static void InitDB(SqlConnection conn)
         {
             string createPrims = defineTable(createPrimTable());
             string createShapes = defineTable(createShapeTable());
@@ -1586,7 +1586,7 @@ namespace OpenSim.Data.MSSQL
          *
          **********************************************************************/
 
-        private DbType dbtypeFromType(Type type)
+        private static DbType dbtypeFromType(Type type)
         {
             if (type == typeof(String))
             {

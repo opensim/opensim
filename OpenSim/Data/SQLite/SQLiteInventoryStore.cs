@@ -124,7 +124,7 @@ namespace OpenSim.Data.SQLite
             return item;
         }
 
-        private void fillItemRow(DataRow row, InventoryItemBase item)
+        private static void fillItemRow(DataRow row, InventoryItemBase item)
         {
             row["UUID"] = Util.ToRawUuidString(item.ID);
             row["assetID"] = Util.ToRawUuidString(item.AssetID);
@@ -576,7 +576,7 @@ namespace OpenSim.Data.SQLite
             return inv;
         }
 
-        private DataTable createInventoryFoldersTable()
+        private static DataTable createInventoryFoldersTable()
         {
             DataTable fol = new DataTable("inventoryfolders");
 
@@ -625,7 +625,7 @@ namespace OpenSim.Data.SQLite
             }
         }
 
-        private InventoryFolderBase buildFolder(DataRow row)
+        private static InventoryFolderBase buildFolder(DataRow row)
         {
             InventoryFolderBase folder = new InventoryFolderBase();
             folder.ID = new LLUUID((string) row["UUID"]);
@@ -637,7 +637,7 @@ namespace OpenSim.Data.SQLite
             return folder;
         }
 
-        private void fillFolderRow(DataRow row, InventoryFolderBase folder)
+        private static void fillFolderRow(DataRow row, InventoryFolderBase folder)
         {
             row["UUID"] = Util.ToRawUuidString(folder.ID);
             row["name"] = folder.Name;
@@ -647,7 +647,7 @@ namespace OpenSim.Data.SQLite
             row["version"] = folder.Version;
         }
 
-        private void moveFolderRow(DataRow row, InventoryFolderBase folder)
+        private static void moveFolderRow(DataRow row, InventoryFolderBase folder)
         {
             row["UUID"] = Util.ToRawUuidString(folder.ID);
             row["parentID"] = Util.ToRawUuidString(folder.ParentID);
@@ -659,7 +659,7 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
-        private void InitDB(SqliteConnection conn)
+        private static void InitDB(SqliteConnection conn)
         {
             string createInventoryItems = defineTable(createInventoryItemsTable());
             string createInventoryFolders = defineTable(createInventoryFoldersTable());
@@ -671,7 +671,7 @@ namespace OpenSim.Data.SQLite
             scmd.ExecuteNonQuery();
         }
 
-        private bool TestTables(SqliteConnection conn)
+        private static bool TestTables(SqliteConnection conn)
         {
             SqliteCommand invItemsSelectCmd = new SqliteCommand(invItemsSelect, conn);
             SqliteDataAdapter pDa = new SqliteDataAdapter(invItemsSelectCmd);

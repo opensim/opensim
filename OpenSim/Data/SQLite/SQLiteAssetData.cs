@@ -135,7 +135,7 @@ namespace OpenSim.Data.SQLite
 
         }
 
-        private void LogAssetLoad(AssetBase asset)
+        private static void LogAssetLoad(AssetBase asset)
         {
             string temporary = asset.Temporary ? "Temporary" : "Stored";
             string local = asset.Local ? "Local" : "Remote";
@@ -197,7 +197,7 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
-        private DataTable createAssetsTable()
+        private static DataTable createAssetsTable()
         {
             DataTable assets = new DataTable("assets");
 
@@ -222,7 +222,7 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
-        private AssetBase buildAsset(IDataReader row)
+        private static AssetBase buildAsset(IDataReader row)
         {
             // TODO: this doesn't work yet because something more
             // interesting has to be done to actually get these values
@@ -250,14 +250,14 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
-        private void InitDB(SqliteConnection conn)
+        private static void InitDB(SqliteConnection conn)
         {
             string createAssets = SQLiteUtil.defineTable(createAssetsTable());
             SqliteCommand pcmd = new SqliteCommand(createAssets, conn);
             pcmd.ExecuteNonQuery();
         }
 
-        private bool TestTables(SqliteConnection conn)
+        private static bool TestTables(SqliteConnection conn)
         {
             SqliteCommand cmd = new SqliteCommand(assetSelect, conn);
             SqliteDataAdapter pDa = new SqliteDataAdapter(cmd);

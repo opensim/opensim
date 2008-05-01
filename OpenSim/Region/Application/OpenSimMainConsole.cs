@@ -172,7 +172,7 @@ namespace OpenSim
             }
         }
 
-        private void PrintFileToConsole(string fileName)
+        private static void PrintFileToConsole(string fileName)
         {
             if (File.Exists(fileName))
             {
@@ -690,7 +690,7 @@ namespace OpenSim
             }
         }
 
-        private string CombineParams(string[] commandParams, int pos)
+        private static string CombineParams(string[] commandParams, int pos)
         {
             string result = String.Empty;
             for (int i = pos; i < commandParams.Length; i++)

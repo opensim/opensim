@@ -752,7 +752,7 @@ namespace OpenSim.Data.SQLite
 
         }
 
-        private void InitDB(SqliteConnection conn)
+        private static void InitDB(SqliteConnection conn)
         {
             string createUsers = SQLiteUtil.defineTable(createUsersTable());
             string createFriends = SQLiteUtil.defineTable(createUserFriendsTable());

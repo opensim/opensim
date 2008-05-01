@@ -572,13 +572,13 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
-        private void createCol(DataTable dt, string name, Type type)
+        private static void createCol(DataTable dt, string name, Type type)
         {
             DataColumn col = new DataColumn(name, type);
             dt.Columns.Add(col);
         }
 
-        private DataTable createTerrainTable()
+        private static DataTable createTerrainTable()
         {
             DataTable terrain = new DataTable("terrain");
 
@@ -589,7 +589,7 @@ namespace OpenSim.Data.SQLite
             return terrain;
         }
 
-        private DataTable createPrimTable()
+        private static DataTable createPrimTable()
         {
             DataTable prims = new DataTable("prims");
 
@@ -653,7 +653,7 @@ namespace OpenSim.Data.SQLite
             return prims;
         }
 
-        private DataTable createShapeTable()
+        private static DataTable createShapeTable()
         {
             DataTable shapes = new DataTable("primshapes");
             createCol(shapes, "UUID", typeof (String));
@@ -695,7 +695,7 @@ namespace OpenSim.Data.SQLite
             return shapes;
         }
 
-        private DataTable createItemsTable()
+        private static DataTable createItemsTable()
         {
             DataTable items = new DataTable("primitems");
 
@@ -727,7 +727,7 @@ namespace OpenSim.Data.SQLite
             return items;
         }
 
-        private DataTable createLandTable()
+        private static DataTable createLandTable()
         {
             DataTable land = new DataTable("land");
             createCol(land, "UUID", typeof (String));
@@ -771,7 +771,7 @@ namespace OpenSim.Data.SQLite
             return land;
         }
 
-        private DataTable createLandAccessListTable()
+        private static DataTable createLandAccessListTable()
         {
             DataTable landaccess = new DataTable("landaccesslist");
             createCol(landaccess, "LandUUID", typeof (String));
@@ -901,7 +901,7 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="row"></param>
         /// <returns></returns>
-        private TaskInventoryItem buildItem(DataRow row)
+        private static TaskInventoryItem buildItem(DataRow row)
         {
             TaskInventoryItem taskItem = new TaskInventoryItem();
             
@@ -1008,7 +1008,7 @@ namespace OpenSim.Data.SQLite
             return newData;
         }
 
-        private ParcelManager.ParcelAccessEntry buildLandAccessData(DataRow row)
+        private static ParcelManager.ParcelAccessEntry buildLandAccessData(DataRow row)
         {
             ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
             entry.AgentID = new LLUUID((string) row["AccessUUID"]);
@@ -1017,7 +1017,7 @@ namespace OpenSim.Data.SQLite
             return entry;
         }
 
-        private Array serializeTerrain(double[,] val)
+        private static Array serializeTerrain(double[,] val)
         {
             MemoryStream str = new MemoryStream(65536*sizeof (double));
             BinaryWriter bw = new BinaryWriter(str);
@@ -1046,7 +1046,7 @@ namespace OpenSim.Data.SQLite
 //             row["Heightfield"] = str.ToArray();
 //         }
 
-        private void fillPrimRow(DataRow row, SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
+        private static void fillPrimRow(DataRow row, SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
         {
             row["UUID"] = Util.ToRawUuidString(prim.UUID);
             row["RegionUUID"] = Util.ToRawUuidString(regionUUID);
@@ -1106,7 +1106,7 @@ namespace OpenSim.Data.SQLite
             row["SitTargetOrientZ"] = sitTargetOrient.Z;
         }
         
-        private void fillItemRow(DataRow row, TaskInventoryItem taskItem)
+        private static void fillItemRow(DataRow row, TaskInventoryItem taskItem)
         {
             row["itemID"] = taskItem.ItemID;
             row["primID"] = taskItem.ParentPartID;
@@ -1130,7 +1130,7 @@ namespace OpenSim.Data.SQLite
             row["groupPermissions"] = taskItem.GroupMask;
         }
 
-        private void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
+        private static void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
         {
             row["UUID"] = Util.ToRawUuidString(land.globalID);
             row["RegionUUID"] = Util.ToRawUuidString(regionUUID);
@@ -1169,7 +1169,7 @@ namespace OpenSim.Data.SQLite
             row["AuthbuyerID"] = Util.ToRawUuidString(land.authBuyerID);
         }
 
-        private void fillLandAccessRow(DataRow row, ParcelManager.ParcelAccessEntry entry, LLUUID parcelID)
+        private static void fillLandAccessRow(DataRow row, ParcelManager.ParcelAccessEntry entry, LLUUID parcelID)
         {
             row["LandUUID"] = Util.ToRawUuidString(parcelID);
             row["AccessUUID"] = Util.ToRawUuidString(entry.AgentID);
@@ -1242,7 +1242,7 @@ namespace OpenSim.Data.SQLite
             return s;
         }
 
-        private void fillShapeRow(DataRow row, SceneObjectPart prim)
+        private static void fillShapeRow(DataRow row, SceneObjectPart prim)
         {
             PrimitiveBaseShape s = prim.Shape;
             row["UUID"] = Util.ToRawUuidString(prim.UUID);
@@ -1713,7 +1713,7 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
-        private DbType dbtypeFromType(Type type)
+        private static DbType dbtypeFromType(Type type)
         {
             if (type == typeof (String))
             {
@@ -1747,7 +1747,7 @@ namespace OpenSim.Data.SQLite
 
         // this is something we'll need to implement for each db
         // slightly differently.
-        private string sqliteType(Type type)
+        private static string sqliteType(Type type)
         {
             if (type == typeof (String))
             {

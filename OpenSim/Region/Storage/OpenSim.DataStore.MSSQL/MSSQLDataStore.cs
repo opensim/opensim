@@ -337,7 +337,7 @@ namespace OpenSim.DataStore.MSSQL
          *
          **********************************************************************/
 
-        private void createCol(DataTable dt, string name, Type type)
+        private static void createCol(DataTable dt, string name, Type type)
         {
             DataColumn col = new DataColumn(name, type);
             dt.Columns.Add(col);
@@ -467,7 +467,7 @@ namespace OpenSim.DataStore.MSSQL
          *
          **********************************************************************/
 
-        private SceneObjectPart buildPrim(DataRow row)
+        private static SceneObjectPart buildPrim(DataRow row)
         {
             // TODO: this doesn't work yet because something more
             // interesting has to be done to actually get these values
@@ -553,7 +553,7 @@ namespace OpenSim.DataStore.MSSQL
         }
 
 
-        private void fillPrimRow(DataRow row, SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
+        private static void fillPrimRow(DataRow row, SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
         {
             row["UUID"] = prim.UUID;
             row["RegionUUID"] = regionUUID;

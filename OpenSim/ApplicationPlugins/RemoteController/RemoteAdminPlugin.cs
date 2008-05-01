@@ -267,7 +267,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         }
 
 
-        private void checkStringParameters(XmlRpcRequest request, string[] param)
+        private static void checkStringParameters(XmlRpcRequest request, string[] param)
         {
             Hashtable requestData = (Hashtable) request.Params[0];
             foreach (string p in param)
@@ -279,7 +279,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             }
         }
 
-        private void checkIntegerParams(XmlRpcRequest request, string[] param)
+        private static void checkIntegerParams(XmlRpcRequest request, string[] param)
         {
             Hashtable requestData = (Hashtable) request.Params[0];
             foreach (string p in param)

@@ -302,7 +302,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="reader">The SQL Result</param>
         /// <returns>the item read</returns>
-        private InventoryItemBase readInventoryItem(IDataReader reader)
+        private static InventoryItemBase readInventoryItem(IDataReader reader)
         {
             try
             {
@@ -379,7 +379,7 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         /// <param name="reader">A MySQL Data Reader</param>
         /// <returns>A List containing inventory folders</returns>
-        protected InventoryFolderBase readInventoryFolder(IDataReader reader)
+        protected static InventoryFolderBase readInventoryFolder(IDataReader reader)
         {
             try
             {

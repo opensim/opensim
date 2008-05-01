@@ -111,7 +111,7 @@ namespace OpenSim.Data.NHibernate
             }
         }
 
-        private void SetAgentData(LLUUID uuid, UserAgentData agent, ISession session)
+        private static void SetAgentData(LLUUID uuid, UserAgentData agent, ISession session)
         {
             if (agent == null) 
             {
