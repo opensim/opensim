@@ -196,7 +196,7 @@ namespace pCampBot
                     Environment.Exit(0);
                     break;
                 case "addbots":
-                    int newbots = 0;
+                    int newbots;
                     Helpers.TryParse(cmdparams[0], out newbots);
                     
                     if (newbots > 0)

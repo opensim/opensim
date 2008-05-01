@@ -656,21 +656,6 @@ namespace OpenSim.DataStore.MSSQL
 
 
             s.ExtraParams = (byte[]) row["ExtraParams"];
-            // System.Text.ASCIIEncoding encoding = new System.Text.ASCIIEncoding();
-            //             string texture = encoding.GetString((Byte[])row["Texture"]);
-            //             if (!texture.StartsWith("<"))
-            //             {
-            //                 //here so that we can still work with old format database files (ie from before I added xml serialization)
-            //                  LLObject.TextureEntry textureEntry = null;
-            //                 textureEntry = new LLObject.TextureEntry(new LLUUID(texture));
-            //                 s.TextureEntry = textureEntry.ToBytes();
-            //             }
-            //             else
-            //             {
-            //                 TextureBlock textureEntry = TextureBlock.FromXmlString(texture);
-            //                 s.TextureEntry = textureEntry.TextureData;
-            //                 s.ExtraParams = textureEntry.ExtraParams;
-            // }
 
             return s;
         }

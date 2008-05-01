@@ -583,7 +583,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return objectname;
             }
 
-            EntityBase SensedObject = null;
+            EntityBase SensedObject;
             lock (World.Entities)
             {
                 World.Entities.TryGetValue(objecUUID, out SensedObject);

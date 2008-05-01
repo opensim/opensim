@@ -119,7 +119,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (myIQS.QueueSize == 0)
                 return;
 
-            string receivedData = Encoding.ASCII.GetString(myIQS.Queue, 0, myIQS.QueueSize);
+            string receivedData = Encoding.UTF8.GetString(myIQS.Queue, 0, myIQS.QueueSize);
             Debug.WriteLine("RAW: " + receivedData);
 
             byte newLine = 10;
@@ -197,7 +197,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 tmpStr += "," + p[i].GetType().ToString() + "|" + HttpUtility.UrlEncode(p[i].ToString()); // .Replace(",", "%44")
             }
             tmpStr += "\n";
-            byte[] byteData = Encoding.ASCII.GetBytes(tmpStr);
+            byte[] byteData = Encoding.UTF8.GetBytes(tmpStr);
             TCPS.Send(ID, byteData, 0, byteData.Length);
         }
     }

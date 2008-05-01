@@ -224,7 +224,7 @@ namespace OpenSim.Data.SQLite
         public bool AuthenticateSim(LLUUID uuid, ulong handle, string authhash, string challenge)
         {
             SHA512Managed HashProvider = new SHA512Managed();
-            ASCIIEncoding TextProvider = new ASCIIEncoding();
+            Encoding TextProvider = new UTF8Encoding();
 
             byte[] stream = TextProvider.GetBytes(uuid.ToString() + ":" + handle.ToString() + ":" + challenge);
             byte[] hash = HashProvider.ComputeHash(stream);

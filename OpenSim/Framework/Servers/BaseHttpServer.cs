@@ -201,7 +201,7 @@ namespace OpenSim.Framework.Servers
                     }
                 }
             }
-            catch (SocketException e)
+            catch (SocketException)
             {
                 // At least on linux, it appears that if the client makes a request without requiring the response,
                 // an unconnected socket exception is thrown when we close the response output stream.  There's no

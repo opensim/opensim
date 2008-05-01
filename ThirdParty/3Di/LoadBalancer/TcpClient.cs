@@ -80,38 +80,6 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             }
         }
 
-/*
-        public static void Receive(Socket client) {
-            try {
-                StateObject state = new StateObject();
-                state.workSocket = client;
-                client.BeginReceive( state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
-            } catch (Exception e) {
-                Console.WriteLine(e.ToString());
-            }
-        }
-
-        private static void ReceiveCallback( IAsyncResult ar ) {
-            try {
-                StateObject state = (StateObject) ar.AsyncState;
-                Socket client = state.workSocket;
-
-                int bytesRead = client.EndReceive(ar);
-                if (bytesRead > 0) {
-                    state.sb.Append(Encoding.ASCII.GetString(state.buffer,0,bytesRead));
-                    client.BeginReceive(state.buffer,0,StateObject.BufferSize,0, new AsyncCallback(ReceiveCallback), state);
-                } else {
-                    if (state.sb.Length > 1) {
-                        response = state.sb.ToString();
-                    }
-                    receiveDone.Set();
-                }
-            } catch (Exception e) {
-                Console.WriteLine(e.ToString());
-            }
-        }
-*/
-
         public static void Send(Socket client, byte[] byteData)
         {
             client.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), client);

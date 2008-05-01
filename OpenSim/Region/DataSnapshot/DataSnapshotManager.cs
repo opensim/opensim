@@ -515,7 +515,7 @@ namespace OpenSim.Region.DataSnapshot
                     m_log.Warn("[DATASNAPSHOT] Unable to decode reply from data service. Ignoring. " + e.StackTrace);
                 }
                 // This is not quite working, so...
-                string responseStr = ASCIIEncoding.UTF8.GetString(response);
+                string responseStr = Encoding.UTF8.GetString(response);
                 m_log.Info("[DATASNAPSHOT] data service notified: " + url);
             }
 

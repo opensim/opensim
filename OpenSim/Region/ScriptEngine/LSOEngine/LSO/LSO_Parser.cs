@@ -289,10 +289,8 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
 
             //}
             // READ EVENT CODE CHUNKS
-            LSO_Struct.CodeChunk[] myEventCodeChunk;
             if (myStateFrameBlock.StateCount > 0)
             {
-                myEventCodeChunk = new LSO_Struct.CodeChunk[myStateFrameBlock.StateCount];
                 for (int i = 0; i < myStateFrameBlock.StateCount; i++)
                 {
                     // TODO: Somehow organize events and functions so they can be found again, 
@@ -465,7 +463,6 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
             // TODO: How to determine number of codechunks -- does this method work?
             myCodeChunk.CodeChunkArguments = new List<LSO_Struct.CodeChunkArgument>();
             byte reader = br_read(1)[0];
-            reader = br_read(1)[0];
 
             // NOTE ON CODE CHUNK ARGUMENTS
             // This determins type definition
