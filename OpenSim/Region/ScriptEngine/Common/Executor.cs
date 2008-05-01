@@ -35,9 +35,48 @@ namespace OpenSim.Region.ScriptEngine.Common
     {
         // Cache functions by keeping a reference to them in a dictionary
         private Dictionary<string, MethodInfo> Events = new Dictionary<string, MethodInfo>();
+        private Dictionary<string, scriptEvents> m_stateEvents = new Dictionary<string, scriptEvents>();
 
         public Executor(IScript script) : base(script)
         {
+            initEventFlags();
+        }
+
+
+        protected override scriptEvents DoGetStateEventFlags()
+        {
+            // Console.WriteLine("Get event flags for " + m_Script.State);
+
+            // Check to see if we've already computed the flags for this state
+            scriptEvents eventFlags = scriptEvents.None;
+            if (m_stateEvents.ContainsKey(m_Script.State))
+            {
+                m_stateEvents.TryGetValue(m_Script.State, out eventFlags);
+                return eventFlags;
+            }
+
+            // Fill in the events for this state, cache the results in the map
+            foreach (KeyValuePair<string, scriptEvents> kvp in m_eventFlagsMap)
+            {
+                string evname = m_Script.State + "_event_" + kvp.Key;
+                Type type = m_Script.GetType();
+                try
+                {
+                    MethodInfo mi = type.GetMethod(evname);
+                    if (mi != null)
+                    {
+                        // Console.WriteLine("Found handler for " + kvp.Key);
+                        eventFlags |= kvp.Value;
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            // Save the flags we just computed and return the result
+            m_stateEvents.Add(m_Script.State, eventFlags);
+            return (eventFlags);
         }
 
         protected override void DoExecuteEvent(string FunctionName, object[] args)

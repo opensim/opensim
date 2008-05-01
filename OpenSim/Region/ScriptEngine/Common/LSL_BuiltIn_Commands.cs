@@ -92,8 +92,9 @@ namespace OpenSim.Region.ScriptEngine.Common
                     m_state = value;
                     try
                     {
+                        int eventFlags = m_ScriptEngine.m_ScriptManager.GetStateEventFlags(m_localID, m_itemID);
+                        m_host.SetScriptEvents(m_itemID, eventFlags); 
                         m_ScriptEngine.m_EventManager.state_entry(m_localID);
-
                     }
                     catch (AppDomainUnloadedException)
                     {

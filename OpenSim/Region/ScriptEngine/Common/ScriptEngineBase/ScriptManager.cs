@@ -319,6 +319,29 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             Script.Exec.ExecuteEvent(FunctionName, args);
         }
 
+        public int GetStateEventFlags(uint localID, LLUUID itemID)
+        {
+            // Console.WriteLine("GetStateEventFlags for <" + localID + "," + itemID + ">");
+            try
+            {
+                IScript Script = GetScript(localID, itemID);
+                if (Script == null)
+                {
+                    return 0;
+                }
+                ExecutorBase.scriptEvents evflags = Script.Exec.GetStateEventFlags();
+                return (int)evflags;
+            }
+            catch (Exception e)
+            {
+                // Console.WriteLine("Failed to get script reference for <" + localID + "," + itemID + ">");
+                // Console.WriteLine(e.ToString());
+            }
+
+            return 0;
+        }
+
+
         #endregion
 
         #region Internal functions to keep track of script
