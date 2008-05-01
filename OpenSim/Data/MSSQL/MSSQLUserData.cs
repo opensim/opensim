@@ -744,6 +744,33 @@ namespace OpenSim.Data.MSSQL
             return false;
         }
 
+        /// Appearance
+        /// TODO: stubs for now to get us to a compiling state gently
+        override public UserAppearance GetUserAppearance(LLUUID user) 
+        {
+            return new UserAppearance();
+        }
+
+        override public void UpdateUserAppearance(LLUUID user, UserAppearance appearance)
+        {
+            return;
+        }
+
+        override public void AddAttachment(LLUUID user, LLUUID item)
+        {
+            return;
+        }
+        
+        override public void RemoveAttachment(LLUUID user, LLUUID item)
+        {
+            return;
+        }
+        
+        override public List<LLUUID> GetAttachments(LLUUID user)
+        {
+            return new List<LLUUID>();
+        }
+
         /// <summary>
         /// Database provider name
         /// </summary>

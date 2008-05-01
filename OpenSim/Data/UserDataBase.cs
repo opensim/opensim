@@ -53,5 +53,10 @@ namespace OpenSim.Data
         public abstract string getName();
         public abstract void Initialise();
         public abstract List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query);
-    }
+        public abstract UserAppearance GetUserAppearance(LLUUID user);
+        public abstract void UpdateUserAppearance(LLUUID user, UserAppearance appearance);
+        public abstract void AddAttachment(LLUUID user, LLUUID item);
+        public abstract void RemoveAttachment(LLUUID user, LLUUID item);
+        public abstract List<LLUUID> GetAttachments(LLUUID user);
+   }
 }

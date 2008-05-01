@@ -238,6 +238,33 @@ namespace OpenSim.Data.NHibernate
         public override bool MoneyTransferRequest(LLUUID from, LLUUID to, uint amount) {return true;}
         public override bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID inventory) {return true;}
 
+                /// Appearance
+        /// TODO: stubs for now to get us to a compiling state gently
+        override public UserAppearance GetUserAppearance(LLUUID user) 
+        {
+            return new UserAppearance();
+        }
+
+        override public void UpdateUserAppearance(LLUUID user, UserAppearance appearance)
+        {
+            return;
+        }
+
+        override public void AddAttachment(LLUUID user, LLUUID item)
+        {
+            return;
+        }
+        
+        override public void RemoveAttachment(LLUUID user, LLUUID item)
+        {
+            return;
+        }
+        
+        override public List<LLUUID> GetAttachments(LLUUID user)
+        {
+            return new List<LLUUID>();
+        }
+
 
         public override string getName()
         {

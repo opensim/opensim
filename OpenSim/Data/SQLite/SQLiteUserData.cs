@@ -474,6 +474,33 @@ namespace OpenSim.Data.SQLite
             return true;
         }
 
+        /// Appearance
+        /// TODO: stubs for now to get us to a compiling state gently
+        override public UserAppearance GetUserAppearance(LLUUID user) 
+        {
+            return new UserAppearance();
+        }
+
+        override public void UpdateUserAppearance(LLUUID user, UserAppearance appearance)
+        {
+            return;
+        }
+
+        override public void AddAttachment(LLUUID user, LLUUID item)
+        {
+            return;
+        }
+        
+        override public void RemoveAttachment(LLUUID user, LLUUID item)
+        {
+            return;
+        }
+        
+        override public List<LLUUID> GetAttachments(LLUUID user)
+        {
+            return new List<LLUUID>();
+        }
+        
         /// <summary>
         /// Returns the name of the storage provider
         /// </summary>

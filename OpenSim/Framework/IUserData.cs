@@ -174,5 +174,17 @@ namespace OpenSim.Framework
         /// Initialises the plugin (artificial constructor)
         /// </summary>
         void Initialise();
+
+        /// <summary>
+        /// Gets the user appearance
+        /// </summer>
+        UserAppearance GetUserAppearance(LLUUID user);
+
+        void UpdateUserAppearance(LLUUID user, UserAppearance appearance);
+        
+        
+        void AddAttachment(LLUUID user, LLUUID item);
+        void RemoveAttachment(LLUUID user, LLUUID item);
+        List<LLUUID> GetAttachments(LLUUID user);
     }
 }
