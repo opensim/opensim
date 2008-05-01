@@ -595,5 +595,33 @@ namespace OpenSim.Framework.Communications
             }
             return false;
         }
+
+        /// Appearance
+        /// TODO: stubs for now to get us to a compiling state gently
+        public UserAppearance GetUserAppearance(LLUUID user) 
+        {
+            return new UserAppearance();
+        }
+
+        public void UpdateUserAppearance(LLUUID user, UserAppearance appearance)
+        {
+            return;
+        }
+
+        public void AddAttachment(LLUUID user, LLUUID item)
+        {
+            return;
+        }
+        
+        public void RemoveAttachment(LLUUID user, LLUUID item)
+        {
+            return;
+        }
+        
+        public List<LLUUID> GetAttachments(LLUUID user)
+        {
+            return new List<LLUUID>();
+        }
+        
     }
 }

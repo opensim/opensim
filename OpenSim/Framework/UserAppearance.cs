@@ -63,133 +63,147 @@ namespace OpenSim.Framework
         private static LLUUID PANTS_ASSET = new LLUUID("00000000-38f9-1111-024e-222222111120");
         private static LLUUID PANTS_ITEM = new LLUUID("77c41e39-38f9-f75a-0000-5859892f1111");
 
-        private AvatarWearable[] wearables;
-
+        private AvatarWearable[] _wearables;
+        private LLUUID _user;
+        private int _serial;
+        
         public UserAppearance() 
         {
-            wearables = new AvatarWearable[MAX_WEARABLES];
+            _wearables = new AvatarWearable[MAX_WEARABLES];
             for (int i = 0; i < MAX_WEARABLES; i++)
             {
                 // this makes them all null
-                wearables[i] = new AvatarWearable();
+                _wearables[i] = new AvatarWearable();
             }
+            _serial = 0;
+            _user = LLUUID.Zero;
+        }
+
+        public LLUUID User {
+            get { return _user; }
+            set { _user = value; }
+        }
+
+        public int Serial {
+            get { return _serial; }
+            set { _serial = value; }
         }
 
         public LLUUID BodyItem {
-            get { return wearables[BODY].ItemID; }
-            set { wearables[BODY].ItemID = value; }
+            get { return _wearables[BODY].ItemID; }
+            set { _wearables[BODY].ItemID = value; }
         }
         public LLUUID BodyAsset {
-            get { return wearables[BODY].AssetID; }
-            set { wearables[BODY].AssetID = value; }
+            get { return _wearables[BODY].AssetID; }
+            set { _wearables[BODY].AssetID = value; }
         }
         public LLUUID SkinItem {
-            get { return wearables[SKIN].ItemID; }
-            set { wearables[SKIN].ItemID = value; }
+            get { return _wearables[SKIN].ItemID; }
+            set { _wearables[SKIN].ItemID = value; }
         }
         public LLUUID SkinAsset {
-            get { return wearables[SKIN].AssetID; }
-            set { wearables[SKIN].AssetID = value; }
+            get { return _wearables[SKIN].AssetID; }
+            set { _wearables[SKIN].AssetID = value; }
         }
         public LLUUID HairItem {
-            get { return wearables[HAIR].ItemID; }
-            set { wearables[HAIR].ItemID = value; }
+            get { return _wearables[HAIR].ItemID; }
+            set { _wearables[HAIR].ItemID = value; }
         }
         public LLUUID HairAsset {
-            get { return wearables[HAIR].AssetID; }
-            set { wearables[HAIR].AssetID = value; }
+            get { return _wearables[HAIR].AssetID; }
+            set { _wearables[HAIR].AssetID = value; }
         }
         public LLUUID EyesItem {
-            get { return wearables[EYES].ItemID; }
-            set { wearables[EYES].ItemID = value; }
+            get { return _wearables[EYES].ItemID; }
+            set { _wearables[EYES].ItemID = value; }
         }
         public LLUUID EyesAsset {
-            get { return wearables[EYES].AssetID; }
-            set { wearables[EYES].AssetID = value; }
+            get { return _wearables[EYES].AssetID; }
+            set { _wearables[EYES].AssetID = value; }
         }
         public LLUUID ShirtItem {
-            get { return wearables[SHIRT].ItemID; }
-            set { wearables[SHIRT].ItemID = value; }
+            get { return _wearables[SHIRT].ItemID; }
+            set { _wearables[SHIRT].ItemID = value; }
         }
         public LLUUID ShirtAsset {
-            get { return wearables[SHIRT].AssetID; }
-            set { wearables[SHIRT].AssetID = value; }
+            get { return _wearables[SHIRT].AssetID; }
+            set { _wearables[SHIRT].AssetID = value; }
         }
         public LLUUID PantsItem {
-            get { return wearables[PANTS].ItemID; }
-            set { wearables[PANTS].ItemID = value; }
+            get { return _wearables[PANTS].ItemID; }
+            set { _wearables[PANTS].ItemID = value; }
         }
         public LLUUID PantsAsset {
-            get { return wearables[BODY].AssetID; }
-            set { wearables[BODY].AssetID = value; }
+            get { return _wearables[BODY].AssetID; }
+            set { _wearables[BODY].AssetID = value; }
         }
         public LLUUID ShoesItem {
-            get { return wearables[SHOES].ItemID; }
-            set { wearables[SHOES].ItemID = value; }
+            get { return _wearables[SHOES].ItemID; }
+            set { _wearables[SHOES].ItemID = value; }
         }
         public LLUUID ShoesAsset {
-            get { return wearables[SHOES].AssetID; }
-            set { wearables[SHOES].AssetID = value; }
+            get { return _wearables[SHOES].AssetID; }
+            set { _wearables[SHOES].AssetID = value; }
         }
         public LLUUID SocksItem {
-            get { return wearables[SOCKS].ItemID; }
-            set { wearables[SOCKS].ItemID = value; }
+            get { return _wearables[SOCKS].ItemID; }
+            set { _wearables[SOCKS].ItemID = value; }
         }
         public LLUUID SocksAsset {
-            get { return wearables[SOCKS].AssetID; }
-            set { wearables[SOCKS].AssetID = value; }
+            get { return _wearables[SOCKS].AssetID; }
+            set { _wearables[SOCKS].AssetID = value; }
         }
         public LLUUID JacketItem {
-            get { return wearables[JACKET].ItemID; }
-            set { wearables[JACKET].ItemID = value; }
+            get { return _wearables[JACKET].ItemID; }
+            set { _wearables[JACKET].ItemID = value; }
         }
         public LLUUID JacketAsset {
-            get { return wearables[JACKET].AssetID; }
-            set { wearables[JACKET].AssetID = value; }
+            get { return _wearables[JACKET].AssetID; }
+            set { _wearables[JACKET].AssetID = value; }
         }
         public LLUUID GlovesItem {
-            get { return wearables[GLOVES].ItemID; }
-            set { wearables[GLOVES].ItemID = value; }
+            get { return _wearables[GLOVES].ItemID; }
+            set { _wearables[GLOVES].ItemID = value; }
         }
         public LLUUID GlovesAsset {
-            get { return wearables[GLOVES].AssetID; }
-            set { wearables[GLOVES].AssetID = value; }
+            get { return _wearables[GLOVES].AssetID; }
+            set { _wearables[GLOVES].AssetID = value; }
         }
         public LLUUID UnderShirtItem {
-            get { return wearables[UNDERSHIRT].ItemID; }
-            set { wearables[UNDERSHIRT].ItemID = value; }
+            get { return _wearables[UNDERSHIRT].ItemID; }
+            set { _wearables[UNDERSHIRT].ItemID = value; }
         }
         public LLUUID UnderShirtAsset {
-            get { return wearables[UNDERSHIRT].AssetID; }
-            set { wearables[UNDERSHIRT].AssetID = value; }
+            get { return _wearables[UNDERSHIRT].AssetID; }
+            set { _wearables[UNDERSHIRT].AssetID = value; }
         }
         public LLUUID UnderPantsItem {
-            get { return wearables[UNDERPANTS].ItemID; }
-            set { wearables[UNDERPANTS].ItemID = value; }
+            get { return _wearables[UNDERPANTS].ItemID; }
+            set { _wearables[UNDERPANTS].ItemID = value; }
         }
         public LLUUID UnderPantsAsset {
-            get { return wearables[UNDERPANTS].AssetID; }
-            set { wearables[UNDERPANTS].AssetID = value; }
+            get { return _wearables[UNDERPANTS].AssetID; }
+            set { _wearables[UNDERPANTS].AssetID = value; }
         }
         public LLUUID SkirtItem {
-            get { return wearables[SKIRT].ItemID; }
-            set { wearables[SKIRT].ItemID = value; }
+            get { return _wearables[SKIRT].ItemID; }
+            set { _wearables[SKIRT].ItemID = value; }
         }
         public LLUUID SkirtAsset {
-            get { return wearables[SKIRT].AssetID; }
-            set { wearables[SKIRT].AssetID = value; }
+            get { return _wearables[SKIRT].AssetID; }
+            set { _wearables[SKIRT].AssetID = value; }
         }
 
         public void SetDefaultWearables() 
         {
-            wearables[BODY].AssetID = BODY_ASSET;
-            wearables[BODY].ItemID = BODY_ITEM;
-            wearables[SKIN].AssetID = SKIN_ASSET;
-            wearables[SKIN].ItemID = SKIN_ITEM;
-            wearables[SHIRT].AssetID = SHIRT_ASSET;
-            wearables[SHIRT].ItemID = SHIRT_ITEM;
-            wearables[PANTS].AssetID = PANTS_ASSET;
-            wearables[PANTS].ItemID = PANTS_ITEM;
+            _wearables[BODY].AssetID = BODY_ASSET;
+            _wearables[BODY].ItemID = BODY_ITEM;
+            _wearables[SKIN].AssetID = SKIN_ASSET;
+            _wearables[SKIN].ItemID = SKIN_ITEM;
+            _wearables[SHIRT].AssetID = SHIRT_ASSET;
+            _wearables[SHIRT].ItemID = SHIRT_ITEM;
+            _wearables[PANTS].AssetID = PANTS_ASSET;
+            _wearables[PANTS].ItemID = PANTS_ITEM;
         }
     }
 }
