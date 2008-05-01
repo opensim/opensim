@@ -46,8 +46,8 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (nod.Attributes["name"] != null)
                     {
-                        string name = (string)nod.Attributes["name"].Value;
-                        LLUUID id = (LLUUID)nod.InnerText;
+                        string name = nod.Attributes["name"].Value;
+                        LLUUID id = (LLUUID) nod.InnerText;
 
                         AnimsLLUUID.Add(name, id);
                         AnimsNames.Add(id, name);

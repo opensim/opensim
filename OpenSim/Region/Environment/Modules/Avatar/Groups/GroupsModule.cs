@@ -41,10 +41,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<LLUUID, GroupList> m_grouplistmap = new Dictionary<LLUUID, GroupList>();
-        private Dictionary<LLUUID, GroupData> m_groupmap = new Dictionary<LLUUID, GroupData>();
-        private Dictionary<LLUUID, IClientAPI> m_iclientmap = new Dictionary<LLUUID, IClientAPI>();
-        private List<Scene> m_scene = new List<Scene>();
+        private readonly Dictionary<LLUUID, GroupList> m_grouplistmap = new Dictionary<LLUUID, GroupList>();
+        private readonly Dictionary<LLUUID, GroupData> m_groupmap = new Dictionary<LLUUID, GroupData>();
+        private readonly Dictionary<LLUUID, IClientAPI> m_iclientmap = new Dictionary<LLUUID, IClientAPI>();
+        private readonly List<Scene> m_scene = new List<Scene>();
 
         #region IRegionModule Members
 
@@ -214,7 +214,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
                     }
                     else
                     {
-                        m_log.Info("[GROUP]: Removing all reference to groups for " + agentID.ToString());
+                        m_log.Info("[GROUP]: Removing all reference to groups for " + agentID);
                     }
                     m_iclientmap.Remove(agentID);
                 }

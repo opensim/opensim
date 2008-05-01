@@ -36,12 +36,7 @@ namespace OpenSim.Region.Environment
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IRegionDataStore m_dataStore;
-
-        public IRegionDataStore DataStore
-        {
-            get { return m_dataStore; }
-        }
+        private readonly IRegionDataStore m_dataStore;
 
         public StorageManager(IRegionDataStore storage)
         {
@@ -73,6 +68,11 @@ namespace OpenSim.Region.Environment
             }
 
             //TODO: Add checking and warning to make sure it initialised.
+        }
+
+        public IRegionDataStore DataStore
+        {
+            get { return m_dataStore; }
         }
     }
 }

@@ -65,55 +65,55 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
     public class SampleMoneyModule : IMoneyModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private readonly Dictionary<LLUUID, int> m_KnownClientFunds = new Dictionary<LLUUID, int>();
+
+        /// <summary>
+        /// Region UUIDS indexed by AgentID
+        /// </summary>
+        private readonly Dictionary<LLUUID, LLUUID> m_rootAgents = new Dictionary<LLUUID, LLUUID>();
+
+        /// <summary>
+        /// Scenes by Region Handle
+        /// </summary>
+        private readonly Dictionary<ulong, Scene> m_scenel = new Dictionary<ulong, Scene>();
 
         /// <summary>
         /// Where Stipends come from and Fees go to.
         /// </summary>
         private LLUUID EconomyBaseAccount = LLUUID.Zero;
 
-        private float EnergyEfficiency = 0f;
-        private bool gridmode = false;
+        private float EnergyEfficiency;
+        private bool gridmode;
         private ObjectPaid handerOnObjectPaid;
         private bool m_enabled = true;
 
         private IConfigSource m_gConfig;
 
         private bool m_keepMoneyAcrossLogins = true;
-        private Dictionary<LLUUID, int> m_KnownClientFunds = new Dictionary<LLUUID, int>();
         private string m_LandAddress = String.Empty;
 
         private int m_minFundsBeforeRefresh = 100;
         private string m_MoneyAddress = String.Empty;
 
-        /// <summary>
-        /// Region UUIDS indexed by AgentID
-        /// </summary>
-        private Dictionary<LLUUID, LLUUID> m_rootAgents = new Dictionary<LLUUID, LLUUID>();
-
-        /// <summary>
-        /// Scenes by Region Handle
-        /// </summary>
-        private Dictionary<ulong, Scene> m_scenel = new Dictionary<ulong, Scene>();
-
         private int m_stipend = 1000;
 
         private int ObjectCapacity = 45000;
-        private int ObjectCount = 0;
-        private int PriceEnergyUnit = 0;
-        private int PriceGroupCreate = 0;
-        private int PriceObjectClaim = 0;
-        private float PriceObjectRent = 0f;
-        private float PriceObjectScaleFactor = 0f;
-        private int PriceParcelClaim = 0;
-        private float PriceParcelClaimFactor = 0f;
-        private int PriceParcelRent = 0;
-        private int PricePublicObjectDecay = 0;
-        private int PricePublicObjectDelete = 0;
-        private int PriceRentLight = 0;
-        private int PriceUpload = 0;
-        private int TeleportMinPrice = 0;
+        private int ObjectCount;
+        private int PriceEnergyUnit;
+        private int PriceGroupCreate;
+        private int PriceObjectClaim;
+        private float PriceObjectRent;
+        private float PriceObjectScaleFactor;
+        private int PriceParcelClaim;
+        private float PriceParcelClaimFactor;
+        private int PriceParcelRent;
+        private int PricePublicObjectDecay;
+        private int PricePublicObjectDelete;
+        private int PriceRentLight;
+        private int PriceUpload;
+        private int TeleportMinPrice;
 
-        private float TeleportPriceExponent = 0f;
+        private float TeleportPriceExponent;
         private int UserLevelPaysFees = 2;
         private Scene XMLRPCHandler;
 
@@ -305,7 +305,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                         Hashtable hbinfo =
                             GetBalanceForUserFromMoneyServer(client.AgentId, client.SecureSessionId, s.RegionInfo.originRegionID.ToString(),
                                                              s.RegionInfo.regionSecret);
-                        if ((bool) hbinfo["success"] == true)
+                        if ((bool) hbinfo["success"])
                         {
                             Helpers.TryParse((string) hbinfo["agentId"], out agentID);
                             try
@@ -333,7 +333,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                         else
                         {
                             m_log.WarnFormat("[MONEY]: Getting Money for user {0} failed with the following message:{1}", agentID,
-                                             (string) hbinfo["errorMessage"]);
+                                             hbinfo["errorMessage"]);
                             client.SendAlertMessage((string) hbinfo["errorMessage"]);
                         }
                         SendMoneyBalance(client, agentID, client.SessionId, LLUUID.Zero);
@@ -660,7 +660,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
 
                     Hashtable hresult = genericCurrencyXMLRPCRequest(ht, "regionMoveMoney");
 
-                    if ((bool) hresult["success"] == true)
+                    if ((bool) hresult["success"])
                     {
                         int funds1 = 0;
                         int funds2 = 0;
@@ -718,7 +718,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                         Hashtable hbinfo =
                             GetBalanceForUserFromMoneyServer(aClient.AgentId, aClient.SecureSessionId, s.RegionInfo.originRegionID.ToString(),
                                                              s.RegionInfo.regionSecret);
-                        if ((bool) hbinfo["success"] == true)
+                        if ((bool) hbinfo["success"])
                         {
                             try
                             {
@@ -743,7 +743,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                         else
                         {
                             m_log.WarnFormat("[MONEY]: Getting Money for user {0} failed with the following message:{1}", agentId,
-                                             (string) hbinfo["errorMessage"]);
+                                             hbinfo["errorMessage"]);
                             aClient.SendAlertMessage((string) hbinfo["errorMessage"]);
                         }
                     }
@@ -812,7 +812,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             string secret = (string) requestData["secret"];
 
             Scene userScene = GetRandomScene();
-            if (userScene.RegionInfo.regionSecret.ToString() == secret)
+            if (userScene.RegionInfo.regionSecret == secret)
             {
                 IClientAPI client = LocateClientObject(agentId);
 
@@ -1238,7 +1238,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         {
             lock (e)
             {
-                if (e.economyValidated == true && e.transactionID == 0)
+                if (e.economyValidated && e.transactionID == 0)
                 {
                     e.transactionID = Util.UnixTimeSinceEpoch();
 
@@ -1328,7 +1328,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             else
             {
                 m_log.Warn("[MONEY]: Potential Fraud Warning, got money transfer request for avatar that isn't in this simulator - Details; Sender:" +
-                           e.sender.ToString() + " Receiver: " + e.receiver.ToString() + " Amount: " + e.amount.ToString());
+                           e.sender + " Receiver: " + e.receiver + " Amount: " + e.amount);
             }
         }
 
@@ -1400,7 +1400,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                             {
                                 Hashtable hresult =
                                     claim_user(avatar.UUID, avatar.ControllingClient.SecureSessionId, regionID, RegionItem.RegionInfo.regionSecret);
-                                if ((bool) hresult["success"] == true)
+                                if ((bool) hresult["success"])
                                 {
                                     int funds = 0;
                                     try
@@ -1432,7 +1432,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                         if (RegionItem != null)
                         {
                             Hashtable hresult = claim_user(avatar.UUID, avatar.ControllingClient.SecureSessionId, regionID, RegionItem.RegionInfo.regionSecret);
-                            if ((bool) hresult["success"] == true)
+                            if ((bool) hresult["success"])
                             {
                                 int funds = 0;
                                 try
@@ -1460,7 +1460,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         #endregion
     }
 
-    public enum TransactionType : int
+    public enum TransactionType
     {
         SystemGenerated = 0,
         RegionMoneyRequest = 1,

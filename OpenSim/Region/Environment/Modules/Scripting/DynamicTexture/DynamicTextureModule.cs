@@ -40,12 +40,12 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
 {
     public class DynamicTextureModule : IRegionModule, IDynamicTextureManager
     {
-        private Dictionary<LLUUID, Scene> RegisteredScenes = new Dictionary<LLUUID, Scene>();
+        private readonly Dictionary<LLUUID, Scene> RegisteredScenes = new Dictionary<LLUUID, Scene>();
 
-        private Dictionary<string, IDynamicTextureRender> RenderPlugins =
+        private readonly Dictionary<string, IDynamicTextureRender> RenderPlugins =
             new Dictionary<string, IDynamicTextureRender>();
 
-        private Dictionary<LLUUID, DynamicTextureUpdater> Updaters = new Dictionary<LLUUID, DynamicTextureUpdater>();
+        private readonly Dictionary<LLUUID, DynamicTextureUpdater> Updaters = new Dictionary<LLUUID, DynamicTextureUpdater>();
 
         #region IDynamicTextureManager Members
 
@@ -176,14 +176,14 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
 
         public class DynamicTextureUpdater
         {
-            public bool BlendWithOldTexture = false;
+            public bool BlendWithOldTexture;
             public string BodyData;
             public string ContentType;
             public byte FrontAlpha = 255;
             public LLUUID LastAssetID;
             public string Params;
             public LLUUID PrimID;
-            public bool SetNewFrontAlpha = false;
+            public bool SetNewFrontAlpha;
             public LLUUID SimUUID;
             public LLUUID UpdaterID;
             public int UpdateTimer;

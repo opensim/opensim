@@ -47,12 +47,11 @@ namespace OpenSim.Region.Environment
     public class ModuleLoader
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        public Dictionary<string, Assembly> LoadedAssemblys = new Dictionary<string, Assembly>();
+        private readonly IConfigSource m_config;
 
         private readonly List<IRegionModule> m_loadedModules = new List<IRegionModule>();
         private readonly Dictionary<string, IRegionModule> m_loadedSharedModules = new Dictionary<string, IRegionModule>();
-        private readonly IConfigSource m_config;
+        public Dictionary<string, Assembly> LoadedAssemblys = new Dictionary<string, Assembly>();
 
         public ModuleLoader(IConfigSource config)
         {
@@ -86,7 +85,8 @@ namespace OpenSim.Region.Environment
             DynamicTextureModule dynamicModule = new DynamicTextureModule();
             if (m_loadedSharedModules.ContainsKey(dynamicModule.Name))
             {
-                m_log.ErrorFormat("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", dynamicModule.Name, "DynamicTextureModule");
+                m_log.ErrorFormat("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", dynamicModule.Name,
+                                  "DynamicTextureModule");
             }
             else
             {
@@ -123,15 +123,15 @@ namespace OpenSim.Region.Environment
                 m_loadedSharedModules.Add(loadMod.Name, loadMod);
             }
 
-           // AvatarFactoryModule avatarFactory = new AvatarFactoryModule();
-           // if (m_loadedSharedModules.ContainsKey(avatarFactory.Name))
-           // {
-           //     m_log.ErrorFormat("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", avatarFactory.Name, "AvarFactoryModule");
-           // }
-           // else
-           // {
-           //     m_loadedSharedModules.Add(avatarFactory.Name, avatarFactory);
-           // }
+            // AvatarFactoryModule avatarFactory = new AvatarFactoryModule();
+            // if (m_loadedSharedModules.ContainsKey(avatarFactory.Name))
+            // {
+            //     m_log.ErrorFormat("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", avatarFactory.Name, "AvarFactoryModule");
+            // }
+            // else
+            // {
+            //     m_loadedSharedModules.Add(avatarFactory.Name, avatarFactory);
+            // }
 
             XMLRPCModule xmlRpcMod = new XMLRPCModule();
             if (m_loadedSharedModules.ContainsKey(xmlRpcMod.Name))
@@ -149,13 +149,13 @@ namespace OpenSim.Region.Environment
             AssetTransactionModule transactionsModule = new AssetTransactionModule();
             if (m_loadedSharedModules.ContainsKey(transactionsModule.Name))
             {
-                m_log.ErrorFormat("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", transactionsModule.Name, "TransactionModule");
+                m_log.ErrorFormat("[MODULES]: Module name \"{0}\" already exists in module list. Module type {1} not added!", transactionsModule.Name,
+                                  "TransactionModule");
             }
             else
             {
                 m_loadedSharedModules.Add(transactionsModule.Name, transactionsModule);
             }
-
         }
 
         public void InitialiseSharedModules(Scene scene)
@@ -284,7 +284,7 @@ namespace OpenSim.Region.Environment
                             {
                                 if (pluginType.GetInterface("IRegionModule") != null)
                                 {
-                                    modules.Add((IRegionModule)Activator.CreateInstance(pluginType));
+                                    modules.Add((IRegionModule) Activator.CreateInstance(pluginType));
                                 }
                             }
                         }
@@ -320,7 +320,7 @@ namespace OpenSim.Region.Environment
         public void UnloadModule(IRegionModule rm)
         {
             rm.Close();
-            
+
             m_loadedModules.Remove(rm);
         }
     }

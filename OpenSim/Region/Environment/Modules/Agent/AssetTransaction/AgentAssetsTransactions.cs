@@ -44,7 +44,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         //   = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         // Fields
-        private bool m_dumpAssetsToFile;
+        private readonly bool m_dumpAssetsToFile;
         public AgentAssetTransactionsManager Manager;
         public LLUUID UserID;
         public Dictionary<LLUUID, AssetXferUploader> XferUploaders = new Dictionary<LLUUID, AssetXferUploader>();
@@ -141,23 +141,23 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         public class AssetXferUploader
         {
             // Fields
+            private readonly bool m_dumpAssetToFile;
+            private readonly AgentAssetTransactions m_userTransactions;
             public bool AddToInventory;
             public AssetBase Asset;
             public LLUUID InventFolder = LLUUID.Zero;
-            private sbyte invType = 0;
-            private bool m_createItem = false;
+            private sbyte invType;
+            private bool m_createItem;
             private string m_description = String.Empty;
-            private bool m_dumpAssetToFile;
-            private bool m_finished = false;
+            private bool m_finished;
             private string m_name = String.Empty;
             private bool m_storeLocal;
-            private AgentAssetTransactions m_userTransactions;
-            private uint nextPerm = 0;
+            private uint nextPerm;
             private IClientAPI ourClient;
             public LLUUID TransactionID = LLUUID.Zero;
-            private sbyte type = 0;
+            private sbyte type;
             public bool UploadComplete;
-            private byte wearableType = 0;
+            private byte wearableType;
             public ulong XferID;
 
             public AssetXferUploader(AgentAssetTransactions transactions, bool dumpAssetToFile)
@@ -390,7 +390,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                     item.BasePermissions = 2147483647;
                     item.CurrentPermissions = 2147483647;
                     item.NextPermissions = nextPerm;
-                    item.Flags = (uint) wearableType;
+                    item.Flags = wearableType;
 
                     userInfo.AddItem(ourClient.AgentId, item);
                     ourClient.SendInventoryItemCreateUpdate(item);

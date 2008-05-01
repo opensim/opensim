@@ -78,20 +78,20 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
     public class XMLRPCModule : IRegionModule, IXMLRPC
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private readonly List<Scene> m_scenes = new List<Scene>();
+        private readonly object XMLRPCListLock = new object();
 
         private string m_name = "XMLRPCModule";
 
         // <channel id, RPCChannelInfo>
         private Dictionary<LLUUID, RPCChannelInfo> m_openChannels;
         private Dictionary<LLUUID, SendRemoteDataRequest> m_pendingSRDResponses;
-        private int m_remoteDataPort = 0;
+        private int m_remoteDataPort;
 
         private Dictionary<LLUUID, RPCRequestInfo> m_rpcPending;
         private Dictionary<LLUUID, RPCRequestInfo> m_rpcPendingResponses;
-        private List<Scene> m_scenes = new List<Scene>();
         private int RemoteReplyScriptTimeout = 9000;
         private int RemoteReplyScriptWait = 300;
-        private object XMLRPCListLock = new object();
 
         #region IRegionModule Members
 
@@ -428,15 +428,15 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
 
     public class RPCRequestInfo
     {
-        private LLUUID m_ChannelKey;
-        private string m_IntVal;
-        private LLUUID m_ItemID;
-        private uint m_localID;
-        private LLUUID m_MessageID;
+        private readonly LLUUID m_ChannelKey;
+        private readonly string m_IntVal;
+        private readonly LLUUID m_ItemID;
+        private readonly uint m_localID;
+        private readonly LLUUID m_MessageID;
+        private readonly string m_StrVal;
         private bool m_processed;
         private int m_respInt;
         private string m_respStr;
-        private string m_StrVal;
 
         public RPCRequestInfo(uint localID, LLUUID itemID, LLUUID channelKey, string strVal, string intVal)
         {
@@ -514,9 +514,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
 
     public class RPCChannelInfo
     {
-        private LLUUID m_ChannelKey;
-        private LLUUID m_itemID;
-        private uint m_localID;
+        private readonly LLUUID m_ChannelKey;
+        private readonly LLUUID m_itemID;
+        private readonly uint m_localID;
 
         public RPCChannelInfo(uint localID, LLUUID itemID, LLUUID channelID)
         {

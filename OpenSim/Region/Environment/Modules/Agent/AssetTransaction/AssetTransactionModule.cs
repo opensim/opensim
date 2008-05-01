@@ -40,15 +40,10 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
     public class AssetTransactionModule : IRegionModule, IAgentAssetTransactions
     {
         private readonly Dictionary<LLUUID, Scene> RegisteredScenes = new Dictionary<LLUUID, Scene>();
-        private bool m_dumpAssetsToFile = false;
-        private Scene m_scene = null;
+        private bool m_dumpAssetsToFile;
+        private Scene m_scene;
 
         private AgentAssetTransactionsManager m_transactionManager;
-
-        public AssetTransactionModule()
-        {
-            // System.Console.WriteLine("creating AgentAssetTransactionModule");
-        }
 
         #region IAgentAssetTransactions Members
 
@@ -145,13 +140,13 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
         /// <summary>
         /// Each agent has its own singleton collection of transactions
         /// </summary>
-        private Dictionary<LLUUID, AgentAssetTransactions> AgentTransactions =
+        private readonly Dictionary<LLUUID, AgentAssetTransactions> AgentTransactions =
             new Dictionary<LLUUID, AgentAssetTransactions>();
 
         /// <summary>
         /// Should we dump uploaded assets to the filesystem?
         /// </summary>
-        private bool m_dumpAssetsToFile;
+        private readonly bool m_dumpAssetsToFile;
 
         public Scene MyScene;
 

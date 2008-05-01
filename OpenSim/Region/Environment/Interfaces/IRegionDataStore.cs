@@ -48,7 +48,7 @@ namespace OpenSim.Region.Environment.Interfaces
         /// <param name="obj"></param>
         /// <param name="regionUUID"></param>
         void StoreObject(SceneObjectGroup obj, LLUUID regionUUID);
-        
+
         /// <summary>
         /// Entirely removes the object, including inventory
         /// </summary>
@@ -56,7 +56,7 @@ namespace OpenSim.Region.Environment.Interfaces
         /// <param name="regionUUID"></param>
         /// <returns></returns>
         void RemoveObject(LLUUID uuid, LLUUID regionUUID);
-        
+
         /// <summary>
         /// Store a prim's inventory
         /// </summary>

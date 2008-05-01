@@ -36,70 +36,15 @@ namespace OpenSim.Region.Environment.Scenes
     [Serializable]
     public abstract class EntityBase : ISerializable
     {
+        protected uint m_localId;
+        protected string m_name;
+        protected LLVector3 m_pos;
+        protected Quaternion m_rotation = new Quaternion(0, 0, 1, 0);
+        protected LLVector3 m_rotationalvelocity;
         protected Scene m_scene;
-        
-        public Scene Scene
-        {
-            get { return m_scene; }
-        }
 
         protected LLUUID m_uuid;
-
-        public virtual LLUUID UUID
-        {
-            get { return m_uuid; }
-            set { m_uuid = value; }
-        }
-
-        protected string m_name;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public virtual string Name
-        {
-            get { return m_name; }
-            set { m_name = value; }
-        }
-
-        protected LLVector3 m_pos;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public virtual LLVector3 AbsolutePosition
-        {
-            get { return m_pos; }
-            set { m_pos = value; }
-        }
-
         protected LLVector3 m_velocity;
-        protected LLVector3 m_rotationalvelocity;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public virtual LLVector3 Velocity
-        {
-            get { return m_velocity; }
-            set { m_velocity = value; }
-        }
-
-        protected Quaternion m_rotation = new Quaternion(0, 0, 1, 0);
-
-        public virtual Quaternion Rotation
-        {
-            get { return m_rotation; }
-            set { m_rotation = value; }
-        }
-
-        protected uint m_localId;
-
-        public virtual uint LocalId
-        {
-            get { return m_localId; }
-            set { m_localId = value; }
-        }
 
         /// <summary>
         /// Creates a new Entity (should not occur on it's own)
@@ -115,28 +60,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_rotationalvelocity = new LLVector3(0, 0, 0);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public abstract void UpdateMovement();
-
-        /// <summary>
-        /// Performs any updates that need to be done at each frame.
-        /// </summary>
-        public abstract void Update();
-
-        /// <summary>
-        /// Copies the entity
-        /// </summary>
-        /// <returns></returns>
-        public virtual EntityBase Copy()
-        {
-            return (EntityBase) MemberwiseClone();
-        }
-
-
-        public abstract void SetText(string text, Vector3 color, double alpha);
-
         protected EntityBase(SerializationInfo info, StreamingContext context)
         {
             //System.Console.WriteLine("EntityBase Deserialize BGN");
@@ -146,43 +69,95 @@ namespace OpenSim.Region.Environment.Scenes
                 throw new ArgumentNullException("info");
             }
 
-            m_uuid = new LLUUID((Guid)info.GetValue("m_uuid", typeof(Guid)));
-            m_name = (string)info.GetValue("m_name", typeof(string));
+            m_uuid = new LLUUID((Guid) info.GetValue("m_uuid", typeof (Guid)));
+            m_name = (string) info.GetValue("m_name", typeof (string));
 
             m_pos
                 = new LLVector3(
-                        (float)info.GetValue("m_pos.X", typeof(float)),
-                        (float)info.GetValue("m_pos.Y", typeof(float)),
-                        (float)info.GetValue("m_pos.Z", typeof(float)));
+                    (float) info.GetValue("m_pos.X", typeof (float)),
+                    (float) info.GetValue("m_pos.Y", typeof (float)),
+                    (float) info.GetValue("m_pos.Z", typeof (float)));
 
             m_velocity
                 = new LLVector3(
-                        (float)info.GetValue("m_velocity.X", typeof(float)),
-                        (float)info.GetValue("m_velocity.Y", typeof(float)),
-                        (float)info.GetValue("m_velocity.Z", typeof(float)));
+                    (float) info.GetValue("m_velocity.X", typeof (float)),
+                    (float) info.GetValue("m_velocity.Y", typeof (float)),
+                    (float) info.GetValue("m_velocity.Z", typeof (float)));
 
             m_rotationalvelocity
                 = new LLVector3(
-                        (float)info.GetValue("m_rotationalvelocity.X", typeof(float)),
-                        (float)info.GetValue("m_rotationalvelocity.Y", typeof(float)),
-                        (float)info.GetValue("m_rotationalvelocity.Z", typeof(float)));
+                    (float) info.GetValue("m_rotationalvelocity.X", typeof (float)),
+                    (float) info.GetValue("m_rotationalvelocity.Y", typeof (float)),
+                    (float) info.GetValue("m_rotationalvelocity.Z", typeof (float)));
 
             m_rotation
                 = new Quaternion(
-                        (float)info.GetValue("m_rotation.w", typeof(float)),
-                        (float)info.GetValue("m_rotation.x", typeof(float)),
-                        (float)info.GetValue("m_rotation.y", typeof(float)),
-                        (float)info.GetValue("m_rotation.z", typeof(float)));
+                    (float) info.GetValue("m_rotation.w", typeof (float)),
+                    (float) info.GetValue("m_rotation.x", typeof (float)),
+                    (float) info.GetValue("m_rotation.y", typeof (float)),
+                    (float) info.GetValue("m_rotation.z", typeof (float)));
 
-            m_localId = (uint)info.GetValue("m_localId", typeof(uint));
+            m_localId = (uint) info.GetValue("m_localId", typeof (uint));
 
             //System.Console.WriteLine("EntityBase Deserialize END");
         }
 
+        public Scene Scene
+        {
+            get { return m_scene; }
+        }
+
+        public virtual LLUUID UUID
+        {
+            get { return m_uuid; }
+            set { m_uuid = value; }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public virtual string Name
+        {
+            get { return m_name; }
+            set { m_name = value; }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public virtual LLVector3 AbsolutePosition
+        {
+            get { return m_pos; }
+            set { m_pos = value; }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public virtual LLVector3 Velocity
+        {
+            get { return m_velocity; }
+            set { m_velocity = value; }
+        }
+
+        public virtual Quaternion Rotation
+        {
+            get { return m_rotation; }
+            set { m_rotation = value; }
+        }
+
+        public virtual uint LocalId
+        {
+            get { return m_localId; }
+            set { m_localId = value; }
+        }
+
+        #region ISerializable Members
+
         [SecurityPermission(SecurityAction.LinkDemand,
             Flags = SecurityPermissionFlag.SerializationFormatter)]
         public virtual void GetObjectData(
-                        SerializationInfo info, StreamingContext context)
+            SerializationInfo info, StreamingContext context)
         {
             if (info == null)
             {
@@ -215,18 +190,42 @@ namespace OpenSim.Region.Environment.Scenes
 
             info.AddValue("m_localId", m_localId);
         }
+
+        #endregion
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public abstract void UpdateMovement();
+
+        /// <summary>
+        /// Performs any updates that need to be done at each frame.
+        /// </summary>
+        public abstract void Update();
+
+        /// <summary>
+        /// Copies the entity
+        /// </summary>
+        /// <returns></returns>
+        public virtual EntityBase Copy()
+        {
+            return (EntityBase) MemberwiseClone();
+        }
+
+
+        public abstract void SetText(string text, Vector3 color, double alpha);
     }
 
     //Nested Classes
     public class EntityIntersection
     {
+        public Vector3 AAfaceNormal = new Vector3(0, 0, 0);
+        public float distance;
+        public int face = -1;
+        public bool HitTF;
         public Vector3 ipoint = new Vector3(0, 0, 0);
         public Vector3 normal = new Vector3(0, 0, 0);
-        public Vector3 AAfaceNormal = new Vector3(0, 0, 0);
-        public int face = -1;
-        public bool HitTF = false;
         public SceneObjectPart obj;
-        public float distance = 0;
 
         public EntityIntersection()
         {

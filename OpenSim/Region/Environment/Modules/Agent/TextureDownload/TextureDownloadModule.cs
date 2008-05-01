@@ -47,6 +47,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         private readonly BlockingQueue<ITextureSender> m_queueSenders
             = new BlockingQueue<ITextureSender>();
 
+        private readonly List<Scene> m_scenes = new List<Scene>();
+
         /// <summary>
         /// Each user has their own texture download service.
         /// </summary>
@@ -54,13 +56,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
             new Dictionary<LLUUID, UserTextureDownloadService>();
 
         private Scene m_scene;
-        private List<Scene> m_scenes = new List<Scene>();
 
         private Thread m_thread;
-
-        public TextureDownloadModule()
-        {
-        }
 
         #region IRegionModule Members
 
@@ -69,7 +66,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
             if (m_scene == null)
             {
                 //Console.WriteLine("Creating Texture download module");
-                m_thread = new Thread(new ThreadStart(ProcessTextureSenders));
+                m_thread = new Thread(ProcessTextureSenders);
                 m_thread.Name = "ProcessTextureSenderThread";
                 m_thread.IsBackground = true;
                 m_thread.Start();

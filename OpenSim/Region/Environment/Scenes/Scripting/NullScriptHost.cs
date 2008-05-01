@@ -33,7 +33,9 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
 {
     public class NullScriptHost : IScriptHost
     {
-        private LLVector3 m_pos = new LLVector3(128, 128, 30);
+        private readonly LLVector3 m_pos = new LLVector3(128, 128, 30);
+
+        #region IScriptHost Members
 
         public string Name
         {
@@ -83,5 +85,7 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
         {
             Console.WriteLine("Tried to SetText [{0}] on NullScriptHost", text);
         }
+
+        #endregion
     }
 }

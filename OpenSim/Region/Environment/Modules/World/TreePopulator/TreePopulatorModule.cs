@@ -66,10 +66,10 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
             m_trees = new List<LLUUID>();
             m_scene = scene;
 
-            m_scene.EventManager.OnPluginConsole += new EventManager.OnPluginConsoleDelegate(EventManager_OnPluginConsole);
+            m_scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
 
             Timer CalculateTrees = new Timer(m_tree_updates);
-            CalculateTrees.Elapsed += new ElapsedEventHandler(CalculateTrees_Elapsed);
+            CalculateTrees.Elapsed += CalculateTrees_Elapsed;
             CalculateTrees.Start();
             m_log.Debug("[TREES]: Initialised tree module");
         }

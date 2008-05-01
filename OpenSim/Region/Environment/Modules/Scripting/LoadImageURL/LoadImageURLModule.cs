@@ -120,9 +120,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.LoadImageURL
 
         private void MakeHttpRequest(string url, LLUUID requestID)
         {
-            WebRequest request = HttpWebRequest.Create(url);
+            WebRequest request = WebRequest.Create(url);
             RequestState state = new RequestState((HttpWebRequest) request, requestID);
-            IAsyncResult result = request.BeginGetResponse(new AsyncCallback(HttpRequestReturn), state);
+            IAsyncResult result = request.BeginGetResponse(HttpRequestReturn, state);
 
             TimeSpan t = (DateTime.UtcNow - new DateTime(1970, 1, 1));
             state.TimeOfRequest = (int) t.TotalSeconds;
@@ -131,7 +131,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.LoadImageURL
         private void HttpRequestReturn(IAsyncResult result)
         {
             RequestState state = (RequestState) result.AsyncState;
-            WebRequest request = (WebRequest) state.Request;
+            WebRequest request = state.Request;
             HttpWebResponse response = (HttpWebResponse) request.EndGetResponse(result);
             if (response.StatusCode == HttpStatusCode.OK)
             {
@@ -175,9 +175,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.LoadImageURL
 
         public class RequestState
         {
-            public HttpWebRequest Request = null;
+            public HttpWebRequest Request;
             public LLUUID RequestID = LLUUID.Zero;
-            public int TimeOfRequest = 0;
+            public int TimeOfRequest;
 
             public RequestState(HttpWebRequest request, LLUUID requestID)
             {

@@ -46,7 +46,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
         /// occurs in the initial offer message, not the accept message.  So this dictionary links
         /// IM Session Ids to ItemIds
         /// </summary>
-        private IDictionary<LLUUID, LLUUID> m_pendingOffers = new Dictionary<LLUUID, LLUUID>();
+        private readonly IDictionary<LLUUID, LLUUID> m_pendingOffers = new Dictionary<LLUUID, LLUUID>();
 
         private Scene m_scene;
 

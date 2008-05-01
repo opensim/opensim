@@ -29,14 +29,14 @@ namespace OpenSim.Region.Environment.Modules.Grid.Interregion
         #endregion
 
         private readonly Dictionary<Type, Object> m_interfaces = new Dictionary<Type, object>();
+        private readonly Object m_lockObject = new object();
         private readonly List<Location> m_myLocations = new List<Location>();
 
         private readonly Dictionary<Location, string[]> m_neighbourInterfaces = new Dictionary<Location, string[]>();
         private readonly Dictionary<Location, RemotingObject> m_neighbourRemote = new Dictionary<Location, RemotingObject>();
         private IConfigSource m_config;
-        private bool m_enabled = false;
+        private bool m_enabled;
 
-        private Object m_lockObject = new object();
         private RemotingObject m_myRemote;
         private TcpChannel m_tcpChannel;
         private int m_tcpPort = 10101;

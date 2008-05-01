@@ -40,13 +40,13 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         //private static readonly log4net.ILog m_log 
         //    = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private bool m_cancel = false;
+        private readonly LLUUID m_textureId;
+        private bool m_cancel;
         private IClientAPI m_client;
 
         // See ITextureSender
 
-        private bool m_sending = false;
-        private LLUUID m_textureId;
+        private bool m_sending;
 
         // See ITextureSender
 

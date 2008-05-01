@@ -41,10 +41,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Profiles
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene;
 
-        public AvatarProfilesModule()
-        {
-        }
-
         #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
@@ -104,7 +100,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Profiles
             }
             else
             {
-                m_log.Debug("[AvatarProfilesModule]: Got null for profile for " + avatarID.ToString());
+                m_log.Debug("[AvatarProfilesModule]: Got null for profile for " + avatarID);
             }
         }
 

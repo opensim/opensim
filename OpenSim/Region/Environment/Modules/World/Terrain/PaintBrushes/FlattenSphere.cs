@@ -31,7 +31,6 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
 {
     public class FlattenSphere : ITerrainPaintableEffect
     {
-
         #region ITerrainPaintableEffect Members
 
         public void PaintEffect(ITerrainChannel map, double rx, double ry, double strength, double duration)

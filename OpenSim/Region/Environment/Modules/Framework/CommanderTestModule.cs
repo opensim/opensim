@@ -34,7 +34,7 @@ namespace OpenSim.Region.Environment.Modules.Framework
 {
     public class CommanderTestModule : IRegionModule, ICommandableModule
     {
-        private Commander m_commander = new Commander("CommanderTest");
+        private readonly Commander m_commander = new Commander("CommanderTest");
         private Scene m_scene;
 
         #region ICommandableModule Members

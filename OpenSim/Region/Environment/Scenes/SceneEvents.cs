@@ -38,118 +38,59 @@ namespace OpenSim.Region.Environment.Scenes
     /// </summary>
     public class EventManager
     {
-        public delegate void OnFrameDelegate();
-
-        public event OnFrameDelegate OnFrame;
-
-        public delegate void ClientMovement(ScenePresence client);
-
-        public event ClientMovement OnClientMovement;
-
-        public delegate void OnTerrainTickDelegate();
-
-        public event OnTerrainTickDelegate OnTerrainTick;
-
-        public delegate void OnBackupDelegate(IRegionDataStore datastore);
-
-        public event OnBackupDelegate OnBackup;
-
-        public delegate void OnNewClientDelegate(IClientAPI client);
-
-        public event OnNewClientDelegate OnNewClient;
-
-        public delegate void OnNewPresenceDelegate(ScenePresence presence);
-
-        public event OnNewPresenceDelegate OnNewPresence;
-
-        public delegate void OnRemovePresenceDelegate(LLUUID agentId);
-
-        public event OnRemovePresenceDelegate OnRemovePresence;
-
-        public delegate void OnParcelPrimCountUpdateDelegate();
-
-        public event OnParcelPrimCountUpdateDelegate OnParcelPrimCountUpdate;
-
-        public delegate void OnParcelPrimCountAddDelegate(SceneObjectGroup obj);
-
-        public event OnParcelPrimCountAddDelegate OnParcelPrimCountAdd;
-
-        public delegate void OnPluginConsoleDelegate(string[] args);
-
-        public event OnPluginConsoleDelegate OnPluginConsole;
-
-        public delegate void OnShutdownDelegate();
-
-        public event OnShutdownDelegate OnShutdown;
-
-        public delegate void ObjectGrabDelegate(uint localID, LLVector3 offsetPos, IClientAPI remoteClient);
-        public delegate void ObjectDeGrabDelegate(uint localID, IClientAPI remoteClient);
-
-        public delegate void OnPermissionErrorDelegate(LLUUID user, string reason);
-
-        public event ObjectGrabDelegate OnObjectGrab;
-        public event ObjectDeGrabDelegate OnObjectDeGrab;
-
-        public event OnPermissionErrorDelegate OnPermissionError;
-
-        public delegate void NewRezScript(uint localID, LLUUID itemID, string script);
-
-        public event NewRezScript OnRezScript;
-
-        public delegate void RemoveScript(uint localID, LLUUID itemID);
-
-        public event RemoveScript OnRemoveScript;
-
-        public delegate bool SceneGroupMoved(LLUUID groupID, LLVector3 delta);
-
-        public event SceneGroupMoved OnSceneGroupMove;
-
-        public delegate void SceneGroupGrabed(LLUUID groupID, LLVector3 offset, LLUUID userID);
-
-        public event SceneGroupGrabed OnSceneGroupGrab;
-
-        public delegate void LandObjectAdded(ILandObject newParcel);
-
-        public event LandObjectAdded OnLandObjectAdded;
-
-        public delegate void LandObjectRemoved(LLUUID globalID);
-
-        public event LandObjectRemoved OnLandObjectRemoved;
+        #region Delegates
 
         public delegate void AvatarEnteringNewParcel(ScenePresence avatar, int localLandID, LLUUID regionID);
 
-        public event AvatarEnteringNewParcel OnAvatarEnteringNewParcel;
+        public delegate void ClientClosed(LLUUID clientID);
 
+        public delegate void ClientMovement(ScenePresence client);
+
+        /// <summary>
+        /// DeregisterCapsEvent is called by Scene when the caps
+        /// handler for an agent are removed.
+        /// </summary>
+        public delegate void DeregisterCapsEvent(LLUUID agentID, Caps caps);
+
+        public delegate void LandBuy(Object sender, LandBuyArgs e);
+
+        public delegate void LandObjectAdded(ILandObject newParcel);
+
+        public delegate void LandObjectRemoved(LLUUID globalID);
+
+        public delegate void MoneyTransferEvent(Object sender, MoneyTransferArgs e);
 
         public delegate void NewGridInstantMessage(GridInstantMessage message);
 
-        public event NewGridInstantMessage OnGridInstantMessageToIMModule;
-
-        public event NewGridInstantMessage OnGridInstantMessageToFriendsModule;
-
-        public event NewGridInstantMessage OnGridInstantMessageToGroupsModule;
-
-        public delegate void ClientClosed(LLUUID clientID);
-
-        public event ClientClosed OnClientClosed;
-
-        public delegate void ScriptChangedEvent(uint localID, uint change);
-
-        public event ScriptChangedEvent OnScriptChangedEvent;
-
-        public delegate void ScriptAtTargetEvent(uint localID, uint handle, LLVector3 targetpos, LLVector3 atpos);
-
-        public event ScriptAtTargetEvent OnScriptAtTargetEvent;
-
-        public delegate void ScriptNotAtTargetEvent(uint localID);
-
-        public event ScriptNotAtTargetEvent OnScriptNotAtTargetEvent;
-
-        public event OnNewPresenceDelegate OnMakeChildAgent;
-
         public delegate void NewInventoryItemUploadComplete(LLUUID avatarID, LLUUID assetID, string name, int userlevel);
 
-        public event NewInventoryItemUploadComplete OnNewInventoryItemUploadComplete;
+        public delegate void NewRezScript(uint localID, LLUUID itemID, string script);
+
+        public delegate void ObjectDeGrabDelegate(uint localID, IClientAPI remoteClient);
+
+        public delegate void ObjectGrabDelegate(uint localID, LLVector3 offsetPos, IClientAPI remoteClient);
+
+        public delegate void OnBackupDelegate(IRegionDataStore datastore);
+
+        public delegate void OnFrameDelegate();
+
+        public delegate void OnNewClientDelegate(IClientAPI client);
+
+        public delegate void OnNewPresenceDelegate(ScenePresence presence);
+
+        public delegate void OnParcelPrimCountAddDelegate(SceneObjectGroup obj);
+
+        public delegate void OnParcelPrimCountUpdateDelegate();
+
+        public delegate void OnPermissionErrorDelegate(LLUUID user, string reason);
+
+        public delegate void OnPluginConsoleDelegate(string[] args);
+
+        public delegate void OnRemovePresenceDelegate(LLUUID agentId);
+
+        public delegate void OnShutdownDelegate();
+
+        public delegate void OnTerrainTickDelegate();
 
         /// <summary>
         /// RegisterCapsEvent is called by Scene after the Caps object
@@ -157,116 +98,125 @@ namespace OpenSim.Region.Environment.Scenes
         /// client and provides region modules to add their caps.
         /// </summary>
         public delegate void RegisterCapsEvent(LLUUID agentID, Caps caps);
+
+        public delegate void RemoveScript(uint localID, LLUUID itemID);
+
+        public delegate void SceneGroupGrabed(LLUUID groupID, LLVector3 offset, LLUUID userID);
+
+        public delegate bool SceneGroupMoved(LLUUID groupID, LLVector3 delta);
+
+        public delegate void ScriptAtTargetEvent(uint localID, uint handle, LLVector3 targetpos, LLVector3 atpos);
+
+        public delegate void ScriptChangedEvent(uint localID, uint change);
+
+        public delegate void ScriptNotAtTargetEvent(uint localID);
+
+        #endregion
+
+        private AvatarEnteringNewParcel handlerAvatarEnteringNewParcel; //OnAvatarEnteringNewParcel;
+        private OnBackupDelegate handlerBackup; //OnBackup;
+        private ClientClosed handlerClientClosed; //OnClientClosed;
+        private ClientMovement handlerClientMovement; //OnClientMovement;
+        private DeregisterCapsEvent handlerDeregisterCaps; // OnDeregisterCaps;
+        private OnFrameDelegate handlerFrame; //OnFrame;
+        private NewGridInstantMessage handlerGridInstantMessageToFriends; //OnGridInstantMessageToFriendsModule;
+        private NewGridInstantMessage handlerGridInstantMessageToIM; //OnGridInstantMessageToIMModule;
+        private LandBuy handlerLandBuy;
+        private LandObjectAdded handlerLandObjectAdded; //OnLandObjectAdded;
+        private LandObjectRemoved handlerLandObjectRemoved; //OnLandObjectRemoved;
+        private OnNewPresenceDelegate handlerMakeChildAgent; //OnMakeChildAgent;
+        private MoneyTransferEvent handlerMoneyTransfer; //OnMoneyTransfer;
+        private OnNewClientDelegate handlerNewClient; //OnNewClient;
+        private NewInventoryItemUploadComplete handlerNewInventoryItemUpdateComplete;
+        private OnNewPresenceDelegate handlerNewPresence; //OnNewPresence;
+        private ObjectDeGrabDelegate handlerObjectDeGrab; //OnObjectDeGrab;
+        private ObjectGrabDelegate handlerObjectGrab; //OnObjectGrab;
+        private OnParcelPrimCountAddDelegate handlerParcelPrimCountAdd; //OnParcelPrimCountAdd;
+        private OnParcelPrimCountUpdateDelegate handlerParcelPrimCountUpdate; //OnParcelPrimCountUpdate;
+        private OnPermissionErrorDelegate handlerPermissionError; //OnPermissionError;
+        private OnPluginConsoleDelegate handlerPluginConsole; //OnPluginConsole;
+        private RegisterCapsEvent handlerRegisterCaps; // OnRegisterCaps;
+        private OnRemovePresenceDelegate handlerRemovePresence; //OnRemovePresence;
+        private RemoveScript handlerRemoveScript; //OnRemoveScript;
+        private NewRezScript handlerRezScript; //OnRezScript;
+        private SceneGroupGrabed handlerSceneGroupGrab; //OnSceneGroupGrab;
+        private SceneGroupMoved handlerSceneGroupMove; //OnSceneGroupMove;
+        private ScriptAtTargetEvent handlerScriptAtTargetEvent;
+        private ScriptChangedEvent handlerScriptChangedEvent; //OnScriptChangedEvent;
+        private ScriptNotAtTargetEvent handlerScriptNotAtTargetEvent;
+        private OnShutdownDelegate handlerShutdown; //OnShutdown;
+        private OnTerrainTickDelegate handlerTerrainTick; // OnTerainTick;
+        private LandBuy handlerValidateLandBuy;
+
+        public event OnFrameDelegate OnFrame;
+
+        public event ClientMovement OnClientMovement;
+
+        public event OnTerrainTickDelegate OnTerrainTick;
+
+        public event OnBackupDelegate OnBackup;
+
+        public event OnNewClientDelegate OnNewClient;
+
+        public event OnNewPresenceDelegate OnNewPresence;
+
+        public event OnRemovePresenceDelegate OnRemovePresence;
+
+        public event OnParcelPrimCountUpdateDelegate OnParcelPrimCountUpdate;
+
+        public event OnParcelPrimCountAddDelegate OnParcelPrimCountAdd;
+
+        public event OnPluginConsoleDelegate OnPluginConsole;
+
+        public event OnShutdownDelegate OnShutdown;
+
+        public event ObjectGrabDelegate OnObjectGrab;
+        public event ObjectDeGrabDelegate OnObjectDeGrab;
+
+        public event OnPermissionErrorDelegate OnPermissionError;
+
+        public event NewRezScript OnRezScript;
+
+        public event RemoveScript OnRemoveScript;
+
+        public event SceneGroupMoved OnSceneGroupMove;
+
+        public event SceneGroupGrabed OnSceneGroupGrab;
+
+        public event LandObjectAdded OnLandObjectAdded;
+
+        public event LandObjectRemoved OnLandObjectRemoved;
+
+        public event AvatarEnteringNewParcel OnAvatarEnteringNewParcel;
+
+
+        public event NewGridInstantMessage OnGridInstantMessageToIMModule;
+
+        public event NewGridInstantMessage OnGridInstantMessageToFriendsModule;
+
+        public event NewGridInstantMessage OnGridInstantMessageToGroupsModule;
+
+        public event ClientClosed OnClientClosed;
+
+        public event ScriptChangedEvent OnScriptChangedEvent;
+
+        public event ScriptAtTargetEvent OnScriptAtTargetEvent;
+
+        public event ScriptNotAtTargetEvent OnScriptNotAtTargetEvent;
+
+        public event OnNewPresenceDelegate OnMakeChildAgent;
+
+        public event NewInventoryItemUploadComplete OnNewInventoryItemUploadComplete;
+
         public event RegisterCapsEvent OnRegisterCaps;
-        /// <summary>
-        /// DeregisterCapsEvent is called by Scene when the caps
-        /// handler for an agent are removed.
-        /// </summary>
-        public delegate void DeregisterCapsEvent(LLUUID agentID, Caps caps);
+
         public event DeregisterCapsEvent OnDeregisterCaps;
-
-        public class MoneyTransferArgs : EventArgs 
-        {
-            public LLUUID sender;
-            public LLUUID receiver;
-
-            // Always false. The SL protocol sucks.
-            public bool authenticated = false;
-
-            public int amount;
-            public int transactiontype;
-            public string description;
-
-            public MoneyTransferArgs(LLUUID asender, LLUUID areceiver, int aamount, int atransactiontype, string adescription) {
-                sender = asender;
-                receiver = areceiver;
-                amount = aamount;
-                transactiontype = atransactiontype;
-                description = adescription;
-            }
-        }
-
-        public class LandBuyArgs : EventArgs
-        {
-            public LLUUID agentId = LLUUID.Zero;
-            
-            public LLUUID groupId = LLUUID.Zero;
-
-            public LLUUID parcelOwnerID = LLUUID.Zero;
-
-            public bool final = false;
-            public bool groupOwned = false;
-            public bool removeContribution = false;
-            public int parcelLocalID = 0;
-            public int parcelArea = 0;
-            public int parcelPrice = 0;
-            public bool authenticated = false;
-            public bool landValidated = false;
-            public bool economyValidated = false;
-            public int transactionID = 0;
-            public int amountDebited = 0;
-
-            
-            public LandBuyArgs(LLUUID pagentId, LLUUID pgroupId, bool pfinal, bool pgroupOwned,
-                bool premoveContribution, int pparcelLocalID, int pparcelArea, int pparcelPrice, 
-                bool pauthenticated)
-            {
-                agentId = pagentId;
-                groupId = pgroupId;
-                final = pfinal;
-                groupOwned = pgroupOwned;
-                removeContribution = premoveContribution;
-                parcelLocalID = pparcelLocalID;
-                parcelArea = pparcelArea;
-                parcelPrice = pparcelPrice;
-                authenticated = pauthenticated;
-            }
-        }
-
-        public delegate void MoneyTransferEvent(Object sender, MoneyTransferArgs e);
-
-        public delegate void LandBuy(Object sender, LandBuyArgs e);
 
         public event MoneyTransferEvent OnMoneyTransfer;
         public event LandBuy OnLandBuy;
         public event LandBuy OnValidateLandBuy;
 
         /* Designated Event Deletage Instances */
-
-        private ScriptChangedEvent handlerScriptChangedEvent = null; //OnScriptChangedEvent;
-        private ScriptAtTargetEvent handlerScriptAtTargetEvent = null;
-        private ScriptNotAtTargetEvent handlerScriptNotAtTargetEvent = null;
-        private ClientMovement handlerClientMovement = null; //OnClientMovement;
-        private OnPermissionErrorDelegate handlerPermissionError = null; //OnPermissionError;
-        private OnPluginConsoleDelegate handlerPluginConsole = null; //OnPluginConsole;
-        private OnFrameDelegate handlerFrame = null; //OnFrame;
-        private OnNewClientDelegate handlerNewClient = null; //OnNewClient;
-        private OnNewPresenceDelegate handlerNewPresence = null; //OnNewPresence;
-        private OnRemovePresenceDelegate handlerRemovePresence = null; //OnRemovePresence;
-        private OnBackupDelegate handlerBackup = null; //OnBackup;
-        private OnParcelPrimCountUpdateDelegate handlerParcelPrimCountUpdate = null; //OnParcelPrimCountUpdate;
-        private MoneyTransferEvent handlerMoneyTransfer = null; //OnMoneyTransfer;
-        private OnParcelPrimCountAddDelegate handlerParcelPrimCountAdd = null; //OnParcelPrimCountAdd;
-        private OnShutdownDelegate handlerShutdown = null; //OnShutdown;
-        private ObjectGrabDelegate handlerObjectGrab = null; //OnObjectGrab;
-        private ObjectDeGrabDelegate handlerObjectDeGrab = null; //OnObjectDeGrab;
-        private NewRezScript handlerRezScript = null; //OnRezScript;
-        private RemoveScript handlerRemoveScript = null; //OnRemoveScript;
-        private SceneGroupMoved handlerSceneGroupMove = null; //OnSceneGroupMove;
-        private SceneGroupGrabed handlerSceneGroupGrab = null; //OnSceneGroupGrab;
-        private LandObjectAdded handlerLandObjectAdded = null; //OnLandObjectAdded;
-        private LandObjectRemoved handlerLandObjectRemoved = null; //OnLandObjectRemoved;
-        private AvatarEnteringNewParcel handlerAvatarEnteringNewParcel = null; //OnAvatarEnteringNewParcel;
-        private NewGridInstantMessage handlerGridInstantMessageToIM = null; //OnGridInstantMessageToIMModule;
-        private NewGridInstantMessage handlerGridInstantMessageToFriends = null; //OnGridInstantMessageToFriendsModule;
-        private ClientClosed handlerClientClosed = null; //OnClientClosed;
-        private OnNewPresenceDelegate handlerMakeChildAgent = null; //OnMakeChildAgent;
-        private OnTerrainTickDelegate handlerTerrainTick = null; // OnTerainTick;
-        private RegisterCapsEvent handlerRegisterCaps = null; // OnRegisterCaps;
-        private DeregisterCapsEvent handlerDeregisterCaps = null; // OnDeregisterCaps;
-        private NewInventoryItemUploadComplete handlerNewInventoryItemUpdateComplete = null;
-        private LandBuy handlerLandBuy = null;
-        private LandBuy handlerValidateLandBuy = null;
 
         public void TriggerOnScriptChangedEvent(uint localID, uint change)
         {
@@ -343,7 +293,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (handlerParcelPrimCountUpdate != null)
             {
                 handlerParcelPrimCountUpdate();
-            }    
+            }
         }
 
         public void TriggerMoneyTransfer(Object sender, MoneyTransferArgs e)
@@ -492,7 +442,6 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     handlerGridInstantMessageToFriends(message);
                 }
-
             }
         }
 
@@ -514,7 +463,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerOnRegisterCaps(LLUUID agentID, Caps caps) 
+        public void TriggerOnRegisterCaps(LLUUID agentID, Caps caps)
         {
             handlerRegisterCaps = OnRegisterCaps;
             if (handlerRegisterCaps != null)
@@ -523,7 +472,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerOnDeregisterCaps(LLUUID agentID, Caps caps) 
+        public void TriggerOnDeregisterCaps(LLUUID agentID, Caps caps)
         {
             handlerDeregisterCaps = OnDeregisterCaps;
             if (handlerDeregisterCaps != null)
@@ -540,7 +489,8 @@ namespace OpenSim.Region.Environment.Scenes
                 handlerNewInventoryItemUpdateComplete(agentID, AssetID, AssetName, userlevel);
             }
         }
-        public void TriggerLandBuy (Object sender, LandBuyArgs e)
+
+        public void TriggerLandBuy(Object sender, LandBuyArgs e)
         {
             handlerLandBuy = OnLandBuy;
             if (handlerLandBuy != null)
@@ -548,6 +498,7 @@ namespace OpenSim.Region.Environment.Scenes
                 handlerLandBuy(sender, e);
             }
         }
+
         public void TriggerValidateLandBuy(Object sender, LandBuyArgs e)
         {
             handlerValidateLandBuy = OnValidateLandBuy;
@@ -556,7 +507,7 @@ namespace OpenSim.Region.Environment.Scenes
                 handlerValidateLandBuy(sender, e);
             }
         }
-        
+
         public void TriggerAtTargetEvent(uint localID, uint handle, LLVector3 targetpos, LLVector3 currentpos)
         {
             handlerScriptAtTargetEvent = OnScriptAtTargetEvent;
@@ -574,5 +525,67 @@ namespace OpenSim.Region.Environment.Scenes
                 handlerScriptNotAtTargetEvent(localID);
             }
         }
+
+        #region Nested type: LandBuyArgs
+
+        public class LandBuyArgs : EventArgs
+        {
+            public LLUUID agentId = LLUUID.Zero;
+            public int amountDebited;
+            public bool authenticated;
+            public bool economyValidated;
+
+            public bool final;
+            public LLUUID groupId = LLUUID.Zero;
+            public bool groupOwned;
+            public bool landValidated;
+            public int parcelArea;
+            public int parcelLocalID;
+            public LLUUID parcelOwnerID = LLUUID.Zero;
+            public int parcelPrice;
+            public bool removeContribution;
+            public int transactionID;
+
+
+            public LandBuyArgs(LLUUID pagentId, LLUUID pgroupId, bool pfinal, bool pgroupOwned,
+                               bool premoveContribution, int pparcelLocalID, int pparcelArea, int pparcelPrice,
+                               bool pauthenticated)
+            {
+                agentId = pagentId;
+                groupId = pgroupId;
+                final = pfinal;
+                groupOwned = pgroupOwned;
+                removeContribution = premoveContribution;
+                parcelLocalID = pparcelLocalID;
+                parcelArea = pparcelArea;
+                parcelPrice = pparcelPrice;
+                authenticated = pauthenticated;
+            }
+        }
+
+        #endregion
+
+        #region Nested type: MoneyTransferArgs
+
+        public class MoneyTransferArgs : EventArgs
+        {
+            public int amount;
+            public bool authenticated;
+            public string description;
+            public LLUUID receiver;
+            public LLUUID sender;
+            public int transactiontype;
+
+            public MoneyTransferArgs(LLUUID asender, LLUUID areceiver, int aamount, int atransactiontype, string adescription)
+            {
+                sender = asender;
+                receiver = areceiver;
+                amount = aamount;
+                transactiontype = atransactiontype;
+                description = adescription;
+            }
+        }
+
+        #endregion
     }
 }

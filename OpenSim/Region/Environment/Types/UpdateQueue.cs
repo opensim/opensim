@@ -34,25 +34,69 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Types
 {
-    [Serializable] 
-    public class UpdateQueue : ISerializable 
+    [Serializable]
+    public class UpdateQueue : ISerializable
     {
-        private Queue<SceneObjectPart> m_queue;
+        private readonly List<LLUUID> m_ids;
+        private readonly Queue<SceneObjectPart> m_queue;
 
-        private List<LLUUID> m_ids;
-
-        private object m_syncObject = new object();
-
-        public int Count
-        {
-            get { return m_queue.Count; }
-        }
+        private readonly object m_syncObject = new object();
 
         public UpdateQueue()
         {
             m_queue = new Queue<SceneObjectPart>();
             m_ids = new List<LLUUID>();
         }
+
+        protected UpdateQueue(SerializationInfo info, StreamingContext context)
+        {
+            //System.Console.WriteLine("UpdateQueue Deserialize BGN");
+
+            if (info == null)
+            {
+                throw new ArgumentNullException("info");
+            }
+
+            m_queue = (Queue<SceneObjectPart>) info.GetValue("m_queue", typeof (Queue<SceneObjectPart>));
+            List<Guid> ids_work = (List<Guid>) info.GetValue("m_ids", typeof (List<Guid>));
+
+            foreach (Guid guid in ids_work)
+            {
+                m_ids.Add(new LLUUID(guid));
+            }
+
+            //System.Console.WriteLine("UpdateQueue Deserialize END");
+        }
+
+        public int Count
+        {
+            get { return m_queue.Count; }
+        }
+
+        #region ISerializable Members
+
+        [SecurityPermission(SecurityAction.LinkDemand,
+            Flags = SecurityPermissionFlag.SerializationFormatter)]
+        public virtual void GetObjectData(
+            SerializationInfo info, StreamingContext context)
+        {
+            if (info == null)
+            {
+                throw new ArgumentNullException("info");
+            }
+
+            List<Guid> ids_work = new List<Guid>();
+
+            foreach (LLUUID uuid in m_ids)
+            {
+                ids_work.Add(uuid.UUID);
+            }
+
+            info.AddValue("m_queue", m_queue);
+            info.AddValue("m_ids", ids_work);
+        }
+
+        #endregion
 
         public void Clear()
         {
@@ -88,47 +132,6 @@ namespace OpenSim.Region.Environment.Types
             }
 
             return part;
-        }
-
-        protected UpdateQueue(SerializationInfo info, StreamingContext context)
-        {
-            //System.Console.WriteLine("UpdateQueue Deserialize BGN");
-
-            if (info == null)
-            {
-                throw new ArgumentNullException("info");
-            }
-
-            m_queue = (Queue<SceneObjectPart>)info.GetValue("m_queue", typeof(Queue<SceneObjectPart>));
-            List<Guid> ids_work = (List<Guid>)info.GetValue("m_ids", typeof(List<Guid>));
-
-            foreach (Guid guid in ids_work)
-            {
-                m_ids.Add(new LLUUID(guid));
-            }
-
-            //System.Console.WriteLine("UpdateQueue Deserialize END");
-        }
-
-        [SecurityPermission(SecurityAction.LinkDemand,
-            Flags = SecurityPermissionFlag.SerializationFormatter)]
-        public virtual void GetObjectData(
-                        SerializationInfo info, StreamingContext context)
-        {
-            if (info == null)
-            {
-                throw new ArgumentNullException("info");
-            }
-
-            List<Guid> ids_work = new List<Guid>();
-
-            foreach (LLUUID uuid in m_ids)
-            {
-                ids_work.Add(uuid.UUID);
-            }
-
-            info.AddValue("m_queue", m_queue);
-            info.AddValue("m_ids", ids_work);
         }
     }
 }
