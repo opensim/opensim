@@ -26,21 +26,17 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using System.Timers;
 using libsecondlife;
 using log4net;
 using Mono.Addins;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.ClientStack;
@@ -50,7 +46,6 @@ using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
-using Timer=System.Timers.Timer;
 
 namespace OpenSim
 {

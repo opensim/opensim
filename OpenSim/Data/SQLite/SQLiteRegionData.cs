@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using libsecondlife;
 using log4net;
 using Mono.Data.SqliteClient;
@@ -990,13 +991,13 @@ namespace OpenSim.Data.SQLite
                    
                     m_log.Error("[REGION DB]: The land table was recently updated.  You need to restart the simulator.  Exiting now.");
 
-                    System.Threading.Thread.Sleep(10000);
+                    Thread.Sleep(10000);
 
                     // ICK!  but it's better then A thousand red SQLITE error messages!
                     Environment.Exit(0);
                    
                 }
-                catch (System.Exception)
+                catch (Exception)
                 {
                     // ICK!  but it's better then A thousand red SQLITE error messages!
                     m_log.Error("[REGION DB]: The land table was recently updated.  You need to restart the simulator");

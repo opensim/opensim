@@ -3074,7 +3074,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 			{
 				return Convert.ToInt32(src.Data[index]);
 			}
-			catch (System.FormatException e)
+			catch (FormatException e)
 			{
 				return 0;
 			}
@@ -3109,7 +3109,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 			{
 				return Convert.ToDouble(src.Data[index]);
 			}
-			catch (System.FormatException e)
+			catch (FormatException e)
 			{
 				return 0.0;
 			}

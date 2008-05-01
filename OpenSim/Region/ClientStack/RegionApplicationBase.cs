@@ -33,11 +33,11 @@ using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
-//using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
+//using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.ClientStack
 {

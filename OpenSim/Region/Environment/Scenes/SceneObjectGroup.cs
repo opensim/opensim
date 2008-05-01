@@ -30,7 +30,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Xml;
-using System.Xml.Serialization;
 using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;

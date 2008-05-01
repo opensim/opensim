@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Reflection;
+using System.Threading;
 using libsecondlife;
 using log4net;
 using OpenSim.Framework;
@@ -580,7 +581,7 @@ namespace OpenSim.Region.Environment.Scenes
                         avatar.ControllingClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4),
                                                                     capsPath);
                         avatar.MakeChildAgent();
-                        System.Threading.Thread.Sleep(5000);
+                        Thread.Sleep(5000);
                         avatar.CrossAttachmentsIntoNewRegion(regionHandle);
                         if (KillObject != null)
                         {

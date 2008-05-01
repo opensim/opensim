@@ -26,12 +26,11 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using System.Diagnostics;
 using System.Net;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using log4net;
 
 namespace OpenSim.Framework.Console

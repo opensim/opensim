@@ -27,7 +27,9 @@
 
 using System;
 using System.Collections;
+using System.Reflection;
 using System.Threading;
+using log4net;
 using OpenSim.Framework;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
@@ -38,7 +40,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     public class MaintenanceThread : iScriptEngineFunctionModule
     {
         
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         //public ScriptEngine m_ScriptEngine;
         private int MaintenanceLoopms;
@@ -216,7 +218,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                         //}
                     }
                 }
-                catch(System.Threading.ThreadAbortException ex)
+                catch(ThreadAbortException ex)
                 {
                     m_log.Error("Thread aborted in MaintenanceLoopThread.  If this is during shutdown, please ignore");
                 }

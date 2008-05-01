@@ -237,7 +237,7 @@ namespace OpenSim.Region.Communications.OGS1
                 SynchronousRestObjectPoster.BeginPostObject<InventoryItemBase, bool>(
                     "POST", _inventoryServerUrl + "/NewItem/", item);
             }
-            catch (System.Net.WebException e)
+            catch (WebException e)
             {
                 m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Update new inventory item operation failed, {0} {1}",
                      e.Source, e.Message);

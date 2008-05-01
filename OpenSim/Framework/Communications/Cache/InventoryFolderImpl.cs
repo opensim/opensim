@@ -26,9 +26,9 @@
  */
 
 using System.Collections.Generic;
+using libsecondlife;
 //using System.Reflection;
 
-using libsecondlife;
 //using log4net;
 
 namespace OpenSim.Framework.Communications.Cache
