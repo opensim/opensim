@@ -33,7 +33,7 @@ using System.Text.RegularExpressions;
 using libsecondlife;
 using log4net;
 using OpenSim.Framework;
-using OpenSim.Framework.UserManagement;
+using OpenSim.Framework.Communications;
 
 namespace OpenSim.Region.Communications.Local
 {

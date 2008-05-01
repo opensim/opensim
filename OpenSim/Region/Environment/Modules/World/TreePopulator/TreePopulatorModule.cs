@@ -37,7 +37,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.Environment.Modules
+namespace OpenSim.Region.Environment.Modules.World.TreePopulator
 {
     /// <summary>
     /// Version 2.0 - Very hacky compared to the original. Will fix original and release as 0.3 later.

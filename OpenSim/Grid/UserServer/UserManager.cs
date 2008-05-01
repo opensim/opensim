@@ -34,7 +34,7 @@ using libsecondlife;
 using log4net;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
-using OpenSim.Framework.UserManagement;
+using OpenSim.Framework.Communications;
 
 namespace OpenSim.Grid.UserServer
 {

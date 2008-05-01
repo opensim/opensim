@@ -34,7 +34,7 @@ using libsecondlife.StructuredData;
 using log4net;
 using Nwc.XmlRpc;
 
-namespace OpenSim.Framework.UserManagement
+namespace OpenSim.Framework.Communications
 {
     /// <summary>
     /// A temp class to handle login response.

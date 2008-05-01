@@ -29,7 +29,7 @@ using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.Environment.Modules.ExportSerialiser
+namespace OpenSim.Region.Environment.Modules.World.Serialiser
 {
     internal class SerialiseTerrain : IFileSerialiser
     {

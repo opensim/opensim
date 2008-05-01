@@ -6,7 +6,7 @@ using System.Timers;
 using log4net;
 using Nini.Config;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Modules.ExportSerialiser;
+using OpenSim.Region.Environment.Modules.World.Serialiser;
 using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes;
 using PumaCode.SvnDotNet.AprSharp;

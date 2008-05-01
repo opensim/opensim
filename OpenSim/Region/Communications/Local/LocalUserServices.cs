@@ -29,7 +29,6 @@ using System;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
-using OpenSim.Framework.UserManagement;
 
 namespace OpenSim.Region.Communications.Local
 {

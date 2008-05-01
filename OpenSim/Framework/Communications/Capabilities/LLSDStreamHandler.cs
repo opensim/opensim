@@ -30,7 +30,7 @@ using System.IO;
 using System.Text;
 using OpenSim.Framework.Servers;
 
-namespace OpenSim.Region.Capabilities
+namespace OpenSim.Framework.Communications.Capabilities
 {
     public class LLSDStreamhandler<TRequest, TResponse> : BaseStreamHandler
         where TRequest : new()

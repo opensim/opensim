@@ -32,7 +32,7 @@ using System.Text;
 using System.Xml;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.Environment.Modules.ExportSerialiser
+namespace OpenSim.Region.Environment.Modules.World.Serialiser
 {
     internal class SerialiseObjects : IFileSerialiser
     {

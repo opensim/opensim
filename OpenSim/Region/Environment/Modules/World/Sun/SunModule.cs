@@ -33,7 +33,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.Environment.Modules
+namespace OpenSim.Region.Environment.Modules.World.Sun
 {
     public class SunModule : IRegionModule
     {

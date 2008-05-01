@@ -29,7 +29,7 @@ using System;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
-using Caps=OpenSim.Region.Capabilities.Caps;
+using Caps=OpenSim.Framework.Communications.Capabilities.Caps;
 
 namespace OpenSim.Region.Environment.Scenes
 {

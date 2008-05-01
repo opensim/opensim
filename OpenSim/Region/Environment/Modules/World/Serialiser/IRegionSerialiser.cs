@@ -28,7 +28,7 @@
 using System.Collections.Generic;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.Environment.Modules.ExportSerialiser
+namespace OpenSim.Region.Environment.Modules.World.Serialiser
 {
     public interface IRegionSerialiser
     {

@@ -27,7 +27,7 @@
 
 using System;
 
-namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.Types
+namespace OpenSim.Region.ExtensionsScriptModule.Engines.JVMEngine.Types
 {
     public class BaseType : Object
     {

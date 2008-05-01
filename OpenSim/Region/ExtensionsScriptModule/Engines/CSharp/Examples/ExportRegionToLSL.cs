@@ -27,7 +27,7 @@
 
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.ExtensionsScriptModule.CSharp.Examples
+namespace OpenSim.Region.ExtensionsScriptModule.Engines.CSharp.Examples
 {
     public class LSLExportScript : IScript
     {

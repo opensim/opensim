@@ -29,7 +29,7 @@
 using System.Xml;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.DataSnapshot
+namespace OpenSim.Region.DataSnapshot.Interfaces
 {
     public interface IDataSnapshotProvider
     {

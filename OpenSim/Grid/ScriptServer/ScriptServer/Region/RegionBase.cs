@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace OpenSim.Grid.ScriptServer
+namespace OpenSim.Grid.ScriptServer.ScriptServer.Region
 {
     public abstract class RegionBase
     {

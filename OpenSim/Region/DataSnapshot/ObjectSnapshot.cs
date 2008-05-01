@@ -28,6 +28,7 @@
 using System.Reflection;
 using System.Xml;
 using log4net;
+using OpenSim.Region.DataSnapshot.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.DataSnapshot

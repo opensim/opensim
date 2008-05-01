@@ -28,7 +28,7 @@
 using System;
 using libsecondlife;
 
-namespace OpenSim.Region.Capabilities
+namespace OpenSim.Framework.Communications.Capabilities
 {
     [LLSDType("MAP")]
     public class LLSDAssetUploadComplete

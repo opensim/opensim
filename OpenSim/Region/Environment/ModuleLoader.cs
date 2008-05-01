@@ -39,6 +39,7 @@ using OpenSim.Region.Environment.Modules.Scripting.DynamicTexture;
 using OpenSim.Region.Environment.Modules.Scripting.LoadImageURL;
 using OpenSim.Region.Environment.Modules.Scripting.XMLRPC;
 using OpenSim.Region.Environment.Scenes;
+
 //TODO: Why do we reference InstantMessageModule here?
 
 namespace OpenSim.Region.Environment

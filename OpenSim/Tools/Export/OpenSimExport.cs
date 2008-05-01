@@ -29,12 +29,13 @@ using System;
 using System.IO;
 using log4net.Config;
 using Nini.Config;
+using OpenSim;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Tools.Export
+namespace OpenSimExport
 {
     public class OpenSimExport
     {

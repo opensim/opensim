@@ -32,7 +32,7 @@ using NHibernate;
 using NHibernate.SqlTypes;
 using NHibernate.UserTypes;
 
-namespace OpenSim.Data.NHibernate
+namespace OpenSim.Data.NHibernate.Types
 {
     [Serializable]
     public class LLUUIDUserType: IUserType 

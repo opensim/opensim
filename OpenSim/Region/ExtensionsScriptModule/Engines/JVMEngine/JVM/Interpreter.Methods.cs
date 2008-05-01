@@ -27,7 +27,7 @@
 
 using System;
 
-namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
+namespace OpenSim.Region.ExtensionsScriptModule.Engines.JVMEngine.JVM
 {
     partial class Thread
     {

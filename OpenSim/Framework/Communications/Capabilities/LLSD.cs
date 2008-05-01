@@ -34,7 +34,7 @@ using System.Text;
 using System.Xml;
 using libsecondlife;
 
-namespace OpenSim.Region.Capabilities
+namespace OpenSim.Framework.Communications.Capabilities
 {
     /// <summary>
     /// Borrowed from (a older version of ) libsl for now, as their new llsd code doesn't work we our decoding code. 

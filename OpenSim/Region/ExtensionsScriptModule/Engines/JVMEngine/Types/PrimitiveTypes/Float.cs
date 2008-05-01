@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.Types.PrimitiveTypes
+namespace OpenSim.Region.ExtensionsScriptModule.Engines.JVMEngine.Types.PrimitiveTypes
 {
     public class Float : BaseType
     {

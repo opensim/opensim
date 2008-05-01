@@ -6,10 +6,9 @@ using System.Runtime.Remoting.Channels.Tcp;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Modules.Grid.Interregion;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.Environment.Modules.Communications.Interregion
+namespace OpenSim.Region.Environment.Modules.Grid.Interregion
 {
     public class InterregionModule : IInterregionModule, IRegionModule
     {

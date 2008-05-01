@@ -31,9 +31,9 @@ using log4net;
 using Nini.Config;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.ExtensionsScriptModule.CSharp;
-using OpenSim.Region.ExtensionsScriptModule.JScript;
-using OpenSim.Region.ExtensionsScriptModule.JVMEngine;
+using OpenSim.Region.ExtensionsScriptModule.Engines.CSharp;
+using OpenSim.Region.ExtensionsScriptModule.Engines.JScript;
+using OpenSim.Region.ExtensionsScriptModule.Engines.JVMEngine;
 
 namespace OpenSim.Region.ExtensionsScriptModule
 {

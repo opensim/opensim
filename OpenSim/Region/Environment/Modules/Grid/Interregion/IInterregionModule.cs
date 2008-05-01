@@ -1,5 +1,4 @@
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Modules.Communications.Interregion;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.Grid.Interregion

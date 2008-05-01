@@ -32,11 +32,10 @@ using System.IO;
 using System.Reflection;
 using libsecondlife;
 using log4net;
-using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 
-namespace OpenSim.Region.Capabilities
+namespace OpenSim.Framework.Communications.Capabilities
 {
     public delegate void UpLoadedAsset(
         string assetName, string description, LLUUID assetID, LLUUID inventoryItem, LLUUID parentFolder,
@@ -54,8 +53,8 @@ namespace OpenSim.Region.Capabilities
                                                    bool isScriptRunning, byte[] data);
 
     public delegate List<InventoryItemBase> FetchInventoryDescendentsCAPS(LLUUID agentID, LLUUID folderID, LLUUID ownerID,
-                                                   bool fetchFolders, bool fetchItems, int sortOrder);
-    
+                                                                          bool fetchFolders, bool fetchItems, int sortOrder);
+
     /// <summary>
     /// XXX Probably not a particularly nice way of allow us to get the scene presence from the scene (chiefly so that
     /// we can popup a message on the user's client if the inventory service has permanently failed).  But I didn't want
@@ -397,7 +396,7 @@ namespace OpenSim.Region.Capabilities
         /// <returns></returns>
         public string RequestTexture(string request, string path, string param)
         {
-            Console.WriteLine("texture request " + request);
+            System.Console.WriteLine("texture request " + request);
             // Needs implementing (added to remove compiler warning)
             return String.Empty;
         }

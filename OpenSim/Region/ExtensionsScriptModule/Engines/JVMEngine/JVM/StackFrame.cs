@@ -26,9 +26,9 @@
  */
 
 using System.Collections.Generic;
-using OpenSim.Region.ExtensionsScriptModule.JVMEngine.Types;
+using OpenSim.Region.ExtensionsScriptModule.Engines.JVMEngine.Types;
 
-namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
+namespace OpenSim.Region.ExtensionsScriptModule.Engines.JVMEngine.JVM
 {
     public class StackFrame
     {

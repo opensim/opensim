@@ -31,7 +31,7 @@ using System.IO;
 using System.Reflection;
 using System.Xml;
 
-namespace OpenSim.Region.Capabilities
+namespace OpenSim.Framework.Communications.Capabilities
 {
     public class LLSDHelpers
     {

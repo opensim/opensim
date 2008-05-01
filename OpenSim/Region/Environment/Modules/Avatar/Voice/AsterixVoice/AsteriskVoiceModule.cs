@@ -34,11 +34,11 @@ using Nini.Config;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Communications.Capabilities;
 using OpenSim.Framework.Servers;
-using OpenSim.Region.Capabilities;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using Caps=OpenSim.Region.Capabilities.Caps;
+using Caps=OpenSim.Framework.Communications.Capabilities.Caps;
 
 namespace OpenSim.Region.Environment.Modules.Avatar.Voice.AsterixVoice
 {

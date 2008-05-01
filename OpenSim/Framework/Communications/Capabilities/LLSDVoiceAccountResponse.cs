@@ -26,7 +26,7 @@
 * 
 */
 
-namespace OpenSim.Region.Capabilities
+namespace OpenSim.Framework.Communications.Capabilities
 {
     [LLSDMap]
     public class LLSDVoiceAccountResponse

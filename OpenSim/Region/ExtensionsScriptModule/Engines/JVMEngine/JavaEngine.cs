@@ -27,7 +27,7 @@
 
 using System.Collections.Generic;
 
-namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine
+namespace OpenSim.Region.ExtensionsScriptModule.Engines.JVMEngine
 {
     public class JavaEngine : IScriptCompiler
     {

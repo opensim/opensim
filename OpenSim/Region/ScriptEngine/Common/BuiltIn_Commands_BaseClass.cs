@@ -217,52 +217,52 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llRound(f);
         }
 
-        public double llVecMag(LSL_Types.Vector3 v)
+        public double llVecMag(vector v)
         {
             return m_LSL_Functions.llVecMag(v);
         }
 
-        public LSL_Types.Vector3 llVecNorm(LSL_Types.Vector3 v)
+        public vector llVecNorm(vector v)
         {
             return m_LSL_Functions.llVecNorm(v);
         }
 
-        public double llVecDist(LSL_Types.Vector3 a, LSL_Types.Vector3 b)
+        public double llVecDist(vector a, vector b)
         {
             return m_LSL_Functions.llVecDist(a, b);
         }
 
-        public LSL_Types.Vector3 llRot2Euler(LSL_Types.Quaternion r)
+        public vector llRot2Euler(rotation r)
         {
             return m_LSL_Functions.llRot2Euler(r);
         }
 
-        public LSL_Types.Quaternion llEuler2Rot(LSL_Types.Vector3 v)
+        public rotation llEuler2Rot(vector v)
         {
             return m_LSL_Functions.llEuler2Rot(v);
         }
 
-        public LSL_Types.Quaternion llAxes2Rot(LSL_Types.Vector3 fwd, LSL_Types.Vector3 left, LSL_Types.Vector3 up)
+        public rotation llAxes2Rot(vector fwd, vector left, vector up)
         {
             return m_LSL_Functions.llAxes2Rot(fwd, left, up);
         }
 
-        public LSL_Types.Vector3 llRot2Fwd(LSL_Types.Quaternion r)
+        public vector llRot2Fwd(rotation r)
         {
             return m_LSL_Functions.llRot2Fwd(r);
         }
 
-        public LSL_Types.Vector3 llRot2Left(LSL_Types.Quaternion r)
+        public vector llRot2Left(rotation r)
         {
             return m_LSL_Functions.llRot2Left(r);
         }
 
-        public LSL_Types.Vector3 llRot2Up(LSL_Types.Quaternion r)
+        public vector llRot2Up(rotation r)
         {
             return m_LSL_Functions.llRot2Up(r);
         }
 
-        public LSL_Types.Quaternion llRotBetween(LSL_Types.Vector3 start, LSL_Types.Vector3 end)
+        public rotation llRotBetween(vector start, vector end)
         {
             return m_LSL_Functions.llRotBetween(start, end);
         }
@@ -340,22 +340,22 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llDetectedType(number);
         }
 
-        public LSL_Types.Vector3 llDetectedPos(int number)
+        public vector llDetectedPos(int number)
         {
             return m_LSL_Functions.llDetectedPos(number);
         }
 
-        public LSL_Types.Vector3 llDetectedVel(int number)
+        public vector llDetectedVel(int number)
         {
             return m_LSL_Functions.llDetectedVel(number);
         }
 
-        public LSL_Types.Vector3 llDetectedGrab(int number)
+        public vector llDetectedGrab(int number)
         {
             return m_LSL_Functions.llDetectedGrab(number);
         }
 
-        public LSL_Types.Quaternion llDetectedRot(int number)
+        public rotation llDetectedRot(int number)
         {
             return m_LSL_Functions.llDetectedRot(number);
         }
@@ -378,17 +378,17 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llDie();
         }
 
-        public double llGround(LSL_Types.Vector3 offset)
+        public double llGround(vector offset)
         {
             return m_LSL_Functions.llGround(offset);
         }
 
-        public double llCloud(LSL_Types.Vector3 offset)
+        public double llCloud(vector offset)
         {
             return m_LSL_Functions.llCloud(offset);
         }
 
-        public LSL_Types.Vector3 llWind(LSL_Types.Vector3 offset)
+        public vector llWind(vector offset)
         {
             return m_LSL_Functions.llWind(offset);
         }
@@ -403,17 +403,17 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetStatus(status);
         }
 
-        public void llSetScale(LSL_Types.Vector3 scale)
+        public void llSetScale(vector scale)
         {
             m_LSL_Functions.llSetScale(scale);
         }
 
-        public LSL_Types.Vector3 llGetScale()
+        public vector llGetScale()
         {
             return m_LSL_Functions.llGetScale();
         }
 
-        public void llSetColor(LSL_Types.Vector3 color, int face)
+        public void llSetColor(vector color, int face)
         {
             m_LSL_Functions.llSetColor(color, face);
         }
@@ -428,7 +428,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llSetAlpha(alpha, face);
         }
 
-        public LSL_Types.Vector3 llGetColor(int face)
+        public vector llGetColor(int face)
         {
             return m_LSL_Functions.llGetColor(face);
         }
@@ -461,47 +461,47 @@ namespace OpenSim.Region.ScriptEngine.Common
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public void llSetPos(LSL_Types.Vector3 pos)
+        public void llSetPos(vector pos)
         {
             m_LSL_Functions.llSetPos(pos);
         }
 
-        public LSL_Types.Vector3 llGetPos()
+        public vector llGetPos()
         {
             return m_LSL_Functions.llGetPos();
         }
 
-        public LSL_Types.Vector3 llGetLocalPos()
+        public vector llGetLocalPos()
         {
             return m_LSL_Functions.llGetLocalPos();
         }
 
-        public void llSetRot(LSL_Types.Quaternion rot)
+        public void llSetRot(rotation rot)
         {
             m_LSL_Functions.llSetRot(rot);
         }
 
-        public LSL_Types.Quaternion llGetRot()
+        public rotation llGetRot()
         {
             return m_LSL_Functions.llGetRot();
         }
 
-        public LSL_Types.Quaternion llGetLocalRot()
+        public rotation llGetLocalRot()
         {
             return m_LSL_Functions.llGetLocalRot();
         }
 
-        public void llSetForce(LSL_Types.Vector3 force, int local)
+        public void llSetForce(vector force, int local)
         {
             m_LSL_Functions.llSetForce(force, local);
         }
 
-        public LSL_Types.Vector3 llGetForce()
+        public vector llGetForce()
         {
             return m_LSL_Functions.llGetForce();
         }
 
-        public int llTarget(LSL_Types.Vector3 position, double range)
+        public int llTarget(vector position, double range)
         {
             return m_LSL_Functions.llTarget(position, range);
         }
@@ -511,7 +511,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llTargetRemove(number);
         }
 
-        public int llRotTarget(LSL_Types.Quaternion rot, double error)
+        public int llRotTarget(rotation rot, double error)
         {
             return m_LSL_Functions.llRotTarget(rot, error);
         }
@@ -521,7 +521,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llRotTargetRemove(number);
         }
 
-        public void llMoveToTarget(LSL_Types.Vector3 target, double tau)
+        public void llMoveToTarget(vector target, double tau)
         {
             m_LSL_Functions.llMoveToTarget(target, tau);
         }
@@ -531,7 +531,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llStopMoveToTarget();
         }
 
-        public void llApplyImpulse(LSL_Types.Vector3 force, int local)
+        public void llApplyImpulse(vector force, int local)
         {
             m_LSL_Functions.llApplyImpulse(force, local);
         }
@@ -539,37 +539,37 @@ namespace OpenSim.Region.ScriptEngine.Common
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public void llApplyRotationalImpulse(LSL_Types.Vector3 force, int local)
+        public void llApplyRotationalImpulse(vector force, int local)
         {
             m_LSL_Functions.llApplyRotationalImpulse(force, local);
         }
 
-        public void llSetTorque(LSL_Types.Vector3 torque, int local)
+        public void llSetTorque(vector torque, int local)
         {
             m_LSL_Functions.llSetTorque(torque, local);
         }
 
-        public LSL_Types.Vector3 llGetTorque()
+        public vector llGetTorque()
         {
             return m_LSL_Functions.llGetTorque();
         }
 
-        public void llSetForceAndTorque(LSL_Types.Vector3 force, LSL_Types.Vector3 torque, int local)
+        public void llSetForceAndTorque(vector force, vector torque, int local)
         {
             m_LSL_Functions.llSetForceAndTorque(force, torque, local);
         }
 
-        public LSL_Types.Vector3 llGetVel()
+        public vector llGetVel()
         {
             return m_LSL_Functions.llGetVel();
         }
 
-        public LSL_Types.Vector3 llGetAccel()
+        public vector llGetAccel()
         {
             return m_LSL_Functions.llGetAccel();
         }
 
-        public LSL_Types.Vector3 llGetOmega()
+        public vector llGetOmega()
         {
             return m_LSL_Functions.llGetOmega();
         }
@@ -697,12 +697,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llMakeFire();
         }
 
-        public void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Quaternion rot, int param)
+        public void llRezObject(string inventory, vector pos, rotation rot, int param)
         {
             m_LSL_Functions.llRezObject(inventory, pos, rot, param);
         }
 
-        public void llLookAt(LSL_Types.Vector3 target, double strength, double damping)
+        public void llLookAt(vector target, double strength, double damping)
         {
             m_LSL_Functions.llLookAt(target, strength, damping);
         }
@@ -815,7 +815,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llSoundPreload();
         }
 
-        public void llRotLookAt(LSL_Types.Quaternion target, double strength, double damping)
+        public void llRotLookAt(rotation target, double strength, double damping)
         {
             m_LSL_Functions.llRotLookAt(target, strength, damping);
         }
@@ -848,7 +848,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llStopPointAt();
         }
 
-        public void llTargetOmega(LSL_Types.Vector3 axis, double spinrate, double gain)
+        public void llTargetOmega(vector axis, double spinrate, double gain)
         {
             m_LSL_Functions.llTargetOmega(axis, spinrate, gain);
         }
@@ -858,7 +858,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetStartParameter();
         }
 
-        public void llGodLikeRezObject(string inventory, LSL_Types.Vector3 pos)
+        public void llGodLikeRezObject(string inventory, vector pos)
         {
             m_LSL_Functions.llGodLikeRezObject(inventory, pos);
         }
@@ -883,7 +883,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetLinkNumber();
         }
 
-        public void llSetLinkColor(int linknumber, LSL_Types.Vector3 color, int face)
+        public void llSetLinkColor(int linknumber, vector color, int face)
         {
             m_LSL_Functions.llSetLinkColor(linknumber, color, face);
         }
@@ -946,12 +946,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llRemoveInventory(item);
         }
 
-        public void llSetText(string text, LSL_Types.Vector3 color, double alpha)
+        public void llSetText(string text, vector color, double alpha)
         {
             m_LSL_Functions.llSetText(text, color, alpha);
         }
 
-        public double llWater(LSL_Types.Vector3 offset)
+        public double llWater(vector offset)
         {
             return m_LSL_Functions.llWater(offset);
         }
@@ -1011,7 +1011,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llMessageLinked(linknum, num, str, id);
         }
 
-        public void llPushObject(string target, LSL_Types.Vector3 impulse, LSL_Types.Vector3 ang_impulse, int local)
+        public void llPushObject(string target, vector impulse, vector ang_impulse, int local)
         {
             m_LSL_Functions.llPushObject(target, impulse, ang_impulse, local);
         }
@@ -1034,17 +1034,17 @@ namespace OpenSim.Region.ScriptEngine.Common
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public LSL_Types.Quaternion llAxisAngle2Rot(LSL_Types.Vector3 axis, double angle)
+        public rotation llAxisAngle2Rot(vector axis, double angle)
         {
             return m_LSL_Functions.llAxisAngle2Rot(axis, angle);
         }
 
-        public LSL_Types.Vector3 llRot2Axis(LSL_Types.Quaternion rot)
+        public vector llRot2Axis(rotation rot)
         {
             return m_LSL_Functions.llRot2Axis(rot);
         }
 
-        public double llRot2Angle(LSL_Types.Quaternion rot)
+        public double llRot2Angle(rotation rot)
         {
             return m_LSL_Functions.llRot2Angle(rot);
         }
@@ -1059,7 +1059,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llAsin(val);
         }
 
-        public double llAngleBetween(LSL_Types.Quaternion a, LSL_Types.Quaternion b)
+        public double llAngleBetween(rotation a, rotation b)
         {
             return m_LSL_Functions.llAngleBetween(a, b);
         }
@@ -1074,17 +1074,17 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llAllowInventoryDrop(add);
         }
 
-        public LSL_Types.Vector3 llGetSunDirection()
+        public vector llGetSunDirection()
         {
             return m_LSL_Functions.llGetSunDirection();
         }
 
-        public LSL_Types.Vector3 llGetTextureOffset(int face)
+        public vector llGetTextureOffset(int face)
         {
             return m_LSL_Functions.llGetTextureOffset(face);
         }
 
-        public LSL_Types.Vector3 llGetTextureScale(int side)
+        public vector llGetTextureScale(int side)
         {
             return m_LSL_Functions.llGetTextureScale(side);
         }
@@ -1104,7 +1104,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetOwnerKey(id);
         }
 
-        public LSL_Types.Vector3 llGetCenterOfMass()
+        public vector llGetCenterOfMass()
         {
             return m_LSL_Functions.llGetCenterOfMass();
         }
@@ -1142,12 +1142,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llList2Key(src, index);
         }
 
-        public LSL_Types.Vector3 llList2Vector(LSL_Types.list src, int index)
+        public vector llList2Vector(LSL_Types.list src, int index)
         {
             return m_LSL_Functions.llList2Vector(src, index);
         }
 
-        public LSL_Types.Quaternion llList2Rot(LSL_Types.list src, int index)
+        public rotation llList2Rot(LSL_Types.list src, int index)
         {
             return m_LSL_Functions.llList2Rot(src, index);
         }
@@ -1187,7 +1187,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llList2ListStrided(src, start, end, stride);
         }
 
-        public LSL_Types.Vector3 llGetRegionCorner()
+        public vector llGetRegionCorner()
         {
             return m_LSL_Functions.llGetRegionCorner();
         }
@@ -1217,7 +1217,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetDate();
         }
 
-        public int llEdgeOfWorld(LSL_Types.Vector3 pos, LSL_Types.Vector3 dir)
+        public int llEdgeOfWorld(vector pos, vector dir)
         {
             return m_LSL_Functions.llEdgeOfWorld(pos, dir);
         }
@@ -1255,7 +1255,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llSetTextureAnim(mode, face, sizex, sizey, start, length, rate);
         }
 
-        public void llTriggerSoundLimited(string sound, double volume, LSL_Types.Vector3 top_north_east, LSL_Types.Vector3 bottom_south_west)
+        public void llTriggerSoundLimited(string sound, double volume, vector top_north_east, vector bottom_south_west)
         {
             m_LSL_Functions.llTriggerSoundLimited(sound, volume, top_north_east, bottom_south_west);
         }
@@ -1275,7 +1275,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llOverMyLand(id);
         }
 
-        public string llGetLandOwnerAt(LSL_Types.Vector3 pos)
+        public string llGetLandOwnerAt(vector pos)
         {
             return m_LSL_Functions.llGetLandOwnerAt(pos);
         }
@@ -1285,7 +1285,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetNotecardLine(name, line);
         }
 
-        public LSL_Types.Vector3 llGetAgentSize(string id)
+        public vector llGetAgentSize(string id)
         {
             return m_LSL_Functions.llGetAgentSize(id);
         }
@@ -1300,17 +1300,17 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llUnSit(id);
         }
 
-        public LSL_Types.Vector3 llGroundSlope(LSL_Types.Vector3 offset)
+        public vector llGroundSlope(vector offset)
         {
             return m_LSL_Functions.llGroundSlope(offset);
         }
 
-        public LSL_Types.Vector3 llGroundNormal(LSL_Types.Vector3 offset)
+        public vector llGroundNormal(vector offset)
         {
             return m_LSL_Functions.llGroundNormal(offset);
         }
 
-        public LSL_Types.Vector3 llGroundContour(LSL_Types.Vector3 offset)
+        public vector llGroundContour(vector offset)
         {
             return m_LSL_Functions.llGroundContour(offset);
         }
@@ -1368,12 +1368,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llSetVehicledoubleParam(param, value);
         }
 
-        public void llSetVehicleVectorParam(int param, LSL_Types.Vector3 vec)
+        public void llSetVehicleVectorParam(int param, vector vec)
         {
             m_LSL_Functions.llSetVehicleVectorParam(param, vec);
         }
 
-        public void llSetVehicleRotationParam(int param, LSL_Types.Quaternion rot)
+        public void llSetVehicleRotationParam(int param, rotation rot)
         {
             m_LSL_Functions.llSetVehicleRotationParam(param, rot);
         }
@@ -1388,7 +1388,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llRemoveVehicleFlags(flags);
         }
 
-        public void llSitTarget(LSL_Types.Vector3 offset, LSL_Types.Quaternion rot)
+        public void llSitTarget(vector offset, rotation rot)
         {
             m_LSL_Functions.llSitTarget(offset, rot);
         }
@@ -1413,12 +1413,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llSetSitText(text);
         }
 
-        public void llSetCameraEyeOffset(LSL_Types.Vector3 offset)
+        public void llSetCameraEyeOffset(vector offset)
         {
             m_LSL_Functions.llSetCameraEyeOffset(offset);
         }
 
-        public void llSetCameraAtOffset(LSL_Types.Vector3 offset)
+        public void llSetCameraAtOffset(vector offset)
         {
             m_LSL_Functions.llSetCameraAtOffset(offset);
         }
@@ -1428,7 +1428,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llDumpList2String(src, seperator);
         }
 
-        public int llScriptDanger(LSL_Types.Vector3 pos)
+        public int llScriptDanger(vector pos)
         {
             return m_LSL_Functions.llScriptDanger(pos);
         }
@@ -1545,12 +1545,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llSetParcelMusicURL(url);
         }
 
-        public LSL_Types.Vector3 llGetRootPosition()
+        public vector llGetRootPosition()
         {
             return m_LSL_Functions.llGetRootPosition();
         }
 
-        public LSL_Types.Quaternion llGetRootRotation()
+        public rotation llGetRootRotation()
         {
             return m_LSL_Functions.llGetRootRotation();
         }
@@ -1595,7 +1595,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetBoundingBox(obj);
         }
 
-        public LSL_Types.Vector3 llGetGeometricCenter()
+        public vector llGetGeometricCenter()
         {
             return m_LSL_Functions.llGetGeometricCenter();
         }
@@ -1628,7 +1628,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetSimulatorHostname();
         }
 
-        public void llSetLocalRot(LSL_Types.Quaternion rot)
+        public void llSetLocalRot(rotation rot)
         {
             m_LSL_Functions.llSetLocalRot(rot);
         }
@@ -1638,7 +1638,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llParseStringKeepNulls(src, seperators, spacers);
         }
 
-        public void llRezAtRoot(string inventory, LSL_Types.Vector3 position, LSL_Types.Vector3 velocity, LSL_Types.Quaternion rot, int param)
+        public void llRezAtRoot(string inventory, vector position, vector velocity, rotation rot, int param)
         {
             m_LSL_Functions.llRezAtRoot(inventory, position, velocity, rot, param);
         }
@@ -1726,12 +1726,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llSetPayPrice(price, quick_pay_buttons);
         }
 
-        public LSL_Types.Vector3 llGetCameraPos()
+        public vector llGetCameraPos()
         {
             return m_LSL_Functions.llGetCameraPos();
         }
 
-        public LSL_Types.Quaternion llGetCameraRot()
+        public rotation llGetCameraRot()
         {
             return m_LSL_Functions.llGetCameraRot();
         }
@@ -1756,7 +1756,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llUnescapeURL(url);
         }
 
-        public void llMapDestination(string simname, LSL_Types.Vector3 pos, LSL_Types.Vector3 look_at)
+        public void llMapDestination(string simname, vector pos, vector look_at)
         {
             m_LSL_Functions.llMapDestination(simname, pos, look_at);
         }
@@ -1796,7 +1796,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetUnixTime();
         }
 
-        public int llGetParcelFlags(LSL_Types.Vector3 pos)
+        public int llGetParcelFlags(vector pos)
         {
             return m_LSL_Functions.llGetParcelFlags(pos);
         }
@@ -1826,12 +1826,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llResetLandPassList();
         }
 
-        public int llGetParcelPrimCount(LSL_Types.Vector3 pos, int category, int sim_wide)
+        public int llGetParcelPrimCount(vector pos, int category, int sim_wide)
         {
             return m_LSL_Functions.llGetParcelPrimCount(pos, category, sim_wide);
         }
 
-        public LSL_Types.list llGetParcelPrimOwners(LSL_Types.Vector3 pos)
+        public LSL_Types.list llGetParcelPrimOwners(vector pos)
         {
             return m_LSL_Functions.llGetParcelPrimOwners(pos);
         }
@@ -1844,12 +1844,12 @@ namespace OpenSim.Region.ScriptEngine.Common
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public int llGetParcelMaxPrims(LSL_Types.Vector3 pos, int sim_wide)
+        public int llGetParcelMaxPrims(vector pos, int sim_wide)
         {
             return m_LSL_Functions.llGetParcelMaxPrims(pos, sim_wide);
         }
 
-        public LSL_Types.list llGetParcelDetails(LSL_Types.Vector3 pos, LSL_Types.list param)
+        public LSL_Types.list llGetParcelDetails(vector pos, LSL_Types.list param)
         {
             return m_LSL_Functions.llGetParcelDetails(pos, param);
         }
@@ -2387,7 +2387,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public const int OBJECT_CREATOR = 8;
 
         // Can not be public const?
-        public LSL_Types.Vector3 ZERO_VECTOR = new LSL_Types.Vector3(0.0, 0.0, 0.0);
-        public LSL_Types.Quaternion ZERO_ROTATION = new LSL_Types.Quaternion(0.0, 0, 0.0, 1.0);
+        public vector ZERO_VECTOR = new vector(0.0, 0.0, 0.0);
+        public rotation ZERO_ROTATION = new rotation(0.0, 0, 0.0, 1.0);
     }
 }

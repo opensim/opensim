@@ -43,7 +43,7 @@ using OpenSim.Region.Environment.Scenes;
 [assembly : Addin]
 [assembly : AddinDependency("OpenSim", "0.5")]
 
-namespace OpenSim.ApplicationPlugins.LoadRegions
+namespace OpenSim.ApplicationPlugins.RemoteController
 {
     [Extension("/OpenSim/Startup")]
     public class RemoteAdminPlugin : IApplicationPlugin

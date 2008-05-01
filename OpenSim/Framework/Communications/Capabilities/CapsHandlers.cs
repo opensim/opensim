@@ -29,7 +29,7 @@ using System.Collections;
 using System.Collections.Generic;
 using OpenSim.Framework.Servers;
 
-namespace OpenSim.Region.Capabilities
+namespace OpenSim.Framework.Communications.Capabilities
 {
     /// <summary>
     /// CapsHandlers is a cap handler container but also takes

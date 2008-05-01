@@ -28,10 +28,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using OpenSim.Region.ExtensionsScriptModule.JVMEngine.Types;
-using OpenSim.Region.ExtensionsScriptModule.JVMEngine.Types.PrimitiveTypes;
+using OpenSim.Region.ExtensionsScriptModule.Engines.JVMEngine.Types;
+using OpenSim.Region.ExtensionsScriptModule.Engines.JVMEngine.Types.PrimitiveTypes;
 
-namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
+namespace OpenSim.Region.ExtensionsScriptModule.Engines.JVMEngine.JVM
 {
     public class ClassRecord
     {

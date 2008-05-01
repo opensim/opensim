@@ -35,6 +35,7 @@ using libsecondlife;
 using log4net;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications;
 
 namespace OpenSim.Region.Communications.OGS1
 {

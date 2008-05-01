@@ -36,7 +36,7 @@ using log4net;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Statistics;
 
-namespace OpenSim.Framework.UserManagement
+namespace OpenSim.Framework.Communications
 {
     /// <summary>
     /// Base class for user management (create, read, etc)
@@ -245,7 +245,7 @@ namespace OpenSim.Framework.UserManagement
             {
                 try
                 {
-                   plugin.Value.RemoveUserFriend(friendlistowner, friend);
+                    plugin.Value.RemoveUserFriend(friendlistowner, friend);
                 }
                 catch (Exception e)
                 {
@@ -370,7 +370,7 @@ namespace OpenSim.Framework.UserManagement
                     if ((profile.CurrentAgent.Position.X > 0)
                         && (profile.CurrentAgent.Position.Y > 0)
                         && (profile.CurrentAgent.Position.Z > 0)
-                       )
+                        )
                     {
                         // TODO: Right now, currentRegion has not been used in GridServer for requesting region.
                         // TODO: It is only using currentHandle.
@@ -564,7 +564,7 @@ namespace OpenSim.Framework.UserManagement
                 catch (Exception e)
                 {
                     m_log.Info("[USERSTORAGE]: Unable to update user " + UserProfile.ID.ToString()
-                        + " via " + plugin.Key + "(" + e.ToString() + ")");
+                               + " via " + plugin.Key + "(" + e.ToString() + ")");
                     return false;
                 }
             }

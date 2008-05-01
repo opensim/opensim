@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
+namespace OpenSim.Region.ExtensionsScriptModule.Engines.JVMEngine.JVM
 {
     public class MainMemory
     {

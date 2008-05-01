@@ -27,7 +27,7 @@
 
 using libsecondlife;
 
-namespace OpenSim.Region.Capabilities
+namespace OpenSim.Framework.Communications.Capabilities
 {
     [LLSDMap]
     public class LLSDInventoryItem
@@ -67,15 +67,6 @@ namespace OpenSim.Region.Capabilities
         public int sale_price;
         public string sale_type;
     }
-
-    /*  [LLSDMap]
-      public class LLSDFolderItem
-      {
-          public LLUUID folder_id;
-          public LLUUID parent_id;
-          public int type;
-          public string name;
-      }*/
 
     [LLSDMap]
     public class LLSDInventoryDescendents

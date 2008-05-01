@@ -26,10 +26,10 @@
  */
 
 using System;
-using OpenSim.Region.ExtensionsScriptModule.JVMEngine.Types;
-using OpenSim.Region.ExtensionsScriptModule.JVMEngine.Types.PrimitiveTypes;
+using OpenSim.Region.ExtensionsScriptModule.Engines.JVMEngine.Types;
+using OpenSim.Region.ExtensionsScriptModule.Engines.JVMEngine.Types.PrimitiveTypes;
 
-namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM
+namespace OpenSim.Region.ExtensionsScriptModule.Engines.JVMEngine.JVM
 {
     partial class Thread
     {

@@ -31,6 +31,7 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using log4net;
+using OpenSim.Framework.Configuration.XML;
 
 namespace OpenSim.Framework.Configuration.HTTP
 {

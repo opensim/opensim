@@ -43,7 +43,7 @@ using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
-using Caps=OpenSim.Region.Capabilities.Caps;
+using Caps=OpenSim.Framework.Communications.Capabilities.Caps;
 using Image=System.Drawing.Image;
 using Timer=System.Timers.Timer;
 

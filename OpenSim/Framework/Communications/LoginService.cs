@@ -40,7 +40,7 @@ using Nwc.XmlRpc;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Statistics;
 
-namespace OpenSim.Framework.UserManagement
+namespace OpenSim.Framework.Communications
 {
     public abstract class LoginService
     {
@@ -122,8 +122,8 @@ namespace OpenSim.Framework.UserManagement
                     lastname = (string) requestData["last"];
                     
                     m_log.InfoFormat(
-                         "[LOGIN BEGIN]: Received login request message from user {0} {1}", 
-                         firstname, lastname);
+                        "[LOGIN BEGIN]: Received login request message from user {0} {1}", 
+                        firstname, lastname);
 
                     string clientVersion = "Unknown";
                     
@@ -138,7 +138,7 @@ namespace OpenSim.Framework.UserManagement
                     }                    
                     
                     m_log.DebugFormat(
-                         "[LOGIN]: Client is {0}, start location is {1}", clientVersion, startLocationRequest);
+                        "[LOGIN]: Client is {0}, start location is {1}", clientVersion, startLocationRequest);
 
                     userProfile = GetTheUser(firstname, lastname);
                     if (userProfile == null)
@@ -163,8 +163,8 @@ namespace OpenSim.Framework.UserManagement
                         catch (Exception e)
                         {
                             m_log.InfoFormat(
-                                 "[LOGIN END]: Bad web_login_key: {0} for user {1} {2}, exception {3}", 
-                                 requestData["web_login_key"], firstname, lastname, e);
+                                "[LOGIN END]: Bad web_login_key: {0} for user {1} {2}, exception {3}", 
+                                requestData["web_login_key"], firstname, lastname, e);
                             
                             return logResponse.CreateFailedResponse();
                         }
@@ -201,8 +201,8 @@ namespace OpenSim.Framework.UserManagement
                         // Reject the login
                         
                         m_log.InfoFormat(
-                             "[LOGIN END]: Notifying user {0} {1} that they are already logged in", 
-                             firstname, lastname);
+                            "[LOGIN END]: Notifying user {0} {1} that they are already logged in", 
+                            firstname, lastname);
                         
                         return logResponse.CreateAlreadyLoggedInResponse();
                     }
@@ -286,8 +286,8 @@ namespace OpenSim.Framework.UserManagement
                             StatsManager.UserStats.AddSuccessfulLogin();
                         
                         m_log.DebugFormat(
-                             "[LOGIN END]: Authentication of user {0} {1} successful.  Sending response to client.",
-                             firstname, lastname);
+                            "[LOGIN END]: Authentication of user {0} {1} successful.  Sending response to client.",
+                            firstname, lastname);
                         
                         return logResponse.ToXmlRpcResponse();
                     }
@@ -516,9 +516,9 @@ namespace OpenSim.Framework.UserManagement
                     statuscode = 301;
 
                     string redirectURL = "about:blank?redirect-http-hack=" +
-                        HttpUtility.UrlEncode("secondlife:///app/login?first_name=" + firstname + "&last_name=" +
-                                                         lastname +
-                                                         "&location=" + location + "&grid=Other&web_login_key=" + webloginkey.ToString());
+                                         HttpUtility.UrlEncode("secondlife:///app/login?first_name=" + firstname + "&last_name=" +
+                                                               lastname +
+                                                               "&location=" + location + "&grid=Other&web_login_key=" + webloginkey.ToString());
                     //m_log.Info("[WEB]: R:" + redirectURL);
                     returnactions["int_response_code"] = statuscode;
                     returnactions["str_redirect_location"] = redirectURL;
@@ -677,7 +677,7 @@ namespace OpenSim.Framework.UserManagement
             //m_log.Info("[LOGIN]: userprofile:" + profile.passwordHash + " SubCT:" + password);
 
             passwordSuccess = (profile.PasswordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase) 
-                            || profile.PasswordHash.Equals(password, StringComparison.InvariantCultureIgnoreCase));
+                               || profile.PasswordHash.Equals(password, StringComparison.InvariantCultureIgnoreCase));
 
             return passwordSuccess;
         }

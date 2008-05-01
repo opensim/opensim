@@ -32,7 +32,7 @@ using System.Reflection;
 using log4net;
 using Microsoft.JScript;
 
-namespace OpenSim.Region.ExtensionsScriptModule.JScript
+namespace OpenSim.Region.ExtensionsScriptModule.Engines.JScript
 {
     public class JScriptEngine : IScriptCompiler
     {

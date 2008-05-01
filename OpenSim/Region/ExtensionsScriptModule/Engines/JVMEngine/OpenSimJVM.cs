@@ -31,9 +31,9 @@ using System.Diagnostics;
 using System.IO;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Region.ExtensionsScriptModule.JVMEngine.JVM;
+using OpenSim.Region.ExtensionsScriptModule.Engines.JVMEngine.JVM;
 
-namespace OpenSim.Region.ExtensionsScriptModule.JVMEngine
+namespace OpenSim.Region.ExtensionsScriptModule.Engines.JVMEngine
 {
     public class JVMScript : IScript
     {

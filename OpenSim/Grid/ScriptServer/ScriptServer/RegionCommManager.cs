@@ -28,10 +28,10 @@
 using System.Collections.Generic;
 using System.Threading;
 using OpenSim.Framework;
+using OpenSim.Grid.ScriptServer.ScriptServer.Region;
 
-namespace OpenSim.Grid.ScriptServer
+namespace OpenSim.Grid.ScriptServer.ScriptServer
 {
-    // Waiting for incoming script requests from region
     internal class RegionCommManager
     {
         private Thread listenThread;

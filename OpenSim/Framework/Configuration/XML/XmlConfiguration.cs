@@ -29,7 +29,7 @@ using System;
 using System.IO;
 using System.Xml;
 
-namespace OpenSim.Framework.Configuration
+namespace OpenSim.Framework.Configuration.XML
 {
     public class XmlConfiguration : IGenericConfig
     {

@@ -25,9 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace OpenSim.Grid.ScriptServer
+namespace OpenSim.Grid.ScriptServer.ScriptServer.Region
 {
-    // Maintains connection and communication to a region
     public class RegionConnectionManager : RegionBase
     {
         private ScriptServerMain m_ScriptServerMain;
