@@ -516,8 +516,35 @@ namespace OpenSim.Region.Environment.Scenes
                 m_scene.EventManager.OnBackup += ProcessBackup;
             }
         }
+        public LLVector3 GroupScale()
+        {
+            LLVector3 minScale = new LLVector3(Constants.RegionSize,Constants.RegionSize,Constants.RegionSize);
+            LLVector3 maxScale = new LLVector3(0f,0f,0f);
+            LLVector3 finalScale = new LLVector3(0.5f, 0.5f, 0.5f);
 
-        public EntityIntersection TestIntersection(Ray hRay)
+            lock (m_parts)
+            {
+                foreach (SceneObjectPart part in m_parts.Values)
+                {
+                    LLVector3 partscale = part.Scale;
+                    LLVector3 partoffset = part.OffsetPosition;
+
+                    minScale.X = (partscale.X + partoffset.X < minScale.X) ? partscale.X + partoffset.X : minScale.X;
+                    minScale.Y = (partscale.Y + partoffset.Y < minScale.Y) ? partscale.X + partoffset.Y : minScale.Y;
+                    minScale.Z = (partscale.Z + partoffset.Z < minScale.Z) ? partscale.X + partoffset.Z : minScale.Z;
+
+                    maxScale.X = (partscale.X + partoffset.X > maxScale.X) ? partscale.X + partoffset.X : maxScale.X;
+                    maxScale.Y = (partscale.Y + partoffset.Y > maxScale.Y) ? partscale.Y + partoffset.Y : maxScale.Y;
+                    maxScale.Z = (partscale.Z + partoffset.Z > maxScale.Z) ? partscale.Z + partoffset.Z : maxScale.Z;
+                }
+            }
+            finalScale.X = (minScale.X > maxScale.X) ? minScale.X : maxScale.X;
+            finalScale.Y = (minScale.Y > maxScale.Y) ? minScale.Y : maxScale.Y;
+            finalScale.Z = (minScale.Z > maxScale.Z) ? minScale.Z : maxScale.Z;
+            return finalScale;
+
+        }
+        public EntityIntersection TestIntersection(Ray hRay, bool frontFacesOnly)
         {
             // We got a request from the inner_scene to raytrace along the Ray hRay
             // We're going to check all of the prim in this group for intersection with the ray
@@ -539,7 +566,7 @@ namespace OpenSim.Region.Environment.Scenes
                     // Telling the prim to raytrace.
                     //EntityIntersection inter = part.TestIntersection(hRay, parentrotation);
 
-                    EntityIntersection inter = part.TestIntersectionOBB(hRay, parentrotation);
+                    EntityIntersection inter = part.TestIntersectionOBB(hRay, parentrotation,frontFacesOnly);
 
                     // This may need to be updated to the maximum draw distance possible..  
                     // We might (and probably will) be checking for prim creation from other sims

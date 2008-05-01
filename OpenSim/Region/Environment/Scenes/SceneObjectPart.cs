@@ -1061,7 +1061,7 @@ namespace OpenSim.Region.Environment.Scenes
             return Math.Sqrt(dx * dx + dy * dy + dz * dz);
         }
 
-        public EntityIntersection TestIntersectionOBB(Ray iray, Quaternion parentrot)
+        public EntityIntersection TestIntersectionOBB(Ray iray, Quaternion parentrot, bool FrontFacesOnly)
         {
             // In this case we're using a rectangular prism, which has 6 faces and therefore 6 planes
             // This breaks down into the ray---> plane equation.
@@ -1075,6 +1075,14 @@ namespace OpenSim.Region.Environment.Scenes
             Vector3[] FaceD = new Vector3[6]; // vertex D for Facei
 
             Vector3[] normals = new Vector3[6]; // Normal for Facei
+            Vector3[] AAfacenormals = new Vector3[6]; // Axis Aligned face normals
+
+            AAfacenormals[0] = new Vector3(1, 0, 0);
+            AAfacenormals[1] = new Vector3(0, 1, 0);
+            AAfacenormals[2] = new Vector3(-1, 0, 0);
+            AAfacenormals[3] = new Vector3(0, -1, 0);
+            AAfacenormals[4] = new Vector3(0, 0, 1);
+            AAfacenormals[5] = new Vector3(0, 0, -1);
 
             Vector3 AmBa = new Vector3(0, 0, 0); // Vertex A - Vertex B
             Vector3 AmBb = new Vector3(0, 0, 0); // Vertex B - Vertex C
@@ -1332,7 +1340,7 @@ namespace OpenSim.Region.Environment.Scenes
                     continue;
 
                 // If the normal is pointing outside the object
-                if (iray.Direction.Dot(normals[i]) < 0)
+                if (iray.Direction.Dot(normals[i]) < 0 || !FrontFacesOnly)
                 {
                     
                     q = iray.Origin + a * iray.Direction;
@@ -1349,6 +1357,7 @@ namespace OpenSim.Region.Environment.Scenes
                         //m_log.Info("[FACE]:" + i.ToString());
                         //m_log.Info("[POINT]: " + q.ToString());
                         returnresult.normal = normals[i];
+                        returnresult.AAfaceNormal = AAfacenormals[i];
 
                     }
                 }

@@ -1235,10 +1235,12 @@ namespace OpenSim.Region.Environment.Scenes
                 bRayEndIsIntersection = (byte)0;
             }
 
-            LLVector3 pos
-                = GetNewRezLocation(
+            LLVector3 scale = new LLVector3(0.5f, 0.5f, 0.5f);
+
+            
+            LLVector3 pos = GetNewRezLocation(
                       RayStart, RayEnd, RayTargetID, new LLQuaternion(0, 0, 0, 1), 
-                      BypassRayCast, bRayEndIsIntersection);
+                      BypassRayCast, bRayEndIsIntersection,true,scale);
             
             if (!PermissionsMngr.CanRezObject(remoteClient.AgentId, pos) && !attachment)
             {
@@ -1266,9 +1268,16 @@ namespace OpenSim.Region.Environment.Scenes
                             // if attachment we set it's asset id so object updates can reflect that
                             // if not, we set it's position in world.
                             if (!attachment)
+                            {
+                                pos = GetNewRezLocation(
+                                            RayStart, RayEnd, RayTargetID, new LLQuaternion(0, 0, 0, 1),
+                                               BypassRayCast, bRayEndIsIntersection, true, group.GroupScale());
                                 group.AbsolutePosition = pos;
+                            }
                             else
+                            {
                                 group.SetFromAssetID(itemID);
+                            }
 
                             SceneObjectPart rootPart = group.GetChildPart(group.UUID);
                             

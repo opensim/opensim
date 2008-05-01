@@ -1172,7 +1172,7 @@ namespace OpenSim.Region.Environment.Scenes
             return myID;
         }
 
-        public LLVector3 GetNewRezLocation(LLVector3 RayStart, LLVector3 RayEnd, LLUUID RayTargetID, LLQuaternion rot, byte bypassRayCast, byte RayEndIsIntersection)
+        public LLVector3 GetNewRezLocation(LLVector3 RayStart, LLVector3 RayEnd, LLUUID RayTargetID, LLQuaternion rot, byte bypassRayCast, byte RayEndIsIntersection, bool frontFacesOnly, LLVector3 scale)
         {
             LLVector3 pos = LLVector3.Zero;
             if (RayEndIsIntersection == (byte)1)
@@ -1199,18 +1199,24 @@ namespace OpenSim.Region.Environment.Scenes
                     Ray NewRay = new Ray(AXOrigin, AXdirection);
 
                     // Ray Trace against target here
-                    EntityIntersection ei = target.TestIntersectionOBB(NewRay, new Quaternion(1,0,0,0));
+                    EntityIntersection ei = target.TestIntersectionOBB(NewRay, new Quaternion(1,0,0,0), frontFacesOnly);
 
                     // Un-comment out the following line to Get Raytrace results printed to the console.
                    // m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
-                    
+                    float ScaleOffset = 0.5f;
+
                     // If we hit something
                     if (ei.HitTF)
                     {
+                        LLVector3 scaleComponent = new LLVector3(ei.AAfaceNormal.x, ei.AAfaceNormal.y, ei.AAfaceNormal.z);
+                        if (scaleComponent.X != 0) ScaleOffset = scale.X;
+                        if (scaleComponent.Y != 0) ScaleOffset = scale.Y;
+                        if (scaleComponent.Z != 0) ScaleOffset = scale.Z;
+                        ScaleOffset = Math.Abs(ScaleOffset);
                         LLVector3 intersectionpoint = new LLVector3(ei.ipoint.x, ei.ipoint.y, ei.ipoint.z);
                         LLVector3 normal = new LLVector3(ei.normal.x, ei.normal.y, ei.normal.z);
                         // Set the position to the intersection point
-                        LLVector3 offset = (normal * (0.5f / 2f));
+                        LLVector3 offset = (normal * (ScaleOffset / 2f));
                         pos = (intersectionpoint + offset);
                         
                         // Un-offset the prim (it gets offset later by the consumer method)
@@ -1225,7 +1231,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     // We don't have a target here, so we're going to raytrace all the objects in the scene.
 
-                    EntityIntersection ei = m_innerScene.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection));
+                    EntityIntersection ei = m_innerScene.GetClosestIntersectingPrim(new Ray(AXOrigin, AXdirection), true);
 
                     // Un-comment the following line to print the raytrace results to the console.
                     //m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
@@ -1250,7 +1256,8 @@ namespace OpenSim.Region.Environment.Scenes
                                        byte bypassRaycast, LLVector3 RayStart, LLUUID RayTargetID,
                                        byte RayEndIsIntersection)
         {
-            LLVector3 pos = GetNewRezLocation(RayStart, RayEnd, RayTargetID, rot, bypassRaycast, RayEndIsIntersection);
+           
+            LLVector3 pos = GetNewRezLocation(RayStart, RayEnd, RayTargetID, rot, bypassRaycast, RayEndIsIntersection, true, new LLVector3(0.5f,0.5f,0.5f));
 
             if (PermissionsMngr.CanRezObject(ownerID, pos))
             {
