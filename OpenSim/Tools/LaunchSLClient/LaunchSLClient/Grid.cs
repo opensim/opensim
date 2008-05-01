@@ -26,26 +26,13 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Windows.Forms;
 
 namespace LaunchSLClient
 {
-    static class Program
+    public struct Grid
     {
-        [STAThread]
-        static void Main()
-        {
-            try
-            {
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new Form1());
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString(), "Error");
-            }
-        }
+        public string Name;
+        public string LoginURI;
+        public string URL;
     }
 }

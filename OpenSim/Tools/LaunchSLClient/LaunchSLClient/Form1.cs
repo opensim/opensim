@@ -36,15 +36,12 @@ using System.Drawing;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using Nini.Config;
 
 namespace LaunchSLClient
 {
     public partial class Form1 : Form
     {
-        const string deepGridUrl = "http://user.deepgrid.com:8002/";
-        const string osGridUrl = "http://www.osgrid.org:8002/";
-        const string openLifeGridUrl = "http://logingrid.net:8002/";
-
         string gridUrl = "";
         string sandboxUrl = "";
         string runUrl = "";
@@ -53,23 +50,26 @@ namespace LaunchSLClient
         string exePath = "";
 
         private MachineConfig m_machineConfig;
+        private List<Grid> m_grids = new List<Grid>();
 
         public Form1()
         {
             InitializeComponent();
-            ArrayList menuItems = new ArrayList();
 
             m_machineConfig = getMachineConfig();
             m_machineConfig.GetClient(ref exePath, ref runLine, ref exeFlags);
 
+            initializeGrids();
+
+            ArrayList menuItems = new ArrayList();
             menuItems.Add("Please select one:");
 
             addLocalSims(ref menuItems);
 
-            menuItems.Add("OSGrid - www.osgrid.org");
-            menuItems.Add("DeepGrid - www.deepgrid.com");
-            menuItems.Add("OpenlifeGrid - www.openlifegrid.com");
-            menuItems.Add("Linden Labs - www.secondlife.com");
+            foreach (Grid grid in m_grids)
+            {
+                menuItems.Add(grid.Name + " - " + grid.URL);
+            }
 
             comboBox1.DataSource = menuItems;
         }
@@ -90,6 +90,27 @@ namespace LaunchSLClient
             else
             {
                 return new WindowsConfig();
+            }
+        }
+
+        private void initializeGrids()
+        {
+            string iniFile = "LaunchSLClient.ini";
+
+            if (!File.Exists(iniFile))
+                return;
+
+            IniConfigSource configSource = new IniConfigSource(iniFile);
+
+            foreach (IConfig config in configSource.Configs)
+            {
+                Grid grid = new Grid();
+
+                grid.Name = config.Name;
+                grid.LoginURI = config.GetString("loginURI", "");
+                grid.URL = config.GetString("URL", "");
+
+                m_grids.Add(grid);
             }
         }
 
@@ -134,7 +155,6 @@ namespace LaunchSLClient
         private void addLocalGrid(ref ArrayList menuItems)
         {
             //build local grid URL from network_servers_information.xml
-            // this is highly dependant on a standard default.xml
             if (File.Exists("network_servers_information.xml"))
             {
                 string text;
@@ -180,13 +200,33 @@ namespace LaunchSLClient
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (comboBox1.Text == "Please select one:") { return; }
-            if (comboBox1.Text == "Local Sandbox") { runUrl=" -loginuri " + sandboxUrl;}
-            if (comboBox1.Text == "Local Grid Server") { runUrl = " -loginuri " + gridUrl; }
-            if (comboBox1.Text == "DeepGrid - www.deepgrid.com") { runUrl = " -loginuri " + deepGridUrl; }
-            if (comboBox1.Text == "OSGrid - www.osgrid.org") { runUrl = " -loginuri " + osGridUrl; }
-            if (comboBox1.Text == "OpenlifeGrid - www.openlifegrid.com") { runUrl = " -loginuri " + openLifeGridUrl; }
-            if (comboBox1.Text == "Linden Labs - www.secondlife.com") { runUrl = ""; }
+            if (comboBox1.Text == "Please select one:")
+            {
+                return;
+            }
+            else if (comboBox1.Text == "Local Sandbox")
+            {
+                runUrl=" -loginuri " + sandboxUrl;
+            }
+            else if (comboBox1.Text == "Local Grid Server")
+            {
+                runUrl = " -loginuri " + gridUrl;
+            }
+            else
+            {
+                foreach (Grid grid in m_grids)
+                {
+                    if (comboBox1.Text == grid.Name + " - " + grid.URL)
+                    {
+                        if (grid.LoginURI != string.Empty)
+                            runUrl = " -loginuri " + grid.LoginURI;
+                        else
+                            runUrl = "";
+
+                        break;
+                    }
+                }
+            }
 
             System.Diagnostics.Process proc = new System.Diagnostics.Process();
             proc.StartInfo.FileName = runLine;
