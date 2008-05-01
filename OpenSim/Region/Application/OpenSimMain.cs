@@ -588,7 +588,6 @@ namespace OpenSim
                           m_moduleLoader, m_dumpAssetsToFile, m_physicalPrim, m_see_into_region_from_neighbor);
         }
 
-
         public void handleRestartRegion(RegionInfo whichRegion)
         {
             m_log.Error("[OPENSIM MAIN]: Got restart signal from SceneManager");

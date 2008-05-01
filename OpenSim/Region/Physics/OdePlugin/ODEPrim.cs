@@ -112,7 +112,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsActor _parent = null;
         private PhysicsActor m_taintparent = null;
         
-
         private bool iscolliding = false;
         private bool m_isphysical = false;
         private bool m_isSelected = false;
@@ -128,7 +127,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public bool outofBounds = false;
         private float m_density = 10.000006836f; // Aluminum g/cm3;
-
 
         public bool _zeroFlag = false;
         private bool m_lastUpdateSent = false;
@@ -1761,8 +1759,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override bool Flying
         {
-            get { return false; //no flying prims for you
-            }
+            // no flying prims for you
+            get { return false; }
             set { }
         }
 
@@ -1832,8 +1830,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override PrimitiveBaseShape Shape
         {
-            set { 
-
+            set
+            {
                 _pbs = value;
                 m_taintshape = true;
             }
@@ -1851,13 +1849,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                 returnVelocity.Z = (m_lastVelocity.Z + _velocity.Z)/2;
                 return returnVelocity;
             }
-            set { 
+            set
+            {
                 _velocity = value;
                 
                 m_taintVelocity = value;
                 _parent_scene.AddPhysicsActorTaint(this);
-           
-            
             }
         }
 
@@ -1898,7 +1895,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public override PhysicsVector RotationalVelocity
         {
-            get {
+            get
+            {
                 PhysicsVector pv = new PhysicsVector(0, 0, 0);
                 if (_zeroFlag)
                     return pv;
@@ -1911,6 +1909,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             set { m_rotationalVelocity = value; }
         }
+
         public override void CrossingFailure()
         {
             m_crossingfailures++;
@@ -1918,7 +1917,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 base.RaiseOutOfBounds(_position);
                 return;
-
             }
             else if (m_crossingfailures == 5)
             {
@@ -1942,7 +1940,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_taintparent = null;
         }
 
-
         public override void LockAngularMotion(PhysicsVector axis)
         {
             // reverse the zero/non zero values for ODE.
@@ -1958,7 +1955,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
             if (_parent != null)
             {
-
             }
             else
             {
@@ -1972,7 +1968,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.Vector3 rotvel = d.BodyGetAngularVel(Body);
                     
                     PhysicsVector l_position = new PhysicsVector();
-
 
                     //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
                     //if (vec.X < 0.0f) { vec.X = 0.0f; if (Body != (IntPtr)0) d.BodySetAngularVel(Body, 0, 0, 0); }
@@ -2014,7 +2009,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         // Disables the prim's movement physics....  
                         // It's a hack and will generate a console message if it fails.
 
-
                         //IsPhysical = false;
                         if (_parent == null)
                             base.RaiseOutOfBounds(_position);
@@ -2052,10 +2046,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         _zeroFlag = false;
                     }
 
-
                     if (_zeroFlag)
                     {
-
                         _velocity.X = 0.0f;
                         _velocity.Y = 0.0f;
                         _velocity.Z = 0.0f;
@@ -2197,8 +2189,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.JointAttach(Amotor, Body, IntPtr.Zero);
             d.JointSetAMotorMode(Amotor, dAMotorEuler);
 
-            
-
             d.JointSetAMotorNumAxes(Amotor,(int)axisnum);
             int i = 0;
 
@@ -2235,11 +2225,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 0.000000000001f);
             d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0.000000000001f);
             d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.000000000001f);
-
            
             d.JointSetAMotorParam(Amotor, (int)dParam.FudgeFactor, 0f);
             d.JointSetAMotorParam(Amotor, (int)dParam.FMax, m_tensor);
-
         }
     }
 }

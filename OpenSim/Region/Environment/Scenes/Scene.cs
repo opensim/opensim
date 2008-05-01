@@ -658,7 +658,6 @@ namespace OpenSim.Region.Environment.Scenes
             float physicsFPS = 0;
             int agentsInScene = m_innerScene.GetRootAgentCount() + m_innerScene.GetChildAgentCount();
 
-
             if (agentsInScene > 21)
             {
                 if (m_update_entities == 1)
@@ -676,7 +675,6 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
 
-
             frameMS = System.Environment.TickCount;
             try
             {
@@ -686,7 +684,6 @@ namespace OpenSim.Region.Environment.Scenes
                 // Loop it
                 if (m_frame == Int32.MaxValue)
                     m_frame = 0;
-
 
                 physicsMS2 = System.Environment.TickCount;
                 if ((m_frame % m_update_physics == 0) && m_physics_enabled)
