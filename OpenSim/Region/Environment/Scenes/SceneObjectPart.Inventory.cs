@@ -184,7 +184,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void StartScript(TaskInventoryItem item)
         {
             //            m_log.InfoFormat(
-            //                "[PRIMINVENTORY]: " +
+            //                "[PRIM INVENTORY]: " +
             //                "Starting script {0}, {1} in prim {2}, {3}", 
             //                item.Name, item.ItemID, Name, UUID);
             AddFlag(LLObject.ObjectFlags.Scripted);
@@ -198,7 +198,7 @@ namespace OpenSim.Region.Environment.Scenes
                        if (null == asset)
                        {
                            m_log.ErrorFormat(
-                               "[PRIMINVENTORY]: " +
+                               "[PRIM INVENTORY]: " +
                                "Couldn't start script {0}, {1} since asset ID {2} could not be found",
                                item.Name, item.ItemID, item.AssetID);
                        }
@@ -231,7 +231,7 @@ namespace OpenSim.Region.Environment.Scenes
                 else
                 {
                     m_log.ErrorFormat(
-                        "[PRIMINVENTORY]: " +
+                        "[PRIM INVENTORY]: " +
                         "Couldn't start script with ID {0} since it couldn't be found for prim {1}, {2}",
                         itemId, Name, UUID);
                 }
@@ -252,7 +252,7 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 m_log.ErrorFormat(
-                    "[PRIMINVENTORY]: " +
+                    "[PRIM INVENTORY]: " +
                     "Couldn't stop script with ID {0} since it couldn't be found for prim {1}, {2}",
                     itemId, Name, UUID);
             }
@@ -385,7 +385,7 @@ namespace OpenSim.Region.Environment.Scenes
                 else
                 {
                     m_log.ErrorFormat(
-                        "[PRIMINVENTORY]: " +
+                        "[PRIM INVENTORY]: " +
                         "Tried to retrieve item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
                         item.ItemID, Name, UUID);
                 }
