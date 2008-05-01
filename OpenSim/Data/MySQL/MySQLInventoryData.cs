@@ -343,7 +343,14 @@ namespace OpenSim.Data.MySQL
                     m_log.WarnFormat("Could not cast salePrice {0} to {1}", reader["salePrice"], "int");
                 }
                 
-				item.SaleType = Convert.ToByte(reader["saleType"]);
+                try
+                {
+				    item.SaleType = Convert.ToByte(reader["saleType"]);
+                }
+                catch (InvalidCastException)
+                {                
+				    m_log.WarnFormat("Could not convert saleType {0} to {1}", reader["saleType"], "byte");
+                }
                 
                 try
                 {
@@ -354,8 +361,24 @@ namespace OpenSim.Data.MySQL
                     m_log.WarnFormat("Could not cast creationDate {0} to {1}", reader["creationDate"], "int");
                 }
             
-				item.GroupID = new LLUUID(reader["groupID"].ToString());
-				item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
+                try
+                {
+				    item.GroupID = new LLUUID(reader["groupID"].ToString());
+                }
+                catch (Exception)
+                {
+                    item.GroupID = LLUUID.Zero;
+                    m_log.WarnFormat("Could not convert groupID {0} to {1}", reader["groupID"], "LLUUID");
+                }
+                
+                try
+                {                
+				    item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
+                }
+                catch (InvalidCastException)
+                {
+                    m_log.WarnFormat("Could not cast groupOwned {0} to {1}", reader["groupOwned"], "boolean");
+                }                
             
                 try
                 {
