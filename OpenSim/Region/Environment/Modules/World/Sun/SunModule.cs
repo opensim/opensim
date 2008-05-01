@@ -127,7 +127,7 @@ namespace OpenSim.Region.Environment.Modules.World.Sun
         {
             long m_addticks = (DateTime.Now.Ticks - m_start) * m_dilation;
             DateTime dt = new DateTime(m_start + m_addticks);
-            return dt.Hour + (dt.Minute / 60.0);
+            return (double) dt.Hour + ((double) dt.Minute / 60.0);
         }
 
         private LLVector3 SunPos(double hour)

@@ -49,6 +49,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (part != null)
             {
                 part.StartScript(itemID);
+               
             }
             else
             {
@@ -56,9 +57,9 @@ namespace OpenSim.Region.Environment.Scenes
                     "[PRIMINVENTORY]: " +
                     "Couldn't find part {0} in object group {1}, {2} to start script with ID {3}",
                     localID, Name, UUID, itemID);
-            }
+            }            
         }
-
+        
 //        /// Start a given script.
 //        /// </summary>
 //        /// <param name="localID">
@@ -79,7 +80,7 @@ namespace OpenSim.Region.Environment.Scenes
 //                    localID, Name, UUID, itemID);
 //            }            
 //        }        
-
+        
         /// <summary>
         /// Start the scripts contained in all the prims in this group.
         /// </summary>
@@ -105,7 +106,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
-
+        
         /// Start a given script.
         /// </summary>
         /// <param name="localID">
@@ -125,9 +126,9 @@ namespace OpenSim.Region.Environment.Scenes
                     "[PRIMINVENTORY]: " +
                     "Couldn't find part {0} in object group {1}, {2} to stop script with ID {3}",
                     partID, Name, UUID, itemID);
-            }
-        }
-
+            }            
+        }         
+        
         /// <summary>
         /// 
         /// </summary>
@@ -170,7 +171,7 @@ namespace OpenSim.Region.Environment.Scenes
                     localID, Name, UUID);
             }
         }
-
+         
         /// <summary>
         /// Add an inventory item to a prim in this group.
         /// </summary>
@@ -179,7 +180,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="item"></param>
         /// <param name="copyItemID">The item UUID that should be used by the new item.</param>
         /// <returns></returns>
-        public bool AddInventoryItem(IClientAPI remoteClient, uint localID,
+        public bool AddInventoryItem(IClientAPI remoteClient, uint localID, 
                                      InventoryItemBase item, LLUUID copyItemID)
         {
             LLUUID newItemId = (copyItemID != LLUUID.Zero) ? copyItemID : item.ID;
@@ -188,8 +189,8 @@ namespace OpenSim.Region.Environment.Scenes
             if (part != null)
             {
                 TaskInventoryItem taskItem = new TaskInventoryItem();
-
-                taskItem.ItemID = newItemId;
+                
+                taskItem.ItemID = newItemId;                
                 taskItem.AssetID = item.AssetID;
                 taskItem.Name = item.Name;
                 taskItem.Description = item.Description;
@@ -197,15 +198,15 @@ namespace OpenSim.Region.Environment.Scenes
                 taskItem.CreatorID = item.Creator;
                 taskItem.Type = item.AssetType;
                 taskItem.InvType = item.InvType;
-
+                
                 taskItem.BaseMask = item.BasePermissions;
                 taskItem.OwnerMask = item.CurrentPermissions;
                 // FIXME: ignoring group permissions for now as they aren't stored in item
                 taskItem.EveryoneMask = item.EveryOnePermissions;
                 taskItem.NextOwnerMask = item.NextPermissions;
-
+                    
                 part.AddInventoryItem(taskItem);
-
+                
                 return true;
             }
             else
@@ -218,7 +219,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             return false;
         }
-
+        
         /// <summary>
         /// Returns an existing inventory item.  Returns the original, so any changes will be live.
         /// </summary>
@@ -238,11 +239,11 @@ namespace OpenSim.Region.Environment.Scenes
                     "[PRIMINVENTORY]: " +
                     "Couldn't find prim local ID {0} in prim {1}, {2} to get inventory item ID {3}",
                     primID, part.Name, part.UUID, itemID);
-            }
-
+            }   
+            
             return null;
-        }
-
+        }         
+        
         /// <summary>
         /// Update an existing inventory item.
         /// </summary>
@@ -254,8 +255,8 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = GetChildPart(item.ParentPartID);
             if (part != null)
             {
-                part.UpdateInventoryItem(item);
-
+                part.UpdateInventoryItem(item);              
+                
                 return true;
             }
             else
@@ -264,22 +265,22 @@ namespace OpenSim.Region.Environment.Scenes
                     "[PRIMINVENTORY]: " +
                     "Couldn't find prim ID {0} to update item {1}, {2}",
                     item.ParentPartID, item.Name, item.ItemID);
-            }
-
+            }   
+            
             return false;
-        }
+        }        
 
         public int RemoveInventoryItem(uint localID, LLUUID itemID)
         {
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
-            {
+            {                
                 int type = part.RemoveInventoryItem(itemID);
-
+                
                 return type;
             }
-
+            
             return -1;
-        }
+        } 
     }
 }

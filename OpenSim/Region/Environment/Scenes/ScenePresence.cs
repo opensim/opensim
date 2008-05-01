@@ -40,111 +40,117 @@ using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    [Serializable]
+    [Serializable] 
     public class ScenePresence : EntityBase, ISerializable
     {
 //        ~ScenePresence()
 //        {
 //            System.Console.WriteLine("[ScenePresence] Destructor called");
 //        }
-
-        #region Delegates
-
-        public delegate void SignificantClientMovement(IClientAPI remote_client);
-
-        #endregion
-
+        
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public static AvatarAnimations Animations = new AvatarAnimations();
         public static byte[] DefaultTexture;
-        private readonly Vector3[] Dir_Vectors = new Vector3[6];
-        private readonly uint m_AgentControlFlags = 0;
 
-        private readonly List<LLUUID> m_animations = new List<LLUUID>();
-        private readonly List<int> m_animationSeqs = new List<int>();
-        private readonly List<NewForce> m_forcesList = new List<NewForce>();
-        private readonly List<ulong> m_knownChildRegions = new List<ulong>();
-        private readonly List<LLUUID> m_knownPrimUUID = new List<LLUUID>();
-        private readonly UpdateQueue m_partsUpdateQueue = new UpdateQueue();
-        private readonly byte m_state = 0;
-        private readonly Dictionary<LLUUID, ScenePartUpdate> m_updateTimes = new Dictionary<LLUUID, ScenePartUpdate>();
-        protected ulong crossingFromRegion;
         public LLUUID currentParcelUUID = LLUUID.Zero;
-        private SignificantClientMovement handlerSignificantClientMovement; //OnSignificantClientMovement;
+        private List<LLUUID> m_animations = new List<LLUUID>();
+        private List<int> m_animationSeqs = new List<int>();
+        public Vector3 lastKnownAllowedPosition = new Vector3();
+        public bool sentMessageAboutRestrictedParcelFlyingDown = false;
 
-        public bool IsRestrictedToRegion;
+        private bool m_updateflag = false;
+        private byte m_movementflag = 0;
+        private readonly List<NewForce> m_forcesList = new List<NewForce>();
+        private short m_updateCount = 0;
+        private uint m_requestedSitTargetID = 0;
+        private LLVector3 m_requestedSitOffset = new LLVector3();
+        private float m_sitAvatarHeight = 2.0f;
+        private float m_godlevel = 0;
+        private LLVector3 m_LastChildAgentUpdatePosition = new LLVector3();
 
-        public string JID = string.Empty;
-        public Vector3 lastKnownAllowedPosition;
+        private int m_perfMonMS = 0;
 
-        // Agent moves with a PID controller causing a force to be exerted.
-        private LLVector3 lastPhysPos;
-        protected AvatarAppearance m_appearance;
+        private bool m_setAlwaysRun = false;
 
-        protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
-        private float m_avHeight = 127.0f;
         private Quaternion m_bodyRot;
 
+        public bool IsRestrictedToRegion = false;
+
+        public string JID = string.Empty;
+
+        // Agent moves with a PID controller causing a force to be exerted.
+        private bool m_newForce = false;
+        private bool m_newCoarseLocations = true;
+        private bool m_gotAllObjectsInScene = false;
+
+        private LLVector3 m_lastVelocity = LLVector3.Zero;
+        
+        // Default AV Height
+        private float m_avHeight = 127.0f;
+
+        protected RegionInfo m_regionInfo;
+        protected ulong crossingFromRegion = 0;
+
+        private readonly Vector3[] Dir_Vectors = new Vector3[6];
+        private LLVector3 lastPhysPos = new LLVector3();
+
         // Position of agent's camera in world (region cordinates)
+        protected Vector3 m_CameraCenter = new Vector3(0, 0, 0);
 
         // Use these three vectors to figure out what the agent is looking at
         // Convert it to a Matrix and/or Quaternion
         protected Vector3 m_CameraAtAxis = new Vector3(0, 0, 0);
-        protected Vector3 m_CameraCenter = new Vector3(0, 0, 0);
         protected Vector3 m_CameraLeftAxis = new Vector3(0, 0, 0);
         protected Vector3 m_CameraUpAxis = new Vector3(0, 0, 0);
-        protected float m_DrawDistance;
-        private float m_godlevel;
-        private bool m_gotAllObjectsInScene;
-        private LLQuaternion m_headrotation;
-        private LLVector3 m_LastChildAgentUpdatePosition;
-        private LLVector3 m_lastVelocity = LLVector3.Zero;
-        private byte m_movementflag;
-        private bool m_newCoarseLocations = true;
-        private bool m_newForce;
-        private int m_perfMonMS;
-        protected RegionInfo m_regionInfo;
-        private LLVector3 m_requestedSitOffset;
-        private uint m_requestedSitTargetID;
-        private bool m_setAlwaysRun;
-        private float m_sitAvatarHeight = 2.0f;
-        private short m_updateCount;
-        private bool m_updateflag;
+        private uint m_AgentControlFlags = (uint) 0;
+        private LLQuaternion m_headrotation = new LLQuaternion();
+        private byte m_state = (byte) 0;
 
         //Reuse the LLVector3 instead of creating a new one on the UpdateMovement method
-        private LLVector3 movementvector;
+        private LLVector3 movementvector = new LLVector3();
+
+        private List<LLUUID> m_knownPrimUUID = new List<LLUUID>();
+
+        // Agent's Draw distance.
+        protected float m_DrawDistance = 0f;
+
+        protected AvatarAppearance m_appearance;
+
+        protected List<SceneObjectGroup> m_attachments = new List<SceneObjectGroup>();
+
+        //neighbouring regions we have enabled a child agent in
+        private readonly List<ulong> m_knownChildRegions = new List<ulong>();
+
+        private SignificantClientMovement handlerSignificantClientMovement = null; //OnSignificantClientMovement;
+
+        /// <summary>
+        /// Implemented Control Flags
+        /// </summary>
+        private enum Dir_ControlFlags
+        {
+            DIR_CONTROL_FLAG_FORWARD = AgentManager.ControlFlags.AGENT_CONTROL_AT_POS,
+            DIR_CONTROL_FLAG_BACK = AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG,
+            DIR_CONTROL_FLAG_LEFT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS,
+            DIR_CONTROL_FLAG_RIGHT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG,
+            DIR_CONTROL_FLAG_UP = AgentManager.ControlFlags.AGENT_CONTROL_UP_POS,
+            DIR_CONTROL_FLAG_DOWN = AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG,
+            DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
+        }
 
         /// <summary>
         /// Position at which a significant movement was made
         /// </summary>
-        private LLVector3 posLastSignificantMove;
+        private LLVector3 posLastSignificantMove = new LLVector3();
 
-        public bool sentMessageAboutRestrictedParcelFlyingDown;
+        public delegate void SignificantClientMovement(IClientAPI remote_client);
+
+        public event SignificantClientMovement OnSignificantClientMovement;
+
+        private UpdateQueue m_partsUpdateQueue = new UpdateQueue();
+        private Dictionary<LLUUID, ScenePartUpdate> m_updateTimes = new Dictionary<LLUUID, ScenePartUpdate>();
 
         #region Properties
-
-        private readonly string m_firstname;
-        private readonly string m_lastname;
-        private readonly ulong m_regionHandle;
-        protected bool m_allowMovement = true;
-
-        /// <summary>
-        /// This works out to be the ClientView object associated with this avatar, or it's UDP connection manager
-        /// </summary>
-        private IClientAPI m_controllingClient;
-
-        /// <summary>
-        /// If this is true, agent doesn't have a representation in this scene.
-        ///    this is an agent 'looking into' this scene from a nearby scene(region)
-        /// 
-        /// if False, this agent has a representation in this scene
-        /// </summary>
-        private bool m_isChildAgent = true;
-
-        private uint m_parentID;
-        protected LLVector3 m_parentPosition;
-        protected PhysicsActor m_physicsActor;
 
         /// <summary>
         /// Physical scene representation of this Avatar.
@@ -161,12 +167,24 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_movementflag; }
         }
 
+        public bool KnownPrim(LLUUID primID)
+        {
+            if (m_knownPrimUUID.Contains(primID))
+            {
+                return true;
+            }
+            m_knownPrimUUID.Add(primID);
+            return false;
+        }
+
 
         public bool Updated
         {
             set { m_updateflag = value; }
             get { return m_updateflag; }
         }
+
+        private readonly ulong m_regionHandle;
 
         public ulong RegionHandle
         {
@@ -178,10 +196,14 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_CameraCenter; }
         }
 
+        private readonly string m_firstname;
+
         public string Firstname
         {
             get { return m_firstname; }
         }
+
+        private readonly string m_lastname;
 
         public string Lastname
         {
@@ -193,17 +215,28 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_DrawDistance; }
         }
 
+        protected bool m_allowMovement = true;
+
         public bool AllowMovement
         {
             get { return m_allowMovement; }
             set { m_allowMovement = value; }
         }
 
+        /// <summary>
+        /// This works out to be the ClientView object associated with this avatar, or it's UDP connection manager
+        /// </summary>
+        private IClientAPI m_controllingClient; 
+
+        protected PhysicsActor m_physicsActor;
+
         public IClientAPI ControllingClient
         {
             get { return m_controllingClient; }
             set { m_controllingClient = value; }
         }
+
+        protected LLVector3 m_parentPosition = new LLVector3();
 
         /// <summary>
         /// Absolute position of this avatar in 'region cordinates'
@@ -239,7 +272,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
                 m_pos = value;
-                m_parentPosition = new LLVector3(0, 0, 0);
+                m_parentPosition=new LLVector3(0, 0, 0);
             }
         }
 
@@ -280,11 +313,21 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// If this is true, agent doesn't have a representation in this scene.
+        ///    this is an agent 'looking into' this scene from a nearby scene(region)
+        /// 
+        /// if False, this agent has a representation in this scene
+        /// </summary>
+        private bool m_isChildAgent = true;
+
         public bool IsChildAgent
         {
             get { return m_isChildAgent; }
             set { m_isChildAgent = value; }
         }
+
+        private uint m_parentID = 0;
 
         public uint ParentID
         {
@@ -298,16 +341,6 @@ namespace OpenSim.Region.Environment.Scenes
         public List<ulong> KnownChildRegions
         {
             get { return m_knownChildRegions; }
-        }
-
-        public bool KnownPrim(LLUUID primID)
-        {
-            if (m_knownPrimUUID.Contains(primID))
-            {
-                return true;
-            }
-            m_knownPrimUUID.Add(primID);
-            return false;
         }
 
         #endregion
@@ -387,360 +420,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
-        static ScenePresence()
-        {
-            LLObject.TextureEntry textu = AvatarAppearance.GetDefaultTextureEntry();
-            DefaultTexture = textu.ToBytes();
-        }
-
-        public ScenePresence()
-        {
-/* JB
-            if (Animations == null)
-            {
-                Animations = new AvatarAnimations();
-                Animations.LoadAnims();
-            }
-*/
-            if (DefaultTexture == null)
-            {
-                LLObject.TextureEntry textu = AvatarAppearance.GetDefaultTextureEntry();
-                DefaultTexture = textu.ToBytes();
-            }
-        }
-
-        protected ScenePresence(SerializationInfo info, StreamingContext context)
-            : base(info, context)
-        {
-            //System.Console.WriteLine("ScenePresence Deserialize BGN");
-
-            if (info == null)
-            {
-                throw new ArgumentNullException("info");
-            }
-/* JB
-            if (Animations == null)
-            {
-                Animations = new AvatarAnimations();
-                Animations.LoadAnims();
-            }
-*/
-            if (DefaultTexture == null)
-            {
-                LLObject.TextureEntry textu = AvatarAppearance.GetDefaultTextureEntry();
-                DefaultTexture = textu.ToBytes();
-            }
-
-            List<Guid> animations_work = (List<Guid>) info.GetValue("m_animations", typeof (List<Guid>));
-
-            foreach (Guid guid in animations_work)
-            {
-                m_animations.Add(new LLUUID(guid));
-            }
-
-            m_animationSeqs = (List<int>) info.GetValue("m_animationSeqs", typeof (List<int>));
-            m_updateflag = (bool) info.GetValue("m_updateflag", typeof (bool));
-            m_movementflag = (byte) info.GetValue("m_movementflag", typeof (byte));
-            m_forcesList = (List<NewForce>) info.GetValue("m_forcesList", typeof (List<NewForce>));
-            m_updateCount = (short) info.GetValue("m_updateCount", typeof (short));
-            m_requestedSitTargetID = (uint) info.GetValue("m_requestedSitTargetID", typeof (uint));
-
-            m_requestedSitOffset
-                = new LLVector3(
-                    (float) info.GetValue("m_requestedSitOffset.X", typeof (float)),
-                    (float) info.GetValue("m_requestedSitOffset.Y", typeof (float)),
-                    (float) info.GetValue("m_requestedSitOffset.Z", typeof (float)));
-
-            m_sitAvatarHeight = (float) info.GetValue("m_sitAvatarHeight", typeof (float));
-            m_godlevel = (float) info.GetValue("m_godlevel", typeof (float));
-            m_setAlwaysRun = (bool) info.GetValue("m_setAlwaysRun", typeof (bool));
-
-            m_bodyRot
-                = new Quaternion(
-                    (float) info.GetValue("m_bodyRot.w", typeof (float)),
-                    (float) info.GetValue("m_bodyRot.x", typeof (float)),
-                    (float) info.GetValue("m_bodyRot.y", typeof (float)),
-                    (float) info.GetValue("m_bodyRot.z", typeof (float)));
-
-            IsRestrictedToRegion = (bool) info.GetValue("IsRestrictedToRegion", typeof (bool));
-            m_newForce = (bool) info.GetValue("m_newForce", typeof (bool));
-            //m_newAvatar = (bool)info.GetValue("m_newAvatar", typeof(bool));
-            m_newCoarseLocations = (bool) info.GetValue("m_newCoarseLocations", typeof (bool));
-            m_gotAllObjectsInScene = (bool) info.GetValue("m_gotAllObjectsInScene", typeof (bool));
-            m_avHeight = (float) info.GetValue("m_avHeight", typeof (float));
-            crossingFromRegion = (ulong) info.GetValue("crossingFromRegion", typeof (ulong));
-
-            List<float[]> Dir_Vectors_work = (List<float[]>) info.GetValue("Dir_Vectors", typeof (List<float[]>));
-            List<Vector3> Dir_Vectors_work2 = new List<Vector3>();
-
-            foreach (float[] f3 in Dir_Vectors_work)
-            {
-                Dir_Vectors_work2.Add(new Vector3(f3[0], f3[1], f3[2]));
-            }
-
-            Dir_Vectors = Dir_Vectors_work2.ToArray();
-
-            lastPhysPos
-                = new LLVector3(
-                    (float) info.GetValue("lastPhysPos.X", typeof (float)),
-                    (float) info.GetValue("lastPhysPos.Y", typeof (float)),
-                    (float) info.GetValue("lastPhysPos.Z", typeof (float)));
-
-            m_CameraCenter
-                = new Vector3(
-                    (float) info.GetValue("m_CameraCenter.X", typeof (float)),
-                    (float) info.GetValue("m_CameraCenter.Y", typeof (float)),
-                    (float) info.GetValue("m_CameraCenter.Z", typeof (float)));
-
-            m_CameraAtAxis
-                = new Vector3(
-                    (float) info.GetValue("m_CameraAtAxis.X", typeof (float)),
-                    (float) info.GetValue("m_CameraAtAxis.Y", typeof (float)),
-                    (float) info.GetValue("m_CameraAtAxis.Z", typeof (float)));
-
-            m_CameraLeftAxis
-                = new Vector3(
-                    (float) info.GetValue("m_CameraLeftAxis.X", typeof (float)),
-                    (float) info.GetValue("m_CameraLeftAxis.Y", typeof (float)),
-                    (float) info.GetValue("m_CameraLeftAxis.Z", typeof (float)));
-
-            m_CameraUpAxis
-                = new Vector3(
-                    (float) info.GetValue("m_CameraUpAxis.X", typeof (float)),
-                    (float) info.GetValue("m_CameraUpAxis.Y", typeof (float)),
-                    (float) info.GetValue("m_CameraUpAxis.Z", typeof (float)));
-
-            m_DrawDistance = (float) info.GetValue("m_DrawDistance", typeof (float));
-            m_appearance = (AvatarAppearance) info.GetValue("m_appearance", typeof (AvatarAppearance));
-            m_knownChildRegions = (List<ulong>) info.GetValue("m_knownChildRegions", typeof (List<ulong>));
-
-            posLastSignificantMove
-                = new LLVector3(
-                    (float) info.GetValue("posLastSignificantMove.X", typeof (float)),
-                    (float) info.GetValue("posLastSignificantMove.Y", typeof (float)),
-                    (float) info.GetValue("posLastSignificantMove.Z", typeof (float)));
-
-            // m_partsUpdateQueue = (UpdateQueue)info.GetValue("m_partsUpdateQueue", typeof(UpdateQueue));
-
-            /*
-            Dictionary<Guid, ScenePartUpdate> updateTimes_work 
-                = (Dictionary<Guid, ScenePartUpdate>)info.GetValue("m_updateTimes", typeof(Dictionary<Guid, ScenePartUpdate>));
-
-            foreach (Guid id in updateTimes_work.Keys)
-            {
-                m_updateTimes.Add(new LLUUID(id), updateTimes_work[id]);
-            }
-            */
-            m_regionHandle = (ulong) info.GetValue("m_regionHandle", typeof (ulong));
-            m_firstname = (string) info.GetValue("m_firstname", typeof (string));
-            m_lastname = (string) info.GetValue("m_lastname", typeof (string));
-            m_allowMovement = (bool) info.GetValue("m_allowMovement", typeof (bool));
-            m_parentPosition = new LLVector3((float) info.GetValue("m_parentPosition.X", typeof (float)),
-                                             (float) info.GetValue("m_parentPosition.Y", typeof (float)),
-                                             (float) info.GetValue("m_parentPosition.Z", typeof (float)));
-
-            m_isChildAgent = (bool) info.GetValue("m_isChildAgent", typeof (bool));
-            m_parentID = (uint) info.GetValue("m_parentID", typeof (uint));
-
-// for OpenSim_v0.5
-            currentParcelUUID = new LLUUID((Guid) info.GetValue("currentParcelUUID", typeof (Guid)));
-
-            lastKnownAllowedPosition
-                = new Vector3(
-                    (float) info.GetValue("lastKnownAllowedPosition.X", typeof (float)),
-                    (float) info.GetValue("lastKnownAllowedPosition.Y", typeof (float)),
-                    (float) info.GetValue("lastKnownAllowedPosition.Z", typeof (float)));
-
-            sentMessageAboutRestrictedParcelFlyingDown = (bool) info.GetValue("sentMessageAboutRestrictedParcelFlyingDown", typeof (bool));
-
-            m_LastChildAgentUpdatePosition
-                = new LLVector3(
-                    (float) info.GetValue("m_LastChildAgentUpdatePosition.X", typeof (float)),
-                    (float) info.GetValue("m_LastChildAgentUpdatePosition.Y", typeof (float)),
-                    (float) info.GetValue("m_LastChildAgentUpdatePosition.Z", typeof (float)));
-
-            m_perfMonMS = (int) info.GetValue("m_perfMonMS", typeof (int));
-            m_AgentControlFlags = (uint) info.GetValue("m_AgentControlFlags", typeof (uint));
-
-            m_headrotation
-                = new LLQuaternion(
-                    (float) info.GetValue("m_headrotation.W", typeof (float)),
-                    (float) info.GetValue("m_headrotation.X", typeof (float)),
-                    (float) info.GetValue("m_headrotation.Y", typeof (float)),
-                    (float) info.GetValue("m_headrotation.Z", typeof (float)));
-
-            m_state = (byte) info.GetValue("m_state", typeof (byte));
-
-            List<Guid> knownPrimUUID_work = (List<Guid>) info.GetValue("m_knownPrimUUID", typeof (List<Guid>));
-
-            foreach (Guid id in knownPrimUUID_work)
-            {
-                m_knownPrimUUID.Add(new LLUUID(id));
-            }
-
-            //System.Console.WriteLine("ScenePresence Deserialize END");
-        }
-
-        #region ISerializable Members
-
-        [SecurityPermission(SecurityAction.LinkDemand,
-            Flags = SecurityPermissionFlag.SerializationFormatter)]
-        public override void GetObjectData(
-            SerializationInfo info, StreamingContext context)
-        {
-            if (info == null)
-            {
-                throw new ArgumentNullException("info");
-            }
-
-            base.GetObjectData(info, context);
-
-            List<Guid> animations_work = new List<Guid>();
-
-            foreach (LLUUID uuid in m_animations)
-            {
-                animations_work.Add(uuid.UUID);
-            }
-
-            info.AddValue("m_animations", animations_work);
-
-            info.AddValue("m_animationSeqs", m_animationSeqs);
-            info.AddValue("m_updateflag", m_updateflag);
-            info.AddValue("m_movementflag", m_movementflag);
-            info.AddValue("m_forcesList", m_forcesList);
-            info.AddValue("m_updateCount", m_updateCount);
-            info.AddValue("m_requestedSitTargetID", m_requestedSitTargetID);
-
-            // LLVector3
-            info.AddValue("m_requestedSitOffset.X", m_requestedSitOffset.X);
-            info.AddValue("m_requestedSitOffset.Y", m_requestedSitOffset.Y);
-            info.AddValue("m_requestedSitOffset.Z", m_requestedSitOffset.Z);
-
-            info.AddValue("m_sitAvatarHeight", m_sitAvatarHeight);
-            info.AddValue("m_godlevel", m_godlevel);
-            info.AddValue("m_setAlwaysRun", m_setAlwaysRun);
-
-            // Quaternion
-            info.AddValue("m_bodyRot.w", m_bodyRot.w);
-            info.AddValue("m_bodyRot.x", m_bodyRot.x);
-            info.AddValue("m_bodyRot.y", m_bodyRot.y);
-            info.AddValue("m_bodyRot.z", m_bodyRot.z);
-
-            info.AddValue("IsRestrictedToRegion", IsRestrictedToRegion);
-            info.AddValue("m_newForce", m_newForce);
-            //info.AddValue("m_newAvatar", m_newAvatar);
-            info.AddValue("m_newCoarseLocations", m_newCoarseLocations);
-            info.AddValue("m_gotAllObjectsInScene", m_gotAllObjectsInScene);
-            info.AddValue("m_avHeight", m_avHeight);
-
-            // info.AddValue("m_regionInfo", m_regionInfo);
-
-            info.AddValue("crossingFromRegion", crossingFromRegion);
-
-            List<float[]> Dir_Vectors_work = new List<float[]>();
-
-            foreach (Vector3 v3 in Dir_Vectors)
-            {
-                Dir_Vectors_work.Add(new[] {v3.x, v3.y, v3.z});
-            }
-
-            info.AddValue("Dir_Vectors", Dir_Vectors_work);
-
-            // LLVector3
-            info.AddValue("lastPhysPos.X", lastPhysPos.X);
-            info.AddValue("lastPhysPos.Y", lastPhysPos.Y);
-            info.AddValue("lastPhysPos.Z", lastPhysPos.Z);
-
-            // Vector3
-            info.AddValue("m_CameraCenter.X", m_CameraCenter.x);
-            info.AddValue("m_CameraCenter.Y", m_CameraCenter.y);
-            info.AddValue("m_CameraCenter.Z", m_CameraCenter.z);
-
-            // Vector3
-            info.AddValue("m_CameraAtAxis.X", m_CameraAtAxis.x);
-            info.AddValue("m_CameraAtAxis.Y", m_CameraAtAxis.y);
-            info.AddValue("m_CameraAtAxis.Z", m_CameraAtAxis.z);
-
-            // Vector3
-            info.AddValue("m_CameraLeftAxis.X", m_CameraLeftAxis.x);
-            info.AddValue("m_CameraLeftAxis.Y", m_CameraLeftAxis.y);
-            info.AddValue("m_CameraLeftAxis.Z", m_CameraLeftAxis.z);
-
-            // Vector3
-            info.AddValue("m_CameraUpAxis.X", m_CameraUpAxis.x);
-            info.AddValue("m_CameraUpAxis.Y", m_CameraUpAxis.y);
-            info.AddValue("m_CameraUpAxis.Z", m_CameraUpAxis.z);
-
-            info.AddValue("m_DrawDistance", m_DrawDistance);
-            info.AddValue("m_appearance", m_appearance);
-            info.AddValue("m_knownChildRegions", m_knownChildRegions);
-
-            // LLVector3
-            info.AddValue("posLastSignificantMove.X", posLastSignificantMove.X);
-            info.AddValue("posLastSignificantMove.Y", posLastSignificantMove.Y);
-            info.AddValue("posLastSignificantMove.Z", posLastSignificantMove.Z);
-
-            //info.AddValue("m_partsUpdateQueue", m_partsUpdateQueue);
-
-            /*
-            Dictionary<Guid, ScenePartUpdate> updateTimes_work = new Dictionary<Guid, ScenePartUpdate>();
-
-            foreach ( LLUUID id in m_updateTimes.Keys)
-            {
-                updateTimes_work.Add(id.UUID, m_updateTimes[id]);
-            }
-
-            info.AddValue("m_updateTimes", updateTimes_work);
-            */
-
-            info.AddValue("m_regionHandle", m_regionHandle);
-            info.AddValue("m_firstname", m_firstname);
-            info.AddValue("m_lastname", m_lastname);
-            info.AddValue("m_allowMovement", m_allowMovement);
-            //info.AddValue("m_physicsActor", m_physicsActor);
-            info.AddValue("m_parentPosition.X", m_parentPosition.X);
-            info.AddValue("m_parentPosition.Y", m_parentPosition.Y);
-            info.AddValue("m_parentPosition.Z", m_parentPosition.Z);
-            info.AddValue("m_isChildAgent", m_isChildAgent);
-            info.AddValue("m_parentID", m_parentID);
-
-// for OpenSim_v0.5
-            info.AddValue("currentParcelUUID", currentParcelUUID.UUID);
-
-            info.AddValue("lastKnownAllowedPosition.X", lastKnownAllowedPosition.x);
-            info.AddValue("lastKnownAllowedPosition.Y", lastKnownAllowedPosition.y);
-            info.AddValue("lastKnownAllowedPosition.Z", lastKnownAllowedPosition.z);
-
-            info.AddValue("sentMessageAboutRestrictedParcelFlyingDown", sentMessageAboutRestrictedParcelFlyingDown);
-
-            info.AddValue("m_LastChildAgentUpdatePosition.X", m_LastChildAgentUpdatePosition.X);
-            info.AddValue("m_LastChildAgentUpdatePosition.Y", m_LastChildAgentUpdatePosition.Y);
-            info.AddValue("m_LastChildAgentUpdatePosition.Z", m_LastChildAgentUpdatePosition.Z);
-
-            info.AddValue("m_perfMonMS", m_perfMonMS);
-            info.AddValue("m_AgentControlFlags", m_AgentControlFlags);
-
-            info.AddValue("m_headrotation.W", m_headrotation.W);
-            info.AddValue("m_headrotation.X", m_headrotation.X);
-            info.AddValue("m_headrotation.Y", m_headrotation.Y);
-            info.AddValue("m_headrotation.Z", m_headrotation.Z);
-
-            info.AddValue("m_state", m_state);
-
-            List<Guid> knownPrimUUID_work = new List<Guid>();
-
-            foreach (LLUUID id in m_knownPrimUUID)
-            {
-                knownPrimUUID_work.Add(id.UUID);
-            }
-
-            info.AddValue("m_knownPrimUUID", knownPrimUUID_work);
-        }
-
-        #endregion
-
-        public event SignificantClientMovement OnSignificantClientMovement;
-
         /// <summary>
         /// Add the part to the queue of parts for which we need to send an update to the client
         /// </summary>
@@ -778,12 +457,12 @@ namespace OpenSim.Region.Environment.Scenes
             if (!m_gotAllObjectsInScene)
             {
                 if (!m_isChildAgent || m_scene.m_seeIntoRegionFromNeighbor)
-                {
+                {                    
                     m_scene.SendAllSceneObjectsToClient(this);
-                    m_gotAllObjectsInScene = true;
+                    m_gotAllObjectsInScene = true;                    
                 }
             }
-
+            
             if (m_partsUpdateQueue.Count > 0)
             {
                 bool runUpdate = true;
@@ -802,7 +481,7 @@ namespace OpenSim.Region.Environment.Scenes
 //                            m_log.DebugFormat(
 //                                "[SCENE PRESENCE]: Fully   updating prim {0}, {1} - part timestamp {2}", 
 //                                part.Name, part.UUID, part.TimeStampFull);
-
+                            
                             part.SendFullUpdate(ControllingClient, GenerateClientFlags(part.UUID));
 
                             // We'll update to the part's timestamp rather than the current time to 
@@ -818,7 +497,7 @@ namespace OpenSim.Region.Environment.Scenes
 //                            m_log.DebugFormat(
 //                                "[SCENE PRESENCE]: Tersely updating prim {0}, {1} - part timestamp {2}", 
 //                                part.Name, part.UUID, part.TimeStampTerse);
-
+                            
                             part.SendTerseUpdate(ControllingClient);
 
                             update.LastTerseUpdateTime = part.TimeStampTerse;
@@ -851,235 +530,6 @@ namespace OpenSim.Region.Environment.Scenes
             AddNewMovement(position, rotation);
         }
 
-        /// <summary>
-        /// This allows the Sim owner the abiility to kick users from their sim currently.
-        /// It tells the client that the agent has permission to do so.
-        /// </summary>
-        public void GrantGodlikePowers(LLUUID agentID, LLUUID sessionID, LLUUID token, bool godStatus)
-        {
-            GrantGodlikePowersPacket respondPacket = new GrantGodlikePowersPacket();
-            GrantGodlikePowersPacket.GrantDataBlock gdb = new GrantGodlikePowersPacket.GrantDataBlock();
-            GrantGodlikePowersPacket.AgentDataBlock adb = new GrantGodlikePowersPacket.AgentDataBlock();
-
-            adb.AgentID = agentID;
-            adb.SessionID = sessionID; // More security
-
-            if (godStatus)
-            {
-                gdb.GodLevel = 250;
-                m_godlevel = 250;
-            }
-            else
-            {
-                gdb.GodLevel = 0;
-                m_godlevel = 0;
-            }
-
-            gdb.Token = token;
-            //respondPacket.AgentData = (GrantGodlikePowersPacket.AgentDataBlock)ablock;
-            respondPacket.GrantData = gdb;
-            respondPacket.AgentData = adb;
-            ControllingClient.OutPacket(respondPacket, ThrottleOutPacketType.Task);
-        }
-
-        /// <summary>
-        /// This updates important decision making data about a child agent
-        /// The main purpose is to figure out what objects to send to a child agent that's in a neighboring region
-        /// </summary>
-        public void ChildAgentDataUpdate(ChildAgentDataUpdate cAgentData, uint tRegionX, uint tRegionY, uint rRegionX, uint rRegionY)
-        {
-            // 
-            int shiftx = ((int) rRegionX - (int) tRegionX) * (int) Constants.RegionSize;
-            int shifty = ((int) rRegionY - (int) tRegionY) * (int) Constants.RegionSize;
-
-            m_DrawDistance = cAgentData.drawdistance;
-            m_pos = new LLVector3(cAgentData.Position.x + shiftx, cAgentData.Position.y + shifty, cAgentData.Position.z);
-
-            // It's hard to say here..   We can't really tell where the camera position is unless it's in world cordinates from the sending region
-            m_CameraCenter =
-                new Vector3(cAgentData.cameraPosition.x, cAgentData.cameraPosition.y, cAgentData.cameraPosition.z);
-
-
-            m_godlevel = cAgentData.godlevel;
-            SetHeight(cAgentData.AVHeight);
-
-            ControllingClient.SetChildAgentThrottle(cAgentData.throttles);
-
-
-            // Sends out the objects in the user's draw distance if m_sendTasksToChild is true.
-            if (m_scene.m_seeIntoRegionFromNeighbor)
-                m_scene.SendAllSceneObjectsToClient(this);
-            //cAgentData.AVHeight;
-            //cAgentData.regionHandle;
-            //m_velocity = cAgentData.Velocity;
-        }
-
-        /// <summary>
-        /// Handles part of the PID controller function for moving an avatar.
-        /// </summary>
-        public override void UpdateMovement()
-        {
-            m_newForce = false;
-            lock (m_forcesList)
-            {
-                if (m_forcesList.Count > 0)
-                {
-                    for (int i = 0; i < m_forcesList.Count; i++)
-                    {
-                        NewForce force = m_forcesList[i];
-
-                        m_updateflag = true;
-                        try
-                        {
-                            movementvector.X = force.X;
-                            movementvector.Y = force.Y;
-                            movementvector.Z = force.Z;
-                            Velocity = movementvector;
-                        }
-                        catch (NullReferenceException)
-                        {
-                            // Under extreme load, this returns a NullReference Exception that we can ignore. 
-                            // Ignoring this causes no movement to be sent to the physics engine...  
-                            // which when the scene is moving at 1 frame every 10 seconds, it doesn't really matter!
-                        }
-                        m_newForce = true;
-                    }
-                    for (int i = 0; i < m_forcesList.Count; i++)
-                    {
-                        m_forcesList.RemoveAt(0);
-                    }
-                }
-            }
-        }
-
-        public override void SetText(string text, Vector3 color, double alpha)
-        {
-            throw new Exception("Can't set Text on avatar.");
-        }
-
-        /// <summary>
-        /// Adds a physical representation of the avatar to the Physics plugin
-        /// </summary>
-        public void AddToPhysicalScene()
-        {
-            PhysicsScene scene = m_scene.PhysicsScene;
-
-            PhysicsVector pVec =
-                new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,
-                                  AbsolutePosition.Z);
-            if (m_avHeight == 127.0f)
-            {
-                m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec, new PhysicsVector(0, 0, 1.56f));
-            }
-            else
-            {
-                m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec, new PhysicsVector(0, 0, m_avHeight));
-            }
-            //m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
-            m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
-            m_physicsActor.LocalID = LocalId;
-        }
-
-        // Event called by the physics plugin to tell the avatar about a collision.
-        private void PhysicsCollisionUpdate(EventArgs e)
-        {
-            bool isUserMoving = Velocity.X > 0 || Velocity.Y > 0;
-            UpdateMovementAnimations(isUserMoving);
-        }
-
-        internal void Close()
-        {
-            lock (m_attachments)
-            {
-                foreach (SceneObjectGroup grp in m_attachments)
-                {
-                    // ControllingClient may be null at this point!
-                    m_scene.m_innerScene.DetachSingleAttachmentToInv(grp.GetFromAssetID(), ControllingClient);
-                }
-                m_attachments.Clear();
-            }
-            lock (m_knownPrimUUID)
-            {
-                m_knownPrimUUID.Clear();
-            }
-            lock (m_knownChildRegions)
-            {
-                m_knownChildRegions.Clear();
-            }
-            lock (m_updateTimes)
-            {
-                m_updateTimes.Clear();
-            }
-            lock (m_partsUpdateQueue)
-            {
-                m_partsUpdateQueue.Clear();
-            }
-
-            RemoveFromPhysicalScene();
-            GC.Collect();
-        }
-
-        public void AddAttachment(SceneObjectGroup gobj)
-        {
-            lock (m_attachments)
-            {
-                m_attachments.Add(gobj);
-            }
-        }
-
-        public void RemoveAttachment(SceneObjectGroup gobj)
-        {
-            lock (m_attachments)
-            {
-                if (m_attachments.Contains(gobj))
-                {
-                    m_attachments.Remove(gobj);
-                }
-            }
-        }
-
-        public void CrossAttachmentsIntoNewRegion(ulong regionHandle)
-        {
-            lock (m_attachments)
-            {
-                foreach (SceneObjectGroup gobj in m_attachments)
-                {
-                    // If the prim group is null then something must have happened to it!
-                    if (gobj != null)
-                    {
-                        // Set the parent localID to 0 so it transfers over properly.
-                        gobj.RootPart.SetParentLocalId(0);
-                        gobj.RootPart.m_IsAttachment = false;
-                        gobj.AbsolutePosition = gobj.RootPart.m_attachedPos;
-                        gobj.RootPart.LastOwnerID = gobj.GetFromAssetID();
-                        m_scene.CrossPrimGroupIntoNewRegion(regionHandle, gobj);
-                    }
-                }
-                m_attachments.Clear();
-            }
-        }
-
-        public void initializeScenePresence(IClientAPI client, RegionInfo region, Scene scene)
-        {
-            m_controllingClient = client;
-            m_regionInfo = region;
-            m_scene = scene;
-            RegisterToEvents();
-
-            /*
-            AbsolutePosition = client.StartPos;
-
-            Animations = new AvatarAnimations();
-            Animations.LoadAnims();
-
-            m_animations = new List<LLUUID>();
-            m_animations.Add(Animations.AnimsLLUUID["STAND"]);
-            m_animationSeqs.Add(m_controllingClient.NextAnimationSequenceNumber);
-
-            SetDirectionVectors();
-            */
-        }
-
         #region Status Methods
 
         /// <summary>
@@ -1092,7 +542,7 @@ namespace OpenSim.Region.Environment.Scenes
 //            m_log.DebugFormat(
 //                 "[SCENEPRESENCE]: Upgrading child agent {0}, {1} to a root agent in {2}", 
 //                 Name, UUID, m_scene.RegionInfo.RegionName);
-
+            
             m_isChildAgent = false;
 
             AbsolutePosition = pos;
@@ -1108,7 +558,7 @@ namespace OpenSim.Region.Environment.Scenes
             //{
             m_scene.SendAllSceneObjectsToClient(this);
             m_scene.LandChannel.sendLandUpdate(this, true);
-
+            
             //m_gotAllObjectsInScene = true;
             //}
         }
@@ -1122,9 +572,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void MakeChildAgent()
         {
-            if (m_animations.Count > 0)
+            if(m_animations.Count > 0)
             {
-                LLUUID movement = m_animations[0];
+                LLUUID movement=m_animations[0];
 
                 m_animations.Clear();
                 m_animationSeqs.Clear();
@@ -1134,7 +584,7 @@ namespace OpenSim.Region.Environment.Scenes
 //            m_log.DebugFormat(
 //                 "[SCENEPRESENCE]: Downgrading child agent {0}, {1} to a root agent in {2}", 
 //                 Name, UUID, m_scene.RegionInfo.RegionName);
-
+            
             Velocity = new LLVector3(0, 0, 0);
             m_isChildAgent = true;
             m_scene.SwapRootAgentCount(true);
@@ -1391,8 +841,9 @@ namespace OpenSim.Region.Environment.Scenes
                                             ((flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
 
                         // Are the collision requirements fulfilled?
-                        bool colliding = m_physicsActor.IsColliding;
+                        bool colliding = (m_physicsActor.IsColliding == true);
 
+                        
 
                         if (m_physicsActor.Flying && colliding && controlland)
                         {
@@ -1406,9 +857,9 @@ namespace OpenSim.Region.Environment.Scenes
                     UpdateMovementAnimations(update_movementflag);
                 }
             }
-
+            
             m_scene.EventManager.TriggerOnClientMovement(this);
-
+            
             m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
         }
 
@@ -1435,9 +886,9 @@ namespace OpenSim.Region.Environment.Scenes
                     AddToPhysicalScene();
                 }
 
-                m_pos += m_parentPosition + new LLVector3(0.0f, 0.0f, 2.0f * m_sitAvatarHeight);
+                m_pos += m_parentPosition + new LLVector3(0.0f, 0.0f, 2.0f*m_sitAvatarHeight);
                 m_parentPosition = new LLVector3();
-
+                
                 m_parentID = 0;
                 SendFullUpdateToAllClients();
 
@@ -1540,7 +991,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                m_log.Warn("Sit requested on unknown object: " + targetID);
+                m_log.Warn("Sit requested on unknown object: " + targetID.ToString());
             }
             SendSitResponse(remoteClient, targetID, offset);
         }
@@ -1602,11 +1053,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AddAnimation(LLUUID animID)
         {
-            if (m_isChildAgent)
+            if(m_isChildAgent)
                 return;
 
             // Don't let this animation become the movement animation
-            if (m_animations.Count < 1)
+            if(m_animations.Count < 1)
                 SetMovementAnimation(Animations.AnimsLLUUID["STAND"]);
 
             if (!m_animations.Contains(animID))
@@ -1619,7 +1070,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void RemoveAnimation(LLUUID animID)
         {
-            if (m_isChildAgent)
+            if(m_isChildAgent)
                 return;
 
             if (m_animations.Contains(animID))
@@ -1633,11 +1084,11 @@ namespace OpenSim.Region.Environment.Scenes
                     // What a HACK!! Anim list really needs to be an object!
                     int idx;
 
-                    for (idx = 0; idx < m_animations.Count; idx++)
+                    for(idx=0;idx < m_animations.Count;idx++)
                     {
-                        if (m_animations[idx] == animID)
+                        if(m_animations[idx] == animID)
                         {
-                            int seq = m_animationSeqs[idx];
+                            int seq=m_animationSeqs[idx];
 
                             m_animations.Remove(animID);
                             m_animationSeqs.Remove(seq);
@@ -1666,7 +1117,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         protected void SetMovementAnimation(LLUUID anim)
         {
-            if (m_animations.Count < 1)
+            if(m_animations.Count < 1)
             {
                 m_animations.Add(Animations.AnimsLLUUID["STAND"]);
                 m_animationSeqs.Add(1);
@@ -1699,6 +1150,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         protected void UpdateMovementAnimations(bool update_movementflag)
         {
+            
+
             if (update_movementflag)
             {
                 // Are we moving?
@@ -1731,8 +1184,7 @@ namespace OpenSim.Region.Environment.Scenes
                             SetMovementAnimation(Animations.AnimsLLUUID["JUMP"]);
                         }
                         catch (KeyNotFoundException)
-                        {
-                        }
+                        { }
                     }
                     else if (m_setAlwaysRun)
                     {
@@ -1742,8 +1194,7 @@ namespace OpenSim.Region.Environment.Scenes
                             SetMovementAnimation(Animations.AnimsLLUUID["RUN"]);
                         }
                         catch (KeyNotFoundException)
-                        {
-                        }
+                        { }
                     }
                     else
                     {
@@ -1753,8 +1204,8 @@ namespace OpenSim.Region.Environment.Scenes
                             SetMovementAnimation(Animations.AnimsLLUUID["WALK"]);
                         }
                         catch (KeyNotFoundException)
-                        {
-                        }
+                        { }
+
                     }
                 }
                 else
@@ -1788,14 +1239,15 @@ namespace OpenSim.Region.Environment.Scenes
                         // We're not moving..   and we're not doing anything..   so play the stand animation
                         try
                         {
+
                             SetMovementAnimation(Animations.AnimsLLUUID["STAND"]);
                         }
                         catch (KeyNotFoundException)
-                        {
-                        }
+                        { }
                     }
                 }
             }
+           
         }
 
         /// <summary>
@@ -1810,13 +1262,13 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             m_perfMonMS = System.Environment.TickCount;
-
+            
             m_rotation = rotation;
             NewForce newVelocity = new NewForce();
-            Vector3 direc = rotation * vec;
+            Vector3 direc = rotation*vec;
             direc.Normalize();
 
-            direc *= 0.03f * 128f;
+            direc *= 0.03f*128f;
             if (m_physicsActor.Flying)
             {
                 direc *= 4;
@@ -1848,8 +1300,7 @@ namespace OpenSim.Region.Environment.Scenes
                             SetMovementAnimation(Animations.AnimsLLUUID["JUMP"]);
                         }
                         catch (KeyNotFoundException)
-                        {
-                        }
+                        { }
                     }
                 }
             }
@@ -1895,18 +1346,23 @@ namespace OpenSim.Region.Environment.Scenes
                         m_updateCount = 0;
                     }
                 }
-                else if ((Util.GetDistanceTo(lastPhysPos, AbsolutePosition) > 0.02) || (Util.GetDistanceTo(m_lastVelocity, m_velocity) > 0.02))
-                    // physics-related movement
+                else if ((Util.GetDistanceTo(lastPhysPos, AbsolutePosition) > 0.02) || (Util.GetDistanceTo(m_lastVelocity, m_velocity) > 0.02)) // physics-related movement
                 {
+
+                    
                     // Send Terse Update to all clients updates lastPhysPos and m_lastVelocity
                     // doing the above assures us that we know what we sent the clients last
                     SendTerseUpdateToAllClients();
                     m_updateCount = 0;
+                    
+
+                    
                 }
 
                 // followed suggestion from mic bowman. reversed the two lines below.
                 CheckForBorderCrossing();
                 CheckForSignificantMovement(); // sends update to the modules.
+                
             }
         }
 
@@ -1925,7 +1381,7 @@ namespace OpenSim.Region.Environment.Scenes
             LLVector3 pos = m_pos;
             LLVector3 vel = Velocity;
             LLQuaternion rot = new LLQuaternion(m_bodyRot.x, m_bodyRot.y, m_bodyRot.z, m_bodyRot.w);
-            remoteClient.SendAvatarTerseUpdate(m_regionHandle, (ushort) (m_scene.TimeDilation * ushort.MaxValue), LocalId, new LLVector3(pos.X, pos.Y, pos.Z),
+            remoteClient.SendAvatarTerseUpdate(m_regionHandle, (ushort)(m_scene.TimeDilation * (float)ushort.MaxValue), LocalId, new LLVector3(pos.X, pos.Y, pos.Z),
                                                new LLVector3(vel.X, vel.Y, vel.Z), rot);
 
             m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
@@ -1945,6 +1401,7 @@ namespace OpenSim.Region.Environment.Scenes
             lastPhysPos = AbsolutePosition;
 
             m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
+            
         }
 
         public void SendCoarseLocations()
@@ -2040,15 +1497,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendAppearanceToAllOtherAgents()
         {
-            m_perfMonMS = System.Environment.TickCount;
+            m_perfMonMS=System.Environment.TickCount;
 
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
+                                         {
+                                             if (scenePresence.UUID != UUID)
                                              {
-                                                 if (scenePresence.UUID != UUID)
-                                                 {
-                                                     m_appearance.SendAppearanceToOtherAgent(scenePresence);
-                                                 }
-                                             });
+                                                 m_appearance.SendAppearanceToOtherAgent(scenePresence);
+                                             }
+                                         });
             m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
         }
 
@@ -2077,7 +1534,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="seqs"></param>
         public void SendAnimPack(LLUUID[] animations, int[] seqs)
         {
-            if (m_isChildAgent)
+            if(m_isChildAgent)
                 return;
 
             m_scene.Broadcast(
@@ -2113,10 +1570,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             // Minimum Draw distance is 64 meters, the Radius of the draw distance sphere is 32m
-            if (Util.GetDistanceTo(AbsolutePosition, m_LastChildAgentUpdatePosition) > 32)
+            if (Util.GetDistanceTo(AbsolutePosition,m_LastChildAgentUpdatePosition) > 32) 
             {
                 ChildAgentDataUpdate cadu = new ChildAgentDataUpdate();
-                cadu.ActiveGroupID = LLUUID.Zero.UUID;
+                cadu.ActiveGroupID=LLUUID.Zero.UUID;
                 cadu.AgentID = UUID.UUID;
                 cadu.alwaysrun = m_setAlwaysRun;
                 cadu.AVHeight = m_avHeight;
@@ -2128,8 +1585,8 @@ namespace OpenSim.Region.Environment.Scenes
                 cadu.Position = new sLLVector3(AbsolutePosition);
                 cadu.regionHandle = m_scene.RegionInfo.RegionHandle;
                 cadu.throttles = ControllingClient.GetThrottlesPacked(1f);
-                cadu.Velocity = new sLLVector3(Velocity);
-                m_scene.SendOutChildAgentUpdates(cadu, this);
+                cadu.Velocity = new sLLVector3(Velocity); 
+                m_scene.SendOutChildAgentUpdates(cadu,this);
                 m_LastChildAgentUpdatePosition.X = AbsolutePosition.X;
                 m_LastChildAgentUpdatePosition.Y = AbsolutePosition.Y;
                 m_LastChildAgentUpdatePosition.Z = AbsolutePosition.Z;
@@ -2149,9 +1606,9 @@ namespace OpenSim.Region.Environment.Scenes
             LLVector3 vel = Velocity;
 
             float timeStep = 0.1f;
-            pos2.X = pos2.X + (vel.X * timeStep);
-            pos2.Y = pos2.Y + (vel.Y * timeStep);
-            pos2.Z = pos2.Z + (vel.Z * timeStep);
+            pos2.X = pos2.X + (vel.X*timeStep);
+            pos2.Y = pos2.Y + (vel.Y*timeStep);
+            pos2.Z = pos2.Z + (vel.Z*timeStep);
 
             if ((pos2.X < 0) || (pos2.X > Constants.RegionSize))
             {
@@ -2206,10 +1663,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             LLVector3 vel = m_velocity;
-            ulong neighbourHandle = Helpers.UIntsToLong((neighbourx * Constants.RegionSize), (neighboury * Constants.RegionSize));
+            ulong neighbourHandle = Helpers.UIntsToLong((uint)(neighbourx * Constants.RegionSize), (uint)(neighboury * Constants.RegionSize));
             SimpleRegionInfo neighbourRegion = m_scene.RequestNeighbouringRegionInfo(neighbourHandle);
             if (neighbourRegion != null)
-            {
+            {       
                 // When the neighbour is informed of the border crossing, it will set up CAPS handlers for the avatar
                 // This means we need to remove the current caps handler here and possibly compensate later, 
                 // in case both scenes are being hosted on the same region server.  Messy
@@ -2219,17 +1676,17 @@ namespace OpenSim.Region.Environment.Scenes
                     m_scene.InformNeighbourOfCrossing(neighbourHandle, m_controllingClient.AgentId, newpos,
                                                       m_physicsActor.Flying);
                 if (res)
-                {
+                {                                        
                     AgentCircuitData circuitdata = m_controllingClient.RequestClientInfo();
 
                     // TODO Should construct this behind a method                   
-                    string capsPath =
+                    string capsPath = 
                         "http://" + neighbourRegion.ExternalHostName + ":" + neighbourRegion.HttpPort
-                        + "/CAPS/" + circuitdata.CapsPath + "0000/";
-
+                         + "/CAPS/" + circuitdata.CapsPath + "0000/";
+                    
                     m_log.DebugFormat(
-                        "[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, m_uuid);
-
+                        "[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, m_uuid);                                        
+                    
                     m_controllingClient.CrossRegion(neighbourHandle, newpos, vel, neighbourRegion.ExternalEndPoint,
                                                     capsPath);
                     MakeChildAgent();
@@ -2246,40 +1703,128 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
-        #region Nested type: Dir_ControlFlags
-
         /// <summary>
-        /// Implemented Control Flags
+        /// This allows the Sim owner the abiility to kick users from their sim currently.
+        /// It tells the client that the agent has permission to do so.
         /// </summary>
-        private enum Dir_ControlFlags
+        public void GrantGodlikePowers(LLUUID agentID, LLUUID sessionID, LLUUID token, bool godStatus)
         {
-            DIR_CONTROL_FLAG_FORWARD = AgentManager.ControlFlags.AGENT_CONTROL_AT_POS,
-            DIR_CONTROL_FLAG_BACK = AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG,
-            DIR_CONTROL_FLAG_LEFT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS,
-            DIR_CONTROL_FLAG_RIGHT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG,
-            DIR_CONTROL_FLAG_UP = AgentManager.ControlFlags.AGENT_CONTROL_UP_POS,
-            DIR_CONTROL_FLAG_DOWN = AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG,
-            DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
+            GrantGodlikePowersPacket respondPacket = new GrantGodlikePowersPacket();
+            GrantGodlikePowersPacket.GrantDataBlock gdb = new GrantGodlikePowersPacket.GrantDataBlock();
+            GrantGodlikePowersPacket.AgentDataBlock adb = new GrantGodlikePowersPacket.AgentDataBlock();
+
+            adb.AgentID = agentID;
+            adb.SessionID = sessionID; // More security
+
+            if (godStatus)
+            {
+                gdb.GodLevel = (byte)250;
+                m_godlevel = 250;
+            }
+            else
+            {
+                gdb.GodLevel = (byte)0;
+                m_godlevel = 0;
+            }
+            
+            gdb.Token = token;
+            //respondPacket.AgentData = (GrantGodlikePowersPacket.AgentDataBlock)ablock;
+            respondPacket.GrantData = gdb;
+            respondPacket.AgentData = adb;
+            ControllingClient.OutPacket(respondPacket, ThrottleOutPacketType.Task);
         }
 
-        #endregion
+        /// <summary>
+        /// This updates important decision making data about a child agent
+        /// The main purpose is to figure out what objects to send to a child agent that's in a neighboring region
+        /// </summary>
+        public void ChildAgentDataUpdate(ChildAgentDataUpdate cAgentData, uint tRegionX, uint tRegionY, uint rRegionX, uint rRegionY)
+        {
+            // 
+            int shiftx = ((int)rRegionX - (int)tRegionX) * (int)Constants.RegionSize;
+            int shifty = ((int)rRegionY - (int)tRegionY) * (int)Constants.RegionSize;
+            
+            m_DrawDistance = cAgentData.drawdistance;
+            m_pos = new LLVector3(cAgentData.Position.x + shiftx, cAgentData.Position.y + shifty, cAgentData.Position.z);
 
-        #region Nested type: NewForce
+            // It's hard to say here..   We can't really tell where the camera position is unless it's in world cordinates from the sending region
+            m_CameraCenter =
+                new Vector3(cAgentData.cameraPosition.x, cAgentData.cameraPosition.y, cAgentData.cameraPosition.z);
+            
 
-        [Serializable]
+            m_godlevel = cAgentData.godlevel;
+            SetHeight(cAgentData.AVHeight);
+
+            ControllingClient.SetChildAgentThrottle(cAgentData.throttles);
+
+
+
+            // Sends out the objects in the user's draw distance if m_sendTasksToChild is true.
+            if (m_scene.m_seeIntoRegionFromNeighbor)
+                m_scene.SendAllSceneObjectsToClient(this);
+            //cAgentData.AVHeight;
+            //cAgentData.regionHandle;
+            //m_velocity = cAgentData.Velocity;
+        }
+
+        /// <summary>
+        /// Handles part of the PID controller function for moving an avatar.
+        /// </summary>
+        public override void UpdateMovement()
+        {
+            m_newForce = false;
+            lock (m_forcesList)
+            {
+                if (m_forcesList.Count > 0)
+                {
+                    for (int i = 0; i < m_forcesList.Count; i++)
+                    {
+                        NewForce force = m_forcesList[i];
+
+                        m_updateflag = true;
+                        try
+                        {
+                            movementvector.X = force.X;
+                            movementvector.Y = force.Y;
+                            movementvector.Z = force.Z;
+                            Velocity = movementvector;
+                        }
+                        catch (NullReferenceException)
+                        {
+                            // Under extreme load, this returns a NullReference Exception that we can ignore. 
+                            // Ignoring this causes no movement to be sent to the physics engine...  
+                            // which when the scene is moving at 1 frame every 10 seconds, it doesn't really matter!
+                        }
+                        m_newForce = true;
+                    }
+                    for (int i = 0; i < m_forcesList.Count; i++)
+                    {
+                        m_forcesList.RemoveAt(0);
+                    }
+                }
+            }
+        }
+
+        static ScenePresence()
+        {
+            LLObject.TextureEntry textu = AvatarAppearance.GetDefaultTextureEntry();
+            DefaultTexture = textu.ToBytes();
+        }
+
+        [Serializable] 
         public class NewForce
         {
             public float X;
             public float Y;
             public float Z;
+
+            public NewForce()
+            {
+            }
         }
 
-        #endregion
-
-        #region Nested type: ScenePartUpdate
-
-        [Serializable]
-        public class ScenePartUpdate : ISerializable
+        [Serializable] 
+        public class ScenePartUpdate : ISerializable 
         {
             public LLUUID FullID;
             public uint LastFullUpdateTime;
@@ -2301,17 +1846,15 @@ namespace OpenSim.Region.Environment.Scenes
                     throw new ArgumentNullException("info");
                 }
 
-                FullID = new LLUUID((Guid) info.GetValue("FullID", typeof (Guid)));
-                LastFullUpdateTime = (uint) info.GetValue("LastFullUpdateTime", typeof (uint));
-                LastTerseUpdateTime = (uint) info.GetValue("LastTerseUpdateTime", typeof (uint));
+                FullID = new LLUUID((Guid)info.GetValue("FullID", typeof(Guid)));
+                LastFullUpdateTime = (uint)info.GetValue("LastFullUpdateTime", typeof(uint));
+                LastTerseUpdateTime = (uint)info.GetValue("LastTerseUpdateTime", typeof(uint));
 
                 //System.Console.WriteLine("ScenePartUpdate Deserialize END");
             }
 
-            #region ISerializable Members
-
             [SecurityPermission(SecurityAction.LinkDemand,
-                Flags = SecurityPermissionFlag.SerializationFormatter)]
+                                Flags = SecurityPermissionFlag.SerializationFormatter)]
             public virtual void GetObjectData(
                 SerializationInfo info, StreamingContext context)
             {
@@ -2324,10 +1867,473 @@ namespace OpenSim.Region.Environment.Scenes
                 info.AddValue("LastFullUpdateTime", LastFullUpdateTime);
                 info.AddValue("LastTerseUpdateTime", LastTerseUpdateTime);
             }
-
-            #endregion
         }
 
-        #endregion
+        public override void SetText(string text, Vector3 color, double alpha)
+        {
+            throw new Exception("Can't set Text on avatar.");
+        }
+
+        /// <summary>
+        /// Adds a physical representation of the avatar to the Physics plugin
+        /// </summary>
+        public void AddToPhysicalScene()
+        {
+            PhysicsScene scene = m_scene.PhysicsScene;
+            
+            PhysicsVector pVec =
+                new PhysicsVector(AbsolutePosition.X, AbsolutePosition.Y,
+                                  AbsolutePosition.Z);
+            if (m_avHeight == 127.0f)
+            {
+                m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec, new PhysicsVector(0, 0, 1.56f));
+            }
+            else
+            {
+                m_physicsActor = scene.AddAvatar(Firstname + "." + Lastname, pVec, new PhysicsVector(0, 0, m_avHeight));
+            }
+            //m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
+            m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
+            m_physicsActor.LocalID = LocalId;
+        }
+
+        // Event called by the physics plugin to tell the avatar about a collision.
+        private void PhysicsCollisionUpdate(EventArgs e)
+        {
+            bool isUserMoving = Velocity.X > 0 || Velocity.Y > 0;
+            UpdateMovementAnimations(isUserMoving);
+        }
+
+        internal void Close()
+        {
+            lock (m_attachments)
+            {
+                foreach (SceneObjectGroup grp in m_attachments)
+                {
+                    // ControllingClient may be null at this point!
+                    m_scene.m_innerScene.DetachSingleAttachmentToInv(grp.GetFromAssetID(), ControllingClient);
+                }
+                m_attachments.Clear();
+            }
+            lock (m_knownPrimUUID)
+            {
+                m_knownPrimUUID.Clear();
+            }
+            lock (m_knownChildRegions)
+            {
+                m_knownChildRegions.Clear();
+            }
+            lock (m_updateTimes)
+            {
+                m_updateTimes.Clear();
+            }
+            lock (m_partsUpdateQueue)
+            {
+                m_partsUpdateQueue.Clear();
+            }
+
+            RemoveFromPhysicalScene();
+            GC.Collect();
+        }
+
+        public ScenePresence()
+        {
+/* JB
+            if (Animations == null)
+            {
+                Animations = new AvatarAnimations();
+                Animations.LoadAnims();
+            }
+*/
+            if (DefaultTexture == null)
+            {
+                LLObject.TextureEntry textu = AvatarAppearance.GetDefaultTextureEntry();
+                DefaultTexture = textu.ToBytes();
+            }
+        }
+        public void AddAttachment(SceneObjectGroup gobj)
+        {
+            lock (m_attachments)
+            {
+                m_attachments.Add(gobj);
+            }
+        }
+        public void RemoveAttachment(SceneObjectGroup gobj)
+        {
+            lock (m_attachments)
+            {
+                if (m_attachments.Contains(gobj))
+                {
+                    m_attachments.Remove(gobj);
+                }
+            }
+        }
+        public void CrossAttachmentsIntoNewRegion(ulong regionHandle)
+        {
+            lock (m_attachments)
+            {
+                foreach (SceneObjectGroup gobj in m_attachments)
+                {
+                    // If the prim group is null then something must have happened to it!
+                    if (gobj != null)
+                    {
+                        // Set the parent localID to 0 so it transfers over properly.
+                        gobj.RootPart.SetParentLocalId(0);
+                        gobj.RootPart.m_IsAttachment = false;
+                        gobj.AbsolutePosition = gobj.RootPart.m_attachedPos;
+                        gobj.RootPart.LastOwnerID = gobj.GetFromAssetID();
+                        m_scene.CrossPrimGroupIntoNewRegion(regionHandle, gobj);
+                    }
+                }
+                m_attachments.Clear();
+            }
+
+        }
+        public void initializeScenePresence(IClientAPI client, RegionInfo region, Scene scene)
+        {
+            m_controllingClient = client;
+            m_regionInfo = region;
+            m_scene = scene;
+            RegisterToEvents();
+
+            /*
+            AbsolutePosition = client.StartPos;
+
+            Animations = new AvatarAnimations();
+            Animations.LoadAnims();
+
+            m_animations = new List<LLUUID>();
+            m_animations.Add(Animations.AnimsLLUUID["STAND"]);
+            m_animationSeqs.Add(m_controllingClient.NextAnimationSequenceNumber);
+
+            SetDirectionVectors();
+            */
+        }
+
+        protected ScenePresence(SerializationInfo info, StreamingContext context)
+            : base (info, context)
+        {
+            //System.Console.WriteLine("ScenePresence Deserialize BGN");
+
+            if (info == null)
+            {
+                throw new ArgumentNullException("info");
+            }
+/* JB
+            if (Animations == null)
+            {
+                Animations = new AvatarAnimations();
+                Animations.LoadAnims();
+            }
+*/
+            if (DefaultTexture == null)
+            {
+                LLObject.TextureEntry textu = AvatarAppearance.GetDefaultTextureEntry();
+                DefaultTexture = textu.ToBytes();
+            }
+
+            List<Guid> animations_work = (List<Guid>)info.GetValue("m_animations", typeof(List<Guid>));
+
+            foreach (Guid guid in animations_work)
+            {
+                m_animations.Add(new LLUUID(guid));
+            }
+
+            m_animationSeqs = (List<int>)info.GetValue("m_animationSeqs", typeof(List<int>));
+            m_updateflag = (bool)info.GetValue("m_updateflag", typeof(bool));
+            m_movementflag = (byte)info.GetValue("m_movementflag", typeof(byte));
+            m_forcesList = (List<NewForce>)info.GetValue("m_forcesList", typeof(List<NewForce>));
+            m_updateCount = (short)info.GetValue("m_updateCount", typeof(short));
+            m_requestedSitTargetID = (uint)info.GetValue("m_requestedSitTargetID", typeof(uint));
+
+            m_requestedSitOffset
+                = new LLVector3(
+                    (float)info.GetValue("m_requestedSitOffset.X", typeof(float)),
+                    (float)info.GetValue("m_requestedSitOffset.Y", typeof(float)),
+                    (float)info.GetValue("m_requestedSitOffset.Z", typeof(float)));
+
+            m_sitAvatarHeight = (float)info.GetValue("m_sitAvatarHeight", typeof(float));
+            m_godlevel = (float)info.GetValue("m_godlevel", typeof(float));
+            m_setAlwaysRun = (bool)info.GetValue("m_setAlwaysRun", typeof(bool));
+
+            m_bodyRot
+                = new Quaternion(
+                    (float)info.GetValue("m_bodyRot.w", typeof(float)),
+                    (float)info.GetValue("m_bodyRot.x", typeof(float)),
+                    (float)info.GetValue("m_bodyRot.y", typeof(float)),
+                    (float)info.GetValue("m_bodyRot.z", typeof(float)));
+
+            IsRestrictedToRegion = (bool)info.GetValue("IsRestrictedToRegion", typeof(bool));
+            m_newForce = (bool)info.GetValue("m_newForce", typeof(bool));
+            //m_newAvatar = (bool)info.GetValue("m_newAvatar", typeof(bool));
+            m_newCoarseLocations = (bool)info.GetValue("m_newCoarseLocations", typeof(bool));
+            m_gotAllObjectsInScene = (bool)info.GetValue("m_gotAllObjectsInScene", typeof(bool));
+            m_avHeight = (float)info.GetValue("m_avHeight", typeof(float));
+            crossingFromRegion = (ulong)info.GetValue("crossingFromRegion", typeof(ulong));
+
+            List<float[]> Dir_Vectors_work = (List<float[]>)info.GetValue("Dir_Vectors", typeof(List<float[]>));
+            List<Vector3> Dir_Vectors_work2 = new List<Vector3>();
+
+            foreach (float[] f3 in Dir_Vectors_work)
+            {
+                Dir_Vectors_work2.Add(new Vector3(f3[0], f3[1], f3[2]));
+            }
+
+            Dir_Vectors = Dir_Vectors_work2.ToArray();
+
+            lastPhysPos
+                = new LLVector3(
+                    (float)info.GetValue("lastPhysPos.X", typeof(float)),
+                    (float)info.GetValue("lastPhysPos.Y", typeof(float)),
+                    (float)info.GetValue("lastPhysPos.Z", typeof(float)));
+
+            m_CameraCenter
+                = new Vector3(
+                    (float)info.GetValue("m_CameraCenter.X", typeof(float)),
+                    (float)info.GetValue("m_CameraCenter.Y", typeof(float)),
+                    (float)info.GetValue("m_CameraCenter.Z", typeof(float)));
+
+            m_CameraAtAxis
+                = new Vector3(
+                    (float)info.GetValue("m_CameraAtAxis.X", typeof(float)),
+                    (float)info.GetValue("m_CameraAtAxis.Y", typeof(float)),
+                    (float)info.GetValue("m_CameraAtAxis.Z", typeof(float)));
+
+            m_CameraLeftAxis
+                = new Vector3(
+                    (float)info.GetValue("m_CameraLeftAxis.X", typeof(float)),
+                    (float)info.GetValue("m_CameraLeftAxis.Y", typeof(float)),
+                    (float)info.GetValue("m_CameraLeftAxis.Z", typeof(float)));
+
+            m_CameraUpAxis
+                = new Vector3(
+                    (float)info.GetValue("m_CameraUpAxis.X", typeof(float)),
+                    (float)info.GetValue("m_CameraUpAxis.Y", typeof(float)),
+                    (float)info.GetValue("m_CameraUpAxis.Z", typeof(float)));
+
+            m_DrawDistance = (float)info.GetValue("m_DrawDistance", typeof(float));
+            m_appearance = (AvatarAppearance)info.GetValue("m_appearance", typeof(AvatarAppearance));
+            m_knownChildRegions = (List<ulong>)info.GetValue("m_knownChildRegions", typeof(List<ulong>));
+
+            posLastSignificantMove
+                = new LLVector3(
+                    (float)info.GetValue("posLastSignificantMove.X", typeof(float)),
+                    (float)info.GetValue("posLastSignificantMove.Y", typeof(float)),
+                    (float)info.GetValue("posLastSignificantMove.Z", typeof(float)));
+
+            // m_partsUpdateQueue = (UpdateQueue)info.GetValue("m_partsUpdateQueue", typeof(UpdateQueue));
+
+            /*
+            Dictionary<Guid, ScenePartUpdate> updateTimes_work 
+                = (Dictionary<Guid, ScenePartUpdate>)info.GetValue("m_updateTimes", typeof(Dictionary<Guid, ScenePartUpdate>));
+
+            foreach (Guid id in updateTimes_work.Keys)
+            {
+                m_updateTimes.Add(new LLUUID(id), updateTimes_work[id]);
+            }
+            */
+            m_regionHandle = (ulong)info.GetValue("m_regionHandle", typeof(ulong));
+            m_firstname = (string)info.GetValue("m_firstname", typeof(string));
+            m_lastname = (string)info.GetValue("m_lastname", typeof(string));
+            m_allowMovement = (bool)info.GetValue("m_allowMovement", typeof(bool));
+            m_parentPosition = new LLVector3((float)info.GetValue("m_parentPosition.X", typeof(float)),
+                                             (float)info.GetValue("m_parentPosition.Y", typeof(float)),
+                                             (float)info.GetValue("m_parentPosition.Z", typeof(float)));
+
+            m_isChildAgent = (bool)info.GetValue("m_isChildAgent", typeof(bool));
+            m_parentID = (uint)info.GetValue("m_parentID", typeof(uint));
+
+// for OpenSim_v0.5
+            currentParcelUUID = new LLUUID((Guid)info.GetValue("currentParcelUUID", typeof(Guid)));
+
+            lastKnownAllowedPosition
+                = new Vector3(
+                    (float)info.GetValue("lastKnownAllowedPosition.X", typeof(float)),
+                    (float)info.GetValue("lastKnownAllowedPosition.Y", typeof(float)),
+                    (float)info.GetValue("lastKnownAllowedPosition.Z", typeof(float)));
+            
+            sentMessageAboutRestrictedParcelFlyingDown = (bool)info.GetValue("sentMessageAboutRestrictedParcelFlyingDown", typeof(bool));
+
+            m_LastChildAgentUpdatePosition
+                = new LLVector3(
+                    (float)info.GetValue("m_LastChildAgentUpdatePosition.X", typeof(float)),
+                    (float)info.GetValue("m_LastChildAgentUpdatePosition.Y", typeof(float)),
+                    (float)info.GetValue("m_LastChildAgentUpdatePosition.Z", typeof(float)));
+            
+            m_perfMonMS = (int)info.GetValue("m_perfMonMS", typeof(int));
+            m_AgentControlFlags = (uint)info.GetValue("m_AgentControlFlags", typeof(uint));
+
+            m_headrotation
+                = new LLQuaternion(
+                    (float)info.GetValue("m_headrotation.W", typeof(float)),
+                    (float)info.GetValue("m_headrotation.X", typeof(float)),
+                    (float)info.GetValue("m_headrotation.Y", typeof(float)),
+                    (float)info.GetValue("m_headrotation.Z", typeof(float)));
+
+            m_state = (byte)info.GetValue("m_state", typeof(byte));
+
+            List<Guid> knownPrimUUID_work = (List<Guid>)info.GetValue("m_knownPrimUUID", typeof(List<Guid>));
+
+            foreach (Guid id in knownPrimUUID_work)
+            {
+                m_knownPrimUUID.Add(new LLUUID(id));
+            }
+
+            //System.Console.WriteLine("ScenePresence Deserialize END");
+        }
+
+        [SecurityPermission(SecurityAction.LinkDemand,
+                            Flags = SecurityPermissionFlag.SerializationFormatter)]
+        public override void GetObjectData(
+            SerializationInfo info, StreamingContext context)
+        {
+            if (info == null)
+            {
+                throw new ArgumentNullException("info");
+            }
+
+            base.GetObjectData(info, context);
+
+            List<Guid> animations_work = new List<Guid>();
+
+            foreach (LLUUID uuid in m_animations)
+            {
+                animations_work.Add(uuid.UUID);
+            }
+
+            info.AddValue("m_animations", animations_work);
+
+            info.AddValue("m_animationSeqs", m_animationSeqs);
+            info.AddValue("m_updateflag", m_updateflag);
+            info.AddValue("m_movementflag", m_movementflag);
+            info.AddValue("m_forcesList", m_forcesList);
+            info.AddValue("m_updateCount", m_updateCount);
+            info.AddValue("m_requestedSitTargetID", m_requestedSitTargetID);
+
+            // LLVector3
+            info.AddValue("m_requestedSitOffset.X", m_requestedSitOffset.X);
+            info.AddValue("m_requestedSitOffset.Y", m_requestedSitOffset.Y);
+            info.AddValue("m_requestedSitOffset.Z", m_requestedSitOffset.Z);
+
+            info.AddValue("m_sitAvatarHeight", m_sitAvatarHeight);
+            info.AddValue("m_godlevel", m_godlevel);
+            info.AddValue("m_setAlwaysRun", m_setAlwaysRun);
+            
+            // Quaternion
+            info.AddValue("m_bodyRot.w", m_bodyRot.w);
+            info.AddValue("m_bodyRot.x", m_bodyRot.x);
+            info.AddValue("m_bodyRot.y", m_bodyRot.y);
+            info.AddValue("m_bodyRot.z", m_bodyRot.z);
+
+            info.AddValue("IsRestrictedToRegion", IsRestrictedToRegion);
+            info.AddValue("m_newForce", m_newForce);
+            //info.AddValue("m_newAvatar", m_newAvatar);
+            info.AddValue("m_newCoarseLocations", m_newCoarseLocations);
+            info.AddValue("m_gotAllObjectsInScene", m_gotAllObjectsInScene);
+            info.AddValue("m_avHeight", m_avHeight);
+
+            // info.AddValue("m_regionInfo", m_regionInfo);
+
+            info.AddValue("crossingFromRegion", crossingFromRegion);
+
+            List<float[]> Dir_Vectors_work = new List<float[]>();
+
+            foreach (Vector3 v3 in Dir_Vectors)
+            {
+                Dir_Vectors_work.Add(new float[] { v3.x, v3.y, v3.z });
+            }
+
+            info.AddValue("Dir_Vectors", Dir_Vectors_work);
+
+            // LLVector3
+            info.AddValue("lastPhysPos.X", lastPhysPos.X);
+            info.AddValue("lastPhysPos.Y", lastPhysPos.Y);
+            info.AddValue("lastPhysPos.Z", lastPhysPos.Z);
+
+            // Vector3
+            info.AddValue("m_CameraCenter.X", m_CameraCenter.x);
+            info.AddValue("m_CameraCenter.Y", m_CameraCenter.y);
+            info.AddValue("m_CameraCenter.Z", m_CameraCenter.z);
+
+            // Vector3
+            info.AddValue("m_CameraAtAxis.X", m_CameraAtAxis.x);
+            info.AddValue("m_CameraAtAxis.Y", m_CameraAtAxis.y);
+            info.AddValue("m_CameraAtAxis.Z", m_CameraAtAxis.z);
+
+            // Vector3
+            info.AddValue("m_CameraLeftAxis.X", m_CameraLeftAxis.x);
+            info.AddValue("m_CameraLeftAxis.Y", m_CameraLeftAxis.y);
+            info.AddValue("m_CameraLeftAxis.Z", m_CameraLeftAxis.z);
+
+            // Vector3
+            info.AddValue("m_CameraUpAxis.X", m_CameraUpAxis.x);
+            info.AddValue("m_CameraUpAxis.Y", m_CameraUpAxis.y);
+            info.AddValue("m_CameraUpAxis.Z", m_CameraUpAxis.z);
+
+            info.AddValue("m_DrawDistance", m_DrawDistance);
+            info.AddValue("m_appearance", m_appearance);
+            info.AddValue("m_knownChildRegions", m_knownChildRegions);
+
+            // LLVector3
+            info.AddValue("posLastSignificantMove.X", posLastSignificantMove.X);
+            info.AddValue("posLastSignificantMove.Y", posLastSignificantMove.Y);
+            info.AddValue("posLastSignificantMove.Z", posLastSignificantMove.Z);
+
+            //info.AddValue("m_partsUpdateQueue", m_partsUpdateQueue);
+
+            /*
+            Dictionary<Guid, ScenePartUpdate> updateTimes_work = new Dictionary<Guid, ScenePartUpdate>();
+
+            foreach ( LLUUID id in m_updateTimes.Keys)
+            {
+                updateTimes_work.Add(id.UUID, m_updateTimes[id]);
+            }
+
+            info.AddValue("m_updateTimes", updateTimes_work);
+            */
+
+            info.AddValue("m_regionHandle", m_regionHandle);
+            info.AddValue("m_firstname", m_firstname);
+            info.AddValue("m_lastname", m_lastname);
+            info.AddValue("m_allowMovement", m_allowMovement);
+            //info.AddValue("m_physicsActor", m_physicsActor);
+            info.AddValue("m_parentPosition.X", m_parentPosition.X);
+            info.AddValue("m_parentPosition.Y", m_parentPosition.Y);
+            info.AddValue("m_parentPosition.Z", m_parentPosition.Z);
+            info.AddValue("m_isChildAgent", m_isChildAgent);
+            info.AddValue("m_parentID", m_parentID);
+
+// for OpenSim_v0.5
+            info.AddValue("currentParcelUUID", currentParcelUUID.UUID);
+
+            info.AddValue("lastKnownAllowedPosition.X", lastKnownAllowedPosition.x);
+            info.AddValue("lastKnownAllowedPosition.Y", lastKnownAllowedPosition.y);
+            info.AddValue("lastKnownAllowedPosition.Z", lastKnownAllowedPosition.z);
+
+            info.AddValue("sentMessageAboutRestrictedParcelFlyingDown", sentMessageAboutRestrictedParcelFlyingDown);
+
+            info.AddValue("m_LastChildAgentUpdatePosition.X", m_LastChildAgentUpdatePosition.X);
+            info.AddValue("m_LastChildAgentUpdatePosition.Y", m_LastChildAgentUpdatePosition.Y);
+            info.AddValue("m_LastChildAgentUpdatePosition.Z", m_LastChildAgentUpdatePosition.Z);
+
+            info.AddValue("m_perfMonMS", m_perfMonMS);
+            info.AddValue("m_AgentControlFlags", m_AgentControlFlags);
+
+            info.AddValue("m_headrotation.W", m_headrotation.W);
+            info.AddValue("m_headrotation.X", m_headrotation.X);
+            info.AddValue("m_headrotation.Y", m_headrotation.Y);
+            info.AddValue("m_headrotation.Z", m_headrotation.Z);
+
+            info.AddValue("m_state", m_state);
+
+            List<Guid> knownPrimUUID_work = new List<Guid>();
+
+            foreach (LLUUID id in m_knownPrimUUID)
+            {
+                knownPrimUUID_work.Add(id.UUID);
+            }
+
+            info.AddValue("m_knownPrimUUID", knownPrimUUID_work);
+        }
     }
 }

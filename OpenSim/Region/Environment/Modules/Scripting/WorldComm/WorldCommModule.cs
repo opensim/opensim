@@ -75,6 +75,10 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
         private Queue m_pendingQ;
         private Scene m_scene;
 
+        public WorldCommModule()
+        {
+        }
+
         #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
@@ -320,8 +324,8 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
     public class ListenerManager
     {
         //private Dictionary<int, ListenerInfo> m_listeners;
-        private readonly Hashtable m_listeners = Hashtable.Synchronized(new Hashtable());
         private object ListenersLock = new object();
+        private Hashtable m_listeners = Hashtable.Synchronized(new Hashtable());
         private int m_MaxListeners = 100;
 
         public int AddListener(uint localID, LLUUID itemID, LLUUID hostID, int channel, string name, string id, string msg)
@@ -481,7 +485,6 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
 
     public class ListenerInfo
     {
-        private readonly LLUUID m_sourceItemID; // ID of the scenePart or avatar source of the message
         private bool m_active; // Listener is active or not
         private int m_channel; // Channel
         private int m_handle; // Assigned handle of this listener
@@ -491,6 +494,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
         private uint m_localID; // Local ID from script engine
         private string m_message; // The message
         private string m_name; // Object name to filter messages from
+        private LLUUID m_sourceItemID; // ID of the scenePart or avatar source of the message
 
         public ListenerInfo(uint localID, int handle, LLUUID ItemID, LLUUID hostID, int channel, string name, LLUUID id, string message)
         {

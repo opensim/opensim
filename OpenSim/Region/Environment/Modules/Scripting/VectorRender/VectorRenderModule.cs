@@ -48,6 +48,10 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
         private Scene m_scene;
         private IDynamicTextureManager m_textureManager;
 
+        public VectorRenderModule()
+        {
+        }
+
         #region IDynamicTextureRender Members
 
         public string GetContentType()
@@ -134,7 +138,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
             catch (Exception e)
             {
 //Ckrinke: Add a WriteLine to remove the warning about 'e' defined but not used
-                Console.WriteLine("Problem with Draw. Please verify parameters." + e);
+                Console.WriteLine("Problem with Draw. Please verify parameters." + e.ToString());
             }
 
             if ((size < 128) || (size > 1024))
@@ -256,7 +260,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
                     endPoint.X = (int) x;
                     endPoint.Y = (int) y;
                     Image image = ImageHttpRequest(nextLine);
-                    graph.DrawImage(image, startPoint.X, startPoint.Y, x, y);
+                    graph.DrawImage(image, (float) startPoint.X, (float) startPoint.Y, x, y);
                     startPoint.X += endPoint.X;
                     startPoint.Y += endPoint.Y;
                 }
@@ -349,7 +353,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
 
         private Bitmap ImageHttpRequest(string url)
         {
-            WebRequest request = WebRequest.Create(url);
+            WebRequest request = HttpWebRequest.Create(url);
 //Ckrinke: Comment out for now as 'str' is unused. Bring it back into play later when it is used.
 //Ckrinke            Stream str = null;
             HttpWebResponse response = (HttpWebResponse) (request).GetResponse();

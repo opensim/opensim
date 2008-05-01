@@ -41,6 +41,10 @@ namespace OpenSim.Region.Environment.Modules.Agent.Xfer
         public Dictionary<string, byte[]> NewFiles = new Dictionary<string, byte[]>();
         public Dictionary<ulong, XferDownLoad> Transfers = new Dictionary<ulong, XferDownLoad>();
 
+        public XferModule()
+        {
+        }
+
         #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
@@ -145,11 +149,11 @@ namespace OpenSim.Region.Environment.Modules.Agent.Xfer
             public IClientAPI Client;
             private bool complete;
             public byte[] Data = new byte[0];
-            public int DataPointer;
+            public int DataPointer = 0;
             public string FileName = String.Empty;
-            public uint Packet;
+            public uint Packet = 0;
             public uint Serial = 1;
-            public ulong XferID;
+            public ulong XferID = 0;
 
             public XferDownLoad(string fileName, byte[] data, ulong xferID, IClientAPI client)
             {
@@ -213,7 +217,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.Xfer
                     {
                         byte[] transferData = new byte[Data.Length - DataPointer];
                         Array.Copy(Data, DataPointer, transferData, 0, Data.Length - DataPointer);
-                        uint endPacket = Packet |= 0x80000000;
+                        uint endPacket = Packet |= (uint) 0x80000000;
                         Client.SendXferPacket(XferID, endPacket, transferData);
                         Packet++;
                         DataPointer += (Data.Length - DataPointer);

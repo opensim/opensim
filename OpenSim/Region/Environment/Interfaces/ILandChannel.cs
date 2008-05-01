@@ -70,8 +70,7 @@ namespace OpenSim.Region.Environment.Interfaces
         void handleSignificantClientMovement(IClientAPI remote_client);
         void handleAnyClientMovement(ScenePresence avatar);
         void handleParcelAccessRequest(LLUUID agentID, LLUUID sessionID, uint flags, int sequenceID, int landLocalID, IClientAPI remote_client);
+        void handleParcelAccessUpdateRequest(LLUUID agentID, LLUUID sessionID, uint flags, int landLocalID, List<ParcelManager.ParcelAccessEntry> entries, IClientAPI remote_client);
 
-        void handleParcelAccessUpdateRequest(LLUUID agentID, LLUUID sessionID, uint flags, int landLocalID, List<ParcelManager.ParcelAccessEntry> entries,
-                                             IClientAPI remote_client);
     }
 }

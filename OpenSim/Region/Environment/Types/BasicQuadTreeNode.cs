@@ -33,15 +33,16 @@ namespace OpenSim.Region.Environment.Types
 {
     public class BasicQuadTreeNode
     {
-        private readonly short m_height;
-        private readonly short m_leftX;
-        private readonly short m_leftY;
-        private readonly List<SceneObjectGroup> m_objects = new List<SceneObjectGroup>();
-        private readonly BasicQuadTreeNode m_parent;
+        private List<SceneObjectGroup> m_objects = new List<SceneObjectGroup>();
+        private BasicQuadTreeNode[] m_childNodes = null;
+        private BasicQuadTreeNode m_parent = null;
+
+        private short m_leftX;
+        private short m_leftY;
+        private short m_width;
+        private short m_height;
         //private int m_quadNumber;
-        private readonly string m_quadID;
-        private readonly short m_width;
-        private BasicQuadTreeNode[] m_childNodes;
+        private string m_quadID;
 
         public BasicQuadTreeNode(BasicQuadTreeNode parent, string quadID, short leftX, short leftY, short width,
                                  short height)
@@ -66,9 +67,9 @@ namespace OpenSim.Region.Environment.Types
             }
             else
             {
-                if (obj.AbsolutePosition.X < (m_leftX + (m_width / 2)))
+                if (obj.AbsolutePosition.X < (m_leftX + (m_width/2)))
                 {
-                    if (obj.AbsolutePosition.Y < (m_leftY + (m_height / 2)))
+                    if (obj.AbsolutePosition.Y < (m_leftY + (m_height/2)))
                     {
                         m_childNodes[0].AddObject(obj);
                     }
@@ -79,7 +80,7 @@ namespace OpenSim.Region.Environment.Types
                 }
                 else
                 {
-                    if (obj.AbsolutePosition.Y < (m_leftY + (m_height / 2)))
+                    if (obj.AbsolutePosition.Y < (m_leftY + (m_height/2)))
                     {
                         m_childNodes[1].AddObject(obj);
                     }
@@ -97,17 +98,17 @@ namespace OpenSim.Region.Environment.Types
             {
                 m_childNodes = new BasicQuadTreeNode[4];
                 m_childNodes[0] =
-                    new BasicQuadTreeNode(this, m_quadID + "1/", m_leftX, m_leftY, (short) (m_width / 2),
-                                          (short) (m_height / 2));
+                    new BasicQuadTreeNode(this, m_quadID + "1/", m_leftX, m_leftY, (short) (m_width/2),
+                                          (short) (m_height/2));
                 m_childNodes[1] =
-                    new BasicQuadTreeNode(this, m_quadID + "2/", (short) (m_leftX + (m_width / 2)), m_leftY,
-                                          (short) (m_width / 2), (short) (m_height / 2));
+                    new BasicQuadTreeNode(this, m_quadID + "2/", (short) (m_leftX + (m_width/2)), m_leftY,
+                                          (short) (m_width/2), (short) (m_height/2));
                 m_childNodes[2] =
-                    new BasicQuadTreeNode(this, m_quadID + "3/", m_leftX, (short) (m_leftY + (m_height / 2)),
-                                          (short) (m_width / 2), (short) (m_height / 2));
+                    new BasicQuadTreeNode(this, m_quadID + "3/", m_leftX, (short) (m_leftY + (m_height/2)),
+                                          (short) (m_width/2), (short) (m_height/2));
                 m_childNodes[3] =
-                    new BasicQuadTreeNode(this, m_quadID + "4/", (short) (m_leftX + (m_width / 2)),
-                                          (short) (m_height + (m_height / 2)), (short) (m_width / 2), (short) (m_height / 2));
+                    new BasicQuadTreeNode(this, m_quadID + "4/", (short) (m_leftX + (m_width/2)),
+                                          (short) (m_height + (m_height/2)), (short) (m_width/2), (short) (m_height/2));
             }
             else
             {
@@ -126,9 +127,9 @@ namespace OpenSim.Region.Environment.Types
             }
             else
             {
-                if (x < m_leftX + (m_width / 2))
+                if (x < m_leftX + (m_width/2))
                 {
-                    if (y < m_leftY + (m_height / 2))
+                    if (y < m_leftY + (m_height/2))
                     {
                         return m_childNodes[0].GetObjectsFrom(x, y);
                     }
@@ -139,7 +140,7 @@ namespace OpenSim.Region.Environment.Types
                 }
                 else
                 {
-                    if (y < m_leftY + (m_height / 2))
+                    if (y < m_leftY + (m_height/2))
                     {
                         return m_childNodes[1].GetObjectsFrom(x, y);
                     }
@@ -180,9 +181,9 @@ namespace OpenSim.Region.Environment.Types
             }
             else
             {
-                if (x < m_leftX + (m_width / 2))
+                if (x < m_leftX + (m_width/2))
                 {
-                    if (y < m_leftY + (m_height / 2))
+                    if (y < m_leftY + (m_height/2))
                     {
                         return m_childNodes[0].GetNodeID(x, y);
                     }
@@ -193,7 +194,7 @@ namespace OpenSim.Region.Environment.Types
                 }
                 else
                 {
-                    if (y < m_leftY + (m_height / 2))
+                    if (y < m_leftY + (m_height/2))
                     {
                         return m_childNodes[1].GetNodeID(x, y);
                     }

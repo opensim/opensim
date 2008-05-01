@@ -37,10 +37,10 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
 {
     public class SerialiserModule : IRegionModule, IRegionSerialiser
     {
-        private readonly Commander m_commander = new Commander("Export");
-        private readonly List<Scene> m_regions = new List<Scene>();
-        private readonly List<IFileSerialiser> m_serialisers = new List<IFileSerialiser>();
+        private Commander m_commander = new Commander("Export");
+        private List<Scene> m_regions = new List<Scene>();
         private string m_savedir = "exports" + "/";
+        private List<IFileSerialiser> m_serialisers = new List<IFileSerialiser>();
 
         #region IRegionModule Members
 
@@ -105,8 +105,8 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
 
             TextWriter regionInfoWriter = new StreamWriter(saveDir + "README.TXT");
             regionInfoWriter.WriteLine("Region Name: " + scene.RegionInfo.RegionName);
-            regionInfoWriter.WriteLine("Region ID: " + scene.RegionInfo.RegionID);
-            regionInfoWriter.WriteLine("Backup Time: UTC " + DateTime.UtcNow);
+            regionInfoWriter.WriteLine("Region ID: " + scene.RegionInfo.RegionID.ToString());
+            regionInfoWriter.WriteLine("Backup Time: UTC " + DateTime.UtcNow.ToString());
             regionInfoWriter.WriteLine("Serialise Version: 0.1");
             regionInfoWriter.Close();
 
@@ -141,7 +141,7 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
             {
                 if (region.RegionInfo.RegionName == (string) args[0])
                 {
-                    List<string> results = SerialiseRegion(region, m_savedir + region.RegionInfo.RegionID + "/");
+                    List<string> results = SerialiseRegion(region, m_savedir + region.RegionInfo.RegionID.ToString() + "/");
                 }
             }
         }
@@ -150,7 +150,7 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
         {
             foreach (Scene region in m_regions)
             {
-                List<string> results = SerialiseRegion(region, m_savedir + region.RegionInfo.RegionID + "/");
+                List<string> results = SerialiseRegion(region, m_savedir + region.RegionInfo.RegionID.ToString() + "/");
             }
         }
 

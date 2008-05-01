@@ -46,48 +46,14 @@ namespace OpenSim.Grid.AssetServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static OpenAsset_Main assetserver;
-
-        // Temporarily hardcoded - should be a plugin
-        protected IAssetLoader assetLoader = new AssetLoaderFileSystem();
-
-        private IAssetProvider m_assetProvider;
         public AssetConfig m_config;
 
-        public OpenAsset_Main()
-        {
-            m_console = new ConsoleBase("OpenAsset", this);
-
-            MainConsole.Instance = m_console;
-        }
-
-        #region conscmd_callback Members
-
-        public override void RunCmd(string cmd, string[] cmdparams)
-        {
-            base.RunCmd(cmd, cmdparams);
-
-            switch (cmd)
-            {
-                case "help":
-                    m_console.Notice(
-                        @"shutdown - shutdown this asset server (USE CAUTION!)
-                 stats    - statistical information for this server");
-
-                    break;
-
-                case "stats":
-                    m_console.Notice("STATS", Environment.NewLine + StatsManager.AssetStats.Report());
-                    break;
-
-                case "shutdown":
-                    m_console.Close();
-                    Environment.Exit(0);
-                    break;
-            }
-        }
-
-        #endregion
+        public static OpenAsset_Main assetserver;   
+        
+        // Temporarily hardcoded - should be a plugin
+        protected IAssetLoader assetLoader = new AssetLoaderFileSystem();        
+        
+        private IAssetProvider m_assetProvider;
 
         [STAThread]
         public static void Main(string[] args)
@@ -110,6 +76,13 @@ namespace OpenSim.Grid.AssetServer
             {
                 m_console.Prompt();
             }
+        }
+
+        public OpenAsset_Main()
+        {
+            m_console = new ConsoleBase("OpenAsset", this);
+            
+            MainConsole.Instance = m_console;
         }
 
         public void Startup()
@@ -187,18 +160,42 @@ namespace OpenSim.Grid.AssetServer
             catch (Exception e)
             {
                 m_log.Warn("[ASSET]: setupDB() - Exception occured");
-                m_log.Warn("[ASSET]: " + e);
+                m_log.Warn("[ASSET]: " + e.ToString());
             }
         }
 
         public void LoadDefaultAssets()
         {
-            assetLoader.ForEachDefaultXmlAsset(StoreAsset);
+            assetLoader.ForEachDefaultXmlAsset(StoreAsset);            
         }
 
         protected void StoreAsset(AssetBase asset)
         {
             m_assetProvider.CreateAsset(asset);
+        }
+
+        public override void RunCmd(string cmd, string[] cmdparams)
+        {
+            base.RunCmd(cmd, cmdparams);
+            
+            switch (cmd)
+            {
+                case "help":
+                    m_console.Notice(
+                        @"shutdown - shutdown this asset server (USE CAUTION!)
+                 stats    - statistical information for this server");                    
+                    
+                    break;                  
+                    
+                case "stats":
+                    m_console.Notice("STATS", Environment.NewLine + StatsManager.AssetStats.Report());
+                    break;
+
+                case "shutdown":
+                    m_console.Close();
+                    Environment.Exit(0);
+                    break;
+            }
         }
     }
 }

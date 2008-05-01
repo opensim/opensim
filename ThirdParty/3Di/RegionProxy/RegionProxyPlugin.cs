@@ -75,7 +75,7 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
             string proxyURL = openSim.ConfigSource.Configs["Network"].GetString("proxy_url", "");
             if (proxyURL.Length == 0) return;
 
-            uint port = (uint) Int32.Parse(proxyURL.Split(new[] {':'})[2]);
+            uint port = (uint) Int32.Parse(proxyURL.Split(new char[] {':'})[2]);
             command_server = new BaseHttpServer(port);
             command_server.Start();
             command_server.AddXmlRPCHandler("AddPort", AddPort);
@@ -223,7 +223,7 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
         {
             m_log = log;
             running = false;
-            receivedData = OnReceivedData;
+            receivedData = new AsyncCallback(OnReceivedData);
         }
 
         public void BlockClientMessages(string regionUrl, int regionPort)
@@ -452,7 +452,7 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
 
         protected class ProxyMap
         {
-            private readonly Dictionary<EndPoint, RegionData> map;
+            private Dictionary<EndPoint, RegionData> map;
 
             public ProxyMap()
             {
@@ -494,7 +494,7 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
 
             public class RegionData
             {
-                public bool isBlocked;
+                public bool isBlocked = false;
                 public List<EndPoint> regions = new List<EndPoint>();
                 public Queue storedMessages = new Queue();
             }

@@ -40,16 +40,15 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetDownload
         /// <summary>
         /// Asset requests with data which are ready to be sent back to requesters.  This includes textures.
         /// </summary>
-        private readonly List<AssetRequest> AssetRequests;
+        private List<AssetRequest> AssetRequests;
 
-        private readonly Dictionary<LLUUID, Scene> RegisteredScenes = new Dictionary<LLUUID, Scene>();
+        private Scene m_scene;
+        private Dictionary<LLUUID, Scene> RegisteredScenes = new Dictionary<LLUUID, Scene>();
 
         ///
         /// Assets requests (for each user) which are waiting for asset server data.  This includes texture requests
         /// </summary>
-        private readonly Dictionary<LLUUID, Dictionary<LLUUID, AssetRequest>> RequestedAssets;
-
-        private Scene m_scene;
+        private Dictionary<LLUUID, Dictionary<LLUUID, AssetRequest>> RequestedAssets;
 
         public AssetDownloadModule()
         {
@@ -206,18 +205,22 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetDownload
         {
             public AssetBase AssetInf;
             public byte AssetRequestSource = 2;
-            public long DataPointer;
+            public long DataPointer = 0;
             public int DiscardLevel = -1;
             public AssetBase ImageInfo;
             public bool IsTextureRequest;
-            public int NumPackets;
-            public int PacketCounter;
-            public byte[] Params;
+            public int NumPackets = 0;
+            public int PacketCounter = 0;
+            public byte[] Params = null;
             public LLUUID RequestAssetID;
             public IClientAPI RequestUser;
             public LLUUID TransferRequestID;
             //public bool AssetInCache;
             //public int TimeRequested; 
+
+            public AssetRequest()
+            {
+            }
         }
 
         #endregion

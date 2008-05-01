@@ -41,13 +41,10 @@ namespace OpenSim.Region.Environment.Scenes
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly List<Scene> m_localScenes;
-        private Scene m_currentScene;
+        public event RestartSim OnRestartSim;
 
-        public SceneManager()
-        {
-            m_localScenes = new List<Scene>();
-        }
+        private readonly List<Scene> m_localScenes;
+        private Scene m_currentScene = null;
 
         public List<Scene> Scenes
         {
@@ -74,7 +71,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public event RestartSim OnRestartSim;
+        public SceneManager()
+        {
+            m_localScenes = new List<Scene>();
+        }
 
         public void Close()
         {
@@ -180,7 +180,7 @@ namespace OpenSim.Region.Environment.Scenes
         [Obsolete("TODO: Remove this warning by 0.7")]
         public bool RunTerrainCmdOnCurrentScene(string[] cmdparams, ref string result)
         {
-            m_log.Warn("DEPRECIATED: The terrain engine has been replaced with a new terrain plugin module. Please type 'plugin terrain help' for new commands.");
+            m_log.Warn("DEPRECIATED: The terrain engine has been replaced with a new terrain plugin module. Please type 'plugin terrain help' for new commands.");            
             return false;
         }
 
@@ -252,8 +252,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public bool TrySetCurrentScene(LLUUID regionID)
         {
-            Console.WriteLine("Searching for Region: '{0}'", regionID);
-
+            Console.WriteLine("Searching for Region: '{0}'", regionID.ToString());
+            
             foreach (Scene scene in m_localScenes)
             {
                 if (scene.RegionInfo.RegionID == regionID)
@@ -262,7 +262,7 @@ namespace OpenSim.Region.Environment.Scenes
                     return true;
                 }
             }
-
+            
             return false;
         }
 
@@ -313,7 +313,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (Scene mscene in m_localScenes)
             {
-                if ((mscene.RegionInfo.InternalEndPoint.Equals(ipEndPoint.Address)) &&
+                if((mscene.RegionInfo.InternalEndPoint.Equals(ipEndPoint.Address)) &&
                     (mscene.RegionInfo.InternalEndPoint.Port == ipEndPoint.Port))
                 {
                     scene = mscene;
@@ -327,22 +327,22 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetDebugPacketOnCurrentScene(int newDebug)
         {
             ForEachCurrentScene(delegate(Scene scene)
+                                {
+                                    List<ScenePresence> scenePresences = scene.GetScenePresences();
+
+                                    foreach (ScenePresence scenePresence in scenePresences)
                                     {
-                                        List<ScenePresence> scenePresences = scene.GetScenePresences();
-
-                                        foreach (ScenePresence scenePresence in scenePresences)
+                                        if (!scenePresence.IsChildAgent)
                                         {
-                                            if (!scenePresence.IsChildAgent)
-                                            {
-                                                m_log.ErrorFormat("Packet debug for {0} {1} set to {2}",
-                                                                  scenePresence.Firstname,
-                                                                  scenePresence.Lastname,
-                                                                  newDebug);
+                                            m_log.ErrorFormat("Packet debug for {0} {1} set to {2}",
+                                                              scenePresence.Firstname,
+                                                              scenePresence.Lastname,
+                                                              newDebug);
 
-                                                scenePresence.ControllingClient.SetDebug(newDebug);
-                                            }
+                                            scenePresence.ControllingClient.SetDebug(newDebug);
                                         }
-                                    });
+                                    }
+                                });
         }
 
         public List<ScenePresence> GetCurrentSceneAvatars()
@@ -350,17 +350,17 @@ namespace OpenSim.Region.Environment.Scenes
             List<ScenePresence> avatars = new List<ScenePresence>();
 
             ForEachCurrentScene(delegate(Scene scene)
-                                    {
-                                        List<ScenePresence> scenePresences = scene.GetScenePresences();
+            {
+                List<ScenePresence> scenePresences = scene.GetScenePresences();
 
-                                        foreach (ScenePresence scenePresence in scenePresences)
-                                        {
-                                            if (!scenePresence.IsChildAgent)
-                                            {
-                                                avatars.Add(scenePresence);
-                                            }
-                                        }
-                                    });
+                foreach (ScenePresence scenePresence in scenePresences)
+                {
+                    if (!scenePresence.IsChildAgent)
+                    {
+                        avatars.Add(scenePresence);
+                    }
+                }
+            });
 
             return avatars;
         }
@@ -381,11 +381,11 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetCurrentSceneTimePhase(int timePhase)
         {
             ForEachCurrentScene(delegate(Scene scene)
-                                    {
-                                        scene.SetTimePhase(
-                                            timePhase)
-                                            ;
-                                    });
+                                {
+                                    scene.SetTimePhase(
+                                        timePhase)
+                                        ;
+                                });
         }
 
         public void ForceCurrentSceneClientUpdate()

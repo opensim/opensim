@@ -83,7 +83,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
         private Dictionary<string, ITerrainEffect> m_plugineffects;
         private ITerrainChannel m_revert;
         private Scene m_scene;
-        private bool m_tainted;
+        private bool m_tainted = false;
 
         #region ICommandableModule Members
 
@@ -223,8 +223,6 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
             }
         }
 
-        #endregion
-
         #region Plugin Loading Methods
 
         private void LoadPlugins()
@@ -275,6 +273,8 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                 }
             }
         }
+
+        #endregion
 
         #endregion
 

@@ -45,16 +45,16 @@ namespace OpenSim.Grid.MessagingServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly MessageServerConfig m_cfg;
-        private readonly Hashtable m_presence_BackReferences = new Hashtable();
+        private MessageServerConfig m_cfg;
 
         //A hashtable of all current presences this server knows about
-        private readonly Hashtable m_presences = new Hashtable();
+        private Hashtable m_presences = new Hashtable();
 
         //a hashtable of all current regions this server knows about
-        private readonly Hashtable m_regionInfoCache = new Hashtable();
+        private Hashtable m_regionInfoCache = new Hashtable();
 
         //A hashtable containing lists of UUIDs keyed by UUID for fast backreferencing
+        private Hashtable m_presence_BackReferences = new Hashtable();
 
         // Hashtable containing work units that need to be processed
         private Hashtable m_unProcessedWorkUnits = new Hashtable();
@@ -63,13 +63,13 @@ namespace OpenSim.Grid.MessagingServer
         {
             m_cfg = cfg;
         }
-
+        
         #region RegionComms Methods
 
         #endregion
 
         #region FriendList Methods
-
+        
         /// <summary>
         /// Process Friendlist subscriptions for a user
         /// The login method calls this for a User
@@ -87,14 +87,14 @@ namespace OpenSim.Grid.MessagingServer
             for (int i = 0; i < uFriendList.Count; i++)
             {
                 //m_presence_BackReferences.Add(userpresence.agentData.AgentID, uFriendList[i].Friend);
-                // m_presence_BackReferences.Add(uFriendList[i].Friend, userpresence.agentData.AgentID);
+               // m_presence_BackReferences.Add(uFriendList[i].Friend, userpresence.agentData.AgentID);
 
                 if (m_presences.Contains(uFriendList[i].Friend))
                 {
-                    UserPresenceData friendup = (UserPresenceData) m_presences[uFriendList[i].Friend];
+                    UserPresenceData friendup = (UserPresenceData)m_presences[uFriendList[i].Friend];
                     // Add backreference
-
-                    SubscribeToPresenceUpdates(userpresence, friendup, uFriendList[i], i);
+                    
+                    SubscribeToPresenceUpdates(userpresence, friendup, uFriendList[i],i);
                 }
             }
         }
@@ -108,10 +108,10 @@ namespace OpenSim.Grid.MessagingServer
         /// <param name="friendpresence">P2</param>
         /// <param name="uFriendListItem"></param>
         /// <param name="uFriendListIndex"></param>
-        public void SubscribeToPresenceUpdates(UserPresenceData userpresence, UserPresenceData friendpresence,
-                                               FriendListItem uFriendListItem, int uFriendListIndex)
+        public void SubscribeToPresenceUpdates(UserPresenceData userpresence, UserPresenceData friendpresence, 
+                                                FriendListItem uFriendListItem, int uFriendListIndex)
         {
-            if ((uFriendListItem.FriendListOwnerPerms & (uint) FriendRights.CanSeeOnline) != 0)
+            if ((uFriendListItem.FriendListOwnerPerms & (uint)FriendRights.CanSeeOnline) != 0)
             {
                 // Subscribe and Send Out updates
                 if (!friendpresence.subscriptionData.Contains(friendpresence.agentData.AgentID))
@@ -126,13 +126,13 @@ namespace OpenSim.Grid.MessagingServer
                 PresenceInformer friendlistupdater = new PresenceInformer();
                 friendlistupdater.presence1 = friendpresence;
                 friendlistupdater.presence2 = userpresence;
-                WaitCallback cb = friendlistupdater.go;
+                WaitCallback cb = new WaitCallback(friendlistupdater.go);
                 ThreadPool.QueueUserWorkItem(cb);
 
                 //SendRegionPresenceUpdate(friendpresence, userpresence);
             }
 
-            if ((uFriendListItem.FriendPerms & (uint) FriendRights.CanSeeOnline) != 0)
+            if ((uFriendListItem.FriendPerms & (uint)FriendRights.CanSeeOnline) != 0)
             {
                 if (!friendpresence.subscriptionData.Contains(userpresence.agentData.AgentID))
                 {
@@ -147,9 +147,9 @@ namespace OpenSim.Grid.MessagingServer
                 friendlistupdater.presence1 = userpresence;
                 friendlistupdater.presence2 = friendpresence;
 
-                WaitCallback cb2 = friendlistupdater.go;
+                WaitCallback cb2 = new WaitCallback(friendlistupdater.go);
                 ThreadPool.QueueUserWorkItem(cb2);
-
+                
                 //SendRegionPresenceUpdate(userpresence, friendpresence);
             }
         }
@@ -164,7 +164,7 @@ namespace OpenSim.Grid.MessagingServer
         {
             if (m_presence_BackReferences.Contains(friendID))
             {
-                List<LLUUID> presenseBackReferences = (List<LLUUID>) m_presence_BackReferences[friendID];
+                List<LLUUID> presenseBackReferences = (List<LLUUID>)m_presence_BackReferences[friendID];
                 if (!presenseBackReferences.Contains(agentID))
                 {
                     presenseBackReferences.Add(agentID);
@@ -188,7 +188,7 @@ namespace OpenSim.Grid.MessagingServer
         {
             if (m_presence_BackReferences.Contains(friendID))
             {
-                List<LLUUID> presenseBackReferences = (List<LLUUID>) m_presence_BackReferences[friendID];
+                List<LLUUID> presenseBackReferences = (List<LLUUID>)m_presence_BackReferences[friendID];
                 if (presenseBackReferences.Contains(agentID))
                 {
                     presenseBackReferences.Remove(agentID);
@@ -216,29 +216,29 @@ namespace OpenSim.Grid.MessagingServer
             {
                 if (m_presences.Contains(AgentID))
                 {
-                    AgentData = (UserPresenceData) m_presences[AgentID];
+                    AgentData = (UserPresenceData)m_presences[AgentID];
                 }
             }
 
             if (AgentData != null)
             {
-                AgentsNeedingNotification = AgentData.subscriptionData;
+                 AgentsNeedingNotification = AgentData.subscriptionData;
                 //lock (m_presence_BackReferences)
                 //{
-                //if (m_presence_BackReferences.Contains(AgentID))
-                //{
-                //AgentsNeedingNotification = (List<LLUUID>)m_presence_BackReferences[AgentID];
-                //}
+                    //if (m_presence_BackReferences.Contains(AgentID))
+                    //{
+                        //AgentsNeedingNotification = (List<LLUUID>)m_presence_BackReferences[AgentID];
+                    //}
                 //}
 
                 for (int i = 0; i < AgentsNeedingNotification.Count; i++)
                 {
                     // TODO: Do Region Notifications
-                    lock (m_presences)
+                    lock(m_presences)
                     {
                         if (m_presences.Contains(AgentsNeedingNotification[i]))
                         {
-                            friendd = (UserPresenceData) m_presences[AgentsNeedingNotification[i]];
+                            friendd = (UserPresenceData)m_presences[AgentsNeedingNotification[i]];
                         }
                     }
 
@@ -266,7 +266,7 @@ namespace OpenSim.Grid.MessagingServer
                         friendlistupdater.presence1 = AgentData;
                         friendlistupdater.presence2 = friendd;
 
-                        WaitCallback cb3 = friendlistupdater.go;
+                        WaitCallback cb3 = new WaitCallback(friendlistupdater.go);
                         ThreadPool.QueueUserWorkItem(cb3);
 
                         //SendRegionPresenceUpdate(AgentData, friendd);
@@ -276,7 +276,7 @@ namespace OpenSim.Grid.MessagingServer
                 }
             }
         }
-
+        
         #endregion
 
         #region UserServer Comms
@@ -298,17 +298,18 @@ namespace OpenSim.Grid.MessagingServer
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_user_friend_list", parameters);
                 XmlRpcResponse resp = req.Send(m_cfg.UserServerURL, 3000);
-                Hashtable respData = (Hashtable) resp.Value;
+                Hashtable respData = (Hashtable)resp.Value;
 
                 if (respData.Contains("avcount"))
                 {
                     buddylist = ConvertXMLRPCDataToFriendListItemList(respData);
                 }
+
             }
             catch (WebException e)
             {
                 m_log.Warn("Error when trying to fetch Avatar's friends list: " +
-                           e.Message);
+                                      e.Message);
                 // Return Empty list (no friends)
             }
             return buddylist;
@@ -322,16 +323,16 @@ namespace OpenSim.Grid.MessagingServer
         public List<FriendListItem> ConvertXMLRPCDataToFriendListItemList(Hashtable data)
         {
             List<FriendListItem> buddylist = new List<FriendListItem>();
-            int buddycount = Convert.ToInt32((string) data["avcount"]);
+            int buddycount = Convert.ToInt32((string)data["avcount"]);
 
             for (int i = 0; i < buddycount; i++)
             {
                 FriendListItem buddylistitem = new FriendListItem();
 
-                buddylistitem.FriendListOwner = new LLUUID((string) data["ownerID" + i]);
-                buddylistitem.Friend = new LLUUID((string) data["friendID" + i]);
-                buddylistitem.FriendListOwnerPerms = (uint) Convert.ToInt32((string) data["ownerPerms" + i]);
-                buddylistitem.FriendPerms = (uint) Convert.ToInt32((string) data["friendPerms" + i]);
+                buddylistitem.FriendListOwner = new LLUUID((string)data["ownerID" + i.ToString()]);
+                buddylistitem.Friend = new LLUUID((string)data["friendID" + i.ToString()]);
+                buddylistitem.FriendListOwnerPerms = (uint)Convert.ToInt32((string)data["ownerPerms" + i.ToString()]);
+                buddylistitem.FriendPerms = (uint)Convert.ToInt32((string)data["friendPerms" + i.ToString()]);
 
                 buddylist.Add(buddylistitem);
             }
@@ -349,7 +350,7 @@ namespace OpenSim.Grid.MessagingServer
         public XmlRpcResponse UserLoggedOn(XmlRpcRequest request)
         {
             m_log.Info("[LOGON]: User logged on, building indexes for user");
-            Hashtable requestData = (Hashtable) request.Params[0];
+            Hashtable requestData = (Hashtable)request.Params[0];
 
             //requestData["sendkey"] = serv.sendkey;
             //requestData["agentid"] = agentID.ToString();
@@ -363,13 +364,13 @@ namespace OpenSim.Grid.MessagingServer
             //requestData["lastname"] = lastname;
 
             AgentCircuitData agentData = new AgentCircuitData();
-            agentData.SessionID = new LLUUID((string) requestData["sessionid"]);
-            agentData.SecureSessionID = new LLUUID((string) requestData["secure_session_id"]);
-            agentData.firstname = (string) requestData["firstname"];
-            agentData.lastname = (string) requestData["lastname"];
-            agentData.AgentID = new LLUUID((string) requestData["agentid"]);
+            agentData.SessionID = new LLUUID((string)requestData["sessionid"]);
+            agentData.SecureSessionID = new LLUUID((string)requestData["secure_session_id"]);
+            agentData.firstname = (string)requestData["firstname"];
+            agentData.lastname = (string)requestData["lastname"];
+            agentData.AgentID = new LLUUID((string)requestData["agentid"]);
             agentData.circuitcode = Convert.ToUInt32(requestData["circuit_code"]);
-            agentData.CapsPath = (string) requestData["caps_path"];
+            agentData.CapsPath = (string)requestData["caps_path"];
 
             if (requestData.ContainsKey("child_agent") && requestData["child_agent"].Equals("1"))
             {
@@ -378,13 +379,13 @@ namespace OpenSim.Grid.MessagingServer
             else
             {
                 agentData.startpos =
-                    new LLVector3(Convert.ToUInt32(requestData["positionx"]),
+                     new LLVector3(Convert.ToUInt32(requestData["positionx"]),
                                   Convert.ToUInt32(requestData["positiony"]),
                                   Convert.ToUInt32(requestData["positionz"]));
                 agentData.child = false;
             }
 
-            ulong regionHandle = Convert.ToUInt64((string) requestData["regionhandle"]);
+            ulong regionHandle = Convert.ToUInt64((string)requestData["regionhandle"]);
 
             UserPresenceData up = new UserPresenceData();
             up.agentData = agentData;
@@ -397,7 +398,7 @@ namespace OpenSim.Grid.MessagingServer
 
             return new XmlRpcResponse();
         }
-
+        
         /// <summary>
         /// The UserServer got a Logoff message 
         /// Cleanup time for that user.  Send out presence notifications
@@ -406,9 +407,9 @@ namespace OpenSim.Grid.MessagingServer
         /// <returns></returns>
         public XmlRpcResponse UserLoggedOff(XmlRpcRequest request)
         {
-            Hashtable requestData = (Hashtable) request.Params[0];
-
-            LLUUID AgentID = new LLUUID((string) requestData["agentid"]);
+            Hashtable requestData = (Hashtable)request.Params[0];
+            
+            LLUUID AgentID = new LLUUID((string)requestData["agentid"]);
 
             ProcessLogOff(AgentID);
 
@@ -430,9 +431,9 @@ namespace OpenSim.Grid.MessagingServer
             RegionProfileData regionInfo = null;
             if (m_regionInfoCache.Contains(regionhandle))
             {
-                regionInfo = (RegionProfileData) m_regionInfoCache[regionhandle];
+                regionInfo = (RegionProfileData)m_regionInfoCache[regionhandle];
             }
-            else
+            else 
             {
                 regionInfo = RequestRegionInfo(regionhandle);
             }
@@ -446,8 +447,7 @@ namespace OpenSim.Grid.MessagingServer
         /// <param name="regionHandle"></param>
         /// <returns></returns>
         public RegionProfileData RequestRegionInfo(ulong regionHandle)
-        {
-            RegionProfileData regionProfile = null;
+        {   RegionProfileData regionProfile = null;
             try
             {
                 Hashtable requestData = new Hashtable();
@@ -457,8 +457,8 @@ namespace OpenSim.Grid.MessagingServer
                 SendParams.Add(requestData);
                 XmlRpcRequest GridReq = new XmlRpcRequest("simulator_data_request", SendParams);
                 XmlRpcResponse GridResp = GridReq.Send(m_cfg.GridServerURL, 3000);
-
-                Hashtable responseData = (Hashtable) GridResp.Value;
+                
+                Hashtable responseData = (Hashtable)GridResp.Value;
 
                 if (responseData.ContainsKey("error"))
                 {
@@ -466,23 +466,23 @@ namespace OpenSim.Grid.MessagingServer
                     return null;
                 }
 
-                uint regX = Convert.ToUInt32((string) responseData["region_locx"]);
-                uint regY = Convert.ToUInt32((string) responseData["region_locy"]);
-                string internalIpStr = (string) responseData["sim_ip"];
+                uint regX = Convert.ToUInt32((string)responseData["region_locx"]);
+                uint regY = Convert.ToUInt32((string)responseData["region_locy"]);
+                string internalIpStr = (string)responseData["sim_ip"];
                 uint port = Convert.ToUInt32(responseData["sim_port"]);
-                string externalUri = (string) responseData["sim_uri"];
+                string externalUri = (string)responseData["sim_uri"];
                 string neighbourExternalUri = externalUri;
 
                 regionProfile = new RegionProfileData();
-                regionProfile.httpPort = (uint) Convert.ToInt32((string) responseData["http_port"]);
+                regionProfile.httpPort = (uint)Convert.ToInt32((string)responseData["http_port"]);
                 regionProfile.httpServerURI = "http://" + internalIpStr + ":" + regionProfile.httpPort + "/";
                 regionProfile.regionHandle = Helpers.UIntsToLong((regX * Constants.RegionSize), (regY * Constants.RegionSize));
                 regionProfile.regionLocX = regX;
                 regionProfile.regionLocY = regY;
-
-                regionProfile.remotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
-                regionProfile.UUID = new LLUUID((string) responseData["region_UUID"]);
-                regionProfile.regionName = (string) responseData["region_name"];
+               
+                regionProfile.remotingPort = Convert.ToUInt32((string)responseData["remoting_port"]);
+                regionProfile.UUID = new LLUUID((string)responseData["region_UUID"]);
+                regionProfile.regionName = (string)responseData["region_name"];
                 lock (m_regionInfoCache)
                 {
                     if (!m_regionInfoCache.Contains(regionHandle))
@@ -494,31 +494,31 @@ namespace OpenSim.Grid.MessagingServer
             catch (WebException)
             {
                 m_log.Error("[GRID]: " +
-                            "Region lookup failed for: " + regionHandle +
+                            "Region lookup failed for: " + regionHandle.ToString() +
                             " - Is the GridServer down?");
                 return null;
             }
-
+           
             return regionProfile;
         }
 
-        public bool registerWithUserServer()
+        public bool registerWithUserServer ()
         {
             Hashtable UserParams = new Hashtable();
             // Login / Authentication
-
+            
             if (m_cfg.HttpSSL)
             {
                 UserParams["uri"] = "https://" + m_cfg.MessageServerIP + ":" + m_cfg.HttpPort;
             }
-            else
+            else 
             {
                 UserParams["uri"] = "http://" + m_cfg.MessageServerIP + ":" + m_cfg.HttpPort;
             }
 
             UserParams["recvkey"] = m_cfg.UserRecvKey;
             UserParams["sendkey"] = m_cfg.UserRecvKey;
-
+            
             // Package into an XMLRPC Request
             ArrayList SendParams = new ArrayList();
             SendParams.Add(UserParams);
@@ -530,13 +530,12 @@ namespace OpenSim.Grid.MessagingServer
             {
                 UserReq = new XmlRpcRequest("register_messageserver", SendParams);
                 UserResp = UserReq.Send(m_cfg.UserServerURL, 16000);
-            }
-            catch (Exception ex)
+            } catch (Exception ex)
             {
                 m_log.Error("Unable to connect to grid. Grid server not running?");
-                throw (ex);
+                throw(ex);
             }
-            Hashtable GridRespData = (Hashtable) UserResp.Value;
+            Hashtable GridRespData = (Hashtable)UserResp.Value;
             Hashtable griddatahash = GridRespData;
 
             // Process Response
@@ -584,7 +583,7 @@ namespace OpenSim.Grid.MessagingServer
                 m_log.Error("Unable to connect to grid. Grid server not running?");
                 throw (ex);
             }
-            Hashtable UserRespData = (Hashtable) UserResp.Value;
+            Hashtable UserRespData = (Hashtable)UserResp.Value;
             Hashtable userdatahash = UserRespData;
 
             // Process Response

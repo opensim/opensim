@@ -40,7 +40,7 @@ namespace OpenSim.Grid.InventoryServer
     /// </summary>
     public class GridInventoryService : InventoryServiceBase
     {
-        private static readonly ILog m_log
+        private static readonly ILog m_log 
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public override void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback)
@@ -55,7 +55,7 @@ namespace OpenSim.Grid.InventoryServer
         /// <param name="itemsList"></param>
         /// <returns>true if the inventory was retrieved, false otherwise</returns>
         private bool GetUsersInventory(LLUUID userID, out List<InventoryFolderBase> folderList,
-                                       out List<InventoryItemBase> itemsList)
+                                          out List<InventoryItemBase> itemsList)
         {
             List<InventoryFolderBase> allFolders = GetInventorySkeleton(userID);
             List<InventoryItemBase> allItems = new List<InventoryItemBase>();
@@ -109,28 +109,28 @@ namespace OpenSim.Grid.InventoryServer
         {
             // uncomment me to simulate an overloaded inventory server
             //Thread.Sleep(20000);
-
+            
             LLUUID userID = new LLUUID(rawUserID);
 
-            m_log.InfoFormat("[GRID AGENT INVENTORY]: Processing request for inventory of {0}", userID);
+            m_log.InfoFormat("[GRID AGENT INVENTORY]: Processing request for inventory of {0}", userID);            
 
             InventoryCollection invCollection = new InventoryCollection();
-
+            
             List<InventoryFolderBase> allFolders = GetInventorySkeleton(userID);
-
+            
             if (null == allFolders)
             {
                 m_log.WarnFormat("[GRID AGENT INVENTORY]: No inventory found for user {0}", rawUserID);
-
+                
                 return invCollection;
             }
-
+            
             List<InventoryItemBase> allItems = new List<InventoryItemBase>();
 
             foreach (InventoryFolderBase folder in allFolders)
             {
                 List<InventoryItemBase> items = RequestFolderItems(folder.ID);
-
+                
                 if (items != null)
                 {
                     allItems.InsertRange(0, items);
@@ -138,9 +138,9 @@ namespace OpenSim.Grid.InventoryServer
             }
 
             invCollection.UserID = userID;
-            invCollection.Folders = allFolders;
-            invCollection.Items = allItems;
-
+            invCollection.Folders = allFolders;            
+            invCollection.Items = allItems;            
+            
 //            foreach (InventoryFolderBase folder in invCollection.Folders)
 //            {
 //                m_log.DebugFormat("[GRID AGENT INVENTORY]: Sending back folder {0} {1}", folder.Name, folder.ID);
@@ -150,14 +150,14 @@ namespace OpenSim.Grid.InventoryServer
 //            {
 //                m_log.DebugFormat("[GRID AGENT INVENTORY]: Sending back item {0} {1}, folder {2}", item.Name, item.ID, item.Folder);
 //            }
-
+            
             m_log.InfoFormat(
                 "[GRID AGENT INVENTORY]: Sending back inventory response to user {0} containing {1} folders and {2} items",
-                invCollection.UserID, invCollection.Folders.Count, invCollection.Items.Count);
-
+                invCollection.UserID, invCollection.Folders.Count, invCollection.Items.Count);            
+                        
             return invCollection;
         }
-
+                
         /// <summary>
         /// Guid to UUID wrapper for same name IInventoryServices method
         /// </summary>
@@ -166,10 +166,10 @@ namespace OpenSim.Grid.InventoryServer
         public List<InventoryFolderBase> GetInventorySkeleton(Guid rawUserID)
         {
             //Thread.Sleep(10000);
-
+            
             LLUUID userID = new LLUUID(rawUserID);
             return GetInventorySkeleton(userID);
-        }
+        }        
 
         /// <summary>
         /// Create an inventory for the given user.
@@ -196,11 +196,11 @@ namespace OpenSim.Grid.InventoryServer
         {
             MoveFolder(folder);
         }
-
+        
         public override void PurgeInventoryFolder(LLUUID userID, InventoryFolderBase folder)
         {
-            PurgeFolder(folder);
-        }
+             PurgeFolder(folder);
+        }        
 
         public override void AddNewInventoryItem(LLUUID userID, InventoryItemBase item)
         {
@@ -230,15 +230,15 @@ namespace OpenSim.Grid.InventoryServer
             MoveExistingInventoryFolder(folder);
             return true;
         }
-
+        
         public bool PurgeInventoryFolder(InventoryFolderBase folder)
         {
             m_log.InfoFormat(
                 "[GRID AGENT INVENTORY]: Purging folder {0} {1} of its contents", folder.Name, folder.ID);
-
+            
             PurgeInventoryFolder(folder.Owner, folder);
             return true;
-        }
+        }         
 
         public bool AddInventoryItem(InventoryItemBase item)
         {

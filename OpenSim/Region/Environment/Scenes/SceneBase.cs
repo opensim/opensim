@@ -40,11 +40,6 @@ namespace OpenSim.Region.Environment.Scenes
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        /// <summary>
-        /// XXX These two methods are very temporary
-        /// </summary>
-        protected Dictionary<LLUUID, string> capsPaths = new Dictionary<LLUUID, string>();
-
         #region Events
 
         public event restart OnRestart;
@@ -55,38 +50,41 @@ namespace OpenSim.Region.Environment.Scenes
 
         private readonly ClientManager m_clientManager = new ClientManager();
 
+        public ClientManager ClientManager
+        {
+            get { return m_clientManager; }
+        }
+
+        protected ulong m_regionHandle;
+        protected string m_regionName;
+        protected RegionInfo m_regInfo;
+
         //public TerrainEngine Terrain;
         public ITerrainChannel Heightmap;
 
         public ILandChannel LandChannel;
-        private AssetCache m_assetCache;
 
-
-        protected string m_datastore;
         protected EventManager m_eventManager;
-
-        private uint m_nextLocalId = 8880000;
-        protected RegionInfo m_regInfo;
-        protected ulong m_regionHandle;
-        protected string m_regionName;
-
-        protected RegionStatus m_regStatus;
 
         public EventManager EventManager
         {
             get { return m_eventManager; }
         }
 
+        
+        protected string m_datastore;
+
+        private uint m_nextLocalId = 8880000;
+        
+        private AssetCache m_assetCache;
+
         public AssetCache AssetCache
         {
             get { return m_assetCache; }
             set { m_assetCache = value; }
         }
-
-        public ClientManager ClientManager
-        {
-            get { return m_clientManager; }
-        }
+        
+        protected RegionStatus m_regStatus;        
 
         public RegionStatus Region_Status
         {
@@ -143,8 +141,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
-        #region IScene Members
-
         /// <summary>
         /// 
         /// </summary>
@@ -158,18 +154,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_nextLocalId++; }
         }
-
-        public string GetCapsPath(LLUUID agentId)
-        {
-            if (capsPaths.ContainsKey(agentId))
-            {
-                return capsPaths[agentId];
-            }
-
-            return null;
-        }
-
-        #endregion
 
         #region admin stuff
 
@@ -189,7 +173,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             return false;
         }
-
         public abstract bool OtherRegionUp(RegionInfo thisRegion);
 
         public virtual string GetSimulatorVersion()
@@ -212,10 +195,24 @@ namespace OpenSim.Region.Environment.Scenes
             }
             catch (Exception e)
             {
-                m_log.Error("[SCENE]: SceneBase.cs: Close() - Failed with exception " + e);
+                m_log.Error("[SCENE]: SceneBase.cs: Close() - Failed with exception " + e.ToString());
             }
         }
 
         #endregion
+        
+        /// <summary>
+        /// XXX These two methods are very temporary
+        /// </summary>
+        protected Dictionary<LLUUID, string> capsPaths = new Dictionary<LLUUID, string>();
+        public string GetCapsPath(LLUUID agentId)
+        {
+            if (capsPaths.ContainsKey(agentId))
+            {
+                return capsPaths[agentId];
+            }
+            
+            return null;
+        }
     }
 }

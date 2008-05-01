@@ -39,8 +39,8 @@ namespace OpenSim.Region.Environment.Scenes
     public class SceneXmlLoader // can move to a module?
     {
         protected InnerScene m_innerScene;
-        protected Scene m_parentScene;
         protected RegionInfo m_regInfo;
+        protected Scene m_parentScene;
 
         public SceneXmlLoader(Scene parentScene, InnerScene innerScene, RegionInfo regionInfo)
         {
@@ -136,13 +136,14 @@ namespace OpenSim.Region.Environment.Scenes
             returnstring += grp.ToXmlString2();
             returnstring += "</scene>\n";
             return returnstring;
+
         }
 
         public void LoadGroupFromXml2String(string xmlString)
         {
             XmlDocument doc = new XmlDocument();
             XmlNode rootNode;
-
+           
             XmlTextReader reader = new XmlTextReader(new StringReader(xmlString));
             reader.WhitespaceHandling = WhitespaceHandling.None;
             doc.Load(reader);
@@ -152,6 +153,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 CreatePrimFromXml(aPrimNode.OuterXml);
             }
+         
         }
 
         public void LoadPrimsFromXml2(string fileName)
@@ -204,7 +206,7 @@ namespace OpenSim.Region.Environment.Scenes
                     rootPart.PhysActor.LocalID = rootPart.LocalId;
                     rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
                 }
-                rootPart.Velocity = receivedVelocity;
+                rootPart.Velocity = receivedVelocity;                 
             }
 
             obj.ScheduleGroupForFullUpdate();

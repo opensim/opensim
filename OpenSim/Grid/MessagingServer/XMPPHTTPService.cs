@@ -48,26 +48,28 @@ namespace OpenSim.Grid.MessagingServer
             : base("GET", "/presence")
         {
             m_log.Info("[REST]: In Get Request");
+            
         }
-
+        
         public override byte[] Handle(string path, Stream request)
         {
             string param = GetParam(path);
             byte[] result = new byte[] {};
             try
             {
-                string[] p = param.Split(new[] {'/', '?', '&'}, StringSplitOptions.RemoveEmptyEntries);
+                string[] p = param.Split(new char[] {'/', '?', '&'}, StringSplitOptions.RemoveEmptyEntries);
 
                 if (p.Length > 0)
                 {
-                    LLUUID assetID = null;
-
+                    LLUUID assetID = null;    
+                    
                     if (!LLUUID.TryParse(p[0], out assetID))
                     {
                         m_log.InfoFormat(
                             "[REST]: GET:/presence ignoring request with malformed UUID {0}", p[0]);
                         return result;
                     }
+
                 }
             }
             catch (Exception e)
@@ -82,11 +84,6 @@ namespace OpenSim.Grid.MessagingServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public PostXMPPStreamHandler()
-            : base("POST", "/presence")
-        {
-        }
-
         public override byte[] Handle(string path, Stream request)
         {
             string param = GetParam(path);
@@ -100,5 +97,12 @@ namespace OpenSim.Grid.MessagingServer
 
             return new byte[] {};
         }
+
+        public PostXMPPStreamHandler()
+            : base("POST", "/presence")
+        {
+            
+        }
+
     }
 }

@@ -37,15 +37,15 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
     {
         public const int BufferSize = 2048;
         public byte[] buffer = new byte[BufferSize];
-        public InternalPacketHeader header;
+        public InternalPacketHeader header = null;
         public MemoryStream ms_ptr = new MemoryStream();
-        public Socket workSocket;
+        public Socket workSocket = null;
     }
 
     public class AsynchronousSocketListener
     {
         public static ManualResetEvent allDone = new ManualResetEvent(false);
-        public static string data;
+        public static string data = null;
 
         #region KIRYU
 
@@ -55,9 +55,13 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 
         #endregion
 
-        public static PacketRecieveHandler PacketHandler;
+        public static PacketRecieveHandler PacketHandler = null;
 
         #endregion
+
+        public AsynchronousSocketListener()
+        {
+        }
 
         public static void StartListening(int port)
         {
@@ -195,7 +199,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 
     public class TcpServer
     {
-        private readonly int mPort = 11000;
+        private int mPort = 11000;
 
         public TcpServer()
         {

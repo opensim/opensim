@@ -41,25 +41,25 @@ using OpenSim.Framework.Servers;
 namespace OpenSim.Grid.UserServer
 {
     public delegate void UserLoggedInAtLocation(LLUUID agentID, LLUUID sessionID, LLUUID RegionID,
-                                                ulong regionhandle, float positionX, float positionY, float positionZ, string firstname, string lastname);
+    ulong regionhandle, float positionX, float positionY, float positionZ, string firstname, string lastname);
 
     public class UserLoginService : LoginService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private UserLoggedInAtLocation handlerUserLoggedInAtLocation;
+        public event UserLoggedInAtLocation OnUserLoggedInAtLocation;
 
+        private UserLoggedInAtLocation handlerUserLoggedInAtLocation = null;
+       
         public UserConfig m_config;
 
         public UserLoginService(
-            UserManagerBase userManager, LibraryRootFolder libraryRootFolder,
+            UserManagerBase userManager, LibraryRootFolder libraryRootFolder, 
             UserConfig config, string welcomeMess)
             : base(userManager, libraryRootFolder, welcomeMess)
         {
             m_config = config;
         }
-
-        public event UserLoggedInAtLocation OnUserLoggedInAtLocation;
 
         /// <summary>
         /// Customises the login response and fills in missing values.
@@ -95,8 +95,7 @@ namespace OpenSim.Grid.UserServer
                 else
                 {
                     string[] startLocationRequestParsed = Util.ParseStartLocationRequest(startLocationRequest);
-                    m_log.Info("[DEBUGLOGINPARSE]: 1:" + startLocationRequestParsed[0] + ", 2:" + startLocationRequestParsed[1] + ", 3:" +
-                               startLocationRequestParsed[2] + ", 4:" + startLocationRequestParsed[3]);
+                    m_log.Info("[DEBUGLOGINPARSE]: 1:" + startLocationRequestParsed[0] + ", 2:" + startLocationRequestParsed[1] + ", 3:" + startLocationRequestParsed[2] + ", 4:" + startLocationRequestParsed[3]);
                     if (startLocationRequestParsed[0] == "last")
                     {
                         // TODO: Parse out startlocationrequest string in the format; 'uri:RegionName&X&Y&Z'
@@ -109,9 +108,9 @@ namespace OpenSim.Grid.UserServer
                     {
                         m_log.Info("[LOGIN]: Looking up Sim: " + startLocationRequestParsed[0]);
                         SimInfo =
-                            RegionProfileData.RequestSimProfileData(
-                                startLocationRequestParsed[0], m_config.GridServerURL,
-                                m_config.GridSendKey, m_config.GridRecvKey);
+                        RegionProfileData.RequestSimProfileData(
+                            startLocationRequestParsed[0], m_config.GridServerURL,
+                            m_config.GridSendKey, m_config.GridRecvKey);
 
                         if (SimInfo == null)
                         {
@@ -120,9 +119,7 @@ namespace OpenSim.Grid.UserServer
                                 RegionProfileData.RequestSimProfileData(
                                     theUser.HomeRegion, m_config.GridServerURL,
                                     m_config.GridSendKey, m_config.GridRecvKey);
-                        }
-                        else
-                        {
+                        } else {
                             start_x = Convert.ToInt32(startLocationRequestParsed[1]);
                             start_y = Convert.ToInt32(startLocationRequestParsed[2]);
                             start_z = Convert.ToInt32(startLocationRequestParsed[3]);
@@ -133,30 +130,30 @@ namespace OpenSim.Grid.UserServer
                 // Customise the response
                 //CFK: This is redundant and the next message should always appear.
                 //CFK: m_log.Info("[LOGIN]: Home Location");
-                response.Home = "{'region_handle':[r" + (SimInfo.regionLocX * Constants.RegionSize) + ",r" +
-                                (SimInfo.regionLocY * Constants.RegionSize) + "], " +
-                                "'position':[r" + theUser.HomeLocation.X + ",r" +
-                                theUser.HomeLocation.Y + ",r" + theUser.HomeLocation.Z + "], " +
-                                "'look_at':[r" + theUser.HomeLocation.X + ",r" +
-                                theUser.HomeLocation.Y + ",r" + theUser.HomeLocation.Z + "]}";
+                response.Home = "{'region_handle':[r" + (SimInfo.regionLocX * Constants.RegionSize).ToString() + ",r" +
+                                (SimInfo.regionLocY * Constants.RegionSize).ToString() + "], " +
+                                "'position':[r" + theUser.HomeLocation.X.ToString() + ",r" +
+                                theUser.HomeLocation.Y.ToString() + ",r" + theUser.HomeLocation.Z.ToString() + "], " +
+                                "'look_at':[r" + theUser.HomeLocation.X.ToString() + ",r" +
+                                theUser.HomeLocation.Y.ToString() + ",r" + theUser.HomeLocation.Z.ToString() + "]}";
 
                 // Destination
                 //CFK: The "Notifying" message always seems to appear, so subsume the data from this message into 
                 //CFK: the next one for X & Y and comment this one.
                 //CFK: m_log.Info("[LOGIN]: CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + 
                 //CFK: "; Region Y: " + SimInfo.regionLocY);
-                response.SimAddress = Util.GetHostFromDNS(SimInfo.serverURI.Split(new[] {'/', ':'})[3]).ToString();
-                response.SimPort = uint.Parse(SimInfo.serverURI.Split(new[] {'/', ':'})[4]);
+                response.SimAddress = Util.GetHostFromDNS(SimInfo.serverURI.Split(new char[] { '/', ':' })[3]).ToString();
+                response.SimPort = uint.Parse(SimInfo.serverURI.Split(new char[] { '/', ':' })[4]);
                 response.RegionX = SimInfo.regionLocX;
                 response.RegionY = SimInfo.regionLocY;
 
                 //Not sure if the + "/CAPS/" should in fact be +"CAPS/" depending if there is already a / as part of httpServerURI
                 string capsPath = Util.GetRandomCapsPath();
                 response.SeedCapability = SimInfo.httpServerURI + "CAPS/" + capsPath + "0000/";
-
+                
                 m_log.DebugFormat(
-                    "[LOGIN]: Sending new CAPS seed url {0} to client {1}",
-                    response.SeedCapability, response.AgentID);
+                    "[LOGIN]: Sending new CAPS seed url {0} to client {1}", 
+                    response.SeedCapability, response.AgentID);                 
 
                 // Notify the target of an incoming user
                 //CFK: The "Notifying" message always seems to appear, so subsume the data from this message into 
@@ -166,8 +163,7 @@ namespace OpenSim.Grid.UserServer
 
                 theUser.CurrentAgent.Region = SimInfo.UUID;
                 theUser.CurrentAgent.Handle = SimInfo.regionHandle;
-                if (start_x >= 0 && start_y >= 0 && start_z >= 0)
-                {
+                if (start_x >= 0 && start_y >= 0 && start_z >= 0) {
                     LLVector3 tmp_v = new LLVector3(start_x, start_y, start_z);
                     theUser.CurrentAgent.Position = tmp_v;
                 }
@@ -190,43 +186,42 @@ namespace OpenSim.Grid.UserServer
                 // Update agent with target sim
 
                 m_log.InfoFormat(
-                    "[LOGIN]: Telling region {0} @ {1},{2} ({3}) to expect user connection",
-                    SimInfo.regionName, response.RegionX, response.RegionY, SimInfo.httpServerURI);
+                    "[LOGIN]: Telling region {0} @ {1},{2} ({3}) to expect user connection", 
+                    SimInfo.regionName, response.RegionX, response.RegionY, SimInfo.httpServerURI); 
 
-                XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);
+                XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);                
                 XmlRpcResponse GridResp = GridReq.Send(SimInfo.httpServerURI, 6000);
-
+                
                 if (GridResp.IsFault)
                 {
                     m_log.ErrorFormat(
-                        "[LOGIN]: XMLRPC request for {0} failed, fault code: {1}, reason: {2}",
+                        "[LOGIN]: XMLRPC request for {0} failed, fault code: {1}, reason: {2}", 
                         SimInfo.httpServerURI, GridResp.FaultCode, GridResp.FaultString);
                 }
                 handlerUserLoggedInAtLocation = OnUserLoggedInAtLocation;
                 if (handlerUserLoggedInAtLocation != null)
                 {
                     //m_log.Info("[LOGIN]: Letting other objects know about login");
-                    handlerUserLoggedInAtLocation(theUser.ID, theUser.CurrentAgent.SessionID, theUser.CurrentAgent.Region,
-                                                  theUser.CurrentAgent.Handle, theUser.CurrentAgent.Position.X, theUser.CurrentAgent.Position.Y,
-                                                  theUser.CurrentAgent.Position.Z,
-                                                  theUser.FirstName, theUser.SurName);
+                    handlerUserLoggedInAtLocation(theUser.ID, theUser.CurrentAgent.SessionID, theUser.CurrentAgent.Region, 
+                        theUser.CurrentAgent.Handle, theUser.CurrentAgent.Position.X,theUser.CurrentAgent.Position.Y,theUser.CurrentAgent.Position.Z,
+                        theUser.FirstName,theUser.SurName);
                 }
             }
             catch (Exception)
-                //catch (System.AccessViolationException)
+            //catch (System.AccessViolationException)
             {
                 tryDefault = true;
             }
-
+            
             if (tryDefault)
             {
                 // Send him to default region instead
                 // Load information from the gridserver
 
-                ulong defaultHandle = (((ulong) m_config.DefaultX * Constants.RegionSize) << 32) | ((ulong) m_config.DefaultY * Constants.RegionSize);
+                ulong defaultHandle = (((ulong)m_config.DefaultX * Constants.RegionSize) << 32) | ((ulong)m_config.DefaultY * Constants.RegionSize);
 
                 m_log.Warn(
-                    "[LOGIN]: Home region not available: sending to default " + defaultHandle);
+                    "[LOGIN]: Home region not available: sending to default " + defaultHandle.ToString());
 
                 try
                 {
@@ -236,19 +231,19 @@ namespace OpenSim.Grid.UserServer
 
                     // Customise the response
                     m_log.Info("[LOGIN]: Home Location");
-                    response.Home = "{'region_handle':[r" + (SimInfo.regionLocX * Constants.RegionSize) + ",r" +
-                                    (SimInfo.regionLocY * Constants.RegionSize) + "], " +
-                                    "'position':[r" + theUser.HomeLocation.X + ",r" +
-                                    theUser.HomeLocation.Y + ",r" + theUser.HomeLocation.Z + "], " +
-                                    "'look_at':[r" + theUser.HomeLocation.X + ",r" +
-                                    theUser.HomeLocation.Y + ",r" + theUser.HomeLocation.Z + "]}";
+                    response.Home = "{'region_handle':[r" + (SimInfo.regionLocX * Constants.RegionSize).ToString() + ",r" +
+                                    (SimInfo.regionLocY * Constants.RegionSize).ToString() + "], " +
+                                    "'position':[r" + theUser.HomeLocation.X.ToString() + ",r" +
+                                    theUser.HomeLocation.Y.ToString() + ",r" + theUser.HomeLocation.Z.ToString() + "], " +
+                                    "'look_at':[r" + theUser.HomeLocation.X.ToString() + ",r" +
+                                    theUser.HomeLocation.Y.ToString() + ",r" + theUser.HomeLocation.Z.ToString() + "]}";
 
                     // Destination
                     m_log.Info("[LOGIN]: " +
                                "CUSTOMISERESPONSE: Region X: " + SimInfo.regionLocX + "; Region Y: " +
                                SimInfo.regionLocY);
-                    response.SimAddress = Util.GetHostFromDNS(SimInfo.serverURI.Split(new[] {'/', ':'})[3]).ToString();
-                    response.SimPort = uint.Parse(SimInfo.serverURI.Split(new[] {'/', ':'})[4]);
+                    response.SimAddress = Util.GetHostFromDNS(SimInfo.serverURI.Split(new char[] { '/', ':' })[3]).ToString();
+                    response.SimPort = uint.Parse(SimInfo.serverURI.Split(new char[] { '/', ':' })[4]);
                     response.RegionX = SimInfo.regionLocX;
                     response.RegionY = SimInfo.regionLocY;
 
@@ -288,16 +283,15 @@ namespace OpenSim.Grid.UserServer
                     {
                         m_log.Info("[LOGIN]: Letting other objects know about login");
                         handlerUserLoggedInAtLocation(theUser.ID, theUser.CurrentAgent.SessionID, theUser.CurrentAgent.Region,
-                                                      theUser.CurrentAgent.Handle, theUser.CurrentAgent.Position.X, theUser.CurrentAgent.Position.Y,
-                                                      theUser.CurrentAgent.Position.Z,
-                                                      theUser.FirstName, theUser.SurName);
+                        theUser.CurrentAgent.Handle, theUser.CurrentAgent.Position.X, theUser.CurrentAgent.Position.Y, theUser.CurrentAgent.Position.Z,
+                        theUser.FirstName, theUser.SurName);
                     }
                 }
 
                 catch (Exception e)
                 {
                     m_log.Warn("[LOGIN]: Default region also not available");
-                    m_log.Warn("[LOGIN]: " + e);
+                    m_log.Warn("[LOGIN]: " + e.ToString());
                 }
             }
         }
@@ -306,8 +300,8 @@ namespace OpenSim.Grid.UserServer
         protected override InventoryData GetInventorySkeleton(LLUUID userID)
         {
             m_log.DebugFormat(
-                "[LOGIN]: Contacting inventory service at {0} for inventory skeleton of user {1}",
-                m_config.InventoryUrl, userID);
+                 "[LOGIN]: Contacting inventory service at {0} for inventory skeleton of user {1}", 
+                 m_config.InventoryUrl, userID);            
 
             List<InventoryFolderBase> folders
                 = SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(
@@ -322,23 +316,23 @@ namespace OpenSim.Grid.UserServer
                 // tools are creating the user profile directly in the database without creating the inventory.  At
                 // this time we'll accomodate them by lazily creating the user inventory now if it doesn't already
                 // exist.
-                bool created =
+                bool created = 
                     SynchronousRestObjectPoster.BeginPostObject<Guid, bool>(
                         "POST", m_config.InventoryUrl + "CreateInventory/", userID.UUID);
-
+                
                 if (!created)
                 {
                     throw new Exception(
                         String.Format(
                             "The inventory creation request for user {0} did not succeed."
-                            + "  Please contact your inventory service provider for more information.",
+                                + "  Please contact your inventory service provider for more information.", 
                             userID));
                 }
                 else
                 {
                     m_log.InfoFormat("[LOGIN]: A new inventory skeleton was successfully created for user {0}", userID);
                 }
-
+                
                 folders = SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(
                     "POST", m_config.InventoryUrl + "RootFolders/", userID.UUID);
             }
@@ -348,11 +342,11 @@ namespace OpenSim.Grid.UserServer
                 LLUUID rootID = LLUUID.Zero;
                 ArrayList AgentInventoryArray = new ArrayList();
                 Hashtable TempHash;
-
+                
                 foreach (InventoryFolderBase InvFolder in folders)
                 {
 //                    m_log.DebugFormat("[LOGIN]: Received agent inventory folder {0}", InvFolder.name);
-
+                    
                     if (InvFolder.ParentID == LLUUID.Zero)
                     {
                         rootID = InvFolder.ID;
@@ -365,14 +359,14 @@ namespace OpenSim.Grid.UserServer
                     TempHash["folder_id"] = InvFolder.ID.ToString();
                     AgentInventoryArray.Add(TempHash);
                 }
-
+                
                 return new InventoryData(AgentInventoryArray, rootID);
             }
             else
             {
                 throw new Exception(
                     String.Format(
-                        "A root inventory folder for user {0} could not be retrieved from the inventory service",
+                        "A root inventory folder for user {0} could not be retrieved from the inventory service", 
                         userID));
             }
         }

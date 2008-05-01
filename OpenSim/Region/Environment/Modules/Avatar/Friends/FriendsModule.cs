@@ -42,10 +42,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly Dictionary<LLUUID, List<FriendListItem>> FriendLists = new Dictionary<LLUUID, List<FriendListItem>>();
-        private readonly Dictionary<LLUUID, LLUUID> m_pendingFriendRequests = new Dictionary<LLUUID, LLUUID>();
-        private readonly Dictionary<LLUUID, ulong> m_rootAgents = new Dictionary<LLUUID, ulong>();
-        private readonly List<Scene> m_scene = new List<Scene>();
+        private Dictionary<LLUUID, List<FriendListItem>> FriendLists = new Dictionary<LLUUID, List<FriendListItem>>();
+        private Dictionary<LLUUID, LLUUID> m_pendingFriendRequests = new Dictionary<LLUUID, LLUUID>();
+        private Dictionary<LLUUID, ulong> m_rootAgents = new Dictionary<LLUUID, ulong>();
+        private List<Scene> m_scene = new List<Scene>();
 
         #region IRegionModule Members
 
@@ -213,7 +213,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             List<LLUUID> updateUsers = new List<LLUUID>();
             foreach (FriendListItem fli in lfli)
             {
-                if (fli.onlinestatus)
+                if (fli.onlinestatus == true)
                 {
                     updateUsers.Add(fli.Friend);
                 }
@@ -357,20 +357,20 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             // https://wiki.secondlife.com/wiki/ImprovedInstantMessage
 
             // 38 == Offer friendship
-            if (dialog == 38)
+            if (dialog == (byte) 38)
             {
                 LLUUID friendTransactionID = LLUUID.Random();
 
                 m_pendingFriendRequests.Add(friendTransactionID, fromAgentID);
 
-                m_log.Info("[FRIEND]: 38 - From:" + fromAgentID + " To: " + toAgentID + " Session:" + imSessionID + " Message:" +
+                m_log.Info("[FRIEND]: 38 - From:" + fromAgentID.ToString() + " To: " + toAgentID.ToString() + " Session:" + imSessionID.ToString() + " Message:" +
                            message);
                 GridInstantMessage msg = new GridInstantMessage();
                 msg.fromAgentID = fromAgentID.UUID;
                 msg.fromAgentSession = fromAgentSession.UUID;
                 msg.toAgentID = toAgentID.UUID;
                 msg.imSessionID = friendTransactionID.UUID; // This is the item we're mucking with here
-                m_log.Info("[FRIEND]: Filling Session: " + msg.imSessionID);
+                m_log.Info("[FRIEND]: Filling Session: " + msg.imSessionID.ToString());
                 msg.timestamp = timestamp;
                 if (client != null)
                 {
@@ -393,16 +393,16 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             }
 
             // 39 == Accept Friendship
-            if (dialog == 39)
+            if (dialog == (byte) 39)
             {
-                m_log.Info("[FRIEND]: 39 - From:" + fromAgentID + " To: " + toAgentID + " Session:" + imSessionID + " Message:" +
+                m_log.Info("[FRIEND]: 39 - From:" + fromAgentID.ToString() + " To: " + toAgentID.ToString() + " Session:" + imSessionID.ToString() + " Message:" +
                            message);
             }
 
             // 40 == Decline Friendship
-            if (dialog == 40)
+            if (dialog == (byte) 40)
             {
-                m_log.Info("[FRIEND]: 40 - From:" + fromAgentID + " To: " + toAgentID + " Session:" + imSessionID + " Message:" +
+                m_log.Info("[FRIEND]: 40 - From:" + fromAgentID.ToString() + " To: " + toAgentID.ToString() + " Session:" + imSessionID.ToString() + " Message:" +
                            message);
             }
         }
@@ -433,14 +433,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 msg.ParentEstateID = 0;
                 msg.timestamp = (uint) Util.UnixTimeSinceEpoch();
                 msg.RegionID = SceneAgentIn.RegionInfo.RegionID.UUID;
-                msg.dialog = 39; // Approved friend request
+                msg.dialog = (byte) 39; // Approved friend request
                 msg.Position = new sLLVector3();
-                msg.offline = 0;
+                msg.offline = (byte) 0;
                 msg.binaryBucket = new byte[0];
                 // We don't really care which scene we pipe it through, it goes to the shared IM Module and/or the database
 
                 SceneAgentIn.TriggerGridInstantMessage(msg, InstantMessageReceiver.IMModule);
-                SceneAgentIn.StoreAddFriendship(m_pendingFriendRequests[transactionID], agentID, 1);
+                SceneAgentIn.StoreAddFriendship(m_pendingFriendRequests[transactionID], agentID, (uint) 1);
                 m_pendingFriendRequests.Remove(transactionID);
 
                 // TODO: Inform agent that the friend is online
@@ -471,9 +471,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 msg.ParentEstateID = 0;
                 msg.timestamp = (uint) Util.UnixTimeSinceEpoch();
                 msg.RegionID = SceneAgentIn.RegionInfo.RegionID.UUID;
-                msg.dialog = 40; // Deny friend request
+                msg.dialog = (byte) 40; // Deny friend request
                 msg.Position = new sLLVector3();
-                msg.offline = 0;
+                msg.offline = (byte) 0;
                 msg.binaryBucket = new byte[0];
                 SceneAgentIn.TriggerGridInstantMessage(msg, InstantMessageReceiver.IMModule);
                 m_pendingFriendRequests.Remove(transactionID);

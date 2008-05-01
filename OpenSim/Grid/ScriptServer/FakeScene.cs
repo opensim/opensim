@@ -34,7 +34,7 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Grid.ScriptServer
 {
-    public class FakeScene : Scene
+    public class FakeScene: Scene
     {
         public FakeScene(RegionInfo regInfo, AgentCircuitManager authen, PermissionManager permissionManager,
                          CommunicationsManager commsMan, SceneCommunicationService sceneGridService,

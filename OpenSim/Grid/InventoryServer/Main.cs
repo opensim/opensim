@@ -40,38 +40,13 @@ namespace OpenSim.Grid.InventoryServer
 {
     public class OpenInventory_Main : BaseOpenSimServer, conscmd_callback
     {
-        public const string LogName = "INVENTORY";
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private InventoryConfig m_config;
         private InventoryManager m_inventoryManager;
+        private InventoryConfig m_config;
         private GridInventoryService m_inventoryService;
 
-        public OpenInventory_Main()
-        {
-            m_console = new ConsoleBase(LogName, this);
-            MainConsole.Instance = m_console;
-        }
-
-        #region conscmd_callback Members
-
-        public override void RunCmd(string cmd, string[] cmdparams)
-        {
-            base.RunCmd(cmd, cmdparams);
-
-            switch (cmd)
-            {
-                case "add-user":
-                    m_inventoryService.CreateUsersInventory(LLUUID.Random().UUID);
-                    break;
-                case "shutdown":
-                    m_console.Close();
-                    Environment.Exit(0);
-                    break;
-            }
-        }
-
-        #endregion
+        public const string LogName = "INVENTORY";
 
         [STAThread]
         public static void Main(string[] args)
@@ -84,6 +59,12 @@ namespace OpenSim.Grid.InventoryServer
             theServer.Work();
         }
 
+        public OpenInventory_Main()
+        {
+            m_console = new ConsoleBase(LogName, this);
+            MainConsole.Instance = m_console;
+        }
+
         public void Startup()
         {
             m_log.Info("Initialising inventory manager...");
@@ -94,7 +75,7 @@ namespace OpenSim.Grid.InventoryServer
             m_inventoryService.AddPlugin(m_config.DatabaseProvider, m_config.DatabaseConnect);
 
             m_log.Info("[" + LogName + "]: Starting HTTP server ...");
-
+            
             m_httpServer = new BaseHttpServer(m_config.HttpPort);
             AddHttpHandlers();
             m_httpServer.Start();
@@ -107,11 +88,11 @@ namespace OpenSim.Grid.InventoryServer
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<Guid, InventoryCollection>(
                     "POST", "/GetInventory/", m_inventoryService.GetUserInventory));
-
+            
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<Guid, bool>(
                     "POST", "/CreateInventory/", m_inventoryService.CreateUsersInventory));
-
+            
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryFolderBase, bool>(
                     "POST", "/NewFolder/", m_inventoryService.AddInventoryFolder));
@@ -119,15 +100,15 @@ namespace OpenSim.Grid.InventoryServer
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryFolderBase, bool>(
                     "POST", "/MoveFolder/", m_inventoryService.MoveInventoryFolder));
-
+            
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryFolderBase, bool>(
-                    "POST", "/PurgeFolder/", m_inventoryService.PurgeInventoryFolder));
+                    "POST", "/PurgeFolder/", m_inventoryService.PurgeInventoryFolder));            
 
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryItemBase, bool>(
                     "POST", "/NewItem/", m_inventoryService.AddInventoryItem));
-
+            
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryItemBase, bool>(
                     "POST", "/DeleteItem/", m_inventoryService.DeleteInvItem));
@@ -151,6 +132,22 @@ namespace OpenSim.Grid.InventoryServer
             while (true)
             {
                 m_console.Prompt();
+            }
+        }
+
+        public override void RunCmd(string cmd, string[] cmdparams)
+        {
+            base.RunCmd(cmd, cmdparams);
+            
+            switch (cmd)
+            {
+                case "add-user":
+                    m_inventoryService.CreateUsersInventory(LLUUID.Random().UUID);
+                    break;
+                case "shutdown":
+                    m_console.Close();
+                    Environment.Exit(0);
+                    break;
             }
         }
     }

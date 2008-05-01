@@ -44,8 +44,8 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         //Land types set with flags in ParcelOverlay.
         //Only one of these can be used. 
         public const float BAN_LINE_SAFETY_HIEGHT = 100;
-        public const byte LAND_FLAG_PROPERTY_BORDER_SOUTH = 128; //Equals 10000000
-        public const byte LAND_FLAG_PROPERTY_BORDER_WEST = 64; //Equals 01000000
+        public const byte LAND_FLAG_PROPERTY_BORDER_SOUTH = (byte) 128; //Equals 10000000
+        public const byte LAND_FLAG_PROPERTY_BORDER_WEST = (byte) 64; //Equals 01000000
 
         //RequestResults (I think these are right, they seem to work):
         public const int LAND_RESULT_MULTIPLE = 1; // The request they made contained more than a single peice of land
@@ -55,26 +55,26 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         public const int LAND_SELECT_OBJECTS_GROUP = 4;
         public const int LAND_SELECT_OBJECTS_OTHER = 8;
         public const int LAND_SELECT_OBJECTS_OWNER = 2;
-        public const byte LAND_TYPE_IS_BEING_AUCTIONED = 5; //Equals 00000101
-        public const byte LAND_TYPE_IS_FOR_SALE = 4; //Equals 00000100
-        public const byte LAND_TYPE_OWNED_BY_GROUP = 2; //Equals 00000010
-        public const byte LAND_TYPE_OWNED_BY_OTHER = 1; //Equals 00000001
-        public const byte LAND_TYPE_OWNED_BY_REQUESTER = 3; //Equals 00000011
-        public const byte LAND_TYPE_PUBLIC = 0; //Equals 00000000
+        public const byte LAND_TYPE_IS_BEING_AUCTIONED = (byte) 5; //Equals 00000101
+        public const byte LAND_TYPE_IS_FOR_SALE = (byte) 4; //Equals 00000100
+        public const byte LAND_TYPE_OWNED_BY_GROUP = (byte) 2; //Equals 00000010
+        public const byte LAND_TYPE_OWNED_BY_OTHER = (byte) 1; //Equals 00000001
+        public const byte LAND_TYPE_OWNED_BY_REQUESTER = (byte) 3; //Equals 00000011
+        public const byte LAND_TYPE_PUBLIC = (byte) 0; //Equals 00000000
 
         //These are other constants. Yay!
         public const int START_LAND_LOCAL_ID = 1;
 
         #endregion
 
-        private readonly int[,] landIDList = new int[64,64];
-        private readonly Dictionary<int, ILandObject> landList = new Dictionary<int, ILandObject>();
-        private readonly Scene m_scene;
+        private int[,] landIDList = new int[64,64];
+        private Dictionary<int, ILandObject> landList = new Dictionary<int, ILandObject>();
 
-        private bool landPrimCountTainted;
+        private bool landPrimCountTainted = false;
         private int lastLandLocalID = START_LAND_LOCAL_ID - 1;
 
         private bool m_allowedForcefulBans = true;
+        private Scene m_scene;
 
         public LandChannel(Scene scene)
         {
@@ -192,7 +192,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         {
             lastLandLocalID++;
             new_land.landData.localID = lastLandLocalID;
-            landList.Add(lastLandLocalID, new_land.Copy());
+            landList.Add(lastLandLocalID, (LandObject) new_land.Copy());
 
 
             bool[,] landBitmap = new_land.getLandBitmap();
@@ -532,7 +532,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             {
                 for (x = 0; x < 64; x++)
                 {
-                    byte tempByte = 0; //This represents the byte for the current 4x4
+                    byte tempByte = (byte) 0; //This represents the byte for the current 4x4
                     ILandObject currentParcelBlock = null;
 
                     try
@@ -611,7 +611,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                                 packet = (ParcelOverlayPacket) PacketPool.Instance.GetPacket(PacketType.ParcelOverlay);
                                 packet.ParcelData.Data = byteArray;
                                 packet.ParcelData.SequenceID = sequenceID;
-                                remote_client.OutPacket(packet, ThrottleOutPacketType.Task);
+                                remote_client.OutPacket((Packet) packet, ThrottleOutPacketType.Task);
                                 sequenceID++;
                                 byteArray = new byte[LAND_BLOCKS_PER_PACKET];
                             }

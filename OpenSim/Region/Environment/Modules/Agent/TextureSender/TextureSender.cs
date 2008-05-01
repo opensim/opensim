@@ -43,14 +43,12 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly IClientAPI RequestUser;
-
         /// <summary>
         /// Records the number of times texture send has been called.
         /// </summary>
-        public int counter;
+        public int counter = 0;
 
-        public bool ImageLoaded;
+        public bool ImageLoaded = false;
 
         /// <summary>
         /// Holds the texture asset to send.
@@ -59,26 +57,27 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
 
         //public LLUUID assetID { get { return m_asset.FullID; } }
 
-        private bool m_cancel;
+        private bool m_cancel = false;
 
         // See ITextureSender
 
-        private bool m_sending;
+        private bool m_sending = false;
 
         /// <summary>
         /// This is actually the number of extra packets required to send the texture data!  We always assume
         /// at least one is required.
         /// </summary>
-        private int NumPackets;
+        private int NumPackets = 0;
 
         /// <summary>
         /// Holds the packet number to send next.  In this case, each packet is 1000 bytes long and starts
         /// at the 600th byte (0th indexed).
         /// </summary>
-        private int PacketCounter;
+        private int PacketCounter = 0;
 
         private int RequestedDiscardLevel = -1;
-        private uint StartPacketNumber;
+        private IClientAPI RequestUser;
+        private uint StartPacketNumber = 0;
 
         public TextureSender(IClientAPI client, int discardLevel, uint packetNumber)
         {
@@ -191,7 +190,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
                     catch (ArgumentOutOfRangeException)
                     {
                         m_log.Error("[TEXTURE SENDER]: Unable to separate texture into multiple packets: Array bounds failure on asset:" +
-                                    m_asset.FullID);
+                                    m_asset.FullID.ToString());
                         return;
                     }
                     RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);

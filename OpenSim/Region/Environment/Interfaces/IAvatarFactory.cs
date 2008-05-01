@@ -30,7 +30,7 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
-    public interface IAvatarFactory
+    public interface IAvatarFactory 
     {
         bool TryGetAvatarAppearance(LLUUID avatarId, out AvatarAppearance appearance);
         void UpdateDatabase(LLUUID userID, AvatarAppearance avatAppearance);

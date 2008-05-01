@@ -44,15 +44,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
     public class ChatModule : IRegionModule, ISimChat
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private readonly List<Scene> m_scenes = new List<Scene>();
-        private string m_defaultzone;
+        private string m_defaultzone = null;
 
-        private IRCChatModule m_irc;
-        private Thread m_irc_connector;
+        private IRCChatModule m_irc = null;
+        private Thread m_irc_connector = null;
 
-        private string m_last_leaving_user;
-        private string m_last_new_user;
+        private string m_last_leaving_user = null;
+        private string m_last_new_user = null;
         private int m_saydistance = 30;
+        private List<Scene> m_scenes = new List<Scene>();
         private int m_shoutdistance = 100;
         internal object m_syncInit = new object();
         internal object m_syncLogout = new object();
@@ -257,7 +257,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             }
             catch (Exception ex)
             {
-                m_log.Error("[IRC]: NewClient exception trap:" + ex);
+                m_log.Error("[IRC]: NewClient exception trap:" + ex.ToString());
             }
         }
 
@@ -284,7 +284,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 }
                 catch (Exception ex)
                 {
-                    m_log.Error("[IRC]: ClientLoggedOut exception trap:" + ex);
+                    m_log.Error("[IRC]: ClientLoggedOut exception trap:" + ex.ToString());
                 }
             }
         }
@@ -372,24 +372,24 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         #endregion
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        private readonly string m_basenick;
-        private readonly string m_channel;
-        private readonly bool m_enabled;
-        private readonly uint m_port = 6668;
-        private readonly string m_privmsgformat = "PRIVMSG {0} :<{1} in {2}>: {3}";
-        private readonly string m_user = "USER OpenSimBot 8 * :I'm a OpenSim to irc bot";
         private Thread listener;
-        private bool m_connected;
-        private List<Scene> m_last_scenes;
-        private string m_nick;
+
+        private string m_basenick = null;
+        private string m_channel = null;
+        private bool m_connected = false;
+        private bool m_enabled = false;
+        private List<Scene> m_last_scenes = null;
+        private string m_nick = null;
+        private uint m_port = 6668;
+        private string m_privmsgformat = "PRIVMSG {0} :<{1} in {2}>: {3}";
         private StreamReader m_reader;
-        private List<Scene> m_scenes;
-        private string m_server;
+        private List<Scene> m_scenes = null;
+        private string m_server = null;
 
         private NetworkStream m_stream;
         internal object m_syncConnect = new object();
         private TcpClient m_tcp;
+        private string m_user = "USER OpenSimBot 8 * :I'm a OpenSim to irc bot";
         private StreamWriter m_writer;
 
         private Thread pingSender;
@@ -478,13 +478,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                     m_reader = new StreamReader(m_stream);
                     m_writer = new StreamWriter(m_stream);
 
-                    pingSender = new Thread(PingRun);
+                    pingSender = new Thread(new ThreadStart(PingRun));
                     pingSender.Name = "PingSenderThread";
                     pingSender.IsBackground = true;
                     pingSender.Start();
                     ThreadTracker.Add(pingSender);
 
-                    listener = new Thread(ListenerRun);
+                    listener = new Thread(new ThreadStart(ListenerRun));
                     listener.Name = "IRCChatModuleListenerThread";
                     listener.IsBackground = true;
                     listener.Start();
@@ -545,7 +545,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             }
             catch (Exception ex)
             {
-                m_log.Error("[IRC]: PrivMsg exception trap:" + ex);
+                m_log.Error("[IRC]: PrivMsg exception trap:" + ex.ToString());
             }
         }
 
@@ -588,7 +588,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             {
                 try
                 {
-                    if (m_connected)
+                    if (m_connected == true)
                     {
                         m_writer.WriteLine("PING :" + m_server);
                         m_writer.Flush();
@@ -602,7 +602,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 }
                 catch (Exception ex)
                 {
-                    m_log.Error("[IRC]: PingRun exception trap:" + ex + "\n" + ex.StackTrace);
+                    m_log.Error("[IRC]: PingRun exception trap:" + ex.ToString() + "\n" + ex.StackTrace);
                 }
             }
         }
@@ -615,7 +615,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             {
                 try
                 {
-                    while (m_connected && ((inputLine = m_reader.ReadLine()) != null))
+                    while ((m_connected == true) && ((inputLine = m_reader.ReadLine()) != null))
                     {
                         // Console.WriteLine(inputLine);
                         if (inputLine.Contains(m_channel))
@@ -659,7 +659,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 }
                 catch (Exception ex)
                 {
-                    m_log.Error("[IRC]: ListenerRun exception trap:" + ex + "\n" + ex.StackTrace);
+                    m_log.Error("[IRC]: ListenerRun exception trap:" + ex.ToString() + "\n" + ex.StackTrace);
                 }
             }
         }
@@ -685,7 +685,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             }
             catch (Exception ex) // IRC gate should not crash Sim
             {
-                m_log.Error("[IRC]: BroadcastSim Exception Trap:" + ex + "\n" + ex.StackTrace);
+                m_log.Error("[IRC]: BroadcastSim Exception Trap:" + ex.ToString() + "\n" + ex.StackTrace);
             }
         }
 

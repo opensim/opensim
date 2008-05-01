@@ -32,8 +32,8 @@ namespace OpenSim.Region.Environment.Scenes
     public class UndoState
     {
         public LLVector3 Position = LLVector3.Zero;
-        public LLQuaternion Rotation = LLQuaternion.Identity;
         public LLVector3 Scale = LLVector3.Zero;
+        public LLQuaternion Rotation = LLQuaternion.Identity;
 
         public UndoState(LLVector3 pos, LLQuaternion rot, LLVector3 scale)
         {
@@ -41,7 +41,7 @@ namespace OpenSim.Region.Environment.Scenes
             Rotation = rot;
             Scale = scale;
         }
-
+        
         public UndoState(SceneObjectPart part)
         {
             if (part != null)
@@ -50,18 +50,16 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     Position = part.AbsolutePosition;
                     Rotation = part.RotationOffset;
+                    
                 }
                 else
                 {
                     Position = part.GroupPosition;
                     Rotation = part.RotationOffset;
                     Scale = part.Shape.Scale;
+
                 }
             }
-        }
-
-        public UndoState()
-        {
         }
 
         public bool Compare(SceneObjectPart part)
@@ -81,6 +79,7 @@ namespace OpenSim.Region.Environment.Scenes
                         return true;
                     else
                         return false;
+
                 }
             }
             return false;
@@ -91,7 +90,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (part != null)
             {
                 part.m_undoing = true;
-
+                
                 if (part.ParentID == 0)
                 {
                     part.ParentGroup.AbsolutePosition = Position;
@@ -106,7 +105,12 @@ namespace OpenSim.Region.Environment.Scenes
                     part.ScheduleTerseUpdate();
                 }
                 part.m_undoing = false;
+                
             }
+        }
+
+        public UndoState()
+        {
         }
     }
 }

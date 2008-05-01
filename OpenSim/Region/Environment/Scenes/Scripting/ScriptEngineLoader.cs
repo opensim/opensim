@@ -51,7 +51,7 @@ namespace OpenSim.Region.Environment.Scenes.Scripting
             {
                 m_log.Error("[ScriptEngine]: " +
                             "Error loading assembly \"" + EngineName + "\": " + e.Message + ", " +
-                            e.StackTrace);
+                            e.StackTrace.ToString());
             }
             return ret;
         }

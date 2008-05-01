@@ -54,7 +54,7 @@ namespace OpenSim.Grid.InventoryServer
             Assembly pluginAssembly = Assembly.LoadFrom(FileName);
 
             m_log.Info("[" + OpenInventory_Main.LogName + "]: " +
-                       "Invenstorage: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
+                                     "Invenstorage: Found " + pluginAssembly.GetTypes().Length + " interfaces.");
             foreach (Type pluginType in pluginAssembly.GetTypes())
             {
                 if (!pluginType.IsAbstract)
@@ -68,7 +68,7 @@ namespace OpenSim.Grid.InventoryServer
                         plug.Initialise(dbconnect);
                         _databasePlugin = plug;
                         m_log.Info("[" + OpenInventory_Main.LogName + "]: " +
-                                   "Invenstorage: Added IInventoryData Interface");
+                                                 "Invenstorage: Added IInventoryData Interface");
                         break;
                     }
                 }
@@ -136,12 +136,10 @@ namespace OpenSim.Grid.InventoryServer
             return fixupFolder(inventory.root, null);
         }
 
-        #region Nested type: GetInventory
-
         public class GetInventory : BaseStreamHandler
         {
-            private readonly SerializableInventory _inventory;
-            private readonly InventoryManager _manager;
+            private SerializableInventory _inventory;
+            private InventoryManager _manager;
 
             public GetInventory(InventoryManager manager)
                 : base("GET", "/inventory")
@@ -183,7 +181,7 @@ namespace OpenSim.Grid.InventoryServer
             {
                 byte[] result = new byte[] {};
 
-                string[] parms = path.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
+                string[] parms = path.Split(new char[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
                 if (parms.Length > 1)
                 {
                     if (string.Compare(parms[1], "library", true) == 0)
@@ -192,7 +190,7 @@ namespace OpenSim.Grid.InventoryServer
                         saveInventoryToStream(_inventory, ms);
 
                         result = ms.GetBuffer();
-                        Array.Resize(ref result, (int) ms.Length);
+                        Array.Resize<byte>(ref result, (int) ms.Length);
                     }
                     else if (string.Compare(parms[1], "user", true) == 0)
                     {
@@ -205,7 +203,5 @@ namespace OpenSim.Grid.InventoryServer
                 return result;
             }
         }
-
-        #endregion
     }
 }

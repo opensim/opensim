@@ -47,7 +47,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
             {
                 for (x = 0; x < retval.Width; x++)
                 {
-                    retval[x, y] = bs.ReadByte() * (bs.ReadByte() / 127.0);
+                    retval[x, y] = (double) bs.ReadByte() * ((double) bs.ReadByte() / 127.0);
                     bs.ReadBytes(11); // Advance the stream to next bytes.
                 }
             }
@@ -76,7 +76,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
             {
                 for (j = 0; j < 256; j++)
                 {
-                    lookupHeightTable[i + (j * 256)] = (i * (j / 127.0));
+                    lookupHeightTable[i + (j * 256)] = ((double) i * ((double) j / 127.0));
                 }
             }
 

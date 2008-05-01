@@ -32,7 +32,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
 {
     public class RevertSphere : ITerrainPaintableEffect
     {
-        private readonly ITerrainChannel m_revertmap;
+        private ITerrainChannel m_revertmap;
 
         public RevertSphere(ITerrainChannel revertmap)
         {

@@ -52,12 +52,12 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
     public class LoadBalancerPlugin : IApplicationPlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private readonly object padlock = new object();
 
         private BaseHttpServer commandServer;
         private bool[] isLocalNeighbour;
-        private bool isSplit;
+        private bool isSplit = false;
         private TcpServer mTcpServer;
+        private object padlock = new object();
 
         private int proxyOffset;
         private string proxyURL;
@@ -80,8 +80,8 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             if (proxyURL.Length == 0) return;
 
             StartTcpServer();
-            ClientView.SynchronizeClient = SynchronizePackets;
-            AsynchronousSocketListener.PacketHandler = SynchronizePacketRecieve;
+            ClientView.SynchronizeClient = new ClientView.SynchronizeClientHandler(SynchronizePackets);
+            AsynchronousSocketListener.PacketHandler = new AsynchronousSocketListener.PacketRecieveHandler(SynchronizePacketRecieve);
 
             sceneManager = openSim.SceneManager;
             udpServers = openSim.UdpServers;
@@ -146,7 +146,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 {
                     ClientView client = (ClientView) pre.ControllingClient;
                     //if(pre.MovementFlag!=0 && client.PacketProcessingEnabled==true) {
-                    if (client.PacketProcessingEnabled)
+                    if (client.PacketProcessingEnabled == true)
                     {
                         get_scene_presence_filter++;
                     }
@@ -159,7 +159,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 {
                     ClientView client = (ClientView) pre.ControllingClient;
                     //if(pre.MovementFlag!=0 && client.PacketProcessingEnabled==true) {
-                    if (client.PacketProcessingEnabled)
+                    if (client.PacketProcessingEnabled == true)
                     {
                         get_avatar_filter++;
                         avatar_names += pre.Firstname + " " + pre.Lastname + "; ";
@@ -178,7 +178,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             }
             catch (Exception e)
             {
-                m_log.Error("[BALANCER] " + e);
+                m_log.Error("[BALANCER] " + e.ToString());
                 m_log.Error("[BALANCER] " + e.StackTrace);
             }
             return response;
@@ -199,7 +199,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             }
             catch (Exception e)
             {
-                m_log.Error("[BALANCER] " + e);
+                m_log.Error("[BALANCER] " + e.ToString());
                 m_log.Error("[BALANCER] " + e.StackTrace);
             }
 
@@ -223,7 +223,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             }
             catch (Exception e)
             {
-                m_log.Error("[BALANCER] " + e);
+                m_log.Error("[BALANCER] " + e.ToString());
                 m_log.Error("[BALANCER] " + e.StackTrace);
             }
 
@@ -247,7 +247,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             }
             catch (Exception e)
             {
-                m_log.Error("[BALANCER] " + e);
+                m_log.Error("[BALANCER] " + e.ToString());
                 m_log.Error("[BALANCER] " + e.StackTrace);
                 throw e;
             }
@@ -264,14 +264,14 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 int src_port = (int) request.Params[0];
 
                 // backgroud
-                WaitCallback callback = TerminateRegion;
+                WaitCallback callback = new WaitCallback(TerminateRegion);
                 ThreadPool.QueueUserWorkItem(callback, src_port);
 
                 m_log.Info("[BALANCER] " + "Exiting TerminateRegion()");
             }
             catch (Exception e)
             {
-                m_log.Error("[BALANCER] " + e);
+                m_log.Error("[BALANCER] " + e.ToString());
                 m_log.Error("[BALANCER] " + e.StackTrace);
             }
 
@@ -330,8 +330,8 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             dst_region = DeserializeRegion(dst_port, false, serializeDir);
 
             // Decide who is in charge for each section
-            int[] port = new[] {src_port, dst_port};
-            string[] url = new[] {"http://" + src_url + ":" + commandServer.Port, "http://" + dst_url + ":" + commandServer.Port};
+            int[] port = new int[] {src_port, dst_port};
+            string[] url = new string[] {"http://" + src_url + ":" + commandServer.Port, "http://" + dst_url + ":" + commandServer.Port};
             for (int i = 0; i < 2; i++) Util.XmlRpcCommand(url[i], "SplitRegion", i, 2, port[0], port[1], url[0], url[1]);
 
             // Enable the proxy
@@ -424,7 +424,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             // serialization of region data
             SearializableRegionInfo dst_region = new SearializableRegionInfo(src_region);
 
-            filename = export_dir + "RegionInfo_" + src_region.RegionID + ".bin";
+            filename = export_dir + "RegionInfo_" + src_region.RegionID.ToString() + ".bin";
             Util.SerializeToFile(filename, dst_region);
 
             // backup current scene's entities
@@ -451,7 +451,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 {
                     ClientInfo info = controller.GetClientInfo();
 
-                    filename = export_dir + "ClientInfo-" + String.Format("{0:0000}", idx) + "_" + controller.CircuitCode + ".bin";
+                    filename = export_dir + "ClientInfo-" + String.Format("{0:0000}", idx) + "_" + controller.CircuitCode.ToString() + ".bin";
 
                     Util.SerializeToFile(filename, info);
 
@@ -469,12 +469,13 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 
         private RegionInfo DeserializeRegion(int dst_port, bool move_flag, string import_dir)
         {
+            string[] files = null;
             RegionInfo dst_region = null;
 
             try
             {
                 // deserialization of region data
-                string[] files = Directory.GetFiles(import_dir, "RegionInfo_*.bin");
+                files = Directory.GetFiles(import_dir, "RegionInfo_*.bin");
 
                 foreach (string filename in files)
                 {
@@ -502,7 +503,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             }
             catch (Exception e)
             {
-                m_log.Error("[BALANCER] " + e);
+                m_log.Error("[BALANCER] " + e.ToString());
                 m_log.Error("[BALANCER] " + e.StackTrace);
                 throw e;
             }
@@ -592,7 +593,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 
             // change RegionInfo (memory only)
             dst_region.InternalEndPoint.Port = dst_port;
-            dst_region.ExternalHostName = proxyURL.Split(new[] {'/', ':'})[3];
+            dst_region.ExternalHostName = proxyURL.Split(new char[] {'/', ':'})[3];
 
             // Create new region
             simMain.CreateRegion(dst_region, false);
@@ -694,7 +695,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 
                 for (int i = 0; i < numRegions; i++)
                 {
-                    hostname = sceneURL[i].Split(new[] {'/', ':'})[3];
+                    hostname = sceneURL[i].Split(new char[] {'/', ':'})[3];
                     m_log.InfoFormat("[SPLITSCENE] " + "creating tcp client host:{0}", hostname);
                     tcpClientList[i] = new TcpClient(hostname, 10001);
                 }
@@ -730,11 +731,12 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                     List<uint> circuits = scene.ClientManager.GetAllCircuitCodes();
                     circuits.Sort();
 
+                    IClientAPI controller = null;
+
                     foreach (uint code in circuits)
                     {
                         m_log.InfoFormat("[BALANCER] " + "circuit code : {0}", code);
 
-                        IClientAPI controller;
                         if (scene.ClientManager.TryGetClient(code, out controller))
                         {
                             // Divide the presences evenly over the set of subscenes
@@ -754,7 +756,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                     }
 
                     scene.splitID = myID;
-                    scene.SynchronizeScene = SynchronizeScenes;
+                    scene.SynchronizeScene = new Scene.SynchronizeSceneHandler(SynchronizeScenes);
                     isSplit = true;
                 }
                 else
@@ -764,7 +766,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             }
             catch (Exception e)
             {
-                m_log.Error("[SPLITSCENE] " + e);
+                m_log.Error("[SPLITSCENE] " + e.ToString());
                 m_log.Error("[SPLITSCENE] " + e.StackTrace);
             }
 
@@ -818,7 +820,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             }
             catch (Exception e)
             {
-                m_log.Error("[BALANCER] " + e);
+                m_log.Error("[BALANCER] " + e.ToString());
                 m_log.Error("[BALANCER] " + e.StackTrace);
                 throw e;
             }
@@ -891,7 +893,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                     // Because data changes by the physics simulation when the client doesn't move, 
                     // if MovementFlag is false, It is necessary to synchronize.
                     //if(pre.MovementFlag!=0 && client.PacketProcessingEnabled==true) 
-                    if (client.PacketProcessingEnabled)
+                    if (client.PacketProcessingEnabled == true)
                     {
                         //m_log.Info("[SPLITSCENE] "+String.Format("Client moving in {0} {1}", scene.RegionInfo.RegionID, pre.AbsolutePosition));
 
@@ -1014,7 +1016,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                     return;
                 }
 
-                if (((ClientView) pre.ControllingClient).PacketProcessingEnabled)
+                if (((ClientView) pre.ControllingClient).PacketProcessingEnabled == true)
                 {
                     pre.ControllingClient.OutPacket(packet, throttlePacketType);
                 }
@@ -1058,7 +1060,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                     }
                     catch (Exception e)
                     {
-                        m_log.Error("[SPLITSCENE] " + e);
+                        m_log.Error("[SPLITSCENE] " + e.ToString());
                         m_log.Error("[SPLITSCENE] " + e.StackTrace);
                     }
 
@@ -1070,7 +1072,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                     LLUUID scenePresenceID = new LLUUID(header.agent_id);
                     LLVector3 position = new LLVector3(buff, 0);
                     LLVector3 velocity = new LLVector3(buff, 12);
-                    bool flying = ((buff[24] == 1) ? true : false);
+                    bool flying = ((buff[24] == (byte) 1) ? true : false);
 
                     LocalUpdatePhysics(regionPort, scenePresenceID, position, velocity, flying);
 

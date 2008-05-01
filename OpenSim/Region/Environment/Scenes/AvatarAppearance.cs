@@ -37,13 +37,52 @@ namespace OpenSim.Region.Environment.Scenes
     [Serializable]
     public class AvatarAppearance : ISerializable
     {
-        protected float m_avatarHeight;
         protected LLUUID m_scenePresenceID;
-        protected LLObject.TextureEntry m_textureEntry;
+
+        public LLUUID ScenePresenceID
+        {
+            get { return m_scenePresenceID; }
+            set { m_scenePresenceID = value; }
+        }
+        protected int m_wearablesSerial = 1;
+
+        public int WearablesSerial
+        {
+            get { return m_wearablesSerial; }
+            set { m_wearablesSerial = value; }
+        }
+
         protected byte[] m_visualParams;
+
+        public byte[] VisualParams
+        {
+            get { return m_visualParams; }
+            set { m_visualParams = value; }
+        }
+
         protected AvatarWearable[] m_wearables;
 
-        protected int m_wearablesSerial = 1;
+        public AvatarWearable[] Wearables
+        {
+            get { return m_wearables; }
+            set { m_wearables = value; }
+        }
+
+        protected LLObject.TextureEntry m_textureEntry;
+
+        public LLObject.TextureEntry TextureEntry
+        {
+            get { return m_textureEntry; }
+            set { m_textureEntry = value; }
+        }
+
+        protected float m_avatarHeight = 0;
+
+        public float AvatarHeight
+        {
+            get { return m_avatarHeight; }
+            set { m_avatarHeight = value; }
+        }
 
         public AvatarAppearance()
         {
@@ -57,86 +96,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_visualParams = visualParams;
             m_textureEntry = GetDefaultTextureEntry();
         }
-
-        protected AvatarAppearance(SerializationInfo info, StreamingContext context)
-        {
-            //System.Console.WriteLine("AvatarAppearance Deserialize BGN");
-
-            if (info == null)
-            {
-                throw new ArgumentNullException("info");
-            }
-
-            m_scenePresenceID = new LLUUID((Guid) info.GetValue("m_scenePresenceID", typeof (Guid)));
-            m_wearablesSerial = (int) info.GetValue("m_wearablesSerial", typeof (int));
-            m_visualParams = (byte[]) info.GetValue("m_visualParams", typeof (byte[]));
-            m_wearables = (AvatarWearable[]) info.GetValue("m_wearables", typeof (AvatarWearable[]));
-
-            byte[] m_textureEntry_work = (byte[]) info.GetValue("m_textureEntry", typeof (byte[]));
-            m_textureEntry = new LLObject.TextureEntry(m_textureEntry_work, 0, m_textureEntry_work.Length);
-
-            m_avatarHeight = (float) info.GetValue("m_avatarHeight", typeof (float));
-
-            //System.Console.WriteLine("AvatarAppearance Deserialize END");
-        }
-
-        public LLUUID ScenePresenceID
-        {
-            get { return m_scenePresenceID; }
-            set { m_scenePresenceID = value; }
-        }
-
-        public int WearablesSerial
-        {
-            get { return m_wearablesSerial; }
-            set { m_wearablesSerial = value; }
-        }
-
-        public byte[] VisualParams
-        {
-            get { return m_visualParams; }
-            set { m_visualParams = value; }
-        }
-
-        public AvatarWearable[] Wearables
-        {
-            get { return m_wearables; }
-            set { m_wearables = value; }
-        }
-
-        public LLObject.TextureEntry TextureEntry
-        {
-            get { return m_textureEntry; }
-            set { m_textureEntry = value; }
-        }
-
-        public float AvatarHeight
-        {
-            get { return m_avatarHeight; }
-            set { m_avatarHeight = value; }
-        }
-
-        #region ISerializable Members
-
-        [SecurityPermission(SecurityAction.LinkDemand,
-            Flags = SecurityPermissionFlag.SerializationFormatter)]
-        public virtual void GetObjectData(
-            SerializationInfo info, StreamingContext context)
-        {
-            if (info == null)
-            {
-                throw new ArgumentNullException("info");
-            }
-
-            info.AddValue("m_scenePresenceID", m_scenePresenceID.UUID);
-            info.AddValue("m_wearablesSerial", m_wearablesSerial);
-            info.AddValue("m_visualParams", m_visualParams);
-            info.AddValue("m_wearables", m_wearables);
-            info.AddValue("m_textureEntry", m_textureEntry.ToBytes());
-            info.AddValue("m_avatarHeight", m_avatarHeight);
-        }
-
-        #endregion
 
         /// <summary>
         /// 
@@ -156,8 +115,8 @@ namespace OpenSim.Region.Environment.Scenes
             // Teravus : Nifty AV Height Getting Maaaaagical formula.  Oh how we love turning 0-255 into meters.
             // (float)m_visualParams[25] = Height
             // (float)m_visualParams[125] = LegLength
-            m_avatarHeight = (1.50856f + ((m_visualParams[25] / 255.0f) * (2.525506f - 1.50856f)))
-                             + ((m_visualParams[125] / 255.0f) / 1.5f);
+            m_avatarHeight = (1.50856f + (((float) m_visualParams[25]/255.0f)*(2.525506f - 1.50856f)))
+                             + (((float) m_visualParams[125]/255.0f)/1.5f);
         }
 
         /// <summary>
@@ -192,6 +151,46 @@ namespace OpenSim.Region.Environment.Scenes
             textu.CreateFace(5).TextureID = new LLUUID("00000000-0000-1111-9999-000000000010");
             textu.CreateFace(6).TextureID = new LLUUID("00000000-0000-1111-9999-000000000011");
             return textu;
+        }
+
+        protected AvatarAppearance(SerializationInfo info, StreamingContext context)
+        {
+            //System.Console.WriteLine("AvatarAppearance Deserialize BGN");
+
+            if (info == null)
+            {
+                throw new ArgumentNullException("info");
+            }
+
+            m_scenePresenceID = new LLUUID((Guid)info.GetValue("m_scenePresenceID", typeof(Guid)));
+            m_wearablesSerial = (int)info.GetValue("m_wearablesSerial", typeof(int));
+            m_visualParams = (byte[])info.GetValue("m_visualParams", typeof(byte[]));
+            m_wearables = (AvatarWearable[])info.GetValue("m_wearables", typeof(AvatarWearable[]));
+
+            byte[] m_textureEntry_work = (byte[])info.GetValue("m_textureEntry", typeof(byte[]));
+            m_textureEntry = new LLObject.TextureEntry(m_textureEntry_work, 0, m_textureEntry_work.Length);
+
+            m_avatarHeight = (float)info.GetValue("m_avatarHeight", typeof(float));
+
+            //System.Console.WriteLine("AvatarAppearance Deserialize END");
+        }
+
+        [SecurityPermission(SecurityAction.LinkDemand,
+            Flags = SecurityPermissionFlag.SerializationFormatter)]
+        public virtual void GetObjectData(
+                        SerializationInfo info, StreamingContext context)
+        {
+            if (info == null)
+            {
+                throw new ArgumentNullException("info");
+            }
+
+            info.AddValue("m_scenePresenceID", m_scenePresenceID.UUID);
+            info.AddValue("m_wearablesSerial", m_wearablesSerial);
+            info.AddValue("m_visualParams", m_visualParams);
+            info.AddValue("m_wearables", m_wearables);
+            info.AddValue("m_textureEntry", m_textureEntry.ToBytes());
+            info.AddValue("m_avatarHeight", m_avatarHeight);
         }
     }
 }

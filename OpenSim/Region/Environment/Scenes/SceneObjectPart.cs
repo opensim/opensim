@@ -56,7 +56,6 @@ namespace OpenSim.Region.Environment.Scenes
         Something5 = 64,
         Something6 = 128
     }
-
     [Flags]
     public enum Changed : uint
     {
@@ -69,7 +68,6 @@ namespace OpenSim.Region.Environment.Scenes
         ALLOWED_DROP = 64,
         OWNER = 128
     }
-
     [Flags]
     public enum TextureAnimFlags : byte
     {
@@ -83,36 +81,70 @@ namespace OpenSim.Region.Environment.Scenes
         SCALE = 0x40
     }
 
-
+    
     [Serializable]
     public partial class SceneObjectPart : IScriptHost, ISerializable
     {
-        public uint Category;
-        public Int32 CreationDate;
-        [XmlIgnore] public LLUUID fromAssetID = LLUUID.Zero;
-        public LLUUID GroupID;
+
+        [XmlIgnore] public PhysicsActor PhysActor = null;
+        
         public LLUUID LastOwnerID;
-
+        public LLUUID OwnerID;
+        public LLUUID GroupID;
+        public int OwnershipCost;
+        public byte ObjectSaleType;
+        public int SalePrice;
+        public uint Category;
+        
         // TODO: This needs to be persisted in next XML version update!
+        [XmlIgnore] public int[] PayPrice = {-2,-2,-2,-2,-2};
+		[XmlIgnore] private Dictionary<LLUUID, scriptEvents> m_scriptEvents = new Dictionary<LLUUID, scriptEvents>();
+		[XmlIgnore] public scriptEvents m_aggregateScriptEvents=0;
         [XmlIgnore] private LLObject.ObjectFlags LocalFlags = LLObject.ObjectFlags.None;
-        [XmlIgnore] public scriptEvents m_aggregateScriptEvents = 0;
 
 
+        [XmlIgnore] public bool m_IsAttachment = false;
+        [XmlIgnore] public uint m_attachmentPoint = (byte)0;
         [XmlIgnore] public LLUUID m_attachedAvatar = LLUUID.Zero;
         [XmlIgnore] public LLVector3 m_attachedPos = LLVector3.Zero;
-        [XmlIgnore] public uint m_attachmentPoint = 0;
-        [XmlIgnore] public bool m_IsAttachment;
+        [XmlIgnore] public LLUUID fromAssetID = LLUUID.Zero;
+
+        [XmlIgnore] public bool m_undoing = false;
+
+        public Int32 CreationDate;
+        public uint ParentID = 0;
 
         private PhysicsVector m_lastRotationalVelocity = PhysicsVector.Zero;
-        protected SceneObjectGroup m_parentGroup;
+        private Vector3 m_sitTargetPosition = new Vector3(0, 0, 0);
+        private Quaternion m_sitTargetOrientation = new Quaternion(0, 0, 0, 1);
+        public  LLUUID m_sitTargetAvatar = LLUUID.Zero;
+        [XmlIgnore] public PhysicsVector m_rotationAxis = new PhysicsVector(1f,1f,1f);
+
+        #region Permissions
+
+        public uint BaseMask = (uint)PermissionMask.All;
+        public uint OwnerMask = (uint)PermissionMask.All;
+        public uint GroupMask = (uint)PermissionMask.None;
+        public uint EveryoneMask = (uint)PermissionMask.None;
+        public uint NextOwnerMask = (uint)PermissionMask.All;
+
+        private UndoStack<UndoState> m_undo = new UndoStack<UndoState>(5);
+
+        public LLObject.ObjectFlags Flags = LLObject.ObjectFlags.None;
+
+        public uint ObjectFlags
+        {
+            get { return (uint)Flags; }
+            set { Flags = (LLObject.ObjectFlags)value; }
+        }
+
+        #endregion  
 
         protected byte[] m_particleSystem = new byte[0];
-        [XmlIgnore] public PhysicsVector m_rotationAxis = new PhysicsVector(1f, 1f, 1f);
-        [XmlIgnore] private Dictionary<LLUUID, scriptEvents> m_scriptEvents = new Dictionary<LLUUID, scriptEvents>();
-        public LLUUID m_sitTargetAvatar = LLUUID.Zero;
-        private Quaternion m_sitTargetOrientation = new Quaternion(0, 0, 0, 1);
-        private Vector3 m_sitTargetPosition = new Vector3(0, 0, 0);
-        [XmlIgnore] public bool m_undoing;
+
+        [XmlIgnore] public uint TimeStampFull = 0;
+        [XmlIgnore] public uint TimeStampTerse = 0;
+        [XmlIgnore] public uint TimeStampLastActivity = 0; // Will be used for AutoReturn
 
         /// <summary>
         /// Only used internally to schedule client updates.
@@ -124,44 +156,24 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         private byte m_updateFlag;
 
-        public byte ObjectSaleType;
-        public LLUUID OwnerID;
-        public int OwnershipCost;
-        public uint ParentID;
-        [XmlIgnore] public int[] PayPrice = {-2, -2, -2, -2, -2};
-        [XmlIgnore] public PhysicsActor PhysActor;
-        public int SalePrice;
-
-        [XmlIgnore] public uint TimeStampFull;
-        [XmlIgnore] public uint TimeStampLastActivity; // Will be used for AutoReturn
-        [XmlIgnore] public uint TimeStampTerse;
-
         #region Properties
-
+        
         public LLUUID CreatorID;
-        protected LLVector3 m_acceleration;
-        protected LLVector3 m_angularVelocity;
-        private byte m_clickAction;
-        private Color m_color = Color.Black;
-        private string m_description = String.Empty;
-        protected LLVector3 m_groupPosition;
-        private int m_linkNum;
+
+        public LLUUID ObjectCreator
+        {
+            get { return CreatorID; }
+        }
+
+        protected LLUUID m_uuid;
+
+        public LLUUID UUID
+        {
+            get { return m_uuid; }
+            set { m_uuid = value; }
+        }
 
         protected uint m_localId;
-        protected LLObject.MaterialType m_material = 0;
-
-        protected string m_name;
-        protected LLVector3 m_offsetPosition;
-        protected ulong m_regionHandle;
-        protected LLVector3 m_rotationalvelocity;
-        protected LLQuaternion m_rotationOffset;
-        protected PrimitiveBaseShape m_shape;
-        private string m_sitName = String.Empty;
-        private string m_text = String.Empty;
-        private byte[] m_TextureAnimation;
-        private string m_touchName = String.Empty;
-        protected LLUUID m_uuid;
-        protected LLVector3 m_velocity;
 
         public uint LocalId
         {
@@ -169,10 +181,20 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_localId = value; }
         }
 
-        public scriptEvents ScriptEvents
+        protected string m_name;
+
+        public virtual string Name
         {
-            get { return m_aggregateScriptEvents; }
+            get { return m_name; }
+            set { m_name = value; }
         }
+
+      	public scriptEvents ScriptEvents
+		{
+			get { return m_aggregateScriptEvents; }
+		}
+
+        protected LLObject.MaterialType m_material = 0;
 
         public byte Material
         {
@@ -180,10 +202,122 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_material = (LLObject.MaterialType) value; }
         }
 
+        protected ulong m_regionHandle;
+
         public ulong RegionHandle
         {
             get { return m_regionHandle; }
             set { m_regionHandle = value; }
+        }
+
+		public uint GetEffectiveObjectFlags()
+		{
+			LLObject.ObjectFlags f=Flags;
+			if(m_parentGroup == null || m_parentGroup.RootPart == this)
+				f &= ~(LLObject.ObjectFlags.Touch | LLObject.ObjectFlags.Money);
+
+			return (uint)Flags | (uint)LocalFlags;
+		}
+
+        //unkown if this will be kept, added as a way of removing the group position from the group class
+        protected LLVector3 m_groupPosition;
+
+        /// <summary>
+        /// Method for a prim to get it's world position from the group.
+        /// Remember, the Group Position simply gives the position of the group itself
+        /// </summary>
+        /// <returns>A Linked Child Prim objects position in world</returns>
+        public LLVector3 GetWorldPosition()
+        {
+            
+            Quaternion parentRot = new Quaternion(
+            ParentGroup.RootPart.RotationOffset.W,
+            ParentGroup.RootPart.RotationOffset.X,
+            ParentGroup.RootPart.RotationOffset.Y,
+            ParentGroup.RootPart.RotationOffset.Z);
+
+            Vector3 axPos
+                = new Vector3(
+                    OffsetPosition.X,
+                    OffsetPosition.Y,
+                    OffsetPosition.Z);
+
+            axPos = parentRot * axPos;
+            LLVector3 translationOffsetPosition = new LLVector3(axPos.x, axPos.y, axPos.z);
+            return GroupPosition + translationOffsetPosition;
+
+            //return (new LLVector3(axiomPos.x, axiomPos.y, axiomPos.z) + AbsolutePosition);
+        }
+
+        /// <summary>
+        /// Gets the rotation of this prim offset by the group rotation
+        /// </summary>
+        /// <returns></returns>
+        public LLQuaternion GetWorldRotation()
+        {
+            
+            Quaternion newRot;
+            
+            if (this.LinkNum == 0)
+            {
+                newRot = new Quaternion(RotationOffset.W,RotationOffset.X,RotationOffset.Y,RotationOffset.Z);
+               
+            }
+            else
+            {
+                Quaternion parentRot = new Quaternion(
+                ParentGroup.RootPart.RotationOffset.W,
+                ParentGroup.RootPart.RotationOffset.X,
+                ParentGroup.RootPart.RotationOffset.Y,
+                ParentGroup.RootPart.RotationOffset.Z);
+
+                Quaternion oldRot
+                    = new Quaternion(
+                        RotationOffset.W,
+                        RotationOffset.X,
+                        RotationOffset.Y,
+                        RotationOffset.Z);
+
+                newRot = parentRot * oldRot;
+            }
+            return new LLQuaternion(newRot.x, newRot.y, newRot.z, newRot.w);
+
+            //return new LLQuaternion(axiomPartRotation.x, axiomPartRotation.y, axiomPartRotation.z, axiomPartRotation.w);
+
+        }
+        
+        public void StoreUndoState()
+        {
+            if (!m_undoing)
+            {
+                if (m_parentGroup != null)
+                {
+                    if (m_undo.Count > 0)
+                    {
+                        UndoState last = m_undo.Peek();
+                        if (last != null)
+                        {
+                            if (last.Compare(this))
+                                return;
+                        }
+                    }
+
+
+                    if (m_parentGroup.GetSceneMaxUndo() > 0)
+                    {
+                        UndoState nUndo = new UndoState(this);
+                        
+                        m_undo.Push(nUndo);
+
+                    }
+                }
+            }
+        }
+
+        public void ClearUndoState()
+        {
+            m_undo.Clear();
+            StoreUndoState();
         }
 
         public LLVector3 GroupPosition
@@ -218,13 +352,16 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     try
                     {
+
                         // Root prim actually goes at Position
                         if (ParentID == 0)
                         {
                             PhysActor.Position = new PhysicsVector(value.X, value.Y, value.Z);
+
                         }
                         else
                         {
+                            
                             // To move the child prim in respect to the group position and rotation we have to calculate
 
                             LLVector3 resultingposition = GetWorldPosition();
@@ -232,7 +369,7 @@ namespace OpenSim.Region.Environment.Scenes
                             LLQuaternion resultingrot = GetWorldRotation();
                             PhysActor.Orientation = new Quaternion(resultingrot.W, resultingrot.X, resultingrot.Y, resultingrot.Z);
                         }
-
+                        
                         // Tell the physics engines that this prim changed.
                         m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                     }
@@ -241,8 +378,13 @@ namespace OpenSim.Region.Environment.Scenes
                         Console.WriteLine(e.Message);
                     }
                 }
+               
             }
         }
+
+        private byte[] m_TextureAnimation;
+        
+        protected LLVector3 m_offsetPosition;
 
         public LLVector3 OffsetPosition
         {
@@ -251,18 +393,30 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 StoreUndoState();
                 m_offsetPosition = value;
-                try
-                {
-                    // Hack to get the child prim to update world positions in the physics engine
-                    ParentGroup.ResetChildPrimPhysicsPositions();
-                }
-                catch (NullReferenceException)
-                {
-                    // Ignore, and skip over.
-                }
-                //m_log.Info("[PART]: OFFSET:" + m_offsetPosition.ToString());
+            try
+            {
+                // Hack to get the child prim to update world positions in the physics engine
+                ParentGroup.ResetChildPrimPhysicsPositions();
+                
+            }
+            catch (NullReferenceException)
+            {
+                // Ignore, and skip over.
+            }
+            //m_log.Info("[PART]: OFFSET:" + m_offsetPosition.ToString());
             }
         }
+
+        public LLVector3 AbsolutePosition
+        {
+            get {
+                if (m_IsAttachment)
+                    return GroupPosition;
+
+                return m_offsetPosition + m_groupPosition; }
+        }
+
+        protected LLQuaternion m_rotationOffset;
 
         public LLQuaternion RotationOffset
         {
@@ -312,8 +466,12 @@ namespace OpenSim.Region.Environment.Scenes
                         Console.WriteLine(ex.Message);
                     }
                 }
+                
             }
         }
+
+        protected LLVector3 m_velocity;
+        protected LLVector3 m_rotationalvelocity;
 
         /// <summary></summary>
         public LLVector3 Velocity
@@ -335,8 +493,8 @@ namespace OpenSim.Region.Environment.Scenes
 
                 return m_velocity;
             }
-            set
-            {
+            set { 
+                
                 m_velocity = value;
                 if (PhysActor != null)
                 {
@@ -346,6 +504,7 @@ namespace OpenSim.Region.Environment.Scenes
                         m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                     }
                 }
+              
             }
         }
 
@@ -360,7 +519,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (PhysActor.IsPhysical)
                     {
-                        m_rotationalvelocity.FromBytes(PhysActor.RotationalVelocity.GetBytes(), 0);
+                        m_rotationalvelocity.FromBytes(PhysActor.RotationalVelocity.GetBytes(),0);
                     }
                 }
 
@@ -370,12 +529,16 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
 
+        protected LLVector3 m_angularVelocity;
+
         /// <summary></summary>
         public LLVector3 AngularVelocity
         {
             get { return m_angularVelocity; }
             set { m_angularVelocity = value; }
         }
+
+        protected LLVector3 m_acceleration;
 
         /// <summary></summary>
         public LLVector3 Acceleration
@@ -384,6 +547,16 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_acceleration = value; }
         }
 
+        private string m_description = String.Empty;
+
+        public string Description
+        {
+            get { return m_description; }
+            set { m_description = value; }
+        }
+
+        private Color m_color = Color.Black;
+
         public Color Color
         {
             get { return m_color; }
@@ -391,13 +564,15 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_color = value;
                 TriggerScriptChangedEvent(Changed.COLOR);
-
+                
                 /* ScheduleFullUpdate() need not be called b/c after
                  * setting the color, the text will be set, so then
                  * ScheduleFullUpdate() will be called. */
                 //ScheduleFullUpdate();
             }
         }
+
+        private string m_text = String.Empty;
 
         public Vector3 SitTargetPosition
         {
@@ -412,93 +587,13 @@ namespace OpenSim.Region.Environment.Scenes
         public string Text
         {
             get { return m_text; }
-            set { m_text = value; }
-        }
-
-        public int LinkNum
-        {
-            get { return m_linkNum; }
             set
             {
-                m_linkNum = value;
-                TriggerScriptChangedEvent(Changed.LINK);
+                m_text = value;
             }
         }
 
-        public byte ClickAction
-        {
-            get { return m_clickAction; }
-            set { m_clickAction = value; }
-        }
-
-        public PrimitiveBaseShape Shape
-        {
-            get { return m_shape; }
-            set
-            {
-                m_shape = value;
-                TriggerScriptChangedEvent(Changed.SHAPE);
-            }
-        }
-
-        public LLVector3 Scale
-        {
-            get { return m_shape.Scale; }
-            set
-            {
-                StoreUndoState();
-                m_shape.Scale = value;
-                TriggerScriptChangedEvent(Changed.SCALE);
-            }
-        }
-
-        public bool Stopped
-        {
-            get
-            {
-                double threshold = 0.02;
-                return (Math.Abs(Velocity.X) < threshold &&
-                        Math.Abs(Velocity.Y) < threshold &&
-                        Math.Abs(Velocity.Z) < threshold &&
-                        Math.Abs(AngularVelocity.X) < threshold &&
-                        Math.Abs(AngularVelocity.Y) < threshold &&
-                        Math.Abs(AngularVelocity.Z) < threshold);
-            }
-        }
-
-        public LLUUID ObjectCreator
-        {
-            get { return CreatorID; }
-        }
-
-        public LLUUID UUID
-        {
-            get { return m_uuid; }
-            set { m_uuid = value; }
-        }
-
-        public virtual string Name
-        {
-            get { return m_name; }
-            set { m_name = value; }
-        }
-
-        public LLVector3 AbsolutePosition
-        {
-            get
-            {
-                if (m_IsAttachment)
-                    return GroupPosition;
-
-                return m_offsetPosition + m_groupPosition;
-            }
-        }
-
-        public string Description
-        {
-            get { return m_description; }
-            set { m_description = value; }
-        }
+        private string m_sitName = String.Empty;
 
         public string SitName
         {
@@ -506,113 +601,39 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_sitName = value; }
         }
 
+        private string m_touchName = String.Empty;
+
         public string TouchName
         {
             get { return m_touchName; }
             set { m_touchName = value; }
         }
 
-        public uint GetEffectiveObjectFlags()
+        private int m_linkNum = 0;
+
+        public int LinkNum
         {
-            LLObject.ObjectFlags f = Flags;
-            if (m_parentGroup == null || m_parentGroup.RootPart == this)
-                f &= ~(LLObject.ObjectFlags.Touch | LLObject.ObjectFlags.Money);
-
-            return (uint) Flags | (uint) LocalFlags;
-        }
-
-        /// <summary>
-        /// Method for a prim to get it's world position from the group.
-        /// Remember, the Group Position simply gives the position of the group itself
-        /// </summary>
-        /// <returns>A Linked Child Prim objects position in world</returns>
-        public LLVector3 GetWorldPosition()
-        {
-            Quaternion parentRot = new Quaternion(
-                ParentGroup.RootPart.RotationOffset.W,
-                ParentGroup.RootPart.RotationOffset.X,
-                ParentGroup.RootPart.RotationOffset.Y,
-                ParentGroup.RootPart.RotationOffset.Z);
-
-            Vector3 axPos
-                = new Vector3(
-                    OffsetPosition.X,
-                    OffsetPosition.Y,
-                    OffsetPosition.Z);
-
-            axPos = parentRot * axPos;
-            LLVector3 translationOffsetPosition = new LLVector3(axPos.x, axPos.y, axPos.z);
-            return GroupPosition + translationOffsetPosition;
-
-            //return (new LLVector3(axiomPos.x, axiomPos.y, axiomPos.z) + AbsolutePosition);
-        }
-
-        /// <summary>
-        /// Gets the rotation of this prim offset by the group rotation
-        /// </summary>
-        /// <returns></returns>
-        public LLQuaternion GetWorldRotation()
-        {
-            Quaternion newRot;
-
-            if (LinkNum == 0)
-            {
-                newRot = new Quaternion(RotationOffset.W, RotationOffset.X, RotationOffset.Y, RotationOffset.Z);
-            }
-            else
-            {
-                Quaternion parentRot = new Quaternion(
-                    ParentGroup.RootPart.RotationOffset.W,
-                    ParentGroup.RootPart.RotationOffset.X,
-                    ParentGroup.RootPart.RotationOffset.Y,
-                    ParentGroup.RootPart.RotationOffset.Z);
-
-                Quaternion oldRot
-                    = new Quaternion(
-                        RotationOffset.W,
-                        RotationOffset.X,
-                        RotationOffset.Y,
-                        RotationOffset.Z);
-
-                newRot = parentRot * oldRot;
-            }
-            return new LLQuaternion(newRot.x, newRot.y, newRot.z, newRot.w);
-
-            //return new LLQuaternion(axiomPartRotation.x, axiomPartRotation.y, axiomPartRotation.z, axiomPartRotation.w);
-        }
-
-        public void StoreUndoState()
-        {
-            if (!m_undoing)
-            {
-                if (m_parentGroup != null)
-                {
-                    if (m_undo.Count > 0)
-                    {
-                        UndoState last = m_undo.Peek();
-                        if (last != null)
-                        {
-                            if (last.Compare(this))
-                                return;
-                        }
-                    }
-
-
-                    if (m_parentGroup.GetSceneMaxUndo() > 0)
-                    {
-                        UndoState nUndo = new UndoState(this);
-
-                        m_undo.Push(nUndo);
-                    }
-                }
+            get { return m_linkNum; }
+            set 
+            { 
+                m_linkNum = value;
+                TriggerScriptChangedEvent(Changed.LINK);
+                
             }
         }
 
-        public void ClearUndoState()
+        private byte m_clickAction = 0;
+
+        public byte ClickAction
         {
-            m_undo.Clear();
-            StoreUndoState();
+            get { return m_clickAction; }
+            set
+            {
+                m_clickAction = value;
+            }
         }
+
+        protected PrimitiveBaseShape m_shape;
 
         /// <summary>
         /// hook to the physics scene to apply impulse
@@ -624,17 +645,20 @@ namespace OpenSim.Region.Environment.Scenes
         public void ApplyImpulse(LLVector3 impulsei, bool localGlobalTF)
         {
             PhysicsVector impulse = new PhysicsVector(impulsei.X, impulsei.Y, impulsei.Z);
-
+            
             if (localGlobalTF)
             {
+
                 LLQuaternion grot = GetWorldRotation();
-                Quaternion AXgrot = new Quaternion(grot.W, grot.X, grot.Y, grot.Z);
+                Quaternion AXgrot = new Quaternion(grot.W,grot.X,grot.Y,grot.Z);
                 Vector3 AXimpulsei = new Vector3(impulsei.X, impulsei.Y, impulsei.Z);
                 Vector3 newimpulse = AXgrot * AXimpulsei;
                 impulse = new PhysicsVector(newimpulse.x, newimpulse.y, newimpulse.z);
+
             }
             else
             {
+                
                 if (m_parentGroup != null)
                 {
                     m_parentGroup.applyImpulse(impulse);
@@ -652,6 +676,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 StopMoveToTarget();
             }
+
         }
 
         public void StopMoveToTarget()
@@ -664,47 +689,55 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_parentGroup != null)
             {
                 if (m_parentGroup.Scene != null)
-                    m_parentGroup.Scene.TriggerObjectChanged(LocalId, (uint) val);
+                    m_parentGroup.Scene.TriggerObjectChanged(LocalId, (uint)val);
             }
+
         }
 
-        #endregion
-
-        #region Permissions
-
-        private readonly UndoStack<UndoState> m_undo = new UndoStack<UndoState>(5);
-        public uint BaseMask = (uint) PermissionMask.All;
-        public uint EveryoneMask = (uint) PermissionMask.None;
-
-        public LLObject.ObjectFlags Flags = LLObject.ObjectFlags.None;
-        public uint GroupMask = (uint) PermissionMask.None;
-        public uint NextOwnerMask = (uint) PermissionMask.All;
-        public uint OwnerMask = (uint) PermissionMask.All;
-
-        public uint ObjectFlags
+        public PrimitiveBaseShape Shape
         {
-            get { return (uint) Flags; }
-            set { Flags = (LLObject.ObjectFlags) value; }
-        }
-
-        #endregion
-
-        protected SceneObjectPart(SerializationInfo info, StreamingContext context)
-        {
-            //System.Console.WriteLine("SceneObjectPart Deserialize BGN");
-
-            if (info == null)
+            get { return m_shape; }
+            set 
             {
-                throw new ArgumentNullException("info");
+                
+                m_shape = value;
+                TriggerScriptChangedEvent(Changed.SHAPE);
             }
-
-            /*
-            m_queue = (Queue<SceneObjectPart>)info.GetValue("m_queue", typeof(Queue<SceneObjectPart>));
-            m_ids = (List<LLUUID>)info.GetValue("m_ids", typeof(List<LLUUID>));
-            */
-
-            //System.Console.WriteLine("SceneObjectPart Deserialize END");
         }
+
+        public LLVector3 Scale
+        {
+            get { return m_shape.Scale; }
+            set 
+            {
+                StoreUndoState();
+                m_shape.Scale = value;
+                TriggerScriptChangedEvent(Changed.SCALE);
+            }
+        }
+
+        public bool Stopped
+        {
+            get {
+                double threshold = 0.02;
+                return (Math.Abs(Velocity.X) < threshold &&
+                        Math.Abs(Velocity.Y) < threshold &&
+                        Math.Abs(Velocity.Z) < threshold &&
+                        Math.Abs(AngularVelocity.X) < threshold &&
+                        Math.Abs(AngularVelocity.Y) < threshold &&
+                        Math.Abs(AngularVelocity.Z) < threshold);
+            }
+        }
+
+        #endregion
+         
+        public LLUUID ObjectOwner
+        {
+            get { return OwnerID; }
+        }
+
+        // FIXME, TODO, ERROR: 'ParentGroup' can't be in here, move it out.
+        protected SceneObjectGroup m_parentGroup;
 
         public SceneObjectGroup ParentGroup
         {
@@ -725,7 +758,7 @@ namespace OpenSim.Region.Environment.Scenes
         public SceneObjectPart()
         {
             // It's not necessary to persist this
-            m_inventoryFileName = "inventory_" + LLUUID.Random() + ".tmp";
+            m_inventoryFileName = "inventory_" + LLUUID.Random().ToString() + ".tmp";
             m_TextureAnimation = new byte[0];
         }
 
@@ -757,13 +790,13 @@ namespace OpenSim.Region.Environment.Scenes
             CreatorID = OwnerID;
             LastOwnerID = LLUUID.Zero;
             UUID = LLUUID.Random();
-            LocalId = (localID);
+            LocalId = (uint) (localID);
             Shape = shape;
             // Todo: Add More Object Parameter from above!
             OwnershipCost = 0;
-            ObjectSaleType = 0;
+            ObjectSaleType = (byte) 0;
             SalePrice = 0;
-            Category = 0;
+            Category = (uint) 0;
             LastOwnerID = CreatorID;
             // End Todo: ///
             GroupPosition = groupPosition;
@@ -774,20 +807,20 @@ namespace OpenSim.Region.Environment.Scenes
             AngularVelocity = new LLVector3(0, 0, 0);
             Acceleration = new LLVector3(0, 0, 0);
             m_TextureAnimation = new byte[0];
-            m_inventoryFileName = "inventory_" + LLUUID.Random() + ".tmp";
-
+            m_inventoryFileName = "inventory_" + LLUUID.Random().ToString() + ".tmp";
+            
             // Prims currently only contain a single folder (Contents).  From looking at the Second Life protocol,
             // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from 
             // the prim into an agent inventory (Linden client reports that the "Object not found for drop" in its log
             m_folderID = UUID;
 
             Flags = 0;
-            Flags |= LLObject.ObjectFlags.AllowInventoryDrop |
-                     LLObject.ObjectFlags.CreateSelected;
+            Flags |=  LLObject.ObjectFlags.AllowInventoryDrop |
+                      LLObject.ObjectFlags.CreateSelected;
 
             TrimPermissions();
             //m_undo = new UndoStack<UndoState>(ParentGroup.GetSceneMaxUndo());
-
+            
             ScheduleFullUpdate();
         }
 
@@ -813,145 +846,25 @@ namespace OpenSim.Region.Environment.Scenes
             CreatorID = creatorID;
             LastOwnerID = lastOwnerID;
             UUID = LLUUID.Random();
-            LocalId = (localID);
+            LocalId = (uint) (localID);
             Shape = shape;
             OwnershipCost = 0;
-            ObjectSaleType = 0;
+            ObjectSaleType = (byte) 0;
             SalePrice = 0;
-            Category = 0;
+            Category = (uint) 0;
             LastOwnerID = CreatorID;
             OffsetPosition = position;
             RotationOffset = rotation;
             ObjectFlags = flags;
-
+            
             // Since we don't store script state, this is only a 'temporary' objectflag now
             // If the object is scripted, the script will get loaded and this will be set again
-            ObjectFlags &= ~(uint) (LLObject.ObjectFlags.Scripted | LLObject.ObjectFlags.Touch);
-
+            ObjectFlags &= ~(uint)(LLObject.ObjectFlags.Scripted | LLObject.ObjectFlags.Touch); 
+            
             TrimPermissions();
             // ApplyPhysics();
-
+           
             ScheduleFullUpdate();
-        }
-
-        #endregion
-
-        #region IScriptHost Members
-
-        public LLUUID ObjectOwner
-        {
-            get { return OwnerID; }
-        }
-
-        public void SetText(string text, Vector3 color, double alpha)
-        {
-            Color = Color.FromArgb(0xff - (int) (alpha * 0xff),
-                                   (int) (color.x * 0xff),
-                                   (int) (color.y * 0xff),
-                                   (int) (color.z * 0xff));
-            SetText(text);
-        }
-
-        #endregion
-
-        #region ISerializable Members
-
-        [SecurityPermission(SecurityAction.LinkDemand,
-            Flags = SecurityPermissionFlag.SerializationFormatter)]
-        public virtual void GetObjectData(
-            SerializationInfo info, StreamingContext context)
-        {
-            if (info == null)
-            {
-                throw new ArgumentNullException("info");
-            }
-
-            info.AddValue("m_inventoryFileName", m_inventoryFileName);
-            info.AddValue("m_folderID", m_folderID.UUID);
-            info.AddValue("PhysActor", PhysActor);
-
-            Dictionary<Guid, TaskInventoryItem> TaskInventory_work = new Dictionary<Guid, TaskInventoryItem>();
-
-            foreach (LLUUID id in TaskInventory.Keys)
-            {
-                TaskInventory_work.Add(id.UUID, TaskInventory[id]);
-            }
-
-            info.AddValue("TaskInventory", TaskInventory_work);
-
-            info.AddValue("LastOwnerID", LastOwnerID.UUID);
-            info.AddValue("OwnerID", OwnerID.UUID);
-            info.AddValue("GroupID", GroupID.UUID);
-
-            info.AddValue("OwnershipCost", OwnershipCost);
-            info.AddValue("ObjectSaleType", ObjectSaleType);
-            info.AddValue("SalePrice", SalePrice);
-            info.AddValue("Category", Category);
-
-            info.AddValue("CreationDate", CreationDate);
-            info.AddValue("ParentID", ParentID);
-
-            info.AddValue("OwnerMask", OwnerMask);
-            info.AddValue("NextOwnerMask", NextOwnerMask);
-            info.AddValue("GroupMask", GroupMask);
-            info.AddValue("EveryoneMask", EveryoneMask);
-            info.AddValue("BaseMask", BaseMask);
-
-            info.AddValue("m_particleSystem", m_particleSystem);
-
-            info.AddValue("TimeStampFull", TimeStampFull);
-            info.AddValue("TimeStampTerse", TimeStampTerse);
-            info.AddValue("TimeStampLastActivity", TimeStampLastActivity);
-
-            info.AddValue("m_updateFlag", m_updateFlag);
-            info.AddValue("CreatorID", CreatorID.UUID);
-
-            info.AddValue("m_inventorySerial", m_inventorySerial);
-            info.AddValue("m_uuid", m_uuid.UUID);
-            info.AddValue("m_localID", m_localId);
-            info.AddValue("m_name", m_name);
-            info.AddValue("m_flags", Flags);
-            info.AddValue("m_material", m_material);
-            info.AddValue("m_regionHandle", m_regionHandle);
-
-            info.AddValue("m_groupPosition.X", m_groupPosition.X);
-            info.AddValue("m_groupPosition.Y", m_groupPosition.Y);
-            info.AddValue("m_groupPosition.Z", m_groupPosition.Z);
-
-            info.AddValue("m_offsetPosition.X", m_offsetPosition.X);
-            info.AddValue("m_offsetPosition.Y", m_offsetPosition.Y);
-            info.AddValue("m_offsetPosition.Z", m_offsetPosition.Z);
-
-            info.AddValue("m_rotationOffset.W", m_rotationOffset.W);
-            info.AddValue("m_rotationOffset.X", m_rotationOffset.X);
-            info.AddValue("m_rotationOffset.Y", m_rotationOffset.Y);
-            info.AddValue("m_rotationOffset.Z", m_rotationOffset.Z);
-
-            info.AddValue("m_velocity.X", m_velocity.X);
-            info.AddValue("m_velocity.Y", m_velocity.Y);
-            info.AddValue("m_velocity.Z", m_velocity.Z);
-
-            info.AddValue("m_rotationalvelocity.X", m_rotationalvelocity.X);
-            info.AddValue("m_rotationalvelocity.Y", m_rotationalvelocity.Y);
-            info.AddValue("m_rotationalvelocity.Z", m_rotationalvelocity.Z);
-
-            info.AddValue("m_angularVelocity.X", m_angularVelocity.X);
-            info.AddValue("m_angularVelocity.Y", m_angularVelocity.Y);
-            info.AddValue("m_angularVelocity.Z", m_angularVelocity.Z);
-
-            info.AddValue("m_acceleration.X", m_acceleration.X);
-            info.AddValue("m_acceleration.Y", m_acceleration.Y);
-            info.AddValue("m_acceleration.Z", m_acceleration.Z);
-
-            info.AddValue("m_description", m_description);
-            info.AddValue("m_color", m_color);
-            info.AddValue("m_text", m_text);
-            info.AddValue("m_sitName", m_sitName);
-            info.AddValue("m_touchName", m_touchName);
-            info.AddValue("m_clickAction", m_clickAction);
-            info.AddValue("m_shape", m_shape);
-            info.AddValue("m_parentGroup", m_parentGroup);
-            info.AddValue("PayPrice", PayPrice);
         }
 
         #endregion
@@ -968,9 +881,10 @@ namespace OpenSim.Region.Environment.Scenes
 
             return newobject;
         }
-
+         
         public void ApplyPhysics(uint rootObjectFlags, bool m_physicalPrim)
         {
+
             bool isPhysical = (((rootObjectFlags & (uint) LLObject.ObjectFlags.Physics) != 0) && m_physicalPrim);
             bool isPhantom = ((rootObjectFlags & (uint) LLObject.ObjectFlags.Phantom) != 0);
 
@@ -988,7 +902,7 @@ namespace OpenSim.Region.Environment.Scenes
                     new PhysicsVector(Scale.X, Scale.Y, Scale.Z),
                     new Quaternion(RotationOffset.W, RotationOffset.X,
                                    RotationOffset.Y, RotationOffset.Z), RigidBody);
-
+                
                 // Basic Physics returns null..  joy joy joy.
                 if (PhysActor != null)
                 {
@@ -1004,15 +918,18 @@ namespace OpenSim.Region.Environment.Scenes
             OwnerMask = NextOwnerMask;
 
             TriggerScriptChangedEvent(Changed.OWNER);
+            
         }
 
         public void TrimPermissions()
         {
-            BaseMask &= (uint) PermissionMask.All;
-            OwnerMask &= (uint) PermissionMask.All;
-            GroupMask &= (uint) PermissionMask.All;
-            EveryoneMask &= (uint) PermissionMask.All;
-            NextOwnerMask &= (uint) PermissionMask.All;
+
+            BaseMask &= (uint)PermissionMask.All;
+            OwnerMask &= (uint)PermissionMask.All;
+            GroupMask &= (uint)PermissionMask.All;
+            EveryoneMask &= (uint)PermissionMask.All;
+            NextOwnerMask &= (uint)PermissionMask.All;
+
         }
 
         /// <summary>
@@ -1046,24 +963,25 @@ namespace OpenSim.Region.Environment.Scenes
             Vector3 rOrigin = iray.Origin;
             Vector3 rDirection = iray.Direction;
 
+            
 
             //rDirection = rDirection.Normalize();
             // Buidling the first part of the Quadratic equation
-            Vector3 r2ndDirection = rDirection * rDirection;
+            Vector3 r2ndDirection = rDirection*rDirection;
             float itestPart1 = r2ndDirection.x + r2ndDirection.y + r2ndDirection.z;
 
             // Buidling the second part of the Quadratic equation
             Vector3 tmVal2 = rOrigin - vAbsolutePosition;
-            Vector3 r2Direction = rDirection * 2.0f;
-            Vector3 tmVal3 = r2Direction * tmVal2;
+            Vector3 r2Direction = rDirection*2.0f;
+            Vector3 tmVal3 = r2Direction*tmVal2;
 
             float itestPart2 = tmVal3.x + tmVal3.y + tmVal3.z;
 
             // Buidling the third part of the Quadratic equation
-            Vector3 tmVal4 = rOrigin * rOrigin;
-            Vector3 tmVal5 = vAbsolutePosition * vAbsolutePosition;
+            Vector3 tmVal4 = rOrigin*rOrigin;
+            Vector3 tmVal5 = vAbsolutePosition*vAbsolutePosition;
 
-            Vector3 tmVal6 = vAbsolutePosition * rOrigin;
+            Vector3 tmVal6 = vAbsolutePosition*rOrigin;
 
 
             // Set Radius to the largest dimention of the prim
@@ -1085,21 +1003,21 @@ namespace OpenSim.Region.Environment.Scenes
             //radius = radius;
 
             float itestPart3 = tmVal4.x + tmVal4.y + tmVal4.z + tmVal5.x + tmVal5.y + tmVal5.z -
-                               (2.0f * (tmVal6.x + tmVal6.y + tmVal6.z + (radius * radius)));
+                               (2.0f*(tmVal6.x + tmVal6.y + tmVal6.z + (radius*radius)));
 
             // Yuk Quadradrics..    Solve first
-            float rootsqr = (itestPart2 * itestPart2) - (4.0f * itestPart1 * itestPart3);
+            float rootsqr = (itestPart2*itestPart2) - (4.0f*itestPart1*itestPart3);
             if (rootsqr < 0.0f)
             {
                 // No intersection
                 return returnresult;
             }
-            float root = ((-itestPart2) - (float) Math.Sqrt(rootsqr)) / (itestPart1 * 2.0f);
+            float root = ((-itestPart2) - (float) Math.Sqrt((double) rootsqr))/(itestPart1*2.0f);
 
             if (root < 0.0f)
             {
                 // perform second quadratic root solution
-                root = ((-itestPart2) + (float) Math.Sqrt(rootsqr)) / (itestPart1 * 2.0f);
+                root = ((-itestPart2) + (float) Math.Sqrt((double) rootsqr))/(itestPart1*2.0f);
 
                 // is there any intersection?
                 if (root < 0.0f)
@@ -1112,8 +1030,8 @@ namespace OpenSim.Region.Environment.Scenes
             // We got an intersection.  putting together an EntityIntersection object with the 
             // intersection information
             Vector3 ipoint =
-                new Vector3(iray.Origin.x + (iray.Direction.x * root), iray.Origin.y + (iray.Direction.y * root),
-                            iray.Origin.z + (iray.Direction.z * root));
+                new Vector3(iray.Origin.x + (iray.Direction.x*root), iray.Origin.y + (iray.Direction.y*root),
+                            iray.Origin.z + (iray.Direction.z*root));
 
             returnresult.HitTF = true;
             returnresult.ipoint = ipoint;
@@ -1174,7 +1092,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             // Variables prefixed with AX are Axiom.Math copies of the LL variety.
 
-            Quaternion AXrot = new Quaternion(rot.W, rot.X, rot.Y, rot.Z);
+            Quaternion AXrot = new Quaternion(rot.W,rot.X,rot.Y,rot.Z);
             AXrot.Normalize();
 
             Vector3 AXpos = new Vector3(pos.X, pos.Y, pos.Z);
@@ -1183,33 +1101,31 @@ namespace OpenSim.Region.Environment.Scenes
             // it's different for each vertex because we've got to rotate it 
             // to get the world position of the vertex to produce the Oriented Bounding Box
 
-            Vector3 tScale = new Vector3();
+            Vector3 tScale = new Vector3(); 
 
             Vector3 AXscale = new Vector3(m_shape.Scale.X * 0.5f, m_shape.Scale.Y * 0.5f, m_shape.Scale.Z * 0.5f);
 
             //Vector3 pScale = (AXscale) - (AXrot.Inverse() * (AXscale));
             //Vector3 nScale = (AXscale * -1) - (AXrot.Inverse() * (AXscale * -1));
-
+            
             // rScale is the rotated offset to find a vertex based on the scale and the world rotation.
             Vector3 rScale = new Vector3();
 
             // Get Vertexes for Faces Stick them into ABCD for each Face
             // Form: Face<vertex>[face] that corresponds to the below diagram
-
             #region ABCD Face Vertex Map Comment Diagram
-
             //                   A _________ B
             //                    |         |
             //                    |  4 top  |
             //                    |_________|
             //                   C           D  
-
+            
             //                   A _________ B
             //                    |  Back   |
             //                    |    3    |
             //                    |_________|
             //                   C           D   
-
+        
             //   A _________ B                     B _________ A
             //    |  Left   |                       |  Right  |
             //    |    0    |                       |    2    |
@@ -1227,15 +1143,13 @@ namespace OpenSim.Region.Environment.Scenes
             //                    |  5 bot  |
             //                    |_________|
             //                   A           B   
-
             #endregion
 
             #region Plane Decomposition of Oriented Bounding Box
-
             tScale = new Vector3(AXscale.x, -AXscale.y, AXscale.z);
             rScale = ((AXrot * tScale));
             vertexes[0] = (new Vector3((pos.X + rScale.x), (pos.Y + rScale.y), (pos.Z + rScale.z)));
-            // vertexes[0].x = pos.X + vertexes[0].x;
+           // vertexes[0].x = pos.X + vertexes[0].x;
             //vertexes[0].y = pos.Y + vertexes[0].y;
             //vertexes[0].z = pos.Z + vertexes[0].z;
 
@@ -1247,8 +1161,8 @@ namespace OpenSim.Region.Environment.Scenes
             rScale = ((AXrot * tScale));
             vertexes[1] = (new Vector3((pos.X + rScale.x), (pos.Y + rScale.y), (pos.Z + rScale.z)));
 
-            // vertexes[1].x = pos.X + vertexes[1].x;
-            // vertexes[1].y = pos.Y + vertexes[1].y;
+           // vertexes[1].x = pos.X + vertexes[1].x;
+           // vertexes[1].y = pos.Y + vertexes[1].y;
             //vertexes[1].z = pos.Z + vertexes[1].z;
 
             FaceB[0] = vertexes[1];
@@ -1273,8 +1187,8 @@ namespace OpenSim.Region.Environment.Scenes
             vertexes[3] = (new Vector3((pos.X + rScale.x), (pos.Y + rScale.y), (pos.Z + rScale.z)));
 
             //vertexes[3].x = pos.X + vertexes[3].x;
-            // vertexes[3].y = pos.Y + vertexes[3].y;
-            // vertexes[3].z = pos.Z + vertexes[3].z;
+           // vertexes[3].y = pos.Y + vertexes[3].y;
+           // vertexes[3].z = pos.Z + vertexes[3].z;
 
             FaceD[0] = vertexes[3];
             FaceC[1] = vertexes[3];
@@ -1284,9 +1198,9 @@ namespace OpenSim.Region.Environment.Scenes
             rScale = ((AXrot * tScale));
             vertexes[4] = (new Vector3((pos.X + rScale.x), (pos.Y + rScale.y), (pos.Z + rScale.z)));
 
-            // vertexes[4].x = pos.X + vertexes[4].x;
-            // vertexes[4].y = pos.Y + vertexes[4].y;
-            // vertexes[4].z = pos.Z + vertexes[4].z;
+           // vertexes[4].x = pos.X + vertexes[4].x;
+           // vertexes[4].y = pos.Y + vertexes[4].y;
+           // vertexes[4].z = pos.Z + vertexes[4].z;
 
             FaceB[1] = vertexes[4];
             FaceA[2] = vertexes[4];
@@ -1296,9 +1210,9 @@ namespace OpenSim.Region.Environment.Scenes
             rScale = ((AXrot * tScale));
             vertexes[5] = (new Vector3((pos.X + rScale.x), (pos.Y + rScale.y), (pos.Z + rScale.z)));
 
-            // vertexes[5].x = pos.X + vertexes[5].x;
-            // vertexes[5].y = pos.Y + vertexes[5].y;
-            // vertexes[5].z = pos.Z + vertexes[5].z;
+           // vertexes[5].x = pos.X + vertexes[5].x;
+           // vertexes[5].y = pos.Y + vertexes[5].y;
+           // vertexes[5].z = pos.Z + vertexes[5].z;
 
             FaceD[1] = vertexes[5];
             FaceC[2] = vertexes[5];
@@ -1308,9 +1222,9 @@ namespace OpenSim.Region.Environment.Scenes
             rScale = ((AXrot * tScale));
             vertexes[6] = (new Vector3((pos.X + rScale.x), (pos.Y + rScale.y), (pos.Z + rScale.z)));
 
-            // vertexes[6].x = pos.X + vertexes[6].x;
-            // vertexes[6].y = pos.Y + vertexes[6].y;
-            // vertexes[6].z = pos.Z + vertexes[6].z;
+           // vertexes[6].x = pos.X + vertexes[6].x;
+           // vertexes[6].y = pos.Y + vertexes[6].y;
+           // vertexes[6].z = pos.Z + vertexes[6].z;
 
             FaceB[2] = vertexes[6];
             FaceA[3] = vertexes[6];
@@ -1320,36 +1234,35 @@ namespace OpenSim.Region.Environment.Scenes
             rScale = ((AXrot * tScale));
             vertexes[7] = (new Vector3((pos.X + rScale.x), (pos.Y + rScale.y), (pos.Z + rScale.z)));
 
-            // vertexes[7].x = pos.X + vertexes[7].x;
-            // vertexes[7].y = pos.Y + vertexes[7].y;
-            // vertexes[7].z = pos.Z + vertexes[7].z;
+           // vertexes[7].x = pos.X + vertexes[7].x;
+           // vertexes[7].y = pos.Y + vertexes[7].y;
+           // vertexes[7].z = pos.Z + vertexes[7].z;
 
             FaceD[2] = vertexes[7];
             FaceC[3] = vertexes[7];
             FaceD[5] = vertexes[7];
-
             #endregion
 
             // Get our plane normals
             for (int i = 0; i < 6; i++)
             {
                 //m_log.Info("[FACECALCULATION]: FaceA[" + i + "]=" + FaceA[i] + " FaceB[" + i + "]=" + FaceB[i] + " FaceC[" + i + "]=" + FaceC[i] + " FaceD[" + i + "]=" + FaceD[i]);
-
+                
                 // Our Plane direction
                 AmBa = FaceA[i] - FaceB[i];
                 AmBb = FaceB[i] - FaceC[i];
-
+                
                 cross = AmBb.Cross(AmBa);
 
                 // normalize the cross product to get the normal.
-                normals[i] = cross / cross.Length;
-
+                normals[i] = cross / cross.Length; 
+                
                 //m_log.Info("[NORMALS]: normals[ " + i + "]" + normals[i].ToString());
                 //distance[i] = (normals[i].x * AmBa.x + normals[i].y * AmBa.y + normals[i].z * AmBa.z) * -1;
             }
 
             EntityIntersection returnresult = new EntityIntersection();
-
+            
             returnresult.distance = 1024;
             float c = 0;
             float a = 0;
@@ -1357,59 +1270,57 @@ namespace OpenSim.Region.Environment.Scenes
             Vector3 q = new Vector3();
 
             #region OBB Version 2 Experiment
-
             //float fmin = 999999;
             //float fmax = -999999;
             //float s = 0;
 
             //for (int i=0;i<6;i++)
             //{
-            //s = iray.Direction.Dot(normals[i]);
-            //d = normals[i].Dot(FaceB[i]);
+                //s = iray.Direction.Dot(normals[i]);
+                //d = normals[i].Dot(FaceB[i]);
 
-            //if (s == 0)
-            //{
-            //if (iray.Origin.Dot(normals[i]) > d)
-            //{
-            //return returnresult;
-            //}
-            // else 
-            //{
-            //continue;
-            //}
-            //}
-            //a = (d - iray.Origin.Dot(normals[i])) / s;
-            //if ( iray.Direction.Dot(normals[i]) < 0)
-            //{
-            //if (a > fmax)
-            //{
-            //if (a > fmin)
-            //{
-            //return returnresult;
-            //}
-            //fmax = a;
-            //}
+                //if (s == 0)
+                //{
+                    //if (iray.Origin.Dot(normals[i]) > d)
+                    //{
+                        //return returnresult;
+                    //}
+                   // else 
+                    //{
+                        //continue;
+                    //}
+                //}
+                //a = (d - iray.Origin.Dot(normals[i])) / s;
+                //if ( iray.Direction.Dot(normals[i]) < 0)
+                //{
+                    //if (a > fmax)
+                    //{
+                        //if (a > fmin)
+                        //{
+                            //return returnresult;
+                        //}
+                        //fmax = a;
+                    //}
 
-            //}
-            //else 
-            //{
-            //if (a < fmin) 
-            //{
-            //if (a < 0 || a < fmax)
-            //{
-            //return returnresult;
-            //}
-            //fmin = a;
-            //}
-            //}
+                //}
+                //else 
+                //{
+                    //if (a < fmin) 
+                    //{
+                        //if (a < 0 || a < fmax)
+                        //{
+                            //return returnresult;
+                        //}
+                        //fmin = a;
+                    //}
+                //}
             //}
             //if (fmax > 0)
             //    a= fmax;
             //else
-            //     a=fmin;
+           //     a=fmin;
 
             //q = iray.Origin + a * iray.Direction;
-
             #endregion
 
             // Loop over faces (6 of them)
@@ -1430,6 +1341,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // If the normal is pointing outside the object
                 if (iray.Direction.Dot(normals[i]) < 0 || !frontFacesOnly)
                 {
+
                     if (faceCenters)
                     {
                         q = AXpos + a * AAfacenormals[i]; //(FaceA[i] + FaceB[i] + FaceC[1] + FaceD[i]) / 4f;
@@ -1439,13 +1351,13 @@ namespace OpenSim.Region.Environment.Scenes
                         q = iray.Origin + a * iray.Direction;
                     }
 
-                    float distance2 = (float) GetDistanceTo(q, AXpos);
+                    float distance2 = (float)GetDistanceTo(q, AXpos);
                     // Is this the closest hit to the object's origin?
                     if (faceCenters)
                     {
-                        distance2 = (float) GetDistanceTo(q, iray.Origin);
+                        distance2 = (float)GetDistanceTo(q, iray.Origin);
                     }
-
+                    
 
                     if (distance2 < returnresult.distance)
                     {
@@ -1456,12 +1368,14 @@ namespace OpenSim.Region.Environment.Scenes
                         //m_log.Info("[POINT]: " + q.ToString());
                         returnresult.normal = normals[i];
                         returnresult.AAfaceNormal = AAfacenormals[i];
+
                     }
                 }
+
             }
             return returnresult;
         }
-
+        
         // Use this for attachments!  LocalID should be avatar's localid
         public void SetParentLocalId(uint localID)
         {
@@ -1471,14 +1385,14 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetAttachmentPoint(uint AttachmentPoint)
         {
             m_attachmentPoint = AttachmentPoint;
-
+            
             // save the attachment point.
             //if (AttachmentPoint != 0)
             //{
-            m_shape.State = (byte) AttachmentPoint;
+                m_shape.State = (byte)AttachmentPoint;
             //}
+           
         }
-
         /// <summary>
         /// 
         /// </summary>
@@ -1500,12 +1414,13 @@ namespace OpenSim.Region.Environment.Scenes
                 PhysActor.Buoyancy = fvalue;
             }
         }
-
+        
         public void SetAxisRotation(int axis, int rotate)
         {
             if (m_parentGroup != null)
             {
                 m_parentGroup.SetAxisRotation(axis, rotate);
+
             }
         }
 
@@ -1527,9 +1442,10 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     PhysActor.FloatOnWater = false;
                 }
+
             }
         }
-
+        
 
         public LLVector3 GetSitTargetPositionLL()
         {
@@ -1600,6 +1516,53 @@ namespace OpenSim.Region.Environment.Scenes
             return part;
         }
 
+        #region Copying
+
+        /// <summary>
+        /// Duplicates this part.
+        /// </summary>
+        /// <returns></returns>
+        public SceneObjectPart Copy(uint localID, LLUUID AgentID, LLUUID GroupID, int linkNum)
+        {
+            SceneObjectPart dupe = (SceneObjectPart) MemberwiseClone();
+            dupe.m_shape = m_shape.Copy();
+            dupe.m_regionHandle = m_regionHandle;
+            dupe.UUID = LLUUID.Random();
+            dupe.LocalId = localID;
+            dupe.OwnerID = AgentID;
+            dupe.GroupID = GroupID;
+            dupe.GroupPosition = new LLVector3(GroupPosition.X, GroupPosition.Y, GroupPosition.Z);
+            dupe.OffsetPosition = new LLVector3(OffsetPosition.X, OffsetPosition.Y, OffsetPosition.Z);
+            dupe.RotationOffset =
+                new LLQuaternion(RotationOffset.X, RotationOffset.Y, RotationOffset.Z, RotationOffset.W);
+            dupe.Velocity = new LLVector3(0, 0, 0);
+            dupe.Acceleration = new LLVector3(0, 0, 0);
+            dupe.AngularVelocity = new LLVector3(0, 0, 0);
+            dupe.ObjectFlags = ObjectFlags;
+
+            dupe.OwnershipCost = OwnershipCost;
+            dupe.ObjectSaleType = ObjectSaleType;
+            dupe.SalePrice = SalePrice;
+            dupe.Category = Category;
+            
+            dupe.TaskInventory = (TaskInventoryDictionary)dupe.TaskInventory.Clone();
+            
+            dupe.ResetIDs(linkNum);
+
+            // This may be wrong...    it might have to be applied in SceneObjectGroup to the object that's being duplicated.
+            dupe.LastOwnerID = ObjectOwner;
+
+            byte[] extraP = new byte[Shape.ExtraParams.Length];
+            Array.Copy(Shape.ExtraParams, extraP, extraP.Length);
+            dupe.Shape.ExtraParams = extraP;
+            bool UsePhysics = ((dupe.ObjectFlags & (uint) LLObject.ObjectFlags.Physics) != 0);
+            dupe.DoPhysicsPropertyUpdate(UsePhysics, true);
+
+            return dupe;
+        }
+
+        #endregion
+        
         /// <summary>
         /// Reset LLUUIDs for this part.  This involves generate this part's own LLUUID and
         /// generating new LLUUIDs for all the items in the inventory.
@@ -1608,394 +1571,10 @@ namespace OpenSim.Region.Environment.Scenes
         public void ResetIDs(int linkNum)
         {
             UUID = LLUUID.Random();
-            LinkNum = linkNum;
-
+            LinkNum = linkNum;      
+            
             ResetInventoryIDs();
         }
-
-        public void UpdatePermissions(LLUUID AgentID, byte field, uint localID, uint mask, byte addRemTF)
-        {
-            bool set = addRemTF == 1;
-
-            // Are we the owner?
-            if (AgentID == OwnerID)
-            {
-                switch (field)
-                {
-                    case 2:
-                        OwnerMask = ApplyMask(OwnerMask, set, mask);
-                        break;
-                    case 4:
-                        GroupMask = ApplyMask(GroupMask, set, mask);
-                        break;
-                    case 8:
-                        EveryoneMask = ApplyMask(EveryoneMask, set, mask);
-                        break;
-                    case 16:
-                        NextOwnerMask = ApplyMask(NextOwnerMask, set, mask);
-                        break;
-                }
-                SendFullUpdateToAllClients();
-
-                SendObjectPropertiesToClient(AgentID);
-            }
-        }
-
-        private void SendObjectPropertiesToClient(LLUUID AgentID)
-        {
-            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
-            for (int i = 0; i < avatars.Count; i++)
-            {
-                // Ugly reference :(
-                if (avatars[i].UUID == AgentID)
-                {
-                    m_parentGroup.GetProperties(avatars[i].ControllingClient);
-                }
-            }
-        }
-
-        private uint ApplyMask(uint val, bool set, uint mask)
-        {
-            if (set)
-            {
-                return val |= mask;
-            }
-            else
-            {
-                return val &= ~mask;
-            }
-        }
-
-        public virtual void UpdateMovement()
-        {
-        }
-
-        public void PhysicsOutOfBounds(PhysicsVector pos)
-        {
-            m_log.Info("[PHYSICS]: Physical Object went out of bounds.");
-            RemFlag(LLObject.ObjectFlags.Physics);
-            DoPhysicsPropertyUpdate(false, true);
-            //m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
-        }
-
-        public virtual void OnGrab(LLVector3 offsetPos, IClientAPI remoteClient)
-        {
-        }
-
-
-        public void SetText(string text)
-        {
-            Text = text;
-            ScheduleFullUpdate();
-        }
-
-        public int registerTargetWaypoint(LLVector3 target, float tolerance)
-        {
-            if (m_parentGroup != null)
-            {
-                return m_parentGroup.registerTargetWaypoint(target, tolerance);
-            }
-            return 0;
-        }
-
-        public void unregisterTargetWaypoint(int handle)
-        {
-            if (m_parentGroup != null)
-            {
-                m_parentGroup.unregisterTargetWaypoint(handle);
-            }
-        }
-
-
-        public void Undo()
-        {
-            if (m_undo.Count > 0)
-            {
-                UndoState goback = m_undo.Pop();
-                if (goback != null)
-                    goback.PlaybackState(this);
-            }
-        }
-
-        public void SetScriptEvents(LLUUID scriptid, int events)
-        {
-            scriptEvents oldparts;
-            lock (m_scriptEvents)
-            {
-                if (m_scriptEvents.ContainsKey(scriptid))
-                {
-                    oldparts = m_scriptEvents[scriptid];
-
-                    // remove values from aggregated script events
-                    m_scriptEvents[scriptid] = (scriptEvents) events;
-                }
-                else
-                {
-                    m_scriptEvents.Add(scriptid, (scriptEvents) events);
-                }
-            }
-            aggregateScriptEvents();
-        }
-
-        public void RemoveScriptEvents(LLUUID scriptid)
-        {
-            lock (m_scriptEvents)
-            {
-                if (m_scriptEvents.ContainsKey(scriptid))
-                {
-                    scriptEvents oldparts = scriptEvents.None;
-                    oldparts = m_scriptEvents[scriptid];
-
-                    // remove values from aggregated script events
-                    m_aggregateScriptEvents &= ~oldparts;
-                    m_scriptEvents.Remove(scriptid);
-                }
-            }
-            aggregateScriptEvents();
-        }
-
-        public void aggregateScriptEvents()
-        {
-            // Aggregate script events
-            lock (m_scriptEvents)
-            {
-                foreach (scriptEvents s in m_scriptEvents.Values)
-                {
-                    m_aggregateScriptEvents |= s;
-                }
-            }
-
-            uint objectflagupdate = 0;
-
-            if (
-                ((m_aggregateScriptEvents & scriptEvents.touch) != 0) ||
-                ((m_aggregateScriptEvents & scriptEvents.touch_end) != 0) ||
-                ((m_aggregateScriptEvents & scriptEvents.touch_start) != 0)
-                )
-            {
-                objectflagupdate |= (uint) LLObject.ObjectFlags.Touch;
-            }
-
-            if ((m_aggregateScriptEvents & scriptEvents.money) != 0)
-            {
-                objectflagupdate |= (uint) LLObject.ObjectFlags.Money;
-            }
-
-            if (
-                ((m_aggregateScriptEvents & scriptEvents.collision) != 0) ||
-                ((m_aggregateScriptEvents & scriptEvents.collision_end) != 0) ||
-                ((m_aggregateScriptEvents & scriptEvents.collision_start) != 0)
-                )
-            {
-                // subscribe to physics updates.
-            }
-
-            LocalFlags = (LLObject.ObjectFlags) objectflagupdate;
-
-            if (m_parentGroup != null && m_parentGroup.RootPart == this)
-                m_parentGroup.aggregateScriptEvents();
-            else
-                ScheduleFullUpdate();
-        }
-
-        #region Events
-
-        public void PhysicsRequestingTerseUpdate()
-        {
-            if (PhysActor != null)
-            {
-                LLVector3 newpos = new LLVector3(PhysActor.Position.GetBytes(), 0);
-                if (newpos.X > 257f || newpos.X < -1f || newpos.Y > 257f || newpos.Y < -1f)
-                {
-                    m_parentGroup.AbsolutePosition = newpos;
-                    return;
-                }
-            }
-            ScheduleTerseUpdate();
-
-            //SendTerseUpdateToAllClients();
-        }
-
-        #endregion
-
-        #region Client Update Methods
-
-        /// <summary>
-        /// Tell all scene presences that they should send updates for this part to their clients
-        /// </summary>
-        public void AddFullUpdateToAllAvatars()
-        {
-            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
-            for (int i = 0; i < avatars.Count; i++)
-            {
-                avatars[i].QueuePartForUpdate(this);
-            }
-        }
-
-        public void SendFullUpdateToAllClientsExcept(LLUUID agentID)
-        {
-            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
-            for (int i = 0; i < avatars.Count; i++)
-            {
-                // Ugly reference :(
-                if (avatars[i].UUID != agentID)
-                {
-                    m_parentGroup.SendPartFullUpdate(avatars[i].ControllingClient, this,
-                                                     avatars[i].GenerateClientFlags(UUID));
-                }
-            }
-        }
-
-
-        public void AddFullUpdateToAvatar(ScenePresence presence)
-        {
-            presence.QueuePartForUpdate(this);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void SendFullUpdateToAllClients()
-        {
-            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
-            for (int i = 0; i < avatars.Count; i++)
-            {
-                // Ugly reference :(
-                m_parentGroup.SendPartFullUpdate(avatars[i].ControllingClient, this,
-                                                 avatars[i].GenerateClientFlags(UUID));
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        public void SendFullUpdate(IClientAPI remoteClient, uint clientFlags)
-        {
-            m_parentGroup.SendPartFullUpdate(remoteClient, this, clientFlags);
-        }
-
-        /// <summary>
-        /// Sends a full update to the client
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="clientFlags"></param>
-        public void SendFullUpdateToClient(IClientAPI remoteClient, uint clientflags)
-        {
-            LLVector3 lPos;
-            lPos = OffsetPosition;
-            SendFullUpdateToClient(remoteClient, lPos, clientflags);
-        }
-
-        /// <summary>
-        /// Sends a full update to the client
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="lPos"></param>
-        /// <param name="clientFlags"></param>
-        public void SendFullUpdateToClient(IClientAPI remoteClient, LLVector3 lPos, uint clientFlags)
-        {
-            LLQuaternion lRot;
-            lRot = RotationOffset;
-            clientFlags &= ~(uint) LLObject.ObjectFlags.CreateSelected;
-
-            if (remoteClient.AgentId == OwnerID)
-            {
-                if ((uint) (Flags & LLObject.ObjectFlags.CreateSelected) != 0)
-                {
-                    clientFlags |= (uint) LLObject.ObjectFlags.CreateSelected;
-                    Flags &= ~LLObject.ObjectFlags.CreateSelected;
-                }
-            }
-
-
-            byte[] color = new[] {m_color.R, m_color.G, m_color.B, m_color.A};
-            remoteClient.SendPrimitiveToClient(m_regionHandle, (ushort) (m_parentGroup.GetTimeDilation() * ushort.MaxValue), LocalId, m_shape, lPos, clientFlags,
-                                               m_uuid,
-                                               OwnerID,
-                                               m_text, color, ParentID, m_particleSystem, lRot, m_clickAction, m_TextureAnimation, m_IsAttachment,
-                                               m_attachmentPoint, fromAssetID);
-        }
-
-        /// Terse updates
-        public void AddTerseUpdateToAllAvatars()
-        {
-            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
-            for (int i = 0; i < avatars.Count; i++)
-            {
-                avatars[i].QueuePartForUpdate(this);
-            }
-        }
-
-        public void AddTerseUpdateToAvatar(ScenePresence presence)
-        {
-            presence.QueuePartForUpdate(this);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void SendTerseUpdateToAllClients()
-        {
-            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
-            for (int i = 0; i < avatars.Count; i++)
-            {
-                m_parentGroup.SendPartTerseUpdate(avatars[i].ControllingClient, this);
-            }
-        }
-
-        /// <summary>
-        /// Send a terse update to the client.
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        public void SendTerseUpdate(IClientAPI remoteClient)
-        {
-            m_parentGroup.SendPartTerseUpdate(remoteClient, this);
-        }
-
-        public void SendTerseUpdateToClient(IClientAPI remoteClient)
-        {
-            LLVector3 lPos;
-            lPos = OffsetPosition;
-            LLQuaternion mRot = RotationOffset;
-            if ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) == 0)
-            {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort) (m_parentGroup.GetTimeDilation() * ushort.MaxValue), LocalId, lPos, mRot, Shape.State,
-                                                 fromAssetID);
-            }
-            else
-            {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort) (m_parentGroup.GetTimeDilation() * ushort.MaxValue), LocalId, lPos, mRot, Velocity,
-                                                 RotationalVelocity);
-                //System.Console.WriteLine("LID: " + LocalID + " RVel:" + RotationalVelocity.ToString() + " TD: " + ((ushort)(m_parentGroup.Scene.TimeDilation * 500000f)).ToString() + ":" + m_parentGroup.Scene.TimeDilation.ToString());
-            }
-        }
-
-        public void SendTerseUpdateToClient(IClientAPI remoteClient, LLVector3 lPos)
-        {
-            LLQuaternion mRot = RotationOffset;
-            if (m_IsAttachment)
-            {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort) (m_parentGroup.GetTimeDilation() * ushort.MaxValue), LocalId, lPos, mRot,
-                                                 (byte) ((m_attachmentPoint % 16) * 16 + (m_attachmentPoint / 16)), fromAssetID);
-            }
-            else
-            {
-                if ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) == 0)
-                {
-                    remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort) (m_parentGroup.GetTimeDilation() * ushort.MaxValue), LocalId, lPos, mRot,
-                                                     Shape.State, fromAssetID);
-                }
-                else
-                {
-                    remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort) (m_parentGroup.GetTimeDilation() * ushort.MaxValue), LocalId, lPos, mRot, Velocity,
-                                                     RotationalVelocity);
-                    //System.Console.WriteLine("LID: " + LocalID + "RVel:" + RotationalVelocity.ToString() + " TD: " + ((ushort)(m_parentGroup.Scene.TimeDilation * 500000f)).ToString() + ":" + m_parentGroup.Scene.TimeDilation.ToString());
-                }
-            }
-        }
-
-        #endregion
 
         #region Update Scheduling
 
@@ -2017,9 +1596,9 @@ namespace OpenSim.Region.Environment.Scenes
                 m_parentGroup.HasGroupChanged = true;
                 m_parentGroup.QueueForUpdateCheck();
             }
-
+            
             int timeNow = Util.UnixTimeSinceEpoch();
-
+                        
             // If multiple updates are scheduled on the same second, we still need to perform all of them
             // So we'll force the issue by bumping up the timestamp so that later processing sees these need
             // to be performed.
@@ -2029,11 +1608,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                TimeStampFull = (uint) timeNow;
+                TimeStampFull = (uint)timeNow;
             }
-
+            
             m_updateFlag = 2;
-
+            
 //            m_log.DebugFormat(
 //                "[SCENE OBJECT PART]: Scheduling full  update for {0}, {1} at {2}", 
 //                UUID, Name, TimeStampFull);
@@ -2156,13 +1735,15 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void UpdatePrimFlags(ushort type, bool inUse, byte[] data)
         {
+
+
             //m_log.Info("TSomething1:" + ((type & (ushort)ExtraParamType.Something1) == (ushort)ExtraParamType.Something1));
             //m_log.Info("TSomething2:" + ((type & (ushort)ExtraParamType.Something2) == (ushort)ExtraParamType.Something2));
             //m_log.Info("TSomething3:" + ((type & (ushort)ExtraParamType.Something3) == (ushort)ExtraParamType.Something3));
             //m_log.Info("TSomething4:" + ((type & (ushort)ExtraParamType.Something4) == (ushort)ExtraParamType.Something4));
             //m_log.Info("TSomething5:" + ((type & (ushort)ExtraParamType.Something5) == (ushort)ExtraParamType.Something5));
             //m_log.Info("TSomething6:" + ((type & (ushort)ExtraParamType.Something6) == (ushort)ExtraParamType.Something6));
-
+            
             bool usePhysics = false;
             bool IsTemporary = false;
             bool IsPhantom = false;
@@ -2170,7 +1751,7 @@ namespace OpenSim.Region.Environment.Scenes
             bool wasUsingPhysics = ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) != 0);
             //bool IsLocked = false;
             int i = 0;
-
+            
 
             try
             {
@@ -2254,7 +1835,6 @@ namespace OpenSim.Region.Environment.Scenes
             //            System.Console.WriteLine("Update:  PHY:" + UsePhysics.ToString() + ", T:" + IsTemporary.ToString() + ", PHA:" + IsPhantom.ToString() + " S:" + CastsShadows.ToString());
             ScheduleFullUpdate();
         }
-
         public void ScriptSetPhysicsStatus(bool UsePhysics)
         {
             if (m_parentGroup != null)
@@ -2262,7 +1842,6 @@ namespace OpenSim.Region.Environment.Scenes
                 m_parentGroup.ScriptSetPhysicsStatus(UsePhysics);
             }
         }
-
         public void ScriptSetPhantomStatus(bool Phantom)
         {
             if (m_parentGroup != null)
@@ -2270,7 +1849,6 @@ namespace OpenSim.Region.Environment.Scenes
                 m_parentGroup.ScriptSetPhantomStatus(Phantom);
             }
         }
-
         public void DoPhysicsPropertyUpdate(bool UsePhysics, bool isNew)
         {
             if (PhysActor != null)
@@ -2319,6 +1897,7 @@ namespace OpenSim.Region.Environment.Scenes
                                     PhysActor.link(ParentGroup.RootPart.PhysActor);
                                 }
                             }
+
                         }
                     }
                 }
@@ -2332,13 +1911,13 @@ namespace OpenSim.Region.Environment.Scenes
             int i = 0;
             uint length = (uint) data.Length;
             m_shape.ExtraParams[i++] = 1;
-            m_shape.ExtraParams[i++] = (byte) (type % 256);
-            m_shape.ExtraParams[i++] = (byte) ((type >> 8) % 256);
+            m_shape.ExtraParams[i++] = (byte) (type%256);
+            m_shape.ExtraParams[i++] = (byte) ((type >> 8)%256);
 
-            m_shape.ExtraParams[i++] = (byte) (length % 256);
-            m_shape.ExtraParams[i++] = (byte) ((length >> 8) % 256);
-            m_shape.ExtraParams[i++] = (byte) ((length >> 16) % 256);
-            m_shape.ExtraParams[i++] = (byte) ((length >> 24) % 256);
+            m_shape.ExtraParams[i++] = (byte) (length%256);
+            m_shape.ExtraParams[i++] = (byte) ((length >> 8)%256);
+            m_shape.ExtraParams[i++] = (byte) ((length >> 16)%256);
+            m_shape.ExtraParams[i++] = (byte) ((length >> 24)%256);
             Array.Copy(data, 0, m_shape.ExtraParams, i, data.Length);
 
             ScheduleFullUpdate();
@@ -2416,14 +1995,14 @@ namespace OpenSim.Region.Environment.Scenes
 
         public byte ConvertScriptUintToByte(uint indata)
         {
-            byte outdata = (byte) TextureAnimFlags.NONE;
-            if ((indata & 1) != 0) outdata |= (byte) TextureAnimFlags.ANIM_ON;
-            if ((indata & 2) != 0) outdata |= (byte) TextureAnimFlags.LOOP;
-            if ((indata & 4) != 0) outdata |= (byte) TextureAnimFlags.REVERSE;
-            if ((indata & 8) != 0) outdata |= (byte) TextureAnimFlags.PING_PONG;
-            if ((indata & 16) != 0) outdata |= (byte) TextureAnimFlags.SMOOTH;
-            if ((indata & 32) != 0) outdata |= (byte) TextureAnimFlags.ROTATE;
-            if ((indata & 64) != 0) outdata |= (byte) TextureAnimFlags.SCALE;
+            byte outdata = (byte)TextureAnimFlags.NONE;
+            if ((indata & 1) != 0) outdata |= (byte)TextureAnimFlags.ANIM_ON;
+            if ((indata & 2) != 0) outdata |= (byte)TextureAnimFlags.LOOP;
+            if ((indata & 4) != 0) outdata |= (byte)TextureAnimFlags.REVERSE;
+            if ((indata & 8) != 0) outdata |= (byte)TextureAnimFlags.PING_PONG;
+            if ((indata & 16) != 0) outdata |= (byte)TextureAnimFlags.SMOOTH;
+            if ((indata & 32) != 0) outdata |= (byte)TextureAnimFlags.ROTATE;
+            if ((indata & 64) != 0) outdata |= (byte)TextureAnimFlags.SCALE;
             return outdata;
         }
 
@@ -2435,17 +2014,13 @@ namespace OpenSim.Region.Environment.Scenes
             // The flags don't like conversion from uint to byte, so we have to do 
             // it the crappy way.  See the above function :(
 
-            data[pos] = ConvertScriptUintToByte(pTexAnim.Flags);
-            pos++;
-            data[pos] = (byte) pTexAnim.Face;
-            pos++;
-            data[pos] = (byte) pTexAnim.SizeX;
-            pos++;
-            data[pos] = (byte) pTexAnim.SizeY;
-            pos++;
+            data[pos] = ConvertScriptUintToByte(pTexAnim.Flags); pos++;
+            data[pos] = (byte)pTexAnim.Face; pos++;
+            data[pos] = (byte)pTexAnim.SizeX; pos++;
+            data[pos] = (byte)pTexAnim.SizeY; pos++;
 
             Helpers.FloatToBytes(pTexAnim.Start).CopyTo(data, pos);
-            Helpers.FloatToBytes(pTexAnim.Length).CopyTo(data, pos + 4);
+            Helpers.FloatToBytes(pTexAnim.Length ).CopyTo(data, pos + 4);
             Helpers.FloatToBytes(pTexAnim.Rate).CopyTo(data, pos + 8);
 
             m_TextureAnimation = data;
@@ -2496,7 +2071,6 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Sound
-
         public void PreloadSound(string sound)
         {
             LLUUID ownerID = OwnerID;
@@ -2522,7 +2096,7 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (ScenePresence p in avatarts)
             {
                 // TODO: some filtering by distance of avatar
-
+               
                 p.ControllingClient.SendPreLoadSound(objectID, objectID, soundID);
             }
         }
@@ -2537,7 +2111,7 @@ namespace OpenSim.Region.Environment.Scenes
             List<ScenePresence> avatarts = m_parentGroup.Scene.GetAvatars();
             foreach (ScenePresence p in avatarts)
             {
-                p.ControllingClient.SendAttachedSoundGainChange(UUID, (float) volume);
+                p.ControllingClient.SendAttachedSoundGainChange(UUID, (float)volume);
             }
         }
 
@@ -2563,7 +2137,7 @@ namespace OpenSim.Region.Environment.Scenes
                 SceneObjectPart op = this;
                 foreach (KeyValuePair<LLUUID, TaskInventoryItem> item in op.TaskInventory)
                 {
-                    if (item.Value.Name == sound && item.Value.Type == (int) AssetType.Sound)
+                    if (item.Value.Name == sound && item.Value.Type == (int)AssetType.Sound)
                     {
                         soundID = item.Value.ItemID;
                         break;
@@ -2571,26 +2145,26 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
 
-            if (soundID == LLUUID.Zero)
+            if(soundID == LLUUID.Zero)
                 return;
 
             List<ScenePresence> avatarts = m_parentGroup.Scene.GetAvatars();
             foreach (ScenePresence p in avatarts)
             {
-                double dis = Util.GetDistanceTo(p.AbsolutePosition, position);
-                if (dis > 100.0) // Max audio distance
+                double dis=Util.GetDistanceTo(p.AbsolutePosition, position);
+                if(dis > 100.0) // Max audio distance
                     continue;
 
                 // Scale by distance
-                volume *= ((100.0 - dis) / 100.0);
+                volume*=((100.0-dis)/100.0);
 
                 if (triggered)
                 {
-                    p.ControllingClient.SendTriggeredSound(soundID, ownerID, objectID, parentID, regionHandle, position, (float) volume);
+                    p.ControllingClient.SendTriggeredSound(soundID, ownerID, objectID, parentID, regionHandle, position, (float)volume);
                 }
                 else
                 {
-                    p.ControllingClient.SendPlayAttachedSound(soundID, objectID, ownerID, (float) volume, flags);
+                    p.ControllingClient.SendPlayAttachedSound(soundID, objectID, ownerID, (float)volume, flags);
                 }
             }
         }
@@ -2607,57 +2181,513 @@ namespace OpenSim.Region.Environment.Scenes
         {
             StoreUndoState();
             m_shape.Scale = scale;
-
+            
             ScheduleFullUpdate();
         }
 
         #endregion
 
-        #region Copying
+        public void UpdatePermissions(LLUUID AgentID, byte field, uint localID, uint mask, byte addRemTF)
+        {
+            bool set = addRemTF == 1;
+
+            // Are we the owner?
+            if (AgentID == OwnerID)
+            {
+                switch (field)
+                {
+                    case 2:
+                        OwnerMask = ApplyMask(OwnerMask, set, mask);
+                        break;
+                    case 4:
+                        GroupMask = ApplyMask(GroupMask, set, mask);
+                        break;
+                    case 8:
+                        EveryoneMask = ApplyMask(EveryoneMask, set, mask);
+                        break;
+                    case 16:
+                        NextOwnerMask = ApplyMask(NextOwnerMask, set, mask);
+                        break;
+                }
+                SendFullUpdateToAllClients();
+
+                SendObjectPropertiesToClient(AgentID);
+
+            }
+        }
+
+        private void SendObjectPropertiesToClient(LLUUID AgentID)
+        {
+            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                // Ugly reference :(
+                if (avatars[i].UUID == AgentID)
+                {
+                    m_parentGroup.GetProperties(avatars[i].ControllingClient);
+                }
+            }
+        }
+
+        private uint ApplyMask(uint val, bool set, uint mask)
+        {
+            if (set)
+            {
+                return val |= mask;
+            }
+            else
+            {
+                return val &= ~mask;
+            }
+        }
+
+        #region Client Update Methods
+        
+        /// <summary>
+        /// Tell all scene presences that they should send updates for this part to their clients
+        /// </summary>
+        public void AddFullUpdateToAllAvatars()
+        {
+            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                avatars[i].QueuePartForUpdate(this);
+            }
+        }
+
+        public void SendFullUpdateToAllClientsExcept(LLUUID agentID)
+        {
+            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                // Ugly reference :(
+                if (avatars[i].UUID != agentID)
+                {
+                    m_parentGroup.SendPartFullUpdate(avatars[i].ControllingClient, this,
+                                                    avatars[i].GenerateClientFlags(UUID));
+                }
+            }
+        }
+    
+
+        public void AddFullUpdateToAvatar(ScenePresence presence)
+        {
+            presence.QueuePartForUpdate(this);
+        }
 
         /// <summary>
-        /// Duplicates this part.
+        /// 
         /// </summary>
-        /// <returns></returns>
-        public SceneObjectPart Copy(uint localID, LLUUID AgentID, LLUUID GroupID, int linkNum)
+        public void SendFullUpdateToAllClients()
         {
-            SceneObjectPart dupe = (SceneObjectPart) MemberwiseClone();
-            dupe.m_shape = m_shape.Copy();
-            dupe.m_regionHandle = m_regionHandle;
-            dupe.UUID = LLUUID.Random();
-            dupe.LocalId = localID;
-            dupe.OwnerID = AgentID;
-            dupe.GroupID = GroupID;
-            dupe.GroupPosition = new LLVector3(GroupPosition.X, GroupPosition.Y, GroupPosition.Z);
-            dupe.OffsetPosition = new LLVector3(OffsetPosition.X, OffsetPosition.Y, OffsetPosition.Z);
-            dupe.RotationOffset =
-                new LLQuaternion(RotationOffset.X, RotationOffset.Y, RotationOffset.Z, RotationOffset.W);
-            dupe.Velocity = new LLVector3(0, 0, 0);
-            dupe.Acceleration = new LLVector3(0, 0, 0);
-            dupe.AngularVelocity = new LLVector3(0, 0, 0);
-            dupe.ObjectFlags = ObjectFlags;
+            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                // Ugly reference :(
+                m_parentGroup.SendPartFullUpdate(avatars[i].ControllingClient, this,
+                                                 avatars[i].GenerateClientFlags(UUID));
+            }
+        }
 
-            dupe.OwnershipCost = OwnershipCost;
-            dupe.ObjectSaleType = ObjectSaleType;
-            dupe.SalePrice = SalePrice;
-            dupe.Category = Category;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        public void SendFullUpdate(IClientAPI remoteClient, uint clientFlags)
+        {
+            m_parentGroup.SendPartFullUpdate(remoteClient, this, clientFlags);
+        }
 
-            dupe.TaskInventory = (TaskInventoryDictionary) dupe.TaskInventory.Clone();
+        /// <summary>
+        /// Sends a full update to the client
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="clientFlags"></param>
+        public void SendFullUpdateToClient(IClientAPI remoteClient, uint clientflags)
+        {
+            LLVector3 lPos;
+            lPos = OffsetPosition;
+            SendFullUpdateToClient(remoteClient, lPos, clientflags);
+        }
+   
+        /// <summary>
+        /// Sends a full update to the client
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="lPos"></param>
+        /// <param name="clientFlags"></param>
+        public void SendFullUpdateToClient(IClientAPI remoteClient, LLVector3 lPos, uint clientFlags)
+        {
+            LLQuaternion lRot;
+            lRot = RotationOffset;
+            clientFlags &= ~(uint) LLObject.ObjectFlags.CreateSelected;
 
-            dupe.ResetIDs(linkNum);
+            if (remoteClient.AgentId == OwnerID)
+            {
+                if ((uint) (Flags & LLObject.ObjectFlags.CreateSelected) != 0)
+                {
+                    clientFlags |= (uint) LLObject.ObjectFlags.CreateSelected;
+                    Flags &= ~LLObject.ObjectFlags.CreateSelected;
+                }
+            }
 
-            // This may be wrong...    it might have to be applied in SceneObjectGroup to the object that's being duplicated.
-            dupe.LastOwnerID = ObjectOwner;
 
-            byte[] extraP = new byte[Shape.ExtraParams.Length];
-            Array.Copy(Shape.ExtraParams, extraP, extraP.Length);
-            dupe.Shape.ExtraParams = extraP;
-            bool UsePhysics = ((dupe.ObjectFlags & (uint) LLObject.ObjectFlags.Physics) != 0);
-            dupe.DoPhysicsPropertyUpdate(UsePhysics, true);
+            byte[] color = new byte[] {m_color.R, m_color.G, m_color.B, m_color.A};
+            remoteClient.SendPrimitiveToClient(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, m_shape, lPos, clientFlags, m_uuid,
+                                               OwnerID,
+                                               m_text, color, ParentID, m_particleSystem, lRot, m_clickAction, m_TextureAnimation, m_IsAttachment, m_attachmentPoint,fromAssetID);
+        }
 
-            return dupe;
+        /// Terse updates
+        public void AddTerseUpdateToAllAvatars()
+        {
+            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                avatars[i].QueuePartForUpdate(this);
+            }
+        }
+
+        public void AddTerseUpdateToAvatar(ScenePresence presence)
+        {
+            presence.QueuePartForUpdate(this);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void SendTerseUpdateToAllClients()
+        {
+            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
+            for (int i = 0; i < avatars.Count; i++)
+            {
+                m_parentGroup.SendPartTerseUpdate(avatars[i].ControllingClient, this);
+            }
+        }
+
+        /// <summary>
+        /// Send a terse update to the client.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        public void SendTerseUpdate(IClientAPI remoteClient)
+        {
+            m_parentGroup.SendPartTerseUpdate(remoteClient, this);
+        }
+
+        public void SendTerseUpdateToClient(IClientAPI remoteClient)
+        {
+            LLVector3 lPos;
+            lPos = OffsetPosition;
+            LLQuaternion mRot = RotationOffset;
+            if ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) == 0)
+            {
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Shape.State, fromAssetID);
+            }
+            else
+            {
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity,
+                                                 RotationalVelocity);
+                //System.Console.WriteLine("LID: " + LocalID + " RVel:" + RotationalVelocity.ToString() + " TD: " + ((ushort)(m_parentGroup.Scene.TimeDilation * 500000f)).ToString() + ":" + m_parentGroup.Scene.TimeDilation.ToString());
+            }
+        }
+
+        public void SendTerseUpdateToClient(IClientAPI remoteClient, LLVector3 lPos)
+        {
+            LLQuaternion mRot = RotationOffset;
+            if (m_IsAttachment)
+            {
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, (byte)((m_attachmentPoint % 16) * 16 + (m_attachmentPoint / 16)),fromAssetID);
+            }
+            else
+            {
+                if ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) == 0)
+                {
+                    remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Shape.State, fromAssetID);
+                }
+                else
+                {
+                    remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity,
+                                                     RotationalVelocity);
+                    //System.Console.WriteLine("LID: " + LocalID + "RVel:" + RotationalVelocity.ToString() + " TD: " + ((ushort)(m_parentGroup.Scene.TimeDilation * 500000f)).ToString() + ":" + m_parentGroup.Scene.TimeDilation.ToString());
+                }
+            }
         }
 
         #endregion
+
+        public virtual void UpdateMovement()
+        {
+        }
+
+        #region Events
+
+        public void PhysicsRequestingTerseUpdate()
+        {
+            if (PhysActor != null)
+            {
+                LLVector3 newpos = new LLVector3(PhysActor.Position.GetBytes(), 0);
+                if (newpos.X > 257f || newpos.X < -1f || newpos.Y > 257f || newpos.Y < -1f)
+                {
+                    m_parentGroup.AbsolutePosition = newpos;
+                    return;
+                }
+                
+            }
+            ScheduleTerseUpdate();
+
+            //SendTerseUpdateToAllClients();
+        }
+
+        #endregion
+
+        public void PhysicsOutOfBounds(PhysicsVector pos)
+        {
+            m_log.Info("[PHYSICS]: Physical Object went out of bounds.");
+            RemFlag(LLObject.ObjectFlags.Physics);
+            DoPhysicsPropertyUpdate(false, true);
+            //m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+        }
+
+        public virtual void OnGrab(LLVector3 offsetPos, IClientAPI remoteClient)
+        {
+        }
+
+
+        public void SetText(string text)
+        {
+            Text = text;
+            ScheduleFullUpdate();
+        }
+
+        public void SetText(string text, Vector3 color, double alpha)
+        {
+            Color = Color.FromArgb(0xff - (int) (alpha*0xff),
+                                   (int) (color.x*0xff),
+                                   (int) (color.y*0xff),
+                                   (int) (color.z*0xff));
+            SetText( text );
+        }
+
+        public int registerTargetWaypoint(LLVector3 target, float tolerance)
+        {
+            if (m_parentGroup != null)
+            {
+                return m_parentGroup.registerTargetWaypoint(target, tolerance);
+            }
+            return 0;
+        }
+        public void unregisterTargetWaypoint(int handle)
+        {
+            if (m_parentGroup != null)
+            {
+                m_parentGroup.unregisterTargetWaypoint(handle);
+            }
+        }
+        protected SceneObjectPart(SerializationInfo info, StreamingContext context)
+        {
+            //System.Console.WriteLine("SceneObjectPart Deserialize BGN");
+
+            if (info == null)
+            {
+                throw new ArgumentNullException("info");
+            }
+
+            /*
+            m_queue = (Queue<SceneObjectPart>)info.GetValue("m_queue", typeof(Queue<SceneObjectPart>));
+            m_ids = (List<LLUUID>)info.GetValue("m_ids", typeof(List<LLUUID>));
+            */
+
+            //System.Console.WriteLine("SceneObjectPart Deserialize END");
+        }
+
+        [SecurityPermission(SecurityAction.LinkDemand,
+            Flags = SecurityPermissionFlag.SerializationFormatter)]
+        public virtual void GetObjectData(
+                        SerializationInfo info, StreamingContext context)
+        {
+            if (info == null)
+            {
+                throw new ArgumentNullException("info");
+            }
+
+            info.AddValue("m_inventoryFileName", m_inventoryFileName);
+            info.AddValue("m_folderID", m_folderID.UUID);
+            info.AddValue("PhysActor", PhysActor);
+
+            Dictionary<Guid, TaskInventoryItem> TaskInventory_work = new Dictionary<Guid, TaskInventoryItem>();
+
+            foreach (LLUUID id in TaskInventory.Keys)
+            {
+                TaskInventory_work.Add(id.UUID, TaskInventory[id]);
+            }
+
+            info.AddValue("TaskInventory", TaskInventory_work);
+
+            info.AddValue("LastOwnerID", LastOwnerID.UUID);
+            info.AddValue("OwnerID", OwnerID.UUID);
+            info.AddValue("GroupID", GroupID.UUID);
+
+            info.AddValue("OwnershipCost", OwnershipCost);
+            info.AddValue("ObjectSaleType", ObjectSaleType);
+            info.AddValue("SalePrice", SalePrice);
+            info.AddValue("Category", Category);
+
+            info.AddValue("CreationDate", CreationDate);
+            info.AddValue("ParentID", ParentID);
+
+            info.AddValue("OwnerMask", OwnerMask);
+            info.AddValue("NextOwnerMask", NextOwnerMask);
+            info.AddValue("GroupMask", GroupMask);
+            info.AddValue("EveryoneMask", EveryoneMask);
+            info.AddValue("BaseMask", BaseMask);
+
+            info.AddValue("m_particleSystem", m_particleSystem);
+
+            info.AddValue("TimeStampFull", TimeStampFull);
+            info.AddValue("TimeStampTerse", TimeStampTerse);
+            info.AddValue("TimeStampLastActivity", TimeStampLastActivity);
+
+            info.AddValue("m_updateFlag", m_updateFlag);
+            info.AddValue("CreatorID", CreatorID.UUID);
+
+            info.AddValue("m_inventorySerial", m_inventorySerial);
+            info.AddValue("m_uuid", m_uuid.UUID);
+            info.AddValue("m_localID", m_localId);
+            info.AddValue("m_name", m_name);
+            info.AddValue("m_flags", Flags);
+            info.AddValue("m_material", m_material);
+            info.AddValue("m_regionHandle", m_regionHandle);
+
+            info.AddValue("m_groupPosition.X", m_groupPosition.X);
+            info.AddValue("m_groupPosition.Y", m_groupPosition.Y);
+            info.AddValue("m_groupPosition.Z", m_groupPosition.Z);
+
+            info.AddValue("m_offsetPosition.X", m_offsetPosition.X);
+            info.AddValue("m_offsetPosition.Y", m_offsetPosition.Y);
+            info.AddValue("m_offsetPosition.Z", m_offsetPosition.Z);
+
+            info.AddValue("m_rotationOffset.W", m_rotationOffset.W);
+            info.AddValue("m_rotationOffset.X", m_rotationOffset.X);
+            info.AddValue("m_rotationOffset.Y", m_rotationOffset.Y);
+            info.AddValue("m_rotationOffset.Z", m_rotationOffset.Z);
+
+            info.AddValue("m_velocity.X", m_velocity.X);
+            info.AddValue("m_velocity.Y", m_velocity.Y);
+            info.AddValue("m_velocity.Z", m_velocity.Z);
+
+            info.AddValue("m_rotationalvelocity.X", m_rotationalvelocity.X);
+            info.AddValue("m_rotationalvelocity.Y", m_rotationalvelocity.Y);
+            info.AddValue("m_rotationalvelocity.Z", m_rotationalvelocity.Z);
+
+            info.AddValue("m_angularVelocity.X", m_angularVelocity.X);
+            info.AddValue("m_angularVelocity.Y", m_angularVelocity.Y);
+            info.AddValue("m_angularVelocity.Z", m_angularVelocity.Z);
+
+            info.AddValue("m_acceleration.X", m_acceleration.X);
+            info.AddValue("m_acceleration.Y", m_acceleration.Y);
+            info.AddValue("m_acceleration.Z", m_acceleration.Z);
+
+            info.AddValue("m_description", m_description);
+            info.AddValue("m_color", m_color);
+            info.AddValue("m_text", m_text);
+            info.AddValue("m_sitName", m_sitName);
+            info.AddValue("m_touchName", m_touchName);
+            info.AddValue("m_clickAction", m_clickAction);
+            info.AddValue("m_shape", m_shape);
+            info.AddValue("m_parentGroup", m_parentGroup);
+            info.AddValue("PayPrice", PayPrice);
+        }
+
+
+        public void Undo()
+        {
+            if (m_undo.Count > 0)
+            {
+                UndoState goback = m_undo.Pop();
+                if (goback != null)
+                    goback.PlaybackState(this);
+            }
+        }
+
+		public void SetScriptEvents(LLUUID scriptid, int events)
+		{
+			scriptEvents oldparts;
+			lock (m_scriptEvents)
+			{
+				if (m_scriptEvents.ContainsKey(scriptid))
+				{
+					oldparts = m_scriptEvents[scriptid];
+
+					// remove values from aggregated script events
+					m_scriptEvents[scriptid] = (scriptEvents) events;
+				}
+				else
+				{
+					m_scriptEvents.Add(scriptid, (scriptEvents) events);
+				}
+			}
+			aggregateScriptEvents();
+		}
+
+        public void RemoveScriptEvents(LLUUID scriptid)
+        {
+            lock (m_scriptEvents)
+            {
+                if (m_scriptEvents.ContainsKey(scriptid))
+                {
+                    scriptEvents oldparts = scriptEvents.None;
+                    oldparts = (scriptEvents) m_scriptEvents[scriptid];
+
+                    // remove values from aggregated script events
+                    m_aggregateScriptEvents &= ~oldparts;
+                    m_scriptEvents.Remove(scriptid);
+                }
+            }
+            aggregateScriptEvents();
+        }
+
+        public void aggregateScriptEvents()
+        {
+            // Aggregate script events
+            lock (m_scriptEvents)
+            {
+                foreach (scriptEvents s in m_scriptEvents.Values)
+                {
+                    m_aggregateScriptEvents |= s;
+                }
+            }
+
+            uint objectflagupdate = 0;
+
+            if (
+                ((m_aggregateScriptEvents & scriptEvents.touch) != 0) ||
+                ((m_aggregateScriptEvents & scriptEvents.touch_end) != 0) ||
+                ((m_aggregateScriptEvents & scriptEvents.touch_start) != 0)
+                )
+            {
+                objectflagupdate |= (uint) LLObject.ObjectFlags.Touch;
+            }
+
+            if ((m_aggregateScriptEvents & scriptEvents.money) != 0)
+            {
+                objectflagupdate |= (uint) LLObject.ObjectFlags.Money;
+            }
+
+            if (
+                ((m_aggregateScriptEvents & scriptEvents.collision) != 0) ||
+                ((m_aggregateScriptEvents & scriptEvents.collision_end) != 0) ||
+                ((m_aggregateScriptEvents & scriptEvents.collision_start) != 0)
+                )
+            {
+                // subscribe to physics updates.
+            }
+
+			LocalFlags=(LLObject.ObjectFlags)objectflagupdate;
+
+			if(m_parentGroup != null && m_parentGroup.RootPart == this)
+				m_parentGroup.aggregateScriptEvents();
+			else
+				ScheduleFullUpdate();
+		}
     }
 }

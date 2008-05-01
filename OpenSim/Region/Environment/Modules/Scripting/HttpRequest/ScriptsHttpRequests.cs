@@ -84,7 +84,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
 {
     public class HttpRequestModule : IRegionModule, IHttpRequests
     {
-        private readonly object HttpListLock = new object();
+        private object HttpListLock = new object();
         private int httpTimeout = 30000;
         private string m_name = "HttpScriptRequests";
 
@@ -92,6 +92,10 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
         private Dictionary<LLUUID, HttpRequestClass> m_pendingRequests;
         private Scene m_scene;
         private Queue<HttpRequestClass> rpcQueue = new Queue<HttpRequestClass>();
+
+        public HttpRequestModule()
+        {
+        }
 
         #region IHttpRequests Members
 

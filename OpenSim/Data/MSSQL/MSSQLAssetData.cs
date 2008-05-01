@@ -70,7 +70,7 @@ namespace OpenSim.Data.MSSQL
 
         override public AssetBase FetchAsset(LLUUID assetID)
         {
-            AssetBase asset;
+            AssetBase asset = null;
 
             Dictionary<string, string> param = new Dictionary<string, string>();
             param["id"] = assetID.ToString();

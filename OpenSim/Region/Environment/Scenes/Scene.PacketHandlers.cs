@@ -78,12 +78,11 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (EntityBase ent in EntitieList)
             {
                 if (ent is SceneObjectGroup)
-                {
-                    if ((ent).LocalId == primLocalID)
+                {                    
+                    if (((SceneObjectGroup) ent).LocalId == primLocalID)
                     {
                         // A prim is only tainted if it's allowed to be edited by the person clicking it.
-                        if (m_permissionManager.CanEditObjectPosition(remoteClient.AgentId, (ent).UUID) ||
-                            m_permissionManager.CanEditObject(remoteClient.AgentId, (ent).UUID))
+                        if (m_permissionManager.CanEditObjectPosition(remoteClient.AgentId, ((SceneObjectGroup)ent).UUID) || m_permissionManager.CanEditObject(remoteClient.AgentId, ((SceneObjectGroup)ent).UUID))
                         {
                             ((SceneObjectGroup) ent).GetProperties(remoteClient);
                             ((SceneObjectGroup) ent).IsSelected = true;
@@ -108,10 +107,9 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (ent is SceneObjectGroup)
                 {
-                    if ((ent).LocalId == primLocalID)
+                    if (((SceneObjectGroup) ent).LocalId == primLocalID)
                     {
-                        if (m_permissionManager.CanEditObjectPosition(remoteClient.AgentId, (ent).UUID) ||
-                            m_permissionManager.CanEditObject(remoteClient.AgentId, (ent).UUID))
+                        if (m_permissionManager.CanEditObjectPosition(remoteClient.AgentId, ((SceneObjectGroup)ent).UUID) || m_permissionManager.CanEditObject(remoteClient.AgentId, ((SceneObjectGroup)ent).UUID))
                         {
                             ((SceneObjectGroup) ent).IsSelected = false;
                             LandChannel.setPrimsTainted();
@@ -131,20 +129,21 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         public virtual void ProcessParcelBuy(LLUUID agentId, LLUUID groupId, bool final, bool groupOwned,
-                                             bool removeContribution, int parcelLocalID, int parcelArea, int parcelPrice, bool authenticated)
+                bool removeContribution, int parcelLocalID, int parcelArea, int parcelPrice, bool authenticated)
         {
             EventManager.LandBuyArgs args = new EventManager.LandBuyArgs(
-                agentId, groupId, final, groupOwned, removeContribution, parcelLocalID, parcelArea, parcelPrice, authenticated);
+               agentId, groupId, final, groupOwned, removeContribution, parcelLocalID, parcelArea, parcelPrice, authenticated);
 
             // First, allow all validators a stab at it
-            m_eventManager.TriggerValidateLandBuy(this, args);
+            m_eventManager.TriggerValidateLandBuy(this, args);        
 
             // Then, check validation and transfer
-            m_eventManager.TriggerLandBuy(this, args);
+            m_eventManager.TriggerLandBuy(this, args);        
         }
 
         public virtual void ProcessObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
+
             List<EntityBase> EntitieList = GetEntities();
 
             foreach (EntityBase ent in EntitieList)
@@ -179,6 +178,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public virtual void ProcessObjectDeGrab(uint localID, IClientAPI remoteClient)
         {
+
             List<EntityBase> EntitieList = GetEntities();
 
             foreach (EntityBase ent in EntitieList)
@@ -190,7 +190,7 @@ namespace OpenSim.Region.Environment.Scenes
                     // Is this prim part of the group
                     if (obj.HasChildPrim(localID))
                     {
-                        SceneObjectPart part = obj.GetChildPart(localID);
+						SceneObjectPart part=obj.GetChildPart(localID);
                         if (part != null)
                         {
                             // If the touched prim handles touches, deliver it
@@ -233,8 +233,8 @@ namespace OpenSim.Region.Environment.Scenes
                 LLUUID translatedIDtem = item.AvatarID;
                 searchData[i] = new AvatarPickerReplyPacket.DataBlock();
                 searchData[i].AvatarID = translatedIDtem;
-                searchData[i].FirstName = Helpers.StringToField(item.firstName);
-                searchData[i].LastName = Helpers.StringToField(item.lastName);
+                searchData[i].FirstName = Helpers.StringToField((string) item.firstName);
+                searchData[i].LastName = Helpers.StringToField((string) item.lastName);
                 i++;
             }
             if (AvatarResponses.Count == 0)

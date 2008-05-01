@@ -39,7 +39,7 @@ namespace OpenSim.Grid.ScriptServer
             XmlConfigurator.Configure();
 
             AppDomain.CurrentDomain.UnhandledException +=
-                CurrentDomain_UnhandledException;
+                new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
             // Application is starting
             SE = new ScriptServerMain();
@@ -50,7 +50,7 @@ namespace OpenSim.Grid.ScriptServer
             Console.WriteLine(String.Empty);
             Console.WriteLine("APPLICATION EXCEPTION DETECTED");
             Console.WriteLine(String.Empty);
-            Console.WriteLine("Application is terminating: " + e.IsTerminating);
+            Console.WriteLine("Application is terminating: " + e.IsTerminating.ToString());
             //Console.WriteLine("Exception:");
             //Console.WriteLine(e.ExceptionObject.ToString());
         }

@@ -44,20 +44,20 @@ namespace OpenSim.Grid.ScriptServer
         //
         // Root object. Creates objects used.
         //
+        private int listenPort = 8010;
 
         // TEMP
         public static ScriptServerInterfaces.ScriptEngine Engine;
-        private int listenPort = 8010;
         //public static FakeScene m_Scene = new FakeScene(null,null,null,null,null,null,null,null,null,false, false, false);
 
         // Objects we use
+        internal RegionCommManager RegionScriptDaemon; // Listen for incoming from region
+        internal ScriptEngineManager ScriptEngines; // Loads scriptengines
         //internal RemotingServer m_RemotingServer;
         internal TCPServer m_TCPServer;
-        internal RegionCommManager RegionScriptDaemon; // Listen for incoming from region
         internal TRPC_Remote RPC;
-        internal ScriptEngineManager ScriptEngines; // Loads scriptengines
 
-        public ScriptServerMain()
+                public ScriptServerMain()
         {
             m_console = CreateConsole();
 
@@ -68,13 +68,13 @@ namespace OpenSim.Grid.ScriptServer
             Engine = ScriptEngines.LoadEngine("DotNetEngine");
 
             Engine.InitializeEngine(null, null, false, Engine.GetScriptManager());
-
+                    
 
             // Set up server
             //m_RemotingServer = new RemotingServer(listenPort, "DotNetEngine");
             m_TCPServer = new TCPServer(listenPort);
             RPC = new TRPC_Remote(m_TCPServer);
-            RPC.ReceiveCommand += RPC_ReceiveCommand;
+                    RPC.ReceiveCommand += new TRPC_Remote.ReceiveCommandDelegate(RPC_ReceiveCommand);
             m_TCPServer.StartListen();
 
             Console.ReadLine();
@@ -93,7 +93,7 @@ namespace OpenSim.Grid.ScriptServer
 
             if (Command == "OnRezScript")
             {
-                Engine.EventManager().OnRezScript((uint) p[0], new LLUUID((string) p[1]), (string) p[2]);
+                Engine.EventManager().OnRezScript((uint)p[0], new LLUUID((string)p[1]), (string)p[2]);
             }
         }
 

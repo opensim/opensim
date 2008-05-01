@@ -42,11 +42,11 @@ namespace OpenSim.Region.Environment.Modules.Framework
     public class Command : ICommand
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private readonly List<CommandArgument> m_args = new List<CommandArgument>();
+        private List<CommandArgument> m_args = new List<CommandArgument>();
 
-        private readonly Action<object[]> m_command;
-        private readonly string m_help;
-        private readonly string m_name;
+        private Action<object[]> m_command;
+        private string m_help;
+        private string m_name;
 
         public Command(string name, Action<Object[]> command, string help)
         {
@@ -164,9 +164,9 @@ namespace OpenSim.Region.Environment.Modules.Framework
     /// </summary>
     public class CommandArgument
     {
-        private readonly string m_help;
-        private readonly string m_name;
-        private readonly string m_type;
+        private string m_help;
+        private string m_name;
+        private string m_type;
         private Object m_val;
 
         public CommandArgument(string name, string help, string type)
@@ -204,8 +204,8 @@ namespace OpenSim.Region.Environment.Modules.Framework
     public class Commander : ICommander
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private readonly Dictionary<string, ICommand> m_commands = new Dictionary<string, ICommand>();
-        private readonly string m_name;
+        private Dictionary<string, ICommand> m_commands = new Dictionary<string, ICommand>();
+        private string m_name;
 
         public Commander(string name)
         {
@@ -235,11 +235,11 @@ namespace OpenSim.Region.Environment.Modules.Framework
                 }
                 classSrc = classSrc.Remove(classSrc.Length - 1); // Delete the last comma
                 classSrc += " )\n\t{\n";
-                classSrc += "\t\tObject[] args = new Object[" + com.Arguments.Count + "];\n";
+                classSrc += "\t\tObject[] args = new Object[" + com.Arguments.Count.ToString() + "];\n";
                 int i = 0;
                 foreach (KeyValuePair<string, string> arg in com.Arguments)
                 {
-                    classSrc += "\t\targs[" + i + "] = " + Util.Md5Hash(arg.Key) + "  " + ";\n";
+                    classSrc += "\t\targs[" + i.ToString() + "] = " + Util.Md5Hash(arg.Key) + "  " + ";\n";
                     i++;
                 }
                 classSrc += "\t\tGetCommander(\"" + m_name + "\").Run(\"" + com.Name + "\", args);\n";

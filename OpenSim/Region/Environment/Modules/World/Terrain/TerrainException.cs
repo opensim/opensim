@@ -31,7 +31,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
 {
     public class TerrainException : Exception
     {
-        public TerrainException()
+        public TerrainException() : base()
         {
         }
 

@@ -43,8 +43,8 @@ namespace OpenSim.Grid.AssetServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly IAssetProvider m_assetProvider;
         private OpenAsset_Main m_assetManager;
+        private IAssetProvider m_assetProvider;
 
         /// <summary>
         /// Constructor.
@@ -58,28 +58,28 @@ namespace OpenSim.Grid.AssetServer
             m_assetManager = assetManager;
             m_assetProvider = assetProvider;
         }
-
+        
         public override byte[] Handle(string path, Stream request)
         {
             string param = GetParam(path);
             byte[] result = new byte[] {};
 
-            string[] p = param.Split(new[] {'/', '?', '&'}, StringSplitOptions.RemoveEmptyEntries);
+            string[] p = param.Split(new char[] {'/', '?', '&'}, StringSplitOptions.RemoveEmptyEntries);
 
             if (p.Length > 0)
             {
-                LLUUID assetID = null;
-
+                LLUUID assetID = null;    
+                
                 if (!LLUUID.TryParse(p[0], out assetID))
                 {
                     m_log.InfoFormat(
                         "[REST]: GET:/asset ignoring request with malformed UUID {0}", p[0]);
                     return result;
-                }
+                }   
 
                 if (StatsManager.AssetStats != null)
                     StatsManager.AssetStats.AddRequest();
-
+                
                 AssetBase asset = m_assetProvider.FetchAsset(assetID);
                 if (asset != null)
                 {
@@ -94,39 +94,32 @@ namespace OpenSim.Grid.AssetServer
                     //StreamReader sr = new StreamReader(ms);
 
                     result = ms.GetBuffer();
-
+                    
                     m_log.InfoFormat(
                         "[REST]: GET:/asset found {0} with name {1}, size {2} bytes",
                         assetID, asset.Name, result.Length);
 
-                    Array.Resize(ref result, (int) ms.Length);
+                    Array.Resize<byte>(ref result, (int) ms.Length);
                 }
                 else
                 {
                     if (StatsManager.AssetStats != null)
                         StatsManager.AssetStats.AddNotFoundRequest();
-
+                    
                     m_log.InfoFormat("[REST]: GET:/asset failed to find {0}", assetID);
                 }
             }
 
-            return result;
-        }
+            return result;        
+        }        
     }
 
     public class PostAssetStreamHandler : BaseStreamHandler
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly IAssetProvider m_assetProvider;
         private OpenAsset_Main m_assetManager;
-
-        public PostAssetStreamHandler(OpenAsset_Main assetManager, IAssetProvider assetProvider)
-            : base("POST", "/assets")
-        {
-            m_assetManager = assetManager;
-            m_assetProvider = assetProvider;
-        }
+        private IAssetProvider m_assetProvider;
 
         public override byte[] Handle(string path, Stream request)
         {
@@ -145,6 +138,13 @@ namespace OpenSim.Grid.AssetServer
             m_assetProvider.CommitAssets();
 
             return new byte[] {};
+        }
+
+        public PostAssetStreamHandler(OpenAsset_Main assetManager, IAssetProvider assetProvider)
+            : base("POST", "/assets")
+        {
+            m_assetManager = assetManager;
+            m_assetProvider = assetProvider;
         }
     }
 }

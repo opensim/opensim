@@ -73,8 +73,6 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             get { return m_scene.RegionInfo.RegionID; }
         }
 
-        #endregion
-
         #region Constructors
 
         public LandObject(LLUUID owner_id, bool is_group_owned, Scene scene)
@@ -100,7 +98,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         {
             if (x >= 0 && y >= 0 && x <= Constants.RegionSize && x <= Constants.RegionSize)
             {
-                return landBitmap[x / 4, y / 4];
+                return (landBitmap[x / 4, y / 4] == true);
             }
             else
             {
@@ -150,7 +148,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             updatePacket.ParcelData.GroupID = landData.groupID;
             updatePacket.ParcelData.GroupPrims = landData.groupPrims;
             updatePacket.ParcelData.IsGroupOwned = landData.isGroupOwned;
-            updatePacket.ParcelData.LandingType = landData.landingType;
+            updatePacket.ParcelData.LandingType = (byte) landData.landingType;
             updatePacket.ParcelData.LocalID = landData.localID;
             if (landData.area > 0)
             {
@@ -214,7 +212,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                                                  landData.selectedPrims;
             updatePacket.ParcelData.UserLocation = landData.userLocation;
             updatePacket.ParcelData.UserLookAt = landData.userLookAt;
-            remote_client.OutPacket(updatePacket, ThrottleOutPacketType.Task);
+            remote_client.OutPacket((Packet) updatePacket, ThrottleOutPacketType.Task);
         }
 
         public void updateLandProperties(ParcelPropertiesUpdatePacket packet, IClientAPI remote_client)
@@ -357,7 +355,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 {
                     ParcelAccessListReplyPacket.ListBlock listBlock = new ParcelAccessListReplyPacket.ListBlock();
 
-                    listBlock.Flags = 0;
+                    listBlock.Flags = (uint) 0;
                     listBlock.ID = entry.AgentID;
                     listBlock.Time = 0;
 
@@ -369,7 +367,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             {
                 ParcelAccessListReplyPacket.ListBlock listBlock = new ParcelAccessListReplyPacket.ListBlock();
 
-                listBlock.Flags = 0;
+                listBlock.Flags = (uint) 0;
                 listBlock.ID = LLUUID.Zero;
                 listBlock.Time = 0;
 
@@ -392,7 +390,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 replyPacket.Data.SequenceID = 0;
 
                 replyPacket.List = createAccessListArrayByFlag(ParcelManager.AccessList.Access);
-                remote_client.OutPacket(replyPacket, ThrottleOutPacketType.Task);
+                remote_client.OutPacket((Packet) replyPacket, ThrottleOutPacketType.Task);
             }
 
             if (flags == (uint) ParcelManager.AccessList.Ban || flags == (uint) ParcelManager.AccessList.Both)
@@ -404,7 +402,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 replyPacket.Data.SequenceID = 0;
 
                 replyPacket.List = createAccessListArrayByFlag(ParcelManager.AccessList.Ban);
-                remote_client.OutPacket(replyPacket, ThrottleOutPacketType.Task);
+                remote_client.OutPacket((Packet) replyPacket, ThrottleOutPacketType.Task);
             }
         }
 
@@ -484,7 +482,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             {
                 for (y = 0; y < 64; y++)
                 {
-                    if (landBitmap[x, y])
+                    if (landBitmap[x, y] == true)
                     {
                         if (min_x > x) min_x = x;
                         if (min_y > y) min_y = y;
@@ -501,7 +499,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             if (ty > 255)
                 ty = 255;
             landData.AABBMin =
-                new LLVector3((min_x * 4), (min_y * 4),
+                new LLVector3((float) (min_x * 4), (float) (min_y * 4),
                               (float) m_scene.Heightmap[tx, ty]);
 
             tx = max_x * 4;
@@ -511,7 +509,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             if (ty > 255)
                 ty = 255;
             landData.AABBMax =
-                new LLVector3((max_x * 4), (max_y * 4),
+                new LLVector3((float) (max_x * 4), (float) (max_y * 4),
                               (float) m_scene.Heightmap[tx, ty]);
             landData.area = tempArea;
         }
@@ -659,7 +657,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                     if (i % 8 == 0)
                     {
                         tempConvertArr[byteNum] = tempByte;
-                        tempByte = 0;
+                        tempByte = (byte) 0;
                         i = 0;
                         byteNum++;
                     }
@@ -679,7 +677,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 tempByte = landData.landBitmapByteArray[i];
                 for (bitNum = 0; bitNum < 8; bitNum++)
                 {
-                    bool bit = Convert.ToBoolean(Convert.ToByte(tempByte >> bitNum) & 1);
+                    bool bit = Convert.ToBoolean(Convert.ToByte(tempByte >> bitNum) & (byte) 1);
                     tempConvertMap[x, y] = bit;
                     x++;
                     if (x > 63)
@@ -753,7 +751,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                     resultLocalIDs.RemoveAt(0);
                 }
                 pack.Data = data;
-                remote_client.OutPacket(pack, ThrottleOutPacketType.Task);
+                remote_client.OutPacket((Packet) pack, ThrottleOutPacketType.Task);
             }
         }
 
@@ -920,6 +918,8 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 primsOverMe.Remove(obj);
             }
         }
+
+        #endregion
 
         #endregion
 
