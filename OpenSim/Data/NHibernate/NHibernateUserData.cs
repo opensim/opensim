@@ -244,16 +244,41 @@ namespace OpenSim.Data.NHibernate
         public override bool MoneyTransferRequest(LLUUID from, LLUUID to, uint amount) {return true;}
         public override bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID inventory) {return true;}
 
-                /// Appearance
+        /// Appearance
         /// TODO: stubs for now to get us to a compiling state gently
         override public UserAppearance GetUserAppearance(LLUUID user) 
         {
-            return new UserAppearance();
+            UserAppearance appearance;
+            // TODO: I'm sure I'll have to do something silly here
+            using(ISession session = factory.OpenSession()) {
+                appearance = session.Load(typeof(UserAppearance), user) as UserAppearance;
+            }
+            return appearance;
         }
+
+        private bool ExistsAppearance(LLUUID uuid)
+        {
+            UserAppearance appearance;
+            using(ISession session = factory.OpenSession()) {
+                appearance = session.Load(typeof(UserAppearance), uuid) as UserAppearance;
+            }
+            return (appearance == null) ? false : true;
+        }
+
 
         override public void UpdateUserAppearance(LLUUID user, UserAppearance appearance)
         {
-            return;
+            bool exists = ExistsAppearance(user);
+            using(ISession session = factory.OpenSession()) {
+                using(ITransaction transaction = session.BeginTransaction()) {
+                    if (exists) {
+                        session.Update(appearance);
+                    } else {
+                        session.Save(appearance);
+                    }
+                    transaction.Commit();
+                }
+            } 
         }
 
         override public void AddAttachment(LLUUID user, LLUUID item)
