@@ -480,6 +480,12 @@ namespace OpenSim.Framework
         /// <param name="packType"></param>
         string Name { get; }
 
+        bool IsActive
+        {
+            get;
+            set;
+        }
+
         uint CircuitCode { get; }
         event ImprovedInstantMessage OnInstantMessage;
         event ChatFromViewer OnChatFromViewer;

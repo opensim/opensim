@@ -14,6 +14,17 @@ namespace OpenSim.Framework
             m_y = y;
         }
 
+        public Location(ulong regionHandle)
+        {
+            m_x = (int) regionHandle;
+            m_y = (int) (regionHandle >> 32);
+        }
+
+        public ulong RegionHandle
+        {
+            get { return ((ulong) m_x << 32 & (ulong) m_y); }
+        }
+
         public int X
         {
             get { return m_x; }
@@ -45,11 +56,6 @@ namespace OpenSim.Framework
         public bool Equals(int x, int y)
         {
             return X == x && y == Y;
-        }
-
-        public UInt64 RegionHandle
-        {
-            get { return UInt64.MinValue; }
         }
 
         public override int GetHashCode()
