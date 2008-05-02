@@ -38,21 +38,21 @@ namespace OpenSim.Framework
         // these are guessed at by the list here -
         // http://wiki.secondlife.com/wiki/Avatar_Appearance.  We'll
         // correct them over time for when were are wrong.
-        public const int BODY = 0;
-        public const int SKIN = 1;
-        public const int HAIR = 2;
-        public const int EYES = 3;
-        public const int SHIRT = 4;
-        public const int PANTS = 5;
-        public const int SHOES = 6;
-        public const int SOCKS = 7;
-        public const int JACKET = 8;
-        public const int GLOVES = 9;
-        public const int UNDERSHIRT = 10;
-        public const int UNDERPANTS = 11;
-        public const int SKIRT = 12;
+        public readonly static int BODY = 0;
+        public readonly static int SKIN = 1;
+        public readonly static int HAIR = 2;
+        public readonly static int EYES = 3;
+        public readonly static int SHIRT = 4;
+        public readonly static int PANTS = 5;
+        public readonly static int SHOES = 6;
+        public readonly static int SOCKS = 7;
+        public readonly static int JACKET = 8;
+        public readonly static int GLOVES = 9;
+        public readonly static int UNDERSHIRT = 10;
+        public readonly static int UNDERPANTS = 11;
+        public readonly static int SKIRT = 12;
 
-        private const int MAX_WEARABLES = 13;
+        private readonly static int MAX_WEARABLES = 13;
  
         private static LLUUID BODY_ASSET = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
         private static LLUUID BODY_ITEM = new LLUUID("66c41e39-38f9-f75a-024e-585989bfaba9");
@@ -63,7 +63,11 @@ namespace OpenSim.Framework
         private static LLUUID PANTS_ASSET = new LLUUID("00000000-38f9-1111-024e-222222111120");
         private static LLUUID PANTS_ITEM = new LLUUID("77c41e39-38f9-f75a-0000-5859892f1111");
 
+        public readonly static int VISUALPARAM_COUNT = 218;
+
         private AvatarWearable[] _wearables;
+        private byte[] _visualParams;  
+        private byte[] _texture;
         private LLUUID _user;
         private int _serial;
         
@@ -77,6 +81,21 @@ namespace OpenSim.Framework
             }
             _serial = 0;
             _user = LLUUID.Zero;
+            _visualParams = new byte[VISUALPARAM_COUNT];
+        }
+
+        public byte[] Texture {
+            get { return _texture; }
+            set { _texture = value; }
+        }
+
+        public byte[] VisualParams {
+            get { return _visualParams; }
+            set { _visualParams = value; }
+        }
+
+        public AvatarWearable[] Wearables {
+            get { return _wearables; }
         }
 
         public LLUUID User {
