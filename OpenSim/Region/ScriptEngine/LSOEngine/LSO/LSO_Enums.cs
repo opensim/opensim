@@ -554,7 +554,10 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
             llGetParcelPrimOwners = 324,
             llGetObjectPrimCount = 325,
             llGetParcelMaxPrims = 326,
-            llGetParcelDetails = 327
+            llGetParcelDetails = 327,
+            llSetLinkTexture = 328,
+            llStringTrim = 329,
+            llGetObjectDetails = 330
         }
     }
 }

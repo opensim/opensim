@@ -450,6 +450,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         void llSetVehicleType(int type);
         //wiki: llSetVehicledoubleParam(integer param, double value)
         void llSetVehicledoubleParam(int param, double value);
+        // wiki: llSetVehicleFloatParam(integer param, float value)
+        void llSetVehicleFloatParam(int param, float value);
         //wiki: llSetVehicleVectorParam(integer param, vector vec)
         void llSetVehicleVectorParam(int param, LSL_Types.Vector3 vec);
         //wiki: llSetVehicleRotationParam(integer param, rotation rot)
@@ -628,7 +630,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         void llResetLandBanList();
         //wiki: llResetLandPassList()
         void llResetLandPassList();
-        //wiki integer llGetParcelPrimCount(vector pos, integer category, integer sim_wide)
+        //wiki: integer llGetParcelPrimCount(vector pos, integer category, integer sim_wide)
         int llGetParcelPrimCount(LSL_Types.Vector3 pos, int category, int sim_wide);
         //wiki: list llGetParcelPrimOwners( vector pos )
         LSL_Types.list llGetParcelPrimOwners(LSL_Types.Vector3 pos);
@@ -636,9 +638,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         int llGetObjectPrimCount(string object_id);
         //wiki: integer llGetParcelMaxPrims( vector pos, integer sim_wide )
         int llGetParcelMaxPrims(LSL_Types.Vector3 pos, int sim_wide);
-        //wiki list llGetParcelDetails(vector pos, list params)
+        //wiki: llGetParcelDetails(vector pos, list params)
         LSL_Types.list llGetParcelDetails(LSL_Types.Vector3 pos, LSL_Types.list param);
+        //wiki: llSetLinkTexture(integer linknumber, string texture, integer face )
+        void llSetLinkTexture(int linknumber, string texture, int face);
+        //wiki: string llStringTrim(string src, int type)
         string llStringTrim(string src, int type);
+        //wiki: LSL_Types.list llGetObjectDetails(string id, LSL_Types.list args)
         LSL_Types.list llGetObjectDetails(string id, LSL_Types.list args);
 
         void osSetRegionWaterHeight(double height);

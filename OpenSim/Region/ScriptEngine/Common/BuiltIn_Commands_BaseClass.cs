@@ -1368,6 +1368,11 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llSetVehicledoubleParam(param, value);
         }
 
+        public void llSetVehicleFloatParam(int param, float value)
+        {
+            m_LSL_Functions.llSetVehicleFloatParam(param, value);
+        }
+
         public void llSetVehicleVectorParam(int param, vector vec)
         {
             m_LSL_Functions.llSetVehicleVectorParam(param, vec);
@@ -1852,6 +1857,11 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.list llGetParcelDetails(vector pos, LSL_Types.list param)
         {
             return m_LSL_Functions.llGetParcelDetails(pos, param);
+        }
+
+        public void llSetLinkTexture(int linknumber, string texture, int face)
+        {
+            m_LSL_Functions.llSetLinkTexture(linknumber, texture, face);
         }
 
         public string llStringTrim(string src, int type)

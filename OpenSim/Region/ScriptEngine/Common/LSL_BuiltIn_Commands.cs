@@ -4089,6 +4089,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             NotImplemented("llSetVehicledoubleParam");
         }
 
+        public void llSetVehicleFloatParam(int param, float value)
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llSetVehicleFloatParam");
+        }
+
         public void llSetVehicleVectorParam(int param, LSL_Types.Vector3 vec)
         {
             m_host.AddScriptLPS(1);
@@ -5874,6 +5880,12 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
             }
             return ret;
+        }
+
+        public void llSetLinkTexture(int linknumber, string texture, int face)
+        {
+            m_host.AddScriptLPS(1);
+            NotImplemented("llSetLinkTexture");
         }
 
         public string llStringTrim(string src, int type)
