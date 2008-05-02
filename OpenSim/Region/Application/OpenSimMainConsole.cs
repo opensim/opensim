@@ -38,7 +38,6 @@ using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Statistics;
-using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using Timer=System.Timers.Timer;

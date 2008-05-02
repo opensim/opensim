@@ -40,7 +40,6 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.ClientStack;
-using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;
 using OpenSim.Region.Environment;
@@ -106,7 +105,7 @@ namespace OpenSim
             get { return m_httpServer; }
         }
 
-        public List<IClientNetworkServer> UdpServers
+        public List<IClientNetworkServer> ClientServers
         {
             get { return m_clientServers; }
         }
@@ -409,12 +408,6 @@ namespace OpenSim
                 plugin.Initialise(this);
                 m_plugins.Add(plugin);
             }
-
-            // Start UDP servers
-            //for (int i = 0; i < m_udpServers.Count; i++)
-            //{
-            // m_udpServers[i].ServerListener();
-            // }
         }
 
         protected override void Initialize()
@@ -496,8 +489,8 @@ namespace OpenSim
                 Util.XmlRpcCommand(proxyUrl, "AddPort", port, port + proxyOffset, regionInfo.ExternalHostName);
             }
 
-            IClientNetworkServer udpServer;
-            Scene scene = SetupScene(regionInfo, proxyOffset, out udpServer, m_permissions);
+            IClientNetworkServer clientServer;
+            Scene scene = SetupScene(regionInfo, proxyOffset, out clientServer, m_permissions);
 
             m_log.Info("[MODULES]: Loading Region's modules");
 
@@ -549,9 +542,9 @@ namespace OpenSim
 
             m_sceneManager.Add(scene);                        
 
-            m_clientServers.Add(udpServer);
+            m_clientServers.Add(clientServer);
             m_regionData.Add(regionInfo);
-            udpServer.Start();
+            clientServer.Start();
 
             if (do_post_init)
             {
@@ -561,7 +554,7 @@ namespace OpenSim
                 }
             }
 
-            return udpServer;
+            return clientServer;
         }
 
         protected override StorageManager CreateStorageManager(string connectionstring)
@@ -583,24 +576,23 @@ namespace OpenSim
         public void handleRestartRegion(RegionInfo whichRegion)
         {
             m_log.Error("[OPENSIM MAIN]: Got restart signal from SceneManager");
-            // Shutting down the UDP server
-            bool foundUDPServer = false;
-            int UDPServerElement = 0;
+            // Shutting down the client server
+            bool foundClientServer = false;
+            int clientServerElement = 0;
 
             for (int i = 0; i < m_clientServers.Count; i++)
             {
                 if (m_clientServers[i].HandlesRegion(new Location(whichRegion.RegionHandle)))
                 {
-                    UDPServerElement = i;
-                    foundUDPServer = true;
+                    clientServerElement = i;
+                    foundClientServer = true;
                     break;
                 }
             }
-            if (foundUDPServer)
+            if (foundClientServer)
             {
-                // m_udpServers[UDPServerElement].Server.End
-                m_clientServers[UDPServerElement].Server.Close();
-                m_clientServers.RemoveAt(UDPServerElement);
+                m_clientServers[clientServerElement].Server.Close();
+                m_clientServers.RemoveAt(clientServerElement);
             }
 
             //Removing the region from the sim's database of regions..   
@@ -618,9 +610,6 @@ namespace OpenSim
             }
 
             CreateRegion(whichRegion, true);
-            //UDPServer restartingRegion = CreateRegion(whichRegion);
-            //restartingRegion.ServerListener();
-            //m_sceneManager.SendSimOnlineNotification(restartingRegion.RegionHandle);
         }
 
         # region Setup methods

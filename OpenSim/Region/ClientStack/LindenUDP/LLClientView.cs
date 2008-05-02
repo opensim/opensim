@@ -4915,7 +4915,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 catch (Exception)
                 {
-                    //MainLog.Instance.Debug("UDPSERVER", e.ToString());
+                    
                 }
 
                 m_needAck.Add(key, packet);

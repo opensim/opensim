@@ -224,7 +224,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// This works out to be the ClientView object associated with this avatar, or it's UDP connection manager
+        /// This works out to be the ClientView object associated with this avatar, or it's client connection manager
         /// </summary>
         private IClientAPI m_controllingClient; 
 

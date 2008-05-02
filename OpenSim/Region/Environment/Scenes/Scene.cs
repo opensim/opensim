@@ -1594,8 +1594,6 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnMoveInventoryItem += MoveInventoryItem;
             client.OnRemoveInventoryItem += RemoveInventoryItem;
             client.OnRemoveInventoryFolder += RemoveInventoryFolder;
-            // client.OnAssetUploadRequest += CommsManager.TransactionsManager.HandleUDPUploadRequest;
-            //  client.OnXferReceive += CommsManager.TransactionsManager.HandleXfer;
             client.OnRezScript += RezScript;
 
             client.OnRequestTaskInventory += RequestTaskInventory;

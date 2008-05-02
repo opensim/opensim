@@ -39,7 +39,6 @@ using Mono.Addins;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
-//using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.ClientStack;
 using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Environment.Scenes;
@@ -88,7 +87,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             AsynchronousSocketListener.PacketHandler = new AsynchronousSocketListener.PacketRecieveHandler(SynchronizePacketRecieve);
 
             sceneManager = openSim.SceneManager;
-            m_clientServers = openSim.UdpServers;
+            m_clientServers = openSim.ClientServers;
             regionData = openSim.RegionData;
             simMain = openSim;
             commandServer = openSim.HttpServer;
@@ -390,7 +389,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             return result;
         }
 
-        private IClientNetworkServer SearchUDPServerFromPortNum(int portnum)
+        private IClientNetworkServer SearchClientServerFromPortNum(int portnum)
         {
             return m_clientServers.Find(delegate(IClientNetworkServer server) { return (portnum + proxyOffset == ((IPEndPoint)server.Server.LocalEndPoint).Port); });
         }
@@ -522,12 +521,11 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             Scene scene = null;
             string[] files = null;
             IClientAPI controller = null;
-            IClientNetworkServer udpserv = null;
+            IClientNetworkServer clientserv = null;
 
             if (sceneManager.TryGetScene(dst_region.RegionID, out scene))
             {
-                // search udpserver
-                udpserv = SearchUDPServerFromPortNum(scene.RegionInfo.InternalEndPoint.Port);
+                clientserv = SearchClientServerFromPortNum(scene.RegionInfo.InternalEndPoint.Port);
 
                 // restore the scene presence
                 for (int i = 0;; i++)
@@ -565,9 +563,9 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 
                         // BUG: Will only work with LLUDPServer.
                         // TODO: This needs to be abstracted and converted into IClientNetworkServer
-                        if (udpserv is LLUDPServer)
+                        if (clientserv is LLUDPServer)
                         {
-                            ((LLUDPServer) udpserv).RestoreClient(agentdata, data.userEP, data.proxyEP);
+                            ((LLUDPServer) clientserv).RestoreClient(agentdata, data.userEP, data.proxyEP);
                         }
 
                         // waiting for the scene-presense restored
@@ -627,12 +625,12 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             }
 
             // Shutting down the UDP server
-            IClientNetworkServer udpsvr = SearchUDPServerFromPortNum(port);
+            IClientNetworkServer clientsvr = SearchClientServerFromPortNum(port);
 
-            if (udpsvr != null)
+            if (clientsvr != null)
             {
-                udpsvr.Server.Close();
-                m_clientServers.Remove(udpsvr);
+                clientsvr.Server.Close();
+                m_clientServers.Remove(clientsvr);
             }
         }
 

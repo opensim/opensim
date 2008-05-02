@@ -295,7 +295,7 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
 
             try
             {
-                m_log.InfoFormat("[PROXY] Opening UDP socket on {0}", sd.clientEP);
+                m_log.InfoFormat("[PROXY] Opening special UDP socket on {0}", sd.clientEP);
                 sd.serverIP = new IPEndPoint(IPAddress.Parse("0.0.0.0"), ((IPEndPoint) sd.clientEP).Port);
                 sd.server = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                 sd.server.Bind(sd.serverIP);
