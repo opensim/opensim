@@ -3989,7 +3989,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         break;
 
                     case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_PATTERN:
-                        int tmpi = (int)rules.Data[i + 1];
+                        int tmpi = int.Parse(rules.Data[i + 1].ToString());
                         prules.Pattern = (Primitive.ParticleSystem.SourcePattern)tmpi;
                         break;
 

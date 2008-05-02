@@ -704,6 +704,37 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
                 return ret;
             }
+
+            private string ToSoup()
+            {
+                string output;
+                output = String.Empty;
+                if (m_data.Length == 0)
+                {
+                    return String.Empty;
+                }
+                foreach (object o in m_data)
+                {
+                    output = output + o.ToString();
+                }
+                return output;
+            }
+
+			public static explicit operator String(list l)
+			{
+				return l.ToSoup();
+			}
+
+			public static explicit operator LSLString(list l)
+			{
+				return new LSLString(l.ToSoup());
+			}
+
+			public override string ToString()
+			{
+				return ToSoup();
+			}
+
             #endregion
 
             #region Statistic Methods
@@ -935,36 +966,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
             }
 
-            public override string ToString()
-            {
-                string output;
-                output = String.Empty;
-                if (m_data.Length == 0)
-                {
-                    return String.Empty;
-                }
-                foreach (object o in m_data)
-                {
-                    output = output + o.ToString();
-                }
-                return output;
-
-            }
-
-            public static explicit operator string(list l)
-            {
-                string output;
-                output = String.Empty;
-                if (l.m_data.Length == 0)
-                {
-                    return String.Empty;
-                }
-                foreach (object o in l.m_data)
-                {
-                    output = output + o.ToString();
-                }
-                return output;
-            }
         }
 
         //
@@ -1200,9 +1201,15 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
 
             #endregion
-            static public implicit operator Int32(LSLInteger i)
+
+            static public implicit operator int(LSLInteger i)
             {
                 return i.value;
+            }
+
+            static public implicit operator uint(LSLInteger i)
+            {
+                return (uint)i.value;
             }
 
 			static public explicit operator LSLString(LSLInteger i)
@@ -1255,10 +1262,10 @@ namespace OpenSim.Region.ScriptEngine.Common
 				return i;
 			}
 
-            //static public implicit operator System.Double(LSLInteger i)
-            //{
-            //    return (double)i.value;
-            //}
+            static public implicit operator System.Double(LSLInteger i)
+            {
+                return (double)i.value;
+            }
 
             #region Overriders
 
