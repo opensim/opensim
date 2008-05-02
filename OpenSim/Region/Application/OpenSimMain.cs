@@ -237,7 +237,7 @@ namespace OpenSim
                 config.Set("enabled", "false");
             }
 
-        if (DefaultConfig.Configs["Voice"] == null)
+            if (DefaultConfig.Configs["Voice"] == null)
                 DefaultConfig.AddConfig("Voice");
             config = DefaultConfig.Configs["Voice"];
             if (config != null)
@@ -332,7 +332,6 @@ namespace OpenSim
             m_log.Info("[OPENSIM MAIN]: Shutdown complete, goodbye.");
             Environment.Exit(0);
         }
-
         
         /// <summary>
         /// Signal that the end of the world is now.
@@ -415,7 +414,6 @@ namespace OpenSim
             //{
             // m_udpServers[i].ServerListener();
             // }
-
         }
 
         protected override void Initialize()
@@ -454,7 +452,8 @@ namespace OpenSim
         /// <param name="regionInfo"></param>
         /// <param name="portadd_flag"></param>
         /// <returns></returns>
-        public UDPServer CreateRegion(RegionInfo regionInfo, bool portadd_flag) {
+        public UDPServer CreateRegion(RegionInfo regionInfo, bool portadd_flag)
+        {
             return CreateRegion(regionInfo, portadd_flag, false);
         }
 
@@ -464,7 +463,8 @@ namespace OpenSim
         /// <param name="regionInfo"></param>
         /// <param name="portadd_flag"></param>
         /// <returns></returns>
-        public UDPServer CreateRegion(RegionInfo regionInfo) {
+        public UDPServer CreateRegion(RegionInfo regionInfo)
+        {
             return CreateRegion(regionInfo, false, true);
         }
 
@@ -702,9 +702,9 @@ namespace OpenSim
         }
 
         /// <summary>
-        /// Get the number of the avatars in the Region server
+        /// Get the number of regions
         /// </summary>
-        /// <param name="usernum">The first out parameter describing the number of all the avatars in the Region server</param>
+        /// <param name="regionnum">The first out parameter describing the number of regions</param>
         public void GetRegionNumber(out int regionnum)
         {
             int accounter = 0;
