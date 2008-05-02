@@ -30,8 +30,8 @@
     <property name="UnderPantsAsset" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
     <property name="SkirtItem" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />    
     <property name="SkirtAsset" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
-    <property name="Texture" type="byte[]" />
-    <property name="VisualParams" type="byte[]" />
+    <property name="Texture" type="binary" />
+    <property name="VisualParams" type="binary" />
     <property name="Serial" type="int" />
   </class>
 </hibernate-mapping>
