@@ -55,10 +55,11 @@ namespace OpenSim.Data.MSSQL
         /// <summary>
         /// Loads and initialises the MySQL storage plugin
         /// </summary>
-        override public void Initialise()
+        override public void Initialise(string connect)
         {
-            // Load from an INI file connection details
-            // TODO: move this to XML?
+            // TODO: do something with the connect string instead of
+            // ignoring it.
+
             IniFile iniFile = new IniFile("mssql_connection.ini");
             string settingDataSource = iniFile.ParseFileReadValue("data_source");
             string settingInitialCatalog = iniFile.ParseFileReadValue("initial_catalog");

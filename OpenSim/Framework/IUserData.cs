@@ -173,7 +173,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Initialises the plugin (artificial constructor)
         /// </summary>
-        void Initialise();
+        void Initialise(string connect);
 
         /// <summary>
         /// Gets the user appearance

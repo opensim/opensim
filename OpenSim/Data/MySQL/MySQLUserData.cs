@@ -55,10 +55,10 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Loads and initialises the MySQL storage plugin
         /// </summary>
-        override public void Initialise()
+        override public void Initialise(string connect)
         {
-            // Load from an INI file connection details
-            // TODO: move this to XML? Yes, PLEASE!
+            // TODO: actually do something with our connect string
+            // instead of loading the second config
             
             IniFile iniFile = new IniFile("mysql_connection.ini");
             string settingHostname = iniFile.ParseFileReadValue("hostname");

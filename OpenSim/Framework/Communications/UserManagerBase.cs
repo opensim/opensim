@@ -53,7 +53,7 @@ namespace OpenSim.Framework.Communications
         /// Adds a new user server plugin - user servers will be requested in the order they were loaded.
         /// </summary>
         /// <param name="FileName">The filename to the user server plugin DLL</param>
-        public void AddPlugin(string FileName)
+        public void AddPlugin(string FileName, string connect)
         {
             if (!String.IsNullOrEmpty(FileName))
             {
@@ -71,16 +71,16 @@ namespace OpenSim.Framework.Communications
                         {
                             IUserData plug =
                                 (IUserData) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                            AddPlugin(plug);
+                            AddPlugin(plug, connect);
                         }
                     }
                 }
             }
         }
 
-        public void AddPlugin(IUserData plug)
+        public void AddPlugin(IUserData plug, string connect)
         {
-            plug.Initialise();
+            plug.Initialise(connect);
             _plugins.Add(plug.Name, plug);
             m_log.Info("[USERSTORAGE]: Added IUserData Interface");
         }

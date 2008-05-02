@@ -362,7 +362,7 @@ namespace OpenSim
                 LocalUserServices userService =
                     new LocalUserServices(m_networkServersInfo, m_networkServersInfo.DefaultHomeLocX,
                                           m_networkServersInfo.DefaultHomeLocY, inventoryService);
-                userService.AddPlugin(m_standaloneUserPlugin);
+                userService.AddPlugin(m_standaloneUserPlugin, m_standaloneUserSource);
 
                 LocalBackEndServices backendService = new LocalBackEndServices();
 

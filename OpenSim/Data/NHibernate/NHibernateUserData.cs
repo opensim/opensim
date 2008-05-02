@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -35,6 +36,7 @@ using NHibernate.Cfg;
 using NHibernate.Expression;
 using NHibernate.Mapping.Attributes;
 using OpenSim.Framework;
+using Environment=NHibernate.Cfg.Environment;
 
 namespace OpenSim.Data.NHibernate
 {
@@ -48,20 +50,24 @@ namespace OpenSim.Data.NHibernate
         private Configuration cfg;
         private ISessionFactory factory;
 
-        public override void Initialise()
+        public override void Initialise(string connect)
         {
-            // TODO: hard coding for sqlite based stuff to begin with, just making it easier to test
+            char[] split = {';'};
+            string[] parts = connect.Split(split, 3);
+            if (parts.Length != 3) {
+                // TODO: make this a real exception type
+                throw new Exception("Malformed Inventory connection string '" + connect + "'");
+            }
 
             // This is stubbing for now, it will become dynamic later and support different db backends
             cfg = new Configuration();
             cfg.SetProperty(Environment.ConnectionProvider, 
                             "NHibernate.Connection.DriverConnectionProvider");
             cfg.SetProperty(Environment.Dialect, 
-                            "NHibernate.Dialect.SQLiteDialect");
+                            "NHibernate.Dialect." + parts[0]);
             cfg.SetProperty(Environment.ConnectionDriver, 
-                            "NHibernate.Driver.SqliteClientDriver");
-            cfg.SetProperty(Environment.ConnectionString,
-                            "URI=file:User.db,version=3");
+                            "NHibernate.Driver." + parts[1]);
+            cfg.SetProperty(Environment.ConnectionString, parts[2]);
             cfg.AddAssembly("OpenSim.Data.NHibernate");
 
             HbmSerializer.Default.Validate = true;

@@ -93,7 +93,7 @@ namespace OpenSim.Grid.UserServer
             m_log.Info("[REGION]: Establishing data connection");
             m_userManager = new UserManager();            
             m_userManager._config = Cfg;
-            m_userManager.AddPlugin(Cfg.DatabaseProvider);            
+            m_userManager.AddPlugin(Cfg.DatabaseProvider, Cfg.DatabaseConnect);            
 
             m_loginService = new UserLoginService(
                  m_userManager, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);

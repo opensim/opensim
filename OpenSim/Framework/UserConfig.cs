@@ -38,6 +38,7 @@ namespace OpenSim.Framework
         public static bool DefaultHttpSSL = false;
         private ConfigurationMember configMember;
         public string DatabaseProvider = String.Empty;
+        public string DatabaseConnect = String.Empty;
         public string DefaultStartupMsg = String.Empty;
         public uint DefaultX = 1000;
         public uint DefaultY = 1000;
@@ -77,6 +78,8 @@ namespace OpenSim.Framework
                                                 false);
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Data.MySQL.dll", false);
+            configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                "Connection String for Database", "", false);
 
             configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Http Listener port", DefaultHttpPort.ToString(), false);
@@ -109,6 +112,9 @@ namespace OpenSim.Framework
                     break;
                 case "database_provider":
                     DatabaseProvider = (string) configuration_result;
+                    break;
+                case "database_connect":
+                    DatabaseConnect = (string) configuration_result;
                     break;
                 case "http_port":
                     HttpPort = (uint) configuration_result;

@@ -51,7 +51,7 @@ namespace OpenSim.Data
         public abstract bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID inventory);
         public abstract string Version {get;}
         public abstract string Name {get;}
-        public abstract void Initialise();
+        public abstract void Initialise(string connect);
         public abstract List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query);
         public abstract UserAppearance GetUserAppearance(LLUUID user);
         public abstract void UpdateUserAppearance(LLUUID user, UserAppearance appearance);

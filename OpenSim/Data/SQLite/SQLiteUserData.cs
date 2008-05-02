@@ -64,9 +64,13 @@ namespace OpenSim.Data.SQLite
         private SqliteDataAdapter daf;
         SqliteConnection g_conn;
 
-        override public void Initialise()
+        override public void Initialise(string connect)
         {
-            SqliteConnection conn = new SqliteConnection("URI=file:userprofiles.db,version=3");
+            // default to something sensible
+            if (connect == "") 
+                connect = "URI=file:userprofiles.db,version=3";
+            
+            SqliteConnection conn = new SqliteConnection(connect);
             TestTables(conn);
 
             // This sucks, but It doesn't seem to work with the dataset Syncing :P
