@@ -973,9 +973,6 @@ namespace OpenSim.Region.Environment.Scenes
                 Bitmap mapbmp = new Bitmap(256, 256);
                 double[,] hm = Heightmap.GetDoubles();
 
-                float heightvalue = 0;
-
-
                 Color prim = Color.FromArgb(120, 120, 120);
                 LLVector3 RayEnd = new LLVector3(0, 0, 0);
                 LLVector3 RayStart = new LLVector3(0, 0, 0);
@@ -1022,7 +1019,7 @@ namespace OpenSim.Region.Environment.Scenes
                         //else
                         //{
                         float tmpval = (float)hm[x, y];
-                        heightvalue = (float)hm[x, y];
+                        float heightvalue = (float)hm[x, y];
 
                         if ((float)heightvalue > m_regInfo.EstateSettings.waterHeight)
                         {
@@ -1495,7 +1492,7 @@ namespace OpenSim.Region.Environment.Scenes
                 client.AgentId, RegionInfo.RegionName);
             
             SubscribeToClientEvents(client);
-            ScenePresence presence = null;
+            ScenePresence presence;
 
             if (m_restorePresences.ContainsKey(client.AgentId))
             {
@@ -1636,8 +1633,8 @@ namespace OpenSim.Region.Environment.Scenes
                                               bool BypassRaycast, bool RayEndIsIntersection, bool CopyCenters, bool CopyRotates)
         {
            
-            LLVector3 pos = LLVector3.Zero;
-            bool frontFacesOnly = true;
+            LLVector3 pos;
+            const bool frontFacesOnly = true;
            
             SceneObjectPart target = GetSceneObjectPart(localID);
             SceneObjectPart target2 = GetSceneObjectPart(RayTargetObj);
@@ -1750,12 +1747,10 @@ namespace OpenSim.Region.Environment.Scenes
         }
         protected virtual ScenePresence CreateAndAddScenePresence(IClientAPI client, bool child)
         {
-            ScenePresence avatar = null;
-
             AvatarAppearance appearance;
             GetAvatarAppearance(client, out appearance);
 
-            avatar = m_innerScene.CreateAndAddScenePresence(client, child, appearance);
+            ScenePresence avatar = m_innerScene.CreateAndAddScenePresence(client, child, appearance);
 
             if (avatar.IsChildAgent)
             {
