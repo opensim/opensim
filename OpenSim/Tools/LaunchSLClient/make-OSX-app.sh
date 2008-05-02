@@ -6,13 +6,22 @@
 # This should be run from the bin directory.
 
 APP_NAME="LaunchSLClient"
+SOURCE_PATH="../OpenSim/Tools/${APP_NAME}"
 
-# Note that proper form is to copy Frameworks to
-# *.app/Contents/Frameworks, but because @executable_path resolves to
-# [...]/Resources/bin, and the libraries reference
-# @executable_path/../Frameworks, we put frameworks in
-# Contents/Resources instead.
-FRAMEWORKS_PATH="${APP_NAME}.app/Contents/Resources/Frameworks"
+ASSEMBLIES="mscorlib.dll \
+    System.Windows.Forms.dll \
+    System.Drawing.dll \
+    System.Configuration.dll \
+    System.Xml.dll \
+    System.Security.dll \
+    Mono.Security.dll \
+    System.Data.dll \
+    Mono.Data.Tds.dll \
+    System.Transactions.dll \
+    System.EnterpriseServices.dll \
+    Mono.Mozilla.dll \
+    Mono.Posix.dll \
+    Accessibility.dll"
 
 if [ ! -e ${APP_NAME}.exe ]; then
     echo "Error: Could not find ${APP_NAME}.exe." >& 2
@@ -20,19 +29,12 @@ if [ ! -e ${APP_NAME}.exe ]; then
     exit 1
 fi
 
-CMDFLAGS="-m console -n ${APP_NAME} -a ${APP_NAME}.exe"
-
-REFERENCES="-r /Library/Frameworks/Mono.framework/Versions/Current/lib/ \
-    -r Nini.dll \
-    -r ${APP_NAME}.ini"
-
-if [ -f ${APP_NAME}.icns ]; then
-    CMDFLAGS="${CMDFLAGS} -i ${APP_NAME}.icns"
-else
-    echo "Warning: no icon file found.  Will use default application icon." >&2
-fi
+mkbundle2 -z -o ${APP_NAME} ${APP_NAME}.exe ${ASSEMBLIES} || exit 1
 
 if [ -d ${APP_NAME}.app ]; then rm -rf ${APP_NAME}.app; fi
-macpack ${REFERENCES} ${CMDFLAGS}
+cp -r ${SOURCE_PATH}/${APP_NAME}.app.skel ${APP_NAME}.app
 
-mkdir -p ${FRAMEWORKS_PATH}
+# mkbundle doesn't seem to recognize the -L option, so we can't include Nini.dll in the bundling
+cp Nini.dll ${APP_NAME}.app/Contents/Resources
+
+cp ${APP_NAME} ${APP_NAME}.ini ${APP_NAME}.app/Contents/Resources
