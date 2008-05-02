@@ -85,11 +85,11 @@ namespace OpenSim.Data.NHibernate
 
         private void InitDB()
         {
-            string regex = @"no such table: Users";
+            string regex = @"no such table: UserProfiles";
             Regex RE = new Regex(regex, RegexOptions.Multiline);
             try {
                 using(ISession session = factory.OpenSession()) {
-                    session.Load(typeof(InventoryItemBase), LLUUID.Zero);
+                    session.Load(typeof(UserProfileData), LLUUID.Zero);
                 }
             } catch (ObjectNotFoundException e) {
                 // yes, we know it's not there, but that's ok
@@ -104,11 +104,14 @@ namespace OpenSim.Data.NHibernate
 
         private bool ExistsUser(LLUUID uuid)
         {
-            UserProfileData user;
-            using(ISession session = factory.OpenSession()) {
-                user = session.Load(typeof(UserProfileData), uuid) as UserProfileData;
-            }
-            return (user == null) ? false : true;
+            UserProfileData user = null;
+            try {
+                using(ISession session = factory.OpenSession()) {
+                    user = session.Load(typeof(UserProfileData), uuid) as UserProfileData;
+                }
+            } catch (Exception e) {}
+            
+            return (user != null);
         }
 
         override public UserProfileData GetUserByUUID(LLUUID uuid)
@@ -201,8 +204,12 @@ namespace OpenSim.Data.NHibernate
 
         override public UserAgentData GetAgentByUUID(LLUUID uuid)
         {
-            using(ISession session = factory.OpenSession()) {
-                return session.Load(typeof(UserAgentData), uuid) as UserAgentData;
+            try {
+                using(ISession session = factory.OpenSession()) {
+                    return session.Load(typeof(UserAgentData), uuid) as UserAgentData;
+                }
+            } catch {
+                return null;
             }
         }
 
