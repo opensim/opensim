@@ -1344,7 +1344,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (faceCenters)
                     {
-                        q = AXpos + a * AAfacenormals[i]; //(FaceA[i] + FaceB[i] + FaceC[1] + FaceD[i]) / 4f;
+                        q = (FaceA[i] + FaceB[i] + FaceC[1] + FaceD[i]) / 4f; //iray.Origin + a * normals[i];
                     }
                     else
                     {
