@@ -39,7 +39,9 @@ using Mono.Addins;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
+//using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.ClientStack;
+using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Environment.Scenes;
 
 [assembly : Addin]
@@ -68,7 +70,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
         private string serializeDir;
         private OpenSimMain simMain;
         private TcpClient[] tcpClientList;
-        private List<UDPServer> udpServers;
+        private List<IClientNetworkServer> m_clientServers;
 
         #region IApplicationPlugin Members
 
@@ -80,11 +82,13 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             if (proxyURL.Length == 0) return;
 
             StartTcpServer();
-            ClientView.SynchronizeClient = new ClientView.SynchronizeClientHandler(SynchronizePackets);
+            // BUG: This needs to be fixed
+            // TODO: YARLY.
+            // LLClientView.SynchronizeClient = new LLClientView.SynchronizeClientHandler(SynchronizePackets);
             AsynchronousSocketListener.PacketHandler = new AsynchronousSocketListener.PacketRecieveHandler(SynchronizePacketRecieve);
 
             sceneManager = openSim.SceneManager;
-            udpServers = openSim.UdpServers;
+            m_clientServers = openSim.UdpServers;
             regionData = openSim.RegionData;
             simMain = openSim;
             commandServer = openSim.HttpServer;
@@ -144,9 +148,9 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 int get_scene_presence_filter = 0;
                 foreach (ScenePresence pre in presences)
                 {
-                    ClientView client = (ClientView) pre.ControllingClient;
+                    IClientAPI client = pre.ControllingClient;
                     //if(pre.MovementFlag!=0 && client.PacketProcessingEnabled==true) {
-                    if (client.PacketProcessingEnabled == true)
+                    if (client.IsActive)
                     {
                         get_scene_presence_filter++;
                     }
@@ -157,9 +161,9 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 string avatar_names = "";
                 foreach (ScenePresence pre in avatars)
                 {
-                    ClientView client = (ClientView) pre.ControllingClient;
+                    IClientAPI client = pre.ControllingClient;
                     //if(pre.MovementFlag!=0 && client.PacketProcessingEnabled==true) {
-                    if (client.PacketProcessingEnabled == true)
+                    if (client.IsActive)
                     {
                         get_avatar_filter++;
                         avatar_names += pre.Firstname + " " + pre.Lastname + "; ";
@@ -386,9 +390,9 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             return result;
         }
 
-        private UDPServer SearchUDPServerFromPortNum(int portnum)
+        private IClientNetworkServer SearchUDPServerFromPortNum(int portnum)
         {
-            return udpServers.Find(delegate(UDPServer server) { return (portnum + proxyOffset == ((IPEndPoint) server.Server.LocalEndPoint).Port); });
+            return m_clientServers.Find(delegate(IClientNetworkServer server) { return (portnum + proxyOffset == ((IPEndPoint)server.Server.LocalEndPoint).Port); });
         }
 
         private void SerializeRegion(RegionInfo src_region, string export_dir)
@@ -518,7 +522,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             Scene scene = null;
             string[] files = null;
             IClientAPI controller = null;
-            UDPServer udpserv = null;
+            IClientNetworkServer udpserv = null;
 
             if (sceneManager.TryGetScene(dst_region.RegionID, out scene))
             {
@@ -559,7 +563,12 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                         AgentCircuitData agentdata = new AgentCircuitData(data.agentcircuit);
                         scene.AuthenticateHandler.AddNewCircuit(circuit_code, agentdata);
 
-                        udpserv.RestoreClient(agentdata, data.userEP, data.proxyEP);
+                        // BUG: Will only work with LLUDPServer.
+                        // TODO: This needs to be abstracted and converted into IClientNetworkServer
+                        if (udpserv is LLUDPServer)
+                        {
+                            ((LLUDPServer) udpserv).RestoreClient(agentdata, data.userEP, data.proxyEP);
+                        }
 
                         // waiting for the scene-presense restored
                         lock (scene.m_restorePresences)
@@ -618,12 +627,12 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             }
 
             // Shutting down the UDP server
-            UDPServer udpsvr = SearchUDPServerFromPortNum(port);
+            IClientNetworkServer udpsvr = SearchUDPServerFromPortNum(port);
 
             if (udpsvr != null)
             {
                 udpsvr.Server.Close();
-                udpServers.Remove(udpsvr);
+                m_clientServers.Remove(udpsvr);
             }
         }
 
@@ -655,10 +664,10 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                     if (scene.ClientManager.TryGetClient(code, out controller))
                     {
                         // stopping clientview thread
-                        if (((ClientView) controller).PacketProcessingEnabled)
+                        if ((controller).IsActive)
                         {
                             controller.Stop();
-                            ((ClientView) controller).PacketProcessingEnabled = false;
+                            (controller).IsActive = false;
                         }
                         // teminateing clientview thread
                         controller.Terminate();
@@ -740,12 +749,12 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                         if (scene.ClientManager.TryGetClient(code, out controller))
                         {
                             // Divide the presences evenly over the set of subscenes
-                            ClientView client = (ClientView) controller;
-                            client.PacketProcessingEnabled = (((i + myID) % sceneURL.Length) == 0);
+                            LLClientView client = (LLClientView) controller;
+                            client.IsActive = (((i + myID) % sceneURL.Length) == 0);
 
-                            m_log.InfoFormat("[SPLITSCENE] === SplitRegion {0}: SP.PacketEnabled {1}", region.RegionID, client.PacketProcessingEnabled);
+                            m_log.InfoFormat("[SPLITSCENE] === SplitRegion {0}: SP.PacketEnabled {1}", region.RegionID, client.IsActive);
 
-                            if (!client.PacketProcessingEnabled)
+                            if (!client.IsActive)
                             {
                                 // stopping clientview thread
                                 client.Stop();
@@ -798,11 +807,11 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                     List<ScenePresence> presences = scene.GetScenePresences();
                     foreach (ScenePresence pre in presences)
                     {
-                        ClientView client = (ClientView) pre.ControllingClient;
-                        if (!client.PacketProcessingEnabled)
+                        LLClientView client = (LLClientView) pre.ControllingClient;
+                        if (!client.IsActive)
                         {
                             client.Restart();
-                            client.PacketProcessingEnabled = true;
+                            client.IsActive = true;
                         }
                     }
                 }
@@ -888,12 +897,12 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 List<ScenePresence> presences = scene.GetScenePresences();
                 foreach (ScenePresence pre in presences)
                 {
-                    ClientView client = (ClientView) pre.ControllingClient;
+                    LLClientView client = (LLClientView) pre.ControllingClient;
 
                     // Because data changes by the physics simulation when the client doesn't move, 
                     // if MovementFlag is false, It is necessary to synchronize.
                     //if(pre.MovementFlag!=0 && client.PacketProcessingEnabled==true) 
-                    if (client.PacketProcessingEnabled == true)
+                    if (client.IsActive == true)
                     {
                         //m_log.Info("[SPLITSCENE] "+String.Format("Client moving in {0} {1}", scene.RegionInfo.RegionID, pre.AbsolutePosition));
 
@@ -1016,7 +1025,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                     return;
                 }
 
-                if (((ClientView) pre.ControllingClient).PacketProcessingEnabled == true)
+                if (((LLClientView) pre.ControllingClient).IsActive)
                 {
                     pre.ControllingClient.OutPacket(packet, throttlePacketType);
                 }
