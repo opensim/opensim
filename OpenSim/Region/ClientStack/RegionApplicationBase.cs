@@ -107,12 +107,12 @@ namespace OpenSim.Region.ClientStack
             return physicsPluginManager.GetPhysicsScene(engine, meshEngine);
         }
 
-        protected Scene SetupScene(RegionInfo regionInfo, out LLUDPServer udpServer, bool m_permissions)
+        protected Scene SetupScene(RegionInfo regionInfo, out IClientNetworkServer udpServer, bool m_permissions)
         {
             return SetupScene(regionInfo, 0, out udpServer, m_permissions);
         }
 
-        protected Scene SetupScene(RegionInfo regionInfo, int proxyOffset, out LLUDPServer udpServer, bool m_permissions)
+        protected Scene SetupScene(RegionInfo regionInfo, int proxyOffset, out IClientNetworkServer udpServer, bool m_permissions)
         {
             AgentCircuitManager circuitManager = new AgentCircuitManager();
             IPAddress listenIP = regionInfo.InternalEndPoint.Address;
@@ -124,8 +124,8 @@ namespace OpenSim.Region.ClientStack
             regionInfo.InternalEndPoint.Port = (int)port;
 
             Scene scene = CreateScene(regionInfo, m_storageManager, circuitManager);
-            
-            udpServer.LocalScene = scene;
+
+            udpServer.AddScene(scene);
 
             scene.LoadWorldMap();
 

@@ -35,6 +35,7 @@ using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.ClientStack.LindenUDP;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
@@ -93,6 +94,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public bool HandlesRegion(Location x)
         {
             return x == m_location;
+        }
+
+        public void AddScene(Scene x)
+        {
+            LocalScene = x;
+        }
+
+        public void Start()
+        {
+            ServerListener();
+        }
+
+        public void Stop()
+        {
+            m_socket.Close();
         }
 
         public LLUDPServer()
@@ -317,12 +333,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         ack_it.Packets[0].ID = packet.Header.Sequence;
                         ack_it.Header.Reliable = false;
                         SendPacketTo(ack_it.ToBytes(),ack_it.ToBytes().Length,SocketFlags.None,p.CircuitCode.Code);
-                    }
-                    else
-                    {
-                        // invalid client
-                        //CFK: This message seems to have served its usefullness as of 12-15 so I am commenting it out for now
-                        //m_log.Warn("[UDPSERVER]: Got a packet from an invalid client - " + packet.ToString());
                     }
                 }
                 catch (Exception)

@@ -453,7 +453,7 @@ namespace OpenSim
         /// <param name="regionInfo"></param>
         /// <param name="portadd_flag"></param>
         /// <returns></returns>
-        public LLUDPServer CreateRegion(RegionInfo regionInfo, bool portadd_flag)
+        public IClientNetworkServer CreateRegion(RegionInfo regionInfo, bool portadd_flag)
         {
             return CreateRegion(regionInfo, portadd_flag, false);
         }
@@ -464,7 +464,7 @@ namespace OpenSim
         /// <param name="regionInfo"></param>
         /// <param name="portadd_flag"></param>
         /// <returns></returns>
-        public LLUDPServer CreateRegion(RegionInfo regionInfo)
+        public IClientNetworkServer CreateRegion(RegionInfo regionInfo)
         {
             return CreateRegion(regionInfo, false, true);
         }
@@ -476,7 +476,7 @@ namespace OpenSim
         /// <param name="portadd_flag"></param>
         /// <param name="do_post_init"></param>
         /// <returns></returns>
-        public LLUDPServer CreateRegion(RegionInfo regionInfo, bool portadd_flag, bool do_post_init)
+        public IClientNetworkServer CreateRegion(RegionInfo regionInfo, bool portadd_flag, bool do_post_init)
         {
             int port = regionInfo.InternalEndPoint.Port;
 
@@ -496,7 +496,7 @@ namespace OpenSim
                 Util.XmlRpcCommand(proxyUrl, "AddPort", port, port + proxyOffset, regionInfo.ExternalHostName);
             }
 
-            LLUDPServer udpServer;
+            IClientNetworkServer udpServer;
             Scene scene = SetupScene(regionInfo, proxyOffset, out udpServer, m_permissions);
 
             m_log.Info("[MODULES]: Loading Region's modules");
@@ -551,7 +551,7 @@ namespace OpenSim
 
             m_clientServers.Add(udpServer);
             m_regionData.Add(regionInfo);
-            udpServer.ServerListener();
+            udpServer.Start();
 
             if (do_post_init)
             {
