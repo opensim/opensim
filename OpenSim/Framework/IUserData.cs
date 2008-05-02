@@ -162,13 +162,13 @@ namespace OpenSim.Framework
         /// Returns the plugin version
         /// </summary>
         /// <returns>Plugin version in MAJOR.MINOR.REVISION.BUILD format</returns>
-        string GetVersion();
+        string Version {get;}
 
         /// <summary>
         /// Returns the plugin name
         /// </summary>
         /// <returns>Plugin name, eg MySQL User Provider</returns>
-        string getName();
+        string Name {get;}
 
         /// <summary>
         /// Initialises the plugin (artificial constructor)

@@ -81,7 +81,7 @@ namespace OpenSim.Framework.Communications
         public void AddPlugin(IUserData plug)
         {
             plug.Initialise();
-            _plugins.Add(plug.getName(), plug);
+            _plugins.Add(plug.Name, plug);
             m_log.Info("[USERSTORAGE]: Added IUserData Interface");
         }
 

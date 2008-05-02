@@ -505,18 +505,18 @@ namespace OpenSim.Data.SQLite
         /// Returns the name of the storage provider
         /// </summary>
         /// <returns>Storage provider name</returns>
-        override public string getName()
+        override public string Name
         {
-            return "Sqlite Userdata";
+            get {return "Sqlite Userdata";}
         }
 
         /// <summary>
         /// Returns the version of the storage provider
         /// </summary>
         /// <returns>Storage provider version</returns>
-        override public string GetVersion()
+        override public string Version
         {
-            return "0.1";
+            get {return "0.1";}
         }
 
         /***********************************************************************

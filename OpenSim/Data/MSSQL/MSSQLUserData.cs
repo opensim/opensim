@@ -775,18 +775,18 @@ namespace OpenSim.Data.MSSQL
         /// Database provider name
         /// </summary>
         /// <returns>Provider name</returns>
-        override public string getName()
+        override public string Name
         {
-            return "MSSQL Userdata Interface";
+            get {return "MSSQL Userdata Interface";}
         }
 
         /// <summary>
         /// Database provider version
         /// </summary>
         /// <returns>provider version</returns>
-        override public string GetVersion()
+        override public string Version
         {
-            return database.getVersion();
+            get {return database.getVersion();}
         }
 
         /// <summary>

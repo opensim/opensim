@@ -265,22 +265,11 @@ namespace OpenSim.Data.NHibernate
             return new List<LLUUID>();
         }
 
-
-        public override string getName()
-        {
-            return Name;
-        }
-
-        public string Name {
+        public override string Name {
             get { return "NHibernate"; }
         }
 
-        public override string GetVersion()
-        {
-            return Version;
-        }
-
-        public string Version {
+        public override string Version {
             get { return "0.1"; }
         }
 

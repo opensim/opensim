@@ -49,8 +49,8 @@ namespace OpenSim.Data
         public abstract List<FriendListItem> GetUserFriendList(LLUUID friendlistowner);
         public abstract bool MoneyTransferRequest(LLUUID from, LLUUID to, uint amount);
         public abstract bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID inventory);
-        public abstract string GetVersion();
-        public abstract string getName();
+        public abstract string Version {get;}
+        public abstract string Name {get;}
         public abstract void Initialise();
         public abstract List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query);
         public abstract UserAppearance GetUserAppearance(LLUUID user);

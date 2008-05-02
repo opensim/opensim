@@ -659,18 +659,18 @@ namespace OpenSim.Data.MySQL
         /// Database provider name
         /// </summary>
         /// <returns>Provider name</returns>
-        override public string getName()
+        override public string Name
         {
-            return "MySQL Userdata Interface";
+            get {return "MySQL Userdata Interface";}
         }
 
         /// <summary>
         /// Database provider version
         /// </summary>
         /// <returns>provider version</returns>
-        override public string GetVersion()
+        override public string Version
         {
-            return "0.1";
+            get {return "0.1";}
         }
     }
 }
