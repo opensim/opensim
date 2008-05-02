@@ -11,5 +11,6 @@ namespace OpenSim.Region.Environment.Modules.Grid.Interregion
         T[] RequestInterface<T>();
         Location GetLocationByDirection(Scene scene, InterregionModule.Direction dir);
         void internal_CreateRemotingObjects();
+        void RegisterRemoteRegion(string uri);
     }
 }

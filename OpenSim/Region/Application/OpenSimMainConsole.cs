@@ -32,14 +32,13 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Threading;
-using System.Timers;
 using libsecondlife;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Statistics;
-using OpenSim.Region.ClientStack;
+using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 using Timer=System.Timers.Timer;
@@ -111,8 +110,8 @@ namespace OpenSim
             {
                 m_scriptTimer = new Timer();
                 m_scriptTimer.Enabled = true;
-                m_scriptTimer.Interval = (int)(1200 * 1000);
-                m_scriptTimer.Elapsed += new ElapsedEventHandler(RunAutoTimerScript);
+                m_scriptTimer.Interval = 1200 * 1000;
+                m_scriptTimer.Elapsed += RunAutoTimerScript;
             }
             PrintFileToConsole("startuplogo.txt");
         }
@@ -156,7 +155,7 @@ namespace OpenSim
             if (File.Exists(fileName))
             {
                 StreamReader readFile = File.OpenText(fileName);
-                string currentCommand = String.Empty;
+                string currentCommand;
                 while ((currentCommand = readFile.ReadLine()) != null)
                 {
                     if (currentCommand != String.Empty)
@@ -177,7 +176,7 @@ namespace OpenSim
             if (File.Exists(fileName))
             {
                 StreamReader readFile = File.OpenText(fileName);
-                string currentLine = String.Empty;
+                string currentLine;
                 while ((currentLine = readFile.ReadLine()) != null)
                 {
                     m_log.Info("[!]" + currentLine);
@@ -609,55 +608,6 @@ namespace OpenSim
                     m_assetCache.ShowState();
                     break;
 
-                case "users":
-                    IList agents = m_sceneManager.GetCurrentSceneAvatars();
-                
-                    m_console.Notice(String.Format("\nAgents connected: {0}\n", agents.Count));
-                                 
-                    m_console.Notice(
-                        String.Format("{0,-16}{1,-16}{2,-37}{3,-16}{4,-22}{5,-16}{6,-15}", "Firstname", "Lastname",
-                                      "Agent ID", "Circuit", "IP", "Region", "Status"));
-
-                    foreach (ScenePresence presence in agents)
-                    {
-                        RegionInfo regionInfo = m_sceneManager.GetRegionInfo(presence.RegionHandle);
-                        string regionName;
-                        EndPoint ep = null;
-
-                        if (regionInfo == null)
-                        {
-                            regionName = "Unresolvable";
-                        }
-                        else
-                        {
-                            regionName = regionInfo.RegionName;
-                        }
-
-                        for (int i = 0; i < m_udpServers.Count; i++)
-                        {
-                            if (m_udpServers[i].RegionHandle == presence.RegionHandle)
-                            {
-
-                                m_udpServers[i].clientCircuits_reverse.TryGetValue(presence.ControllingClient.CircuitCode, out ep);
-                            }
-                        }
-
-                        m_console.Notice(
-                            String.Format(
-                                 "{0,-16}{1,-16}{2,-37}{3,-16}{4,-22}{5,-16}{6,-15}",
-                                 presence.Firstname,
-                                 presence.Lastname,
-                                 presence.UUID,
-                                 presence.ControllingClient.CircuitCode,
-                                 ep,
-                                 regionName,
-                                 ((((ClientView)presence.ControllingClient).PacketProcessingEnabled)
-                                     ?"Active client":"Standby client")));
-                    }
-                
-                    m_console.Notice("");
-
-                    break;
                 case "modules":
                     m_console.Notice("The currently loaded shared modules are:");
                     foreach (IRegionModule module in m_moduleLoader.GetLoadedSharedModules)

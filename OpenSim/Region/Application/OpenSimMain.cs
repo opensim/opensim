@@ -40,6 +40,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.ClientStack;
+using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Communications.Local;
 using OpenSim.Region.Communications.OGS1;
 using OpenSim.Region.Environment;
@@ -70,7 +71,7 @@ namespace OpenSim
 
         protected string m_storageDll;
 
-        protected List<UDPServer> m_udpServers = new List<UDPServer>();
+        protected List<IClientNetworkServer> m_clientServers = new List<IClientNetworkServer>();
         protected List<RegionInfo> m_regionData = new List<RegionInfo>();
 
         protected bool m_physicalPrim;
@@ -105,9 +106,9 @@ namespace OpenSim
             get { return m_httpServer; }
         }
 
-        public List<UDPServer> UdpServers
+        public List<IClientNetworkServer> UdpServers
         {
-            get { return m_udpServers; }
+            get { return m_clientServers; }
         }
 
         public List<RegionInfo> RegionData
@@ -327,7 +328,7 @@ namespace OpenSim
 
             // We are done with startup
             m_log.InfoFormat("[OPENSIM MAIN]: Startup complete, serving {0} region{1}",
-                             m_udpServers.Count.ToString(), m_udpServers.Count > 1 ? "s" : "");
+                             m_clientServers.Count.ToString(), m_clientServers.Count > 1 ? "s" : "");
             WorldHasComeToAnEnd.WaitOne();
             m_log.Info("[OPENSIM MAIN]: Shutdown complete, goodbye.");
             Environment.Exit(0);
@@ -452,7 +453,7 @@ namespace OpenSim
         /// <param name="regionInfo"></param>
         /// <param name="portadd_flag"></param>
         /// <returns></returns>
-        public UDPServer CreateRegion(RegionInfo regionInfo, bool portadd_flag)
+        public LLUDPServer CreateRegion(RegionInfo regionInfo, bool portadd_flag)
         {
             return CreateRegion(regionInfo, portadd_flag, false);
         }
@@ -463,7 +464,7 @@ namespace OpenSim
         /// <param name="regionInfo"></param>
         /// <param name="portadd_flag"></param>
         /// <returns></returns>
-        public UDPServer CreateRegion(RegionInfo regionInfo)
+        public LLUDPServer CreateRegion(RegionInfo regionInfo)
         {
             return CreateRegion(regionInfo, false, true);
         }
@@ -475,7 +476,7 @@ namespace OpenSim
         /// <param name="portadd_flag"></param>
         /// <param name="do_post_init"></param>
         /// <returns></returns>
-        public UDPServer CreateRegion(RegionInfo regionInfo, bool portadd_flag, bool do_post_init)
+        public LLUDPServer CreateRegion(RegionInfo regionInfo, bool portadd_flag, bool do_post_init)
         {
             int port = regionInfo.InternalEndPoint.Port;
 
@@ -495,7 +496,7 @@ namespace OpenSim
                 Util.XmlRpcCommand(proxyUrl, "AddPort", port, port + proxyOffset, regionInfo.ExternalHostName);
             }
 
-            UDPServer udpServer;
+            LLUDPServer udpServer;
             Scene scene = SetupScene(regionInfo, proxyOffset, out udpServer, m_permissions);
 
             m_log.Info("[MODULES]: Loading Region's modules");
@@ -548,7 +549,7 @@ namespace OpenSim
 
             m_sceneManager.Add(scene);                        
 
-            m_udpServers.Add(udpServer);
+            m_clientServers.Add(udpServer);
             m_regionData.Add(regionInfo);
             udpServer.ServerListener();
 
@@ -586,9 +587,9 @@ namespace OpenSim
             bool foundUDPServer = false;
             int UDPServerElement = 0;
 
-            for (int i = 0; i < m_udpServers.Count; i++)
+            for (int i = 0; i < m_clientServers.Count; i++)
             {
-                if (m_udpServers[i].RegionHandle == whichRegion.RegionHandle)
+                if (m_clientServers[i].HandlesRegion(new Location(whichRegion.RegionHandle)))
                 {
                     UDPServerElement = i;
                     foundUDPServer = true;
@@ -598,8 +599,8 @@ namespace OpenSim
             if (foundUDPServer)
             {
                 // m_udpServers[UDPServerElement].Server.End
-                m_udpServers[UDPServerElement].Server.Close();
-                m_udpServers.RemoveAt(UDPServerElement);
+                m_clientServers[UDPServerElement].Server.Close();
+                m_clientServers.RemoveAt(UDPServerElement);
             }
 
             //Removing the region from the sim's database of regions..   

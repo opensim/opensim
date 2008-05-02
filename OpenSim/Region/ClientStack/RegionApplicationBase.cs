@@ -34,11 +34,10 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
+using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
-
-//using OpenSim.Framework.Console;
 
 namespace OpenSim.Region.ClientStack
 {
@@ -75,7 +74,7 @@ namespace OpenSim.Region.ClientStack
 
         public virtual void StartUp()
         {
-            ClientView.TerrainManager = new TerrainManager(new SecondLife());
+            LLClientView.TerrainManager = new TerrainManager(new SecondLife());
 
             m_storageManager = CreateStorageManager(m_storageConnectionString);
 
@@ -108,12 +107,12 @@ namespace OpenSim.Region.ClientStack
             return physicsPluginManager.GetPhysicsScene(engine, meshEngine);
         }
 
-        protected Scene SetupScene(RegionInfo regionInfo, out UDPServer udpServer, bool m_permissions)
+        protected Scene SetupScene(RegionInfo regionInfo, out LLUDPServer udpServer, bool m_permissions)
         {
             return SetupScene(regionInfo, 0, out udpServer, m_permissions);
         }
 
-        protected Scene SetupScene(RegionInfo regionInfo, int proxyOffset, out UDPServer udpServer, bool m_permissions)
+        protected Scene SetupScene(RegionInfo regionInfo, int proxyOffset, out LLUDPServer udpServer, bool m_permissions)
         {
             AgentCircuitManager circuitManager = new AgentCircuitManager();
             IPAddress listenIP = regionInfo.InternalEndPoint.Address;
@@ -121,7 +120,7 @@ namespace OpenSim.Region.ClientStack
             //    listenIP = IPAddress.Parse("0.0.0.0");
 
             uint port = (uint) regionInfo.InternalEndPoint.Port;
-            udpServer = new UDPServer(listenIP, ref port, proxyOffset, regionInfo.m_allow_alternate_ports, m_assetCache, circuitManager);
+            udpServer = new LLUDPServer(listenIP, ref port, proxyOffset, regionInfo.m_allow_alternate_ports, m_assetCache, circuitManager);
             regionInfo.InternalEndPoint.Port = (int)port;
 
             Scene scene = CreateScene(regionInfo, m_storageManager, circuitManager);
@@ -131,8 +130,8 @@ namespace OpenSim.Region.ClientStack
             scene.LoadWorldMap();
 
             //moved to opensimMain as these have to happen after modules are initialised 
-           // scene.CreateTerrainTexture(true);
-           // scene.RegisterRegionWithGrid();
+            // scene.CreateTerrainTexture(true);
+            // scene.RegisterRegionWithGrid();
 
             scene.PhysicsScene = GetPhysicsScene();
             scene.PhysicsScene.SetTerrain(scene.Heightmap.GetFloatsSerialised());

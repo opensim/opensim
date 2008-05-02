@@ -224,6 +224,12 @@ namespace OpenSim.Region.Examples.SimpleModule
             get { return FirstName + LastName; }
         }
 
+        public bool IsActive
+        {
+            get { return true; }
+            set { }
+        }
+
         public virtual int NextAnimationSequenceNumber
         {
             get { return 1; }

@@ -29,14 +29,14 @@ namespace OpenSim.Region.Environment.Modules.Grid.Interregion
         #endregion
 
         private readonly Dictionary<Type, Object> m_interfaces = new Dictionary<Type, object>();
+        private readonly Object m_lockObject = new object();
         private readonly List<Location> m_myLocations = new List<Location>();
 
         private readonly Dictionary<Location, string[]> m_neighbourInterfaces = new Dictionary<Location, string[]>();
         private readonly Dictionary<Location, RemotingObject> m_neighbourRemote = new Dictionary<Location, RemotingObject>();
         private IConfigSource m_config;
-        private bool m_enabled = false;
+        private const bool m_enabled = false;
 
-        private Object m_lockObject = new object();
         private RemotingObject m_myRemote;
         private TcpChannel m_tcpChannel;
         private int m_tcpPort = 10101;
@@ -81,10 +81,7 @@ namespace OpenSim.Region.Environment.Modules.Grid.Interregion
             {
                 return m_neighbourRemote[loc].RequestInterface<T>();
             }
-            else
-            {
-                throw new IndexOutOfRangeException("No neighbour availible at that location");
-            }
+            throw new IndexOutOfRangeException("No neighbour availible at that location");
         }
 
         public T[] RequestInterface<T>()
@@ -108,25 +105,24 @@ namespace OpenSim.Region.Environment.Modules.Grid.Interregion
             return new Location(0, 0);
         }
 
-        #endregion
+        public void RegisterRemoteRegion(string uri)
+        {
+            RegisterRemotingInterface((RemotingObject) Activator.GetObject(typeof (RemotingObject), uri));
+        }
 
-        //TODO: This prevents us from registering new scenes after PostInitialise if we want comms updated.
+        #endregion
 
         #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource source)
         {
-            if (m_enabled)
-            {
-                m_myLocations.Add(new Location((int) scene.RegionInfo.RegionLocX,
-                                               (int) scene.RegionInfo.RegionLocY));
-                m_config = source;
+            m_myLocations.Add(new Location((int) scene.RegionInfo.RegionLocX,
+                                           (int) scene.RegionInfo.RegionLocY));
+            m_config = source;
 
-                scene.RegisterModuleInterface<IInterregionModule>(this);
-            }
+            scene.RegisterModuleInterface<IInterregionModule>(this);
         }
 
-        //TODO: This prevents us from registering new scenes after PostInitialise if we want comms updated.
         public void PostInitialise()
         {
             if (m_enabled)
@@ -159,11 +155,6 @@ namespace OpenSim.Region.Environment.Modules.Grid.Interregion
         }
 
         #endregion
-
-        public void RegisterRemoteRegion(string uri)
-        {
-            RegisterRemotingInterface((RemotingObject) Activator.GetObject(typeof (RemotingObject), uri));
-        }
 
         private void RegisterRemotingInterface(RemotingObject remote)
         {
