@@ -35,7 +35,8 @@ using log4net;
 
 namespace OpenSim.Framework.Communications.Cache
 {
-    //internal delegate void DeleteItemDelegate(
+    internal delegate void DeleteItemDelegate(LLUUID itemID);
+    
     internal delegate void CreateFolderDelegate(string folderName, LLUUID folderID, ushort folderType, LLUUID parentID);
     internal delegate void MoveFolderDelegate(LLUUID folderID, LLUUID parentID);         
     internal delegate void PurgeFolderDelegate(LLUUID folderID);
@@ -306,7 +307,10 @@ namespace OpenSim.Framework.Communications.Cache
         }
         
         /// <summary>
-        /// Create a folder in this agent's inventory
+        /// Create a folder in this agent's inventory.  
+        /// 
+        /// If the inventory service has not yet delievered the inventory
+        /// for this user then the request will be queued.
         /// </summary>
         /// <param name="parentID"></param>
         /// <returns></returns>
@@ -399,10 +403,14 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// Handle a client request to update the inventory folder
         /// 
+        /// If the inventory service has not yet delievered the inventory
+        /// for this user then the request will be queued.
+        /// 
         /// FIXME: We call add new inventory folder because in the data layer, we happen to use an SQL REPLACE
         /// so this will work to rename an existing folder.  Needless to say, to rely on this is very confusing,
         /// and needs to be changed.
         /// </summary>
+        /// 
         /// <param name="folderID"></param>
         /// <param name="type"></param>
         /// <param name="name"></param>
@@ -437,7 +445,11 @@ namespace OpenSim.Framework.Communications.Cache
         
         /// <summary>
         /// Handle an inventory folder move request from the client.
+        /// 
+        /// If the inventory service has not yet delievered the inventory
+        /// for this user then the request will be queued.
         /// </summary>
+        /// 
         /// <param name="folderID"></param>
         /// <param name="parentID"></param>
         public bool MoveFolder(LLUUID folderID, LLUUID parentID)
@@ -470,7 +482,11 @@ namespace OpenSim.Framework.Communications.Cache
         
         /// <summary>
         /// This method will delete all the items and folders in the given folder.
+        /// 
+        /// If the inventory service has not yet delievered the inventory
+        /// for this user then the request will be queued.
         /// </summary>
+        /// 
         /// <param name="folderID"></param>
         public bool PurgeFolder(LLUUID folderID)
         {
@@ -540,23 +556,46 @@ namespace OpenSim.Framework.Communications.Cache
 
         /// <summary>
         /// Delete an item from the user's inventory
+        /// 
+        /// If the inventory service has not yet delievered the inventory
+        /// for this user then the request will be queued.
         /// </summary>
-        /// <param name="userID"></param>
-        /// <param name="item"></param>
-        /// <returns></returns>
-        public bool DeleteItem(InventoryItemBase item)
+        /// <param name="itemID"></param>
+        /// <returns>
+        /// true on a successful delete or a if the request is queued.  
+        /// Returns false on an immediate failure
+        /// </returns>
+        public bool DeleteItem(LLUUID itemID)
         {
-            bool result = false;
             if (HasInventory)
             {
-                result = RootFolder.DeleteItem(item.ID);
-                if (result)
+                // XXX For historical reasons (grid comms), we need to retrieve the whole item in order to delete, even though
+                // really only the item id is required.
+                InventoryItemBase item = RootFolder.FindItem(itemID);
+                
+                if (null == item)
                 {
-                    m_commsManager.InventoryService.DeleteItem(item);
+                    m_log.WarnFormat("[AGENT INVENTORY]: Tried to delete item {0} which does not exist", itemID);
+                    
+                    return false;
+                }
+                
+                if (RootFolder.DeleteItem(item.ID))
+                {
+                    return m_commsManager.InventoryService.DeleteItem(item);
                 }
             }
+            else
+            {
+                AddRequest(
+                    new InventoryRequest(
+                        Delegate.CreateDelegate(typeof(DeleteItemDelegate), this, "DeleteItem"),
+                        new object[] { itemID }));
+                
+                return true;
+            }              
             
-            return result;
+            return false;
         }
     }
     

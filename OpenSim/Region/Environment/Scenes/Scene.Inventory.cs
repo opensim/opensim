@@ -467,6 +467,14 @@ namespace OpenSim.Region.Environment.Scenes
             return asset;
         }
 
+        /// <summary>
+        /// Move an item within the agent's inventory.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="folderID"></param>
+        /// <param name="itemID"></param>
+        /// <param name="length"></param>
+        /// <param name="newName"></param>
         public void MoveInventoryItem(IClientAPI remoteClient, LLUUID folderID, LLUUID itemID, int length,
                                       string newName)
         {
@@ -474,6 +482,7 @@ namespace OpenSim.Region.Environment.Scenes
                 "[AGENT INVENTORY]: Moving item {0} to {1} for {2}", itemID, folderID, remoteClient.AgentId);
 
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+            
             if (userInfo == null)
             {
                 m_log.Error("[AGENT INVENTORY]: Failed to find user " + remoteClient.AgentId.ToString());
@@ -491,7 +500,8 @@ namespace OpenSim.Region.Environment.Scenes
                         item.Name = newName;
                     }
                     item.Folder = folderID;
-                    userInfo.DeleteItem(item);
+                    
+                    userInfo.DeleteItem(item.ID);
 
                     // TODO: preserve current permissions?
                     AddInventoryItem(remoteClient, item);
@@ -616,6 +626,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Remove an inventory item for the client's inventory
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"></param>
         private void RemoveInventoryItem(IClientAPI remoteClient, LLUUID itemID)
         {
             CachedUserInfo userInfo
@@ -623,26 +638,14 @@ namespace OpenSim.Region.Environment.Scenes
             
             if (userInfo == null)
             {
-                m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Failed to find user {0} {1} to remove inventory item {2}",
+                m_log.WarnFormat(
+                    "[AGENT INVENTORY]: Failed to find user {0} {1} to delete inventory item {2}",
                     remoteClient.Name, remoteClient.AgentId, itemID);
                 
                 return;
             }
 
-            // is going through the root folder really the best way? 
-            // this triggers a tree walk to find and remove the item. 8-(
-            // since this only happens in Trash (in theory) shouldn't we grab 
-            // the trash folder directly instead of RootFolder?
-            if (userInfo.RootFolder != null)
-            {
-                InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
-                
-                if (item != null)
-                {
-                    userInfo.DeleteItem(item);
-                }
-            }
+            userInfo.DeleteItem(itemID);
         }
 
         /// <summary>
@@ -658,7 +661,7 @@ namespace OpenSim.Region.Environment.Scenes
             
             if (userInfo == null)
             {
-                m_log.Error("[AGENT INVENTORY]: Failed to find user " + remoteClient.AgentId.ToString());
+                m_log.Warn("[AGENT INVENTORY]: Failed to find user " + remoteClient.AgentId.ToString());
                 return;
             }
 
