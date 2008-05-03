@@ -32,7 +32,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
 {
     public class RevertSphere : ITerrainPaintableEffect
     {
-        private ITerrainChannel m_revertmap;
+        private readonly ITerrainChannel m_revertmap;
 
         public RevertSphere(ITerrainChannel revertmap)
         {
@@ -50,13 +50,14 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
             if (duration < 0)
                 return;
 
-            int x, y;
+            int x;
             for (x = 0; x < map.Width; x++)
             {
                 // Skip everything unlikely to be affected
                 if (Math.Abs(x - rx) > strength * 1.1)
                     continue;
 
+                int y;
                 for (y = 0; y < map.Height; y++)
                 {
                     // Skip everything unlikely to be affected

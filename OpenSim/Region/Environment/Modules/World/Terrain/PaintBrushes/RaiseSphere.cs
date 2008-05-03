@@ -38,13 +38,14 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
         {
             strength = TerrainUtil.MetersToSphericalStrength(strength);
 
-            int x, y;
+            int x;
             for (x = 0; x < map.Width; x++)
             {
                 // Skip everything unlikely to be affected
                 if (Math.Abs(x - rx) > strength * 1.1)
                     continue;
 
+                int y;
                 for (y = 0; y < map.Height; y++)
                 {
                     // Skip everything unlikely to be affected

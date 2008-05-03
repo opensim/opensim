@@ -38,18 +38,18 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
     /// </summary>
     public class OlsenSphere : ITerrainPaintableEffect
     {
-        private double nConst = 1024.0;
-        private NeighbourSystem type = NeighbourSystem.Moore; // Parameter
+        private const double nConst = 1024.0;
+        private const NeighbourSystem type = NeighbourSystem.Moore;
 
         #region Supporting Functions
 
-        private int[] Neighbours(NeighbourSystem type, int index)
+        private static int[] Neighbours(NeighbourSystem neighbourType, int index)
         {
             int[] coord = new int[2];
 
             index++;
 
-            switch (type)
+            switch (neighbourType)
             {
                 case NeighbourSystem.Moore:
                     switch (index)
@@ -141,12 +141,6 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
             return coord;
         }
 
-        private double SphericalFactor(double x, double y, double rx, double ry, double size)
-        {
-            double z = size * size - ((x - rx) * (x - rx) + (y - ry) * (y - ry));
-            return z;
-        }
-
         private enum NeighbourSystem
         {
             Moore,
@@ -161,22 +155,22 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
         {
             strength = TerrainUtil.MetersToSphericalStrength(strength);
 
-            int x, y;
+            int x;
 
             for (x = 0; x < map.Width; x++)
             {
+                int y;
                 for (y = 0; y < map.Height; y++)
                 {
-                    double z = SphericalFactor(x, y, rx, ry, strength);
+                    double z = TerrainUtil.SphericalFactor(x, y, rx, ry, strength);
 
                     if (z > 0) // add in non-zero amount 
                     {
-                        int NEIGHBOUR_ME = 4;
-                        int NEIGHBOUR_MAX = type == NeighbourSystem.Moore ? 9 : 5;
+                        const int NEIGHBOUR_ME = 4;
+                        const int NEIGHBOUR_MAX = 9;
 
                         double max = Double.MinValue;
                         int loc = 0;
-                        double cellmax = 0;
 
 
                         for (int j = 0; j < NEIGHBOUR_MAX; j++)
@@ -197,7 +191,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
                                 if (coords[1] < 0)
                                     continue;
 
-                                cellmax = map[x, y] - map[coords[0], coords[1]];
+                                double cellmax = map[x, y] - map[coords[0], coords[1]];
                                 if (cellmax > max)
                                 {
                                     max = cellmax;
@@ -206,7 +200,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
                             }
                         }
 
-                        double T = nConst / ((map.Width + map.Height) / 2);
+                        double T = nConst / ((map.Width + map.Height) / 2.0);
                         // Apply results
                         if (0 < max && max <= T)
                         {

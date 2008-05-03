@@ -61,9 +61,10 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 
             ITerrainChannel retval = new TerrainChannel(file.Width, file.Height);
 
-            int x, y;
+            int x;
             for (x = 0; x < file.Width; x++)
             {
+                int y;
                 for (y = 0; y < file.Height; y++)
                 {
                     retval[x, y] = file.GetPixel(x, y).GetBrightness() * 128;
@@ -103,11 +104,11 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
         /// </summary>
         /// <param name="map">The terrain channel to export to bitmap</param>
         /// <returns>A System.Drawing.Bitmap containing a grayscale image</returns>
-        protected Bitmap CreateGrayscaleBitmapFromMap(ITerrainChannel map)
+        protected static Bitmap CreateGrayscaleBitmapFromMap(ITerrainChannel map)
         {
             Bitmap bmp = new Bitmap(map.Width, map.Height);
 
-            int pallete = 256;
+            const int pallete = 256;
 
             Color[] grays = new Color[pallete];
             for (int i = 0; i < grays.Length; i++)
@@ -138,7 +139,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
         /// </summary>
         /// <param name="map">The terrain channel to export to bitmap</param>
         /// <returns>A System.Drawing.Bitmap containing a coloured image</returns>
-        protected Bitmap CreateBitmapFromMap(ITerrainChannel map)
+        protected static Bitmap CreateBitmapFromMap(ITerrainChannel map)
         {
             Bitmap gradientmapLd = new Bitmap("defaultstripe.png");
 

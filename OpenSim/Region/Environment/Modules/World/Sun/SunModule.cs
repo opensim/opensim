@@ -127,10 +127,10 @@ namespace OpenSim.Region.Environment.Modules.World.Sun
         {
             long m_addticks = (DateTime.Now.Ticks - m_start) * m_dilation;
             DateTime dt = new DateTime(m_start + m_addticks);
-            return (double) dt.Hour + ((double) dt.Minute / 60.0);
+            return dt.Hour + (dt.Minute / 60.0);
         }
 
-        private LLVector3 SunPos(double hour)
+        private static LLVector3 SunPos(double hour)
         {
             // now we have our radian position
             double rad = (hour / m_real_day) * 2 * Math.PI - (Math.PI / 2.0);
@@ -138,62 +138,5 @@ namespace OpenSim.Region.Environment.Modules.World.Sun
             double x = Math.Cos(rad);
             return new LLVector3((float) x, 0f, (float) z);
         }
-
-        // TODO: clear this out.  This is here so that I remember to
-        // figure out if we need those other packet fields that I've
-        // left out so far
-        //
-        //        public void SendViewerTime(int phase)
-        //  {
-        //             Console.WriteLine("SunPhase: {0}", phase);
-        //             SimulatorViewerTimeMessagePacket viewertime = new SimulatorViewerTimeMessagePacket();
-        //             //viewertime.TimeInfo.SecPerDay = 86400;
-        //             // viewertime.TimeInfo.SecPerYear = 31536000;
-        //             viewertime.TimeInfo.SecPerDay = 1000;
-        //             viewertime.TimeInfo.SecPerYear = 365000;
-        //             viewertime.TimeInfo.SunPhase = 1;
-        //             int sunPhase = (phase + 2)/2;
-        //             if ((sunPhase < 6) || (sunPhase > 36))
-        //             {
-        //                 viewertime.TimeInfo.SunDirection = new LLVector3(0f, 0.8f, -0.8f);
-        //                 Console.WriteLine("sending night");
-        //             }
-        //             else
-        //             {
-        //                 if (sunPhase < 12)
-        //                 {
-        //                     sunPhase = 12;
-        //                 }
-        //                 sunPhase = sunPhase - 12;
-        //
-        //                 float yValue = 0.1f*(sunPhase);
-        //                 Console.WriteLine("Computed SunPhase: {0}, yValue: {1}", sunPhase, yValue);
-        //                 if (yValue > 1.2f)
-        //                 {
-        //                     yValue = yValue - 1.2f;
-        //                 }
-        //                 if (yValue > 1)
-        //                 {
-        //                     yValue = 1;
-        //                 }
-        //                 if (yValue < 0)
-        //                 {
-        //                     yValue = 0;
-        //                 }
-        //                 if (sunPhase < 14)
-        //                 {
-        //                     yValue = 1 - yValue;
-        //                 }
-        //                 if (sunPhase < 12)
-        //                 {
-        //                     yValue *= -1;
-        //                 }
-        //                 viewertime.TimeInfo.SunDirection = new LLVector3(0f, yValue, 0.3f);
-        //                 Console.WriteLine("sending sun update " + yValue);
-        //             }
-        //             viewertime.TimeInfo.SunAngVelocity = new LLVector3(0, 0.0f, 10.0f);
-        //             viewertime.TimeInfo.UsecSinceStart = (ulong) Util.UnixTimeSinceEpoch();
-        //             // OutPacket(viewertime);
-        // }
     }
 }

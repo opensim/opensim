@@ -65,7 +65,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
             return "JPEG";
         }
 
-        private Bitmap CreateBitmapFromMap(ITerrainChannel map)
+        private static Bitmap CreateBitmapFromMap(ITerrainChannel map)
         {
             Bitmap gradientmapLd = new Bitmap("defaultstripe.png");
 

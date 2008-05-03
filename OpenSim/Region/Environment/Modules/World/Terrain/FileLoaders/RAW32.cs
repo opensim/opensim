@@ -46,9 +46,10 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
             FileInfo file = new FileInfo(filename);
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
             BinaryReader bs = new BinaryReader(s);
-            int x, y;
+            int y;
             for (y = 0; y < retval.Height; y++)
             {
+                int x;
                 for (x = 0; x < retval.Width; x++)
                 {
                     retval[x, y] = bs.ReadSingle();
@@ -69,7 +70,6 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
             BinaryReader bs = new BinaryReader(s);
 
-            int currFileXOffset = 0;
             int currFileYOffset = 0;
 
             // if our region isn't on the first Y section of the areas to be landscaped, then
@@ -84,11 +84,11 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 
             // got to the Y start offset within the file of our region
             // so read the file bits associated with our region
-            int x, y;
+            int y;
             // for each Y within our Y offset
             for (y = 0; y < sectionHeight; y++)
             {
-                currFileXOffset = 0;
+                int currFileXOffset = 0;
 
                 // if our region isn't the first X section of the areas to be landscaped, then
                 // advance the stream to the X start pos of our section in the file
@@ -100,6 +100,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
                 }
 
                 // got to our X offset, so write our regions X line
+                int x;
                 for (x = 0; x < sectionWidth; x++)
                 {
                     // Read a strip and continue
@@ -130,9 +131,10 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
             FileStream s = file.Open(FileMode.Create, FileAccess.Write);
             BinaryWriter bs = new BinaryWriter(s);
 
-            int x, y;
+            int y;
             for (y = 0; y < map.Height; y++)
             {
+                int x;
                 for (x = 0; x < map.Width; x++)
                 {
                     bs.Write((float) map[x, y]);

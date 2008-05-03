@@ -42,12 +42,13 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
             FileInfo file = new FileInfo(filename);
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
             BinaryReader bs = new BinaryReader(s);
-            int x, y;
+            int y;
             for (y = 0; y < retval.Height; y++)
             {
+                int x;
                 for (x = 0; x < retval.Width; x++)
                 {
-                    retval[x, y] = (double) bs.ReadByte() * ((double) bs.ReadByte() / 127.0);
+                    retval[x, y] = bs.ReadByte() * (bs.ReadByte() / 127.0);
                     bs.ReadBytes(11); // Advance the stream to next bytes.
                 }
             }
@@ -71,18 +72,21 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 
             // Generate a smegging big lookup table to speed the operation up (it needs it)
             double[] lookupHeightTable = new double[65536];
-            int i, j, x, y;
+            int i;
+            int y;
             for (i = 0; i < 256; i++)
             {
+                int j;
                 for (j = 0; j < 256; j++)
                 {
-                    lookupHeightTable[i + (j * 256)] = ((double) i * ((double) j / 127.0));
+                    lookupHeightTable[i + (j * 256)] = (i * (j / 127.0));
                 }
             }
 
             // Output the calculated raw
             for (y = 0; y < map.Height; y++)
             {
+                int x;
                 for (x = 0; x < map.Width; x++)
                 {
                     double t = map[x, y];
@@ -100,15 +104,15 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 
                     byte red = (byte) (index & 0xFF);
                     byte green = (byte) ((index >> 8) & 0xFF);
-                    byte blue = 20;
-                    byte alpha1 = 0; // Land Parcels
-                    byte alpha2 = 0; // For Sale Land
-                    byte alpha3 = 0; // Public Edit Object
-                    byte alpha4 = 0; // Public Edit Land
-                    byte alpha5 = 255; // Safe Land
-                    byte alpha6 = 255; // Flying Allowed
-                    byte alpha7 = 255; // Create Landmark
-                    byte alpha8 = 255; // Outside Scripts
+                    const byte blue = 20;
+                    const byte alpha1 = 0;
+                    const byte alpha2 = 0;
+                    const byte alpha3 = 0;
+                    const byte alpha4 = 0;
+                    const byte alpha5 = 255;
+                    const byte alpha6 = 255;
+                    const byte alpha7 = 255;
+                    const byte alpha8 = 255;
                     byte alpha9 = red;
                     byte alpha10 = green;
 

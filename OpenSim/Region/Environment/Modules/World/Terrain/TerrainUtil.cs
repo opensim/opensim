@@ -56,7 +56,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
             if (y < 0.0)
                 y = 0.0;
 
-            int stepSize = 1;
+            const int stepSize = 1;
             double h00 = map[(int) x, (int) y];
             double h10 = map[(int) x + stepSize, (int) y];
             double h01 = map[(int) x, (int) y + stepSize];
@@ -116,14 +116,12 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
 
         public static double PerlinNoise2D(double x, double y, int octaves, double persistence)
         {
-            double frequency = 0.0;
-            double amplitude = 0.0;
             double total = 0.0;
 
             for (int i = 0; i < octaves; i++)
             {
-                frequency = Math.Pow(2, i);
-                amplitude = Math.Pow(persistence, i);
+                double frequency = Math.Pow(2, i);
+                double amplitude = Math.Pow(persistence, i);
 
                 total += InterpolatedNoise(x * frequency, y * frequency) * amplitude;
             }

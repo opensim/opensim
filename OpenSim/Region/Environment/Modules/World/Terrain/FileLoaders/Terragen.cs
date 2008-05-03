@@ -50,14 +50,15 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
             BinaryReader bs = new BinaryReader(s);
 
             bool eof = false;
-            if (ASCIIEncoding.ASCII.GetString(bs.ReadBytes(16)) == "TERRAGENTERRAIN ")
+            if (Encoding.ASCII.GetString(bs.ReadBytes(16)) == "TERRAGENTERRAIN ")
             {
+                int w = 256;
+                int h = 256;
+
                 // Terragen file
                 while (eof == false)
                 {
-                    int w = 256;
-                    int h = 256;
-                    string tmp = ASCIIEncoding.ASCII.GetString(bs.ReadBytes(4));
+                    string tmp = Encoding.ASCII.GetString(bs.ReadBytes(4));
                     switch (tmp)
                     {
                         case "SIZE":
@@ -79,12 +80,13 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
                             Int16 heightScale = bs.ReadInt16();
                             Int16 baseHeight = bs.ReadInt16();
                             retval = new TerrainChannel(w, h);
-                            int x, y;
+                            int x;
                             for (x = 0; x < w; x++)
                             {
+                                int y;
                                 for (y = 0; y < h; y++)
                                 {
-                                    retval[x, y] = (double) baseHeight + (double) bs.ReadInt16() * (double) heightScale / 65536.0;
+                                    retval[x, y] = baseHeight + bs.ReadInt16() * (double) heightScale / 65536.0;
                                 }
                             }
                             break;
@@ -103,7 +105,6 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 
         public void SaveFile(string filename, ITerrainChannel map)
         {
-            char[] header = "TERRAGENTERRAIN".ToCharArray();
             throw new NotImplementedException();
         }
 

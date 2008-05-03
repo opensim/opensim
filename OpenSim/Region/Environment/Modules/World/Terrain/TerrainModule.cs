@@ -79,11 +79,10 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
             new Dictionary<StandardTerrainEffects, ITerrainPaintableEffect>();
 
         private ITerrainChannel m_channel;
-        private Dictionary<Location, ITerrainChannel> m_channels;
         private Dictionary<string, ITerrainEffect> m_plugineffects;
         private ITerrainChannel m_revert;
         private Scene m_scene;
-        private bool m_tainted = false;
+        private bool m_tainted;
 
         #region ICommandableModule Members
 
@@ -581,7 +580,6 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
         {
             double max = Double.MinValue;
             double min = double.MaxValue;
-            double avg;
             double sum = 0;
 
             int x;
@@ -598,7 +596,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                 }
             }
 
-            avg = sum / (m_channel.Height * m_channel.Width);
+            double avg = sum / (m_channel.Height * m_channel.Width);
 
             m_log.Info("Channel " + m_channel.Width + "x" + m_channel.Height);
             m_log.Info("max/min/avg/sum: " + max + "/" + min + "/" + avg + "/" + sum);

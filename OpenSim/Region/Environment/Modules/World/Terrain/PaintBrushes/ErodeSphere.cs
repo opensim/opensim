@@ -35,20 +35,20 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
     /// </summary>
     public class ErodeSphere : ITerrainPaintableEffect
     {
-        private double rainHeight = 0.2;
-        private int rounds = 10;
-        private NeighbourSystem type = NeighbourSystem.Moore; // Parameter
-        private double waterSaturation = 0.30; // Can carry 1% of water in height
+        private const double rainHeight = 0.2;
+        private const int rounds = 10;
+        private const NeighbourSystem type = NeighbourSystem.Moore;
+        private const double waterSaturation = 0.30;
 
         #region Supporting Functions
 
-        private int[] Neighbours(NeighbourSystem type, int index)
+        private static int[] Neighbours(NeighbourSystem neighbourType, int index)
         {
             int[] coord = new int[2];
 
             index++;
 
-            switch (type)
+            switch (neighbourType)
             {
                 case NeighbourSystem.Moore:
                     switch (index)
@@ -173,7 +173,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
                 {
                     for (y = 0; y < water.Height; y++)
                     {
-                        double solConst = (1.0 / rounds);
+                        const double solConst = (1.0 / rounds);
                         double sedDelta = water[x, y] * solConst;
                         map[x, y] -= sedDelta;
                         sediment[x, y] += sedDelta;
@@ -194,9 +194,8 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
                         double altitudeTotal = 0.0;
                         double altitudeMe = map[x, y] + water[x, y];
 
-                        int NEIGHBOUR_ME = 4;
-
-                        int NEIGHBOUR_MAX = type == NeighbourSystem.Moore ? 9 : 5;
+                        const int NEIGHBOUR_ME = 4;
+                        const int NEIGHBOUR_MAX = 9;
 
                         for (int j = 0; j < NEIGHBOUR_MAX; j++)
                         {

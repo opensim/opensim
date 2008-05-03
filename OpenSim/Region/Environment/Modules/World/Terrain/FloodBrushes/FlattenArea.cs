@@ -37,7 +37,6 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FloodBrushes
         {
             double sum = 0.0;
             double steps = 0.0;
-            double avg;
 
             int x, y;
             for (x = 0; x < map.Width; x++)
@@ -52,7 +51,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FloodBrushes
                 }
             }
 
-            avg = sum / steps;
+            double avg = sum / steps;
 
             double str = 0.1 * strength; // == 0.2 in the default client
 

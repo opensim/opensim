@@ -39,21 +39,16 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
             strength = TerrainUtil.MetersToSphericalStrength(strength);
 
             int x, y;
-            double[,] tweak = new double[map.Width,map.Height];
-
-            double area = strength;
-            double step = strength / 4.0;
 
             double sum = 0.0;
             double step2 = 0.0;
-            double avg = 0.0;
 
             // compute delta map 
             for (x = 0; x < map.Width; x++)
             {
                 for (y = 0; y < map.Height; y++)
                 {
-                    double z = SphericalFactor(x, y, rx, ry, strength);
+                    double z = TerrainUtil.SphericalFactor(x, y, rx, ry, strength);
 
                     if (z > 0) // add in non-zero amount 
                     {
@@ -63,14 +58,14 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
                 }
             }
 
-            avg = sum / step2;
+            double avg = sum / step2;
 
             // blend in map 
             for (x = 0; x < map.Width; x++)
             {
                 for (y = 0; y < map.Height; y++)
                 {
-                    double z = SphericalFactor(x, y, rx, ry, strength) * duration;
+                    double z = TerrainUtil.SphericalFactor(x, y, rx, ry, strength) * duration;
 
                     if (z > 0) // add in non-zero amount 
                     {
@@ -84,11 +79,5 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
         }
 
         #endregion
-
-        private double SphericalFactor(double x, double y, double rx, double ry, double size)
-        {
-            double z = size * size - ((x - rx) * (x - rx) + (y - ry) * (y - ry));
-            return z;
-        }
     }
 }

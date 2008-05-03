@@ -50,7 +50,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                 for (y = 0; y < Constants.RegionSize; y++)
                 {
                     map[x, y] = TerrainUtil.PerlinNoise2D(x, y, 3, 0.25) * 10;
-                    double spherFac = TerrainUtil.SphericalFactor(x, y, Constants.RegionSize / 2, Constants.RegionSize / 2, 50) * 0.01;
+                    double spherFac = TerrainUtil.SphericalFactor(x, y, Constants.RegionSize / 2.0, Constants.RegionSize / 2.0, 50) * 0.01;
                     if (map[x, y] < spherFac)
                     {
                         map[x, y] = spherFac;
@@ -138,10 +138,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                 taint[x / 16, y / 16] = false;
                 return true;
             }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
         #endregion

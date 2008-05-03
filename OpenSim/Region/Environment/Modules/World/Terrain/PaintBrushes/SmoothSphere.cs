@@ -40,7 +40,6 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
             int x, y;
             double[,] tweak = new double[map.Width,map.Height];
 
-            double n, l;
             double area = strength;
             double step = strength / 4.0;
 
@@ -56,8 +55,10 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
                         double average = 0.0;
                         int avgsteps = 0;
 
+                        double n;
                         for (n = 0.0 - area; n < area; n += step)
                         {
+                            double l;
                             for (l = 0.0 - area; l < area; l += step)
                             {
                                 avgsteps++;

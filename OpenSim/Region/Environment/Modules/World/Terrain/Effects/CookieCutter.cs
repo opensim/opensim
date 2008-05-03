@@ -26,7 +26,6 @@
  */
 using System;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Modules.World.Terrain.FloodBrushes;
 using OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes;
 
 namespace OpenSim.Region.Environment.Modules.World.Terrain.Effects
@@ -37,7 +36,6 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.Effects
 
         public void RunEffect(ITerrainChannel map)
         {
-            SmoothArea smooth = new SmoothArea();
             ITerrainPaintableEffect eroder = new WeatherSphere();
 
             bool[,] cliffMask = new bool[map.Width,map.Height];
@@ -60,9 +58,9 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.Effects
                     // Add a little height. (terrain should now be above water, mostly.)
                     map[x, y] += 20;
 
-                    int channelsX = 4;
+                    const int channelsX = 4;
                     int channelWidth = (map.Width / channelsX / 4);
-                    int channelsY = 4;
+                    const int channelsY = 4;
                     int channelHeight = (map.Height / channelsY / 4);
 
                     SetLowerChannel(map, cliffMask, channelMask, x, y, channelsX, channelWidth, map.Width, x);
@@ -78,7 +76,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.Effects
             {
                 for (y = 0; y < map.Height; y++)
                 {
-                    if (cliffMask[x, y] == true)
+                    if (cliffMask[x, y])
                         eroder.PaintEffect(map, x, y, 4, 0.1);
                 }
             }

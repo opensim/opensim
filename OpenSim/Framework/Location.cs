@@ -1,4 +1,5 @@
 ﻿using System;
+using libsecondlife;
 
 namespace OpenSim.Framework
 {
@@ -22,7 +23,7 @@ namespace OpenSim.Framework
 
         public ulong RegionHandle
         {
-            get { return ((ulong) m_x << 32 & (ulong) m_y); }
+            get { return Helpers.UIntsToLong((uint) m_x, (uint) m_y); }
         }
 
         public int X
