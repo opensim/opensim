@@ -259,7 +259,7 @@ namespace OpenSim.Framework.Communications.Cache
                 return;
             }
 
-            if ((fold = libraryRoot.GetDescendentFolder(folderID)) != null)
+            if ((fold = libraryRoot.FindFolder(folderID)) != null)
             {
                 remoteClient.SendInventoryFolderDetails(
                     libraryRoot.Owner, folderID, fold.RequestListOfItems(),
@@ -308,7 +308,7 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                     else
                     {
-                        if ((fold = userProfile.RootFolder.GetDescendentFolder(folderID)) != null)
+                        if ((fold = userProfile.RootFolder.FindFolder(folderID)) != null)
                         {
 //                            m_log.DebugFormat(
 //                                "[AGENT INVENTORY]: Found folder {0} for client {1}", 
@@ -369,7 +369,7 @@ namespace OpenSim.Framework.Communications.Cache
                 return libraryRoot.RequestListOfItems();
             }
 
-            if ((fold = libraryRoot.GetDescendentFolder(folderID)) != null)
+            if ((fold = libraryRoot.FindFolder(folderID)) != null)
             {
                 return fold.RequestListOfItems();
             }         
@@ -410,7 +410,7 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                     else
                     {
-                        if ((fold = userProfile.RootFolder.GetDescendentFolder(folderID)) != null)
+                        if ((fold = userProfile.RootFolder.FindFolder(folderID)) != null)
                         {
                             return fold.RequestListOfItems();
                         }
@@ -479,7 +479,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 if (userProfile.HasInventory)
                 {
-                    InventoryItemBase item = userProfile.RootFolder.HasItem(itemID);
+                    InventoryItemBase item = userProfile.RootFolder.FindItem(itemID);
                     if (item != null)
                     {
                         remoteClient.SendInventoryItemDetails(ownerID, item);

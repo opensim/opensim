@@ -35,7 +35,8 @@ using log4net;
 
 namespace OpenSim.Framework.Communications.Cache
 {
-    internal delegate void CreateFolderDelegate(string folderName, LLUUID folderID, ushort folderType, LLUUID parentID); 
+    //internal delegate void DeleteItemDelegate(
+    internal delegate void CreateFolderDelegate(string folderName, LLUUID folderID, ushort folderType, LLUUID parentID);
     internal delegate void MoveFolderDelegate(LLUUID folderID, LLUUID parentID);         
     internal delegate void PurgeFolderDelegate(LLUUID folderID);
     internal delegate void UpdateFolderDelegate(string name, LLUUID folderID, ushort type, LLUUID parentID);    
@@ -234,7 +235,7 @@ namespace OpenSim.Framework.Communications.Cache
             }
             else
             {
-                InventoryFolderImpl folder = RootFolder.GetDescendentFolder(folderInfo.ParentID);
+                InventoryFolderImpl folder = RootFolder.FindFolder(folderInfo.ParentID);
                 lock (folder.SubFolders)
                 {
                     if (folder != null)
@@ -275,7 +276,6 @@ namespace OpenSim.Framework.Communications.Cache
                     {
                         if (!RootFolder.Items.ContainsKey(itemInfo.ID))
                         {
-
                             RootFolder.Items.Add(itemInfo.ID, itemInfo);
                         }
                         else 
@@ -286,7 +286,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 else
                 {
-                    InventoryFolderImpl folder = RootFolder.GetDescendentFolder(itemInfo.Folder);
+                    InventoryFolderImpl folder = RootFolder.FindFolder(itemInfo.Folder);
                     if (folder != null)
                     {
                         lock (folder.Items)
@@ -346,7 +346,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 else
                 {
-                    InventoryFolderImpl folder = RootFolder.GetDescendentFolder(parentID);
+                    InventoryFolderImpl folder = RootFolder.FindFolder(parentID);
                     
                     if (folder != null)
                     {
@@ -479,7 +479,7 @@ namespace OpenSim.Framework.Communications.Cache
             
             if (HasInventory)
             {
-                InventoryFolderImpl purgedFolder = RootFolder.GetDescendentFolder(folderID);
+                InventoryFolderImpl purgedFolder = RootFolder.FindFolder(folderID);
                 
                 if (purgedFolder != null)
                 {                        

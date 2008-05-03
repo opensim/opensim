@@ -300,7 +300,8 @@ namespace OpenSim.Region.Modules.AvatarFactory
                                 {
                                     LLUUID assetId;
 
-                                    InventoryItemBase baseItem = profile.RootFolder.HasItem(wear.ItemID);
+                                    InventoryItemBase baseItem = profile.RootFolder.FindItem(wear.ItemID);
+                                    
                                     if (baseItem != null)
                                     {
                                         assetId = baseItem.AssetID;

@@ -127,7 +127,8 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (userInfo.RootFolder != null)
                 {
-                    InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
+                    InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
+                    
                     if (item != null)
                     {
                         AssetBase asset =
@@ -271,7 +272,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (userInfo != null && userInfo.RootFolder != null)
             {
-                InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
+                InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
                 
                 if (item != null)
                 {
@@ -340,7 +341,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (senderUserInfo.RootFolder != null)
             {
-                InventoryItemBase item = senderUserInfo.RootFolder.HasItem(itemId);
+                InventoryItemBase item = senderUserInfo.RootFolder.FindItem(itemId);
+                
                 if (item != null)
                 {             
                     // TODO get recipient's root folder
@@ -407,7 +409,8 @@ namespace OpenSim.Region.Environment.Scenes
                 "[AGENT INVENTORY]: CopyInventoryItem received by {0} with oldAgentID {1}, oldItemID {2}, new FolderID {3}, newName {4}",
                 remoteClient.AgentId, oldAgentID, oldItemID, newFolderID, newName);
             
-            InventoryItemBase item = CommsManager.UserProfileCacheService.libraryRoot.HasItem(oldItemID);
+            InventoryItemBase item = CommsManager.UserProfileCacheService.libraryRoot.FindItem(oldItemID);
+            
             if (item == null)
             {
                 CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(oldAgentID);
@@ -419,7 +422,8 @@ namespace OpenSim.Region.Environment.Scenes
 
                 if (userInfo.RootFolder != null)
                 {
-                    item = userInfo.RootFolder.HasItem(oldItemID);
+                    item = userInfo.RootFolder.FindItem(oldItemID);
+                    
                     if (item == null)
                     {
                         m_log.Error("[AGENT INVENTORY]: Failed to find item " + oldItemID.ToString());
@@ -478,7 +482,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (userInfo.RootFolder != null)
             {
-                InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
+                InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
+                
                 if (item != null)
                 {
                     if (newName != String.Empty)
@@ -615,9 +620,13 @@ namespace OpenSim.Region.Environment.Scenes
         {
             CachedUserInfo userInfo
                 = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+            
             if (userInfo == null)
             {
-                m_log.Error("[AGENT INVENTORY]: Failed to find user " + remoteClient.AgentId.ToString());
+                m_log.ErrorFormat(
+                    "[AGENT INVENTORY]: Failed to find user {0} {1} to remove inventory item {2}",
+                    remoteClient.Name, remoteClient.AgentId, itemID);
+                
                 return;
             }
 
@@ -627,7 +636,8 @@ namespace OpenSim.Region.Environment.Scenes
             // the trash folder directly instead of RootFolder?
             if (userInfo.RootFolder != null)
             {
-                InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
+                InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
+                
                 if (item != null)
                 {
                     userInfo.DeleteItem(item);
@@ -654,7 +664,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (userInfo.RootFolder != null)
             {
-                InventoryItemBase folder = userInfo.RootFolder.HasItem(folderID);
+                InventoryItemBase folder = userInfo.RootFolder.FindItem(folderID);
                 
                 if (folder != null)
                 {
@@ -833,13 +843,13 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (userInfo != null && userInfo.RootFolder != null)
                     {
-                        InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
+                        InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
 
                         // Try library
                         // XXX clumsy, possibly should be one call
                         if (null == item)
                         {
-                            item = CommsManager.UserProfileCacheService.libraryRoot.HasItem(itemID);
+                            item = CommsManager.UserProfileCacheService.libraryRoot.FindItem(itemID);
                         }
 
                         if (item != null)
@@ -884,13 +894,13 @@ namespace OpenSim.Region.Environment.Scenes
             
                 if (userInfo != null && userInfo.RootFolder != null)
                 {
-                    InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
+                    InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
                     
                     // Try library
                     // XXX clumsy, possibly should be one call
                     if (null == item)
                     {
-                        item = CommsManager.UserProfileCacheService.libraryRoot.HasItem(itemID);
+                        item = CommsManager.UserProfileCacheService.libraryRoot.FindItem(itemID);
                     }
                         
                     if (item != null)
@@ -1203,13 +1213,10 @@ namespace OpenSim.Region.Environment.Scenes
                                     uint EveryoneMask, uint GroupMask, uint NextOwnerMask, uint ItemFlags,
                                     bool RezSelected, bool RemoveItem, LLUUID fromTaskID)
         {
-            SceneObjectGroup sog = RezObject(remoteClient, itemID, RayEnd, RayStart,
-                                    RayTargetID, BypassRayCast, RayEndIsIntersection,
-                                    EveryoneMask, GroupMask, NextOwnerMask, ItemFlags,
-                                    RezSelected, RemoveItem, fromTaskID, false);
+            RezObject(
+                remoteClient, itemID, RayEnd, RayStart, RayTargetID, BypassRayCast, RayEndIsIntersection,
+                EveryoneMask, GroupMask, NextOwnerMask, ItemFlags, RezSelected, RemoveItem, fromTaskID, false);
         }
-
-
 
        /// <summary>
        /// Returns SceneObjectGroup or null from asset request.
@@ -1265,7 +1272,8 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (userInfo.RootFolder != null)
                 {
-                    InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
+                    InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
+                    
                     if (item != null)
                     {
                         AssetBase rezAsset = AssetCache.GetAsset(item.AssetID, false);

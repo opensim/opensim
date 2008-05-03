@@ -104,14 +104,12 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Does this folder or any of its subfolders contain the given item?
+        /// Returns the item if it exists in this folder or any of this folder's subfolders?
         /// </summary>
         /// <param name="itemID"></param>
-        /// <returns></returns>
-        public InventoryItemBase HasItem(LLUUID itemID)
+        /// <returns>null if the item is not found</returns>
+        public InventoryItemBase FindItem(LLUUID itemID)
         {
-            InventoryItemBase base2 = null;
-            
             lock (Items)
             {
                 if (Items.ContainsKey(itemID))
@@ -124,15 +122,16 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 foreach (InventoryFolderImpl folder in SubFolders.Values)
                 {
-                    base2 = folder.HasItem(itemID);
-                    if (base2 != null)
+                    InventoryItemBase item = folder.FindItem(itemID);
+                    
+                    if (item != null)
                     {
-                        break;
+                        return item;
                     }
                 }
             }
             
-            return base2;
+            return null;
         }
 
         /// <summary>
@@ -171,7 +170,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// Returns the folder requested if it exists as a descendent of this folder
         /// </summary>
         /// <returns>The requested folder if it exists, null if it does not.</returns>
-        public InventoryFolderImpl GetDescendentFolder(LLUUID folderID)
+        public InventoryFolderImpl FindFolder(LLUUID folderID)
         {            
             InventoryFolderImpl returnFolder = null;
             
@@ -185,7 +184,7 @@ namespace OpenSim.Framework.Communications.Cache
                 {
                     foreach (InventoryFolderImpl folder in SubFolders.Values)
                     {
-                        returnFolder = folder.GetDescendentFolder(folderID);
+                        returnFolder = folder.FindFolder(folderID);
                         if (returnFolder != null)
                         {
                             break;
