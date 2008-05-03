@@ -151,6 +151,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event NewInventoryItemUploadComplete OnNewInventoryItemUploadComplete;
 
+        public delegate void AvatarKillData(uint KillerLocalID, ScenePresence avatar);
+
+        public event AvatarKillData OnAvatarKilled;
+
         /// <summary>
         /// RegisterCapsEvent is called by Scene after the Caps object
         /// has been instantiated and before it is return to the
@@ -267,6 +271,7 @@ namespace OpenSim.Region.Environment.Scenes
         private NewInventoryItemUploadComplete handlerNewInventoryItemUpdateComplete = null;
         private LandBuy handlerLandBuy = null;
         private LandBuy handlerValidateLandBuy = null;
+        private AvatarKillData handlerAvatarKill = null;
 
         public void TriggerOnScriptChangedEvent(uint localID, uint change)
         {
@@ -572,6 +577,14 @@ namespace OpenSim.Region.Environment.Scenes
             if (handlerScriptNotAtTargetEvent != null)
             {
                 handlerScriptNotAtTargetEvent(localID);
+            }
+        }
+        public void TriggerAvatarKill(uint KillerObjectLocalID, ScenePresence DeadAvatar)
+        {
+            handlerAvatarKill = OnAvatarKilled;
+            if (handlerAvatarKill != null)
+            {
+                handlerAvatarKill(KillerObjectLocalID, DeadAvatar);
             }
         }
     }

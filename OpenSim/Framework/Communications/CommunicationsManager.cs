@@ -259,6 +259,19 @@ namespace OpenSim.Framework.Communications
                 }
             }
         }
+        public string UUIDNameRequestString(LLUUID uuid)
+        {
+            UserProfileData profileData = m_userService.GetUserProfile(uuid);
+            if (profileData != null)
+            {
+                //LLUUID profileId = profileData.ID;
+                string firstname = profileData.FirstName;
+                string lastname = profileData.SurName;
+
+                return firstname + " " + lastname;
+            }
+            return "(hippos)";
+        }
 
         public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID queryID, string query)
         {

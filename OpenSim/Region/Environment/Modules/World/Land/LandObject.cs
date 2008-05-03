@@ -336,6 +336,11 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 {
                     if (over.landData.localID == landData.localID)
                     {
+                        if ((over.landData.landFlags & (uint)Parcel.ParcelFlags.AllowDamage) != 0)
+                            avatars[i].Invulnerable = false;
+                        else
+                            avatars[i].Invulnerable = true;
+
                         sendLandUpdateToClient(avatars[i].ControllingClient);
                     }
                 }

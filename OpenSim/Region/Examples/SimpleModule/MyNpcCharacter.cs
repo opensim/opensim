@@ -615,5 +615,8 @@ namespace OpenSim.Region.Examples.SimpleModule
         public void SendScriptQuestion(LLUUID objectID, string taskName, string ownerName, LLUUID itemID, int question)
         {
         }
+        public void SendHealth(float health)
+        {
+        }
     }
 }

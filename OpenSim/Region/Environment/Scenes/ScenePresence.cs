@@ -67,6 +67,9 @@ namespace OpenSim.Region.Environment.Scenes
         private LLVector3 m_requestedSitOffset = new LLVector3();
         private float m_sitAvatarHeight = 2.0f;
         private float m_godlevel = 0;
+        
+        private bool m_invulnerable = true;
+
         private LLVector3 m_LastChildAgentUpdatePosition = new LLVector3();
 
         private int m_perfMonMS = 0;
@@ -83,6 +86,7 @@ namespace OpenSim.Region.Environment.Scenes
         private bool m_newForce = false;
         private bool m_newCoarseLocations = true;
         private bool m_gotAllObjectsInScene = false;
+        private float m_health = 100f;
 
         private LLVector3 m_lastVelocity = LLVector3.Zero;
         
@@ -182,6 +186,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             set { m_updateflag = value; }
             get { return m_updateflag; }
+        }
+        public bool Invulnerable
+        {
+            set { m_invulnerable = value; }
+            get { return m_invulnerable; }
         }
 
         private readonly ulong m_regionHandle;
@@ -333,6 +342,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_parentID; }
             set { m_parentID = value; }
+        }
+        public float Health
+        {
+            get { return m_health; }
+            set { m_health = value; }
         }
 
         /// <summary>
@@ -602,6 +616,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_scene.PhysicsScene.RemoveAvatar(PhysicsActor);
                 m_physicsActor.OnRequestTerseUpdate -= SendTerseUpdateToAllClients;
+                m_physicsActor.UnSubscribeEvents();
                 m_physicsActor.OnCollisionUpdate -= PhysicsCollisionUpdate;
                 PhysicsActor = null;
             }
@@ -1894,16 +1909,55 @@ namespace OpenSim.Region.Environment.Scenes
             }
             //m_physicsActor.OnRequestTerseUpdate += SendTerseUpdateToAllClients;
             m_physicsActor.OnCollisionUpdate += PhysicsCollisionUpdate;
+            m_physicsActor.SubscribeEvents(1000);
             m_physicsActor.LocalID = LocalId;
         }
 
         // Event called by the physics plugin to tell the avatar about a collision.
         private void PhysicsCollisionUpdate(EventArgs e)
         {
+            if (e == null)
+                return;
+            CollisionEventUpdate collisionData = (CollisionEventUpdate)e;
+            Dictionary<uint, float> coldata = collisionData.m_objCollisionList;
+            float starthealth = Health;
+            uint killerObj = 0;
+            foreach (uint localid in coldata.Keys)
+            {
+                if (coldata[localid] <= 0.10f || m_invulnerable)
+                    continue;
+                //if (localid == 0)
+                    //continue;
+
+                Health -= coldata[localid] * 5;
+
+                if (Health <= 0)
+                {
+                    if (localid != 0)
+                        killerObj = localid;
+                }
+                //m_log.Debug("[AVATAR]: Collision with localid: " + localid.ToString() + " at depth: " + coldata[localid].ToString());
+            }
+            //Health = 100;
+            if (!m_invulnerable)
+            {
+                if (starthealth != Health)
+                {
+                    ControllingClient.SendHealth(Health);
+                }
+                if (m_health <= 0)
+                    m_scene.EventManager.TriggerAvatarKill(killerObj, this);
+            }
+            
+
             bool isUserMoving = Velocity.X > 0 || Velocity.Y > 0;
             UpdateMovementAnimations(isUserMoving);
         }
-
+        public void setHealthWithUpdate(float health)
+        {
+            Health = health;
+            ControllingClient.SendHealth(Health);
+        }
         internal void Close()
         {
             lock (m_attachments)

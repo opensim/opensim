@@ -186,6 +186,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                 scene.EventManager.OnClientClosed += ClientLoggedOut;
                 scene.EventManager.OnValidateLandBuy += ValidateLandBuy;
                 scene.EventManager.OnLandBuy += processLandBuy;
+                scene.EventManager.OnAvatarKilled += KillAvatar;
             }
         }
 
@@ -1390,7 +1391,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                 {
                     if (avatar.Scene.RegionInfo.originRegionID != m_rootAgents[avatar.UUID])
                     {
+
+
                         m_rootAgents[avatar.UUID] = avatar.Scene.RegionInfo.originRegionID;
+                        
+
                         //m_log.Info("[MONEY]: Claiming " + avatar.Firstname + " " + avatar.Lastname + " in region:" + avatar.RegionHandle + ".");
                         // Claim User! my user!  Mine mine mine!
                         if (m_MoneyAddress.Length > 0)
@@ -1400,12 +1405,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                             {
                                 Hashtable hresult =
                                     claim_user(avatar.UUID, avatar.ControllingClient.SecureSessionId, regionID, RegionItem.RegionInfo.regionSecret);
-                                if ((bool) hresult["success"] == true)
+                                if ((bool)hresult["success"] == true)
                                 {
                                     int funds = 0;
                                     try
                                     {
-                                        funds = (Int32) hresult["funds"];
+                                        funds = (Int32)hresult["funds"];
                                     }
                                     catch (InvalidCastException)
                                     {
@@ -1414,9 +1419,21 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                                 }
                                 else
                                 {
-                                    avatar.ControllingClient.SendAgentAlertMessage((string) hresult["errorMessage"], true);
+                                    avatar.ControllingClient.SendAgentAlertMessage((string)hresult["errorMessage"], true);
                                 }
                             }
+                        }
+                    }
+                    else
+                    {
+                        ILandObject obj = avatar.Scene.LandChannel.getLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
+                        if ((obj.landData.landFlags & (uint)Parcel.ParcelFlags.AllowDamage) != 0)
+                        {
+                            avatar.Invulnerable = false;
+                        }
+                        else
+                        {
+                            avatar.Invulnerable = true;
                         }
                     }
                 }
@@ -1455,6 +1472,60 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                 }
             }
             //m_log.Info("[FRIEND]: " + avatar.Name + " status:" + (!avatar.IsChildAgent).ToString());
+        }
+
+        private void KillAvatar(uint killerObjectLocalID, ScenePresence DeadAvatar)
+        {
+            if (killerObjectLocalID == 0)
+                DeadAvatar.ControllingClient.SendAgentAlertMessage("You committed suicide!", true);
+            else
+            {
+                bool foundResult = false;
+                string resultstring = "";
+                List<ScenePresence> allav = DeadAvatar.Scene.GetScenePresences();
+                try
+                {
+                    foreach (ScenePresence av in allav)
+                    {
+                        if (av.LocalId == killerObjectLocalID)
+                        {
+                            av.ControllingClient.SendAlertMessage("You fragged " + DeadAvatar.Firstname + " " + DeadAvatar.Lastname);
+                            resultstring = av.Firstname + " " + av.Lastname;
+                            foundResult = true;
+                        }
+                    }
+                } catch (System.InvalidOperationException)
+                {
+
+                }
+
+                if (!foundResult)
+                {
+                    SceneObjectPart part = DeadAvatar.Scene.GetSceneObjectPart(killerObjectLocalID);
+                    if (part != null)
+                    {
+                        ScenePresence av = DeadAvatar.Scene.GetScenePresence(part.OwnerID);
+                        if (av != null)
+                        {
+                            av.ControllingClient.SendAlertMessage("You fragged " + DeadAvatar.Firstname + " " + DeadAvatar.Lastname);
+                            resultstring = av.Firstname + " " + av.Lastname;
+                            DeadAvatar.ControllingClient.SendAgentAlertMessage("You got killed by " + resultstring + "!", true);
+                        }
+                        else
+                        {
+                            string killer = DeadAvatar.Scene.CommsManager.UUIDNameRequestString(part.OwnerID);
+                            DeadAvatar.ControllingClient.SendAgentAlertMessage("You impailed yourself on " + part.Name + " owned by " + killer +"!", true);
+                        }
+                        //DeadAvatar.Scene. part.ObjectOwner
+                    }
+                    else
+                    {
+                        DeadAvatar.ControllingClient.SendAgentAlertMessage("You died!", true);
+                    }
+                }
+            }
+            DeadAvatar.Health = 100;
+            DeadAvatar.Scene.TeleportClientHome(DeadAvatar.UUID, DeadAvatar.ControllingClient);
         }
 
         #endregion

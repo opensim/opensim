@@ -729,6 +729,7 @@ namespace OpenSim.Framework
                                   uint flags, LLUUID flImageID, LLUUID imageID, string profileURL, LLUUID partnerID);
 
         void SendScriptQuestion(LLUUID taskID, string taskName, string ownerName, LLUUID itemID, int question);
+        void SendHealth(float health);
 
         byte[] GetThrottlesPacked(float multiplier);
 

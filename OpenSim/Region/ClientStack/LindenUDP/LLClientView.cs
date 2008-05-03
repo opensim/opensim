@@ -4849,6 +4849,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             OutPacket(logReply, ThrottleOutPacketType.Task);
         }
+        public void SendHealth(float health)
+        {
+            HealthMessagePacket healthpacket = (HealthMessagePacket)PacketPool.Instance.GetPacket(PacketType.HealthMessage);
+            healthpacket.HealthData.Health = health;
+            OutPacket(healthpacket, ThrottleOutPacketType.Task);
+        }
 
         public ClientInfo GetClientInfo()
         {
