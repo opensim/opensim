@@ -107,7 +107,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 else
                 {
-                    m_log.WarnFormat("[USER CACHE]: Tried to remove the profile of user {0}, but this was not in the scene", userID);
+                    m_log.ErrorFormat("[USER CACHE]: Tried to remove the profile of user {0}, but this was not in the scene", userID);
                 }               
             }
             
@@ -133,7 +133,8 @@ namespace OpenSim.Framework.Communications.Cache
         }            
 
         /// <summary>
-        /// Get the details of the given user.
+        /// Get the details of the given user.  A caller should try this method first if it isn't sure that
+        /// a user profile exists for the given user.
         /// </summary>
         /// <param name="userID"></param>
         /// <returns>null if no user details are found</returns>
@@ -162,10 +163,16 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 if (!userProfile.CreateFolder(folderName, folderID, folderType, parentID))
                 {
-                    m_log.WarnFormat(
+                    m_log.ErrorFormat(
                          "[AGENT INVENTORY]: Failed to create folder for user {0} {1}", 
                          remoteClient.Name, remoteClient.AgentId);
                 }
+            }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}", 
+                    remoteClient.Name, remoteClient.AgentId);
             }
         }
 
@@ -211,6 +218,12 @@ namespace OpenSim.Framework.Communications.Cache
                             new object[] { remoteClient, folderID, type, name, parentID }));
                 }
             }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}", 
+                    remoteClient.Name, remoteClient.AgentId);
+            }            
         }
 
         /// <summary>
@@ -246,6 +259,12 @@ namespace OpenSim.Framework.Communications.Cache
                             new object[] { remoteClient, folderID, parentID }));   
                 }
             }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}", 
+                    remoteClient.Name, remoteClient.AgentId);
+            }            
         }
 
         /// <summary>
@@ -337,7 +356,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 else
                 {
-                    m_log.ErrorFormat("[INVENTORY CACHE]: Could not find root folder for user {0}", remoteClient.Name);
+                    m_log.ErrorFormat("[AGENT INVENTORY]: Could not find root folder for user {0}", remoteClient.Name);
 
                     return;
                 }
@@ -345,15 +364,15 @@ namespace OpenSim.Framework.Communications.Cache
             else
             {
                 m_log.ErrorFormat(
-                     "[USER CACHE]: HandleFetchInventoryDescendents() could not find user profile {0}, {1}",
-                     remoteClient.Name, remoteClient.AgentId);
-
+                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}", 
+                    remoteClient.Name, remoteClient.AgentId);
+                
                 return;
             }
 
             // If we've reached this point then we couldn't find the folder, even though the client thinks
             // it exists
-            m_log.ErrorFormat("[INVENTORY CACHE]: Could not find folder {0} for user {1}",
+            m_log.ErrorFormat("[AGENT INVENTORY]: Could not find folder {0} for user {1}",
                               folderID, remoteClient.Name);
         }
 
@@ -431,23 +450,21 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 else
                 {
-                    m_log.ErrorFormat("[INVENTORY CACHE]: Could not find root folder for user {0}", agentID.ToString());
+                    m_log.ErrorFormat("[INVENTORY CACHE]: Could not find root folder for user {0}", agentID);
 
                     return null;
                 }
             }
             else
             {
-                m_log.ErrorFormat(
-                     "[USER CACHE]: HandleFetchInventoryDescendentsCAPS() Could not find user profile for {0}",
-                     agentID);
+                m_log.ErrorFormat("[AGENT INVENTORY]: Could not find user profile for {0}", agentID);
             
                 return null;
             }
 
             // If we've reached this point then we couldn't find the folder, even though the client thinks
             // it exists
-            m_log.ErrorFormat("[INVENTORY CACHE]: " +
+            m_log.ErrorFormat("[AGENT INVENTORY]: " +
                               "Could not find folder {0} for user {1}",
                               folderID, agentID.ToString());
 
@@ -494,6 +511,12 @@ namespace OpenSim.Framework.Communications.Cache
                             new object[] { remoteClient, folderID }));                 
                 }
             }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}", 
+                    remoteClient.Name, remoteClient.AgentId);
+            }            
         }
 
         public void HandleFetchInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID ownerID)
@@ -517,6 +540,12 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                 }
             }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}", 
+                    remoteClient.Name, remoteClient.AgentId);
+            }            
         }
     }
 }
