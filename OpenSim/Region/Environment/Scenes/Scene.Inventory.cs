@@ -136,7 +136,7 @@ namespace OpenSim.Region.Environment.Scenes
                         AssetCache.AddAsset(asset);
 
                         item.AssetID = asset.FullID;
-                        userInfo.UpdateItem(remoteClient.AgentId, item);
+                        userInfo.UpdateItem(item);
 
                         // remoteClient.SendInventoryItemCreateUpdate(item);
                         if ((InventoryType) item.InvType == InventoryType.Notecard)
@@ -294,7 +294,7 @@ namespace OpenSim.Region.Environment.Scenes
                         item.SaleType = itemUpd.SaleType;
                         item.Flags = itemUpd.Flags;
 
-                        userInfo.UpdateItem(remoteClient.AgentId, item);
+                        userInfo.UpdateItem(item);
                     }
                     else
                     {
@@ -486,7 +486,7 @@ namespace OpenSim.Region.Environment.Scenes
                         item.Name = newName;
                     }
                     item.Folder = folderID;
-                    userInfo.DeleteItem(remoteClient.AgentId, item);
+                    userInfo.DeleteItem(item);
 
                     // TODO: preserve current permissions?
                     AddInventoryItem(remoteClient, item);
@@ -630,11 +630,17 @@ namespace OpenSim.Region.Environment.Scenes
                 InventoryItemBase item = userInfo.RootFolder.HasItem(itemID);
                 if (item != null)
                 {
-                    userInfo.DeleteItem(remoteClient.AgentId, item);
+                    userInfo.DeleteItem(item);
                 }
             }
         }
 
+        /// <summary>
+        /// Removes an inventory folder.  Although there is a packet in the Linden protocol for this, it may be
+        /// legacy and not currently used (purge folder is used to remove folders from trash instead).
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="folderID"></param>
         private void RemoveInventoryFolder(IClientAPI remoteClient, LLUUID folderID)
         {
             CachedUserInfo userInfo
@@ -648,10 +654,15 @@ namespace OpenSim.Region.Environment.Scenes
             if (userInfo.RootFolder != null)
             {
                 InventoryItemBase folder = userInfo.RootFolder.HasItem(folderID);
+                
                 if (folder != null)
                 {
+                    m_log.WarnFormat(
+                         "[AGENT INVENTORY]: Remove folder not implemented in request by {0} {1} for {2}",
+                         remoteClient.Name, remoteClient.AgentId, folderID); 
+                    
                     // doesn't work just yet, commented out. will fix in next patch.
-                    // userInfo.DeleteItem(remoteClient.AgentId, folder);
+                    // userInfo.DeleteItem(folder);
                 }
             }
         }

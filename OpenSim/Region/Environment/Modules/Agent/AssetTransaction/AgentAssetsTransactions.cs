@@ -364,7 +364,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                             m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(Asset);
                         }
 
-                        userInfo.UpdateItem(remoteClient.AgentId, item);
+                        userInfo.UpdateItem(item);
                     }
                 }
             }

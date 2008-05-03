@@ -316,9 +316,9 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="userID"></param>
         /// <param name="itemInfo"></param>
-        public void UpdateItem(LLUUID userID, InventoryItemBase itemInfo)
+        public void UpdateItem(InventoryItemBase itemInfo)
         {
-            if ((userID == UserProfile.ID) && HasInventory)
+            if (HasInventory)
             {
                 m_commsManager.InventoryService.UpdateItem(itemInfo);
             }
@@ -330,10 +330,10 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="userID"></param>
         /// <param name="item"></param>
         /// <returns></returns>
-        public bool DeleteItem(LLUUID userID, InventoryItemBase item)
+        public bool DeleteItem(InventoryItemBase item)
         {
             bool result = false;
-            if ((userID == UserProfile.ID) && HasInventory)
+            if (HasInventory)
             {
                 result = RootFolder.DeleteItem(item.ID);
                 if (result)
