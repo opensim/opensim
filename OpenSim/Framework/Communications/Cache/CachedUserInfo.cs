@@ -35,10 +35,10 @@ using log4net;
 
 namespace OpenSim.Framework.Communications.Cache
 {
-    internal delegate void CreateInventoryFolderDelegate(
-        string folderName, LLUUID folderID, ushort folderType, LLUUID parentID); 
-    internal delegate void UpdateInventoryFolderDelegate(
-        string name, LLUUID folderID, ushort type, LLUUID parentID);    
+    internal delegate void CreateFolderDelegate(string folderName, LLUUID folderID, ushort folderType, LLUUID parentID); 
+    internal delegate void MoveFolderDelegate(LLUUID folderID, LLUUID parentID);         
+    internal delegate void PurgeFolderDelegate(LLUUID folderID);
+    internal delegate void UpdateFolderDelegate(string name, LLUUID folderID, ushort type, LLUUID parentID);    
     
     /// <summary>
     /// Stores user profile and inventory data received from backend services for a particular user.
@@ -54,7 +54,7 @@ namespace OpenSim.Framework.Communications.Cache
         private readonly CommunicationsManager m_commsManager;
         
         public UserProfileData UserProfile { get { return m_userProfile; } }
-        private UserProfileData m_userProfile;                
+        private readonly UserProfileData m_userProfile;                
 
         /// <summary>
         /// Has we received the user's inventory from the inventory service?
@@ -389,7 +389,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 AddRequest(
                     new InventoryRequest(
-                        Delegate.CreateDelegate(typeof(CreateInventoryFolderDelegate), this, "CreateFolder"),
+                        Delegate.CreateDelegate(typeof(CreateFolderDelegate), this, "CreateFolder"),
                         new object[] { folderName, folderID, folderType, parentID }));
                 
                 return true;
@@ -428,11 +428,88 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 AddRequest(
                     new InventoryRequest(
-                        Delegate.CreateDelegate(typeof(UpdateInventoryFolderDelegate), this, "UpdateFolder"),
+                        Delegate.CreateDelegate(typeof(UpdateFolderDelegate), this, "UpdateFolder"),
                         new object[] { name, folderID, type, parentID }));
             }          
             
             return true;
+        }      
+        
+        /// <summary>
+        /// Handle an inventory folder move request from the client.
+        /// </summary>
+        /// <param name="folderID"></param>
+        /// <param name="parentID"></param>
+        public bool MoveFolder(LLUUID folderID, LLUUID parentID)
+        {
+//            m_log.DebugFormat(
+//                "[AGENT INVENTORY]: Moving inventory folder {0} into folder {1} for {2} {3}",
+//                parentID, remoteClient.Name, remoteClient.Name, remoteClient.AgentId);
+
+            if (HasInventory)
+            {
+                InventoryFolderBase baseFolder = new InventoryFolderBase();
+                baseFolder.Owner = m_userProfile.ID;
+                baseFolder.ID = folderID;
+                baseFolder.ParentID = parentID;
+                
+                m_commsManager.InventoryService.MoveFolder(baseFolder);
+                
+                return true;
+            }
+            else
+            {
+                AddRequest(
+                    new InventoryRequest(
+                        Delegate.CreateDelegate(typeof(MoveFolderDelegate), this, "MoveFolder"),
+                        new object[] { folderID, parentID }));
+                
+                return true;
+            }        
+        }        
+        
+        /// <summary>
+        /// This method will delete all the items and folders in the given folder.
+        /// </summary>
+        /// <param name="folderID"></param>
+        public bool PurgeFolder(LLUUID folderID)
+        {
+//            m_log.InfoFormat("[AGENT INVENTORY]: Purging folder {0} for {1} uuid {2}", 
+//                folderID, remoteClient.Name, remoteClient.AgentId);
+            
+            if (HasInventory)
+            {
+                InventoryFolderImpl purgedFolder = RootFolder.GetDescendentFolder(folderID);
+                
+                if (purgedFolder != null)
+                {                        
+                    // XXX Nasty - have to create a new object to hold details we already have
+                    InventoryFolderBase purgedBaseFolder = new InventoryFolderBase();
+                    purgedBaseFolder.Owner = purgedFolder.Owner;
+                    purgedBaseFolder.ID = purgedFolder.ID;
+                    purgedBaseFolder.Name = purgedFolder.Name;
+                    purgedBaseFolder.ParentID = purgedFolder.ParentID;
+                    purgedBaseFolder.Type = purgedFolder.Type;
+                    purgedBaseFolder.Version = purgedFolder.Version;                        
+                    
+                    m_commsManager.InventoryService.PurgeFolder(purgedBaseFolder);                                              
+                    
+                    purgedFolder.Purge();
+                    
+                    return true;
+                }
+            }
+            else
+            {
+                AddRequest(
+                    new InventoryRequest(
+                        Delegate.CreateDelegate(typeof(PurgeFolderDelegate), this, "PurgeFolder"),
+                        new object[] { folderID }));
+                
+                return true;
+            }           
+            
+            return false;
         }        
 
         /// <summary>
@@ -499,18 +576,18 @@ namespace OpenSim.Framework.Communications.Cache
     /// </summary>
     class InventoryRequest : IInventoryRequest
     {
-        private Delegate m_delegat;
+        private Delegate m_delegate;
         private Object[] m_args;
         
         internal InventoryRequest(Delegate delegat, Object[] args)
         {
-            m_delegat = delegat; 
+            m_delegate = delegat; 
             m_args = args;
         }
         
         public void Execute()
         {
-            m_delegat.DynamicInvoke(m_args);
+            m_delegate.DynamicInvoke(m_args);
         }
     }      
 }

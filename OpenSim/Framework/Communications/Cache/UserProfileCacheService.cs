@@ -33,10 +33,7 @@ using libsecondlife;
 using log4net;
 
 namespace OpenSim.Framework.Communications.Cache
-{
-    internal delegate void MoveInventoryFolderDelegate(IClientAPI remoteClient, LLUUID folderID, LLUUID parentID);         
-    internal delegate void PurgeInventoryDescendentsDelegate(IClientAPI remoteClient, LLUUID folderID);     
-        
+{            
     /// <summary>
     /// Holds user profile information and retrieves it from backend services.
     /// </summary>
@@ -199,7 +196,7 @@ namespace OpenSim.Framework.Communications.Cache
                 if (!userProfile.UpdateFolder(name, folderID, type, parentID))
                 {
                     m_log.ErrorFormat(
-                         "[AGENT INVENTORY]: Failed to create folder for user {0} {1}", 
+                         "[AGENT INVENTORY]: Failed to update folder for user {0} {1}", 
                          remoteClient.Name, remoteClient.AgentId);
                 }
             }
@@ -219,29 +216,15 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="parentID"></param>
         public void HandleMoveInventoryFolder(IClientAPI remoteClient, LLUUID folderID, LLUUID parentID)
         {
-//            m_log.DebugFormat(
-//                "[AGENT INVENTORY]: Moving inventory folder {0} into folder {1} for {2} {3}",
-//                parentID, remoteClient.Name, remoteClient.Name, remoteClient.AgentId);
-
             CachedUserInfo userProfile;
 
             if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
             {
-                if (userProfile.HasInventory)
+                if (!userProfile.MoveFolder(folderID, parentID))
                 {
-                    InventoryFolderBase baseFolder = new InventoryFolderBase();
-                    baseFolder.Owner = remoteClient.AgentId;
-                    baseFolder.ID = folderID;
-                    baseFolder.ParentID = parentID;
-                    
-                    m_commsManager.InventoryService.MoveFolder(baseFolder);
-                }
-                else
-                {
-                    userProfile.AddRequest(
-                        new InventoryRequest(
-                            Delegate.CreateDelegate(typeof(MoveInventoryFolderDelegate), this, "HandleMoveInventoryFolder"),
-                            new object[] { remoteClient, folderID, parentID }));   
+                    m_log.ErrorFormat(
+                         "[AGENT INVENTORY]: Failed to move folder for user {0} {1}", 
+                         remoteClient.Name, remoteClient.AgentId);
                 }
             }
             else
@@ -249,7 +232,7 @@ namespace OpenSim.Framework.Communications.Cache
                 m_log.ErrorFormat(
                     "[AGENT INVENTORY]: Could not find user profile for {0} {1}", 
                     remoteClient.Name, remoteClient.AgentId);
-            }            
+            }           
         }
 
         /// <summary>
@@ -463,37 +446,15 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="folderID"></param>
         public void HandlePurgeInventoryDescendents(IClientAPI remoteClient, LLUUID folderID)
         {
-//            m_log.InfoFormat("[AGENT INVENTORY]: Purging folder {0} for {1} uuid {2}", 
-//                folderID, remoteClient.Name, remoteClient.AgentId);
-            
             CachedUserInfo userProfile;
+
             if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
             {
-                if (userProfile.HasInventory)
+                if (!userProfile.PurgeFolder(folderID))
                 {
-                    InventoryFolderImpl purgedFolder = userProfile.RootFolder.GetDescendentFolder(folderID);
-                    if (purgedFolder != null)
-                    {                        
-                        // XXX Nasty - have to create a new object to hold details we already have
-                        InventoryFolderBase purgedBaseFolder = new InventoryFolderBase();
-                        purgedBaseFolder.Owner = purgedFolder.Owner;
-                        purgedBaseFolder.ID = purgedFolder.ID;
-                        purgedBaseFolder.Name = purgedFolder.Name;
-                        purgedBaseFolder.ParentID = purgedFolder.ParentID;
-                        purgedBaseFolder.Type = purgedFolder.Type;
-                        purgedBaseFolder.Version = purgedFolder.Version;                        
-                        
-                        m_commsManager.InventoryService.PurgeFolder(purgedBaseFolder);                                              
-                        
-                        purgedFolder.Purge();                        
-                    }
-                }
-                else
-                {
-                    userProfile.AddRequest(
-                        new InventoryRequest(
-                            Delegate.CreateDelegate(typeof(PurgeInventoryDescendentsDelegate), this, "HandlePurgeInventoryDescendents"),
-                            new object[] { remoteClient, folderID }));                 
+                    m_log.ErrorFormat(
+                         "[AGENT INVENTORY]: Failed to purge folder for user {0} {1}", 
+                         remoteClient.Name, remoteClient.AgentId);
                 }
             }
             else
@@ -501,7 +462,7 @@ namespace OpenSim.Framework.Communications.Cache
                 m_log.ErrorFormat(
                     "[AGENT INVENTORY]: Could not find user profile for {0} {1}", 
                     remoteClient.Name, remoteClient.AgentId);
-            }            
+            }   
         }
 
         public void HandleFetchInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID ownerID)
