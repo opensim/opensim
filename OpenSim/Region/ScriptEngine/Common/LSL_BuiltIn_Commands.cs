@@ -183,8 +183,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             //World.PermissionsMngr.GenericEstatePermission(
             if (World.PermissionsMngr.GenericEstatePermission(m_host.OwnerID))
             {
-                World.EstateManager.setRegionSettings((float)height, 0f, 0f, false, 0.5f);
-                World.EstateManager.sendRegionInfoPacketToAll();
+                World.EventManager.TriggerRequestChangeWaterHeight((float)height);
             }
         }
      

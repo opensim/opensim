@@ -153,7 +153,6 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_authenticateHandler; }
         }
 
-        protected readonly EstateManager m_estateManager;
         // an instance to the physics plugin's Scene object.
         public PhysicsScene PhysicsScene
         {
@@ -165,11 +164,6 @@ namespace OpenSim.Region.Environment.Scenes
         public object SyncRoot
         {
             get { return m_innerScene.m_syncRoot; }
-        }
-
-        public EstateManager EstateManager
-        {
-            get { return m_estateManager; }
         }
 
         public float TimeDilation
@@ -255,8 +249,6 @@ namespace OpenSim.Region.Environment.Scenes
                 new EventManager.LandObjectAdded(m_storageManager.DataStore.StoreLandObject);
             EventManager.OnLandObjectRemoved +=
                 new EventManager.LandObjectRemoved(m_storageManager.DataStore.RemoveLandObject);
-
-            m_estateManager = new EstateManager(this, m_regInfo);
 
             m_permissionManager = permissionManager;
             m_permissionManager.Initialise(this);
@@ -1514,8 +1506,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_log.Info("[REGION]: Add New Scene Presence");
 
-                m_estateManager.sendRegionHandshake(client);
-
                 CreateAndAddScenePresence(client, child);
 
                 LandChannel.sendParcelOverlay(client);
@@ -1572,9 +1562,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnParcelAccessListUpdateRequest +=
                 new ParcelAccessListUpdateRequest(LandChannel.handleParcelAccessUpdateRequest);
 
-            client.OnEstateOwnerMessage += new EstateOwnerMessageRequest(m_estateManager.handleEstateOwnerMessage);
-            client.OnRegionInfoRequest += m_estateManager.HandleRegionInfoRequest;
-            client.OnEstateCovenantRequest += m_estateManager.HandleEstateCovenantRequest;
+            
             client.OnRequestGodlikePowers += handleRequestGodlikePowers;
             client.OnGodKickUser += HandleGodlikeKickUser;
             client.OnObjectPermissions += HandleObjectPermissionsUpdate;

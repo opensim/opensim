@@ -151,6 +151,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event NewInventoryItemUploadComplete OnNewInventoryItemUploadComplete;
 
+        public delegate void RequestChangeWaterHeight(float height);
+
+        public event RequestChangeWaterHeight OnRequestChangeWaterHeight;
+
         public delegate void AvatarKillData(uint KillerLocalID, ScenePresence avatar);
 
         public event AvatarKillData OnAvatarKilled;
@@ -269,6 +273,8 @@ namespace OpenSim.Region.Environment.Scenes
         private RegisterCapsEvent handlerRegisterCaps = null; // OnRegisterCaps;
         private DeregisterCapsEvent handlerDeregisterCaps = null; // OnDeregisterCaps;
         private NewInventoryItemUploadComplete handlerNewInventoryItemUpdateComplete = null;
+        private RequestChangeWaterHeight handlerRequestChangeWaterHeight = null; //OnRequestChangeWaterHeight
+
         private LandBuy handlerLandBuy = null;
         private LandBuy handlerValidateLandBuy = null;
         private AvatarKillData handlerAvatarKill = null;
@@ -577,6 +583,15 @@ namespace OpenSim.Region.Environment.Scenes
             if (handlerScriptNotAtTargetEvent != null)
             {
                 handlerScriptNotAtTargetEvent(localID);
+            }
+        }
+
+        public void TriggerRequestChangeWaterHeight(float height)
+        {
+            handlerRequestChangeWaterHeight = OnRequestChangeWaterHeight;
+            if (handlerRequestChangeWaterHeight != null)
+            {
+                handlerRequestChangeWaterHeight(height);
             }
         }
         public void TriggerAvatarKill(uint KillerObjectLocalID, ScenePresence DeadAvatar)
