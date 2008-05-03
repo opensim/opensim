@@ -37,6 +37,8 @@ namespace OpenSim.Framework.Communications.Cache
 {
     internal delegate void CreateInventoryFolderDelegate(
         string folderName, LLUUID folderID, ushort folderType, LLUUID parentID); 
+    internal delegate void UpdateInventoryFolderDelegate(
+        string name, LLUUID folderID, ushort type, LLUUID parentID);    
     
     /// <summary>
     /// Stores user profile and inventory data received from backend services for a particular user.
@@ -336,7 +338,7 @@ namespace OpenSim.Framework.Communications.Cache
                     else
                     {
                         m_log.WarnFormat(
-                             "[INVENTORY CACHE]: Tried to create folder {0} {1} but the folder already exists", 
+                             "[AGENT INVENTORY]: Tried to create folder {0} {1} but the folder already exists", 
                              folderName, folderID);
                         
                         return false;
@@ -367,7 +369,7 @@ namespace OpenSim.Framework.Communications.Cache
                         else
                         {
                             m_log.WarnFormat(
-                                 "[INVENTORY CACHE]: Tried to create folder {0} {1} but the folder already exists", 
+                                 "[AGENT INVENTORY]: Tried to create folder {0} {1} but the folder already exists", 
                                  folderName, folderID);
                             
                             return false;
@@ -376,7 +378,7 @@ namespace OpenSim.Framework.Communications.Cache
                     else
                     {
                         m_log.WarnFormat(
-                             "[INVENTORY CACHE]: Could not find parent folder with id {0} in order to create folder {1} {2}",
+                             "[AGENT INVENTORY]: Could not find parent folder with id {0} in order to create folder {1} {2}",
                              parentID, folderName, folderID);
                         
                         return false;
@@ -392,9 +394,46 @@ namespace OpenSim.Framework.Communications.Cache
                 
                 return true;
             }   
-            
-            return false;
         }
+        
+        /// <summary>
+        /// Handle a client request to update the inventory folder
+        /// 
+        /// FIXME: We call add new inventory folder because in the data layer, we happen to use an SQL REPLACE
+        /// so this will work to rename an existing folder.  Needless to say, to rely on this is very confusing,
+        /// and needs to be changed.
+        /// </summary>
+        /// <param name="folderID"></param>
+        /// <param name="type"></param>
+        /// <param name="name"></param>
+        /// <param name="parentID"></param>
+        public bool UpdateFolder(string name, LLUUID folderID, ushort type, LLUUID parentID)
+        {
+//            m_log.DebugFormat(
+//                "[AGENT INVENTORY]: Updating inventory folder {0} {1} for {2} {3}", folderID, name, remoteClient.Name, remoteClient.AgentId);            
+
+            if (HasInventory)
+            {
+                InventoryFolderBase baseFolder = new InventoryFolderBase();
+                baseFolder.Owner = m_userProfile.ID;
+                baseFolder.ID = folderID;
+                baseFolder.Name = name;
+                baseFolder.ParentID = parentID;
+                baseFolder.Type = (short) type;
+                baseFolder.Version = RootFolder.Version;
+                
+                m_commsManager.InventoryService.AddFolder(baseFolder);
+            }
+            else
+            {
+                AddRequest(
+                    new InventoryRequest(
+                        Delegate.CreateDelegate(typeof(UpdateInventoryFolderDelegate), this, "UpdateFolder"),
+                        new object[] { name, folderID, type, parentID }));
+            }          
+            
+            return true;
+        }        
 
         /// <summary>
         /// Add an item to the user's inventory

@@ -36,8 +36,6 @@ namespace OpenSim.Framework.Communications.Cache
 {
     internal delegate void MoveInventoryFolderDelegate(IClientAPI remoteClient, LLUUID folderID, LLUUID parentID);         
     internal delegate void PurgeInventoryDescendentsDelegate(IClientAPI remoteClient, LLUUID folderID);     
-    internal delegate void UpdateInventoryFolderDelegate(
-        IClientAPI remoteClient, LLUUID folderID, ushort type, string name, LLUUID parentID);
         
     /// <summary>
     /// Holds user profile information and retrieves it from backend services.
@@ -198,24 +196,11 @@ namespace OpenSim.Framework.Communications.Cache
 
             if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
             {
-                if (userProfile.HasInventory)
+                if (!userProfile.UpdateFolder(name, folderID, type, parentID))
                 {
-                    InventoryFolderBase baseFolder = new InventoryFolderBase();
-                    baseFolder.Owner = remoteClient.AgentId;
-                    baseFolder.ID = folderID;
-                    baseFolder.Name = name;
-                    baseFolder.ParentID = parentID;
-                    baseFolder.Type = (short) type;
-                    baseFolder.Version = userProfile.RootFolder.Version;
-                    
-                    m_commsManager.InventoryService.AddFolder(baseFolder);
-                }
-                else
-                {
-                    userProfile.AddRequest(
-                        new InventoryRequest(
-                            Delegate.CreateDelegate(typeof(UpdateInventoryFolderDelegate), this, "HandleUpdateInventoryFolder"),
-                            new object[] { remoteClient, folderID, type, name, parentID }));
+                    m_log.ErrorFormat(
+                         "[AGENT INVENTORY]: Failed to create folder for user {0} {1}", 
+                         remoteClient.Name, remoteClient.AgentId);
                 }
             }
             else
