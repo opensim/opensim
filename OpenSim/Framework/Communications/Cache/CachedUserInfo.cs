@@ -302,7 +302,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// Add an item to the user's inventory
         /// </summary>
         /// <param name="itemInfo"></param>
-        public void AddItem(LLUUID userID, InventoryItemBase itemInfo)
+        public void AddItem(InventoryItemBase itemInfo)
         {
             if (HasInventory)
             {

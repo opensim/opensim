@@ -392,7 +392,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                     item.NextPermissions = nextPerm;
                     item.Flags = (uint) wearableType;
 
-                    userInfo.AddItem(ourClient.AgentId, item);
+                    userInfo.AddItem(item);
                     ourClient.SendInventoryItemCreateUpdate(item);
                 }
             }

@@ -69,7 +69,7 @@ namespace OpenSim.Region.Environment.Scenes
             
             if (userInfo != null)
             {
-                userInfo.AddItem(remoteClient.AgentId, item);
+                userInfo.AddItem(item);
                 remoteClient.SendInventoryItemCreateUpdate(item);
 
                 int userlevel = 0;
@@ -372,7 +372,7 @@ namespace OpenSim.Region.Environment.Scenes
                         itemCopy.SalePrice = item.SalePrice;
                         itemCopy.SaleType = item.SaleType;
 
-                        recipientUserInfo.AddItem(recipientClient.AgentId, itemCopy);
+                        recipientUserInfo.AddItem(itemCopy);
                         
                         // Let the recipient client know about this new item
                         recipientClient.SendBulkUpdateInventory(itemCopy);                         
@@ -533,7 +533,7 @@ namespace OpenSim.Region.Environment.Scenes
                 item.CurrentPermissions = 2147483647;
                 item.NextPermissions = nextOwnerMask;
 
-                userInfo.AddItem(remoteClient.AgentId, item);
+                userInfo.AddItem(item);
                 remoteClient.SendInventoryItemCreateUpdate(item);
             }
             else
@@ -1011,7 +1011,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                                 // TODO: add the new fields (Flags, Sale info, etc)
 
-                                userInfo.AddItem(remoteClient.AgentId, item);
+                                userInfo.AddItem(item);
                                 remoteClient.SendInventoryItemCreateUpdate(item);
                             }
 
@@ -1101,7 +1101,7 @@ namespace OpenSim.Region.Environment.Scenes
                         item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
                     }
 
-                    userInfo.AddItem(agentID, item);
+                    userInfo.AddItem(item);
 
                     // this gets called when the agent loggs off!
                     if (remoteClient != null)
@@ -1158,7 +1158,7 @@ namespace OpenSim.Region.Environment.Scenes
                         item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
                     }
 
-                    userInfo.AddItem(remoteClient.AgentId, item);
+                    userInfo.AddItem(item);
                     remoteClient.SendInventoryItemCreateUpdate(item);
                     return item.AssetID;
                 }
