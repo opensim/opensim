@@ -527,6 +527,18 @@ namespace OpenSim.Region.Physics.POSPlugin
         public override PhysicsVector PIDTarget { set { return; } }
         public override bool PIDActive { set { return; } }
         public override float PIDTau { set { return; } }
+        public override void SubscribeEvents(int ms)
+        {
+
+        }
+        public override void UnSubscribeEvents()
+        {
+
+        }
+        public override bool SubscribedEvents()
+        {
+            return false;
+        }
     }
 
     public class POSPrim : PhysicsActor
@@ -728,5 +740,17 @@ namespace OpenSim.Region.Physics.POSPlugin
         public override PhysicsVector PIDTarget { set { return; } }
         public override bool PIDActive { set { return; } }
         public override float PIDTau { set { return; } }
+        public override void SubscribeEvents(int ms)
+        {
+
+        }
+        public override void UnSubscribeEvents()
+        {
+
+        }
+        public override bool SubscribedEvents()
+        {
+            return false;
+        }
     }
 }

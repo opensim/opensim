@@ -136,7 +136,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector _target_velocity;
         public d.Mass pMass;
 
+        public int m_eventsubscription = 0;
+        private CollisionEventUpdate CollisionEventsThisFrame = null;
+
         private IntPtr m_linkJoint = (IntPtr)0;
+
 
         public OdePrim(String primName, OdeScene parent_scene, PhysicsVector pos, PhysicsVector size,
                        Quaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool pisPhysical, CollisionLocker dode)
@@ -201,12 +205,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             
         }
 
-        /// <summary>
-        /// Nasty, however without this you get 
-        /// 'invalid operation for locked space' when things are really loaded down
-        /// </summary>
-        /// <param name="space"></param>
-        
         public override int PhysicsActorType
         {
             get { return (int) ActorTypes.Prim; }
@@ -2228,6 +2226,43 @@ namespace OpenSim.Region.Physics.OdePlugin
            
             d.JointSetAMotorParam(Amotor, (int)dParam.FudgeFactor, 0f);
             d.JointSetAMotorParam(Amotor, (int)dParam.FMax, m_tensor);
+        }
+        public override void SubscribeEvents(int ms)
+        {
+            m_eventsubscription = ms;
+            _parent_scene.addCollisionEventReporting(this);
+        }
+        public override void UnSubscribeEvents()
+        {
+            _parent_scene.remCollisionEventReporting(this);
+            m_eventsubscription = 0;
+        }
+        public void AddCollisionEvent(uint CollidedWith, float depth)
+        {
+            if (CollisionEventsThisFrame == null)
+                CollisionEventsThisFrame = new CollisionEventUpdate();
+            CollisionEventsThisFrame.addCollider(CollidedWith,depth);
+        }
+
+        public void SendCollisions()
+        {
+            if (CollisionEventsThisFrame == null)
+                return;
+
+            //if (CollisionEventsThisFrame.m_objCollisionList == null)
+            //    return;
+
+            if (CollisionEventsThisFrame.m_objCollisionList.Count > 0)
+            {
+                base.SendCollisionUpdate(CollisionEventsThisFrame);
+                CollisionEventsThisFrame = new CollisionEventUpdate();
+            }
+        }
+        public override bool SubscribedEvents()
+        {
+            if (m_eventsubscription > 0)
+                return true;
+            return false;
         }
     }
 }

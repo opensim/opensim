@@ -1329,7 +1329,15 @@ namespace OpenSim.Region.Environment.Scenes
                 AmBa = FaceA[i] - FaceB[i];
                 AmBb = FaceB[i] - FaceC[i];
                 d = normals[i].Dot(FaceB[i]);
-                c = iray.Direction.Dot(normals[i]);
+
+                if (faceCenters)
+                {
+                    c = normals[i].Dot(normals[i]);
+                }
+                else
+                {
+                    c = iray.Direction.Dot(normals[i]);
+                }
                 if (c == 0)
                     continue;
 
@@ -1339,12 +1347,15 @@ namespace OpenSim.Region.Environment.Scenes
                     continue;
 
                 // If the normal is pointing outside the object
+
+                
+
                 if (iray.Direction.Dot(normals[i]) < 0 || !frontFacesOnly)
                 {
 
                     if (faceCenters)
-                    {
-                        q = (FaceA[i] + FaceB[i] + FaceC[1] + FaceD[i]) / 4f; //iray.Origin + a * normals[i];
+                    {   //(FaceA[i] + FaceB[i] + FaceC[1] + FaceD[i]) / 4f;
+                        q =  iray.Origin + a * normals[i];
                     }
                     else
                     {
@@ -1364,8 +1375,9 @@ namespace OpenSim.Region.Environment.Scenes
                         returnresult.distance = distance2;
                         returnresult.HitTF = true;
                         returnresult.ipoint = q;
-                        //m_log.Info("[FACE]:" + i.ToString());
-                        //m_log.Info("[POINT]: " + q.ToString());
+                        m_log.Info("[FACE]:" + i.ToString());
+                        m_log.Info("[POINT]: " + q.ToString());
+                        m_log.Info("[DIST]: " + distance2.ToString());
                         returnresult.normal = normals[i];
                         returnresult.AAfaceNormal = AAfacenormals[i];
 
@@ -2680,6 +2692,20 @@ namespace OpenSim.Region.Environment.Scenes
                 )
             {
                 // subscribe to physics updates.
+                if (PhysActor != null)
+                {
+                    PhysActor.OnCollisionUpdate += PhysicsCollision;
+                    PhysActor.SubscribeEvents(1000);
+
+                }
+            }
+            else
+            {
+                if (PhysActor != null)
+                {
+                    PhysActor.UnSubscribeEvents();
+                    PhysActor.OnCollisionUpdate -= PhysicsCollision;
+                }
             }
 
 			LocalFlags=(LLObject.ObjectFlags)objectflagupdate;
@@ -2689,5 +2715,24 @@ namespace OpenSim.Region.Environment.Scenes
 			else
 				ScheduleFullUpdate();
 		}
+        public void PhysicsCollision(EventArgs e)
+        {
+            
+            return;
+
+            //
+            //if (e == null)
+            //{
+            //    return;
+            //}
+            //CollisionEventUpdate a = (CollisionEventUpdate)e;
+            //Dictionary<uint, float> collissionswith = a.m_objCollisionList;
+            //foreach (uint localid in collissionswith.Keys)
+            //{
+             //   m_log.Debug("[OBJECT]: Collided with:" + localid.ToString() + " at depth of: " + collissionswith[localid].ToString());
+            //}
+            
+        }
     }
+    
 }

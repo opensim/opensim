@@ -1659,7 +1659,7 @@ namespace OpenSim.Region.Environment.Scenes
                     Ray NewRay = new Ray(AXOrigin, AXdirection);
 
                     // Ray Trace against target here
-                    EntityIntersection ei = target.TestIntersectionOBB(NewRay, new Quaternion(1, 0, 0, 0), frontFacesOnly, CopyCenters);
+                    EntityIntersection ei = target.TestIntersectionOBB(NewRay, new Quaternion(1, 0, 0, 0), frontFacesOnly, false);
 
                     // Un-comment out the following line to Get Raytrace results printed to the console.
                    // m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
@@ -1676,16 +1676,17 @@ namespace OpenSim.Region.Environment.Scenes
                         ScaleOffset = Math.Abs(ScaleOffset);
                         LLVector3 intersectionpoint = new LLVector3(ei.ipoint.x, ei.ipoint.y, ei.ipoint.z);
                         LLVector3 normal = new LLVector3(ei.normal.x, ei.normal.y, ei.normal.z);
-                        
+                        LLVector3 offset = (normal * (ScaleOffset / 2f));
+                        pos = (intersectionpoint + offset);
                         
                         if (CopyCenters)
                         {
                             //  now we cast a ray from inside the prim(absolute position) to one of it's faces along the face normal.
-                            LLVector3 direction2 = LLVector3.Norm(intersectionpoint - target2.AbsolutePosition);
+                            LLVector3 direction2 = LLVector3.Norm(pos - target2.AbsolutePosition);
                             Vector3 AXOrigin2 = new Vector3(target2.AbsolutePosition.X, target2.AbsolutePosition.Y, target2.AbsolutePosition.Z);
-                            Vector3 AXdirection2 = ei.AAfaceNormal;
+                            Vector3 AXdirection2 = new Vector3(direction2.X, direction2.Y, direction2.Z); //ei.AAfaceNormal;
                             Ray NewRay2 = new Ray(AXOrigin2, AXdirection2);
-                            EntityIntersection ei2 = target.TestIntersectionOBB(NewRay2, new Quaternion(1, 0, 0, 0), true, CopyCenters);
+                            EntityIntersection ei2 = target.TestIntersectionOBB(NewRay2, new Quaternion(1, 0, 0, 0), false, CopyCenters);
                             if (ei2.HitTF)
                             {
                                //m_log.Info("[RAYTRACERESULTS]: Hit:" + ei2.HitTF.ToString() + " Point: " + ei2.ipoint.ToString() + " Normal: " + ei2.normal.ToString());
@@ -1697,7 +1698,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                         
                         // Set the position to the intersection point
-                        LLVector3 offset = (normal * (ScaleOffset / 2f));
+                        offset = (normal * (ScaleOffset / 2f));
                         pos = (intersectionpoint + offset);
 
                         // stick in offset format from the original prim

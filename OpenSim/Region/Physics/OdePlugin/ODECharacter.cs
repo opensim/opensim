@@ -112,6 +112,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         public d.Mass ShellMass;
         public bool collidelock = false;
 
+        public int m_eventsubscription = 0;
+        private CollisionEventUpdate CollisionEventsThisFrame = null;
+
         public OdeCharacter(String avName, OdeScene parent_scene, PhysicsVector pos, CollisionLocker dode, PhysicsVector size)
         {
             ode = dode;
@@ -863,5 +866,33 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override PhysicsVector PIDTarget { set { return; } }
         public override bool PIDActive { set { return; } }
         public override float PIDTau { set { return; } }
+        public override void SubscribeEvents(int ms)
+        {
+            m_eventsubscription = ms;
+        }
+        public override void UnSubscribeEvents()
+        {
+            m_eventsubscription = 0;
+        }
+        public void AddCollisionEvent(uint CollidedWith, float depth)
+        {
+            if (m_eventsubscription > 0)
+                CollisionEventsThisFrame.addCollider(CollidedWith,depth);
+        }
+
+        public void SendCollisions()
+        {
+            if (m_eventsubscription > 0)
+            {
+                base.SendCollisionUpdate(CollisionEventsThisFrame);
+                CollisionEventsThisFrame = new CollisionEventUpdate();
+            }
+        }
+        public override bool SubscribedEvents()
+        {
+            if (m_eventsubscription > 0)
+                return true;
+            return false;
+        }
     }
 }

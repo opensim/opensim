@@ -51,9 +51,9 @@ namespace OpenSim.Region.Physics.Manager
         public int m_colliderType;
         public int m_GenericStartEnd;
         //public uint m_LocalID;
-        public List<uint> m_objCollisionList;
+        public Dictionary<uint,float> m_objCollisionList = new Dictionary<uint,float>();
 
-        public CollisionEventUpdate(uint localID, int colliderType, int GenericStartEnd, List<uint> objCollisionList)
+        public CollisionEventUpdate(uint localID, int colliderType, int GenericStartEnd, Dictionary<uint, float> objCollisionList)
         {
             m_colliderType = colliderType;
             m_GenericStartEnd = GenericStartEnd;
@@ -64,7 +64,8 @@ namespace OpenSim.Region.Physics.Manager
         {
             m_colliderType = (int) ActorTypes.Unknown;
             m_GenericStartEnd = 1;
-            m_objCollisionList = null;
+           // m_objCollisionList = null;
+            m_objCollisionList = new Dictionary<uint, float>();
         }
 
         public int collidertype
@@ -79,9 +80,17 @@ namespace OpenSim.Region.Physics.Manager
             set { m_GenericStartEnd = value; }
         }
 
-        public void addCollider(uint localID)
+        public void addCollider(uint localID, float depth)
         {
-            m_objCollisionList.Add(localID);
+            if (!m_objCollisionList.ContainsKey(localID))
+            {
+                m_objCollisionList.Add(localID, depth);
+            }
+            else
+            {
+                if (m_objCollisionList[localID] < depth)
+                    m_objCollisionList[localID] = depth;
+            }
         }
     }
 
@@ -189,6 +198,9 @@ namespace OpenSim.Region.Physics.Manager
 
         public abstract void AddForce(PhysicsVector force);
         public abstract void SetMomentum(PhysicsVector momentum);
+        public abstract void SubscribeEvents(int ms);
+        public abstract void UnSubscribeEvents();
+        public abstract bool SubscribedEvents();
     }
 
     public class NullPhysicsActor : PhysicsActor
@@ -369,6 +381,19 @@ namespace OpenSim.Region.Physics.Manager
 
         public override void SetMomentum(PhysicsVector momentum)
         {
+        }
+
+        public override void SubscribeEvents(int ms)
+        {
+           
+        }
+        public override void UnSubscribeEvents()
+        {
+
+        }
+        public override bool SubscribedEvents()
+        {
+            return false;
         }
     }
 }

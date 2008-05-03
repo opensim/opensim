@@ -131,7 +131,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private float waterlevel = 0f;
         private int framecount = 0;
-        private int m_returncollisions = 10;
+        //private int m_returncollisions = 10;
 
         private IntPtr contactgroup;
         private IntPtr LandGeom = (IntPtr) 0;
@@ -151,6 +151,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private List<OdePrim> _prims = new List<OdePrim>();
         private List<OdePrim> _activeprims = new List<OdePrim>();
         private List<OdePrim> _taintedPrim = new List<OdePrim>();
+        private List<PhysicsActor> _collisionEventPrim = new List<PhysicsActor>();
         public Dictionary<IntPtr, String> geom_name_map = new Dictionary<IntPtr, String>();
         public Dictionary<IntPtr, PhysicsActor> actor_name_map = new Dictionary<IntPtr, PhysicsActor>();
         private d.ContactGeom[] contacts = new d.ContactGeom[80];
@@ -171,16 +172,16 @@ namespace OpenSim.Region.Physics.OdePlugin
 //Ckrinke: Comment out until used. We declare it, initialize it, but do not use it
 //Ckrinke        private int ms = 0;
         public IntPtr world;
-        private bool returncollisions = false;
+        //private bool returncollisions = false;
         private uint obj1LocalID = 0;
         private uint obj2LocalID = 0;
-        private int ctype = 0;
+        //private int ctype = 0;
         private OdeCharacter cc1;
         private OdePrim cp1;
         private OdeCharacter cc2;
         private OdePrim cp2;
-        private int cStartStop = 0;
-        private string cDictKey = "";
+        //private int cStartStop = 0;
+        //private string cDictKey = "";
 
         public IntPtr space;
 
@@ -413,27 +414,32 @@ namespace OpenSim.Region.Physics.OdePlugin
             PhysicsActor p1;
             PhysicsActor p2;
 
+            if (!actor_name_map.TryGetValue(g1, out p1))
+            {
+                p1 = PANull;
+            }
+            if (!actor_name_map.TryGetValue(g2, out p2))
+            {
+                p2 = PANull;
+            }
+
+            float max_collision_depth = 0f;
+
             for (int i = 0; i < count; i++)
             {
+                max_collision_depth = (contacts[i].depth > max_collision_depth) ? contacts[i].depth : max_collision_depth;
                 //m_log.Warn("[CCOUNT]: " + count);
                 IntPtr joint;
                 // If we're colliding with terrain, use 'TerrainContact' instead of contact.
                 // allows us to have different settings
 
-                if (!actor_name_map.TryGetValue(g1, out p1))
-                {
-                    p1 = PANull;
-                }
-                if (!actor_name_map.TryGetValue(g2, out p2))
-                {
-                    p2 = PANull;
-                }
+                
 
                 // We only need to test p2 for 'jump crouch purposes'
                 p2.IsColliding = true;
 
                 //if ((framecount % m_returncollisions) == 0)
-                    //collision_accounting_events(p1, p2);
+                    
 
 
                 switch (p1.PhysicsActorType)
@@ -674,7 +680,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     d.JointAttach(joint, b1, b2);
                 }
-
+                collision_accounting_events(p1, p2, max_collision_depth);
                 if (count > 3)
                 {
                     // If there are more then 3 contact points, it's likely
@@ -690,130 +696,134 @@ namespace OpenSim.Region.Physics.OdePlugin
             
         }
 
-        private void collision_accounting_events(PhysicsActor p1, PhysicsActor p2)
+        private void collision_accounting_events(PhysicsActor p1, PhysicsActor p2, float collisiondepth)
         {
             obj1LocalID = 0;
-            returncollisions = false;
+            //returncollisions = false;
             obj2LocalID = 0;
-            ctype = 0;
-            cStartStop = 0;
+            //ctype = 0;
+            //cStartStop = 0;
+            if (!p2.SubscribedEvents() && !p1.SubscribedEvents())
+                return;
 
             switch ((ActorTypes)p2.PhysicsActorType)
             {
                 case ActorTypes.Agent:
                     cc2 = (OdeCharacter)p2;
-                    if (cc2.m_returnCollisions)
-                    {
+                    
                         obj1LocalID = cc2.m_localID;
                         switch ((ActorTypes)p1.PhysicsActorType)
                         {
                             case ActorTypes.Agent:
                                 cc1 = (OdeCharacter)p1;
                                 obj2LocalID = cc1.m_localID;
-                                ctype = (int)CollisionCategories.Character;
+                                cc1.AddCollisionEvent(cc2.m_localID, collisiondepth);
+                                //ctype = (int)CollisionCategories.Character;
                                 
-                                if (cc1.CollidingObj)
-                                    cStartStop = (int)StatusIndicators.Generic;
-                                else
-                                    cStartStop = (int)StatusIndicators.Start;
+                                //if (cc1.CollidingObj)
+                                    //cStartStop = (int)StatusIndicators.Generic;
+                                //else
+                                    //cStartStop = (int)StatusIndicators.Start;
 
-                                returncollisions = true;
+                                //returncollisions = true;
                                 break;
                             case ActorTypes.Prim:
                                 cp1 = (OdePrim)p1;
                                 obj2LocalID = cp1.m_localID;
-                                ctype = (int)CollisionCategories.Geom;
+                                cp1.AddCollisionEvent(cc2.m_localID, collisiondepth);
+                                //ctype = (int)CollisionCategories.Geom;
 
-                                if (cp1.CollidingObj)
-                                    cStartStop = (int)StatusIndicators.Generic;
-                                else
-                                    cStartStop = (int)StatusIndicators.Start;
+                                //if (cp1.CollidingObj)
+                                    //cStartStop = (int)StatusIndicators.Generic;
+                                //else
+                                    //cStartStop = (int)StatusIndicators.Start;
                                 
-                                returncollisions = true;
+                                //returncollisions = true;
                                 break;
 
                             case ActorTypes.Ground:
                             case ActorTypes.Unknown:
                                 obj2LocalID = 0;
-                                ctype = (int)CollisionCategories.Land;
-                                returncollisions = true;
+                                //ctype = (int)CollisionCategories.Land;
+                                //returncollisions = true;
                                 break;
                         }
                         
 
-                    }
-
+                    
+                    cc2.AddCollisionEvent(obj2LocalID, collisiondepth);
                     break;
                 case ActorTypes.Prim:
                     cp2 = (OdePrim)p2;
-                    if (cp2.m_returnCollisions)
-                    {
+                    
                         obj1LocalID = cp2.m_localID;
                         switch ((ActorTypes)p1.PhysicsActorType)
                         {
                             case ActorTypes.Agent:
                                 cc1 = (OdeCharacter)p1;
                                 obj2LocalID = cc1.m_localID;
-                                ctype = (int)CollisionCategories.Character;
+                                cc1.AddCollisionEvent(cp2.m_localID, collisiondepth);
+                                //ctype = (int)CollisionCategories.Character;
 
-                                if (cc1.CollidingObj)
-                                    cStartStop = (int)StatusIndicators.Generic;
-                                else
-                                    cStartStop = (int)StatusIndicators.Start;
-                                returncollisions = true;
+                                //if (cc1.CollidingObj)
+                                    //cStartStop = (int)StatusIndicators.Generic;
+                                //else
+                                    //cStartStop = (int)StatusIndicators.Start;
+                                //returncollisions = true;
                                 
                                 break;
                             case ActorTypes.Prim:
                                 cp1 = (OdePrim)p1;
                                 obj2LocalID = cp1.m_localID;
-                                ctype = (int)CollisionCategories.Geom;
+                                cp1.AddCollisionEvent(cp2.m_localID, collisiondepth);
+                                //ctype = (int)CollisionCategories.Geom;
 
-                                if (cp1.CollidingObj)
-                                    cStartStop = (int)StatusIndicators.Generic;
-                                else
-                                    cStartStop = (int)StatusIndicators.Start;
+                                //if (cp1.CollidingObj)
+                                    //cStartStop = (int)StatusIndicators.Generic;
+                                //else
+                                    //cStartStop = (int)StatusIndicators.Start;
                                 
-                                returncollisions = true;
+                                //returncollisions = true;
                                 break;
 
                             case ActorTypes.Ground:
                             case ActorTypes.Unknown:
                                 obj2LocalID = 0;
-                                ctype = (int)CollisionCategories.Land;
+                                //ctype = (int)CollisionCategories.Land;
                                 
-                                returncollisions = true;
+                                //returncollisions = true;
                                 break;
                         }
-                    }
-
+                    
+                    cp2.AddCollisionEvent(obj2LocalID, collisiondepth);
                     break;
             }
-            if (returncollisions)
-            {
+            //if (returncollisions)
+            //{
 
-                lock (m_storedCollisions)
-                {
-                    cDictKey = obj1LocalID.ToString() + obj2LocalID.ToString() + cStartStop.ToString() + ctype.ToString();
-                    if (m_storedCollisions.ContainsKey(cDictKey))
-                    {
-                        sCollisionData objd = m_storedCollisions[cDictKey];
-                        objd.NumberOfCollisions += 1;
-                        objd.lastframe = framecount;
-                        m_storedCollisions[cDictKey] = objd;
-                    }
-                    else
-                    {
-                        sCollisionData objd = new sCollisionData();
-                        objd.ColliderLocalId = obj1LocalID;
-                        objd.CollidedWithLocalId = obj2LocalID;
-                        objd.CollisionType = ctype;
-                        objd.NumberOfCollisions = 1;
-                        objd.lastframe = framecount;
-                        objd.StatusIndicator = cStartStop;
-                        m_storedCollisions.Add(cDictKey, objd);
-                    }
-                }
-            }
+                //lock (m_storedCollisions)
+                //{
+                    //cDictKey = obj1LocalID.ToString() + obj2LocalID.ToString() + cStartStop.ToString() + ctype.ToString();
+                    //if (m_storedCollisions.ContainsKey(cDictKey))
+                    //{
+                        //sCollisionData objd = m_storedCollisions[cDictKey];
+                        //objd.NumberOfCollisions += 1;
+                        //objd.lastframe = framecount;
+                        //m_storedCollisions[cDictKey] = objd;
+                    //}
+                    //else
+                    //{
+                        //sCollisionData objd = new sCollisionData();
+                        //objd.ColliderLocalId = obj1LocalID;
+                        //objd.CollidedWithLocalId = obj2LocalID;
+                        //objd.CollisionType = ctype;
+                        //objd.NumberOfCollisions = 1;
+                        //objd.lastframe = framecount;
+                        //objd.StatusIndicator = cStartStop;
+                        //m_storedCollisions.Add(cDictKey, objd);
+                    //}
+                //}
+           // }
         }
 
         public int TriArrayCallback(IntPtr trimesh, IntPtr refObject, int[] triangleIndex, int triCount)
@@ -939,6 +949,26 @@ namespace OpenSim.Region.Physics.OdePlugin
 //         {
 //             return (float)_origheightmap[(int)y * Constants.RegionSize + (int)x];
 //         }
+
+        public void addCollisionEventReporting(PhysicsActor obj)
+        {
+            lock(_collisionEventPrim)
+            {
+                if (!_collisionEventPrim.Contains(obj))
+                    _collisionEventPrim.Add(obj);
+
+            }
+        }
+
+        public void remCollisionEventReporting(PhysicsActor obj)
+        {
+            lock (_collisionEventPrim)
+            {
+                if (!_collisionEventPrim.Contains(obj))
+                    _collisionEventPrim.Remove(obj);
+            }
+        }
+
 
         #region Add/Remove Entities
 
@@ -1068,6 +1098,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             lock (prim)
             {
+                remCollisionEventReporting(prim);
                 lock (ode)
                 {
                     if (prim.prim_geom != (IntPtr)0)
@@ -1550,6 +1581,28 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 
 
                                 collision_optimized(timeStep);
+
+                                lock (_collisionEventPrim)
+                                {
+                                    foreach (PhysicsActor obj in _collisionEventPrim)
+                                    {
+                                        if (obj == null)
+                                            continue;
+
+                                        switch ((ActorTypes)obj.PhysicsActorType)
+                                        {
+                                            case ActorTypes.Agent:
+                                                OdeCharacter cobj = (OdeCharacter)obj;
+                                                cobj.SendCollisions();
+                                                break;
+                                            case ActorTypes.Prim:
+                                                OdePrim pobj = (OdePrim)obj;
+                                                pobj.SendCollisions();
+                                                break;
+                                        }
+                                            
+                                    }
+                                }
 
                                 d.WorldQuickStep(world, ODE_STEPSIZE);
 
