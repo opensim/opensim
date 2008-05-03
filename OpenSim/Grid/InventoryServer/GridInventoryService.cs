@@ -28,8 +28,11 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
+
 using libsecondlife;
 using log4net;
+
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 
@@ -48,71 +51,18 @@ namespace OpenSim.Grid.InventoryServer
         }
 
         /// <summary>
-        /// Get a user's inventory.
-        /// </summary>
-        /// <param name="userID"></param>
-        /// <param name="folderList"></param>
-        /// <param name="itemsList"></param>
-        /// <returns>true if the inventory was retrieved, false otherwise</returns>
-        private bool GetUsersInventory(LLUUID userID, out List<InventoryFolderBase> folderList,
-                                          out List<InventoryItemBase> itemsList)
-        {
-            List<InventoryFolderBase> allFolders = GetInventorySkeleton(userID);
-            List<InventoryItemBase> allItems = new List<InventoryItemBase>();
-
-            foreach (InventoryFolderBase folder in allFolders)
-            {
-                List<InventoryItemBase> items = RequestFolderItems(folder.ID);
-                if (items != null)
-                {
-                    allItems.InsertRange(0, items);
-                }
-            }
-
-            folderList = allFolders;
-            itemsList = allItems;
-            if (folderList != null)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        private List<InventoryFolderBase> GetAllFolders(LLUUID folder)
-        {
-            List<InventoryFolderBase> allFolders = new List<InventoryFolderBase>();
-            List<InventoryFolderBase> folders = RequestSubFolders(folder);
-            if (folders != null)
-            {
-                allFolders.InsertRange(0, folders);
-                foreach (InventoryFolderBase subfolder in folders)
-                {
-                    List<InventoryFolderBase> subFolders = GetAllFolders(subfolder.ID);
-                    if (subFolders != null)
-                    {
-                        allFolders.InsertRange(0, subFolders);
-                    }
-                }
-            }
-            return allFolders;
-        }
-
-        /// <summary>
         /// Return a user's entire inventory
         /// </summary>
         /// <param name="rawUserID"></param>
         /// <returns>The user's inventory.  If an inventory cannot be found then an empty collection is returned.</returns>
         public InventoryCollection GetUserInventory(Guid rawUserID)
-        {
-            // uncomment me to simulate an overloaded inventory server
-            //Thread.Sleep(20000);
-            
+        {            
             LLUUID userID = new LLUUID(rawUserID);
 
-            m_log.InfoFormat("[GRID AGENT INVENTORY]: Processing request for inventory of {0}", userID);            
+            m_log.InfoFormat("[GRID AGENT INVENTORY]: Processing request for inventory of {0}", userID);
+            
+            // uncomment me to simulate an overloaded inventory server
+            //Thread.Sleep(20000);            
 
             InventoryCollection invCollection = new InventoryCollection();
             

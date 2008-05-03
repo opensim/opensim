@@ -28,11 +28,16 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
+
 using libsecondlife;
 using log4net;
 
 namespace OpenSim.Framework.Communications.Cache
 {
+    internal delegate void CreateInventoryFolderDelegate(
+        string folderName, LLUUID folderID, ushort folderType, LLUUID parentID); 
+    
     /// <summary>
     /// Stores user profile and inventory data received from backend services for a particular user.
     /// </summary>
@@ -297,6 +302,99 @@ namespace OpenSim.Framework.Communications.Cache
                 }
             }
         }
+        
+        /// <summary>
+        /// Create a folder in this agent's inventory
+        /// </summary>
+        /// <param name="parentID"></param>
+        /// <returns></returns>
+        public bool CreateFolder(string folderName, LLUUID folderID, ushort folderType, LLUUID parentID)
+        {
+//            m_log.DebugFormat(
+//                "[AGENT INVENTORY]: Creating inventory folder {0} {1} for {2} {3}", folderID, folderName, remoteClient.Name, remoteClient.AgentId);
+            
+            if (HasInventory)
+            {
+                if (RootFolder.ID == parentID)
+                {
+                    InventoryFolderImpl createdFolder = RootFolder.CreateNewSubFolder(folderID, folderName, folderType);
+
+                    if (createdFolder != null)
+                    {
+                        InventoryFolderBase createdBaseFolder = new InventoryFolderBase();
+                        createdBaseFolder.Owner = createdFolder.Owner;
+                        createdBaseFolder.ID = createdFolder.ID;
+                        createdBaseFolder.Name = createdFolder.Name;
+                        createdBaseFolder.ParentID = createdFolder.ParentID;
+                        createdBaseFolder.Type = createdFolder.Type;
+                        createdBaseFolder.Version = createdFolder.Version;
+                        
+                        m_commsManager.InventoryService.AddFolder(createdBaseFolder);
+                        
+                        return true;
+                    }
+                    else
+                    {
+                        m_log.WarnFormat(
+                             "[INVENTORY CACHE]: Tried to create folder {0} {1} but the folder already exists", 
+                             folderName, folderID);
+                        
+                        return false;
+                    }
+                }
+                else
+                {
+                    InventoryFolderImpl folder = RootFolder.GetDescendentFolder(parentID);
+                    
+                    if (folder != null)
+                    {
+                        InventoryFolderImpl createdFolder = folder.CreateNewSubFolder(folderID, folderName, folderType);
+                     
+                        if (createdFolder != null)
+                        {
+                            InventoryFolderBase createdBaseFolder = new InventoryFolderBase();
+                            createdBaseFolder.Owner = createdFolder.Owner;
+                            createdBaseFolder.ID = createdFolder.ID;
+                            createdBaseFolder.Name = createdFolder.Name;
+                            createdBaseFolder.ParentID = createdFolder.ParentID;
+                            createdBaseFolder.Type = createdFolder.Type;
+                            createdBaseFolder.Version = createdFolder.Version;                            
+                            
+                            m_commsManager.InventoryService.AddFolder(createdBaseFolder);
+                            
+                            return true;
+                        }
+                        else
+                        {
+                            m_log.WarnFormat(
+                                 "[INVENTORY CACHE]: Tried to create folder {0} {1} but the folder already exists", 
+                                 folderName, folderID);
+                            
+                            return false;
+                        }    
+                    }  
+                    else
+                    {
+                        m_log.WarnFormat(
+                             "[INVENTORY CACHE]: Could not find parent folder with id {0} in order to create folder {1} {2}",
+                             parentID, folderName, folderID);
+                        
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                AddRequest(
+                    new InventoryRequest(
+                        Delegate.CreateDelegate(typeof(CreateInventoryFolderDelegate), this, "CreateFolder"),
+                        new object[] { folderName, folderID, folderType, parentID }));
+                
+                return true;
+            }   
+            
+            return false;
+        }
 
         /// <summary>
         /// Add an item to the user's inventory
@@ -360,7 +458,7 @@ namespace OpenSim.Framework.Communications.Cache
     /// <summary>
     /// Generic inventory request
     /// </summary>
-    public class InventoryRequest : IInventoryRequest
+    class InventoryRequest : IInventoryRequest
     {
         private Delegate m_delegat;
         private Object[] m_args;

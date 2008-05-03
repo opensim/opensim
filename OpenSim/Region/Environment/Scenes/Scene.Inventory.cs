@@ -645,6 +645,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             CachedUserInfo userInfo
                 = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+            
             if (userInfo == null)
             {
                 m_log.Error("[AGENT INVENTORY]: Failed to find user " + remoteClient.AgentId.ToString());

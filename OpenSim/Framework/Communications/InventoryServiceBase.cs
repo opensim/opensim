@@ -28,11 +28,16 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
+
 using libsecondlife;
 using log4net;
 
 namespace OpenSim.Framework.Communications
 {
+    /// <summary>
+    /// Abstract base class used by local and grid implementations of an inventory service.
+    /// </summary>
     public abstract class InventoryServiceBase : IInventoryServices
     {
         private static readonly ILog m_log 
@@ -178,10 +183,11 @@ namespace OpenSim.Framework.Communications
         
         #endregion
 
+        // See IInventoryServices
         public bool AddFolder(InventoryFolderBase folder)
         {
             m_log.DebugFormat(
-                "[AGENT INVENTORY]: Adding folder {0} {1} to folder {2}", folder.Name, folder.ID, folder.ParentID);
+                "[AGENT INVENTORY]: Adding folder {0} {1} to folder {2}", folder.Name, folder.ID, folder.ParentID);            
             
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
@@ -192,6 +198,7 @@ namespace OpenSim.Framework.Communications
             return true;
         }
 
+        // See IInventoryServices
         public bool MoveFolder(InventoryFolderBase folder)
         {
             m_log.DebugFormat(
@@ -206,6 +213,7 @@ namespace OpenSim.Framework.Communications
             return true;            
         }
 
+        // See IInventoryServices
         public bool AddItem(InventoryItemBase item)
         {
             m_log.DebugFormat(
@@ -220,6 +228,7 @@ namespace OpenSim.Framework.Communications
             return true;            
         }
 
+        // See IInventoryServices
         public bool UpdateItem(InventoryItemBase item)
         {
             m_log.InfoFormat(
@@ -234,6 +243,7 @@ namespace OpenSim.Framework.Communications
             return true;            
         }
 
+        // See IInventoryServices
         public bool DeleteItem(InventoryItemBase item)
         {
             m_log.InfoFormat(
