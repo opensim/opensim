@@ -81,10 +81,9 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             if (proxyURL.Length == 0) return;
 
             StartTcpServer();
-            // BUG: This needs to be fixed
-            // TODO: YARLY.
-            // LLClientView.SynchronizeClient = new LLClientView.SynchronizeClientHandler(SynchronizePackets);
-            AsynchronousSocketListener.PacketHandler = new AsynchronousSocketListener.PacketRecieveHandler(SynchronizePacketRecieve);
+
+            LLClientView.SynchronizeClient = SynchronizePackets;
+            AsynchronousSocketListener.PacketHandler = SynchronizePacketRecieve;
 
             sceneManager = openSim.SceneManager;
             m_clientServers = openSim.ClientServers;
@@ -495,8 +494,6 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                     m_log.InfoFormat("[BALANCER] " + "region deserialized [{0}]", dst_region.RegionID);
                 }
 
-                // BUG: This looks dodgy. Johan please look at this.
-                // Prevent nullreference on zero entry
                 if (dst_region != null)
                 {
                     // deserialization of client data
@@ -561,7 +558,6 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                         AgentCircuitData agentdata = new AgentCircuitData(data.agentcircuit);
                         scene.AuthenticateHandler.AddNewCircuit(circuit_code, agentdata);
 
-                        // BUG: Will only work with LLUDPServer.
                         // TODO: This needs to be abstracted and converted into IClientNetworkServer
                         if (clientserv is LLUDPServer)
                         {
