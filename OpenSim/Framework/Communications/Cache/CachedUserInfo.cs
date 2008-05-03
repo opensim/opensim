@@ -35,6 +35,8 @@ using log4net;
 
 namespace OpenSim.Framework.Communications.Cache
 {
+    internal delegate void AddItemDelegate(InventoryItemBase itemInfo);
+    internal delegate void UpdateItemDelegate(InventoryItemBase itemInfo);    
     internal delegate void DeleteItemDelegate(LLUUID itemID);
     
     internal delegate void CreateFolderDelegate(string folderName, LLUUID folderID, ushort folderType, LLUUID parentID);
@@ -532,13 +534,20 @@ namespace OpenSim.Framework.Communications.Cache
         /// Add an item to the user's inventory
         /// </summary>
         /// <param name="itemInfo"></param>
-        public void AddItem(InventoryItemBase itemInfo)
+        public void AddItem(InventoryItemBase item)
         {
             if (HasInventory)
             {
-                ItemReceive(itemInfo);
-                m_commsManager.InventoryService.AddItem(itemInfo);
+                ItemReceive(item);
+                m_commsManager.InventoryService.AddItem(item);
             }
+            else
+            {
+                AddRequest(
+                    new InventoryRequest(
+                        Delegate.CreateDelegate(typeof(AddItemDelegate), this, "AddItem"),
+                        new object[] { item }));
+            }            
         }
 
         /// <summary>
@@ -546,12 +555,19 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="userID"></param>
         /// <param name="itemInfo"></param>
-        public void UpdateItem(InventoryItemBase itemInfo)
+        public void UpdateItem(InventoryItemBase item)
         {
             if (HasInventory)
             {
-                m_commsManager.InventoryService.UpdateItem(itemInfo);
+                m_commsManager.InventoryService.UpdateItem(item);
             }
+            else
+            {
+                AddRequest(
+                    new InventoryRequest(
+                        Delegate.CreateDelegate(typeof(UpdateItemDelegate), this, "UpdateItem"),
+                        new object[] { item }));
+            }              
         }
 
         /// <summary>

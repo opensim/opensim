@@ -486,6 +486,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (userInfo == null)
             {
                 m_log.Error("[AGENT INVENTORY]: Failed to find user " + remoteClient.AgentId.ToString());
+                
                 return;
             }
 
@@ -509,12 +510,14 @@ namespace OpenSim.Region.Environment.Scenes
                 else
                 {
                     m_log.Error("[AGENT INVENTORY]: Failed to find item " + itemID.ToString());
+                    
                     return;
                 }
             }
             else
             {
                 m_log.Error("[AGENT INVENTORY]: Failed to find item " + itemID.ToString() + ", no root folder");
+                
                 return;
             }
         }

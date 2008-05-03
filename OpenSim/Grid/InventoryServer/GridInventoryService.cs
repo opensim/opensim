@@ -62,7 +62,7 @@ namespace OpenSim.Grid.InventoryServer
             m_log.InfoFormat("[GRID AGENT INVENTORY]: Processing request for inventory of {0}", userID);
             
             // uncomment me to simulate an overloaded inventory server
-            Thread.Sleep(18000);            
+            //Thread.Sleep(18000);            
 
             InventoryCollection invCollection = new InventoryCollection();
             
