@@ -69,7 +69,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="folderName"></param>
         /// <param name="type"></param>
         /// <returns>The newly created subfolder.  Returns null if the folder already exists</returns>
-        public InventoryFolderImpl CreateNewSubFolder(LLUUID folderID, string folderName, ushort type)
+        public InventoryFolderImpl CreateChildFolder(LLUUID folderID, string folderName, ushort type)
         {
             lock (SubFolders)
             {
@@ -82,6 +82,7 @@ namespace OpenSim.Framework.Communications.Cache
                     subFold.ParentID = this.ID;
                     subFold.Owner = Owner;
                     SubFolders.Add(subFold.ID, subFold);
+                    
                     return subFold;
                 }
             }
@@ -135,7 +136,7 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Delete an item from the folder.
+        /// Deletes an item if it exists in this folder or any children
         /// </summary>
         /// <param name="folderID"></param>
         /// <returns></returns>
@@ -157,6 +158,7 @@ namespace OpenSim.Framework.Communications.Cache
                 foreach (InventoryFolderImpl folder in SubFolders.Values)
                 {
                     found = folder.DeleteItem(itemID);
+                    
                     if (found == true)
                     {
                         break;
@@ -168,37 +170,35 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Returns the folder requested if it exists as a descendent of this folder
+        /// Returns the folder requested if it is this folder or is a descendent of this folder.  The search is depth
+        /// first.
         /// </summary>
         /// <returns>The requested folder if it exists, null if it does not.</returns>
         public InventoryFolderImpl FindFolder(LLUUID folderID)
         {            
-            InventoryFolderImpl returnFolder = null;
+            if (folderID == ID)
+            {
+                return this;
+            }
             
             lock (SubFolders)
             {
-                if (SubFolders.ContainsKey(folderID))
+                foreach (InventoryFolderImpl folder in SubFolders.Values)
                 {
-                    returnFolder = SubFolders[folderID];
-                }
-                else
-                {
-                    foreach (InventoryFolderImpl folder in SubFolders.Values)
+                    InventoryFolderImpl returnFolder = folder.FindFolder(folderID);
+                    
+                    if (returnFolder != null)
                     {
-                        returnFolder = folder.FindFolder(folderID);
-                        if (returnFolder != null)
-                        {
-                            break;
-                        }
+                        return returnFolder;
                     }
                 }
             }
             
-            return returnFolder;
+            return null;
         }
 
         /// <summary>
-        /// Return the list of items in this folder
+        /// Return the list of child items in this folder
         /// </summary>
         public List<InventoryItemBase> RequestListOfItems()
         {

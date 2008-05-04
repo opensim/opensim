@@ -239,6 +239,7 @@ namespace OpenSim.Framework.Communications.Cache
             else
             {
                 InventoryFolderImpl folder = RootFolder.FindFolder(folderInfo.ParentID);
+                
                 lock (folder.SubFolders)
                 {
                     if (folder != null)
@@ -323,72 +324,40 @@ namespace OpenSim.Framework.Communications.Cache
             
             if (HasInventory)
             {
-                if (RootFolder.ID == parentID)
+                InventoryFolderImpl parentFolder = RootFolder.FindFolder(parentID);
+                
+                if (null == parentFolder)
                 {
-                    InventoryFolderImpl createdFolder = RootFolder.CreateNewSubFolder(folderID, folderName, folderType);
+                    m_log.WarnFormat(
+                        "[AGENT INVENTORY]: Tried to create folder {0} {1} but the parent {2} does not exist",
+                        folderName, folderID, parentID);
+                    
+                    return false;
+                }
+                
+                InventoryFolderImpl createdFolder = parentFolder.CreateChildFolder(folderID, folderName, folderType);
 
-                    if (createdFolder != null)
-                    {
-                        InventoryFolderBase createdBaseFolder = new InventoryFolderBase();
-                        createdBaseFolder.Owner = createdFolder.Owner;
-                        createdBaseFolder.ID = createdFolder.ID;
-                        createdBaseFolder.Name = createdFolder.Name;
-                        createdBaseFolder.ParentID = createdFolder.ParentID;
-                        createdBaseFolder.Type = createdFolder.Type;
-                        createdBaseFolder.Version = createdFolder.Version;
-                        
-                        m_commsManager.InventoryService.AddFolder(createdBaseFolder);
-                        
-                        return true;
-                    }
-                    else
-                    {
-                        m_log.WarnFormat(
-                             "[AGENT INVENTORY]: Tried to create folder {0} {1} but the folder already exists", 
-                             folderName, folderID);
-                        
-                        return false;
-                    }
+                if (createdFolder != null)
+                {
+                    InventoryFolderBase createdBaseFolder = new InventoryFolderBase();
+                    createdBaseFolder.Owner = createdFolder.Owner;
+                    createdBaseFolder.ID = createdFolder.ID;
+                    createdBaseFolder.Name = createdFolder.Name;
+                    createdBaseFolder.ParentID = createdFolder.ParentID;
+                    createdBaseFolder.Type = createdFolder.Type;
+                    createdBaseFolder.Version = createdFolder.Version;
+                    
+                    m_commsManager.InventoryService.AddFolder(createdBaseFolder);
+                    
+                    return true;
                 }
                 else
                 {
-                    InventoryFolderImpl folder = RootFolder.FindFolder(parentID);
+                    m_log.WarnFormat(
+                         "[AGENT INVENTORY]: Tried to create folder {0} {1} but the folder already exists", 
+                         folderName, folderID);
                     
-                    if (folder != null)
-                    {
-                        InventoryFolderImpl createdFolder = folder.CreateNewSubFolder(folderID, folderName, folderType);
-                     
-                        if (createdFolder != null)
-                        {
-                            InventoryFolderBase createdBaseFolder = new InventoryFolderBase();
-                            createdBaseFolder.Owner = createdFolder.Owner;
-                            createdBaseFolder.ID = createdFolder.ID;
-                            createdBaseFolder.Name = createdFolder.Name;
-                            createdBaseFolder.ParentID = createdFolder.ParentID;
-                            createdBaseFolder.Type = createdFolder.Type;
-                            createdBaseFolder.Version = createdFolder.Version;                            
-                            
-                            m_commsManager.InventoryService.AddFolder(createdBaseFolder);
-                            
-                            return true;
-                        }
-                        else
-                        {
-                            m_log.WarnFormat(
-                                 "[AGENT INVENTORY]: Tried to create folder {0} {1} but the folder already exists", 
-                                 folderName, folderID);
-                            
-                            return false;
-                        }    
-                    }  
-                    else
-                    {
-                        m_log.WarnFormat(
-                             "[AGENT INVENTORY]: Could not find parent folder with id {0} in order to create folder {1} {2}",
-                             parentID, folderName, folderID);
-                        
-                        return false;
-                    }
+                    return false;
                 }
             }
             else
