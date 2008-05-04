@@ -28,6 +28,7 @@
 using Nini.Config;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Framework;
 
 namespace OpenSim.Region.Environment.Modules.World.Land
 {
@@ -49,11 +50,25 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             m_scene.EventManager.OnClientMovement += new EventManager.ClientMovement(landChannel.handleAnyClientMovement);
             m_scene.EventManager.OnValidateLandBuy += landChannel.handleLandValidationRequest;
             m_scene.EventManager.OnLandBuy += landChannel.handleLandBuyRequest;
+            m_scene.EventManager.OnNewClient += new EventManager.OnNewClientDelegate(EventManager_OnNewClient);
 
             lock (m_scene)
             {
                 m_scene.LandChannel = (ILandChannel) landChannel;
             }
+        }
+
+        void EventManager_OnNewClient(IClientAPI client)
+        {
+            //Register some client events
+            client.OnParcelPropertiesRequest += new ParcelPropertiesRequest(landChannel.handleParcelPropertiesRequest);
+            client.OnParcelDivideRequest += new ParcelDivideRequest(landChannel.handleParcelDivideRequest);
+            client.OnParcelJoinRequest += new ParcelJoinRequest(landChannel.handleParcelJoinRequest);
+            client.OnParcelPropertiesUpdateRequest += new ParcelPropertiesUpdateRequest(landChannel.handleParcelPropertiesUpdateRequest);
+            client.OnParcelSelectObjects += new ParcelSelectObjects(landChannel.handleParcelSelectObjectsRequest);
+            client.OnParcelObjectOwnerRequest += new ParcelObjectOwnerRequest(landChannel.handleParcelObjectOwnersRequest);
+            client.OnParcelAccessListRequest += new ParcelAccessListRequest(landChannel.handleParcelAccessRequest);
+            client.OnParcelAccessListUpdateRequest += new ParcelAccessListUpdateRequest(landChannel.handleParcelAccessUpdateRequest);
         }
 
         public void PostInitialise()

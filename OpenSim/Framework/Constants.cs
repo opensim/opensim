@@ -31,5 +31,13 @@ namespace OpenSim.Framework
     {
         public const uint RegionSize = 256;
         public const byte TerrainPatchSize = 16;
+
+        public enum EstateAccessCodex : uint
+        {
+            AccessOptions = 17,
+            AllowedGroups = 18,
+            EstateBans = 20,
+            EstateManagers = 24
+        }
     }
 }

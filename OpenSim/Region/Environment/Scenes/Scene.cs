@@ -1550,18 +1550,6 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnObjectDuplicateOnRay += doObjectDuplicateOnRay;
             client.OnUpdatePrimFlags += m_innerScene.UpdatePrimFlags;
             client.OnRequestObjectPropertiesFamily += m_innerScene.RequestObjectPropertiesFamily;
-            client.OnParcelPropertiesRequest += new ParcelPropertiesRequest(LandChannel.handleParcelPropertiesRequest);
-            client.OnParcelDivideRequest += new ParcelDivideRequest(LandChannel.handleParcelDivideRequest);
-            client.OnParcelJoinRequest += new ParcelJoinRequest(LandChannel.handleParcelJoinRequest);
-            client.OnParcelPropertiesUpdateRequest +=
-                new ParcelPropertiesUpdateRequest(LandChannel.handleParcelPropertiesUpdateRequest);
-            client.OnParcelSelectObjects += new ParcelSelectObjects(LandChannel.handleParcelSelectObjectsRequest);
-            client.OnParcelObjectOwnerRequest +=
-                new ParcelObjectOwnerRequest(LandChannel.handleParcelObjectOwnersRequest);
-            client.OnParcelAccessListRequest += new ParcelAccessListRequest(LandChannel.handleParcelAccessRequest);
-            client.OnParcelAccessListUpdateRequest +=
-                new ParcelAccessListUpdateRequest(LandChannel.handleParcelAccessUpdateRequest);
-
             
             client.OnRequestGodlikePowers += handleRequestGodlikePowers;
             client.OnGodKickUser += HandleGodlikeKickUser;
@@ -1599,7 +1587,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             client.OnSetStartLocationRequest += SetHomeRezPoint;
             client.OnUndo += m_innerScene.HandleUndo;
-             
+            
             EventManager.TriggerOnNewClient(client);
         }
         public virtual void TeleportClientHome(LLUUID AgentId, IClientAPI client)

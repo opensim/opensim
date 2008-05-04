@@ -355,9 +355,9 @@ namespace OpenSim.Framework
 
     public delegate void EstateOwnerMessageRequest(EstateOwnerMessagePacket packet, IClientAPI remote_client);
 
-    public delegate void RegionInfoRequest(IClientAPI remote_client, LLUUID sessionID);
+    public delegate void RegionInfoRequest(IClientAPI remote_client);
 
-    public delegate void EstateCovenantRequest(IClientAPI remote_client, LLUUID sessionID);
+    public delegate void EstateCovenantRequest(IClientAPI remote_client);
 
     public delegate void UUIDNameRequest(LLUUID id, IClientAPI remote_client);
 
@@ -456,6 +456,22 @@ namespace OpenSim.Framework
     public delegate void ScriptAnswer(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID, int answer);
 
     public delegate void RequestPayPrice(IClientAPI remoteClient, LLUUID objectID);
+    
+    //Estate Requests
+    public delegate void DetailedEstateDataRequest(IClientAPI remoteClient, LLUUID invoice);
+    public delegate void SetEstateFlagsRequest(bool blockTerraform, bool noFly, bool allowDamage, bool blockLandResell, int maxAgents, float objectBonusFactor, int matureLevel, bool restrictPushObject, bool allowParcelChanges);
+    public delegate void SetEstateTerrainBaseTexture(IClientAPI remoteClient, int corner, LLUUID side);
+    public delegate void SetEstateTerrainDetailTexture(IClientAPI remoteClient, int corner, LLUUID side);
+    public delegate void SetEstateTerrainTextureHeights(IClientAPI remoteClient, int corner, float lowVal, float highVal);
+    public delegate void CommitEstateTerrainTextureRequest(IClientAPI remoteClient);
+    public delegate void SetRegionTerrainSettings(float waterHeight, float terrainRaiseLimit, float terrainLowerLimit, bool fixedSun, float sunHour);
+    public delegate void EstateRestartSimRequest(IClientAPI remoteClient, int secondsTilReboot);
+    public delegate void EstateChangeCovenantRequest(IClientAPI remoteClient, LLUUID newCovenantID);
+    public delegate void UpdateEstateAccessDeltaRequest(IClientAPI remote_client, LLUUID invoice, int estateAccessType, LLUUID user);
+    public delegate void SimulatorBlueBoxMessageRequest(IClientAPI remoteClient, LLUUID invoice, LLUUID senderID, LLUUID sessionID, string senderName, string message);
+    public delegate void EstateBlueBoxMessageRequest(IClientAPI remoteClient, LLUUID invoice, LLUUID senderID, LLUUID sessionID, string senderName, string message);
+    public delegate void EstateDebugRegionRequest(IClientAPI remoteClient, LLUUID invoice, LLUUID senderID, bool scripted, bool collisionEvents, bool physics);
+    public delegate void EstateTeleportOneUserHomeRequest(IClientAPI remoteClient, LLUUID invoice, LLUUID senderID, LLUUID prey);
 
     public interface IClientAPI
     {
@@ -587,7 +603,6 @@ namespace OpenSim.Framework
         event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
         event ParcelSelectObjects OnParcelSelectObjects;
         event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
-        event EstateOwnerMessageRequest OnEstateOwnerMessage;
         event RegionInfoRequest OnRegionInfoRequest;
         event EstateCovenantRequest OnEstateCovenantRequest;
 
@@ -612,6 +627,24 @@ namespace OpenSim.Framework
         event ScriptAnswer OnScriptAnswer;
 
         event AgentSit OnUndo;
+
+        event DetailedEstateDataRequest OnDetailedEstateDataRequest;
+        event SetEstateFlagsRequest OnSetEstateFlagsRequest;
+        event SetEstateTerrainBaseTexture OnSetEstateTerrainBaseTexture;
+        event SetEstateTerrainDetailTexture OnSetEstateTerrainDetailTexture;
+        event SetEstateTerrainTextureHeights OnSetEstateTerrainTextureHeights;
+        event CommitEstateTerrainTextureRequest OnCommitEstateTerrainTextureRequest;
+        event SetRegionTerrainSettings OnSetRegionTerrainSettings;
+        event EstateRestartSimRequest OnEstateRestartSimRequest;
+        event EstateChangeCovenantRequest OnEstateChangeCovenantRequest;
+        event UpdateEstateAccessDeltaRequest OnUpdateEstateAccessDeltaRequest;
+        event SimulatorBlueBoxMessageRequest  OnSimulatorBlueBoxMessageRequest;
+        event EstateBlueBoxMessageRequest OnEstateBlueBoxMessageRequest;
+        event EstateDebugRegionRequest OnEstateDebugRegionRequest;
+        event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
+
+
+        
 
         void OutPacket(Packet newPack, ThrottleOutPacketType packType);
         void SendWearables(AvatarWearable[] wearables, int serial);
@@ -730,6 +763,11 @@ namespace OpenSim.Framework
 
         void SendScriptQuestion(LLUUID taskID, string taskName, string ownerName, LLUUID itemID, int question);
         void SendHealth(float health);
+
+
+        void sendEstateManagersList(LLUUID invoice);
+        void sendRegionInfoToEstateMenu();
+        void sendEstateCovenantInformation();
 
         byte[] GetThrottlesPacked(float multiplier);
 

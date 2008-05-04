@@ -151,7 +151,6 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event ParcelSelectObjects OnParcelSelectObjects;
         public event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
         public event ObjectDeselect OnObjectDeselect;
-        public event EstateOwnerMessageRequest OnEstateOwnerMessage;
         public event RegionInfoRequest OnRegionInfoRequest;
         public event EstateCovenantRequest OnEstateCovenantRequest;
 
@@ -172,6 +171,21 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event ScriptAnswer OnScriptAnswer;
         public event RequestPayPrice OnRequestPayPrice;
         public event AgentSit OnUndo;
+
+        public event DetailedEstateDataRequest OnDetailedEstateDataRequest;
+        public event SetEstateFlagsRequest OnSetEstateFlagsRequest;
+        public event SetEstateTerrainBaseTexture OnSetEstateTerrainBaseTexture;
+        public event SetEstateTerrainDetailTexture OnSetEstateTerrainDetailTexture;
+        public event SetEstateTerrainTextureHeights OnSetEstateTerrainTextureHeights;
+        public event CommitEstateTerrainTextureRequest OnCommitEstateTerrainTextureRequest;
+        public event SetRegionTerrainSettings OnSetRegionTerrainSettings;
+        public event EstateRestartSimRequest OnEstateRestartSimRequest;
+        public event EstateChangeCovenantRequest OnEstateChangeCovenantRequest;
+        public event UpdateEstateAccessDeltaRequest OnUpdateEstateAccessDeltaRequest;
+        public event SimulatorBlueBoxMessageRequest OnSimulatorBlueBoxMessageRequest;
+        public event EstateBlueBoxMessageRequest OnEstateBlueBoxMessageRequest;
+        public event EstateDebugRegionRequest OnEstateDebugRegionRequest;
+        public event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
 
 
 #pragma warning restore 67
@@ -616,6 +630,16 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
         public void SendHealth(float health)
+        {
+        }
+
+        public void sendEstateManagersList(LLUUID invoice)
+        {
+        }
+        public void sendRegionInfoToEstateMenu()
+        {
+        }
+        public void sendEstateCovenantInformation()
         {
         }
     }

@@ -214,7 +214,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private ParcelPropertiesUpdateRequest handlerParcelPropertiesUpdateRequest = null; //OnParcelPropertiesUpdateRequest;
         private ParcelSelectObjects handlerParcelSelectObjects = null; //OnParcelSelectObjects;
         private ParcelObjectOwnerRequest handlerParcelObjectOwnerRequest = null; //OnParcelObjectOwnerRequest;
-        private EstateOwnerMessageRequest handlerEstateOwnerMessage = null; //OnEstateOwnerMessage;
         private RegionInfoRequest handlerRegionInfoRequest = null; //OnRegionInfoRequest;
         private EstateCovenantRequest handlerEstateCovenantRequest = null; //OnEstateCovenantRequest;
         private RequestGodlikePowers handlerReqGodlikePowers = null; //OnRequestGodlikePowers;
@@ -781,7 +780,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
         public event ParcelSelectObjects OnParcelSelectObjects;
         public event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
-        public event EstateOwnerMessageRequest OnEstateOwnerMessage;
         public event RegionInfoRequest OnRegionInfoRequest;
         public event EstateCovenantRequest OnEstateCovenantRequest;
 
@@ -802,6 +800,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ScriptAnswer OnScriptAnswer;
         public event RequestPayPrice OnRequestPayPrice;
         public event AgentSit OnUndo;
+
+        public event DetailedEstateDataRequest OnDetailedEstateDataRequest;
+        public event SetEstateFlagsRequest OnSetEstateFlagsRequest;
+        public event SetEstateTerrainBaseTexture OnSetEstateTerrainBaseTexture;
+        public event SetEstateTerrainDetailTexture OnSetEstateTerrainDetailTexture;
+        public event SetEstateTerrainTextureHeights OnSetEstateTerrainTextureHeights;
+        public event CommitEstateTerrainTextureRequest OnCommitEstateTerrainTextureRequest;
+        public event SetRegionTerrainSettings OnSetRegionTerrainSettings;
+        public event EstateRestartSimRequest OnEstateRestartSimRequest;
+        public event EstateChangeCovenantRequest OnEstateChangeCovenantRequest;
+        public event UpdateEstateAccessDeltaRequest OnUpdateEstateAccessDeltaRequest;
+        public event SimulatorBlueBoxMessageRequest OnSimulatorBlueBoxMessageRequest;
+        public event EstateBlueBoxMessageRequest OnEstateBlueBoxMessageRequest;
+        public event EstateDebugRegionRequest OnEstateDebugRegionRequest;
+        public event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
 
         #region Scene/Avatar to Client
 
@@ -2142,6 +2155,93 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #endregion
 
+        #region Estate Data Sending Methods
+            private bool convertParamStringToBool(byte[] field)
+            {
+                string s = Helpers.FieldToUTF8String(field);
+                if (s == "1" || s.ToLower() == "y" || s.ToLower() == "yes" || s.ToLower() == "t" || s.ToLower() == "true")
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            public void sendEstateManagersList(LLUUID invoice)
+            {
+                EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();
+                packet.AgentData.TransactionID = LLUUID.Random();
+                packet.AgentData.AgentID = this.AgentId;
+                packet.AgentData.SessionID = this.SessionId;
+                packet.MethodData.Invoice = invoice;
+                packet.MethodData.Method = Helpers.StringToField("setaccess");
+
+                LLUUID[] EstateManagers = m_scene.RegionInfo.EstateSettings.estateManagers;
+
+                EstateOwnerMessagePacket.ParamListBlock[] returnblock = new EstateOwnerMessagePacket.ParamListBlock[6 + EstateManagers.Length];
+
+                for (int i = 0; i < (6 + EstateManagers.Length); i++)
+                {
+                    returnblock[i] = new EstateOwnerMessagePacket.ParamListBlock();
+                }
+                int j = 0;
+
+                returnblock[j].Parameter = Helpers.StringToField(m_scene.RegionInfo.EstateSettings.estateID.ToString()); j++;
+                returnblock[j].Parameter = Helpers.StringToField(((int)Constants.EstateAccessCodex.EstateManagers).ToString()); j++;
+                returnblock[j].Parameter = Helpers.StringToField("0"); j++;
+                returnblock[j].Parameter = Helpers.StringToField("0"); j++;
+                returnblock[j].Parameter = Helpers.StringToField("0"); j++;
+                returnblock[j].Parameter = Helpers.StringToField(EstateManagers.Length.ToString()); j++;
+                for (int i = 0; i < EstateManagers.Length; i++)
+                {
+                    returnblock[j].Parameter = EstateManagers[i].GetBytes(); j++;
+                }
+                packet.ParamList = returnblock;
+                packet.Header.Reliable = false;
+                this.OutPacket(packet, ThrottleOutPacketType.Task);
+            }
+
+            public void sendRegionInfoToEstateMenu()
+            {
+                RegionInfoPacket rinfopack = new RegionInfoPacket();
+                RegionInfoPacket.RegionInfoBlock rinfoblk = new RegionInfoPacket.RegionInfoBlock();
+                rinfopack.AgentData.AgentID = this.AgentId;
+                rinfopack.AgentData.SessionID = this.SessionId;
+                rinfoblk.BillableFactor = m_scene.RegionInfo.EstateSettings.billableFactor;
+                rinfoblk.EstateID = m_scene.RegionInfo.EstateSettings.estateID;
+                rinfoblk.MaxAgents = m_scene.RegionInfo.EstateSettings.maxAgents;
+                rinfoblk.ObjectBonusFactor = m_scene.RegionInfo.EstateSettings.objectBonusFactor;
+                rinfoblk.ParentEstateID = m_scene.RegionInfo.EstateSettings.parentEstateID;
+                rinfoblk.PricePerMeter = m_scene.RegionInfo.EstateSettings.pricePerMeter;
+                rinfoblk.RedirectGridX = m_scene.RegionInfo.EstateSettings.redirectGridX;
+                rinfoblk.RedirectGridY = m_scene.RegionInfo.EstateSettings.redirectGridY;
+                rinfoblk.RegionFlags = (uint)(m_scene.RegionInfo.EstateSettings.regionFlags);
+                rinfoblk.SimAccess = (byte)m_scene.RegionInfo.EstateSettings.simAccess;
+                rinfoblk.SunHour = m_scene.RegionInfo.EstateSettings.sunHour;
+                rinfoblk.TerrainLowerLimit = m_scene.RegionInfo.EstateSettings.terrainLowerLimit;
+                rinfoblk.TerrainRaiseLimit = m_scene.RegionInfo.EstateSettings.terrainRaiseLimit;
+                rinfoblk.UseEstateSun = !m_scene.RegionInfo.EstateSettings.useFixedSun;
+                rinfoblk.WaterHeight = m_scene.RegionInfo.EstateSettings.waterHeight;
+                rinfoblk.SimName = Helpers.StringToField(m_scene.RegionInfo.RegionName);
+
+                rinfopack.RegionInfo = rinfoblk;
+
+                this.OutPacket(rinfopack, ThrottleOutPacketType.Task);
+            }
+
+            public void sendEstateCovenantInformation()
+            {
+                EstateCovenantReplyPacket einfopack = new EstateCovenantReplyPacket();
+                EstateCovenantReplyPacket.DataBlock edata = new EstateCovenantReplyPacket.DataBlock();
+                edata.CovenantID = m_scene.RegionInfo.CovenantID;
+                edata.CovenantTimestamp = 0;
+                edata.EstateOwnerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+                edata.EstateName =
+                    Helpers.StringToField(m_scene.RegionInfo.MasterAvatarFirstName + " " + m_scene.RegionInfo.MasterAvatarLastName);
+                einfopack.Data = edata;
+                this.OutPacket(einfopack, ThrottleOutPacketType.Task);
+            }
+        #endregion
+        
         #region Helper Methods
 
         protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateAvatarImprovedBlock(uint localID, LLVector3 pos,
@@ -4604,11 +4704,199 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     case PacketType.EstateOwnerMessage:
                         EstateOwnerMessagePacket messagePacket = (EstateOwnerMessagePacket)Pack;
 
-                        handlerEstateOwnerMessage = OnEstateOwnerMessage;
 
-                        if (handlerEstateOwnerMessage != null)
+                        switch (Helpers.FieldToUTF8String(messagePacket.MethodData.Method))
                         {
-                            handlerEstateOwnerMessage(messagePacket, this);
+                            case "getinfo":
+
+                                if (((Scene)m_scene).PermissionsMngr.GenericEstatePermission(this.AgentId))
+                                {
+                                    OnDetailedEstateDataRequest(this, messagePacket.MethodData.Invoice);
+                                }
+                                break;
+                            case "setregioninfo":
+                                if (((Scene)m_scene).PermissionsMngr.CanEditEstateTerrain(this.AgentId))
+                                {
+                                    OnSetEstateFlagsRequest(convertParamStringToBool(messagePacket.ParamList[0].Parameter),convertParamStringToBool(messagePacket.ParamList[1].Parameter),
+                                        convertParamStringToBool(messagePacket.ParamList[2].Parameter), !convertParamStringToBool(messagePacket.ParamList[3].Parameter),
+                                        Convert.ToInt16(Convert.ToDecimal(Helpers.FieldToUTF8String(messagePacket.ParamList[4].Parameter))),
+                                        (float)Convert.ToDecimal(Helpers.FieldToUTF8String(messagePacket.ParamList[5].Parameter)),
+                                        Convert.ToInt16(Helpers.FieldToUTF8String(messagePacket.ParamList[6].Parameter)),
+                                        convertParamStringToBool(messagePacket.ParamList[7].Parameter),convertParamStringToBool(messagePacket.ParamList[8].Parameter));
+
+                                }
+
+                                break;
+                            case "texturebase":
+                                if (((Scene)m_scene).PermissionsMngr.CanEditEstateTerrain(this.AgentId))
+                                {
+                                    foreach (EstateOwnerMessagePacket.ParamListBlock block in messagePacket.ParamList)
+                                    {
+                                        string s = Helpers.FieldToUTF8String(block.Parameter);
+                                        string[] splitField = s.Split(' ');
+                                        if (splitField.Length == 2)
+                                        {
+                                            LLUUID tempUUID = new LLUUID(splitField[1]);
+                                            OnSetEstateTerrainBaseTexture(this, Convert.ToInt16(splitField[0]), tempUUID);
+                                        }
+                                    }
+                                }
+                                break;
+                            case "texturedetail":
+                                if (((Scene)m_scene).PermissionsMngr.CanEditEstateTerrain(this.AgentId))
+                                {
+                                    foreach (EstateOwnerMessagePacket.ParamListBlock block in messagePacket.ParamList)
+                                    {
+                                        string s = Helpers.FieldToUTF8String(block.Parameter);
+                                        string[] splitField = s.Split(' ');
+                                        if (splitField.Length == 2)
+                                        {
+                                            Int16 corner = Convert.ToInt16(splitField[0]);
+                                            LLUUID textureUUID = new LLUUID(splitField[1]);
+
+                                            OnSetEstateTerrainDetailTexture(this, corner,textureUUID);
+                                        }
+                                    }
+                                }
+
+                                break;
+                            case "textureheights":
+                                if (((Scene)m_scene).PermissionsMngr.CanEditEstateTerrain(this.AgentId))
+                                {
+                                    foreach (EstateOwnerMessagePacket.ParamListBlock block in messagePacket.ParamList)
+                                    {
+                                        string s = Helpers.FieldToUTF8String(block.Parameter);
+                                        string[] splitField = s.Split(' ');
+                                        if (splitField.Length == 3)
+                                        {
+                                            Int16 corner = Convert.ToInt16(splitField[0]);
+                                            float lowValue = (float)Convert.ToDecimal(splitField[1]);
+                                            float highValue = (float)Convert.ToDecimal(splitField[2]);
+
+                                            OnSetEstateTerrainTextureHeights(this,corner,lowValue,highValue);
+                                        }
+                                    }
+                                }
+                                break;
+                            case "texturecommit":
+                                OnCommitEstateTerrainTextureRequest(this);
+                                break;
+                            case "setregionterrain":
+                                if (((Scene)m_scene).PermissionsMngr.CanEditEstateTerrain(this.AgentId))
+                                {
+                                    if (messagePacket.ParamList.Length != 9)
+                                    {
+                                        m_log.Error("EstateOwnerMessage: SetRegionTerrain method has a ParamList of invalid length");
+                                    }
+                                    else
+                                    {
+                                        try
+                                        {
+                                            string tmp;
+                                            tmp = Helpers.FieldToUTF8String(messagePacket.ParamList[0].Parameter);
+                                            if (!tmp.Contains(".")) tmp += ".00";
+                                            float WaterHeight = (float)Convert.ToDecimal(tmp);
+                                            tmp = Helpers.FieldToUTF8String(messagePacket.ParamList[1].Parameter);
+                                            if (!tmp.Contains(".")) tmp += ".00";
+                                            float TerrainRaiseLimit = (float)Convert.ToDecimal(tmp);
+                                            tmp = Helpers.FieldToUTF8String(messagePacket.ParamList[2].Parameter);
+                                            if (!tmp.Contains(".")) tmp += ".00";
+                                            float TerrainLowerLimit = (float)Convert.ToDecimal(tmp);
+                                            bool UseFixedSun = convertParamStringToBool(messagePacket.ParamList[4].Parameter);
+                                            float SunHour = (float)Convert.ToDecimal(Helpers.FieldToUTF8String(messagePacket.ParamList[5].Parameter));
+
+                                            OnSetRegionTerrainSettings(WaterHeight, TerrainRaiseLimit, TerrainLowerLimit, UseFixedSun, SunHour);
+                                            
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            m_log.Error("EstateOwnerMessage: Exception while setting terrain settings: \n" + messagePacket.ToString() + "\n" + ex.ToString());
+                                        }
+                                    }
+                                }
+
+                                break;
+                            case "restart":
+                                if (((Scene)m_scene).PermissionsMngr.CanRestartSim(this.AgentId))
+                                {
+                                    // There's only 1 block in the estateResetSim..   and that's the number of seconds till restart.
+                                    foreach (EstateOwnerMessagePacket.ParamListBlock block in messagePacket.ParamList)
+                                    {
+                                        float timeSeconds = 0;
+                                        Helpers.TryParse(Helpers.FieldToUTF8String(block.Parameter), out timeSeconds);
+                                        timeSeconds = (int)timeSeconds;
+                                        OnEstateRestartSimRequest(this, (int)timeSeconds);
+
+                                    }
+                                }
+                                break;
+                            case "estatechangecovenantid":
+                                if (((Scene)m_scene).PermissionsMngr.CanEditEstateTerrain(this.AgentId))
+                                {
+                                    foreach (EstateOwnerMessagePacket.ParamListBlock block in messagePacket.ParamList)
+                                    {
+                                        LLUUID newCovenantID = new LLUUID(Helpers.FieldToUTF8String(block.Parameter));
+                                        OnEstateChangeCovenantRequest(this, newCovenantID);
+                                    }
+                                }
+                                break;
+                            case "estateaccessdelta": // Estate access delta manages the banlist and allow list too.
+                                if (((Scene)m_scene).PermissionsMngr.GenericEstatePermission(this.AgentId))
+                                {
+                                    int estateAccessType = Convert.ToInt16(Helpers.FieldToUTF8String(messagePacket.ParamList[1].Parameter));
+                                    OnUpdateEstateAccessDeltaRequest(this, messagePacket.MethodData.Invoice,estateAccessType,new LLUUID(Helpers.FieldToUTF8String(messagePacket.ParamList[2].Parameter)));
+
+                                }
+                                break;
+                            case "simulatormessage":
+                                if (((Scene)m_scene).PermissionsMngr.GenericEstatePermission(this.AgentId))
+                                {
+                                    LLUUID invoice = messagePacket.MethodData.Invoice;
+                                    LLUUID SenderID = new LLUUID(Helpers.FieldToUTF8String(messagePacket.ParamList[2].Parameter));
+                                    string SenderName = Helpers.FieldToUTF8String(messagePacket.ParamList[3].Parameter);
+                                    string Message = Helpers.FieldToUTF8String(messagePacket.ParamList[4].Parameter);
+                                    LLUUID sessionID = messagePacket.AgentData.SessionID;
+                                    OnSimulatorBlueBoxMessageRequest(this,invoice,SenderID, sessionID, SenderName,Message);
+                                }
+                                break;
+                            case "instantmessage":
+                                if (((Scene)m_scene).PermissionsMngr.GenericEstatePermission(this.AgentId))
+                                {
+                                    LLUUID invoice = messagePacket.MethodData.Invoice;
+                                    LLUUID SenderID = new LLUUID(Helpers.FieldToUTF8String(messagePacket.ParamList[2].Parameter));
+                                    string SenderName = Helpers.FieldToUTF8String(messagePacket.ParamList[3].Parameter);
+                                    string Message = Helpers.FieldToUTF8String(messagePacket.ParamList[4].Parameter);
+                                    LLUUID sessionID = messagePacket.AgentData.SessionID;
+                                    OnEstateBlueBoxMessageRequest(this,invoice,SenderID, sessionID, SenderName,Message);
+                                }
+                                break;
+                            case "setregiondebug":
+                                if (((Scene)m_scene).PermissionsMngr.GenericEstatePermission(this.AgentId))
+                                {
+                                    LLUUID invoice = messagePacket.MethodData.Invoice;
+                                    LLUUID SenderID = messagePacket.AgentData.AgentID;
+                                    bool scripted = convertParamStringToBool(messagePacket.ParamList[0].Parameter);
+                                    bool collisionEvents = convertParamStringToBool(messagePacket.ParamList[1].Parameter);
+                                    bool physics = convertParamStringToBool(messagePacket.ParamList[2].Parameter);
+
+                                    OnEstateDebugRegionRequest(this, invoice,SenderID,scripted,collisionEvents,physics);
+                                }
+                                break;
+                            case "teleporthomeuser":
+                                if (((Scene)m_scene).PermissionsMngr.GenericEstatePermission(this.AgentId))
+                                {
+                                    LLUUID invoice = messagePacket.MethodData.Invoice;
+                                    LLUUID SenderID = messagePacket.AgentData.AgentID;
+                                    LLUUID Prey = LLUUID.Zero;
+
+                                    Helpers.TryParse(Helpers.FieldToUTF8String(messagePacket.ParamList[1].Parameter), out Prey);
+                                    
+                                    OnEstateTeleportOneUserHomeRequest(this,invoice,SenderID,Prey);
+                                }
+                                break;
+                            default:
+                                m_log.Error("EstateOwnerMessage: Unknown method requested\n" + messagePacket.ToString());
+                                break;
                         }
                         break;
                     case PacketType.RequestRegionInfo:
@@ -4617,7 +4905,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerRegionInfoRequest = OnRegionInfoRequest;
                         if (handlerRegionInfoRequest != null)
                         {
-                            handlerRegionInfoRequest(this, mPacket.SessionID);
+                            handlerRegionInfoRequest(this);
                         }
                         break;
                     case PacketType.EstateCovenantRequest:
@@ -4628,7 +4916,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerEstateCovenantRequest = OnEstateCovenantRequest;
                         if (handlerEstateCovenantRequest != null)
                         {
-                            handlerEstateCovenantRequest(this, epack.SessionID);
+                            handlerEstateCovenantRequest(this);
                         }
                         break;
 
