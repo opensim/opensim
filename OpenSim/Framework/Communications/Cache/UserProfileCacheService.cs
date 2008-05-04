@@ -250,15 +250,6 @@ namespace OpenSim.Framework.Communications.Cache
             // XXX We're not handling sortOrder yet!
 
             InventoryFolderImpl fold = null;
-            if (folderID == libraryRoot.ID)
-            {
-                remoteClient.SendInventoryFolderDetails(
-                    libraryRoot.Owner, libraryRoot.ID, libraryRoot.RequestListOfItems(),
-                    libraryRoot.RequestListOfFolders(), fetchFolders, fetchItems);
-
-                return;
-            }
-
             if ((fold = libraryRoot.FindFolder(folderID)) != null)
             {
                 remoteClient.SendInventoryFolderDetails(
@@ -293,33 +284,23 @@ namespace OpenSim.Framework.Communications.Cache
                 
                 if (userProfile.HasInventory)
                 {
-                    if (userProfile.RootFolder.ID == folderID)
+                    if ((fold = userProfile.RootFolder.FindFolder(folderID)) != null)
                     {
-//                        m_log.DebugFormat(
-//                            "[AGENT INVENTORY]: Found root folder {0} for client {1}", 
-//                            folderID, remoteClient.AgentId);
+//                            m_log.DebugFormat(
+//                                "[AGENT INVENTORY]: Found folder {0} for client {1}", 
+//                                folderID, remoteClient.AgentId);
                         
                         remoteClient.SendInventoryFolderDetails(
-                            remoteClient.AgentId, folderID, userProfile.RootFolder.RequestListOfItems(),
-                            userProfile.RootFolder.RequestListOfFolders(),
-                            fetchFolders, fetchItems);
+                            remoteClient.AgentId, folderID, fold.RequestListOfItems(),
+                            fold.RequestListOfFolders(), fetchFolders, fetchItems);
 
                         return;
                     }
                     else
                     {
-                        if ((fold = userProfile.RootFolder.FindFolder(folderID)) != null)
-                        {
-//                            m_log.DebugFormat(
-//                                "[AGENT INVENTORY]: Found folder {0} for client {1}", 
-//                                folderID, remoteClient.AgentId);
-                            
-                            remoteClient.SendInventoryFolderDetails(
-                                remoteClient.AgentId, folderID, fold.RequestListOfItems(),
-                                fold.RequestListOfFolders(), fetchFolders, fetchItems);
-
-                            return;
-                        }
+                        m_log.WarnFormat(
+                            "[AGENT INVENTORY]: Could not find folder {0} requested by user {1} {2}",
+                            folderID, remoteClient.Name, remoteClient.AgentId);
                     }
                 }
                 else
@@ -363,12 +344,7 @@ namespace OpenSim.Framework.Communications.Cache
             
             // XXX We're not handling sortOrder yet!
 
-            InventoryFolderImpl fold = null;
-            if (folderID == libraryRoot.ID)
-            {
-                return libraryRoot.RequestListOfItems();
-            }
-
+            InventoryFolderImpl fold;
             if ((fold = libraryRoot.FindFolder(folderID)) != null)
             {
                 return fold.RequestListOfItems();
@@ -404,17 +380,18 @@ namespace OpenSim.Framework.Communications.Cache
                 
                 if (userProfile.HasInventory)
                 {
-                    if (userProfile.RootFolder.ID == folderID)
+                    if ((fold = userProfile.RootFolder.FindFolder(folderID)) != null)
                     {
-                        return userProfile.RootFolder.RequestListOfItems();
+                        return fold.RequestListOfItems();
                     }
                     else
                     {
-                        if ((fold = userProfile.RootFolder.FindFolder(folderID)) != null)
-                        {
-                            return fold.RequestListOfItems();
-                        }
-                    }
+                        m_log.WarnFormat(
+                            "[AGENT INVENTORY]: Could not find folder {0} requested by user {1}",
+                            folderID, agentID);
+                        
+                        return null;
+                    }                    
                 }
                 else
                 {
@@ -429,14 +406,6 @@ namespace OpenSim.Framework.Communications.Cache
             
                 return null;
             }
-
-            // If we've reached this point then we couldn't find the folder, even though the client thinks
-            // it exists
-            m_log.ErrorFormat("[AGENT INVENTORY]: " +
-                              "Could not find folder {0} for user {1}",
-                              folderID, agentID.ToString());
-
-            return new List<InventoryItemBase>();
         }
 
         /// <summary>
