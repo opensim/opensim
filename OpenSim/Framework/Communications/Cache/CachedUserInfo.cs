@@ -117,7 +117,7 @@ namespace OpenSim.Framework.Communications.Cache
         }
         
         /// <summary>
-        /// Store a folder pending categorization when its parent is received.
+        /// Store a folder pending arrival of its parent
         /// </summary>
         /// <param name="folder"></param>
         private void AddPendingFolder(InventoryFolderImpl folder)
@@ -138,26 +138,26 @@ namespace OpenSim.Framework.Communications.Cache
         }
         
         /// <summary>
-        /// Add any pending folders which are children of parent
+        /// Add any pending folders which were received before the given folder
         /// </summary>
         /// <param name="parentId">
         /// A <see cref="LLUUID"/>
         /// </param>
-        private void ResolvePendingFolders(InventoryFolderImpl parent)
+        private void ResolvePendingFolders(InventoryFolderImpl newFolder)
         {
-            if (pendingCategorizationFolders.ContainsKey(parent.ID))
+            if (pendingCategorizationFolders.ContainsKey(newFolder.ID))
             {
-                foreach (InventoryFolderImpl folder in pendingCategorizationFolders[parent.ID])
+                foreach (InventoryFolderImpl folder in pendingCategorizationFolders[newFolder.ID])
                 {
 //                    m_log.DebugFormat(
 //                        "[INVENTORY CACHE]: Resolving pending received folder {0} {1} into {2} {3}",
 //                        folder.name, folder.folderID, parent.name, parent.folderID);
                     
-                    lock (parent.SubFolders)
+                    lock (newFolder.SubFolders)
                     {
-                        if (!parent.SubFolders.ContainsKey(folder.ID))
+                        if (!newFolder.SubFolders.ContainsKey(folder.ID))
                         {
-                            parent.SubFolders.Add(folder.ID, folder);
+                            newFolder.SubFolders.Add(folder.ID, folder);
                         }                    
                     }
                 }
@@ -209,7 +209,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <param name="userID"></param>
         /// <param name="folderInfo"></param>
-        private void FolderReceive(InventoryFolderImpl folderInfo)
+        private void FolderReceive(InventoryFolderImpl newFolder)
         {
 //            m_log.DebugFormat(
 //                "[INVENTORY CACHE]: Received folder {0} {1} for user {2}", 
@@ -217,46 +217,42 @@ namespace OpenSim.Framework.Communications.Cache
 
             if (RootFolder == null)
             {
-                if (folderInfo.ParentID == LLUUID.Zero)
+                if (newFolder.ParentID == LLUUID.Zero)
                 {
-                    m_rootFolder = folderInfo;
+                    m_rootFolder = newFolder;
                 }
-            }
-            else if (RootFolder.ID == folderInfo.ParentID)
-            {
-                lock (RootFolder.SubFolders)
+                else
                 {
-                    if (!RootFolder.SubFolders.ContainsKey(folderInfo.ID))
-                    {
-                        RootFolder.SubFolders.Add(folderInfo.ID, folderInfo);
-                    }
-                    else
-                    {
-                        AddPendingFolder(folderInfo);
-                    }      
+                    AddPendingFolder(newFolder);
                 }
             }
             else
             {
-                InventoryFolderImpl folder = RootFolder.FindFolder(folderInfo.ParentID);
+                InventoryFolderImpl parentFolder = RootFolder.FindFolder(newFolder.ParentID);
                 
-                lock (folder.SubFolders)
+                if (parentFolder != null)
                 {
-                    if (folder != null)
+                    lock (parentFolder.SubFolders)
                     {
-                        if (!folder.SubFolders.ContainsKey(folderInfo.ID))
+                        if (!parentFolder.SubFolders.ContainsKey(newFolder.ID))
                         {
-                            folder.SubFolders.Add(folderInfo.ID, folderInfo);
+                            parentFolder.SubFolders.Add(newFolder.ID, newFolder);
+                        }
+                        else
+                        {
+                            m_log.WarnFormat(
+                                "[INVENTORY CACHE]: Received folder {0} {1} from inventory service which has already been received",
+                                newFolder.Name, newFolder.ID);
                         }
                     }
-                    else
-                    {
-                        AddPendingFolder(folderInfo);
-                    }
                 }
+                else
+                {
+                    AddPendingFolder(newFolder);
+                }              
             }
             
-            ResolvePendingFolders(folderInfo);
+            ResolvePendingFolders(newFolder);
         }
 
         /// <summary>
