@@ -258,7 +258,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// Callback invoked when an item is received from an async request to the inventory service.
         /// 
-        /// We're assuming here that items are always received after all the folders have been
+        /// We're assuming here that items are always received after all the folders
         /// received.
         /// </summary>
         /// <param name="folderInfo"></param>        
@@ -267,41 +267,20 @@ namespace OpenSim.Framework.Communications.Cache
 //            m_log.DebugFormat(
 //                "[INVENTORY CACHE]: Received item {0} {1} for user {2}", 
 //                itemInfo.Name, itemInfo.ID, userID);
+            InventoryFolderImpl folder = RootFolder.FindFolder(itemInfo.Folder);
             
-            if (RootFolder != null)
+            if (null == folder)
             {
-                if (itemInfo.Folder == RootFolder.ID)
-                {
-                    lock (RootFolder.Items)
-                    {
-                        if (!RootFolder.Items.ContainsKey(itemInfo.ID))
-                        {
-                            RootFolder.Items.Add(itemInfo.ID, itemInfo);
-                        }
-                        else 
-                        {
-                            RootFolder.Items[itemInfo.ID] = itemInfo;
-                        }
-                    }
-                }
-                else
-                {
-                    InventoryFolderImpl folder = RootFolder.FindFolder(itemInfo.Folder);
-                    if (folder != null)
-                    {
-                        lock (folder.Items)
-                        {
-                            if (!folder.Items.ContainsKey(itemInfo.ID))
-                            {
-                                folder.Items.Add(itemInfo.ID, itemInfo);
-                            }
-                            else
-                            {
-                                folder.Items[itemInfo.ID] = itemInfo;
-                            }
-                        }
-                    }
-                }
+                m_log.WarnFormat(
+                    "Received item {0} {1} but its folder {2} does not exist", 
+                    itemInfo.Name, itemInfo.ID, itemInfo.Folder);
+                
+                return;
+            }
+            
+            lock (folder.Items)
+            {
+                folder.Items[itemInfo.ID] = itemInfo;
             }
         }
         
