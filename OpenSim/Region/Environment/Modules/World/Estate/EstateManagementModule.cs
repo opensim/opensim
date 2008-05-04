@@ -25,16 +25,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Reflection;
-
 using libsecondlife;
+using log4net;
+using Nini.Config;
+using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
-using OpenSim.Framework;
-using Nini.Config;
-using log4net;
 
 namespace OpenSim.Region.Environment.Modules.World.Estate
 {
@@ -44,68 +42,63 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
         private Scene m_scene;
 
-        
-
-
         #region Packet Data Responders
-        private void sendDetailedEstateData(IClientAPI remote_client, LLUUID invoice)
-        {
 
+        private static void sendDetailedEstateData(IClientAPI remote_client, LLUUID invoice)
+        {
             remote_client.sendDetailedEstateData(invoice);
             remote_client.sendEstateManagersList(invoice);
-
         }
 
-        private void estateSetRegionInfoHandler(bool blockTerraform, bool noFly, bool allowDamage, bool blockLandResell, int maxAgents, float objectBonusFactor, int matureLevel, bool restrictPushObject, bool allowParcelChanges)
+        private void estateSetRegionInfoHandler(bool blockTerraform, bool noFly, bool allowDamage, bool blockLandResell, int maxAgents, float objectBonusFactor,
+                                                int matureLevel, bool restrictPushObject, bool allowParcelChanges)
         {
-            
             m_scene.RegionInfo.EstateSettings.regionFlags = Simulator.RegionFlags.None;
 
             if (blockTerraform)
             {
                 m_scene.RegionInfo.EstateSettings.regionFlags = m_scene.RegionInfo.EstateSettings.regionFlags |
-                                                       Simulator.RegionFlags.BlockTerraform;
+                                                                Simulator.RegionFlags.BlockTerraform;
             }
 
             if (noFly)
             {
                 m_scene.RegionInfo.EstateSettings.regionFlags = m_scene.RegionInfo.EstateSettings.regionFlags |
-                                                       Simulator.RegionFlags.NoFly;
+                                                                Simulator.RegionFlags.NoFly;
             }
 
             if (allowDamage)
             {
                 m_scene.RegionInfo.EstateSettings.regionFlags = m_scene.RegionInfo.EstateSettings.regionFlags |
-                                                       Simulator.RegionFlags.AllowDamage;
+                                                                Simulator.RegionFlags.AllowDamage;
             }
 
             if (blockLandResell)
             {
                 m_scene.RegionInfo.EstateSettings.regionFlags = m_scene.RegionInfo.EstateSettings.regionFlags |
-                                                       Simulator.RegionFlags.BlockLandResell;
+                                                                Simulator.RegionFlags.BlockLandResell;
             }
 
-            m_scene.RegionInfo.EstateSettings.maxAgents = (byte)maxAgents;
+            m_scene.RegionInfo.EstateSettings.maxAgents = (byte) maxAgents;
 
             m_scene.RegionInfo.EstateSettings.objectBonusFactor = objectBonusFactor;
 
-            m_scene.RegionInfo.EstateSettings.simAccess = (Simulator.SimAccess)matureLevel;
+            m_scene.RegionInfo.EstateSettings.simAccess = (Simulator.SimAccess) matureLevel;
 
 
             if (restrictPushObject)
             {
                 m_scene.RegionInfo.EstateSettings.regionFlags = m_scene.RegionInfo.EstateSettings.regionFlags |
-                                                       Simulator.RegionFlags.RestrictPushObject;
+                                                                Simulator.RegionFlags.RestrictPushObject;
             }
 
             if (allowParcelChanges)
             {
                 m_scene.RegionInfo.EstateSettings.regionFlags = m_scene.RegionInfo.EstateSettings.regionFlags |
-                                                       Simulator.RegionFlags.AllowParcelChanges;
+                                                                Simulator.RegionFlags.AllowParcelChanges;
             }
 
             sendRegionInfoPacketToAll();
-            
         }
 
         public void setEstateTerrainBaseTexture(IClientAPI remoteClient, int corner, LLUUID texture)
@@ -175,7 +168,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         }
 
         public void setRegionTerrainSettings(float WaterHeight, float TerrainRaiseLimit, float TerrainLowerLimit,
-                                      bool UseFixedSun, float SunHour)
+                                             bool UseFixedSun, float SunHour)
         {
             // Water Height
             m_scene.RegionInfo.EstateSettings.waterHeight = WaterHeight;
@@ -198,10 +191,8 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
         private void handleChangeEstateCovenantRequest(IClientAPI remoteClient, LLUUID estateCovenantID)
         {
-
             m_scene.RegionInfo.CovenantID = estateCovenantID;
             m_scene.RegionInfo.SaveEstatecovenantUUID(estateCovenantID);
-
         }
 
         private void handleEstateAccessDeltaRequest(IClientAPI remote_client, LLUUID invoice, int estateAccessType, LLUUID user)
@@ -247,10 +238,10 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         }
 
         private void SendSimulatorBlueBoxMessage(IClientAPI remote_client, LLUUID invoice, LLUUID senderID, LLUUID sessionID, string senderName, string message)
-        {       
+        {
             m_scene.SendRegionMessageFromEstateTools(senderID, sessionID, senderName, message);
-
         }
+
         private void SendEstateBlueBoxMessage(IClientAPI remote_client, LLUUID invoice, LLUUID senderID, LLUUID sessionID, string senderName, string message)
         {
             m_scene.SendEstateMessageFromEstateTools(senderID, sessionID, senderName, message);
@@ -258,8 +249,6 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
         private void handleEstateDebugRegionRequest(IClientAPI remote_client, LLUUID invoice, LLUUID senderID, bool scripted, bool collisionEvents, bool physics)
         {
-            
-
             if (physics)
             {
                 m_scene.RegionInfo.EstateSettings.regionFlags |= Simulator.RegionFlags.SkipPhysics;
@@ -284,7 +273,6 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
         private void handleEstateTeleportOneUserHomeRequest(IClientAPI remover_client, LLUUID invoice, LLUUID senderID, LLUUID prey)
         {
-            
             if (prey != LLUUID.Zero)
             {
                 ScenePresence s = m_scene.GetScenePresence(prey);
@@ -295,19 +283,17 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             }
         }
 
-        private void HandleRegionInfoRequest(IClientAPI remote_client)
+        private static void HandleRegionInfoRequest(IClientAPI remote_client)
         {
             remote_client.sendRegionInfoToEstateMenu();
         }
 
-        private void HandleEstateCovenantRequest(IClientAPI remote_client)
+        private static void HandleEstateCovenantRequest(IClientAPI remote_client)
         {
             remote_client.sendEstateCovenantInformation();
         }
 
-
-#endregion
-
+        #endregion
 
         #region Outgoing Packets
 
@@ -320,6 +306,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                 avatars[i].ControllingClient.sendRegionInfoToEstateMenu();
             }
         }
+
         public void sendRegionHandshake(IClientAPI remoteClient)
         {
             remoteClient.SendRegionHandshake(m_scene.RegionInfo);
@@ -339,31 +326,8 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         public void Initialise(Scene scene, IConfigSource source)
         {
             m_scene = scene;
-            m_scene.EventManager.OnNewClient += new EventManager.OnNewClientDelegate(EventManager_OnNewClient);
+            m_scene.EventManager.OnNewClient += EventManager_OnNewClient;
             m_scene.EventManager.OnRequestChangeWaterHeight += changeWaterHeight;
-            
-        }
-
-        void EventManager_OnNewClient(IClientAPI client)
-        {
-            client.OnDetailedEstateDataRequest += sendDetailedEstateData;
-            client.OnSetEstateFlagsRequest += estateSetRegionInfoHandler;
-            client.OnSetEstateTerrainBaseTexture += setEstateTerrainBaseTexture;
-            client.OnSetEstateTerrainDetailTexture += setEstateTerrainDetailTexture;
-            client.OnSetEstateTerrainTextureHeights += setEstateTerrainTextureHeights;
-            client.OnCommitEstateTerrainTextureRequest += handleCommitEstateTerrainTextureRequest;
-            client.OnSetRegionTerrainSettings += setRegionTerrainSettings;
-            client.OnEstateRestartSimRequest += handleEstateRestartSimRequest;
-            client.OnEstateChangeCovenantRequest += handleChangeEstateCovenantRequest;
-            client.OnUpdateEstateAccessDeltaRequest += handleEstateAccessDeltaRequest;
-            client.OnSimulatorBlueBoxMessageRequest += SendSimulatorBlueBoxMessage;
-            client.OnEstateBlueBoxMessageRequest += SendEstateBlueBoxMessage;
-            client.OnEstateDebugRegionRequest += handleEstateDebugRegionRequest;
-            client.OnEstateTeleportOneUserHomeRequest += handleEstateTeleportOneUserHomeRequest;
-
-            client.OnRegionInfoRequest += HandleRegionInfoRequest;
-            client.OnEstateCovenantRequest += HandleEstateCovenantRequest;
-            sendRegionHandshake(client);
         }
 
 
@@ -391,10 +355,33 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
         public void changeWaterHeight(float height)
         {
-            setRegionTerrainSettings(height, m_scene.RegionInfo.EstateSettings.terrainRaiseLimit, m_scene.RegionInfo.EstateSettings.terrainLowerLimit, m_scene.RegionInfo.EstateSettings.useFixedSun, m_scene.RegionInfo.EstateSettings.sunHour);
+            setRegionTerrainSettings(height, m_scene.RegionInfo.EstateSettings.terrainRaiseLimit, m_scene.RegionInfo.EstateSettings.terrainLowerLimit,
+                                     m_scene.RegionInfo.EstateSettings.useFixedSun, m_scene.RegionInfo.EstateSettings.sunHour);
             sendRegionInfoPacketToAll();
         }
+
         #endregion
 
+        private void EventManager_OnNewClient(IClientAPI client)
+        {
+            client.OnDetailedEstateDataRequest += sendDetailedEstateData;
+            client.OnSetEstateFlagsRequest += estateSetRegionInfoHandler;
+            client.OnSetEstateTerrainBaseTexture += setEstateTerrainBaseTexture;
+            client.OnSetEstateTerrainDetailTexture += setEstateTerrainDetailTexture;
+            client.OnSetEstateTerrainTextureHeights += setEstateTerrainTextureHeights;
+            client.OnCommitEstateTerrainTextureRequest += handleCommitEstateTerrainTextureRequest;
+            client.OnSetRegionTerrainSettings += setRegionTerrainSettings;
+            client.OnEstateRestartSimRequest += handleEstateRestartSimRequest;
+            client.OnEstateChangeCovenantRequest += handleChangeEstateCovenantRequest;
+            client.OnUpdateEstateAccessDeltaRequest += handleEstateAccessDeltaRequest;
+            client.OnSimulatorBlueBoxMessageRequest += SendSimulatorBlueBoxMessage;
+            client.OnEstateBlueBoxMessageRequest += SendEstateBlueBoxMessage;
+            client.OnEstateDebugRegionRequest += handleEstateDebugRegionRequest;
+            client.OnEstateTeleportOneUserHomeRequest += handleEstateTeleportOneUserHomeRequest;
+
+            client.OnRegionInfoRequest += HandleRegionInfoRequest;
+            client.OnEstateCovenantRequest += HandleEstateCovenantRequest;
+            sendRegionHandshake(client);
+        }
     }
 }
