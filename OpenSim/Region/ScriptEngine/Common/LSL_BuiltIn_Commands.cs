@@ -844,7 +844,10 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
             if ((status & BuiltIn_Commands_BaseClass.STATUS_DIE_AT_EDGE) == BuiltIn_Commands_BaseClass.STATUS_DIE_AT_EDGE)
             {
-                NotImplemented("llSetStatus - STATUS_DIE_AT_EDGE");
+                if (value == 1)
+                    m_host.SetDieAtEdge(true);
+                else
+                    m_host.SetDieAtEdge(false);
             }
             if ((status & BuiltIn_Commands_BaseClass.STATUS_RETURN_AT_EDGE) == BuiltIn_Commands_BaseClass.STATUS_RETURN_AT_EDGE)
             {
@@ -890,8 +893,12 @@ namespace OpenSim.Region.ScriptEngine.Common
                     NotImplemented("llGetStatus - STATUS_BLOCK_GRAB");
                     return 0;
                 case BuiltIn_Commands_BaseClass.STATUS_DIE_AT_EDGE:
-                    NotImplemented("llGetStatus - STATUS_DIE_AT_EDGE");
-                    return 0;
+
+                    if (m_host.GetDieAtEdge())
+                        return 1;
+                    else 
+                        return 0;
+                
                 case BuiltIn_Commands_BaseClass.STATUS_RETURN_AT_EDGE:
                     NotImplemented("llGetStatus - STATUS_RETURN_AT_EDGE");
                     return 0;

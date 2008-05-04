@@ -1352,6 +1352,25 @@ namespace OpenSim.Region.Environment.Scenes
  
         public void CrossPrimGroupIntoNewRegion(LLVector3 position, SceneObjectGroup grp)
         {
+            if (grp == null)
+                return;
+            if (grp.RootPart == null)
+                return;
+
+            if (grp.RootPart.DIE_AT_EDGE)
+            {
+                // We remove the object here
+                try
+                {
+                    DeleteSceneObjectGroup(grp);
+                }
+                catch (Exception)
+                {
+                    m_log.Warn("[DATABASE]: exception when trying to remove the prim that crossed the border.");
+                }
+                return;
+            }
+
             m_log.Warn("Prim crossing: " + grp.UUID.ToString());
             int thisx = (int)RegionInfo.RegionLocX;
             int thisy = (int)RegionInfo.RegionLocY;

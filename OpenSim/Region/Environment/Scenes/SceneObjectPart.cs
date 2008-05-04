@@ -101,6 +101,7 @@ namespace OpenSim.Region.Environment.Scenes
 		[XmlIgnore] private Dictionary<LLUUID, scriptEvents> m_scriptEvents = new Dictionary<LLUUID, scriptEvents>();
 		[XmlIgnore] public scriptEvents m_aggregateScriptEvents=0;
         [XmlIgnore] private LLObject.ObjectFlags LocalFlags = LLObject.ObjectFlags.None;
+        [XmlIgnore] public bool DIE_AT_EDGE = false;
 
 
         [XmlIgnore] public bool m_IsAttachment = false;
@@ -2732,6 +2733,25 @@ namespace OpenSim.Region.Environment.Scenes
              //   m_log.Debug("[OBJECT]: Collided with:" + localid.ToString() + " at depth of: " + collissionswith[localid].ToString());
             //}
             
+        }
+
+        public void SetDieAtEdge(bool p)
+        {
+            if (m_parentGroup == null)
+                return;
+            if (m_parentGroup.RootPart == null)
+                return;
+
+            m_parentGroup.RootPart.DIE_AT_EDGE = p;
+        }
+        public bool GetDieAtEdge()
+        {
+            if (m_parentGroup == null)
+                return false;
+            if (m_parentGroup.RootPart == null)
+                return false;
+
+            return m_parentGroup.RootPart.DIE_AT_EDGE;
         }
     }
     

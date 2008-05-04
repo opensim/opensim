@@ -183,7 +183,9 @@ namespace OpenSim.Data.SQLite
             {
                 foreach (SceneObjectPart prim in obj.Children.Values)
                 {
-                    if ((prim.GetEffectiveObjectFlags() & (uint) LLObject.ObjectFlags.Physics) == 0)
+                    if ((prim.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Physics) == 0 
+                        && (prim.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Temporary) == 0 
+                        && (prim.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.TemporaryOnRez) == 0)
                     {
                         m_log.Info("[REGION DB]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
                         addPrim(prim, Util.ToRawUuidString(obj.UUID), Util.ToRawUuidString(regionUUID));
