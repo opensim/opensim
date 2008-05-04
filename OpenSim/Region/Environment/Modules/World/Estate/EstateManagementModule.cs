@@ -51,35 +51,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         private void sendDetailedEstateData(IClientAPI remote_client, LLUUID invoice)
         {
 
-            EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();
-            packet.MethodData.Invoice = invoice;
-            packet.AgentData.TransactionID = LLUUID.Random();
-            packet.MethodData.Method = Helpers.StringToField("estateupdateinfo");
-            EstateOwnerMessagePacket.ParamListBlock[] returnblock = new EstateOwnerMessagePacket.ParamListBlock[9];
-
-            for (int i = 0; i < 9; i++)
-            {
-                returnblock[i] = new EstateOwnerMessagePacket.ParamListBlock();
-            }
-
-            //Sending Estate Settings
-            returnblock[0].Parameter = Helpers.StringToField(m_scene.RegionInfo.EstateSettings.estateName);
-            returnblock[1].Parameter = Helpers.StringToField(m_scene.RegionInfo.MasterAvatarAssignedUUID.ToString());
-            returnblock[2].Parameter = Helpers.StringToField(m_scene.RegionInfo.EstateSettings.estateID.ToString());
-
-            // TODO: Resolve Magic numbers here
-            returnblock[3].Parameter = Helpers.StringToField("269516800");
-            returnblock[4].Parameter = Helpers.StringToField("0");
-            returnblock[5].Parameter = Helpers.StringToField("1");
-            returnblock[6].Parameter = Helpers.StringToField(m_scene.RegionInfo.RegionID.ToString());
-            returnblock[7].Parameter = Helpers.StringToField("1160895077");
-            returnblock[8].Parameter = Helpers.StringToField("1");
-
-            packet.ParamList = returnblock;
-            packet.Header.Reliable = false;
-            //System.Console.WriteLine("[ESTATE]: SIM--->" + packet.ToString());
-            remote_client.OutPacket(packet, ThrottleOutPacketType.Task);
-
+            remote_client.sendDetailedEstateData(invoice);
             remote_client.sendEstateManagersList(invoice);
 
         }

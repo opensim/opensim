@@ -768,6 +768,7 @@ namespace OpenSim.Framework
         void sendEstateManagersList(LLUUID invoice);
         void sendRegionInfoToEstateMenu();
         void sendEstateCovenantInformation();
+        void sendDetailedEstateData(LLUUID invoice);
 
         byte[] GetThrottlesPacked(float multiplier);
 

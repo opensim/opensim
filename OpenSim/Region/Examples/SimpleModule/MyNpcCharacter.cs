@@ -642,5 +642,8 @@ namespace OpenSim.Region.Examples.SimpleModule
         public void sendEstateCovenantInformation()
         {
         }
+        public void sendDetailedEstateData(LLUUID invoice)
+        {
+        }
     }
 }
