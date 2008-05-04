@@ -34,7 +34,7 @@ using log4net;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Modules.Framework;
+using OpenSim.Region.Environment.Modules.Framework.InterfaceCommander;
 using OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders;
 using OpenSim.Region.Environment.Modules.World.Terrain.FloodBrushes;
 using OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes;

@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.IO;
 using Nini.Config;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.Environment.Modules.Framework;
+using OpenSim.Region.Environment.Modules.Framework.InterfaceCommander;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.World.Serialiser
