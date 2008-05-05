@@ -326,8 +326,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                         m_ScriptEngine.World.GetSceneObjectPart(QIS.localID);
                                     //if (m_host != null)
                                     //{
-                                    m_ScriptEngine.World.SimChat(Helpers.StringToField(text),
-                                                                 ChatTypeEnum.Say, 0,
+                                    m_ScriptEngine.World.SimChat(Helpers.StringToField(text.Substring(0,999)),
+                                                                 ChatTypeEnum.DebugChannel, 2147483647,
                                                                  m_host.AbsolutePosition,
                                                                  m_host.Name, m_host.UUID);
                                 }

@@ -53,6 +53,8 @@ namespace OpenSim.Region.Environment.Scenes
                 args.Channel = channel;
                 args.Type = type;
                 args.Position = fromPos;
+                args.SenderUUID = fromAgentID;
+
 
                 ScenePresence user = GetScenePresence(fromAgentID);
                 if (user != null)
@@ -61,6 +63,7 @@ namespace OpenSim.Region.Environment.Scenes
                     args.Sender = null;
 
                 args.From = fromName;
+                //args.
 
                 m_simChatModule.SimChat(this, args);
             }

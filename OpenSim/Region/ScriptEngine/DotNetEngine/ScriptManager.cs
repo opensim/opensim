@@ -114,7 +114,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     string text = "Error compiling script:\r\n" + e.Message.ToString();
                     if (text.Length > 1500)
                         text = text.Substring(0, 1500);
-                    World.SimChat(Helpers.StringToField(text), ChatTypeEnum.Say, 0, m_host.AbsolutePosition,
+                    World.SimChat(Helpers.StringToField(text), ChatTypeEnum.DebugChannel, 2147483647, m_host.AbsolutePosition,
                                   m_host.Name, m_host.UUID);
                 }
                 catch (Exception e2) // LEGIT: User Scripting

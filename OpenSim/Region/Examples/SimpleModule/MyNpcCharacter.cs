@@ -296,12 +296,12 @@ namespace OpenSim.Region.Examples.SimpleModule
         }
 
         public virtual void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName,
-                                            LLUUID fromAgentID)
+                                            LLUUID fromAgentID, byte source, byte audible)
         {
         }
 
         public virtual void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName,
-                                            LLUUID fromAgentID)
+                                            LLUUID fromAgentID, byte source, byte audible)
         {
         }
 

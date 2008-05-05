@@ -168,7 +168,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
             string fromName = e.From;
             string message = e.Message;
-            LLUUID fromAgentID = LLUUID.Zero;
+            LLUUID fromAgentID = e.SenderUUID;
 
             if (e.Sender != null)
             {
@@ -208,10 +208,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
 
             // We only want to relay stuff on channel 0
-            if (e.Channel == 0)
+            if (e.Channel == 0 || e.Channel == 2147483647)
             {
+                if (e.Channel == 2147483647)
+                    e.Type = ChatTypeEnum.DebugChannel;
+
                 // IRC stuff
-                if (e.Message.Length > 0)
+                if (e.Message.Length > 0 && e.Channel == 0)
                 {
                     if (m_irc.Connected && (avatar != null)) // this is to keep objects from talking to IRC
                     {
@@ -223,8 +226,17 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 {
                     s.ForEachScenePresence(delegate(ScenePresence presence)
                                                {
-                                                   TrySendChatMessage(presence, fromPos, regionPos,
-                                                                      fromAgentID, fromName, e.Type, message);
+                                                   if (e.Channel == 2147483647)
+                                                   {
+                                                       TrySendChatMessage(presence, fromPos, regionPos,
+                                                                         fromAgentID, fromName, e.Type, message, ChatSourceType.Object);
+                                                   }
+                                                   else
+                                                   {
+                                                       TrySendChatMessage(presence, fromPos, regionPos,
+                                                                          fromAgentID, fromName, e.Type, message, ChatSourceType.Agent);
+                                                       
+                                                   }
                                                });
                 }
             }
@@ -290,7 +302,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         }
 
         private void TrySendChatMessage(ScenePresence presence, LLVector3 fromPos, LLVector3 regionPos,
-                                        LLUUID fromAgentID, string fromName, ChatTypeEnum type, string message)
+                                        LLUUID fromAgentID, string fromName, ChatTypeEnum type, string message, ChatSourceType src)
         {
             if (!presence.IsChildAgent)
             {
@@ -306,7 +318,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 }
 
                 // TODO: should change so the message is sent through the avatar rather than direct to the ClientView
-                presence.ControllingClient.SendChatMessage(message, (byte) type, fromPos, fromName, fromAgentID);
+                presence.ControllingClient.SendChatMessage(message, (byte) type, fromPos, fromName, fromAgentID,(byte)src,(byte)ChatAudibleLevel.Fully);
             }
         }
 
@@ -633,7 +645,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                                                                              avatar.ControllingClient.SendChatMessage(
                                                                                  Helpers.StringToField(data["msg"]), 255,
                                                                                  pos, data["nick"],
-                                                                                 LLUUID.Zero);
+                                                                                 LLUUID.Zero,(byte)ChatSourceType.Agent,(byte)ChatAudibleLevel.Fully);
                                                                          }
                                                                      });
                                 }
@@ -678,7 +690,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                                                              avatar.ControllingClient.SendChatMessage(
                                                                  Helpers.StringToField(message), 255,
                                                                  pos, sender,
-                                                                 LLUUID.Zero);
+                                                                 LLUUID.Zero,(byte)ChatSourceType.Object,(byte)ChatAudibleLevel.Fully);
                                                          }
                                                      });
                 }

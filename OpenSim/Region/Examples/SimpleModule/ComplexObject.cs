@@ -118,7 +118,7 @@ namespace OpenSim.Region.Examples.SimpleModule
 
             remoteClient.SendKillObject(m_regionHandle, part.LocalId);
             remoteClient.AddMoney(1);
-            remoteClient.SendChatMessage("Poof!", 1, AbsolutePosition, "Party Party", LLUUID.Zero);
+            remoteClient.SendChatMessage("Poof!", 1, AbsolutePosition, "Party Party", LLUUID.Zero, (byte)ChatSourceType.Object, (byte)ChatAudibleLevel.Fully);
         }
 
         public override void OnGrabGroup(LLVector3 offsetPos, IClientAPI remoteClient)
@@ -129,7 +129,7 @@ namespace OpenSim.Region.Examples.SimpleModule
                 m_scene.RemoveEntity(this);
                 remoteClient.SendKillObject(m_regionHandle, m_rootPart.LocalId);
                 remoteClient.AddMoney(50);
-                remoteClient.SendChatMessage("KABLAM!!!", 1, AbsolutePosition, "Groupie Groupie", LLUUID.Zero);
+                remoteClient.SendChatMessage("KABLAM!!!", 1, AbsolutePosition, "Groupie Groupie", LLUUID.Zero, (byte)ChatSourceType.Object, (byte)ChatAudibleLevel.Fully);
             }
         }
     }

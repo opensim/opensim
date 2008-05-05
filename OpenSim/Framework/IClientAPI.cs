@@ -53,6 +53,7 @@ namespace OpenSim.Framework
         // 3 is an obsolete version of Say
         StartTyping = 4,
         StopTyping = 5,
+        DebugChannel = 6,
         Broadcast = 0xFF
     }
 
@@ -82,6 +83,7 @@ namespace OpenSim.Framework
         protected IScene m_scene;
         protected IClientAPI m_sender;
         protected ChatTypeEnum m_type;
+        protected LLUUID m_fromID;
 
         public ChatFromViewerArgs()
         {
@@ -142,6 +144,12 @@ namespace OpenSim.Framework
         {
             get { return m_sender; }
             set { m_sender = value; }
+        }
+
+        public LLUUID SenderUUID
+        {
+            get { return m_fromID; }
+            set { m_fromID = value; }
         }
 
         /// <summary>
@@ -653,8 +661,8 @@ namespace OpenSim.Framework
         void SendKillObject(ulong regionHandle, uint localID);
         void SendAnimations(LLUUID[] animID, int[] seqs, LLUUID sourceAgentId);
         void SendRegionHandshake(RegionInfo regionInfo);
-        void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
-        void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID);
+        void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID, byte source, byte audible);
+        void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID, byte source, byte audible);
 
         void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent,
                                 LLUUID imSessionID, string fromName, byte dialog, uint timeStamp);

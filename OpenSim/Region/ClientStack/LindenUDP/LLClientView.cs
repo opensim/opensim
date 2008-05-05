@@ -898,18 +898,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="fromPos"></param>
         /// <param name="fromName"></param>
         /// <param name="fromAgentID"></param>
-        public void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
+        public void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID, byte source, byte audible)
         {
-            SendChatMessage(Helpers.StringToField(message), type, fromPos, fromName, fromAgentID);
+            SendChatMessage(Helpers.StringToField(message), type, fromPos, fromName, fromAgentID, source, audible);
         }
 
-        public void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID)
+        public void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID, byte source, byte audible)
         {
             ChatFromSimulatorPacket reply = (ChatFromSimulatorPacket)PacketPool.Instance.GetPacket(PacketType.ChatFromSimulator);
-            reply.ChatData.Audible = 1;
+            reply.ChatData.Audible = audible;
             reply.ChatData.Message = message;
             reply.ChatData.ChatType = type;
-            reply.ChatData.SourceType = 1;
+            reply.ChatData.SourceType = source;
             reply.ChatData.Position = fromPos;
             reply.ChatData.FromName = Helpers.StringToField(fromName);
             reply.ChatData.OwnerID = fromAgentID;
