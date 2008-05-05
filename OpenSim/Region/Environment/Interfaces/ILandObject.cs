@@ -27,7 +27,6 @@
 
 using System.Collections.Generic;
 using libsecondlife;
-using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 
@@ -44,12 +43,12 @@ namespace OpenSim.Region.Environment.Interfaces
         void sendLandUpdateToAvatarsOverMe();
 
         void sendLandProperties(int sequence_id, bool snap_selection, int request_result, IClientAPI remote_client);
-        void updateLandProperties(ParcelPropertiesUpdatePacket packet, IClientAPI remote_client);
+        void updateLandProperties(LandUpdateArgs args, IClientAPI remote_client);
         bool isEitherBannedOrRestricted(LLUUID avatar);
         bool isBannedFromLand(LLUUID avatar);
         bool isRestrictedFromLand(LLUUID avatar);
         void sendLandUpdateToClient(IClientAPI remote_client);
-        ParcelAccessListReplyPacket.ListBlock[] createAccessListArrayByFlag(ParcelManager.AccessList flag);
+        List<LLUUID> createAccessListArrayByFlag(ParcelManager.AccessList flag);
         void sendAccessList(LLUUID agentID, LLUUID sessionID, uint flags, int sequenceID, IClientAPI remote_client);
         void updateAccessList(uint flags, List<ParcelManager.ParcelAccessEntry> entries, IClientAPI remote_client);
         void updateLandBitmapByteArray();

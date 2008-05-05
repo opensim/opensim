@@ -2274,10 +2274,205 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
         #endregion
-        
-        #region Helper Methods
 
-        protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateAvatarImprovedBlock(uint localID, LLVector3 pos,
+        #region Land Data Sending Methods
+        
+        public void sendLandProperties(IClientAPI remote_client,int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int simObjectCapacity)
+        {
+            ParcelPropertiesPacket updatePacket = (ParcelPropertiesPacket) PacketPool.Instance.GetPacket(PacketType.ParcelProperties);
+            // TODO: don't create new blocks if recycling an old packet
+
+            updatePacket.ParcelData.AABBMax = landData.AABBMax;
+            updatePacket.ParcelData.AABBMin = landData.AABBMin;
+            updatePacket.ParcelData.Area = landData.area;
+            updatePacket.ParcelData.AuctionID = landData.auctionID;
+            updatePacket.ParcelData.AuthBuyerID = landData.authBuyerID; //unemplemented
+
+            updatePacket.ParcelData.Bitmap = landData.landBitmapByteArray;
+
+            updatePacket.ParcelData.Desc = Helpers.StringToField(landData.landDesc);
+            updatePacket.ParcelData.Category = (byte) landData.category;
+            updatePacket.ParcelData.ClaimDate = landData.claimDate;
+            updatePacket.ParcelData.ClaimPrice = landData.claimPrice;
+            updatePacket.ParcelData.GroupID = landData.groupID;
+            updatePacket.ParcelData.GroupPrims = landData.groupPrims;
+            updatePacket.ParcelData.IsGroupOwned = landData.isGroupOwned;
+            updatePacket.ParcelData.LandingType = (byte) landData.landingType;
+            updatePacket.ParcelData.LocalID = landData.localID;
+            if (landData.area > 0)
+            {
+                updatePacket.ParcelData.MaxPrims =
+                    Convert.ToInt32(
+                        Math.Round((Convert.ToDecimal(landData.area) / Convert.ToDecimal(65536)) * simObjectCapacity *
+                                   Convert.ToDecimal(simObjectBonusFactor)));
+            }
+            else
+            {
+                updatePacket.ParcelData.MaxPrims = 0;
+            }
+            updatePacket.ParcelData.MediaAutoScale = landData.mediaAutoScale;
+            updatePacket.ParcelData.MediaID = landData.mediaID;
+            updatePacket.ParcelData.MediaURL = Helpers.StringToField(landData.mediaURL);
+            updatePacket.ParcelData.MusicURL = Helpers.StringToField(landData.musicURL);
+            updatePacket.ParcelData.Name = Helpers.StringToField(landData.landName);
+            updatePacket.ParcelData.OtherCleanTime = 0; //unemplemented
+            updatePacket.ParcelData.OtherCount = 0; //unemplemented
+            updatePacket.ParcelData.OtherPrims = landData.otherPrims;
+            updatePacket.ParcelData.OwnerID = landData.ownerID;
+            updatePacket.ParcelData.OwnerPrims = landData.ownerPrims;
+            updatePacket.ParcelData.ParcelFlags = landData.landFlags;
+            updatePacket.ParcelData.ParcelPrimBonus = m_scene.RegionInfo.EstateSettings.objectBonusFactor;
+            updatePacket.ParcelData.PassHours = landData.passHours;
+            updatePacket.ParcelData.PassPrice = landData.passPrice;
+            updatePacket.ParcelData.PublicCount = 0; //unemplemented
+
+            uint regionFlags = (uint) m_scene.RegionInfo.EstateSettings.regionFlags;
+            updatePacket.ParcelData.RegionDenyAnonymous = ((regionFlags & (uint) Simulator.RegionFlags.DenyAnonymous) >
+                                                           0);
+            updatePacket.ParcelData.RegionDenyIdentified = ((regionFlags & (uint) Simulator.RegionFlags.DenyIdentified) >
+                                                            0);
+            updatePacket.ParcelData.RegionDenyTransacted = ((regionFlags & (uint) Simulator.RegionFlags.DenyTransacted) >
+                                                            0);
+            updatePacket.ParcelData.RegionPushOverride = ((regionFlags & (uint) Simulator.RegionFlags.RestrictPushObject) >
+                                                          0);
+
+            updatePacket.ParcelData.RentPrice = 0;
+            updatePacket.ParcelData.RequestResult = request_result;
+            updatePacket.ParcelData.SalePrice = landData.salePrice;
+            updatePacket.ParcelData.SelectedPrims = landData.selectedPrims;
+            updatePacket.ParcelData.SelfCount = 0; //unemplemented
+            updatePacket.ParcelData.SequenceID = sequence_id;
+            if (landData.simwideArea > 0)
+            {
+                updatePacket.ParcelData.SimWideMaxPrims =
+                    Convert.ToInt32(
+                        Math.Round((Convert.ToDecimal(landData.simwideArea) / Convert.ToDecimal(65536)) * simObjectCapacity *
+                                   Convert.ToDecimal(simObjectBonusFactor)));
+            }
+            else
+            {
+                updatePacket.ParcelData.SimWideMaxPrims = 0;
+            }
+            updatePacket.ParcelData.SimWideTotalPrims = landData.simwidePrims;
+            updatePacket.ParcelData.SnapSelection = snap_selection;
+            updatePacket.ParcelData.SnapshotID = landData.snapshotID;
+            updatePacket.ParcelData.Status = (byte) landData.landStatus;
+            updatePacket.ParcelData.TotalPrims = landData.ownerPrims + landData.groupPrims + landData.otherPrims +
+                                                 landData.selectedPrims;
+            updatePacket.ParcelData.UserLocation = landData.userLocation;
+            updatePacket.ParcelData.UserLookAt = landData.userLookAt;
+            remote_client.OutPacket((Packet) updatePacket, ThrottleOutPacketType.Task);
+        }
+
+        public void sendLandAccessListData(List<LLUUID> avatars, uint accessFlag, int localLandID)
+        {
+            ParcelAccessListReplyPacket replyPacket = (ParcelAccessListReplyPacket)PacketPool.Instance.GetPacket(PacketType.ParcelAccessListReply);
+            replyPacket.Data.AgentID = this.AgentId;
+            replyPacket.Data.Flags = accessFlag;
+            replyPacket.Data.LocalID = localLandID;
+            replyPacket.Data.SequenceID = 0;
+
+            List<ParcelAccessListReplyPacket.ListBlock> list = new List<ParcelAccessListReplyPacket.ListBlock>();
+            foreach (LLUUID avatar in avatars)
+            {
+                ParcelAccessListReplyPacket.ListBlock block = new ParcelAccessListReplyPacket.ListBlock();
+                block.Flags = accessFlag;
+                block.ID = avatar;
+                block.Time = 0;
+            }
+
+            replyPacket.List = list.ToArray();
+            this.OutPacket((Packet)replyPacket, ThrottleOutPacketType.Task);
+        }
+
+        public void sendForceClientSelectObjects(List<uint> ObjectIDs)
+        {
+            bool firstCall = true;
+            int MAX_OBJECTS_PER_PACKET = 251;
+            ForceObjectSelectPacket pack = (ForceObjectSelectPacket)PacketPool.Instance.GetPacket(PacketType.ForceObjectSelect);
+            ForceObjectSelectPacket.DataBlock[] data;
+            while (ObjectIDs.Count > 0)
+            {
+                if (firstCall)
+                {
+                    pack._Header.ResetList = true;
+                    firstCall = false;
+                }
+                else
+                {
+                    pack._Header.ResetList = false;
+                }
+
+                if (ObjectIDs.Count > MAX_OBJECTS_PER_PACKET)
+                {
+                    data = new ForceObjectSelectPacket.DataBlock[MAX_OBJECTS_PER_PACKET];
+                }
+                else
+                {
+                    data = new ForceObjectSelectPacket.DataBlock[ObjectIDs.Count];
+                }
+
+                int i;
+                for (i = 0; i < MAX_OBJECTS_PER_PACKET && ObjectIDs.Count > 0; i++)
+                {
+                    data[i] = new ForceObjectSelectPacket.DataBlock();
+                    data[i].LocalID = Convert.ToUInt32(ObjectIDs[0]);
+                    ObjectIDs.RemoveAt(0);
+                }
+                pack.Data = data;
+                this.OutPacket((Packet)pack, ThrottleOutPacketType.Task);
+            }
+        }
+
+        public void sendLandObjectOwners(Dictionary<LLUUID, int> ownersAndCount)
+        {
+            int notifyCount = ownersAndCount.Count;
+            ParcelObjectOwnersReplyPacket pack = (ParcelObjectOwnersReplyPacket)PacketPool.Instance.GetPacket(PacketType.ParcelObjectOwnersReply);
+
+            if (notifyCount > 0)
+            {
+                if (notifyCount > 32)
+                {
+                    m_log.InfoFormat(
+                        "[LAND]: More than {0} avatars own prims on this parcel.  Only sending back details of first {0}"
+                        + " - a developer might want to investigate whether this is a hard limit", 32);
+
+                    notifyCount = 32;
+                }
+
+                
+
+                ParcelObjectOwnersReplyPacket.DataBlock[] dataBlock
+                    = new ParcelObjectOwnersReplyPacket.DataBlock[notifyCount];
+
+                int num = 0;
+                foreach (LLUUID owner in ownersAndCount.Keys)
+                {
+                    dataBlock[num] = new ParcelObjectOwnersReplyPacket.DataBlock();
+                    dataBlock[num].Count = ownersAndCount[owner];
+                    dataBlock[num].IsGroupOwned = false; //TODO: fix me when group support is added
+                    dataBlock[num].OnlineStatus = true; //TODO: fix me later
+                    dataBlock[num].OwnerID = owner;
+
+                    num++;
+
+                    if (num >= notifyCount)
+                    {
+                        break;
+                    }
+                }
+
+                pack.Data = dataBlock;
+            }
+
+            this.OutPacket(pack, ThrottleOutPacketType.Task);
+        }
+
+        #endregion
+
+            #region Helper Methods
+
+            protected ImprovedTerseObjectUpdatePacket.ObjectDataBlock CreateAvatarImprovedBlock(uint localID, LLVector3 pos,
                                                                                             LLVector3 velocity,
                                                                                             LLQuaternion rotation)
         {
@@ -4704,7 +4899,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                         if (handlerParcelPropertiesUpdateRequest != null)
                         {
-                            handlerParcelPropertiesUpdateRequest(parcelPropertiesPacket, this);
+                            LandUpdateArgs args = new LandUpdateArgs();
+
+                            args.AuthBuyerID = parcelPropertiesPacket.ParcelData.AuthBuyerID;
+                            args.Category = (Parcel.ParcelCategory)parcelPropertiesPacket.ParcelData.Category;
+                            args.Desc = Helpers.FieldToUTF8String(parcelPropertiesPacket.ParcelData.Desc);
+                            args.GroupID = parcelPropertiesPacket.ParcelData.GroupID;
+                            args.LandingType = parcelPropertiesPacket.ParcelData.LandingType;
+                            args.MediaAutoScale = parcelPropertiesPacket.ParcelData.MediaAutoScale;
+                            args.MediaID = parcelPropertiesPacket.ParcelData.MediaID;
+                            args.MediaURL = Helpers.FieldToUTF8String(parcelPropertiesPacket.ParcelData.MediaURL);
+                            args.MusicURL = Helpers.FieldToUTF8String(parcelPropertiesPacket.ParcelData.MusicURL);
+                            args.Name = Helpers.FieldToUTF8String(parcelPropertiesPacket.ParcelData.Name);
+                            args.ParcelFlags = parcelPropertiesPacket.ParcelData.ParcelFlags;
+                            args.PassHours = parcelPropertiesPacket.ParcelData.PassHours;
+                            args.PassPrice = parcelPropertiesPacket.ParcelData.PassPrice;
+                            args.SalePrice = parcelPropertiesPacket.ParcelData.SalePrice;
+                            args.SnapshotID = parcelPropertiesPacket.ParcelData.SnapshotID;
+                            args.UserLocation = parcelPropertiesPacket.ParcelData.UserLocation;
+                            args.UserLookAt = parcelPropertiesPacket.ParcelData.UserLookAt;
+                            handlerParcelPropertiesUpdateRequest(args, parcelPropertiesPacket.ParcelData.LocalID, this);
                         }
                         break;
                     case PacketType.ParcelSelectObjects:

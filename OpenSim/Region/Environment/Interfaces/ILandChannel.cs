@@ -27,7 +27,6 @@
 
 using System.Collections.Generic;
 using libsecondlife;
-using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 
@@ -56,7 +55,7 @@ namespace OpenSim.Region.Environment.Interfaces
 
         void sendParcelOverlay(IClientAPI remote_client);
         void handleParcelPropertiesRequest(int start_x, int start_y, int end_x, int end_y, int sequence_id, bool snap_selection, IClientAPI remote_client);
-        void handleParcelPropertiesUpdateRequest(ParcelPropertiesUpdatePacket packet, IClientAPI remote_client);
+        void handleParcelPropertiesUpdateRequest(LandUpdateArgs args, int localID, IClientAPI remote_client);
         void handleParcelDivideRequest(int west, int south, int east, int north, IClientAPI remote_client);
         void handleParcelJoinRequest(int west, int south, int east, int north, IClientAPI remote_client);
         void handleParcelSelectObjectsRequest(int local_id, int request_type, IClientAPI remote_client);

@@ -645,5 +645,18 @@ namespace OpenSim.Region.Examples.SimpleModule
         public void sendDetailedEstateData(LLUUID invoice)
         {
         }
+
+        public void sendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int simObjectCapacity)
+        {
+        }
+        public void sendLandAccessListData(List<LLUUID> avatars, uint accessFlag, int localLandID)
+        {
+        }
+        public void sendForceClientSelectObjects(List<uint> objectIDs)
+        {
+        }
+        public void sendLandObjectOwners(Dictionary<LLUUID, int> ownersAndCount)
+        {
+        }
     }
 }

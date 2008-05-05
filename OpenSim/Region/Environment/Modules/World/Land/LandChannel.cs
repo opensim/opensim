@@ -672,11 +672,11 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             sendParcelOverlay(remote_client);
         }
 
-        public void handleParcelPropertiesUpdateRequest(ParcelPropertiesUpdatePacket packet, IClientAPI remote_client)
+        public void handleParcelPropertiesUpdateRequest(LandUpdateArgs args, int localID, IClientAPI remote_client)
         {
-            if (landList.ContainsKey(packet.ParcelData.LocalID))
+            if (landList.ContainsKey(localID))
             {
-                landList[packet.ParcelData.LocalID].updateLandProperties(packet, remote_client);
+                landList[localID].updateLandProperties(args, remote_client);
             }
         }
 

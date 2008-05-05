@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using libsecondlife;
-using libsecondlife.Packets;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
@@ -121,123 +120,35 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         #region Packet Request Handling
 
-        /// <summary>
-        /// Sends land properties as requested
-        /// </summary>
-        /// <param name="sequence_id">ID sent by client for them to keep track of</param>
-        /// <param name="snap_selection">Bool sent by client for them to use</param>
-        /// <param name="remote_client">Object representing the client</param>
-        public void sendLandProperties(int sequence_id, bool snap_selection, int request_result,
-                                       IClientAPI remote_client)
+        public void sendLandProperties(int sequence_id, bool snap_selection, int request_result, IClientAPI remote_client)
         {
-            ParcelPropertiesPacket updatePacket = (ParcelPropertiesPacket) PacketPool.Instance.GetPacket(PacketType.ParcelProperties);
-            // TODO: don't create new blocks if recycling an old packet
-
-            updatePacket.ParcelData.AABBMax = landData.AABBMax;
-            updatePacket.ParcelData.AABBMin = landData.AABBMin;
-            updatePacket.ParcelData.Area = landData.area;
-            updatePacket.ParcelData.AuctionID = landData.auctionID;
-            updatePacket.ParcelData.AuthBuyerID = landData.authBuyerID; //unemplemented
-
-            updatePacket.ParcelData.Bitmap = landData.landBitmapByteArray;
-
-            updatePacket.ParcelData.Desc = Helpers.StringToField(landData.landDesc);
-            updatePacket.ParcelData.Category = (byte) landData.category;
-            updatePacket.ParcelData.ClaimDate = landData.claimDate;
-            updatePacket.ParcelData.ClaimPrice = landData.claimPrice;
-            updatePacket.ParcelData.GroupID = landData.groupID;
-            updatePacket.ParcelData.GroupPrims = landData.groupPrims;
-            updatePacket.ParcelData.IsGroupOwned = landData.isGroupOwned;
-            updatePacket.ParcelData.LandingType = (byte) landData.landingType;
-            updatePacket.ParcelData.LocalID = landData.localID;
-            if (landData.area > 0)
-            {
-                updatePacket.ParcelData.MaxPrims =
-                    Convert.ToInt32(
-                        Math.Round((Convert.ToDecimal(landData.area) / Convert.ToDecimal(65536)) * m_scene.objectCapacity *
-                                   Convert.ToDecimal(m_scene.RegionInfo.EstateSettings.objectBonusFactor)));
-            }
-            else
-            {
-                updatePacket.ParcelData.MaxPrims = 0;
-            }
-            updatePacket.ParcelData.MediaAutoScale = landData.mediaAutoScale;
-            updatePacket.ParcelData.MediaID = landData.mediaID;
-            updatePacket.ParcelData.MediaURL = Helpers.StringToField(landData.mediaURL);
-            updatePacket.ParcelData.MusicURL = Helpers.StringToField(landData.musicURL);
-            updatePacket.ParcelData.Name = Helpers.StringToField(landData.landName);
-            updatePacket.ParcelData.OtherCleanTime = 0; //unemplemented
-            updatePacket.ParcelData.OtherCount = 0; //unemplemented
-            updatePacket.ParcelData.OtherPrims = landData.otherPrims;
-            updatePacket.ParcelData.OwnerID = landData.ownerID;
-            updatePacket.ParcelData.OwnerPrims = landData.ownerPrims;
-            updatePacket.ParcelData.ParcelFlags = landData.landFlags;
-            updatePacket.ParcelData.ParcelPrimBonus = m_scene.RegionInfo.EstateSettings.objectBonusFactor;
-            updatePacket.ParcelData.PassHours = landData.passHours;
-            updatePacket.ParcelData.PassPrice = landData.passPrice;
-            updatePacket.ParcelData.PublicCount = 0; //unemplemented
-
-            uint regionFlags = (uint) m_scene.RegionInfo.EstateSettings.regionFlags;
-            updatePacket.ParcelData.RegionDenyAnonymous = ((regionFlags & (uint) Simulator.RegionFlags.DenyAnonymous) >
-                                                           0);
-            updatePacket.ParcelData.RegionDenyIdentified = ((regionFlags & (uint) Simulator.RegionFlags.DenyIdentified) >
-                                                            0);
-            updatePacket.ParcelData.RegionDenyTransacted = ((regionFlags & (uint) Simulator.RegionFlags.DenyTransacted) >
-                                                            0);
-            updatePacket.ParcelData.RegionPushOverride = ((regionFlags & (uint) Simulator.RegionFlags.RestrictPushObject) >
-                                                          0);
-
-            updatePacket.ParcelData.RentPrice = 0;
-            updatePacket.ParcelData.RequestResult = request_result;
-            updatePacket.ParcelData.SalePrice = landData.salePrice;
-            updatePacket.ParcelData.SelectedPrims = landData.selectedPrims;
-            updatePacket.ParcelData.SelfCount = 0; //unemplemented
-            updatePacket.ParcelData.SequenceID = sequence_id;
-            if (landData.simwideArea > 0)
-            {
-                updatePacket.ParcelData.SimWideMaxPrims =
-                    Convert.ToInt32(
-                        Math.Round((Convert.ToDecimal(landData.simwideArea) / Convert.ToDecimal(65536)) * m_scene.objectCapacity *
-                                   Convert.ToDecimal(m_scene.RegionInfo.EstateSettings.objectBonusFactor)));
-            }
-            else
-            {
-                updatePacket.ParcelData.SimWideMaxPrims = 0;
-            }
-            updatePacket.ParcelData.SimWideTotalPrims = landData.simwidePrims;
-            updatePacket.ParcelData.SnapSelection = snap_selection;
-            updatePacket.ParcelData.SnapshotID = landData.snapshotID;
-            updatePacket.ParcelData.Status = (byte) landData.landStatus;
-            updatePacket.ParcelData.TotalPrims = landData.ownerPrims + landData.groupPrims + landData.otherPrims +
-                                                 landData.selectedPrims;
-            updatePacket.ParcelData.UserLocation = landData.userLocation;
-            updatePacket.ParcelData.UserLookAt = landData.userLookAt;
-            remote_client.OutPacket((Packet) updatePacket, ThrottleOutPacketType.Task);
+            remote_client.sendLandProperties(remote_client, sequence_id, snap_selection, request_result, landData, m_scene.RegionInfo.EstateSettings.objectBonusFactor, m_scene.objectCapacity);
         }
 
-        public void updateLandProperties(ParcelPropertiesUpdatePacket packet, IClientAPI remote_client)
+        public void updateLandProperties(LandUpdateArgs args, IClientAPI remote_client)
         {
             if (remote_client.AgentId == landData.ownerID)
             {
                 //Needs later group support
                 LandData newData = landData.Copy();
-                newData.authBuyerID = packet.ParcelData.AuthBuyerID;
-                newData.category = (Parcel.ParcelCategory) packet.ParcelData.Category;
-                newData.landDesc = Helpers.FieldToUTF8String(packet.ParcelData.Desc);
-                newData.groupID = packet.ParcelData.GroupID;
-                newData.landingType = packet.ParcelData.LandingType;
-                newData.mediaAutoScale = packet.ParcelData.MediaAutoScale;
-                newData.mediaID = packet.ParcelData.MediaID;
-                newData.mediaURL = Helpers.FieldToUTF8String(packet.ParcelData.MediaURL);
-                newData.musicURL = Helpers.FieldToUTF8String(packet.ParcelData.MusicURL);
-                newData.landName = Helpers.FieldToUTF8String(packet.ParcelData.Name);
-                newData.landFlags = packet.ParcelData.ParcelFlags;
-                newData.passHours = packet.ParcelData.PassHours;
-                newData.passPrice = packet.ParcelData.PassPrice;
-                newData.salePrice = packet.ParcelData.SalePrice;
-                newData.snapshotID = packet.ParcelData.SnapshotID;
-                newData.userLocation = packet.ParcelData.UserLocation;
-                newData.userLookAt = packet.ParcelData.UserLookAt;
+
+                newData.authBuyerID = args.AuthBuyerID;
+                newData.category = args.Category;
+                newData.landDesc = args.Desc;
+                newData.groupID = args.GroupID;
+                newData.landingType = args.LandingType;
+                newData.mediaAutoScale = args.MediaAutoScale;
+                newData.mediaID = args.MediaID;
+                newData.mediaURL = args.MediaURL;
+                newData.musicURL = args.MusicURL;
+                newData.landName = args.Name;
+                newData.landFlags = args.ParcelFlags;
+                newData.passHours = args.PassHours;
+                newData.passPrice = args.PassPrice;
+                newData.salePrice = args.SalePrice;
+                newData.snapshotID = args.SnapshotID;
+                newData.userLocation = args.UserLocation;
+                newData.userLookAt = args.UserLookAt;
 
                 m_scene.LandChannel.updateLandObject(landData.localID, newData);
 
@@ -351,63 +262,38 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         #region AccessList Functions
 
-        public ParcelAccessListReplyPacket.ListBlock[] createAccessListArrayByFlag(ParcelManager.AccessList flag)
+        public List<LLUUID>  createAccessListArrayByFlag(ParcelManager.AccessList flag)
         {
-            List<ParcelAccessListReplyPacket.ListBlock> list = new List<ParcelAccessListReplyPacket.ListBlock>();
+            List<LLUUID> list = new List<LLUUID>();
             foreach (ParcelManager.ParcelAccessEntry entry in landData.parcelAccessList)
             {
                 if (entry.Flags == flag)
                 {
-                    ParcelAccessListReplyPacket.ListBlock listBlock = new ParcelAccessListReplyPacket.ListBlock();
-
-                    listBlock.Flags = (uint) 0;
-                    listBlock.ID = entry.AgentID;
-                    listBlock.Time = 0;
-
-                    list.Add(listBlock);
+                   list.Add(entry.AgentID);
                 }
             }
-
-            if (list.Count == 0)
+            if(list.Count == 0)
             {
-                ParcelAccessListReplyPacket.ListBlock listBlock = new ParcelAccessListReplyPacket.ListBlock();
-
-                listBlock.Flags = (uint) 0;
-                listBlock.ID = LLUUID.Zero;
-                listBlock.Time = 0;
-
-                list.Add(listBlock);
+                list.Add(LLUUID.Zero);
             }
-            return list.ToArray();
+
+            return list;
         }
 
         public void sendAccessList(LLUUID agentID, LLUUID sessionID, uint flags, int sequenceID,
                                    IClientAPI remote_client)
         {
-            ParcelAccessListReplyPacket replyPacket;
 
             if (flags == (uint) ParcelManager.AccessList.Access || flags == (uint) ParcelManager.AccessList.Both)
             {
-                replyPacket = (ParcelAccessListReplyPacket) PacketPool.Instance.GetPacket(PacketType.ParcelAccessListReply);
-                replyPacket.Data.AgentID = agentID;
-                replyPacket.Data.Flags = (uint) ParcelManager.AccessList.Access;
-                replyPacket.Data.LocalID = landData.localID;
-                replyPacket.Data.SequenceID = 0;
-
-                replyPacket.List = createAccessListArrayByFlag(ParcelManager.AccessList.Access);
-                remote_client.OutPacket((Packet) replyPacket, ThrottleOutPacketType.Task);
+                List<LLUUID> avatars = createAccessListArrayByFlag(ParcelManager.AccessList.Access);
+                remote_client.sendLandAccessListData(avatars,(uint) ParcelManager.AccessList.Access,landData.localID);
             }
 
             if (flags == (uint) ParcelManager.AccessList.Ban || flags == (uint) ParcelManager.AccessList.Both)
             {
-                replyPacket = (ParcelAccessListReplyPacket) PacketPool.Instance.GetPacket(PacketType.ParcelAccessListReply);
-                replyPacket.Data.AgentID = agentID;
-                replyPacket.Data.Flags = (uint) ParcelManager.AccessList.Ban;
-                replyPacket.Data.LocalID = landData.localID;
-                replyPacket.Data.SequenceID = 0;
-
-                replyPacket.List = createAccessListArrayByFlag(ParcelManager.AccessList.Ban);
-                remote_client.OutPacket((Packet) replyPacket, ThrottleOutPacketType.Task);
+                List<LLUUID> avatars = createAccessListArrayByFlag(ParcelManager.AccessList.Ban);
+                remote_client.sendLandAccessListData(avatars, (uint)ParcelManager.AccessList.Ban, landData.localID);
             }
         }
 
@@ -721,43 +607,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 }
             }
 
-
-            bool firstCall = true;
-            int MAX_OBJECTS_PER_PACKET = 251;
-            ForceObjectSelectPacket pack = (ForceObjectSelectPacket) PacketPool.Instance.GetPacket(PacketType.ForceObjectSelect);
-            // TODO: don't create new blocks if recycling an old packet
-            ForceObjectSelectPacket.DataBlock[] data;
-            while (resultLocalIDs.Count > 0)
-            {
-                if (firstCall)
-                {
-                    pack._Header.ResetList = true;
-                    firstCall = false;
-                }
-                else
-                {
-                    pack._Header.ResetList = false;
-                }
-
-                if (resultLocalIDs.Count > MAX_OBJECTS_PER_PACKET)
-                {
-                    data = new ForceObjectSelectPacket.DataBlock[MAX_OBJECTS_PER_PACKET];
-                }
-                else
-                {
-                    data = new ForceObjectSelectPacket.DataBlock[resultLocalIDs.Count];
-                }
-
-                int i;
-                for (i = 0; i < MAX_OBJECTS_PER_PACKET && resultLocalIDs.Count > 0; i++)
-                {
-                    data[i] = new ForceObjectSelectPacket.DataBlock();
-                    data[i].LocalID = Convert.ToUInt32(resultLocalIDs[0]);
-                    resultLocalIDs.RemoveAt(0);
-                }
-                pack.Data = data;
-                remote_client.OutPacket((Packet) pack, ThrottleOutPacketType.Task);
-            }
+            remote_client.sendForceClientSelectObjects(resultLocalIDs);
         }
 
         /// <summary>
@@ -771,9 +621,6 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         public void sendLandObjectOwners(IClientAPI remote_client)
         {
             Dictionary<LLUUID, int> primCount = new Dictionary<LLUUID, int>();
-            ParcelObjectOwnersReplyPacket pack
-                = (ParcelObjectOwnersReplyPacket) PacketPool.Instance.GetPacket(PacketType.ParcelObjectOwnersReply);
-            // TODO: don't create new blocks if recycling an old packet
 
             foreach (SceneObjectGroup obj in primsOverMe)
             {
@@ -798,43 +645,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 }
             }
 
-            int notifyCount = primCount.Count;
-
-            if (notifyCount > 0)
-            {
-                if (notifyCount > 32)
-                {
-                    m_log.InfoFormat(
-                        "[LAND]: More than {0} avatars own prims on this parcel.  Only sending back details of first {0}"
-                        + " - a developer might want to investigate whether this is a hard limit", 32);
-
-                    notifyCount = 32;
-                }
-
-                ParcelObjectOwnersReplyPacket.DataBlock[] dataBlock
-                    = new ParcelObjectOwnersReplyPacket.DataBlock[notifyCount];
-
-                int num = 0;
-                foreach (LLUUID owner in primCount.Keys)
-                {
-                    dataBlock[num] = new ParcelObjectOwnersReplyPacket.DataBlock();
-                    dataBlock[num].Count = primCount[owner];
-                    dataBlock[num].IsGroupOwned = false; //TODO: fix me when group support is added
-                    dataBlock[num].OnlineStatus = true; //TODO: fix me later
-                    dataBlock[num].OwnerID = owner;
-
-                    num++;
-
-                    if (num >= notifyCount)
-                    {
-                        break;
-                    }
-                }
-
-                pack.Data = dataBlock;
-            }
-
-            remote_client.OutPacket(pack, ThrottleOutPacketType.Task);
+            remote_client.sendLandObjectOwners(primCount);
         }
 
         public Dictionary<LLUUID, int> getLandObjectOwners()

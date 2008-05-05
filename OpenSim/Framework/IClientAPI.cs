@@ -235,6 +235,26 @@ namespace OpenSim.Framework
         #endregion
     }
 
+    public class LandUpdateArgs : EventArgs
+    {
+        public LLUUID AuthBuyerID;
+        public Parcel.ParcelCategory Category;
+        public string Desc;
+        public LLUUID GroupID;
+        public byte LandingType;
+        public byte MediaAutoScale;
+        public LLUUID MediaID;
+        public string MediaURL;
+        public string MusicURL;
+        public string Name;
+        public uint ParcelFlags;
+        public float PassHours;
+        public int PassPrice;
+        public int SalePrice;
+        public LLUUID SnapshotID;
+        public LLVector3 UserLocation;
+        public LLVector3 UserLookAt;
+    }
     public delegate void TextureRequest(Object sender, TextureRequestArgs e);
 
     public delegate void AvatarNowWearing(Object sender, AvatarWearingArgs e);
@@ -355,7 +375,7 @@ namespace OpenSim.Framework
 
     public delegate void ParcelJoinRequest(int west, int south, int east, int north, IClientAPI remote_client);
 
-    public delegate void ParcelPropertiesUpdateRequest(ParcelPropertiesUpdatePacket packet, IClientAPI remote_client);
+    public delegate void ParcelPropertiesUpdateRequest(LandUpdateArgs args, int local_id, IClientAPI remote_client);
 
     public delegate void ParcelSelectObjects(int land_local_id, int request_type, IClientAPI remote_client);
 
@@ -777,6 +797,11 @@ namespace OpenSim.Framework
         void sendRegionInfoToEstateMenu();
         void sendEstateCovenantInformation();
         void sendDetailedEstateData(LLUUID invoice);
+
+        void sendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int simObjectCapacity);
+        void sendLandAccessListData(List<LLUUID> avatars, uint accessFlag, int localLandID);
+        void sendForceClientSelectObjects(List<uint> objectIDs);
+        void sendLandObjectOwners(Dictionary<LLUUID, int> ownersAndCount);
 
         byte[] GetThrottlesPacked(float multiplier);
 
