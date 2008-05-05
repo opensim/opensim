@@ -101,9 +101,9 @@ namespace OpenSim.Region.Environment.Scenes
         protected BaseHttpServer m_httpListener;
 
         protected Dictionary<string, IRegionModule> Modules = new Dictionary<string, IRegionModule>();
-        public Dictionary<Type, object> ModuleInterfaces = new Dictionary<Type, object>();
+        protected Dictionary<Type, object> ModuleInterfaces = new Dictionary<Type, object>();
         protected Dictionary<string, object> ModuleAPIMethods = new Dictionary<string, object>();
-        public Dictionary<string, ICommander> m_moduleCommanders = new Dictionary<string, ICommander>();
+        protected Dictionary<string, ICommander> m_moduleCommanders = new Dictionary<string, ICommander>();
 
         //API module interfaces
 
@@ -141,8 +141,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         private bool m_physics_enabled = true;
         private bool m_scripts_enabled = true;
-
-
 
         #endregion
 
@@ -1618,16 +1616,13 @@ namespace OpenSim.Region.Environment.Scenes
                 LLVector3 homePostion = new LLVector3(UserProfile.HomeLocationX,UserProfile.HomeLocationY,UserProfile.HomeLocationZ);
                 LLVector3 homeLookat = new LLVector3(UserProfile.HomeLookAt);
                 RequestTeleportLocation(client, homeRegion, homePostion,homeLookat,(uint)0);
-
             }
-
-
         }
+        
         public void doObjectDuplicateOnRay(uint localID, uint dupeFlags, LLUUID AgentID, LLUUID GroupID,
                                               LLUUID RayTargetObj, LLVector3 RayEnd, LLVector3 RayStart,
                                               bool BypassRaycast, bool RayEndIsIntersection, bool CopyCenters, bool CopyRotates)
-        {
-           
+        {           
             LLVector3 pos;
             const bool frontFacesOnly = true;
            
@@ -1639,9 +1634,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 LLVector3 direction = LLVector3.Norm(RayEnd - RayStart);
                 Vector3 AXOrigin = new Vector3(RayStart.X, RayStart.Y, RayStart.Z);
-                Vector3 AXdirection = new Vector3(direction.X, direction.Y, direction.Z);
-
-                
+                Vector3 AXdirection = new Vector3(direction.X, direction.Y, direction.Z);                
                 
                 if (target2.ParentGroup != null)
                 {
@@ -1739,8 +1732,8 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 remoteClient.SendAgentAlertMessage("Set Home request Failed",false);
             }
-
         }
+        
         protected virtual ScenePresence CreateAndAddScenePresence(IClientAPI client, bool child)
         {
             AvatarAppearance appearance;
@@ -1755,7 +1748,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             return avatar;
         }
-
 
         protected void GetAvatarAppearance(IClientAPI client, out AvatarAppearance appearance)
         {
@@ -2294,7 +2286,9 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// Register an interface to a region module.  This allows module methods to be called directly as
+        /// well as via events.  If there is already a module registered for this interface, it is not replaced
+        /// (is this the best behaviour?)
         /// </summary>
         /// <param name="mod"></param>
         public void RegisterModuleInterface<M>(M mod)
@@ -2306,9 +2300,9 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        /// For the given interface, retrieve the region module which implements it.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>null if there is no module implementing that interface</returns>
         public T RequestModuleInterface<T>()
         {
             if (ModuleInterfaces.ContainsKey(typeof(T)))
