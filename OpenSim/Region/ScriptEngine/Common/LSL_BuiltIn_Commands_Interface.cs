@@ -190,7 +190,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: (deprecated)
         void llMakeFire();
         //wiki: llRezObject(string inventory, vector pos, vector rel, rotation rot, integer param)
-        void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Quaternion rot, int param);
+        void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Vector3 vel, LSL_Types.Quaternion rot, int param);
         //wiki: llLookAt(vector target, double strength, double damping)
         void llLookAt(LSL_Types.Vector3 target, double strength, double damping);
         //wiki: llStopLookAt()

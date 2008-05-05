@@ -1839,10 +1839,62 @@ namespace OpenSim.Region.ScriptEngine.Common
             NotImplemented("llMakeFire");
         }
 
-        public void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Quaternion rot, int param)
+        public void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Vector3 vel, LSL_Types.Quaternion rot, int param)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRezObject");
+            //NotImplemented("llRezObject");
+            bool found = false;
+
+            // Instead of using return;, I'm using continue; because in our TaskInventory implementation
+            // it's possible to have two items with the same task inventory name.
+            // this is an easter egg of sorts.
+
+            foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            {
+                if (inv.Value.Name == inventory)
+                {
+                    // make sure we're an object.
+                    if (inv.Value.InvType != (int)InventoryType.Object)
+                    {
+                        llSay(0, "Unable to create requested object. Object is missing from database.");
+                        continue;
+                    }
+
+                    LLVector3 llpos = new LLVector3((float)pos.x, (float)pos.y, (float)pos.z);
+
+                    // test if we're further away then 10m
+                    if (Util.GetDistanceTo(llpos, m_host.AbsolutePosition) > 10)
+                        return; // wiki says, if it's further away then 10m, silently fail.
+
+                    LLVector3 llvel = new LLVector3((float)vel.x, (float)vel.y, (float)vel.z);
+                    
+                    // need the magnitude later
+                    float velmag = (float)Util.GetMagnitude(llvel);
+                    
+                    SceneObjectGroup new_group = World.RezObject(inv.Value, llpos, new LLQuaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s), llvel, param);
+                    
+                    // If either of these are null, then there was an unknown error.
+                    if (new_group == null)
+                        continue;
+                    if (new_group.RootPart == null)
+                        continue;
+
+                    // objects rezzed with this method are die_at_edge by default.
+                    new_group.RootPart.SetDieAtEdge(true);
+
+                    m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(m_localID, m_itemID, "object_rez", EventQueueManager.llDetectNull, new Object[] { new LSL_Types.LSLString(new_group.RootPart.UUID.ToString()) });
+                    float groupmass = new_group.GetMass();
+
+                    //Recoil.
+                    llApplyImpulse(new LSL_Types.Vector3(llvel.X * groupmass, llvel.Y * groupmass, llvel.Z * groupmass), 0);
+                    found = true;
+                    //script delay
+                    System.Threading.Thread.Sleep((int)((groupmass * velmag) / 10));
+                    break;
+                }
+            }
+            if (!found)
+                llSay(0, "Could not find object " + inventory);
         }
 
         public void llLookAt(LSL_Types.Vector3 target, double strength, double damping)

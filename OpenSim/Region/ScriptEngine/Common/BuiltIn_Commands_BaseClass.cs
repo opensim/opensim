@@ -697,9 +697,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llMakeFire();
         }
 
-        public void llRezObject(string inventory, vector pos, rotation rot, int param)
+        public void llRezObject(string inventory, vector pos, vector vel, rotation rot, int param)
         {
-            m_LSL_Functions.llRezObject(inventory, pos, rot, param);
+            m_LSL_Functions.llRezObject(inventory, pos, vel, rot, param);
         }
 
         public void llLookAt(vector target, double strength, double damping)

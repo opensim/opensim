@@ -1353,7 +1353,69 @@ namespace OpenSim.Region.Environment.Scenes
             }
             return null;
         }
-        
+
+        public virtual SceneObjectGroup RezObject(TaskInventoryItem item, LLVector3 pos, LLQuaternion rot, LLVector3 vel, int param)
+        {
+            // Rez object
+            if (item != null)
+            {
+                LLUUID ownerID = item.OwnerID;
+
+                if (!PermissionsMngr.CanRezObject(ownerID, pos))
+                {
+                    return null;
+                }
+
+                AssetBase rezAsset = AssetCache.GetAsset(item.AssetID, false);
+
+                if (rezAsset != null)
+                {
+                    string xmlData = Helpers.FieldToUTF8String(rezAsset.Data);
+                    SceneObjectGroup group = new SceneObjectGroup(this, m_regionHandle, xmlData);
+                    group.ResetIDs();
+                    AddEntity(group);
+
+                    // we set it's position in world.
+                    group.AbsolutePosition = pos;
+
+                    SceneObjectPart rootPart = group.GetChildPart(group.UUID);
+
+                    // Since renaming the item in the inventory does not affect the name stored
+                    // in the serialization, transfer the correct name from the inventory to the
+                    // object itself before we rez.
+                    rootPart.Name = item.Name;
+                    rootPart.Description = item.Description;
+
+                    List<SceneObjectPart> partList = new List<SceneObjectPart>(group.Children.Values);
+                    foreach (SceneObjectPart part in partList)
+                    {
+                        if (part.OwnerID != item.OwnerID)
+                        {
+                            part.LastOwnerID = part.OwnerID;
+                            part.OwnerID = item.OwnerID;
+                            part.EveryoneMask = item.EveryoneMask;
+                            part.BaseMask = item.BaseMask;
+                            part.OwnerMask = item.OwnerMask;
+                            part.NextOwnerMask = item.NextOwnerMask;
+                            part.ChangeInventoryOwner(item.OwnerID);
+                        }
+                    }
+                    rootPart.TrimPermissions();
+                    if (group.RootPart.Shape.PCode == (byte)PCode.Prim)
+                    {
+                        group.ClearPartAttachmentData();
+                    }
+                    group.UpdateGroupRotation(rot);
+                    group.ApplyPhysics(m_physicalPrim);
+                    group.Velocity = vel;
+                    group.StartScripts();
+                    rootPart.ScheduleFullUpdate();
+                    return rootPart.ParentGroup;
+                }
+
+            }
+            return null;
+        }
         
     }
 }

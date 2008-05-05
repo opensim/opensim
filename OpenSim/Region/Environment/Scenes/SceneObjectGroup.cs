@@ -2526,5 +2526,17 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+        public float GetMass()
+        {
+            float retmass = 0f;
+            lock (m_parts)
+            {
+                foreach (SceneObjectPart part in m_parts.Values)
+                {
+                    retmass += part.GetMass();
+                }
+            }
+            return retmass;
+        }
     }
 }
