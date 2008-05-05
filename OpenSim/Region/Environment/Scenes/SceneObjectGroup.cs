@@ -1340,7 +1340,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (part.OwnerID != cAgentID)
             {
                 // Apply Next Owner Permissions if we're not bypassing permissions
-                if (!m_scene.PermissionsMngr.BypassPermissions)
+                if (!m_scene.Permissions.BypassPermissions)
                     m_rootPart.ApplyNextOwnerPermissions();
             }
 

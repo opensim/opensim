@@ -451,7 +451,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public uint GenerateClientFlags(LLUUID ObjectID)
         {
-            return m_scene.PermissionsMngr.GenerateClientFlags(m_uuid, ObjectID);
+            return m_scene.Permissions.GenerateClientFlags(m_uuid, ObjectID);
         }
 
         /// <summary>

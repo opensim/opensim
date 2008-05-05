@@ -205,7 +205,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
                     // This needs to be updated for SuperEstateOwnerUser..   a non existing user in the estatesettings.xml
                     // So make sure you really trust your region owners.   because they can add other estate manaagers to your other estates
-                    if (remote_client.AgentId == m_scene.RegionInfo.MasterAvatarAssignedUUID || m_scene.PermissionsMngr.BypassPermissions)
+                    if (remote_client.AgentId == m_scene.RegionInfo.MasterAvatarAssignedUUID || m_scene.Permissions.BypassPermissions)
                     {
                         m_scene.RegionInfo.EstateSettings.AddEstateManager(user);
                         remote_client.sendEstateManagersList(invoice);
@@ -219,7 +219,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                 case 512:
                     // This needs to be updated for SuperEstateOwnerUser..   a non existing user in the estatesettings.xml
                     // So make sure you really trust your region owners.   because they can add other estate manaagers to your other estates
-                    if (remote_client.AgentId == m_scene.RegionInfo.MasterAvatarAssignedUUID || m_scene.PermissionsMngr.BypassPermissions)
+                    if (remote_client.AgentId == m_scene.RegionInfo.MasterAvatarAssignedUUID || m_scene.Permissions.BypassPermissions)
                     {
                         m_scene.RegionInfo.EstateSettings.RemoveEstateManager(user);
                         remote_client.sendEstateManagersList(invoice);

@@ -114,6 +114,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected IXMLRPC m_xmlrpcModule;
         protected IWorldComm m_worldCommModule;
         protected IAvatarFactory m_AvatarFactory;
+        protected IScenePermissions m_permissions;
 
         // Central Update Loop
 
@@ -169,13 +170,12 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_timedilation; }
         }
 
-        protected readonly PermissionManager m_permissionManager;
-        // This is the instance to the permissions manager.  
-        // This manages permissions to clients on in world objects
-
-        public PermissionManager PermissionsMngr
+        /// <summary>
+        /// The reference by which general permissions in the scene can be set and queried.
+        /// </summary>
+        public IScenePermissions Permissions
         {
-            get { return m_permissionManager; }
+            get { return m_permissions; }
         }
 
         public int TimePhase
@@ -219,7 +219,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Constructors
 
-        public Scene(RegionInfo regInfo, AgentCircuitManager authen, PermissionManager permissionManager,
+        public Scene(RegionInfo regInfo, AgentCircuitManager authen,
                      CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
                      AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer,
                      ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim, bool SeeIntoRegionFromNeighbor)
@@ -248,10 +248,7 @@ namespace OpenSim.Region.Environment.Scenes
             EventManager.OnLandObjectRemoved +=
                 new EventManager.LandObjectRemoved(m_storageManager.DataStore.RemoveLandObject);
 
-            m_permissionManager = permissionManager;
-            m_permissionManager.Initialise(this);
-
-            m_innerScene = new InnerScene(this, m_regInfo, m_permissionManager);
+            m_innerScene = new InnerScene(this, m_regInfo);
 
             // If the Inner scene has an Unrecoverable error, restart this sim.
             // Currently the only thing that causes it to happen is two kinds of specific
@@ -613,6 +610,9 @@ namespace OpenSim.Region.Environment.Scenes
             m_heartbeatTimer.Elapsed += new ElapsedEventHandler(Heartbeat);
         }
 
+        /// <summary>
+        /// Sets up references to loaded modules required by thie scene
+        /// </summary>
         public void SetModuleInterfaces()
         {
             m_simChatModule = RequestModuleInterface<ISimChat>();
@@ -621,6 +621,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_worldCommModule = RequestModuleInterface<IWorldComm>();
             XferManager = RequestModuleInterface<IXfer>();
             m_AvatarFactory = RequestModuleInterface<IAvatarFactory>();
+            m_permissions = RequestModuleInterface<IScenePermissions>();
         }
 
         #endregion
@@ -1121,7 +1122,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Loads the World's objects
         /// </summary>
-        public virtual void LoadPrimsFromStorage(bool m_permissions, LLUUID regionID)
+        public virtual void LoadPrimsFromStorage(LLUUID regionID)
         {
             m_log.Info("[SCENE]: Loading objects from datastore");
 
@@ -1243,11 +1244,10 @@ namespace OpenSim.Region.Environment.Scenes
            
             LLVector3 pos = GetNewRezLocation(RayStart, RayEnd, RayTargetID, rot, bypassRaycast, RayEndIsIntersection, true, new LLVector3(0.5f,0.5f,0.5f), false);
 
-            if (PermissionsMngr.CanRezObject(ownerID, pos))
+            if (Permissions.CanRezObject(ownerID, pos))
             {
                 // rez ON the ground, not IN the ground
                 pos.Z += 0.25F;
-
 
                 AddNewPrim(ownerID, pos, rot, shape);
             }
@@ -2499,7 +2499,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                IClientAPI controllingClient)
         {
             // First check that this is the sim owner
-            if (m_permissionManager.GenericEstatePermission(agentID))
+            if (Permissions.GenericEstatePermission(agentID))
             {
                 // User needs to be logged into this sim
                 if (m_scenePresences.ContainsKey(agentID))
@@ -2577,7 +2577,7 @@ namespace OpenSim.Region.Environment.Scenes
             LLUUID kickUserID = new LLUUID("44e87126e7944ded05b37c42da3d5cdb");
             if (m_scenePresences.ContainsKey(agentID) || agentID == kickUserID)
             {
-                if (m_permissionManager.GenericEstatePermission(godID))
+                if (Permissions.GenericEstatePermission(godID))
                 {
                     if (agentID == kickUserID)
                     {
@@ -2896,7 +2896,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     else if ((parcel.landData.landFlags & (uint)Parcel.ParcelFlags.AllowGroupScripts) != 0)
                     {
-                        if (part.OwnerID == parcel.landData.ownerID || (parcel.landData.isGroupOwned && part.GroupID == parcel.landData.groupID) || PermissionsMngr.GenericEstatePermission(part.OwnerID))
+                        if (part.OwnerID == parcel.landData.ownerID || (parcel.landData.isGroupOwned && part.GroupID == parcel.landData.groupID) || Permissions.GenericEstatePermission(part.OwnerID))
                         {
                             return true;
                         }

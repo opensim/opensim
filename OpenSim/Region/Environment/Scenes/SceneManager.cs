@@ -191,7 +191,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetBypassPermissionsOnCurrentScene(bool bypassPermissions)
         {
-            ForEachCurrentScene(delegate(Scene scene) { scene.PermissionsMngr.BypassPermissions = bypassPermissions; });
+            ForEachCurrentScene(delegate(Scene scene) { scene.Permissions.BypassPermissions = bypassPermissions; });
         }
 
         private void ForEachCurrentScene(Action<Scene> func)

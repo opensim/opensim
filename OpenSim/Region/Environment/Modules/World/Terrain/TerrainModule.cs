@@ -449,7 +449,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                                             float south, float east, IClientAPI remoteClient)
         {
             // Not a good permissions check, if in area mode, need to check the entire area.
-            if (m_scene.PermissionsMngr.CanTerraform(remoteClient.AgentId, new LLVector3(north, west, 0)))
+            if (m_scene.Permissions.CanTerraform(remoteClient.AgentId, new LLVector3(north, west, 0)))
             {
                 if (north == south && east == west)
                 {

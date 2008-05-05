@@ -26,12 +26,14 @@
  */
 
 using libsecondlife;
+using Nini.Config;
+
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.Environment
+namespace OpenSim.Region.Environment.Modules.World.Permissions
 {
-    public class PermissionManager
+    public class PermissionsModule : IRegionModule, IScenePermissions
     {
         protected Scene m_scene;
 
@@ -43,11 +45,9 @@ namespace OpenSim.Region.Environment
         private uint PERM_MOVE = (uint)524288;
         //private uint PERM_TRANS = (uint)8192;
         private uint PERM_LOCKED = (uint)540672;
-        // Bypasses the permissions engine (always returns OK)
-        // disable in any production environment
-        // TODO: Change this to false when permissions are a desired default
-        // TODO: Move to configuration option.
-        private bool m_bypassPermissions = true;
+        
+        // Bypasses the permissions engine 
+        private bool m_bypassPermissions = false;
 
         public bool BypassPermissions
         {
@@ -55,19 +55,39 @@ namespace OpenSim.Region.Environment
             set { m_bypassPermissions = value; }
         }
 
-        public PermissionManager()
+        #region IRegionModule Members
+
+        public void Initialise(Scene scene, IConfigSource config)
+        {
+            m_scene = scene;
+            
+            // FIXME: Possibly move all permissions related stuff to its own section
+            IConfig myConfig = config.Configs["Startup"];
+            
+            m_bypassPermissions = !myConfig.GetBoolean("serverside_object_permissions", false);            
+            
+            m_scene.RegisterModuleInterface<IScenePermissions>(this);
+        }
+
+        public void PostInitialise()
         {
         }
 
-        public PermissionManager(Scene scene)
+        public void Close()
         {
-            m_scene = scene;
         }
 
-        public void Initialise(Scene scene)
+        public string Name
         {
-            m_scene = scene;
+            get { return "PermissionsModule"; }
         }
+
+        public bool IsSharedModule
+        {
+            get { return false; }
+        }
+
+        #endregion        
 
         protected virtual void SendPermissionError(LLUUID user, string reason)
         {
@@ -159,17 +179,9 @@ namespace OpenSim.Region.Environment
             return permission;
         }
 
-        /// <summary>
-        /// Permissions check - can user enter an object?
-        /// </summary>
-        /// <param name="user">User attempting move an object</param>
-        /// <param name="oldPos">Source object-position</param>
-        /// <param name="newPos">Target object-position</param>
-        /// <returns>Has permission?</returns>
+        /// <see cref="Opensim.Region.Environment.Interfaces.IScenePermissions></see>
         public virtual bool CanObjectEntry(LLUUID user, LLVector3 oldPos, LLVector3 newPos)
         {
-            
-
             if ((newPos.X > 257f || newPos.X < -1f || newPos.Y > 257f || newPos.Y < -1f))
             {
                 return true;
@@ -214,7 +226,6 @@ namespace OpenSim.Region.Environment
 
         public virtual uint GenerateClientFlags(LLUUID user, LLUUID objID)
         {
-
             // Here's the way this works, 
             // ObjectFlags and Permission flags are two different enumerations
             // ObjectFlags, however, tells the client to change what it will allow the user to do.
@@ -295,8 +306,6 @@ namespace OpenSim.Region.Environment
 
             return objectEveryoneMask;
         }
-
-
 
         private uint ApplyObjectModifyMasks(uint setPermissionMask, uint objectFlagsMask)
         {
@@ -395,12 +404,7 @@ namespace OpenSim.Region.Environment
             return permission;
         }
 
-        /// <summary>
-        /// Permissions check - can user delete an object?
-        /// </summary>
-        /// <param name="user">User attempting the delete</param>
-        /// <param name="obj">Target object</param>
-        /// <returns>Has permission?</returns>
+        /// <see cref="Opensim.Region.Environment.Interfaces.IScenePermissions></see>
         public virtual bool CanDeRezObject(LLUUID user, LLUUID obj)
         {
             return GenericObjectPermission(user, obj);
@@ -522,7 +526,7 @@ namespace OpenSim.Region.Environment
 
         #region Communication Permissions
 
-        public virtual bool GenericCommunicationPermission(LLUUID user, LLUUID target)
+        protected virtual bool GenericCommunicationPermission(LLUUID user, LLUUID target)
         {
             bool permission = false;
             string reason = "Only registered users may communicate with another account.";

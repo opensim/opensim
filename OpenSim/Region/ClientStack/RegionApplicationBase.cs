@@ -107,12 +107,12 @@ namespace OpenSim.Region.ClientStack
             return physicsPluginManager.GetPhysicsScene(engine, meshEngine);
         }
 
-        protected Scene SetupScene(RegionInfo regionInfo, out IClientNetworkServer clientServer, bool m_permissions)
+        protected Scene SetupScene(RegionInfo regionInfo, out IClientNetworkServer clientServer)
         {
-            return SetupScene(regionInfo, 0, out clientServer, m_permissions);
+            return SetupScene(regionInfo, 0, out clientServer);
         }
 
-        protected Scene SetupScene(RegionInfo regionInfo, int proxyOffset, out IClientNetworkServer clientServer, bool m_permissions)
+        protected Scene SetupScene(RegionInfo regionInfo, int proxyOffset, out IClientNetworkServer clientServer)
         {
             AgentCircuitManager circuitManager = new AgentCircuitManager();
             IPAddress listenIP = regionInfo.InternalEndPoint.Address;
@@ -162,8 +162,9 @@ namespace OpenSim.Region.ClientStack
                 scene.RegionInfo.MasterAvatarAssignedUUID = LLUUID.Zero;
             }
 
-            scene.LoadPrimsFromStorage(m_permissions, regionInfo.originRegionID);
+            scene.LoadPrimsFromStorage(regionInfo.originRegionID);            
             scene.StartTimer();
+            
             return scene;
         }
 

@@ -73,7 +73,7 @@ namespace OpenSim.Region.Environment.Scenes
                 remoteClient.SendInventoryItemCreateUpdate(item);
 
                 int userlevel = 0;
-                if (PermissionsMngr.IsEstateManager(remoteClient.AgentId))
+                if (Permissions.IsEstateManager(remoteClient.AgentId))
                 {
                     userlevel = 1;
                 }
@@ -784,7 +784,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             
 //                        bool permission;
-//                            permission = PermissionsMngr.CanCopyObject(remoteClient.AgentId, 
+//                            permission = Permissions.CanCopyObject(remoteClient.AgentId, 
 //                                                                ((SceneObjectGroup) selectedEnt).UUID);
             
             // Pending resolving upstream problems with permissions, we just won't allow anybody who is not the owner
@@ -988,12 +988,12 @@ namespace OpenSim.Region.Environment.Scenes
                         bool permission;
                         if (DeRezPacket.AgentBlock.Destination == 1)
                         { // Take Copy
-                            permission = PermissionsMngr.CanCopyObject(remoteClient.AgentId, 
+                            permission = Permissions.CanCopyObject(remoteClient.AgentId, 
                                                                 ((SceneObjectGroup) selectedEnt).UUID);
                         }
                         else
                         { // Take
-                            permission = PermissionsMngr.CanDeRezObject(remoteClient.AgentId, 
+                            permission = Permissions.CanDeRezObject(remoteClient.AgentId, 
                                                                 ((SceneObjectGroup) selectedEnt).UUID);
                         }
 
@@ -1267,7 +1267,7 @@ namespace OpenSim.Region.Environment.Scenes
                       RayStart, RayEnd, RayTargetID, new LLQuaternion(0, 0, 0, 1), 
                       BypassRayCast, bRayEndIsIntersection,true,scale, false);
             
-            if (!PermissionsMngr.CanRezObject(remoteClient.AgentId, pos) && !attachment)
+            if (!Permissions.CanRezObject(remoteClient.AgentId, pos) && !attachment)
             {
                 return null;         
             }
@@ -1361,7 +1361,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 LLUUID ownerID = item.OwnerID;
 
-                if (!PermissionsMngr.CanRezObject(ownerID, pos))
+                if (!Permissions.CanRezObject(ownerID, pos))
                 {
                     return null;
                 }

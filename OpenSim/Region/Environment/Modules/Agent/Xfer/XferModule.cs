@@ -41,10 +41,6 @@ namespace OpenSim.Region.Environment.Modules.Agent.Xfer
         public Dictionary<string, byte[]> NewFiles = new Dictionary<string, byte[]>();
         public Dictionary<ulong, XferDownLoad> Transfers = new Dictionary<ulong, XferDownLoad>();
 
-        public XferModule()
-        {
-        }
-
         #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)

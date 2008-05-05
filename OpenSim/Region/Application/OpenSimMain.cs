@@ -74,7 +74,6 @@ namespace OpenSim
         protected List<RegionInfo> m_regionData = new List<RegionInfo>();
 
         protected bool m_physicalPrim;
-        protected bool m_permissions = false;
 
         protected bool m_standaloneAuthenticate = false;
         protected string m_standaloneWelcomeMessage = null;
@@ -263,9 +262,7 @@ namespace OpenSim
                 m_physicalPrim = startupConfig.GetBoolean("physical_prim", true);
 
                 m_see_into_region_from_neighbor = startupConfig.GetBoolean("see_into_this_sim_from_neighbor", true);
-
-                m_permissions = startupConfig.GetBoolean("serverside_object_permissions", false);
-
+                
                 m_storageDll = startupConfig.GetString("storage_plugin", "OpenSim.Data.SQLite.dll");
                 if (m_storageDll == "OpenSim.DataStore.MonoSqlite.dll") 
                 {
@@ -490,7 +487,7 @@ namespace OpenSim
             }
 
             IClientNetworkServer clientServer;
-            Scene scene = SetupScene(regionInfo, proxyOffset, out clientServer, m_permissions);
+            Scene scene = SetupScene(regionInfo, proxyOffset, out clientServer);
 
             m_log.Info("[MODULES]: Loading Region's modules");
 
@@ -530,9 +527,6 @@ namespace OpenSim
             // and has to happen before the region is registered with the grid. 
             scene.CreateTerrainTexture(true);
             scene.RegisterRegionWithGrid();
-
-            //Server side object editing permissions checking
-            scene.PermissionsMngr.BypassPermissions = !m_permissions;
             
             // We need to do this after we've initialized the scripting engines.
             scene.StartScripts();
@@ -565,10 +559,9 @@ namespace OpenSim
         protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,
                                              AgentCircuitManager circuitManager)
         {
-            PermissionManager permissionManager = new PermissionManager();
             SceneCommunicationService sceneGridService = new SceneCommunicationService(m_commsManager);
             return
-                new Scene(regionInfo, circuitManager, permissionManager, m_commsManager, sceneGridService, m_assetCache,
+                new Scene(regionInfo, circuitManager, m_commsManager, sceneGridService, m_assetCache,
                           storageManager, m_httpServer,
                           m_moduleLoader, m_dumpAssetsToFile, m_physicalPrim, m_see_into_region_from_neighbor);
         }
