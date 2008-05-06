@@ -64,11 +64,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                 str = str.Replace('<', ' ');
                 str = str.Replace('>', ' ');
                 string[] tmps = str.Split(new Char[] { ',', '<', '>' });
-				if(tmps.Length < 3)
-				{
-					x=y=z=0;
-					return;
-				}
+                if (tmps.Length < 3)
+                {
+                    x=y=z=0;
+                    return;
+                }
                 bool res;
                 res = Double.TryParse(tmps[0], out x);
                 res = res & Double.TryParse(tmps[1], out y);
@@ -81,26 +81,26 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             public override string ToString()
             {
-				string s=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000}>", x, y, z);
+                string s=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000}>", x, y, z);
                 return s;
             }
 
             public static explicit operator LSLString(Vector3 vec)
             {
-				string s=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000}>", vec.x, vec.y, vec.z);
+                string s=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000}>", vec.x, vec.y, vec.z);
                 return new LSLString(s);
             }
 
             public static explicit operator string(Vector3 vec)
             {
-				string s=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000}>", vec.x, vec.y, vec.z);
+                string s=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000}>", vec.x, vec.y, vec.z);
                 return s;
             }
 
-			public static explicit operator Vector3(string s)
-			{
-				return new Vector3(s);
-			}
+            public static explicit operator Vector3(string s)
+            {
+                return new Vector3(s);
+            }
 
             public static bool operator ==(Vector3 lhs, Vector3 rhs)
             {
@@ -296,11 +296,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                 str = str.Replace('<', ' ');
                 str = str.Replace('>', ' ');
                 string[] tmps = str.Split(new Char[] { ',', '<', '>' });
-				if(tmps.Length < 4)
-				{
-					x=y=z=s=0;
-					return;
-				}
+                if (tmps.Length < 4)
+                {
+                    x=y=z=s=0;
+                    return;
+                }
                 bool res;
                 res = Double.TryParse(tmps[0], out x);
                 res = res & Double.TryParse(tmps[1], out y);
@@ -330,26 +330,26 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             public override string ToString()
             {
-				string st=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000},{3:0.000000}>", x, y, z, s);
+                string st=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000},{3:0.000000}>", x, y, z, s);
                 return st;
             }
 
             public static explicit operator string(Quaternion r)
             {
-				string s=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000},{3:0.000000}>", r.x, r.y, r.z, r.s);
+                string s=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000},{3:0.000000}>", r.x, r.y, r.z, r.s);
                 return s;
             }
 
             public static explicit operator LSLString(Quaternion r)
             {
-				string s=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000},{3:0.000000}>", r.x, r.y, r.z, r.s);
+                string s=String.Format("<{0:0.000000},{1:0.000000},{2:0.000000},{3:0.000000}>", r.x, r.y, r.z, r.s);
                 return new LSLString(s);
             }
 
-			public static explicit operator Quaternion(string s)
-			{
-				return new Quaternion(s);
-			}
+            public static explicit operator Quaternion(string s)
+            {
+                return new Quaternion(s);
+            }
 
             public static bool operator ==(Quaternion lhs, Quaternion rhs)
             {
@@ -406,19 +406,19 @@ namespace OpenSim.Region.ScriptEngine.Common
             public int Length
             {
                 get {
-					if(m_data == null)
-						m_data=new Object[0];
-					return m_data.Length;
-				}
+                    if (m_data == null)
+                        m_data=new Object[0];
+                    return m_data.Length;
+                }
             }
 
             public object[] Data
             {
                 get {
-					if(m_data == null)
-						m_data=new Object[0];
-					return m_data;
-				}
+                    if (m_data == null)
+                        m_data=new Object[0];
+                    return m_data;
+                }
             }
 
             public static list operator +(list a, list b)
@@ -453,67 +453,67 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return ret;
             }
 
-			public list DeleteSublist(int start, int end)
-			{
-				// Not an easy one
-				// If start <= end, remove that part
-				// if either is negative, count from the end of the array
-				// if the resulting start > end, remove all BUT that part
+            public list DeleteSublist(int start, int end)
+            {
+                // Not an easy one
+                // If start <= end, remove that part
+                // if either is negative, count from the end of the array
+                // if the resulting start > end, remove all BUT that part
 
-				Object[] ret;
+                Object[] ret;
 
-				if(start < 0)
-					start=m_data.Length-start;
+                if (start < 0)
+                    start=m_data.Length-start;
 
-				if(start < 0)
-					start=0;
+                if (start < 0)
+                    start=0;
 
-				if(end < 0)
-					end=m_data.Length-end;
-				if(end < 0)
-					end=0;
+                if (end < 0)
+                    end=m_data.Length-end;
+                if (end < 0)
+                    end=0;
 
-				if(start > end)
-				{
-					if(end >= m_data.Length)
-						return new list(new Object[0]);
+                if (start > end)
+                {
+                    if (end >= m_data.Length)
+                        return new list(new Object[0]);
 
-					if(start >= m_data.Length)
-						start=m_data.Length-1;
+                    if (start >= m_data.Length)
+                        start=m_data.Length-1;
 
-					return GetSublist(end, start);
-				}
+                    return GetSublist(end, start);
+                }
 
-				// start >= 0 && end >= 0 here
-				if(start >= m_data.Length)
-				{
-					ret=new Object[m_data.Length];
-					Array.Copy(m_data, 0, ret, 0, m_data.Length);
+                // start >= 0 && end >= 0 here
+                if (start >= m_data.Length)
+                {
+                    ret=new Object[m_data.Length];
+                    Array.Copy(m_data, 0, ret, 0, m_data.Length);
 
-					return new list(ret);
-				}
+                    return new list(ret);
+                }
 
-				if(end >= m_data.Length)
-					end=m_data.Length-1;
+                if (end >= m_data.Length)
+                    end=m_data.Length-1;
 
-				// now, this makes the math easier
-				int remove=end+1-start;
-				
-				ret=new Object[m_data.Length-remove];
-				if(ret.Length == 0)
-					return new list(ret);
+                // now, this makes the math easier
+                int remove=end+1-start;
+                
+                ret=new Object[m_data.Length-remove];
+                if (ret.Length == 0)
+                    return new list(ret);
 
-				int src;
-				int dest=0;
+                int src;
+                int dest=0;
 
-				for(src = 0 ; src < m_data.Length ; src++)
-				{
-					if(src < start || src > end)
-						ret[dest++]=m_data[src];
-				}
+                for(src = 0 ; src < m_data.Length ; src++)
+                {
+                    if (src < start || src > end)
+                        ret[dest++]=m_data[src];
+                }
 
-				return new list(ret);
-			}
+                return new list(ret);
+            }
 
             public list GetSublist(int start, int end)
             {
@@ -581,13 +581,13 @@ namespace OpenSim.Region.ScriptEngine.Common
                     list result = null;
 
                     // If end is negative, then prefix list is empty
-                    if(end < 0)
+                    if (end < 0)
                     {
                         result = new list();
                         // If start is still negative, then the whole of
                         // the existing list is returned. This case is 
                         // only admitted if end is also still negative.
-                        if(start < 0)
+                        if (start < 0)
                         {
                             return this;
                         }
@@ -600,7 +600,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                     // If start is outside of list, then just return 
                     // the prefix, whatever it is.
-                    if(start >= m_data.Length)
+                    if (start >= m_data.Length)
                     {
                         return result;
                     }
@@ -610,76 +610,76 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
             }
 
-			public list Sort(int stride, int ascending)
-			{
-				if(Data.Length == 0)
-					return new list(); // Don't even bother
+            public list Sort(int stride, int ascending)
+            {
+                if (Data.Length == 0)
+                    return new list(); // Don't even bother
 
-				string[] keys;
+                string[] keys;
 
-				if(stride == 1) // The simple case
-				{
-					Object[] ret=new Object[Data.Length];
+                if (stride == 1) // The simple case
+                {
+                    Object[] ret=new Object[Data.Length];
 
-					Array.Copy(Data, 0, ret, 0, Data.Length);
+                    Array.Copy(Data, 0, ret, 0, Data.Length);
 
-					keys=new string[Data.Length];
-					int k;
-					for(k=0;k<Data.Length;k++)
-						keys[k]=Data[k].ToString();
+                    keys=new string[Data.Length];
+                    int k;
+                    for(k=0;k<Data.Length;k++)
+                        keys[k]=Data[k].ToString();
 
-					Array.Sort(keys, ret);
+                    Array.Sort(keys, ret);
 
-					if(ascending == 0)
-						Array.Reverse(ret);
-					return new list(ret);
-				}
+                    if (ascending == 0)
+                        Array.Reverse(ret);
+                    return new list(ret);
+                }
 
-				int src=0;
+                int src=0;
 
-				int len=(Data.Length+stride-1)/stride;
+                int len=(Data.Length+stride-1)/stride;
 
-				keys=new string[len];
-				Object[][] vals=new Object[len][];
+                keys=new string[len];
+                Object[][] vals=new Object[len][];
 
-				int i;
+                int i;
 
-				while(src < Data.Length)
-				{
-					Object[] o=new Object[stride];
+                while(src < Data.Length)
+                {
+                    Object[] o=new Object[stride];
 
-					for(i=0;i<stride;i++)
-					{
-						if(src < Data.Length)
-							o[i]=Data[src++];
-						else
-						{
-							o[i]=new Object();
-							src++;
-						}
-					}
+                    for(i=0;i<stride;i++)
+                    {
+                        if (src < Data.Length)
+                            o[i]=Data[src++];
+                        else
+                        {
+                            o[i]=new Object();
+                            src++;
+                        }
+                    }
 
-					int idx=src/stride-1;
-					keys[idx]=o[0].ToString();
-					vals[idx]=o;
-				}
+                    int idx=src/stride-1;
+                    keys[idx]=o[0].ToString();
+                    vals[idx]=o;
+                }
 
-				Array.Sort(keys, vals);
-				if(ascending == 0)
-				{
-					Array.Reverse(vals);
-				}
+                Array.Sort(keys, vals);
+                if (ascending == 0)
+                {
+                    Array.Reverse(vals);
+                }
 
-				Object[] sorted=new Object[stride*vals.Length];
+                Object[] sorted=new Object[stride*vals.Length];
 
-				int j;
+                int j;
 
-				for(i=0;i<vals.Length;i++)
-					for(j=0;j<stride;j++)
-						sorted[i*stride+j]=vals[i][j];
+                for(i=0;i<vals.Length;i++)
+                    for(j=0;j<stride;j++)
+                        sorted[i*stride+j]=vals[i][j];
 
-				return new list(sorted);
-			}
+                return new list(sorted);
+            }
 
             #region CSV Methods
 
@@ -693,7 +693,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 string ret = "";
                 foreach(object o in this.Data)
                 {
-                    if(ret == "")
+                    if (ret == "")
                     {
                         ret = o.ToString();
                     }
@@ -720,20 +720,20 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return output;
             }
 
-			public static explicit operator String(list l)
-			{
-				return l.ToSoup();
-			}
+            public static explicit operator String(list l)
+            {
+                return l.ToSoup();
+            }
 
-			public static explicit operator LSLString(list l)
-			{
-				return new LSLString(l.ToSoup());
-			}
+            public static explicit operator LSLString(list l)
+            {
+                return new LSLString(l.ToSoup());
+            }
 
-			public override string ToString()
-			{
-				return ToSoup();
-			}
+            public override string ToString()
+            {
+                return ToSoup();
+            }
 
             #endregion
 
@@ -1068,7 +1068,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             public override bool Equals(object o)
             {
-				return o.ToString() == value;
+                return o.ToString() == value;
             }
 
             public override int GetHashCode()
@@ -1089,11 +1089,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                 m_string = s;
             }
 
-			public LSLString(double d)
-			{
-				string s=String.Format("{0:0.000000}", d);
-				m_string=s;
-			}
+            public LSLString(double d)
+            {
+                string s=String.Format("{0:0.000000}", d);
+                m_string=s;
+            }
 
             #endregion
 
@@ -1120,10 +1120,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return new LSLString(s);
             }
 
-			public static string ToString(LSLString s)
-			{
-				return s.m_string;
-			}
+            public static string ToString(LSLString s)
+            {
+                return s.m_string;
+            }
 
             public override string ToString()
             {
@@ -1140,27 +1140,27 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return s1.m_string != s2;
             }
 
-			public static explicit operator double(LSLString s)
-			{
-				return Convert.ToDouble(s.m_string);
-			}
+            public static explicit operator double(LSLString s)
+            {
+                return Convert.ToDouble(s.m_string);
+            }
 
-			public static explicit operator LSLInteger(LSLString s)
-			{
-				return new LSLInteger(Convert.ToInt32(s.m_string));
-			}
+            public static explicit operator LSLInteger(LSLString s)
+            {
+                return new LSLInteger(Convert.ToInt32(s.m_string));
+            }
 
-			public static explicit operator LSLString(double d)
-			{
-				return new LSLString(d);
-			}
+            public static explicit operator LSLString(double d)
+            {
+                return new LSLString(d);
+            }
 
             #endregion
 
             #region Overriders
             public override bool Equals(object o)
             {
-				return m_string == o.ToString();
+                return m_string == o.ToString();
             }
 
             public override int GetHashCode()
@@ -1212,10 +1212,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return (uint)i.value;
             }
 
-			static public explicit operator LSLString(LSLInteger i)
-			{
-				return new LSLString(i.ToString());
-			}
+            static public explicit operator LSLString(LSLInteger i)
+            {
+                return new LSLString(i.ToString());
+            }
 
             static public implicit operator Boolean(LSLInteger i)
             {
@@ -1234,10 +1234,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return new LSLInteger(i);
             }
 
-			static public explicit operator LSLInteger(string s)
-			{
-				return new LSLInteger(int.Parse(s));
-			}
+            static public explicit operator LSLInteger(string s)
+            {
+                return new LSLInteger(int.Parse(s));
+            }
 
             static public implicit operator LSLInteger(double d)
             {
@@ -1250,17 +1250,17 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return ret;
             }
 
-			public static LSLInteger operator ++(LSLInteger i)
-			{
-				i.value++;
-				return i;
-			}
+            public static LSLInteger operator ++(LSLInteger i)
+            {
+                i.value++;
+                return i;
+            }
 
-			public static LSLInteger operator --(LSLInteger i)
-			{
-				i.value--;
-				return i;
-			}
+            public static LSLInteger operator --(LSLInteger i)
+            {
+                i.value--;
+                return i;
+            }
 
             static public implicit operator System.Double(LSLInteger i)
             {

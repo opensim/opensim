@@ -198,7 +198,6 @@ namespace OpenSim.Data.MSSQL
                     while (reader.Read())
                         items.Add(readInventoryFolder(reader));
 
-
                     reader.Close();
                     result.Dispose();
 
@@ -321,12 +320,12 @@ namespace OpenSim.Data.MSSQL
                 item.Creator = new LLUUID((string) reader["creatorID"]);
                 item.BasePermissions = Convert.ToUInt32(reader["inventoryBasePermissions"]);
                 item.EveryOnePermissions = Convert.ToUInt32(reader["inventoryEveryOnePermissions"]);
- 				item.SalePrice = (int) reader["salePrice"];
-				item.SaleType = Convert.ToByte(reader["saleType"]);
-				item.CreationDate = (int) reader["creationDate"];
-				item.GroupID = new LLUUID(reader["groupID"].ToString());
-				item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
-				item.Flags = (uint) reader["flags"];
+                item.SalePrice = (int) reader["salePrice"];
+                item.SaleType = Convert.ToByte(reader["saleType"]);
+                item.CreationDate = (int) reader["creationDate"];
+                item.GroupID = new LLUUID(reader["groupID"].ToString());
+                item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
+                item.Flags = (uint) reader["flags"];
                 
                 return item;
             }

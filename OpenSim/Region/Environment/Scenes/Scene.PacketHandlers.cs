@@ -193,7 +193,7 @@ namespace OpenSim.Region.Environment.Scenes
                     // Is this prim part of the group
                     if (obj.HasChildPrim(localID))
                     {
-						SceneObjectPart part=obj.GetChildPart(localID);
+                        SceneObjectPart part=obj.GetChildPart(localID);
                         if (part != null)
                         {
                             // If the touched prim handles touches, deliver it

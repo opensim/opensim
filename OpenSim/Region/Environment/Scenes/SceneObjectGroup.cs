@@ -186,8 +186,6 @@ namespace OpenSim.Region.Environment.Scenes
                         string.Format("[SCENE OBJECT GROUP]: Object {0} has no root part.", m_uuid));
                 }
 
-                
-
                 return m_rootPart.GroupPosition;
             }
             set
@@ -197,7 +195,6 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     m_scene.CrossPrimGroupIntoNewRegion(val, this);
                 }
-
 
                 lock (m_parts)
                 {
@@ -969,19 +966,19 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void aggregateScriptEvents()
         {
-			uint objectflagupdate=(uint)RootPart.GetEffectiveObjectFlags();
+            uint objectflagupdate=(uint)RootPart.GetEffectiveObjectFlags();
 
-			scriptEvents aggregateScriptEvents=0;
+            scriptEvents aggregateScriptEvents=0;
 
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-					if(part == null)
-						continue;
-					if(part != RootPart)
-  						part.ObjectFlags = objectflagupdate;
-					aggregateScriptEvents |= part.m_aggregateScriptEvents;
+                    if (part == null)
+                        continue;
+                    if (part != RootPart)
+                        part.ObjectFlags = objectflagupdate;
+                    aggregateScriptEvents |= part.m_aggregateScriptEvents;
                 }
             }
 

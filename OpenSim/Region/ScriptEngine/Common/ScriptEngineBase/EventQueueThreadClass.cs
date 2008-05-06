@@ -295,18 +295,18 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                 if (e.InnerException != null)
                                 {
                                     // Send inner exception
-									string[] lines=e.InnerException.ToString().Replace("\r", "").Split('\n');
-									int line=0;
-									foreach(string t in lines)
-									{
-										int idx=t.IndexOf("SecondLife.Script.");
-										if(idx != -1)
-										{
-											int colon=t.IndexOf(":");
-											line=Convert.ToInt32(t.Substring(colon+1));
-											break;
-										}
-									}
+                                    string[] lines=e.InnerException.ToString().Replace("\r", "").Split('\n');
+                                    int line=0;
+                                    foreach(string t in lines)
+                                    {
+                                        int idx=t.IndexOf("SecondLife.Script.");
+                                        if(idx != -1)
+                                        {
+                                            int colon=t.IndexOf(":");
+                                            line=Convert.ToInt32(t.Substring(colon+1));
+                                            break;
+                                        }
+                                    }
                                     text += e.InnerException.Message.ToString()+" in line "+line.ToString();
                                 }
                                 else

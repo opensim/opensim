@@ -237,14 +237,14 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             // Outside of this method, they should never be added to objectflags!
             // -teravus
 
-			SceneObjectPart task=m_scene.GetSceneObjectPart(objID);
+            SceneObjectPart task=m_scene.GetSceneObjectPart(objID);
             
             // this shouldn't ever happen..     return no permissions/objectflags.
             if (task == null)
                 return (uint)0;
 
-			uint objflags = task.GetEffectiveObjectFlags();
-			LLUUID objectOwner = task.OwnerID;
+            uint objflags = task.GetEffectiveObjectFlags();
+            LLUUID objectOwner = task.OwnerID;
 
 
             // Remove any of the objectFlags that are temporary.  These will get added back if appropriate 

@@ -98,8 +98,8 @@ namespace OpenSim.Region.Environment.Scenes
         
         // TODO: This needs to be persisted in next XML version update!
         [XmlIgnore] public int[] PayPrice = {-2,-2,-2,-2,-2};
-		[XmlIgnore] private Dictionary<LLUUID, scriptEvents> m_scriptEvents = new Dictionary<LLUUID, scriptEvents>();
-		[XmlIgnore] public scriptEvents m_aggregateScriptEvents=0;
+        [XmlIgnore] private Dictionary<LLUUID, scriptEvents> m_scriptEvents = new Dictionary<LLUUID, scriptEvents>();
+        [XmlIgnore] public scriptEvents m_aggregateScriptEvents=0;
         [XmlIgnore] private LLObject.ObjectFlags LocalFlags = LLObject.ObjectFlags.None;
         [XmlIgnore] public bool DIE_AT_EDGE = false;
 
@@ -190,10 +190,10 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_name = value; }
         }
 
-      	public scriptEvents ScriptEvents
-		{
-			get { return m_aggregateScriptEvents; }
-		}
+        public scriptEvents ScriptEvents
+        {
+            get { return m_aggregateScriptEvents; }
+        }
 
         protected LLObject.MaterialType m_material = 0;
 
@@ -211,14 +211,14 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_regionHandle = value; }
         }
 
-		public uint GetEffectiveObjectFlags()
-		{
-			LLObject.ObjectFlags f=Flags;
-			if(m_parentGroup == null || m_parentGroup.RootPart == this)
-				f &= ~(LLObject.ObjectFlags.Touch | LLObject.ObjectFlags.Money);
+        public uint GetEffectiveObjectFlags()
+        {
+            LLObject.ObjectFlags f = Flags;
+            if (m_parentGroup == null || m_parentGroup.RootPart == this)
+                f &= ~(LLObject.ObjectFlags.Touch | LLObject.ObjectFlags.Money);
 
-			return (uint)Flags | (uint)LocalFlags;
-		}
+            return (uint)Flags | (uint)LocalFlags;
+        }
 
         //unkown if this will be kept, added as a way of removing the group position from the group class
         protected LLVector3 m_groupPosition;
@@ -2158,14 +2158,14 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
 
-            if(soundID == LLUUID.Zero)
+            if (soundID == LLUUID.Zero)
                 return;
 
             List<ScenePresence> avatarts = m_parentGroup.Scene.GetAvatars();
             foreach (ScenePresence p in avatarts)
             {
                 double dis=Util.GetDistanceTo(p.AbsolutePosition, position);
-                if(dis > 100.0) // Max audio distance
+                if (dis > 100.0) // Max audio distance
                     continue;
 
                 // Scale by distance
@@ -2623,25 +2623,25 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-		public void SetScriptEvents(LLUUID scriptid, int events)
-		{
-			scriptEvents oldparts;
-			lock (m_scriptEvents)
-			{
-				if (m_scriptEvents.ContainsKey(scriptid))
-				{
-					oldparts = m_scriptEvents[scriptid];
+        public void SetScriptEvents(LLUUID scriptid, int events)
+        {
+            scriptEvents oldparts;
+            lock (m_scriptEvents)
+            {
+                if (m_scriptEvents.ContainsKey(scriptid))
+                {
+                    oldparts = m_scriptEvents[scriptid];
 
-					// remove values from aggregated script events
-					m_scriptEvents[scriptid] = (scriptEvents) events;
-				}
-				else
-				{
-					m_scriptEvents.Add(scriptid, (scriptEvents) events);
-				}
-			}
-			aggregateScriptEvents();
-		}
+                    // remove values from aggregated script events
+                    m_scriptEvents[scriptid] = (scriptEvents) events;
+                }
+                else
+                {
+                    m_scriptEvents.Add(scriptid, (scriptEvents) events);
+                }
+            }
+            aggregateScriptEvents();
+        }
 
         public void RemoveScriptEvents(LLUUID scriptid)
         {
@@ -2710,16 +2710,15 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
 
-			LocalFlags=(LLObject.ObjectFlags)objectflagupdate;
+            LocalFlags=(LLObject.ObjectFlags)objectflagupdate;
 
-			if(m_parentGroup != null && m_parentGroup.RootPart == this)
-				m_parentGroup.aggregateScriptEvents();
-			else
-				ScheduleFullUpdate();
-		}
+            if (m_parentGroup != null && m_parentGroup.RootPart == this)
+                m_parentGroup.aggregateScriptEvents();
+            else
+                ScheduleFullUpdate();
+        }
         public void PhysicsCollision(EventArgs e)
         {
-            
             return;
 
             //
@@ -2733,7 +2732,6 @@ namespace OpenSim.Region.Environment.Scenes
             //{
              //   m_log.Debug("[OBJECT]: Collided with:" + localid.ToString() + " at depth of: " + collissionswith[localid].ToString());
             //}
-            
         }
 
         public void SetDieAtEdge(bool p)
@@ -2755,5 +2753,4 @@ namespace OpenSim.Region.Environment.Scenes
             return m_parentGroup.RootPart.DIE_AT_EDGE;
         }
     }
-    
 }

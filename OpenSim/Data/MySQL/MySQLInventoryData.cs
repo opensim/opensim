@@ -333,7 +333,7 @@ namespace OpenSim.Data.MySQL
                 item.Creator = new LLUUID((string) reader["creatorID"]);
                 item.BasePermissions = (uint) reader["inventoryBasePermissions"];
                 item.EveryOnePermissions = (uint) reader["inventoryEveryOnePermissions"];                
-				item.SalePrice = (int) reader["salePrice"];
+                item.SalePrice = (int) reader["salePrice"];
                 item.SaleType = Convert.ToByte(reader["saleType"]);
                 item.CreationDate = (int) reader["creationDate"];
                 item.GroupID = new LLUUID(reader["groupID"].ToString());
