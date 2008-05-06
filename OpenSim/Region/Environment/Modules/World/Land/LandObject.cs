@@ -122,7 +122,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public void sendLandProperties(int sequence_id, bool snap_selection, int request_result, IClientAPI remote_client)
         {
-            remote_client.sendLandProperties(remote_client, sequence_id, snap_selection, request_result, landData, m_scene.RegionInfo.EstateSettings.objectBonusFactor, m_scene.objectCapacity);
+            remote_client.sendLandProperties(remote_client, sequence_id, snap_selection, request_result, landData, m_scene.RegionInfo.EstateSettings.objectBonusFactor, m_scene.objectCapacity,(uint) m_scene.RegionInfo.EstateSettings.regionFlags);
         }
 
         public void updateLandProperties(LandUpdateArgs args, IClientAPI remote_client)

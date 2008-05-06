@@ -44,10 +44,10 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
         #region Packet Data Responders
 
-        private static void sendDetailedEstateData(IClientAPI remote_client, LLUUID invoice)
+        private void sendDetailedEstateData(IClientAPI remote_client, LLUUID invoice)
         {
-            remote_client.sendDetailedEstateData(invoice);
-            remote_client.sendEstateManagersList(invoice);
+            remote_client.sendDetailedEstateData(invoice,m_scene.RegionInfo.EstateSettings.estateName,m_scene.RegionInfo.EstateSettings.estateID);
+            remote_client.sendEstateManagersList(invoice,m_scene.RegionInfo.EstateSettings.estateManagers,m_scene.RegionInfo.EstateSettings.estateID);
         }
 
         private void estateSetRegionInfoHandler(bool blockTerraform, bool noFly, bool allowDamage, bool blockLandResell, int maxAgents, float objectBonusFactor,
@@ -208,7 +208,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                     if (remote_client.AgentId == m_scene.RegionInfo.MasterAvatarAssignedUUID || m_scene.Permissions.BypassPermissions)
                     {
                         m_scene.RegionInfo.EstateSettings.AddEstateManager(user);
-                        remote_client.sendEstateManagersList(invoice);
+                        remote_client.sendEstateManagersList(invoice, m_scene.RegionInfo.EstateSettings.estateManagers, m_scene.RegionInfo.EstateSettings.estateID);
                     }
                     else
                     {
@@ -222,7 +222,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                     if (remote_client.AgentId == m_scene.RegionInfo.MasterAvatarAssignedUUID || m_scene.Permissions.BypassPermissions)
                     {
                         m_scene.RegionInfo.EstateSettings.RemoveEstateManager(user);
-                        remote_client.sendEstateManagersList(invoice);
+                        remote_client.sendEstateManagersList(invoice, m_scene.RegionInfo.EstateSettings.estateManagers, m_scene.RegionInfo.EstateSettings.estateID);
                     }
                     else
                     {
@@ -283,9 +283,28 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             }
         }
 
-        private static void HandleRegionInfoRequest(IClientAPI remote_client)
+        private void HandleRegionInfoRequest(IClientAPI remote_client)
         {
-            remote_client.sendRegionInfoToEstateMenu();
+
+           RegionInfoForEstateMenuArgs args = new RegionInfoForEstateMenuArgs();
+           args.billableFactor = m_scene.RegionInfo.EstateSettings.billableFactor;
+           args.estateID = m_scene.RegionInfo.EstateSettings.estateID;
+           args.maxAgents = m_scene.RegionInfo.EstateSettings.maxAgents;
+           args.objectBonusFactor = m_scene.RegionInfo.EstateSettings.objectBonusFactor;
+           args.parentEstateID = m_scene.RegionInfo.EstateSettings.parentEstateID;
+           args.pricePerMeter = m_scene.RegionInfo.EstateSettings.pricePerMeter;
+           args.redirectGridX = m_scene.RegionInfo.EstateSettings.redirectGridX;
+           args.redirectGridY = m_scene.RegionInfo.EstateSettings.redirectGridY;
+           args.regionFlags = (uint)(m_scene.RegionInfo.EstateSettings.regionFlags);
+           args.simAccess = (byte)m_scene.RegionInfo.EstateSettings.simAccess;
+           args.sunHour = m_scene.RegionInfo.EstateSettings.sunHour;
+           args.terrainLowerLimit = m_scene.RegionInfo.EstateSettings.terrainLowerLimit;
+           args.terrainRaiseLimit = m_scene.RegionInfo.EstateSettings.terrainRaiseLimit;
+           args.useEstateSun = !m_scene.RegionInfo.EstateSettings.useFixedSun;
+           args.waterHeight = m_scene.RegionInfo.EstateSettings.waterHeight;
+           args.simName = m_scene.RegionInfo.RegionName;
+           
+           remote_client.sendRegionInfoToEstateMenu(args);
         }
 
         private static void HandleEstateCovenantRequest(IClientAPI remote_client)
@@ -303,13 +322,48 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
             for (int i = 0; i < avatars.Count; i++)
             {
-                avatars[i].ControllingClient.sendRegionInfoToEstateMenu();
+                HandleRegionInfoRequest(avatars[i].ControllingClient); ;
             }
         }
 
         public void sendRegionHandshake(IClientAPI remoteClient)
         {
-            remoteClient.SendRegionHandshake(m_scene.RegionInfo);
+            RegionHandshakeArgs args = new RegionHandshakeArgs();
+            bool estatemanager = false;
+            LLUUID[] EstateManagers = m_scene.RegionInfo.EstateSettings.estateManagers;
+            for (int i = 0; i < EstateManagers.Length; i++)
+            {
+                if (EstateManagers[i] == remoteClient.AgentId)
+                    estatemanager = true;
+            }
+            
+            args.isEstateManager = estatemanager;
+
+            args.billableFactor = m_scene.RegionInfo.EstateSettings.billableFactor;
+            args.terrainHeightRange0 = m_scene.RegionInfo.EstateSettings.terrainHeightRange0;
+            args.terrainHeightRange1 = m_scene.RegionInfo.EstateSettings.terrainHeightRange1;
+            args.terrainHeightRange2 = m_scene.RegionInfo.EstateSettings.terrainHeightRange2;
+            args.terrainHeightRange3 = m_scene.RegionInfo.EstateSettings.terrainHeightRange3;
+            args.terrainStartHeight0 = m_scene.RegionInfo.EstateSettings.terrainStartHeight0;
+            args.terrainStartHeight1 = m_scene.RegionInfo.EstateSettings.terrainStartHeight1;
+            args.terrainStartHeight2 = m_scene.RegionInfo.EstateSettings.terrainStartHeight2;
+            args.terrainStartHeight3 = m_scene.RegionInfo.EstateSettings.terrainStartHeight3;
+            args.simAccess = (byte)m_scene.RegionInfo.EstateSettings.simAccess;
+            args.waterHeight = m_scene.RegionInfo.EstateSettings.waterHeight;
+
+            args.regionFlags = (uint)m_scene.RegionInfo.EstateSettings.regionFlags;
+            args.regionName = m_scene.RegionInfo.RegionName;
+            args.SimOwner = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+            args.terrainBase0 = m_scene.RegionInfo.EstateSettings.terrainBase0;
+            args.terrainBase1 = m_scene.RegionInfo.EstateSettings.terrainBase1;
+            args.terrainBase2 = m_scene.RegionInfo.EstateSettings.terrainBase2;
+            args.terrainBase3 = m_scene.RegionInfo.EstateSettings.terrainBase3;
+            args.terrainDetail0 = m_scene.RegionInfo.EstateSettings.terrainDetail0;
+            args.terrainDetail1 = m_scene.RegionInfo.EstateSettings.terrainDetail1;
+            args.terrainDetail2 = m_scene.RegionInfo.EstateSettings.terrainDetail2;
+            args.terrainDetail3 = m_scene.RegionInfo.EstateSettings.terrainDetail3;
+
+            remoteClient.SendRegionHandshake(m_scene.RegionInfo,args);
         }
 
         public void sendRegionHandshakeToAll()

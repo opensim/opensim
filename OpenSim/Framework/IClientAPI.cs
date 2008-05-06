@@ -255,6 +255,52 @@ namespace OpenSim.Framework
         public LLVector3 UserLocation;
         public LLVector3 UserLookAt;
     }
+    public class RegionHandshakeArgs : EventArgs
+    {
+        public bool isEstateManager;
+        public float billableFactor;
+        public float terrainHeightRange0;
+        public float terrainHeightRange1;
+        public float terrainHeightRange2;
+        public float terrainHeightRange3;
+        public float terrainStartHeight0;
+        public float terrainStartHeight1;
+        public float terrainStartHeight2;
+        public float terrainStartHeight3;
+        public byte simAccess;
+        public float waterHeight;
+        public uint regionFlags;
+        public string regionName;
+        public LLUUID SimOwner;
+        public LLUUID terrainBase0;
+        public LLUUID terrainBase1;
+        public LLUUID terrainBase2;
+        public LLUUID terrainBase3;
+        public LLUUID terrainDetail0;
+        public LLUUID terrainDetail1;
+        public LLUUID terrainDetail2;
+        public LLUUID terrainDetail3;
+    }
+
+    public class RegionInfoForEstateMenuArgs : EventArgs
+    {
+        public float billableFactor;
+        public uint estateID;
+        public byte maxAgents;
+        public float objectBonusFactor;
+        public uint parentEstateID;
+        public int pricePerMeter;
+        public int redirectGridX;
+        public int redirectGridY;
+        public uint regionFlags;
+        public byte simAccess;
+        public float sunHour;
+        public float terrainLowerLimit;
+        public float terrainRaiseLimit;
+        public bool useEstateSun;
+        public float waterHeight;
+        public string simName;
+    }
     public delegate void TextureRequest(Object sender, TextureRequestArgs e);
 
     public delegate void AvatarNowWearing(Object sender, AvatarWearingArgs e);
@@ -680,7 +726,7 @@ namespace OpenSim.Framework
         void SendStartPingCheck(byte seq);
         void SendKillObject(ulong regionHandle, uint localID);
         void SendAnimations(LLUUID[] animID, int[] seqs, LLUUID sourceAgentId);
-        void SendRegionHandshake(RegionInfo regionInfo);
+        void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args);
         void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID, byte source, byte audible);
         void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, LLUUID fromAgentID, byte source, byte audible);
 
@@ -796,15 +842,16 @@ namespace OpenSim.Framework
         void SendHealth(float health);
 
 
-        void sendEstateManagersList(LLUUID invoice);
-        void sendRegionInfoToEstateMenu();
+        void sendEstateManagersList(LLUUID invoice, LLUUID[] EstateManagers, uint estateID);
+        void sendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args);
         void sendEstateCovenantInformation();
-        void sendDetailedEstateData(LLUUID invoice);
+        void sendDetailedEstateData(LLUUID invoice,string estateName, uint estateID);
 
-        void sendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int simObjectCapacity);
+        void sendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int simObjectCapacity, uint regionFlags);
         void sendLandAccessListData(List<LLUUID> avatars, uint accessFlag, int localLandID);
         void sendForceClientSelectObjects(List<uint> objectIDs);
         void sendLandObjectOwners(Dictionary<LLUUID, int> ownersAndCount);
+        void sendLandParcelOverlay(byte[] data, int sequence_id);
 
         byte[] GetThrottlesPacked(float multiplier);
 

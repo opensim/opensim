@@ -822,42 +822,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// 
         /// </summary>
         /// <param name="regionInfo"></param>
-        public void SendRegionHandshake(RegionInfo regionInfo)
+        public void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args)
         {
             RegionHandshakePacket handshake = (RegionHandshakePacket)PacketPool.Instance.GetPacket(PacketType.RegionHandshake);
 
-            bool estatemanager = false;
-            LLUUID[] EstateManagers = regionInfo.EstateSettings.estateManagers;
-            for (int i = 0; i < EstateManagers.Length; i++)
-            {
-                if (EstateManagers[i] == AgentId)
-                    estatemanager = true;
-            }
+            handshake.RegionInfo.BillableFactor = args.billableFactor;
+            handshake.RegionInfo.IsEstateManager = args.isEstateManager;
+            handshake.RegionInfo.TerrainHeightRange00 = args.terrainHeightRange0;
+            handshake.RegionInfo.TerrainHeightRange01 = args.terrainHeightRange1;
+            handshake.RegionInfo.TerrainHeightRange10 = args.terrainHeightRange2;
+            handshake.RegionInfo.TerrainHeightRange11 = args.terrainHeightRange3;
+            handshake.RegionInfo.TerrainStartHeight00 = args.terrainStartHeight0;
+            handshake.RegionInfo.TerrainStartHeight01 = args.terrainStartHeight1;
+            handshake.RegionInfo.TerrainStartHeight10 = args.terrainStartHeight2;
+            handshake.RegionInfo.TerrainStartHeight11 = args.terrainStartHeight3;
+            handshake.RegionInfo.SimAccess = args.simAccess;
+            handshake.RegionInfo.WaterHeight = args.waterHeight;
 
-            handshake.RegionInfo.BillableFactor = regionInfo.EstateSettings.billableFactor;
-            handshake.RegionInfo.IsEstateManager = estatemanager;
-            handshake.RegionInfo.TerrainHeightRange00 = regionInfo.EstateSettings.terrainHeightRange0;
-            handshake.RegionInfo.TerrainHeightRange01 = regionInfo.EstateSettings.terrainHeightRange1;
-            handshake.RegionInfo.TerrainHeightRange10 = regionInfo.EstateSettings.terrainHeightRange2;
-            handshake.RegionInfo.TerrainHeightRange11 = regionInfo.EstateSettings.terrainHeightRange3;
-            handshake.RegionInfo.TerrainStartHeight00 = regionInfo.EstateSettings.terrainStartHeight0;
-            handshake.RegionInfo.TerrainStartHeight01 = regionInfo.EstateSettings.terrainStartHeight1;
-            handshake.RegionInfo.TerrainStartHeight10 = regionInfo.EstateSettings.terrainStartHeight2;
-            handshake.RegionInfo.TerrainStartHeight11 = regionInfo.EstateSettings.terrainStartHeight3;
-            handshake.RegionInfo.SimAccess = (byte)regionInfo.EstateSettings.simAccess;
-            handshake.RegionInfo.WaterHeight = regionInfo.EstateSettings.waterHeight;
-
-            handshake.RegionInfo.RegionFlags = (uint)regionInfo.EstateSettings.regionFlags;
-            handshake.RegionInfo.SimName = Helpers.StringToField(regionInfo.RegionName);
-            handshake.RegionInfo.SimOwner = regionInfo.MasterAvatarAssignedUUID;
-            handshake.RegionInfo.TerrainBase0 = regionInfo.EstateSettings.terrainBase0;
-            handshake.RegionInfo.TerrainBase1 = regionInfo.EstateSettings.terrainBase1;
-            handshake.RegionInfo.TerrainBase2 = regionInfo.EstateSettings.terrainBase2;
-            handshake.RegionInfo.TerrainBase3 = regionInfo.EstateSettings.terrainBase3;
-            handshake.RegionInfo.TerrainDetail0 = regionInfo.EstateSettings.terrainDetail0;
-            handshake.RegionInfo.TerrainDetail1 = regionInfo.EstateSettings.terrainDetail1;
-            handshake.RegionInfo.TerrainDetail2 = regionInfo.EstateSettings.terrainDetail2;
-            handshake.RegionInfo.TerrainDetail3 = regionInfo.EstateSettings.terrainDetail3;
+            handshake.RegionInfo.RegionFlags = args.regionFlags;
+            handshake.RegionInfo.SimName = Helpers.StringToField(args.regionName);
+            handshake.RegionInfo.SimOwner = args.SimOwner;
+            handshake.RegionInfo.TerrainBase0 = args.terrainBase0;
+            handshake.RegionInfo.TerrainBase1 = args.terrainBase1;
+            handshake.RegionInfo.TerrainBase2 = args.terrainBase2;
+            handshake.RegionInfo.TerrainBase3 = args.terrainBase3;
+            handshake.RegionInfo.TerrainDetail0 = args.terrainDetail0;
+            handshake.RegionInfo.TerrainDetail1 = args.terrainDetail1;
+            handshake.RegionInfo.TerrainDetail2 = args.terrainDetail2;
+            handshake.RegionInfo.TerrainDetail3 = args.terrainDetail3;
             handshake.RegionInfo.CacheID = LLUUID.Random(); //I guess this is for the client to remember an old setting?
 
             OutPacket(handshake, ThrottleOutPacketType.Task);
@@ -2179,7 +2171,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return false;
             }
 
-            public void sendEstateManagersList(LLUUID invoice)
+            public void sendEstateManagersList(LLUUID invoice, LLUUID[] EstateManagers, uint estateID)
             {
                 EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();
                 packet.AgentData.TransactionID = LLUUID.Random();
@@ -2187,8 +2179,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 packet.AgentData.SessionID = this.SessionId;
                 packet.MethodData.Invoice = invoice;
                 packet.MethodData.Method = Helpers.StringToField("setaccess");
-
-                LLUUID[] EstateManagers = m_scene.RegionInfo.EstateSettings.estateManagers;
 
                 EstateOwnerMessagePacket.ParamListBlock[] returnblock = new EstateOwnerMessagePacket.ParamListBlock[6 + EstateManagers.Length];
 
@@ -2198,7 +2188,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
                 int j = 0;
 
-                returnblock[j].Parameter = Helpers.StringToField(m_scene.RegionInfo.EstateSettings.estateID.ToString()); j++;
+                returnblock[j].Parameter = Helpers.StringToField(estateID.ToString()); j++;
                 returnblock[j].Parameter = Helpers.StringToField(((int)Constants.EstateAccessCodex.EstateManagers).ToString()); j++;
                 returnblock[j].Parameter = Helpers.StringToField("0"); j++;
                 returnblock[j].Parameter = Helpers.StringToField("0"); j++;
@@ -2213,29 +2203,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 this.OutPacket(packet, ThrottleOutPacketType.Task);
             }
 
-            public void sendRegionInfoToEstateMenu()
+            public void sendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args)
             {
                 RegionInfoPacket rinfopack = new RegionInfoPacket();
                 RegionInfoPacket.RegionInfoBlock rinfoblk = new RegionInfoPacket.RegionInfoBlock();
                 rinfopack.AgentData.AgentID = this.AgentId;
                 rinfopack.AgentData.SessionID = this.SessionId;
-                rinfoblk.BillableFactor = m_scene.RegionInfo.EstateSettings.billableFactor;
-                rinfoblk.EstateID = m_scene.RegionInfo.EstateSettings.estateID;
-                rinfoblk.MaxAgents = m_scene.RegionInfo.EstateSettings.maxAgents;
-                rinfoblk.ObjectBonusFactor = m_scene.RegionInfo.EstateSettings.objectBonusFactor;
-                rinfoblk.ParentEstateID = m_scene.RegionInfo.EstateSettings.parentEstateID;
-                rinfoblk.PricePerMeter = m_scene.RegionInfo.EstateSettings.pricePerMeter;
-                rinfoblk.RedirectGridX = m_scene.RegionInfo.EstateSettings.redirectGridX;
-                rinfoblk.RedirectGridY = m_scene.RegionInfo.EstateSettings.redirectGridY;
-                rinfoblk.RegionFlags = (uint)(m_scene.RegionInfo.EstateSettings.regionFlags);
-                rinfoblk.SimAccess = (byte)m_scene.RegionInfo.EstateSettings.simAccess;
-                rinfoblk.SunHour = m_scene.RegionInfo.EstateSettings.sunHour;
-                rinfoblk.TerrainLowerLimit = m_scene.RegionInfo.EstateSettings.terrainLowerLimit;
-                rinfoblk.TerrainRaiseLimit = m_scene.RegionInfo.EstateSettings.terrainRaiseLimit;
-                rinfoblk.UseEstateSun = !m_scene.RegionInfo.EstateSettings.useFixedSun;
-                rinfoblk.WaterHeight = m_scene.RegionInfo.EstateSettings.waterHeight;
-                rinfoblk.SimName = Helpers.StringToField(m_scene.RegionInfo.RegionName);
+                rinfoblk.BillableFactor =args.billableFactor;
+                rinfoblk.EstateID = args.estateID;
+                rinfoblk.MaxAgents = args.maxAgents;
+                rinfoblk.ObjectBonusFactor =args.objectBonusFactor;
+                rinfoblk.ParentEstateID = args.parentEstateID;
+                rinfoblk.PricePerMeter = args.pricePerMeter;
+                rinfoblk.RedirectGridX = args.redirectGridX;
+                rinfoblk.RedirectGridY = args.redirectGridY;
+                rinfoblk.RegionFlags = args.regionFlags;
+                rinfoblk.SimAccess = args.simAccess;
+                rinfoblk.SunHour = args.sunHour;
+                rinfoblk.TerrainLowerLimit = args.terrainLowerLimit;
+                rinfoblk.TerrainRaiseLimit = args.terrainRaiseLimit;
+                rinfoblk.UseEstateSun = args.useEstateSun;
+                rinfoblk.WaterHeight = args.waterHeight;
+                rinfoblk.SimName = Helpers.StringToField(args.simName);
 
+               
                 rinfopack.RegionInfo = rinfoblk;
 
                 this.OutPacket(rinfopack, ThrottleOutPacketType.Task);
@@ -2254,7 +2245,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 this.OutPacket(einfopack, ThrottleOutPacketType.Task);
             }
 
-            public void sendDetailedEstateData(LLUUID invoice)
+            public void sendDetailedEstateData(LLUUID invoice, string estateName, uint estateID)
             {
                 EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();
                 packet.MethodData.Invoice = invoice;
@@ -2268,9 +2259,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
 
                 //Sending Estate Settings
-                returnblock[0].Parameter = Helpers.StringToField(m_scene.RegionInfo.EstateSettings.estateName);
+                returnblock[0].Parameter = Helpers.StringToField(estateName);
                 returnblock[1].Parameter = Helpers.StringToField(m_scene.RegionInfo.MasterAvatarAssignedUUID.ToString());
-                returnblock[2].Parameter = Helpers.StringToField(m_scene.RegionInfo.EstateSettings.estateID.ToString());
+                returnblock[2].Parameter = Helpers.StringToField(estateID.ToString());
 
                 // TODO: Resolve Magic numbers here
                 returnblock[3].Parameter = Helpers.StringToField("269516800");
@@ -2289,8 +2280,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         #endregion
 
         #region Land Data Sending Methods
-        
-        public void sendLandProperties(IClientAPI remote_client,int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int simObjectCapacity)
+        public void sendLandParcelOverlay(byte[] data, int sequence_id)
+        {
+
+            ParcelOverlayPacket packet;
+            packet = (ParcelOverlayPacket)PacketPool.Instance.GetPacket(PacketType.ParcelOverlay);
+            packet.ParcelData.Data = data;
+            packet.ParcelData.SequenceID = sequence_id;
+            this.OutPacket(packet, ThrottleOutPacketType.Task);
+        }
+        public void sendLandProperties(IClientAPI remote_client,int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int simObjectCapacity, uint regionFlags)
         {
             ParcelPropertiesPacket updatePacket = (ParcelPropertiesPacket) PacketPool.Instance.GetPacket(PacketType.ParcelProperties);
             // TODO: don't create new blocks if recycling an old packet
@@ -2334,12 +2333,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updatePacket.ParcelData.OwnerID = landData.ownerID;
             updatePacket.ParcelData.OwnerPrims = landData.ownerPrims;
             updatePacket.ParcelData.ParcelFlags = landData.landFlags;
-            updatePacket.ParcelData.ParcelPrimBonus = m_scene.RegionInfo.EstateSettings.objectBonusFactor;
+            updatePacket.ParcelData.ParcelPrimBonus = simObjectBonusFactor;
             updatePacket.ParcelData.PassHours = landData.passHours;
             updatePacket.ParcelData.PassPrice = landData.passPrice;
             updatePacket.ParcelData.PublicCount = 0; //unemplemented
 
-            uint regionFlags = (uint) m_scene.RegionInfo.EstateSettings.regionFlags;
             updatePacket.ParcelData.RegionDenyAnonymous = ((regionFlags & (uint) Simulator.RegionFlags.DenyAnonymous) >
                                                            0);
             updatePacket.ParcelData.RegionDenyIdentified = ((regionFlags & (uint) Simulator.RegionFlags.DenyIdentified) >

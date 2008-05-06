@@ -502,7 +502,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public virtual void SendRegionHandshake(RegionInfo regionInfo)
+        public virtual void SendRegionHandshake(RegionInfo regionInfo, RegionHandshakeArgs args)
         {
             if (OnRegionHandShakeReply != null)
             {
@@ -637,20 +637,20 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public void sendEstateManagersList(LLUUID invoice)
+        public void sendEstateManagersList(LLUUID invoice, LLUUID[] EstateManagers, uint estateID)
         {
         }
-        public void sendRegionInfoToEstateMenu()
+        public void sendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args)
         {
         }
         public void sendEstateCovenantInformation()
         {
         }
-        public void sendDetailedEstateData(LLUUID invoice)
+        public void sendDetailedEstateData(LLUUID invoice, string estateName, uint estateID)
         {
         }
 
-        public void sendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int simObjectCapacity)
+        public void sendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int simObjectCapacity, uint regionFlags)
         {
         }
         public void sendLandAccessListData(List<LLUUID> avatars, uint accessFlag, int localLandID)
@@ -660,6 +660,9 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
         public void sendLandObjectOwners(Dictionary<LLUUID, int> ownersAndCount)
+        {
+        }
+        public void sendLandParcelOverlay(byte[] data, int sequence_id)
         {
         }
     }

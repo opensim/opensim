@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using Axiom.Math;
 using libsecondlife;
-using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
@@ -521,7 +520,6 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             byte[] byteArray = new byte[LAND_BLOCKS_PER_PACKET];
             int byteArrayCount = 0;
             int sequenceID = 0;
-            ParcelOverlayPacket packet;
 
             int y;
             for (y = 0; y < 64; y++)
@@ -595,11 +593,8 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                         byteArrayCount++;
                         if (byteArrayCount >= LAND_BLOCKS_PER_PACKET)
                         {
-                            byteArrayCount = 0;
-                            packet = (ParcelOverlayPacket) PacketPool.Instance.GetPacket(PacketType.ParcelOverlay);
-                            packet.ParcelData.Data = byteArray;
-                            packet.ParcelData.SequenceID = sequenceID;
-                            remote_client.OutPacket(packet, ThrottleOutPacketType.Task);
+                            remote_client.sendLandParcelOverlay(byteArray, sequenceID);
+                            byteArrayCount = 0;                           
                             sequenceID++;
                             byteArray = new byte[LAND_BLOCKS_PER_PACKET];
                         }
