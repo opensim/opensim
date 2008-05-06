@@ -1,48 +1,48 @@
 <?xml version="1.0" ?>
 <project name="OpenSim" default="build">
-	<target name="build">
-			<exec program="mono" commandline="../bin/Prebuild.exe /target nant" />
-	        <nant buildfile="../OpenSim.build" target="build" />
-	</target>
-	<target name="cibuild">
-			<property name="projectdir" value="opensim-0.5.5" />
-			<exec program="mono" commandline="bin/Prebuild.exe /target nant" workingdir="../" />
-	        <nant buildfile="../OpenSim.build" target="build" />
+  <target name="build">
+    <exec program="mono" commandline="../bin/Prebuild.exe /target nant" />
+    <nant buildfile="../OpenSim.build" target="build" />
+  </target>
+  <target name="cibuild">
+    <property name="projectdir" value="opensim-0.5.5" />
+    <exec program="mono" commandline="bin/Prebuild.exe /target nant" workingdir="../" />
+    <nant buildfile="../OpenSim.build" target="build" />
 
-		   <delete dir="../${projectdir}" />
-		   <copy todir="../${projectdir}">
-			   <fileset basedir="../">
-				  <include name="ThirdPartyLicenses/**" />
-				  <include name="CONTRIBUTORS.txt" />
-				  <include name="README" />
-				  <include name="bin/**" />
-			   </fileset>
-		   </copy>
-		   
-		   <touch file="../${projectdir}/bin/startup_commands.txt" />
+    <delete dir="../${projectdir}" />
+    <copy todir="../${projectdir}">
+      <fileset basedir="../">
+        <include name="ThirdPartyLicenses/**" />
+        <include name="CONTRIBUTORS.txt" />
+        <include name="README" />
+        <include name="bin/**" />
+      </fileset>
+    </copy>
+    
+    <touch file="../${projectdir}/bin/startup_commands.txt" />
 
-		   <mkdir dir="../test-results" />
-		   <nunit2>
-				<formatter type="Xml" usefile="true" extension=".xml" outputdir="../test-results" />
-			    <test>
-			        <assemblies>
-			            <include name="../bin/OpenSim*.dll" />
-			        </assemblies>
-			    </test>
-			</nunit2>
-		   
-			<zip zipfile="../${projectdir}.zip">
-			<fileset basedir="${projectdir}/">
-				<include name="**" />
-			</fileset>
-			</zip>
-			<tar destfile="../${projectdir}.tar.gz" compression="GZip">
-			<fileset basedir="${projectdir}/">
-				<include name="**" />
-			</fileset>
-			</tar>
-			
-			<copy file="../${projectdir}.zip" tofile="/home/buildsystem/public_html/${projectdir}-TRUNK.zip" overwrite="true" />
-			<copy file="../${projectdir}.tar.gz" tofile="/home/buildsystem/public_html/${projectdir}-TRUNK.tar.gz" overwrite="true" />
-	</target>
+    <mkdir dir="../test-results" />
+    <nunit2>
+      <formatter type="Xml" usefile="true" extension=".xml" outputdir="../test-results" />
+      <test>
+        <assemblies>
+          <include name="../bin/OpenSim*.dll" />
+        </assemblies>
+      </test>
+    </nunit2>
+    
+    <zip zipfile="../${projectdir}.zip">
+      <fileset basedir="${projectdir}/">
+        <include name="**" />
+      </fileset>
+    </zip>
+    <tar destfile="../${projectdir}.tar.gz" compression="GZip">
+      <fileset basedir="${projectdir}/">
+        <include name="**" />
+      </fileset>
+    </tar>
+    
+    <copy file="../${projectdir}.zip" tofile="/home/buildsystem/public_html/${projectdir}-TRUNK.zip" overwrite="true" />
+    <copy file="../${projectdir}.tar.gz" tofile="/home/buildsystem/public_html/${projectdir}-TRUNK.tar.gz" overwrite="true" />
+  </target>
 </project>

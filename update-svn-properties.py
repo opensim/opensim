@@ -2,7 +2,7 @@
 
 import os, os.path, popen2, re, string, sys
 
-def textfile(file):
+def text(file):
     return {
         "svn:eol-style" : "native"
     }
@@ -38,50 +38,54 @@ def binary_or_text(file):
     if is_binary(file):
         return binary(file)
     else:
-        return textfile(file)
+        return text(file)
 
 property_map = {
     ".bat" : script,
-    ".cgi" : textfile,
-    ".config" : textfile,
-    ".cs" : textfile,
-    ".csproj" : textfile,
+    ".build" : text,
+    ".cfg" : text,
+    ".cgi" : text,
+    ".config" : text,
+    ".cs" : text,
+    ".csproj" : text,
     ".dat" : binary_or_text,
     ".dll" : binary,
     ".dylib" : binary,
-    ".example" : textfile,
+    ".example" : text,
     ".exe" : executable,
-    ".fxcop" : textfile,
+    ".fxcop" : text,
+    ".hgignore" : text,
     ".ico" : binary,
-    ".include" : textfile,
-    ".ini" : textfile,
+    ".include" : text,
+    ".ini" : text,
     ".j2c" : binary,
     ".jp2" : binary,
-    ".lsl" : textfile,
-    ".mdp" : textfile,
-    ".mds" : textfile,
-    ".nsi" : textfile,
+    ".lsl" : text,
+    ".mdp" : text,
+    ".mds" : text,
+    ".nsi" : text,
     ".pdb" : binary,
     ".php" : script,
     ".pidb" : binary,
     ".pl" : script,
-    ".pm" : textfile,
+    ".plist" : text,
+    ".pm" : text,
     ".png" : binary,
     ".py" : script,
     ".rb" : script,
-    ".resx" : textfile,
-    ".settings" : textfile,
-    ".stetic" : textfile,
+    ".resx" : text,
+    ".settings" : text,
+    ".stetic" : text,
     ".sh" : script,
     ".snk" : binary,
     ".so" : binary,
-    ".sql" : textfile,
-    ".txt" : textfile,
-    ".user" : textfile,
-    ".userprefs" : textfile,
-    ".usertasks" : textfile,
-    ".xml" : textfile,
-    ".xsd" : textfile
+    ".sql" : text,
+    ".txt" : text,
+    ".user" : text,
+    ".userprefs" : text,
+    ".usertasks" : text,
+    ".xml" : text,
+    ".xsd" : text
 }
 
 def propset(file, property, value):
@@ -125,7 +129,7 @@ def proplist(file):
     else:
         return ""
 
-def update_file(file, properties):
+def update_file(file, properties, ignorelist):
     current_props = proplist(file)
 
     if current_props is None:
@@ -133,23 +137,23 @@ def update_file(file, properties):
         return
 
     for p in current_props:
-        if not properties.has_key(p):
+        if p not in ignorelist and not properties.has_key(p):
             propdel(file, p)
             
     for p in properties:
         if p not in current_props or propget(file, p) != properties[p]:
             propset(file, p, properties[p])
 
-def update(dir):
+def update(dir, ignorelist):
     for f in os.listdir(dir):
         fullpath = os.path.join(dir, f)
         if os.path.isdir(fullpath):
             if not os.path.islink(fullpath):
-                update(fullpath)
+                update(fullpath, ignorelist)
         else:
             extension = os.path.splitext(fullpath)[1].lower()
             if property_map.has_key(extension):
-                update_file(fullpath, property_map[extension](fullpath))
+                update_file(fullpath, property_map[extension](fullpath), ignorelist)
             elif extension != "" and proplist(fullpath) is not None:
                 print "Warning: No properties defined for %s files (%s)" % (extension, fullpath)
 
@@ -157,7 +161,9 @@ def main(argv = None):
     if argv is None:
         argv = sys.argv
 
-    update(".")
+    ignorelist = ("svn:keywords",)
+
+    update(".", ignorelist)
 
 if __name__ == "__main__":
     sys.exit(main())
