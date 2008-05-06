@@ -799,9 +799,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (LandChannel != null)
             {
-                if (LandChannel.isLandPrimCountTainted())
+                if (LandChannel.IsLandPrimCountTainted())
                 {
-                    LandChannel.performParcelPrimCountUpdate();
+                    LandChannel.PerformParcelPrimCountUpdate();
                 }
             }
         }
@@ -937,12 +937,12 @@ namespace OpenSim.Region.Environment.Scenes
                 if (dGridSettings["allow_forceful_banlines"] != "TRUE")
                 {
                     m_log.Info("[GRID]: Grid is disabling forceful parcel banlists");
-                    LandChannel.allowedForcefulBans = false;
+                    LandChannel.AllowedForcefulBans = false;
                 }
                 else
                 {
                     m_log.Info("[GRID]: Grid is allowing forceful parcel banlists");
-                    LandChannel.allowedForcefulBans = true;
+                    LandChannel.AllowedForcefulBans = true;
                 }
             }
         }
@@ -1305,9 +1305,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (Entities.ContainsKey(sceneObject.UUID))
             {
-                LandChannel.removePrimFromLandPrimCounts(sceneObject);
+                LandChannel.RemovePrimFromLandPrimCounts(sceneObject);
                 Entities.Remove(sceneObject.UUID);
-                LandChannel.setPrimsTainted();
+                LandChannel.SetPrimsTainted();
                 m_innerScene.RemoveAPrimCount();
             }
         }
@@ -1318,7 +1318,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="prim"></param>
         public void AcknowledgeNewPrim(SceneObjectGroup prim)
         {
-            prim.OnPrimCountTainted += LandChannel.setPrimsTainted;
+            prim.OnPrimCountTainted += LandChannel.SetPrimsTainted;
         }
 
         public void LoadPrimsFromXml(string fileName, bool newIdsFlag, LLVector3 loadOffset)
@@ -1525,7 +1525,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 CreateAndAddScenePresence(client, child);
 
-                LandChannel.sendParcelOverlay(client);
+                LandChannel.SendParcelOverlay(client);
                 CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
             }
         }
@@ -1740,11 +1740,6 @@ namespace OpenSim.Region.Environment.Scenes
             GetAvatarAppearance(client, out appearance);
 
             ScenePresence avatar = m_innerScene.CreateAndAddScenePresence(client, child, appearance);
-
-            if (avatar.IsChildAgent)
-            {
-                avatar.OnSignificantClientMovement += LandChannel.handleSignificantClientMovement;
-            }
 
             return avatar;
         }
@@ -1984,7 +1979,7 @@ namespace OpenSim.Region.Environment.Scenes
                     AddCapsHandler(agent.AgentID);
 
                     // Honor parcel landing type and position.
-                    ILandObject land = LandChannel.getLandObject(agent.startpos.X, agent.startpos.Y);
+                    ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
                     if (land != null)
                     {
                         if (land.landData.landingType == (byte)1 && land.landData.userLocation != LLVector3.Zero)
@@ -2803,7 +2798,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public LLUUID GetLandOwner(float x, float y)
         {
-            ILandObject land = LandChannel.getLandObject(x, y);
+            ILandObject land = LandChannel.GetLandObject(x, y);
             if (land == null)
             {
                 return LLUUID.Zero;
@@ -2816,12 +2811,12 @@ namespace OpenSim.Region.Environment.Scenes
 
         public LandData GetLandData(float x, float y)
         {
-            return LandChannel.getLandObject(x, y).landData;
+            return LandChannel.GetLandObject(x, y).landData;
         }
 
         public void SetLandMusicURL(float x, float y, string url)
         {
-            ILandObject land = LandChannel.getLandObject(x, y);
+            ILandObject land = LandChannel.GetLandObject(x, y);
             if (land == null)
             {
                 return;
@@ -2835,7 +2830,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetLandMediaURL(float x, float y, string url)
         {
-            ILandObject land = LandChannel.getLandObject(x, y);
+            ILandObject land = LandChannel.GetLandObject(x, y);
 
             if (land == null)
             {
@@ -2885,7 +2880,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private bool scriptDanger(SceneObjectPart part,LLVector3 pos)
         {
-            ILandObject parcel = LandChannel.getLandObject(pos.X, pos.Y);
+            ILandObject parcel = LandChannel.GetLandObject(pos.X, pos.Y);
             if (part != null)
             {
                 if (parcel != null)

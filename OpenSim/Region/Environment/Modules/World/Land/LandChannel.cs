@@ -44,8 +44,8 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         //Land types set with flags in ParcelOverlay.
         //Only one of these can be used. 
         public const float BAN_LINE_SAFETY_HIEGHT = 100;
-        public const byte LAND_FLAG_PROPERTY_BORDER_SOUTH = (byte) 128; //Equals 10000000
-        public const byte LAND_FLAG_PROPERTY_BORDER_WEST = (byte) 64; //Equals 01000000
+        public const byte LAND_FLAG_PROPERTY_BORDER_SOUTH = 128; //Equals 10000000
+        public const byte LAND_FLAG_PROPERTY_BORDER_WEST = 64; //Equals 01000000
 
         //RequestResults (I think these are right, they seem to work):
         public const int LAND_RESULT_MULTIPLE = 1; // The request they made contained more than a single peice of land
@@ -55,31 +55,41 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         public const int LAND_SELECT_OBJECTS_GROUP = 4;
         public const int LAND_SELECT_OBJECTS_OTHER = 8;
         public const int LAND_SELECT_OBJECTS_OWNER = 2;
-        public const byte LAND_TYPE_IS_BEING_AUCTIONED = (byte) 5; //Equals 00000101
-        public const byte LAND_TYPE_IS_FOR_SALE = (byte) 4; //Equals 00000100
-        public const byte LAND_TYPE_OWNED_BY_GROUP = (byte) 2; //Equals 00000010
-        public const byte LAND_TYPE_OWNED_BY_OTHER = (byte) 1; //Equals 00000001
-        public const byte LAND_TYPE_OWNED_BY_REQUESTER = (byte) 3; //Equals 00000011
-        public const byte LAND_TYPE_PUBLIC = (byte) 0; //Equals 00000000
+        public const byte LAND_TYPE_IS_BEING_AUCTIONED = 5; //Equals 00000101
+        public const byte LAND_TYPE_IS_FOR_SALE = 4; //Equals 00000100
+        public const byte LAND_TYPE_OWNED_BY_GROUP = 2; //Equals 00000010
+        public const byte LAND_TYPE_OWNED_BY_OTHER = 1; //Equals 00000001
+        public const byte LAND_TYPE_OWNED_BY_REQUESTER = 3; //Equals 00000011
+        public const byte LAND_TYPE_PUBLIC = 0; //Equals 00000000
 
         //These are other constants. Yay!
         public const int START_LAND_LOCAL_ID = 1;
 
         #endregion
 
-        private int[,] landIDList = new int[64,64];
-        private Dictionary<int, ILandObject> landList = new Dictionary<int, ILandObject>();
+        private readonly int[,] landIDList = new int[64,64];
+        private readonly Dictionary<int, ILandObject> landList = new Dictionary<int, ILandObject>();
 
-        private bool landPrimCountTainted = false;
+        private bool landPrimCountTainted;
         private int lastLandLocalID = START_LAND_LOCAL_ID - 1;
 
         private bool m_allowedForcefulBans = true;
-        private Scene m_scene;
+        private readonly Scene m_scene;
 
         public LandChannel(Scene scene)
         {
             m_scene = scene;
             landIDList.Initialize();
+
+            m_scene.EventManager.OnNewPresence += handleNewPresence;
+        }
+
+        private void handleNewPresence(ScenePresence avatar)
+        {
+            if (avatar.IsChildAgent)
+            {
+                avatar.OnSignificantClientMovement += handleSignificantClientMovement;
+            }
         }
 
         #region Land Object From Storage Functions
@@ -109,19 +119,19 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             ILandObject new_land = new LandObject(data.ownerID, data.isGroupOwned, m_scene);
             new_land.landData = data.Copy();
             new_land.setLandBitmapFromByteArray();
-            addLandObject(new_land);
+            AddLandObject(new_land);
         }
 
         public void NoLandDataFromStorage()
         {
-            resetSimLandObjects();
+            ResetSimLandObjects();
         }
 
         #endregion
 
         #region Parcel Add/Remove/Get/Create
 
-        public void updateLandObject(int local_id, LandData newData)
+        public void UpdateLandObject(int local_id, LandData newData)
         {
             if (landList.ContainsKey(local_id))
             {
@@ -133,10 +143,10 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         /// <summary>
         /// Get the land object at the specified point
         /// </summary>
-        /// <param name="x">Value between 0 - 256 on the x axis of the point</param>
-        /// <param name="y">Value between 0 - 256 on the y axis of the point</param>
+        /// <param name="x_float">Value between 0 - 256 on the x axis of the point</param>
+        /// <param name="y_float">Value between 0 - 256 on the y axis of the point</param>
         /// <returns>Land object at the point supplied</returns>
-        public ILandObject getLandObject(float x_float, float y_float)
+        public ILandObject GetLandObject(float x_float, float y_float)
         {
             int x;
             int y;
@@ -155,13 +165,10 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             {
                 return null;
             }
-            else
-            {
-                return landList[landIDList[x, y]];
-            }
+            return landList[landIDList[x, y]];
         }
 
-        public ILandObject getLandObject(int x, int y)
+        public ILandObject GetLandObject(int x, int y)
         {
             if (x >= Convert.ToInt32(Constants.RegionSize) || y >= Convert.ToInt32(Constants.RegionSize) || x < 0 || y < 0)
             {
@@ -169,17 +176,14 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 // they happen every time at border crossings
                 throw new Exception("Error: Parcel not found at point " + x + ", " + y);
             }
-            else
-            {
-                return landList[landIDList[x / 4, y / 4]];
-            }
+            return landList[landIDList[x / 4, y / 4]];
         }
 
         /// <summary>
         /// Creates a basic Parcel object without an owner (a zeroed key)
         /// </summary>
         /// <returns></returns>
-        public ILandObject createBaseLand()
+        public ILandObject CreateBaseLand()
         {
             return new LandObject(LLUUID.Zero, false, m_scene);
         }
@@ -188,17 +192,18 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         /// Adds a land object to the stored list and adds them to the landIDList to what they own
         /// </summary>
         /// <param name="new_land">The land object being added</param>
-        public ILandObject addLandObject(ILandObject new_land)
+        public ILandObject AddLandObject(ILandObject new_land)
         {
             lastLandLocalID++;
             new_land.landData.localID = lastLandLocalID;
-            landList.Add(lastLandLocalID, (LandObject) new_land.Copy());
+            landList.Add(lastLandLocalID, new_land.Copy());
 
 
             bool[,] landBitmap = new_land.getLandBitmap();
-            int x, y;
+            int x;
             for (x = 0; x < 64; x++)
             {
+                int y;
                 for (y = 0; y < 64; y++)
                 {
                     if (landBitmap[x, y])
@@ -218,9 +223,10 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         /// <param name="local_id">Land.localID of the peice of land to remove.</param>
         public void removeLandObject(int local_id)
         {
-            int x, y;
+            int x;
             for (x = 0; x < 64; x++)
             {
+                int y;
                 for (y = 0; y < 64; y++)
                 {
                     if (landIDList[x, y] == local_id)
@@ -237,10 +243,11 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         private void performFinalLandJoin(ILandObject master, ILandObject slave)
         {
-            int x, y;
+            int x;
             bool[,] landBitmapSlave = slave.getLandBitmap();
             for (x = 0; x < 64; x++)
             {
+                int y;
                 for (y = 0; y < 64; y++)
                 {
                     if (landBitmapSlave[x, y])
@@ -251,10 +258,10 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             }
 
             removeLandObject(slave.landData.localID);
-            updateLandObject(master.landData.localID, master.landData);
+            UpdateLandObject(master.landData.localID, master.landData);
         }
 
-        public ILandObject getLandObject(int parcelLocalID)
+        public ILandObject GetLandObject(int parcelLocalID)
         {
             lock (landList)
             {
@@ -270,7 +277,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         #region Parcel Modification
 
-        public void resetAllLandPrimCounts()
+        public void ResetAllLandPrimCounts()
         {
             foreach (LandObject p in landList.Values)
             {
@@ -278,27 +285,27 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             }
         }
 
-        public void setPrimsTainted()
+        public void SetPrimsTainted()
         {
             landPrimCountTainted = true;
         }
 
-        public bool isLandPrimCountTainted()
+        public bool IsLandPrimCountTainted()
         {
             return landPrimCountTainted;
         }
 
-        public void addPrimToLandPrimCounts(SceneObjectGroup obj)
+        public void AddPrimToLandPrimCounts(SceneObjectGroup obj)
         {
             LLVector3 position = obj.AbsolutePosition;
-            ILandObject landUnderPrim = getLandObject(position.X, position.Y);
+            ILandObject landUnderPrim = GetLandObject(position.X, position.Y);
             if (landUnderPrim != null)
             {
                 landUnderPrim.addPrimToCount(obj);
             }
         }
 
-        public void removePrimFromLandPrimCounts(SceneObjectGroup obj)
+        public void RemovePrimFromLandPrimCounts(SceneObjectGroup obj)
         {
             foreach (LandObject p in landList.Values)
             {
@@ -306,7 +313,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             }
         }
 
-        public void finalizeLandPrimCountUpdate()
+        public void FinalizeLandPrimCountUpdate()
         {
             //Get Simwide prim count for owner
             Dictionary<LLUUID, List<LandObject>> landOwnersAndParcels = new Dictionary<LLUUID, List<LandObject>>();
@@ -343,7 +350,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             }
         }
 
-        public void updateLandPrimCounts()
+        public void UpdateLandPrimCounts()
         {
             foreach (EntityBase obj in m_scene.Entities.Values)
             {
@@ -354,11 +361,11 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             }
         }
 
-        public void performParcelPrimCountUpdate()
+        public void PerformParcelPrimCountUpdate()
         {
-            resetAllLandPrimCounts();
+            ResetAllLandPrimCounts();
             m_scene.EventManager.TriggerParcelPrimCountUpdate();
-            finalizeLandPrimCountUpdate();
+            FinalizeLandPrimCountUpdate();
             landPrimCountTainted = false;
         }
 
@@ -371,47 +378,42 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         /// <param name="end_y">North Point</param>
         /// <param name="attempting_user_id">LLUUID of user who is trying to subdivide</param>
         /// <returns>Returns true if successful</returns>
-        private bool subdivide(int start_x, int start_y, int end_x, int end_y, LLUUID attempting_user_id)
+        private void subdivide(int start_x, int start_y, int end_x, int end_y, LLUUID attempting_user_id)
         {
             //First, lets loop through the points and make sure they are all in the same peice of land
             //Get the land object at start
-            ILandObject startLandObject = null;
-            try
-            {
-                startLandObject = getLandObject(start_x, start_y);
-            }
-            catch (Exception)
-            {
-                //m_log.Error("[LAND]: " + "Unable to get land object for subdivision at x: " + start_x + " y:" + start_y);
-            }
-            if (startLandObject == null) return false; //No such land object at the beginning
+
+            ILandObject startLandObject = GetLandObject(start_x, start_y);
+
+            if (startLandObject == null) return;
 
             //Loop through the points
             try
             {
                 int totalX = end_x - start_x;
                 int totalY = end_y - start_y;
-                int x, y;
+                int y;
                 for (y = 0; y < totalY; y++)
                 {
+                    int x;
                     for (x = 0; x < totalX; x++)
                     {
-                        ILandObject tempLandObject = getLandObject(start_x + x, start_y + y);
-                        if (tempLandObject == null) return false; //No such land object at that point
-                        if (tempLandObject != startLandObject) return false; //Subdividing over 2 land objects; no-no
+                        ILandObject tempLandObject = GetLandObject(start_x + x, start_y + y);
+                        if (tempLandObject == null) return;
+                        if (tempLandObject != startLandObject) return;
                     }
                 }
             }
             catch (Exception)
             {
-                return false; //Exception. For now, lets skip subdivision
+                return;
             }
 
             //If we are still here, then they are subdividing within one piece of land
             //Check owner
             if (startLandObject.landData.ownerID != attempting_user_id)
             {
-                return false; //They cant do this!
+                return;
             }
 
             //Lets create a new land object with bitmap activated at that point (keeping the old land objects info)
@@ -427,15 +429,15 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 newLand.modifyLandBitmapSquare(startLandObject.getLandBitmap(), start_x, start_y, end_x, end_y, false));
             landList[startLandObjectIndex].forceUpdateLandInfo();
 
-            setPrimsTainted();
+            SetPrimsTainted();
 
             //Now add the new land object
-            ILandObject result = addLandObject(newLand);
-            updateLandObject(startLandObject.landData.localID, startLandObject.landData);
+            ILandObject result = AddLandObject(newLand);
+            UpdateLandObject(startLandObject.landData.localID, startLandObject.landData);
             result.sendLandUpdateToAvatarsOverMe();
 
 
-            return true;
+            return;
         }
 
         /// <summary>
@@ -447,27 +449,20 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         /// <param name="end_y">y value in second peice of land</param>
         /// <param name="attempting_user_id">LLUUID of the avatar trying to join the land objects</param>
         /// <returns>Returns true if successful</returns>
-        private bool join(int start_x, int start_y, int end_x, int end_y, LLUUID attempting_user_id)
+        private void join(int start_x, int start_y, int end_x, int end_y, LLUUID attempting_user_id)
         {
             end_x -= 4;
             end_y -= 4;
 
             List<ILandObject> selectedLandObjects = new List<ILandObject>();
-            int stepXSelected = 0;
-            int stepYSelected = 0;
+            int stepYSelected;
             for (stepYSelected = start_y; stepYSelected <= end_y; stepYSelected += 4)
             {
+                int stepXSelected;
                 for (stepXSelected = start_x; stepXSelected <= end_x; stepXSelected += 4)
                 {
-                    ILandObject p = null;
-                    try
-                    {
-                        p = getLandObject(stepXSelected, stepYSelected);
-                    }
-                    catch (Exception)
-                    {
-                        //m_log.Error("[LAND]: " + "Unable to get land object for subdivision at x: " + stepXSelected + " y:" + stepYSelected);
-                    }
+                    ILandObject p = GetLandObject(stepXSelected, stepYSelected);
+
                     if (p != null)
                     {
                         if (!selectedLandObjects.Contains(p))
@@ -483,17 +478,17 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
             if (selectedLandObjects.Count < 1)
             {
-                return false; //Only one piece of land selected
+                return;
             }
             if (masterLandObject.landData.ownerID != attempting_user_id)
             {
-                return false; //Not the same owner
+                return;
             }
             foreach (ILandObject p in selectedLandObjects)
             {
                 if (p.landData.ownerID != masterLandObject.landData.ownerID)
                 {
-                    return false; //Over multiple users. TODO: make this just ignore this piece of land?
+                    return;
                 }
             }
             foreach (ILandObject slaveLandObject in selectedLandObjects)
@@ -504,11 +499,11 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             }
 
 
-            setPrimsTainted();
+            SetPrimsTainted();
 
             masterLandObject.sendLandUpdateToAvatarsOverMe();
 
-            return true;
+            return;
         }
 
         #endregion
@@ -519,30 +514,24 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         /// Where we send the ParcelOverlay packet to the client
         /// </summary>
         /// <param name="remote_client">The object representing the client</param>
-        public void sendParcelOverlay(IClientAPI remote_client)
+        public void SendParcelOverlay(IClientAPI remote_client)
         {
             const int LAND_BLOCKS_PER_PACKET = 1024;
-            int x, y = 0;
+
             byte[] byteArray = new byte[LAND_BLOCKS_PER_PACKET];
             int byteArrayCount = 0;
             int sequenceID = 0;
             ParcelOverlayPacket packet;
 
+            int y;
             for (y = 0; y < 64; y++)
             {
+                int x;
                 for (x = 0; x < 64; x++)
                 {
-                    byte tempByte = (byte) 0; //This represents the byte for the current 4x4
-                    ILandObject currentParcelBlock = null;
+                    byte tempByte = 0; //This represents the byte for the current 4x4
 
-                    try
-                    {
-                        currentParcelBlock = getLandObject(x * 4, y * 4);
-                    }
-                    catch (Exception)
-                    {
-                        //m_log.Warn("[LAND]: " + "unable to get land at x: " + (x * 4) + " y: " + (y * 4));
-                    }
+                    ILandObject currentParcelBlock = GetLandObject(x * 4, y * 4);
 
 
                     if (currentParcelBlock != null)
@@ -572,53 +561,47 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
 
                         //Now for border control
-                        try
+
+                        ILandObject westParcel = null;
+                        ILandObject southParcel = null;
+                        if (x > 0)
                         {
-                            ILandObject westParcel = null;
-                            ILandObject southParcel = null;
-                            if (x > 0)
-                            {
-                                westParcel = getLandObject((x - 1) * 4, y * 4);
-                            }
-                            if (y > 0)
-                            {
-                                southParcel = getLandObject(x * 4, (y - 1) * 4);
-                            }
-
-                            if (x == 0)
-                            {
-                                tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_WEST);
-                            }
-                            else if (westParcel != null && westParcel != currentParcelBlock)
-                            {
-                                tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_WEST);
-                            }
-
-                            if (y == 0)
-                            {
-                                tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_SOUTH);
-                            }
-                            else if (southParcel != null && southParcel != currentParcelBlock)
-                            {
-                                tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_SOUTH);
-                            }
-
-                            byteArray[byteArrayCount] = tempByte;
-                            byteArrayCount++;
-                            if (byteArrayCount >= LAND_BLOCKS_PER_PACKET)
-                            {
-                                byteArrayCount = 0;
-                                packet = (ParcelOverlayPacket) PacketPool.Instance.GetPacket(PacketType.ParcelOverlay);
-                                packet.ParcelData.Data = byteArray;
-                                packet.ParcelData.SequenceID = sequenceID;
-                                remote_client.OutPacket((Packet) packet, ThrottleOutPacketType.Task);
-                                sequenceID++;
-                                byteArray = new byte[LAND_BLOCKS_PER_PACKET];
-                            }
+                            westParcel = GetLandObject((x - 1) * 4, y * 4);
                         }
-                        catch (Exception)
+                        if (y > 0)
                         {
-                            //m_log.Debug("[LAND]: Skipped Land checks because avatar is out of bounds: " + e.Message);
+                            southParcel = GetLandObject(x * 4, (y - 1) * 4);
+                        }
+
+                        if (x == 0)
+                        {
+                            tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_WEST);
+                        }
+                        else if (westParcel != null && westParcel != currentParcelBlock)
+                        {
+                            tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_WEST);
+                        }
+
+                        if (y == 0)
+                        {
+                            tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_SOUTH);
+                        }
+                        else if (southParcel != null && southParcel != currentParcelBlock)
+                        {
+                            tempByte = Convert.ToByte(tempByte | LAND_FLAG_PROPERTY_BORDER_SOUTH);
+                        }
+
+                        byteArray[byteArrayCount] = tempByte;
+                        byteArrayCount++;
+                        if (byteArrayCount >= LAND_BLOCKS_PER_PACKET)
+                        {
+                            byteArrayCount = 0;
+                            packet = (ParcelOverlayPacket) PacketPool.Instance.GetPacket(PacketType.ParcelOverlay);
+                            packet.ParcelData.Data = byteArray;
+                            packet.ParcelData.SequenceID = sequenceID;
+                            remote_client.OutPacket(packet, ThrottleOutPacketType.Task);
+                            sequenceID++;
+                            byteArray = new byte[LAND_BLOCKS_PER_PACKET];
                         }
                     }
                 }
@@ -630,22 +613,17 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         {
             //Get the land objects within the bounds
             List<ILandObject> temp = new List<ILandObject>();
-            int x, y, i;
+            int x;
+            int i;
             int inc_x = end_x - start_x;
             int inc_y = end_y - start_y;
             for (x = 0; x < inc_x; x++)
             {
+                int y;
                 for (y = 0; y < inc_y; y++)
                 {
-                    ILandObject currentParcel = null;
-                    try
-                    {
-                        currentParcel = getLandObject(start_x + x, start_y + y);
-                    }
-                    catch (Exception)
-                    {
-                        //m_log.Warn("[LAND]: " + "unable to get land at x: " + (start_x + x) + " y: " + (start_y + y));
-                    }
+                    ILandObject currentParcel = GetLandObject(start_x + x, start_y + y);
+
                     if (currentParcel != null)
                     {
                         if (!temp.Contains(currentParcel))
@@ -669,7 +647,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             }
 
 
-            sendParcelOverlay(remote_client);
+            SendParcelOverlay(remote_client);
         }
 
         public void handleParcelPropertiesUpdateRequest(LandUpdateArgs args, int localID, IClientAPI remote_client)
@@ -704,7 +682,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         #region ILandChannel Members
 
-        public bool allowedForcefulBans
+        public bool AllowedForcefulBans
         {
             get { return m_allowedForcefulBans; }
             set { m_allowedForcefulBans = value; }
@@ -713,7 +691,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         /// <summary>
         /// Resets the sim to the default land object (full sim piece of land owned by the default user)
         /// </summary>
-        public void resetSimLandObjects()
+        public void ResetSimLandObjects()
         {
             //Remove all the land objects in the sim and add a blank, full sim land object set to public
             landList.Clear();
@@ -725,18 +703,19 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             fullSimParcel.setLandBitmap(fullSimParcel.getSquareLandBitmap(0, 0, (int) Constants.RegionSize, (int) Constants.RegionSize));
             fullSimParcel.landData.ownerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
 
-            addLandObject(fullSimParcel);
+            AddLandObject(fullSimParcel);
         }
 
-        public List<ILandObject> parcelsNearPoint(LLVector3 position)
+        public List<ILandObject> ParcelsNearPoint(LLVector3 position)
         {
             List<ILandObject> parcelsNear = new List<ILandObject>();
-            int x, y;
+            int x;
             for (x = -4; x <= 4; x += 4)
             {
+                int y;
                 for (y = -4; y <= 4; y += 4)
                 {
-                    ILandObject check = getLandObject(position.X + x, position.Y + y);
+                    ILandObject check = GetLandObject(position.X + x, position.Y + y);
                     if (check != null)
                     {
                         if (!parcelsNear.Contains(check))
@@ -750,9 +729,9 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             return parcelsNear;
         }
 
-        public void sendYouAreBannedNotice(ScenePresence avatar)
+        public void SendYouAreBannedNotice(ScenePresence avatar)
         {
-            if (allowedForcefulBans)
+            if (AllowedForcefulBans)
             {
                 avatar.ControllingClient.SendAlertMessage(
                     "You are not allowed on this parcel because you are banned. Please go away. <3 OpenSim Developers");
@@ -780,7 +759,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                     {
                         if (parcelAvatarIsEntering.isBannedFromLand(avatar.UUID))
                         {
-                            sendYouAreBannedNotice(avatar);
+                            SendYouAreBannedNotice(avatar);
                         }
                         else if (parcelAvatarIsEntering.isRestrictedFromLand(avatar.UUID))
                         {
@@ -800,14 +779,14 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             }
         }
 
-        public void sendOutNearestBanLine(IClientAPI avatar)
+        public void SendOutNearestBanLine(IClientAPI avatar)
         {
             List<ScenePresence> avatars = m_scene.GetAvatars();
             foreach (ScenePresence presence in avatars)
             {
                 if (presence.UUID == avatar.AgentId)
                 {
-                    List<ILandObject> checkLandParcels = parcelsNearPoint(presence.AbsolutePosition);
+                    List<ILandObject> checkLandParcels = ParcelsNearPoint(presence.AbsolutePosition);
                     foreach (ILandObject checkBan in checkLandParcels)
                     {
                         if (checkBan.isBannedFromLand(avatar.AgentId))
@@ -815,7 +794,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                             checkBan.sendLandProperties(-30000, false, (int) ParcelManager.ParcelResult.Single, avatar);
                             return; //Only send one
                         }
-                        else if (checkBan.isRestrictedFromLand(avatar.AgentId))
+                        if (checkBan.isRestrictedFromLand(avatar.AgentId))
                         {
                             checkBan.sendLandProperties(-40000, false, (int) ParcelManager.ParcelResult.Single, avatar);
                             return; //Only send one
@@ -826,18 +805,11 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             }
         }
 
-        public void sendLandUpdate(ScenePresence avatar, bool force)
+        public void SendLandUpdate(ScenePresence avatar, bool force)
         {
-            ILandObject over = null;
-            try
-            {
-                over = getLandObject((int) Math.Min(255, Math.Max(0, Math.Round(avatar.AbsolutePosition.X))),
-                                     (int) Math.Min(255, Math.Max(0, Math.Round(avatar.AbsolutePosition.Y))));
-            }
-            catch (Exception)
-            {
-                //m_log.Warn("[LAND]: " + "unable to get land at x: " + Math.Round(avatar.AbsolutePosition.X) + " y: " + Math.Round(avatar.AbsolutePosition.Y));
-            }
+            ILandObject over = GetLandObject((int) Math.Min(255, Math.Max(0, Math.Round(avatar.AbsolutePosition.X))),
+                                             (int) Math.Min(255, Math.Max(0, Math.Round(avatar.AbsolutePosition.Y))));
+
 
             if (over != null)
             {
@@ -864,9 +836,9 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             }
         }
 
-        public void sendLandUpdate(ScenePresence avatar)
+        public void SendLandUpdate(ScenePresence avatar)
         {
-            sendLandUpdate(avatar, false);
+            SendLandUpdate(avatar, false);
         }
 
         public void handleSignificantClientMovement(IClientAPI remote_client)
@@ -875,9 +847,9 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
             if (clientAvatar != null)
             {
-                sendLandUpdate(clientAvatar);
-                sendOutNearestBanLine(remote_client);
-                ILandObject parcel = getLandObject(clientAvatar.AbsolutePosition.X, clientAvatar.AbsolutePosition.Y);
+                SendLandUpdate(clientAvatar);
+                SendOutNearestBanLine(remote_client);
+                ILandObject parcel = GetLandObject(clientAvatar.AbsolutePosition.X, clientAvatar.AbsolutePosition.Y);
                 if (parcel != null)
                 {
                     if (clientAvatar.AbsolutePosition.Z < BAN_LINE_SAFETY_HIEGHT &&
@@ -893,7 +865,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                     else if (clientAvatar.AbsolutePosition.Z < BAN_LINE_SAFETY_HIEGHT &&
                              parcel.isBannedFromLand(clientAvatar.UUID))
                     {
-                        sendYouAreBannedNotice(clientAvatar);
+                        SendYouAreBannedNotice(clientAvatar);
                     }
                 }
             }
@@ -902,7 +874,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         public void handleAnyClientMovement(ScenePresence avatar)
             //Like handleSignificantClientMovement, but called with an AgentUpdate regardless of distance. 
         {
-            ILandObject over = getLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
+            ILandObject over = GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
             if (over != null)
             {
                 if (!over.isBannedFromLand(avatar.UUID) || avatar.AbsolutePosition.Z >= BAN_LINE_SAFETY_HIEGHT)

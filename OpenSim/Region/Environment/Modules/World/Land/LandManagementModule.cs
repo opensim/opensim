@@ -44,8 +44,8 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             m_scene = scene;
             landChannel = new LandChannel(scene);
 
-            m_scene.EventManager.OnParcelPrimCountAdd += landChannel.addPrimToLandPrimCounts;
-            m_scene.EventManager.OnParcelPrimCountUpdate += landChannel.updateLandPrimCounts;
+            m_scene.EventManager.OnParcelPrimCountAdd += landChannel.AddPrimToLandPrimCounts;
+            m_scene.EventManager.OnParcelPrimCountUpdate += landChannel.UpdateLandPrimCounts;
             m_scene.EventManager.OnAvatarEnteringNewParcel += new EventManager.AvatarEnteringNewParcel(landChannel.handleAvatarChangingParcel);
             m_scene.EventManager.OnClientMovement += new EventManager.ClientMovement(landChannel.handleAnyClientMovement);
             m_scene.EventManager.OnValidateLandBuy += landChannel.handleLandValidationRequest;

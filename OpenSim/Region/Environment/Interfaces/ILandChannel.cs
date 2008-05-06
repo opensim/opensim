@@ -34,42 +34,31 @@ namespace OpenSim.Region.Environment.Interfaces
 {
     public interface ILandChannel
     {
-        bool allowedForcefulBans { get; set; }
+        bool AllowedForcefulBans { get; set; }
         void IncomingLandObjectsFromStorage(List<LandData> data);
         void IncomingLandObjectFromStorage(LandData data);
 
         void NoLandDataFromStorage();
-        ILandObject getLandObject(int x, int y);
-        ILandObject getLandObject(float x, float y);
-        void setPrimsTainted();
-        bool isLandPrimCountTainted();
-        void sendLandUpdate(ScenePresence avatar, bool force);
-        void sendLandUpdate(ScenePresence avatar);
-        void resetAllLandPrimCounts();
-        void addPrimToLandPrimCounts(SceneObjectGroup obj);
-        void removePrimFromLandPrimCounts(SceneObjectGroup obj);
-        void finalizeLandPrimCountUpdate();
-        void updateLandPrimCounts();
-        void performParcelPrimCountUpdate();
-        void updateLandObject(int local_id, LandData newData);
+        ILandObject GetLandObject(int x, int y);
+        ILandObject GetLandObject(float x, float y);
+        void SetPrimsTainted();
+        bool IsLandPrimCountTainted();
+        void SendLandUpdate(ScenePresence avatar, bool force);
+        void SendLandUpdate(ScenePresence avatar);
+        void ResetAllLandPrimCounts();
+        void AddPrimToLandPrimCounts(SceneObjectGroup obj);
+        void RemovePrimFromLandPrimCounts(SceneObjectGroup obj);
+        void FinalizeLandPrimCountUpdate();
+        void UpdateLandPrimCounts();
+        void PerformParcelPrimCountUpdate();
+        void UpdateLandObject(int local_id, LandData newData);
 
-        void sendParcelOverlay(IClientAPI remote_client);
-        void handleParcelPropertiesRequest(int start_x, int start_y, int end_x, int end_y, int sequence_id, bool snap_selection, IClientAPI remote_client);
-        void handleParcelPropertiesUpdateRequest(LandUpdateArgs args, int localID, IClientAPI remote_client);
-        void handleParcelDivideRequest(int west, int south, int east, int north, IClientAPI remote_client);
-        void handleParcelJoinRequest(int west, int south, int east, int north, IClientAPI remote_client);
-        void handleParcelSelectObjectsRequest(int local_id, int request_type, IClientAPI remote_client);
-        void handleParcelObjectOwnersRequest(int local_id, IClientAPI remote_client);
+        void SendParcelOverlay(IClientAPI remote_client);
 
-        void resetSimLandObjects();
-        List<ILandObject> parcelsNearPoint(LLVector3 position);
-        void sendYouAreBannedNotice(ScenePresence avatar);
+        void ResetSimLandObjects();
+        List<ILandObject> ParcelsNearPoint(LLVector3 position);
+        void SendYouAreBannedNotice(ScenePresence avatar);
         void handleAvatarChangingParcel(ScenePresence avatar, int localLandID, LLUUID regionID);
-        void sendOutNearestBanLine(IClientAPI avatar);
-        void handleSignificantClientMovement(IClientAPI remote_client);
-        void handleAnyClientMovement(ScenePresence avatar);
-        void handleParcelAccessRequest(LLUUID agentID, LLUUID sessionID, uint flags, int sequenceID, int landLocalID, IClientAPI remote_client);
-        void handleParcelAccessUpdateRequest(LLUUID agentID, LLUUID sessionID, uint flags, int landLocalID, List<ParcelManager.ParcelAccessEntry> entries, IClientAPI remote_client);
-
+        void SendOutNearestBanLine(IClientAPI avatar);
     }
 }

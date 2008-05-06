@@ -150,7 +150,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 newData.userLocation = args.UserLocation;
                 newData.userLookAt = args.UserLookAt;
 
-                m_scene.LandChannel.updateLandObject(landData.localID, newData);
+                m_scene.LandChannel.UpdateLandObject(landData.localID, newData);
 
                 sendLandUpdateToAvatarsOverMe();
             }
@@ -168,7 +168,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             newData.salePrice = 0;
             newData.authBuyerID = LLUUID.Zero;
             newData.landFlags &= ~(uint) (Parcel.ParcelFlags.ForSale | Parcel.ParcelFlags.ForSaleObjects | Parcel.ParcelFlags.SellParcelObjects);
-            m_scene.LandChannel.updateLandObject(landData.localID, newData);
+            m_scene.LandChannel.UpdateLandObject(landData.localID, newData);
 
             sendLandUpdateToAvatarsOverMe();
         }
@@ -234,7 +234,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 try
                 {
                     over =
-                        m_scene.LandChannel.getLandObject((int) Math.Max(255, Math.Min(0, Math.Round(avatars[i].AbsolutePosition.X))),
+                        m_scene.LandChannel.GetLandObject((int) Math.Max(255, Math.Min(0, Math.Round(avatars[i].AbsolutePosition.X))),
                                                           (int) Math.Max(255, Math.Min(0, Math.Round(avatars[i].AbsolutePosition.Y))));
                 }
                 catch (Exception)
@@ -332,7 +332,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 }
             }
 
-            m_scene.LandChannel.updateLandObject(landData.localID, newData);
+            m_scene.LandChannel.UpdateLandObject(landData.localID, newData);
         }
 
         #endregion

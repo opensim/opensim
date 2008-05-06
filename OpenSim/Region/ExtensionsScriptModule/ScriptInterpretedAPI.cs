@@ -106,7 +106,7 @@ namespace OpenSim.Region.ExtensionsScriptModule
         public void osAddToLandPassList(Key avatar, float hours)
         {
             Vector myPosition = Task.AbsolutePosition;
-            ILandObject myParcel = Scene.LandChannel.getLandObject(myPosition.X, myPosition.Y);
+            ILandObject myParcel = Scene.LandChannel.GetLandObject(myPosition.X, myPosition.Y);
             if (myParcel == null)
             {
                 //Dont do anything!

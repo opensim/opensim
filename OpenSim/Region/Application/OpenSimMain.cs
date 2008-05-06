@@ -532,7 +532,7 @@ namespace OpenSim
             scene.StartScripts();
 
             scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
-            scene.LandChannel.performParcelPrimCountUpdate();
+            scene.LandChannel.PerformParcelPrimCountUpdate();
 
             m_sceneManager.Add(scene);                        
 

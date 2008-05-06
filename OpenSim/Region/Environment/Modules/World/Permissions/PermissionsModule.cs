@@ -146,7 +146,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
             string reason = "Insufficient permission";
 
-            ILandObject land = m_scene.LandChannel.getLandObject(position.X, position.Y);
+            ILandObject land = m_scene.LandChannel.GetLandObject(position.X, position.Y);
             if (land == null) return false;
 
             if ((land.landData.landFlags & ((int)Parcel.ParcelFlags.CreateObjects)) ==
@@ -187,8 +187,8 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return true;
             }
 
-            ILandObject land1 = m_scene.LandChannel.getLandObject(oldPos.X, oldPos.Y);
-            ILandObject land2 = m_scene.LandChannel.getLandObject(newPos.X, newPos.Y);
+            ILandObject land1 = m_scene.LandChannel.GetLandObject(oldPos.X, oldPos.Y);
+            ILandObject land2 = m_scene.LandChannel.GetLandObject(newPos.X, newPos.Y);
 
             if (land1 == null || land2 == null)
             {
@@ -285,7 +285,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             }
 
             // Users should be able to edit what is over their land.
-            ILandObject parcel = m_scene.LandChannel.getLandObject(task.AbsolutePosition.X, task.AbsolutePosition.Y);
+            ILandObject parcel = m_scene.LandChannel.GetLandObject(task.AbsolutePosition.X, task.AbsolutePosition.Y);
             if (parcel != null && parcel.landData.ownerID == user)
                 return objectOwnerMask;
 
@@ -377,7 +377,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             }
 
             // Users should be able to edit what is over their land.
-            ILandObject parcel = m_scene.LandChannel.getLandObject(group.AbsolutePosition.X, group.AbsolutePosition.Y);
+            ILandObject parcel = m_scene.LandChannel.GetLandObject(group.AbsolutePosition.X, group.AbsolutePosition.Y);
             if ((parcel != null) && (parcel.landData.ownerID == currentUser))
             {
                 permission = true;
@@ -599,7 +599,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 Y = 0;
 
             // Land owner can terraform too
-            ILandObject parcel = m_scene.LandChannel.getLandObject(X, Y);
+            ILandObject parcel = m_scene.LandChannel.GetLandObject(X, Y);
             if (parcel != null && GenericParcelPermission(user, parcel))
                 permission = true;
 
@@ -673,7 +673,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         protected virtual bool GenericParcelPermission(LLUUID user, LLVector3 pos)
         {
-            ILandObject parcel = m_scene.LandChannel.getLandObject(pos.X, pos.Y);
+            ILandObject parcel = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
             if (parcel == null) return false;
             return GenericParcelPermission(user, parcel);
         }

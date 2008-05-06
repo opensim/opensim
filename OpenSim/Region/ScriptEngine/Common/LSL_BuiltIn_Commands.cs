@@ -3875,7 +3875,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         // or
                         // if the object is owned by a person with estate access.
                         
-                        ILandObject parcel = World.LandChannel.getLandObject(av.AbsolutePosition.X, av.AbsolutePosition.Y);
+                        ILandObject parcel = World.LandChannel.GetLandObject(av.AbsolutePosition.X, av.AbsolutePosition.Y);
                         if (parcel != null)
                         {
                             if (m_host.ObjectOwner == parcel.landData.ownerID || 
@@ -4214,7 +4214,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             LLUUID key;
-            LandData land = World.LandChannel.getLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
+            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
             if (land.ownerID == m_host.OwnerID)
             {
                 ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
@@ -5599,7 +5599,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             LLUUID key;
-            LandData land = World.LandChannel.getLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
+            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
             if (land.ownerID == m_host.OwnerID)
             {
                 ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
@@ -5617,7 +5617,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             LLUUID key;
-            LandData land = World.LandChannel.getLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
+            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
             if (land.ownerID == m_host.OwnerID)
             {
                 if (LLUUID.TryParse(avatar, out key))
@@ -5638,7 +5638,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             LLUUID key;
-            LandData land = World.LandChannel.getLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
+            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
             if (land.ownerID == m_host.OwnerID)
             {
                 if (LLUUID.TryParse(avatar, out key))
@@ -5709,7 +5709,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public int llGetParcelFlags(LSL_Types.Vector3 pos)
         {
             m_host.AddScriptLPS(1);
-            return (int)World.LandChannel.getLandObject((float)pos.x, (float)pos.y).landData.landFlags;
+            return (int)World.LandChannel.GetLandObject((float)pos.x, (float)pos.y).landData.landFlags;
         }
 
         public int llGetRegionFlags()
@@ -5763,7 +5763,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llResetLandBanList()
         {
             m_host.AddScriptLPS(1);
-            LandData land = World.LandChannel.getLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
+            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
             if (land.ownerID == m_host.OwnerID)
             {
                 foreach (ParcelManager.ParcelAccessEntry entry in land.parcelAccessList)
@@ -5779,7 +5779,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llResetLandPassList()
         {
             m_host.AddScriptLPS(1);
-            LandData land = World.LandChannel.getLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
+            LandData land = World.LandChannel.GetLandObject(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y).landData;
             if (land.ownerID == m_host.OwnerID)
             {
                 foreach (ParcelManager.ParcelAccessEntry entry in land.parcelAccessList)
@@ -5858,7 +5858,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.list llGetParcelPrimOwners(LSL_Types.Vector3 pos)
         {
             m_host.AddScriptLPS(1);
-            LandObject land = (LandObject)World.LandChannel.getLandObject((float)pos.x, (float)pos.y);
+            LandObject land = (LandObject)World.LandChannel.GetLandObject((float)pos.x, (float)pos.y);
             LSL_Types.list ret = new LSL_Types.list();
             if (land != null)
             {

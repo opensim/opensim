@@ -414,7 +414,7 @@ namespace OpenSim.Region.Environment.Scenes
             RegisterToEvents();
             SetDirectionVectors();
 
-            m_scene.LandChannel.sendLandUpdate(this, true);
+            m_scene.LandChannel.SendLandUpdate(this, true);
         }
 
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, byte[] visualParams,
@@ -597,7 +597,7 @@ namespace OpenSim.Region.Environment.Scenes
             //if (!m_gotAllObjectsInScene)
             //{
             m_scene.SendAllSceneObjectsToClient(this);
-            m_scene.LandChannel.sendLandUpdate(this, true);
+            m_scene.LandChannel.SendLandUpdate(this, true);
             
             //m_gotAllObjectsInScene = true;
             //}

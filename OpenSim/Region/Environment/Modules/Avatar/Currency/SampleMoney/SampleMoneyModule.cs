@@ -1426,7 +1426,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                     }
                     else
                     {
-                        ILandObject obj = avatar.Scene.LandChannel.getLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
+                        ILandObject obj = avatar.Scene.LandChannel.GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
                         if ((obj.landData.landFlags & (uint)Parcel.ParcelFlags.AllowDamage) != 0)
                         {
                             avatar.Invulnerable = false;
