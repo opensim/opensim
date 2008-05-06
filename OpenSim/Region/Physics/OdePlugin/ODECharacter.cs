@@ -610,13 +610,24 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// The PID controller takes this target velocity and tries to make it a reality
         /// </summary>
         /// <param name="force"></param>
-        public override void AddForce(PhysicsVector force)
+        public override void AddForce(PhysicsVector force, bool pushforce)
         {
-            m_pidControllerActive = true;
-            _target_velocity.X += force.X;
-            _target_velocity.Y += force.Y;
-            _target_velocity.Z += force.Z;
+            if (pushforce)
+            {
+                m_pidControllerActive = false;
+                doForce(force);
 
+                //_target_velocity.X += force.X;
+               // _target_velocity.Y += force.Y;
+                //_target_velocity.Z += force.Z;
+            }
+            else 
+            {
+                m_pidControllerActive = true;
+                _target_velocity.X += force.X;
+                _target_velocity.Y += force.Y;
+                _target_velocity.Z += force.Z;
+            }
             //m_lastUpdateSent = false;
         }
 

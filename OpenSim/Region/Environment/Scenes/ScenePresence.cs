@@ -2389,5 +2389,13 @@ namespace OpenSim.Region.Environment.Scenes
 
             info.AddValue("m_knownPrimUUID", knownPrimUUID_work);
         }
+
+        internal void PushForce(PhysicsVector impulse)
+        {
+            if (PhysicsActor != null)
+            {
+                PhysicsActor.AddForce(impulse,true);
+            }
+        }
     }
 }

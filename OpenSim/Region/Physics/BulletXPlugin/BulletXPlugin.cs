@@ -917,7 +917,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             set { }
         }
 
-        public override void AddForce(PhysicsVector force)
+        public override void AddForce(PhysicsVector force, bool pushforce)
         {
         }
 
@@ -1134,9 +1134,9 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             base.SetAcceleration(accel);
         }
 
-        public override void AddForce(PhysicsVector force)
+        public override void AddForce(PhysicsVector force, bool pushforce)
         {
-            base.AddForce(force);
+            base.AddForce(force, pushforce);
         }
 
         public override void SetMomentum(PhysicsVector momentum)
@@ -1343,9 +1343,9 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             }
         }
 
-        public override void AddForce(PhysicsVector force)
+        public override void AddForce(PhysicsVector force, bool pushforce)
         {
-            base.AddForce(force);
+            base.AddForce(force,pushforce);
         }
 
         public override void SetMomentum(PhysicsVector momentum)

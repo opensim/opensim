@@ -1884,7 +1884,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             _acceleration = accel;
         }
 
-        public override void AddForce(PhysicsVector force)
+        public override void AddForce(PhysicsVector force, bool pushforce)
         {
             m_forcelist.Add(force);
             m_taintforce = true;

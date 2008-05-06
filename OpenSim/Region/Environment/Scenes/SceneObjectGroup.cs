@@ -1301,8 +1301,19 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (rootpart.PhysActor != null)
                 {
-                    rootpart.PhysActor.AddForce(impulse);
-                    m_scene.PhysicsScene.AddPhysicsActorTaint(rootpart.PhysActor);
+                    if (rootpart.m_IsAttachment)
+                    {
+                        ScenePresence avatar = m_scene.GetScenePresence(rootpart.m_attachedAvatar);
+                        if (avatar != null)
+                        {
+                            avatar.PushForce(impulse);
+                        }
+                    }
+                    else
+                    {
+                        rootpart.PhysActor.AddForce(impulse,true);
+                        m_scene.PhysicsScene.AddPhysicsActorTaint(rootpart.PhysActor);
+                    }
                 }
             }
         }
@@ -1909,7 +1920,7 @@ namespace OpenSim.Region.Environment.Scenes
                         LLVector3 llmoveforce = pos - AbsolutePosition;
                         PhysicsVector grabforce = new PhysicsVector(llmoveforce.X, llmoveforce.Y, llmoveforce.Z);
                         grabforce = (grabforce / 10) * m_rootPart.PhysActor.Mass;
-                        m_rootPart.PhysActor.AddForce(grabforce);
+                        m_rootPart.PhysActor.AddForce(grabforce,true);
                         m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
                     }
                     else

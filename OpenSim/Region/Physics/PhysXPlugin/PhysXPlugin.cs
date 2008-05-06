@@ -378,7 +378,7 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             _acceleration = accel;
         }
 
-        public override void AddForce(PhysicsVector force)
+        public override void AddForce(PhysicsVector force, bool pushforce)
         {
         }
 
@@ -625,7 +625,7 @@ namespace OpenSim.Region.Physics.PhysXPlugin
             _acceleration = accel;
         }
 
-        public override void AddForce(PhysicsVector force)
+        public override void AddForce(PhysicsVector force, bool pushforce)
         {
         }
 

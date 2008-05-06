@@ -196,7 +196,7 @@ namespace OpenSim.Region.Physics.Manager
         public abstract float PIDTau { set; }
 
 
-        public abstract void AddForce(PhysicsVector force);
+        public abstract void AddForce(PhysicsVector force, bool pushforce);
         public abstract void SetMomentum(PhysicsVector momentum);
         public abstract void SubscribeEvents(int ms);
         public abstract void UnSubscribeEvents();
@@ -365,7 +365,7 @@ namespace OpenSim.Region.Physics.Manager
         {
         }
 
-        public override void AddForce(PhysicsVector force)
+        public override void AddForce(PhysicsVector force, bool pushforce)
         {
         }
 
