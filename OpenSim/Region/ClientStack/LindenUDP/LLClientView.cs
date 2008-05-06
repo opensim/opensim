@@ -2131,10 +2131,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="position"></param>
         /// <param name="rotation"></param>
         public void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
-                                        LLQuaternion rotation, byte state, LLUUID AssetId)
+                                        LLQuaternion rotation, LLVector3 velocity, LLVector3 rotationalvelocity, byte state, LLUUID AssetId)
         {
-            LLVector3 velocity = new LLVector3(0f, 0f, 0f);
-            LLVector3 rotationalvelocity = new LLVector3(0f, 0f, 0f);
             ImprovedTerseObjectUpdatePacket terse = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
             // TODO: don't create new blocks if recycling an old packet
             terse.RegionData.RegionHandle = regionHandle;

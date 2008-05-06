@@ -2392,9 +2392,10 @@ namespace OpenSim.Region.Environment.Scenes
             LLVector3 lPos;
             lPos = OffsetPosition;
             LLQuaternion mRot = RotationOffset;
+            // TODO: I have no idea why we are making this check.  This should be sorted out
             if ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) == 0)
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Shape.State, fromAssetID);
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity, RotationalVelocity, Shape.State, fromAssetID);
             }
             else
             {
@@ -2409,13 +2410,13 @@ namespace OpenSim.Region.Environment.Scenes
             LLQuaternion mRot = RotationOffset;
             if (m_IsAttachment)
             {
-                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, (byte)((m_attachmentPoint % 16) * 16 + (m_attachmentPoint / 16)),fromAssetID);
+                remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity, RotationalVelocity, (byte)((m_attachmentPoint % 16) * 16 + (m_attachmentPoint / 16)),fromAssetID);
             }
             else
             {
                 if ((ObjectFlags & (uint)LLObject.ObjectFlags.Physics) == 0)
                 {
-                    remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Shape.State, fromAssetID);
+                    remoteClient.SendPrimTerseUpdate(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, lPos, mRot, Velocity, RotationalVelocity, Shape.State, fromAssetID);
                 }
                 else
                 {
