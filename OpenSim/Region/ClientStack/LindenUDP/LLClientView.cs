@@ -1595,6 +1595,19 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(remove, ThrottleOutPacketType.Asset);
         }
 
+        public void SendTakeControls(int controls, bool passToAgent, bool TakeControls)
+        {
+            ScriptControlChangePacket scriptcontrol = (ScriptControlChangePacket)PacketPool.Instance.GetPacket(PacketType.ScriptControlChange);
+            ScriptControlChangePacket.DataBlock[] data = new ScriptControlChangePacket.DataBlock[1];
+            ScriptControlChangePacket.DataBlock ddata = new ScriptControlChangePacket.DataBlock();
+            ddata.Controls = (uint)controls;
+            ddata.PassToAgent = passToAgent;
+            ddata.TakeControls = TakeControls;
+            data[0] = ddata;
+            scriptcontrol.Data = data;
+            OutPacket(scriptcontrol, ThrottleOutPacketType.Task);
+        }
+
         public void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName)
         {
             ReplyTaskInventoryPacket replytask = (ReplyTaskInventoryPacket)PacketPool.Instance.GetPacket(PacketType.ReplyTaskInventory);

@@ -750,6 +750,9 @@ namespace OpenSim.Framework
         void SendInventoryItemCreateUpdate(InventoryItemBase Item);
 
         void SendRemoveInventoryItem(LLUUID itemID);
+        
+        void SendTakeControls(int controls, bool passToAgent, bool TakeControls);
+
         void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName);
 
         /// <summary>

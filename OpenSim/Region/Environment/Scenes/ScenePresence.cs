@@ -40,6 +40,29 @@ using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {
+    enum ScriptControlled : int 
+    {
+        CONTROL_ZERO = 0,
+        CONTROL_FWD = 1,
+        CONTROL_BACK = 2,
+        CONTROL_LEFT = 4,
+        CONTROL_RIGHT = 8,
+        CONTROL_UP = 16,
+        CONTROL_DOWN = 32,
+        CONTROL_ROT_LEFT = 256,
+        CONTROL_ROT_RIGHT = 512,
+        CONTROL_LBUTTON = 268435456,
+        CONTROL_ML_LBUTTON = 1073741824
+    }
+
+    struct ScriptControllers
+    {
+        public LLUUID itemID;
+        public uint objID;
+        public ScriptControlled ignoreControls;
+        public ScriptControlled eventControls;
+    }
+
     [Serializable] 
     public class ScenePresence : EntityBase, ISerializable
     {
@@ -56,6 +79,9 @@ namespace OpenSim.Region.Environment.Scenes
         public LLUUID currentParcelUUID = LLUUID.Zero;
         private List<LLUUID> m_animations = new List<LLUUID>();
         private List<int> m_animationSeqs = new List<int>();
+        private Dictionary<LLUUID, ScriptControllers> scriptedcontrols = new Dictionary<LLUUID, ScriptControllers>();
+        private ScriptControlled IgnoredControls = ScriptControlled.CONTROL_ZERO;
+
         public Vector3 lastKnownAllowedPosition = new Vector3();
         public bool sentMessageAboutRestrictedParcelFlyingDown = false;
 
@@ -787,6 +813,17 @@ namespace OpenSim.Region.Environment.Scenes
             // m_AgentControlFlags = flags;
             // m_headrotation = agentData.AgentData.HeadRotation;
             // m_state = agentData.AgentData.State;
+            
+
+            lock (scriptedcontrols)
+            {
+                if (scriptedcontrols.Count > 0)
+                {
+                    flags = this.RemoveIgnoredControls(flags, IgnoredControls);
+
+                }
+            }
+
 
             if (m_allowMovement)
             {
@@ -2396,6 +2433,94 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 PhysicsActor.AddForce(impulse,true);
             }
+        }
+
+        public void SendMovementEventsToScript(int controls, int accept, int pass_on, uint Obj_localID, LLUUID Script_item_LLUUID)
+        {
+            
+            ScriptControllers obj = new ScriptControllers();
+            obj.ignoreControls = ScriptControlled.CONTROL_ZERO;
+            obj.eventControls = ScriptControlled.CONTROL_ZERO;
+
+            obj.itemID = Script_item_LLUUID;
+            obj.objID = Obj_localID;
+            if (pass_on == 0 && accept == 0)
+            {
+                IgnoredControls |= (ScriptControlled)controls;
+                obj.ignoreControls = (ScriptControlled)controls;
+            }
+            
+            if (pass_on == 0 && accept == 1)
+            {
+                IgnoredControls |= (ScriptControlled)controls;
+                obj.ignoreControls = (ScriptControlled)controls;
+                obj.eventControls = (ScriptControlled)controls;
+            }
+            if (pass_on == 1 && accept == 1)
+            {
+                IgnoredControls = ScriptControlled.CONTROL_ZERO;
+                obj.eventControls = (ScriptControlled)controls;
+                obj.ignoreControls = ScriptControlled.CONTROL_ZERO;
+            }
+
+            lock (scriptedcontrols)
+            {
+                if (pass_on == 1 && accept == 0)
+                {
+                    IgnoredControls &= ~(ScriptControlled)controls;
+                    if (scriptedcontrols.ContainsKey(Script_item_LLUUID))
+                        scriptedcontrols.Remove(Script_item_LLUUID);
+
+                }
+                else
+                {
+
+                    if (scriptedcontrols.ContainsKey(Script_item_LLUUID))
+                    {
+                        scriptedcontrols[Script_item_LLUUID] = obj;
+                    }
+                    else
+                    {
+                        scriptedcontrols.Add(Script_item_LLUUID, obj);
+                    }
+                }
+            }
+            ControllingClient.SendTakeControls(controls, pass_on == 1 ? true : false, true);
+
+
+        }
+        internal uint RemoveIgnoredControls(uint flags, ScriptControlled Ignored)
+        {
+            if (Ignored == ScriptControlled.CONTROL_ZERO)
+                return flags;
+            if ((Ignored & ScriptControlled.CONTROL_BACK) != 0)
+                flags &= ~((uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG | (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG);
+            if ((Ignored & ScriptControlled.CONTROL_FWD) != 0)
+                flags &= ~((uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS | (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_POS);
+            if ((Ignored & ScriptControlled.CONTROL_DOWN) != 0)
+                flags &= ~((uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG | (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG);
+            if ((Ignored & ScriptControlled.CONTROL_UP) != 0)
+                flags &= ~((uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_POS | (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS);
+            if ((Ignored & ScriptControlled.CONTROL_LEFT) != 0)
+                flags &= ~((uint)AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS | (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS);
+            if ((Ignored & ScriptControlled.CONTROL_RIGHT) != 0)
+                flags &= ~((uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG | (uint)AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG);
+            if ((Ignored & ScriptControlled.CONTROL_ROT_LEFT) != 0)
+                flags &= ~((uint)AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG);
+            if ((Ignored & ScriptControlled.CONTROL_ROT_RIGHT) != 0)
+                flags &= ~((uint)AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS);
+            if ((Ignored & ScriptControlled.CONTROL_ML_LBUTTON) != 0)
+                flags &= ~((uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_DOWN);
+            if ((Ignored & ScriptControlled.CONTROL_LBUTTON) != 0)
+                flags &= ~((uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_UP | (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN);
+                //DIR_CONTROL_FLAG_FORWARD = AgentManager.ControlFlags.AGENT_CONTROL_AT_POS,
+                //DIR_CONTROL_FLAG_BACK = AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG,
+                //DIR_CONTROL_FLAG_LEFT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS,
+                //DIR_CONTROL_FLAG_RIGHT = AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG,
+                //DIR_CONTROL_FLAG_UP = AgentManager.ControlFlags.AGENT_CONTROL_UP_POS,
+                //DIR_CONTROL_FLAG_DOWN = AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG,
+                //DIR_CONTROL_FLAG_DOWN_NUDGE = AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG
+            return flags;
         }
     }
 }

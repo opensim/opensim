@@ -1936,6 +1936,17 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llTakeControls(int controls, int accept, int pass_on)
         {
+            if (m_host.TaskInventory[InventorySelf()].PermsGranter != LLUUID.Zero)
+            {
+
+                ScenePresence presence = World.m_innerScene.ScenePresences[m_host.TaskInventory[InventorySelf()].PermsGranter];
+                if ((m_host.TaskInventory[InventorySelf()].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TAKE_CONTROLS) != 0)
+                {
+                    presence.SendMovementEventsToScript(controls, accept, pass_on, m_localID, m_itemID);
+
+                }
+            }
+
             m_host.AddScriptLPS(1);
             NotImplemented("llTakeControls");
         }

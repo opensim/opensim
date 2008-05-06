@@ -444,6 +444,10 @@ namespace OpenSim.Region.Examples.SimpleModule
         {        
         }
 
+        public void SendTakeControls(int controls, bool passToAgent, bool TakeControls)
+        {
+        }
+
         public virtual void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName)
         {
         }
