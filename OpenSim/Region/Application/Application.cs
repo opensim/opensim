@@ -46,8 +46,6 @@ namespace OpenSim
 
             XmlConfigurator.Configure();
 
-            Console.WriteLine("OpenSim " + VersionInfo.Version + "\n");
-
             Console.Write("Performing compatibility checks... ");
             string supported = String.Empty;
             if (Util.IsEnvironmentSupported(ref supported))

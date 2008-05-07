@@ -55,7 +55,7 @@ namespace OpenSim
 
         private string m_timedScript = "disabled";
         private Timer m_scriptTimer;
-
+        private string buildVersion = null;
 
         public OpenSimMainConsole(IConfigSource configSource)
             : base(configSource)
@@ -113,6 +113,41 @@ namespace OpenSim
                 m_scriptTimer.Elapsed += RunAutoTimerScript;
             }
             PrintFileToConsole("startuplogo.txt");
+
+            // Set BuildVersion String for Show version command
+            string svnFileName = "../.svn/entries";
+            string inputLine = null;
+            int strcmp;
+
+            if (File.Exists(svnFileName))
+            {
+                StreamReader EntriesFile = File.OpenText(svnFileName);
+                inputLine = EntriesFile.ReadLine();
+                while (inputLine != null)
+                {
+                    // using the dir svn revision at the top of entries file
+                    strcmp = String.Compare(inputLine, "dir");
+                    if (strcmp == 0)
+                    {
+                        buildVersion = EntriesFile.ReadLine();
+                        break;
+                    }
+                    else
+                    {
+                        inputLine = EntriesFile.ReadLine();
+                    }
+                }
+                EntriesFile.Close();
+            }
+
+            if ((buildVersion != null) && (buildVersion.Length > 0))
+            {
+                m_log.Info("OpenSim " + VersionInfo.Version + " r" + buildVersion + "\n");
+            }
+            else
+            {
+                m_log.Info("OpenSim " + VersionInfo.Version + "\n");
+            }
         }
 
         protected ConsoleBase CreateConsole()
@@ -280,7 +315,8 @@ namespace OpenSim
                     m_console.Notice("show assets - show state of asset cache.");
                     m_console.Notice("show users - show info about connected users.");
                     m_console.Notice("show modules - shows info about loaded modules.");
-                    m_console.Notice("show stats - statistical information for this server not displayed in the client");
+                    m_console.Notice("show stats - statistical information for this server");
+                    m_console.Notice("show version - show the running build version.");
                     m_console.Notice("threads - list threads");
                     m_console.Notice("config set section field value - set a config value");
                     m_console.Notice("config get section field - get a config value");
@@ -639,7 +675,18 @@ namespace OpenSim
                     {
                         m_console.Notice("Extra sim statistics collection has not been enabled");
                     }
-                    break;                    
+                    break;
+
+                case "version":
+                    if ((buildVersion != null) && (buildVersion.Length > 0))
+                    {
+                        m_console.Notice("The build version is: r" + buildVersion);
+                    }
+                    else
+                    {
+                        m_console.Notice("The build version is not available");
+                    }
+                    break;
             }
         }
 
