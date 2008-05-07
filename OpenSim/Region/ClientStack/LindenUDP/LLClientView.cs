@@ -2069,7 +2069,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendPrimitiveToClient(
             ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, 
-            LLVector3 pos, LLVector3 vel, LLVector3 acc, LLQuaternion rotation, LLVector3 rvel,
+            LLVector3 pos, LLVector3 velocity, LLVector3 acceleration, LLQuaternion rotation, LLVector3 rotational_velocity,
             uint flags,
             LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem,
             byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, LLUUID AssetId)
@@ -2121,8 +2121,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             byte[] pb = pos.GetBytes();
             Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
 
+            // byte[] vel = velocity.GetBytes();
+            // Array.Copy(vel, 0, outPacket.ObjectData[0].ObjectData, 12, vel.Length);
+
             byte[] rot = rotation.GetBytes();
             Array.Copy(rot, 0, outPacket.ObjectData[0].ObjectData, 36, rot.Length);
+
+            byte[] rvel = rotational_velocity.GetBytes();
+            Array.Copy(rvel, 0, outPacket.ObjectData[0].ObjectData, 44, rvel.Length);
 
             if (textureanim.Length > 0)
             {
