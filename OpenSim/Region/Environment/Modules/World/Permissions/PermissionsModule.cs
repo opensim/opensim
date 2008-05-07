@@ -579,6 +579,8 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         public virtual bool CanRunScript(LLUUID user, LLUUID script)
         {
+            //External Checks!
+            if (!m_scene.ExternalChecks.ExternalChecksCanRunScript(script, user)) return false;
             return IsAdministrator(user);
         }
 
