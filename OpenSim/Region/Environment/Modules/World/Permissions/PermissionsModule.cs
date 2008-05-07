@@ -502,7 +502,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         public virtual bool CanCopyObject(LLUUID user, LLUUID obj)
         {
             bool permission = GenericObjectPermission(user, obj);
-            if (!permission)
+            if (permission)
             {
                 if (!m_scene.Entities.ContainsKey(obj))
                 {
@@ -520,6 +520,9 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 // Added this because at this point in time it wouldn't be wise for 
                 // the administrator object permissions to take effect.
                 LLUUID objectOwner = task.OwnerID;
+
+                //Check ExternalChecks!
+                if (m_scene.ExternalChecks.ExternalChecksCanRezObject(task.Children.Count, objectOwner, task.GroupCentrePoint) == false) return false;
                 if ((task.RootPart.EveryoneMask & PERM_COPY) != 0)
                     permission = true;
             }
