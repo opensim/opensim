@@ -81,6 +81,7 @@ namespace OpenSim.Region.Environment.Scenes
         private List<int> m_animationSeqs = new List<int>();
         private Dictionary<LLUUID, ScriptControllers> scriptedcontrols = new Dictionary<LLUUID, ScriptControllers>();
         private ScriptControlled IgnoredControls = ScriptControlled.CONTROL_ZERO;
+        private ScriptControlled LastCommands = ScriptControlled.CONTROL_ZERO;
 
         public Vector3 lastKnownAllowedPosition = new Vector3();
         public bool sentMessageAboutRestrictedParcelFlyingDown = false;
@@ -819,6 +820,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (scriptedcontrols.Count > 0)
                 {
+                    SendControlToScripts(flags, LastCommands);
                     flags = this.RemoveIgnoredControls(flags, IgnoredControls);
 
                 }
@@ -2435,7 +2437,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void SendMovementEventsToScript(int controls, int accept, int pass_on, uint Obj_localID, LLUUID Script_item_LLUUID)
+        public void RegisterControlEventsToScript(int controls, int accept, int pass_on, uint Obj_localID, LLUUID Script_item_LLUUID)
         {
             
             ScriptControllers obj = new ScriptControllers();
@@ -2488,6 +2490,106 @@ namespace OpenSim.Region.Environment.Scenes
             ControllingClient.SendTakeControls(controls, pass_on == 1 ? true : false, true);
 
 
+        }
+
+        public void UnRegisterControlEventsToScript(uint Obj_localID, LLUUID Script_item_LLUUID)
+        {
+            lock (scriptedcontrols)
+            {
+                if (scriptedcontrols.ContainsKey(Script_item_LLUUID))
+                {
+                    scriptedcontrols.Remove(Script_item_LLUUID);
+                    IgnoredControls = ScriptControlled.CONTROL_ZERO;
+                    foreach (ScriptControllers scData in scriptedcontrols.Values)
+                    {
+                        IgnoredControls |= scData.ignoreControls;
+                    }
+                }
+            }
+        }
+
+        internal void SendControlToScripts(uint flags, ScriptControlled lastFlags)
+        {
+            
+            ScriptControlled allflags = ScriptControlled.CONTROL_ZERO;
+            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS) != 0)
+            {
+                allflags |= ScriptControlled.CONTROL_FWD;
+            }
+            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_NEG) != 0)
+            {
+                allflags |= ScriptControlled.CONTROL_BACK;
+            }
+            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_POS) != 0)
+            {
+                allflags |= ScriptControlled.CONTROL_UP;
+            }
+            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0)
+            {
+                allflags |= ScriptControlled.CONTROL_DOWN;
+            }
+            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_POS) != 0)
+            {
+                allflags |= ScriptControlled.CONTROL_LEFT;
+            }
+            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LEFT_NEG) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_LEFT_NEG) != 0)
+            {
+                allflags |= ScriptControlled.CONTROL_RIGHT;
+            }
+            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_YAW_POS) != 0)
+            {
+                allflags |= ScriptControlled.CONTROL_ROT_RIGHT;
+            }
+            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_YAW_NEG) != 0)
+            {
+                allflags |= ScriptControlled.CONTROL_ROT_LEFT;
+            }
+            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_ML_LBUTTON_DOWN) != 0)
+            {
+                allflags |= ScriptControlled.CONTROL_ML_LBUTTON;
+            }
+            if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_UP) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_LBUTTON_DOWN) != 0)
+            {
+                allflags |= ScriptControlled.CONTROL_LBUTTON;
+            }
+            ScriptControlled held = ScriptControlled.CONTROL_ZERO;
+            ScriptControlled change = ScriptControlled.CONTROL_ZERO;
+            
+            foreach (ScriptControlled DCF in Enum.GetValues(typeof (ScriptControlled)))
+            {
+                // Held
+                if ((lastFlags & DCF) != 0 && (allflags & DCF) != 0)
+                {
+                    held |= DCF;
+                    continue;
+                }
+                // Not held recently
+                if ((lastFlags & DCF) != 0 && (allflags & DCF) == 0)
+                {
+                    change |= DCF;
+                    continue;
+                }
+                // Newly pressed.
+                if ((lastFlags & DCF) == 0 && (allflags & DCF) != 0)
+                {
+                    change |= DCF;
+                    continue;
+                }
+
+            }
+
+            lock (scriptedcontrols)
+            {
+                foreach (LLUUID scriptUUID in scriptedcontrols.Keys)
+                {
+                    ScriptControllers scriptControlData = scriptedcontrols[scriptUUID];
+                    ScriptControlled localHeld = held & scriptControlData.eventControls;
+                    ScriptControlled localChange = change & scriptControlData.eventControls;
+                    m_scene.EventManager.TriggerControlEvent(scriptControlData.objID, scriptUUID, (uint)localHeld, (uint)localChange);
+                }
+            }
+            LastCommands = allflags;
+            //foreach (Dir_ControlFlags DCF in Enum.GetValues(typeof (Dir_ControlFlags)))
         }
         internal uint RemoveIgnoredControls(uint flags, ScriptControlled Ignored)
         {

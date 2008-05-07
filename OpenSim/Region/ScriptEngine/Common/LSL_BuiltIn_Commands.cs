@@ -1936,25 +1936,53 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llTakeControls(int controls, int accept, int pass_on)
         {
+            if (!m_host.TaskInventory.ContainsKey(InventorySelf()))
+            {
+                return;
+            }
+
             if (m_host.TaskInventory[InventorySelf()].PermsGranter != LLUUID.Zero)
             {
 
                 ScenePresence presence = World.m_innerScene.ScenePresences[m_host.TaskInventory[InventorySelf()].PermsGranter];
-                if ((m_host.TaskInventory[InventorySelf()].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TAKE_CONTROLS) != 0)
+                if (presence != null)
                 {
-                    presence.SendMovementEventsToScript(controls, accept, pass_on, m_localID, m_itemID);
+                    if ((m_host.TaskInventory[InventorySelf()].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TAKE_CONTROLS) != 0)
+                    {
+                        presence.RegisterControlEventsToScript(controls, accept, pass_on, m_localID, m_itemID);
 
+                    }
                 }
             }
 
             m_host.AddScriptLPS(1);
-            NotImplemented("llTakeControls");
+            //NotImplemented("llTakeControls");
         }
 
         public void llReleaseControls()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llReleaseControls");
+
+            if (!m_host.TaskInventory.ContainsKey(InventorySelf()))
+            {
+                return;
+            }
+
+            if (m_host.TaskInventory[InventorySelf()].PermsGranter != LLUUID.Zero)
+            {
+
+                ScenePresence presence = World.m_innerScene.ScenePresences[m_host.TaskInventory[InventorySelf()].PermsGranter];
+                if (presence != null)
+                {
+                    if ((m_host.TaskInventory[InventorySelf()].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TAKE_CONTROLS) != 0)
+                    {
+                        // Unregister controls from Presence
+                        presence.UnRegisterControlEventsToScript(m_localID, m_itemID);
+                        // Remove Take Control permission.
+                        m_host.TaskInventory[InventorySelf()].PermsMask &= ~BuiltIn_Commands_BaseClass.PERMISSION_TAKE_CONTROLS;
+                    }
+                }
+            }
         }
 
         public void llAttachToAvatar(int attachment)

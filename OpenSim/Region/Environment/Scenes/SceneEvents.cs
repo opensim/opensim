@@ -602,5 +602,10 @@ namespace OpenSim.Region.Environment.Scenes
                 handlerAvatarKill(KillerObjectLocalID, DeadAvatar);
             }
         }
+
+        internal void TriggerControlEvent(uint p, LLUUID scriptUUID, uint p_3, uint p_4)
+        {
+            throw new Exception("The method or operation is not implemented.");
+        }
     }
 }

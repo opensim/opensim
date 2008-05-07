@@ -54,7 +54,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             void on_rez(uint localID, LLUUID itemID);
             void sensor(uint localID, LLUUID itemID);
             void no_sensor(uint localID, LLUUID itemID);
-            void control(uint localID, LLUUID itemID);
+            void control(uint localID, LLUUID itemID, LLUUID agentID, uint held, uint change);
             void money(uint LocalID, LLUUID agentID, int amount);
             void email(uint localID, LLUUID itemID);
             void at_target(uint localID, uint handle, LLVector3 targetpos, LLVector3 atpos);

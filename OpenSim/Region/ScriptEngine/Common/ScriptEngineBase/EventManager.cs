@@ -225,9 +225,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "no_sensor", EventQueueManager.llDetectNull);
         }
 
-        public void control(uint localID, LLUUID itemID)
+        public void control(uint localID, LLUUID itemID, LLUUID agentID, uint held, uint change)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "control", EventQueueManager.llDetectNull);
+            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "control", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLString(agentID.ToString()), new LSL_Types.LSLInteger(held), new LSL_Types.LSLInteger(change)});
         }
 
         public void email(uint localID, LLUUID itemID)
