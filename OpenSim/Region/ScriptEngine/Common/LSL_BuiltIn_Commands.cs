@@ -2474,7 +2474,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
             else
             {
-                return "00000000-0000-0000-0000-000000000000";
+                return LLUUID.Zero.ToString();
             }
         }
 
@@ -2488,7 +2488,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
             else
             {
-                return "00000000-0000-0000-0000-000000000000";
+                return LLUUID.Zero.ToString();
             }
         }
 
