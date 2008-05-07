@@ -2601,50 +2601,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bytes[i++] = state;
             bytes[i++] = 0;
 
-            byte[] buff = position.GetBytes();
-            Array.Copy(buff, 0, bytes, i, buff.Length);
+            byte[] pb = position.GetBytes();
+            Array.Copy(pb, 0, bytes, i, pb.Length);
             i += 12;
+            ushort ac = 32767;
 
-            buff = velocity.GetBytes();
-            Array.Copy(buff, 0, bytes, i, buff.Length);
-            i += 12;
-            
-            // this should be real value
-            LLVector3 accel = new LLVector3(0, 0 ,0);
-            buff = accel.GetBytes();
-            Array.Copy(buff, 0, bytes, i, buff.Length);
-            i += 12;
+            ushort velx, vely, velz;
+            Vector3 vel = new Vector3(velocity.X, velocity.Y, velocity.Z);
 
-            
+            vel = vel / 128.0f;
+            vel.x += 1;
+            vel.y += 1;
+            vel.z += 1;
+            //vel
+            velx = (ushort)(32768 * (vel.x));
+            vely = (ushort)(32768 * (vel.y));
+            velz = (ushort)(32768 * (vel.z));
 
-            // ushort ac = 32767;
+            bytes[i++] = (byte)(velx % 256);
+            bytes[i++] = (byte)((velx >> 8) % 256);
+            bytes[i++] = (byte)(vely % 256);
+            bytes[i++] = (byte)((vely >> 8) % 256);
+            bytes[i++] = (byte)(velz % 256);
+            bytes[i++] = (byte)((velz >> 8) % 256);
 
-            // ushort velx, vely, velz;
-            // Vector3 vel = new Vector3(velocity.X, velocity.Y, velocity.Z);
-
-            // vel = vel / 128.0f;
-            // vel.x += 1;
-            // vel.y += 1;
-            // vel.z += 1;
-            // //vel
-            // velx = (ushort)(32768 * (vel.x));
-            // vely = (ushort)(32768 * (vel.y));
-            // velz = (ushort)(32768 * (vel.z));
-
-            // bytes[i++] = (byte)(velx % 256);
-            // bytes[i++] = (byte)((velx >> 8) % 256);
-            // bytes[i++] = (byte)(vely % 256);
-            // bytes[i++] = (byte)((vely >> 8) % 256);
-            // bytes[i++] = (byte)(velz % 256);
-            // bytes[i++] = (byte)((velz >> 8) % 256);
-
-            // //accel
-            // bytes[i++] = (byte)(ac % 256);
-            // bytes[i++] = (byte)((ac >> 8) % 256);
-            // bytes[i++] = (byte)(ac % 256);
-            // bytes[i++] = (byte)((ac >> 8) % 256);
-            // bytes[i++] = (byte)(ac % 256);
-            // bytes[i++] = (byte)((ac >> 8) % 256);
+            //accel
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
+            bytes[i++] = (byte)(ac % 256);
+            bytes[i++] = (byte)((ac >> 8) % 256);
 
             ushort rw, rx, ry, rz;
             rw = (ushort)(32768 * (rotation.W + 1));
@@ -2662,31 +2649,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bytes[i++] = (byte)(rw % 256);
             bytes[i++] = (byte)((rw >> 8) % 256);
 
-            // //rotation vel
-            // ushort rvelx, rvely, rvelz;
-            // Vector3 rvel = new Vector3(rotationalvelocity.X, rotationalvelocity.Y, rotationalvelocity.Z);
+            //rotation vel
+            ushort rvelx, rvely, rvelz;
+            Vector3 rvel = new Vector3(rotationalvelocity.X, rotationalvelocity.Y, rotationalvelocity.Z);
 
-            // rvel = rvel / 128.0f;
-            // rvel.x += 1;
-            // rvel.y += 1;
-            // rvel.z += 1;
-            // //vel
-            // rvelx = (ushort)(32768 * (rvel.x));
-            // rvely = (ushort)(32768 * (rvel.y));
-            // rvelz = (ushort)(32768 * (rvel.z));
+            rvel = rvel / 128.0f;
+            rvel.x += 1;
+            rvel.y += 1;
+            rvel.z += 1;
+            //vel
+            rvelx = (ushort)(32768 * (rvel.x));
+            rvely = (ushort)(32768 * (rvel.y));
+            rvelz = (ushort)(32768 * (rvel.z));
 
-            // bytes[i++] = (byte)(rvelx % 256);
-            // bytes[i++] = (byte)((rvelx >> 8) % 256);
-            // bytes[i++] = (byte)(rvely % 256);
-            // bytes[i++] = (byte)((rvely >> 8) % 256);
-            // bytes[i++] = (byte)(rvelz % 256);
-            // bytes[i++] = (byte)((rvelz >> 8) % 256);
-
-            buff = rotationalvelocity.GetBytes();
-            Array.Copy(buff, 0, bytes, i, buff.Length);
-            i += 12;
-
-
+            bytes[i++] = (byte)(rvelx % 256);
+            bytes[i++] = (byte)((rvelx >> 8) % 256);
+            bytes[i++] = (byte)(rvely % 256);
+            bytes[i++] = (byte)((rvely >> 8) % 256);
+            bytes[i++] = (byte)(rvelz % 256);
+            bytes[i++] = (byte)((rvelz >> 8) % 256);
             dat.Data = bytes;
             
             
