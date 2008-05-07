@@ -47,7 +47,16 @@ namespace OpenSim.Framework.Servers
         public BaseOpenSimServer()
         {
             m_startuptime = DateTime.Now;
-        }     
+        }    
+
+        /// <summary>
+        /// Should be overriden by descendents if they need to perform extra shutdown processing
+        /// </summary>
+        protected virtual void Shutdown()
+        {
+            m_console.Close();
+            Environment.Exit(0);
+        }
         
         /// <summary>
         /// Runs commands issued by the server console from the operator
@@ -59,7 +68,9 @@ namespace OpenSim.Framework.Servers
             switch (command)
             {      
                 case "help":
+                    m_console.Notice("quit - equivalent to shutdown.");
                     m_console.Notice("show uptime - show server startup and uptime.");
+                    m_console.Notice("shutdown - shutdown the server.\n");
                     break;
                     
                 case "show":
@@ -68,6 +79,11 @@ namespace OpenSim.Framework.Servers
                         Show(cmdparams[0]);
                     }
                     break;
+
+                case "quit":
+                case "shutdown":
+                    Shutdown();
+                    break;                   
             }
         }
         

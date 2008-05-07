@@ -140,29 +140,13 @@ namespace OpenSim.Grid.MessagingServer
                     // m_lastCreatedUser = userID;
                     break;
             }
-        }
+        }              
 
-        public override void RunCmd(string cmd, string[] cmdparams)
+        protected override void Shutdown()
         {
-            base.RunCmd(cmd, cmdparams);
+            msgsvc.deregisterWithUserServer();
             
-            switch (cmd)
-            {
-                case "help":
-                    m_console.Notice("shutdown - shutdown the message server (USE CAUTION!)");
-                    break;
-
-                case "shutdown":
-                    msgsvc.deregisterWithUserServer();
-                    m_console.Close();
-                    Environment.Exit(0);
-                    break;
-            }
-        }
-
-        public override void Show(string ShowWhat)
-        {
-            base.Show(ShowWhat);
+            base.Shutdown();
         }
     }
 }

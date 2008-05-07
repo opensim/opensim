@@ -219,18 +219,11 @@ namespace OpenSim.Grid.UserServer
             {
                 case "help":
                     m_console.Notice("create user - create a new user");
-                    m_console.Notice("stats - statistical information for this server");                    
-                    m_console.Notice("shutdown - shutdown the grid (USE CAUTION!)");
+                    m_console.Notice("stats - statistical information for this server");
                     break;
 
                 case "create":
                     do_create(cmdparams[0]);
-                    break;
-
-                case "shutdown":
-                    m_loginService.OnUserLoggedInAtLocation -= NotifyMessageServersUserLoggedInToLocation;
-                    m_console.Close();
-                    Environment.Exit(0);
                     break;
                     
                 case "stats":
@@ -251,6 +244,13 @@ namespace OpenSim.Grid.UserServer
             }
         }
 
+        protected override void Shutdown()
+        {
+            m_loginService.OnUserLoggedInAtLocation -= NotifyMessageServersUserLoggedInToLocation;
+            
+            base.Shutdown();
+        }
+        
         public void TestResponse(List<InventoryFolderBase> resp)
         {
             m_console.Notice("response got");

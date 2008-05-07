@@ -129,9 +129,21 @@ namespace OpenSim
             {
                 RunCommandScript(m_shutdownCommandsFile);
             }
-            InternalShutdown();
-            m_console.Close();
-            Environment.Exit(0);
+            
+            if (proxyUrl.Length > 0) 
+            {
+                Util.XmlRpcCommand(proxyUrl, "Stop"); 
+            }
+
+            m_log.Info("[SHUTDOWN]: Closing all threads");
+            m_log.Info("[SHUTDOWN]: Killing listener thread");
+            m_log.Info("[SHUTDOWN]: Killing clients");
+            // TODO: implement this
+            m_log.Info("[SHUTDOWN]: Closing console and terminating");
+
+            m_sceneManager.Close();
+            
+            base.Shutdown();          
         }
 
         private void RunAutoTimerScript(object sender, EventArgs e)
@@ -259,7 +271,6 @@ namespace OpenSim
                     m_console.Notice("load-xml [filename] - load prims from XML");
                     m_console.Notice("load-xml2 [filename] - load prims from XML using version 2 format");
                     m_console.Notice("permissions [true/false] - turn on/off permissions on the scene");
-                    m_console.Notice("quit - equivalent to shutdown.");
                     m_console.Notice("restart - disconnects all clients and restarts the sims in the instance.");
                     m_console.Notice("remove-region [name] - remove a region");
                     m_console.Notice("save-xml [filename] - save prims to XML");
@@ -271,7 +282,6 @@ namespace OpenSim
                     m_console.Notice("show modules - shows info about loaded modules.");
                     m_console.Notice("show stats - statistical information for this server not displayed in the client");
                     m_console.Notice("threads - list threads");
-                    m_console.Notice("shutdown - disconnect all clients and shutdown.");
                     m_console.Notice("config set section field value - set a config value");
                     m_console.Notice("config get section field - get a config value");
                     m_console.Notice("config save - save OpenSim.ini");
@@ -420,12 +430,6 @@ namespace OpenSim
                         m_regionData.Remove(killScene.RegionInfo);
                         m_sceneManager.CloseScene(killScene);
                     }
-                    break;
-
-                case "exit":
-                case "quit":
-                case "shutdown":
-                    Shutdown();
                     break;
 
                 case "restart":

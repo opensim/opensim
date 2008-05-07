@@ -177,23 +177,12 @@ namespace OpenSim.Grid.GridServer
             }
             */
         }
-
-        public override void RunCmd(string cmd, string[] cmdparams)
+        
+        protected override void Shutdown()
         {
-            base.RunCmd(cmd, cmdparams);
-
-            switch (cmd)
-            {
-                case "help":
-                    m_console.Notice("shutdown - shutdown the grid (USE CAUTION!)");
-                    break;
-
-                case "shutdown":
-                    foreach (IGridPlugin plugin in m_plugins) plugin.Close();
-                    m_console.Close();
-                    Environment.Exit(0);
-                    break;
-            }
+            foreach (IGridPlugin plugin in m_plugins) plugin.Close();
+            
+            base.Shutdown();
         }
     }
 }

@@ -144,10 +144,6 @@ namespace OpenSim.Grid.InventoryServer
                 case "add-user":
                     m_inventoryService.CreateUsersInventory(LLUUID.Random().UUID);
                     break;
-                case "shutdown":
-                    m_console.Close();
-                    Environment.Exit(0);
-                    break;
             }
         }
     }

@@ -181,9 +181,7 @@ namespace OpenSim.Grid.AssetServer
             switch (cmd)
             {
                 case "help":
-                    m_console.Notice(
-                        @"shutdown - shutdown this asset server (USE CAUTION!)
-                 stats    - statistical information for this server");                    
+                    m_console.Notice("stats - statistical information for this server");
                     
                     break;                  
                     
