@@ -573,7 +573,7 @@ namespace OpenSim.Region.Examples.SimpleModule
             return false;
         }
 
-        public void SendSunPos(LLVector3 sunPos, LLVector3 sunVel)
+        public void SendSunPos(LLVector3 sunPos, LLVector3 sunVel, ulong time, uint dlen, uint ylen, float phase)
         {
         }
 

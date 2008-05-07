@@ -1772,18 +1772,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(sound, ThrottleOutPacketType.Task);
         }
 
-        public void SendSunPos(LLVector3 sunPos, LLVector3 sunVel)
+        public void SendSunPos(LLVector3 Position, LLVector3 Velocity, ulong CurrentTime, uint SecondsPerSunCycle, uint SecondsPerYear, float OrbitalPosition)
         {
             SimulatorViewerTimeMessagePacket viewertime = (SimulatorViewerTimeMessagePacket)PacketPool.Instance.GetPacket(PacketType.SimulatorViewerTimeMessage);
-            viewertime.TimeInfo.SunDirection = sunPos;
-            viewertime.TimeInfo.SunAngVelocity = sunVel;
-            viewertime.TimeInfo.UsecSinceStart = (ulong)Util.UnixTimeSinceEpoch();
-            viewertime.Header.Reliable = false;
+            viewertime.TimeInfo.SunDirection   = Position;
+            viewertime.TimeInfo.SunAngVelocity = Velocity;
+            viewertime.TimeInfo.UsecSinceStart = CurrentTime;
+            viewertime.TimeInfo.SecPerDay      = SecondsPerSunCycle;
+            viewertime.TimeInfo.SecPerYear     = SecondsPerYear;
+            viewertime.TimeInfo.SunPhase       = OrbitalPosition;
+            viewertime.Header.Reliable         = false;
             OutPacket(viewertime, ThrottleOutPacketType.Task);
         }
 
+        // Currently Deprecated
         public void SendViewerTime(int phase)
         {
+            /*
             Console.WriteLine("SunPhase: {0}", phase);
             SimulatorViewerTimeMessagePacket viewertime = (SimulatorViewerTimeMessagePacket)PacketPool.Instance.GetPacket(PacketType.SimulatorViewerTimeMessage);
             //viewertime.TimeInfo.SecPerDay = 86400;
@@ -1829,6 +1834,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             viewertime.TimeInfo.UsecSinceStart = (ulong)Util.UnixTimeSinceEpoch();
             viewertime.Header.Reliable = false;
             OutPacket(viewertime, ThrottleOutPacketType.Task);
+            */
         }
 
         public void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember,

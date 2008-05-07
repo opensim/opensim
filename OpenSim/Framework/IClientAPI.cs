@@ -832,7 +832,7 @@ namespace OpenSim.Framework
         void SendDialog(string objectname, LLUUID objectID, LLUUID ownerID, string msg, LLUUID textureID, int ch, string[] buttonlabels);
         bool AddMoney(int debit);
 
-        void SendSunPos(LLVector3 sunPos, LLVector3 sunVel);
+        void SendSunPos(LLVector3 sunPos, LLVector3 sunVel, ulong CurrentTime, uint SecondsPerSunCycle, uint SecondsPerYear, float OrbitalPosition);
         void SendViewerTime(int phase);
 
         void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember, string flAbout,
