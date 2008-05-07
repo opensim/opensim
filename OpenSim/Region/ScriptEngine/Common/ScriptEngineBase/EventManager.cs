@@ -72,6 +72,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 myScriptEngine.World.EventManager.OnScriptChangedEvent += changed;
                 myScriptEngine.World.EventManager.OnScriptAtTargetEvent += at_target;
                 myScriptEngine.World.EventManager.OnScriptNotAtTargetEvent += not_at_target;
+                myScriptEngine.World.EventManager.OnScriptControlEvent += control;
 
                 // TODO: HOOK ALL EVENTS UP TO SERVER!
                 IMoneyModule money=myScriptEngine.World.RequestModuleInterface<IMoneyModule>();

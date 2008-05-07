@@ -240,6 +240,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private ObjectDeselect handlerObjectDetach = null;
         private AgentSit handlerOnUndo = null;
 
+        private ForceReleaseControls handlerForceReleaseControls = null;
+
         /* Properties */
 
         public LLUUID SecureSessionId
@@ -801,6 +803,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ScriptAnswer OnScriptAnswer;
         public event RequestPayPrice OnRequestPayPrice;
         public event AgentSit OnUndo;
+
+        public event ForceReleaseControls OnForceReleaseControls;
 
         public event DetailedEstateDataRequest OnDetailedEstateDataRequest;
         public event SetEstateFlagsRequest OnSetEstateFlagsRequest;
@@ -4002,6 +4006,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         m_clientBlocked = false;
                         SendStartPingCheck(0);
                         
+                        break;
+
+                    case PacketType.ForceScriptControlRelease:
+                        handlerForceReleaseControls = OnForceReleaseControls;
+                        if (handlerForceReleaseControls != null)
+                        {
+                            handlerForceReleaseControls(this, AgentId);
+                        }
                         break;
 
                         #endregion

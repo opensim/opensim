@@ -530,6 +530,8 @@ namespace OpenSim.Framework
     public delegate void ScriptAnswer(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID, int answer);
 
     public delegate void RequestPayPrice(IClientAPI remoteClient, LLUUID objectID);
+
+    public delegate void ForceReleaseControls(IClientAPI remoteClient, LLUUID agentID);
     
     //Estate Requests
     public delegate void DetailedEstateDataRequest(IClientAPI remoteClient, LLUUID invoice);
@@ -701,6 +703,8 @@ namespace OpenSim.Framework
         event ScriptAnswer OnScriptAnswer;
 
         event AgentSit OnUndo;
+
+        event ForceReleaseControls OnForceReleaseControls;
 
         event DetailedEstateDataRequest OnDetailedEstateDataRequest;
         event SetEstateFlagsRequest OnSetEstateFlagsRequest;

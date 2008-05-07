@@ -137,6 +137,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event ScriptChangedEvent OnScriptChangedEvent;
 
+        public delegate void ScriptControlEvent(uint localID, LLUUID item, LLUUID avatarID, uint held, uint changed);
+
+        public event ScriptControlEvent OnScriptControlEvent;
+
         public delegate void ScriptAtTargetEvent(uint localID, uint handle, LLVector3 targetpos, LLVector3 atpos);
 
         public event ScriptAtTargetEvent OnScriptAtTargetEvent;
@@ -274,6 +278,7 @@ namespace OpenSim.Region.Environment.Scenes
         private DeregisterCapsEvent handlerDeregisterCaps = null; // OnDeregisterCaps;
         private NewInventoryItemUploadComplete handlerNewInventoryItemUpdateComplete = null;
         private RequestChangeWaterHeight handlerRequestChangeWaterHeight = null; //OnRequestChangeWaterHeight
+        private ScriptControlEvent handlerScriptControlEvent = null;
 
         private LandBuy handlerLandBuy = null;
         private LandBuy handlerValidateLandBuy = null;
@@ -603,9 +608,13 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        internal void TriggerControlEvent(uint p, LLUUID scriptUUID, uint p_3, uint p_4)
+        internal void TriggerControlEvent(uint p, LLUUID scriptUUID, LLUUID avatarID, uint held, uint _changed)
         {
-            throw new Exception("The method or operation is not implemented.");
+            handlerScriptControlEvent = OnScriptControlEvent;
+            if (handlerScriptControlEvent != null)
+            {
+                handlerScriptControlEvent(p, scriptUUID,  avatarID, held, _changed);
+            }
         }
     }
 }

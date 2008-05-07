@@ -443,6 +443,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_controllingClient.OnSetAlwaysRun += HandleSetAlwaysRun;
             m_controllingClient.OnStartAnim += HandleStartAnim;
             m_controllingClient.OnStopAnim += HandleStopAnim;
+            m_controllingClient.OnForceReleaseControls += HandleForceReleaseControls;
 
             // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             // ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
@@ -2491,6 +2492,15 @@ namespace OpenSim.Region.Environment.Scenes
 
 
         }
+        public void HandleForceReleaseControls(IClientAPI remoteClient, LLUUID agentID)
+        {
+            IgnoredControls = ScriptControlled.CONTROL_ZERO;
+            lock (scriptedcontrols)
+            {
+                scriptedcontrols.Clear();
+            } 
+            ControllingClient.SendTakeControls(int.MaxValue, false, false);
+        }
 
         public void UnRegisterControlEventsToScript(uint Obj_localID, LLUUID Script_item_LLUUID)
         {
@@ -2512,6 +2522,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             
             ScriptControlled allflags = ScriptControlled.CONTROL_ZERO;
+
             if ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0 || (flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_AT_POS) != 0)
             {
                 allflags |= ScriptControlled.CONTROL_FWD;
@@ -2552,6 +2563,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 allflags |= ScriptControlled.CONTROL_LBUTTON;
             }
+            
             ScriptControlled held = ScriptControlled.CONTROL_ZERO;
             ScriptControlled change = ScriptControlled.CONTROL_ZERO;
             
@@ -2584,12 +2596,16 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     ScriptControllers scriptControlData = scriptedcontrols[scriptUUID];
                     ScriptControlled localHeld = held & scriptControlData.eventControls;
+                    //if (localHeld != ScriptControlled.CONTROL_ZERO)
+                    //{
+                        //int i = 1;
+                    //}
                     ScriptControlled localChange = change & scriptControlData.eventControls;
-                    m_scene.EventManager.TriggerControlEvent(scriptControlData.objID, scriptUUID, (uint)localHeld, (uint)localChange);
+                    m_scene.EventManager.TriggerControlEvent(scriptControlData.objID, scriptUUID, UUID, (uint)localHeld, (uint)localChange);
                 }
             }
             LastCommands = allflags;
-            //foreach (Dir_ControlFlags DCF in Enum.GetValues(typeof (Dir_ControlFlags)))
+            
         }
         internal uint RemoveIgnoredControls(uint flags, ScriptControlled Ignored)
         {

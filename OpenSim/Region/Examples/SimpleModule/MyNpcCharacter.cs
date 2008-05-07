@@ -172,6 +172,8 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event RequestPayPrice OnRequestPayPrice;
         public event AgentSit OnUndo;
 
+        public event ForceReleaseControls OnForceReleaseControls;
+
         public event DetailedEstateDataRequest OnDetailedEstateDataRequest;
         public event SetEstateFlagsRequest OnSetEstateFlagsRequest;
         public event SetEstateTerrainBaseTexture OnSetEstateTerrainBaseTexture;
