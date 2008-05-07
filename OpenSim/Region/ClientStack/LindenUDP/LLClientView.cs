@@ -1651,8 +1651,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         }
 
-        public void SendAvatarPickerReply(AvatarPickerReplyPacket replyPacket)
+        public void SendAvatarPickerReply(AvatarPickerReplyAgentDataArgs AgentData, List<AvatarPickerReplyDataArgs> Data)
         {
+            //construct the AvatarPickerReply packet.
+            AvatarPickerReplyPacket replyPacket = new AvatarPickerReplyPacket();
+            replyPacket.AgentData.AgentID = AgentData.AgentID;
+            replyPacket.AgentData.QueryID = AgentData.QueryID;
+            int i = 0;
+            List<AvatarPickerReplyPacket.DataBlock> data_block = new List<AvatarPickerReplyPacket.DataBlock>();
+            foreach (AvatarPickerReplyDataArgs arg in Data)
+            {
+                AvatarPickerReplyPacket.DataBlock db = new AvatarPickerReplyPacket.DataBlock();
+                db.AvatarID = arg.AvatarID;
+                db.FirstName = arg.FirstName;
+                db.LastName = arg.LastName;
+                data_block.Add(db);
+            }
+            replyPacket.Data = data_block.ToArray();
             OutPacket(replyPacket, ThrottleOutPacketType.Task);
         }
 
@@ -2904,11 +2919,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             handlerViewerEffect = OnViewerEffect;
             if (handlerViewerEffect != null)
             {
-                handlerViewerEffect(sender, viewer.Effect);
+                int length = viewer.Effect.Length;
+                List<ViewerEffectEventHandlerArg> args = new List<ViewerEffectEventHandlerArg>(length);
+                for (int i = 0; i < length; i++)
+                {
+                    //copy the effects block arguments into the event handler arg.
+                    ViewerEffectEventHandlerArg argument = new ViewerEffectEventHandlerArg();
+                    argument.AgentID = viewer.Effect[i].AgentID;
+                    argument.Color = viewer.Effect[i].Color;
+                    argument.Duration = viewer.Effect[i].Duration;
+                    argument.ID = viewer.Effect[i].ID;
+                    argument.Type = viewer.Effect[i].Type;
+                    args.Add(argument);
+                }
+
+                handlerViewerEffect(sender, args);
             }
 
             return true;
         }
+           
 
         public void SendScriptQuestion(LLUUID taskID, string taskName, string ownerName, LLUUID itemID, int question)
         {
@@ -3778,7 +3808,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             // for the client session anyway, in order to protect ourselves against bad code in plugins 
                             try
                             {
-                                handlerSetAppearance(appear.ObjectData.TextureEntry, appear.VisualParam);
+                                List<byte> visualparams = new List<byte>();
+                                foreach (AgentSetAppearancePacket.VisualParamBlock x in appear.VisualParam)
+                                {
+                                    visualparams.Add(x.ParamValue);
+                                }
+
+                                handlerSetAppearance(appear.ObjectData.TextureEntry, visualparams);
                             }
                             catch (Exception e)
                             {
@@ -3885,9 +3921,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         {
                             AgentUpdatePacket agenUpdate = (AgentUpdatePacket)Pack;
 
+                            AgentUpdatePacket.AgentDataBlock x = agenUpdate.AgentData;
+                            AgentUpdateArgs arg = new AgentUpdateArgs();
+                                arg.AgentID = x.AgentID;
+                                arg.BodyRotation = x.BodyRotation;
+                                arg.CameraAtAxis = x.CameraAtAxis;
+                                arg.CameraCenter = x.CameraCenter;
+                                arg.CameraLeftAxis = x.CameraLeftAxis;
+                                arg.CameraUpAxis = x.CameraUpAxis;
+                                arg.ControlFlags = x.ControlFlags;
+                                arg.Far = x.Far;
+                                arg.Flags = x.Flags;
+                                arg.HeadRotation = x.HeadRotation;
+                                arg.SessionID = x.SessionID;
+                                arg.State = x.State;
+
                             handlerAgentUpdate = OnAgentUpdate;
                             if (handlerAgentUpdate != null)
-                                OnAgentUpdate(this, agenUpdate);
+                                OnAgentUpdate(this, arg);
 
                             handlerAgentUpdate = null;
                             //agenUpdate.AgentData.ControlFlags, agenUpdate.AgentData.BodyRotationa);
@@ -4085,8 +4136,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             handlerUpdatePrimShape = OnUpdatePrimShape;
                             if (handlerUpdatePrimShape != null)
                             {
+                                UpdateShapeArgs shapeData = new UpdateShapeArgs();
+                                shapeData.ObjectLocalID = shapePacket.ObjectData[i].ObjectLocalID;
+                                shapeData.PathBegin = shapePacket.ObjectData[i].PathBegin;
+                                shapeData.PathCurve = shapePacket.ObjectData[i].PathCurve;
+                                shapeData.PathEnd = shapePacket.ObjectData[i].PathEnd;
+                                shapeData.PathRadiusOffset = shapePacket.ObjectData[i].PathRadiusOffset;
+                                shapeData.PathRevolutions = shapePacket.ObjectData[i].PathRevolutions;
+                                shapeData.PathScaleX = shapePacket.ObjectData[i].PathScaleX;
+                                shapeData.PathScaleY = shapePacket.ObjectData[i].PathScaleY;
+                                shapeData.PathShearX = shapePacket.ObjectData[i].PathShearX;
+                                shapeData.PathShearY = shapePacket.ObjectData[i].PathShearY;
+                                shapeData.PathSkew = shapePacket.ObjectData[i].PathSkew;
+                                shapeData.PathTaperX = shapePacket.ObjectData[i].PathTaperX;
+                                shapeData.PathTaperY = shapePacket.ObjectData[i].PathTaperY;
+                                shapeData.PathTwist = shapePacket.ObjectData[i].PathTwist;
+                                shapeData.PathTwistBegin = shapePacket.ObjectData[i].PathTwistBegin;
+                                shapeData.ProfileBegin = shapePacket.ObjectData[i].ProfileBegin;
+                                shapeData.ProfileCurve = shapePacket.ObjectData[i].ProfileCurve;
+                                shapeData.ProfileEnd = shapePacket.ObjectData[i].ProfileEnd;
+                                shapeData.ProfileHollow = shapePacket.ObjectData[i].ProfileHollow;
+
                                 handlerUpdatePrimShape(m_agentId, shapePacket.ObjectData[i].ObjectLocalID,
-                                                       shapePacket.ObjectData[i]);
+                                                       shapeData);
                             }
                         }
                         break;

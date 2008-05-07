@@ -245,7 +245,21 @@ namespace OpenSim.Region.Environment.Scenes
                 searchData = new AvatarPickerReplyPacket.DataBlock[0];
             }
             replyPacket.Data = searchData;
-            client.SendAvatarPickerReply(replyPacket);
+
+            AvatarPickerReplyAgentDataArgs agent_data = new AvatarPickerReplyAgentDataArgs();
+            agent_data.AgentID = replyPacket.AgentData.AgentID;
+            agent_data.QueryID = replyPacket.AgentData.QueryID;
+
+            List<AvatarPickerReplyDataArgs> data_args = new List<AvatarPickerReplyDataArgs>();
+            for (i = 0; i < replyPacket.Data.Length; i++)
+            {
+                AvatarPickerReplyDataArgs data_arg = new AvatarPickerReplyDataArgs();
+                data_arg.AvatarID = replyPacket.Data[i].AvatarID;
+                data_arg.FirstName = replyPacket.Data[i].FirstName;
+                data_arg.LastName = replyPacket.Data[i].LastName;
+                data_args.Add(data_arg);
+            }
+            client.SendAvatarPickerReply(agent_data, data_args);
         }
     }
 }

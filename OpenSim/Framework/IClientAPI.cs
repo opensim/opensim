@@ -41,7 +41,8 @@ namespace OpenSim.Framework
         IClientAPI Sender { get; set; }
     }
 
-    public delegate void ViewerEffectEventHandler(IClientAPI sender, ViewerEffectPacket.EffectBlock[] effectBlock);
+
+    public delegate void ViewerEffectEventHandler(IClientAPI sender, List<ViewerEffectEventHandlerArg> args);
 
     public delegate void ChatFromViewer(Object sender, ChatFromViewerArgs e);
 
@@ -235,6 +236,15 @@ namespace OpenSim.Framework
         #endregion
     }
 
+    public class ViewerEffectEventHandlerArg : EventArgs
+    {
+        public LLUUID AgentID;
+        public byte[] Color;
+        public float Duration;
+        public LLUUID ID;
+        public byte Type;
+    }
+
     public class LandUpdateArgs : EventArgs
     {
         public LLUUID AuthBuyerID;
@@ -301,6 +311,66 @@ namespace OpenSim.Framework
         public float waterHeight;
         public string simName;
     }
+
+    public class UpdateShapeArgs : EventArgs
+    {
+        public uint ObjectLocalID;
+        public ushort PathBegin;
+        public byte PathCurve;
+        public ushort PathEnd;
+        public sbyte PathRadiusOffset;
+        public byte PathRevolutions;
+        public byte PathScaleX;
+        public byte PathScaleY;
+        public byte PathShearX;
+        public byte PathShearY;
+        public sbyte PathSkew;
+        public sbyte PathTaperX;
+        public sbyte PathTaperY;
+        public sbyte PathTwist;
+        public sbyte PathTwistBegin;
+        public ushort ProfileBegin;
+        public byte ProfileCurve;
+        public ushort ProfileEnd;
+        public ushort ProfileHollow;
+    }
+
+    public class RequestAssetArgs : EventArgs
+    {
+        public int ChannelType;
+        public float Priority;
+        public int SourceType;
+        public LLUUID TransferID;
+    }
+    public class AgentUpdateArgs : EventArgs
+    {
+        public LLUUID AgentID;
+        public LLQuaternion BodyRotation;
+        public LLVector3 CameraAtAxis;
+        public LLVector3 CameraCenter;
+        public LLVector3 CameraLeftAxis;
+        public LLVector3 CameraUpAxis;
+        public uint ControlFlags;
+        public float Far;
+        public byte Flags;
+        public LLQuaternion HeadRotation;
+        public LLUUID SessionID;
+        public byte State;
+    }
+
+    public class AvatarPickerReplyAgentDataArgs : EventArgs
+    {
+        public LLUUID AgentID;
+        public LLUUID QueryID;
+    }
+
+    public class AvatarPickerReplyDataArgs : EventArgs
+    {
+        public LLUUID AvatarID;
+        public byte[] FirstName;
+        public byte[] LastName;
+    }
+
     public delegate void TextureRequest(Object sender, TextureRequestArgs e);
 
     public delegate void AvatarNowWearing(Object sender, AvatarWearingArgs e);
@@ -325,7 +395,7 @@ namespace OpenSim.Framework
         float height, float seconds, byte size, byte action, float north, float west, float south, float east,
         IClientAPI remoteClient);
 
-    public delegate void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam);
+    public delegate void SetAppearance(byte[] texture, List<byte> visualParamList);
 
     public delegate void StartAnim(IClientAPI remoteClient, LLUUID animID);
 
@@ -362,7 +432,7 @@ namespace OpenSim.Framework
 
     public delegate void GenericCall7(IClientAPI remoteClient, uint localID, string message);
 
-    public delegate void UpdateShape(LLUUID agentID, uint localID, ObjectShapePacket.ObjectDataBlock shapeBlock);
+    public delegate void UpdateShape(LLUUID agentID, uint localID, UpdateShapeArgs shapeBlock);
 
     public delegate void ObjectExtraParams(LLUUID agentID, uint localID, ushort type, bool inUse, byte[] data);
 
@@ -396,7 +466,7 @@ namespace OpenSim.Framework
 
     public delegate void NewAvatar(IClientAPI remoteClient, LLUUID agentID, bool status);
 
-    public delegate void UpdateAgent(IClientAPI remoteClient, AgentUpdatePacket agentData);
+    public delegate void UpdateAgent(IClientAPI remoteClient, AgentUpdateArgs agentData);
 
     public delegate void AgentRequestSit(IClientAPI remoteClient, LLUUID agentID, LLUUID targetID, LLVector3 offset);
 
@@ -427,7 +497,7 @@ namespace OpenSim.Framework
 
     public delegate void ParcelObjectOwnerRequest(int local_id, IClientAPI remote_client);
 
-    public delegate void EstateOwnerMessageRequest(EstateOwnerMessagePacket packet, IClientAPI remote_client);
+    public delegate void EstateOwnerMessageRequest(LLUUID AgentID, LLUUID SessionID, LLUUID TransactionID, LLUUID Invoice, byte[] Method, byte[][] Parameters, IClientAPI remote_client);
 
     public delegate void RegionInfoRequest(IClientAPI remote_client);
 
@@ -487,7 +557,7 @@ namespace OpenSim.Framework
     public delegate void RemoveInventoryFolder(
         IClientAPI remoteClient, LLUUID folderID);
 
-    public delegate void RequestAsset(IClientAPI remoteClient, TransferRequestPacket transferRequest);
+    public delegate void RequestAsset(IClientAPI remoteClient, RequestAssetArgs transferRequest);
 
     public delegate void RezScript(IClientAPI remoteClient, LLUUID itemID, uint localID);
 
@@ -822,7 +892,7 @@ namespace OpenSim.Framework
                              int PriceParcelClaim, float PriceParcelClaimFactor, int PriceParcelRent, int PricePublicObjectDecay,
                              int PricePublicObjectDelete, int PriceRentLight, int PriceUpload, int TeleportMinPrice, float TeleportPriceExponent);
 
-        void SendAvatarPickerReply(AvatarPickerReplyPacket Pack);
+        void SendAvatarPickerReply(AvatarPickerReplyAgentDataArgs AgentData, List<AvatarPickerReplyDataArgs> Data);
 
         void SendAgentDataUpdate(LLUUID agentid, LLUUID activegroupid, string firstname, string lastname, ulong grouppowers, string groupname, string grouptitle);
 

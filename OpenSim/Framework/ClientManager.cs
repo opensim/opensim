@@ -171,11 +171,22 @@ namespace OpenSim.Framework
             return circuits;
         }
 
-        public void ViewerEffectHandler(IClientAPI sender, ViewerEffectPacket.EffectBlock[] effectBlock)
+        public void ViewerEffectHandler(IClientAPI sender, List<ViewerEffectEventHandlerArg> args)
         {
-            ViewerEffectPacket packet = (ViewerEffectPacket) PacketPool.Instance.GetPacket(PacketType.ViewerEffect);
+            ViewerEffectPacket packet = (ViewerEffectPacket)PacketPool.Instance.GetPacket(PacketType.ViewerEffect);
             // TODO: don't create new blocks if recycling an old packet
-            packet.Effect = effectBlock;
+            List<ViewerEffectPacket.EffectBlock> effectBlock = new List<ViewerEffectPacket.EffectBlock>();
+            for (int i = 0; i < args.Count; i++)
+            {
+                ViewerEffectPacket.EffectBlock effect = new ViewerEffectPacket.EffectBlock();
+                effect.AgentID = args[i].AgentID;
+                effect.Color = args[i].Color;
+                effect.Duration = args[i].Duration;
+                effect.ID = args[i].ID;
+                effect.Type = args[i].Type;
+                effectBlock.Add(effect);
+            }
+            packet.Effect = effectBlock.ToArray();
 
             // Wasteful, I know
             IClientAPI[] LocalClients = new IClientAPI[0];

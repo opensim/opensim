@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
 using libsecondlife;
@@ -102,15 +103,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="texture"></param>
         /// <param name="visualParam"></param>
-        public void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam)
+        public void SetAppearance(byte[] texture, List<byte> visualParam)
         {
             LLObject.TextureEntry textureEnt = new LLObject.TextureEntry(texture, 0, texture.Length);
             m_textureEntry = textureEnt;
 
-            for (int i = 0; i < visualParam.Length; i++)
-            {
-                m_visualParams[i] = visualParam[i].ParamValue;
-            }
+            m_visualParams = visualParam.ToArray();
 
             // Teravus : Nifty AV Height Getting Maaaaagical formula.  Oh how we love turning 0-255 into meters.
             // (float)m_visualParams[25] = Height

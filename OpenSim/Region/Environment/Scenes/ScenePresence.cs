@@ -754,7 +754,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// This is the event handler for client movement.   If a client is moving, this event is triggering.
         /// </summary>
-        public void HandleAgentUpdate(IClientAPI remoteClient, AgentUpdatePacket agentData)
+        public void HandleAgentUpdate(IClientAPI remoteClient, AgentUpdateArgs agentData)
         {
             //if (m_isChildAgent)
             //{
@@ -767,31 +767,31 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_perfMonMS = System.Environment.TickCount;
 
-            uint flags = agentData.AgentData.ControlFlags;
-            LLQuaternion bodyRotation = agentData.AgentData.BodyRotation;
+            uint flags = agentData.ControlFlags;
+            LLQuaternion bodyRotation = agentData.BodyRotation;
 
             // Camera location in world.  We'll need to raytrace 
             // from this location from time to time.
-            m_CameraCenter.x = agentData.AgentData.CameraCenter.X;
-            m_CameraCenter.y = agentData.AgentData.CameraCenter.Y;
-            m_CameraCenter.z = agentData.AgentData.CameraCenter.Z;
+            m_CameraCenter.x = agentData.CameraCenter.X;
+            m_CameraCenter.y = agentData.CameraCenter.Y;
+            m_CameraCenter.z = agentData.CameraCenter.Z;
 
             // Use these three vectors to figure out what the agent is looking at
             // Convert it to a Matrix and/or Quaternion
-            m_CameraAtAxis.x = agentData.AgentData.CameraAtAxis.X;
-            m_CameraAtAxis.y = agentData.AgentData.CameraAtAxis.Y;
-            m_CameraAtAxis.z = agentData.AgentData.CameraAtAxis.Z;
+            m_CameraAtAxis.x = agentData.CameraAtAxis.X;
+            m_CameraAtAxis.y = agentData.CameraAtAxis.Y;
+            m_CameraAtAxis.z = agentData.CameraAtAxis.Z;
 
-            m_CameraLeftAxis.x = agentData.AgentData.CameraLeftAxis.X;
-            m_CameraLeftAxis.y = agentData.AgentData.CameraLeftAxis.Y;
-            m_CameraLeftAxis.z = agentData.AgentData.CameraLeftAxis.Z;
+            m_CameraLeftAxis.x = agentData.CameraLeftAxis.X;
+            m_CameraLeftAxis.y = agentData.CameraLeftAxis.Y;
+            m_CameraLeftAxis.z = agentData.CameraLeftAxis.Z;
 
-            m_CameraUpAxis.x = agentData.AgentData.CameraUpAxis.X;
-            m_CameraUpAxis.y = agentData.AgentData.CameraUpAxis.Y;
-            m_CameraUpAxis.z = agentData.AgentData.CameraUpAxis.Z;
+            m_CameraUpAxis.x = agentData.CameraUpAxis.X;
+            m_CameraUpAxis.y = agentData.CameraUpAxis.Y;
+            m_CameraUpAxis.z = agentData.CameraUpAxis.Z;
 
             // The Agent's Draw distance setting
-            m_DrawDistance = agentData.AgentData.Far;
+            m_DrawDistance = agentData.Far;
 
             if ((flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_STAND_UP) != 0)
             {
@@ -1569,7 +1569,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_appearance.SendAppearanceToOtherAgent(avatar);
         }
 
-        public void SetAppearance(byte[] texture, AgentSetAppearancePacket.VisualParamBlock[] visualParam)
+        public void SetAppearance(byte[] texture, List<byte> visualParam)
         {
             m_appearance.SetAppearance(texture, visualParam);
             SetHeight(m_appearance.AvatarHeight);

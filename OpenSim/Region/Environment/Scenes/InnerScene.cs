@@ -1275,14 +1275,35 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="primLocalID"></param>
         /// <param name="shapeBlock"></param>
-        public void UpdatePrimShape(LLUUID agentID, uint primLocalID, ObjectShapePacket.ObjectDataBlock shapeBlock)
+        public void UpdatePrimShape(LLUUID agentID, uint primLocalID, UpdateShapeArgs shapeBlock)
         {
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
             if (group != null)
             {
                 if (m_parentScene.Permissions.CanEditObjectPosition(agentID, group.GetPartsFullID(primLocalID)))
                 {
-                    group.UpdateShape(shapeBlock, primLocalID);
+                    ObjectShapePacket.ObjectDataBlock shapeData = new ObjectShapePacket.ObjectDataBlock();
+                    shapeData.ObjectLocalID = shapeBlock.ObjectLocalID;
+                    shapeData.PathBegin = shapeBlock.PathBegin;
+                    shapeData.PathCurve = shapeBlock.PathCurve;
+                    shapeData.PathEnd = shapeBlock.PathEnd;
+                    shapeData.PathRadiusOffset = shapeBlock.PathRadiusOffset;
+                    shapeData.PathRevolutions = shapeBlock.PathRevolutions;
+                    shapeData.PathScaleX = shapeBlock.PathScaleX;
+                    shapeData.PathScaleY = shapeBlock.PathScaleY;
+                    shapeData.PathShearX = shapeBlock.PathShearX;
+                    shapeData.PathShearY = shapeBlock.PathShearY;
+                    shapeData.PathSkew = shapeBlock.PathSkew;
+                    shapeData.PathTaperX = shapeBlock.PathTaperX;
+                    shapeData.PathTaperY = shapeBlock.PathTaperY;
+                    shapeData.PathTwist = shapeBlock.PathTwist;
+                    shapeData.PathTwistBegin = shapeBlock.PathTwistBegin;
+                    shapeData.ProfileBegin = shapeBlock.ProfileBegin;
+                    shapeData.ProfileCurve = shapeBlock.ProfileCurve;
+                    shapeData.ProfileEnd = shapeBlock.ProfileEnd;
+                    shapeData.ProfileHollow = shapeBlock.ProfileHollow;
+
+                    group.UpdateShape(shapeData, primLocalID);
                 }
             }
         }

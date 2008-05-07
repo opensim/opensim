@@ -271,7 +271,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public virtual void SendAvatarPickerReply(AvatarPickerReplyPacket response)
+        public virtual void SendAvatarPickerReply(AvatarPickerReplyAgentDataArgs AgentData, List<AvatarPickerReplyDataArgs> Data)
         {
         }
 
@@ -528,9 +528,10 @@ namespace OpenSim.Region.Examples.SimpleModule
                 frame = 0;
                 if (OnAgentUpdate != null)
                 {
-                    AgentUpdatePacket pack = new AgentUpdatePacket();
-                    pack.AgentData.ControlFlags = movementFlag;
-                    pack.AgentData.BodyRotation = bodyDirection;
+                    AgentUpdateArgs pack = new AgentUpdateArgs();
+                    pack.ControlFlags = movementFlag;
+                    pack.BodyRotation = bodyDirection;
+
                     OnAgentUpdate(this, pack);
                 }
                 if (flyState == 0)
