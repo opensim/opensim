@@ -3994,9 +3994,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             return returnval;
         }
 
-        // AL: This does not actually do anything yet. There are issues within Libsecondlife revolving around PSYS_PART_FLAGS
-        // (need to OR the values, but currently stores this within an enum) as well as discovery of how the CRC works and the
-        // actual packet. 
 
         public void llParticleSystem(LSL_Types.list rules)
         {
@@ -4069,9 +4066,24 @@ namespace OpenSim.Region.ScriptEngine.Common
                         prules.Pattern = (Primitive.ParticleSystem.SourcePattern)tmpi;
                         break;
 
+                    // Xantor 03-May-2008
+                    // Wiki:    PSYS_SRC_TEXTURE 	 string 	 inventory item name or key of the particle texture
+                    //          "" = default texture.                   
                     case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_TEXTURE:
-                        prules.Texture = new LLUUID(rules.Data[i + 1].ToString());
-                        break;
+                        LLUUID tkey = LLUUID.Zero;
+
+                        // if we can parse the string as a key, use it.
+                        if (LLUUID.TryParse(rules.Data[i + 1].ToString(), out tkey))
+                        {
+                            prules.Texture = tkey;
+                        }
+                        // else try to locate the name in inventory of object. found returns key,
+                        // not found returns LLUUID.Zero which will translate to the default particle texture
+                        else  
+                        {
+                            prules.Texture =  InventoryKey(rules.Data[i+1].ToString());
+                        }
+                        break;                                             
 
                     case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_RATE:
                         tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
