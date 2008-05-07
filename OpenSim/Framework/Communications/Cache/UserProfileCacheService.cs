@@ -363,7 +363,7 @@ namespace OpenSim.Framework.Communications.Cache
                 if (!userProfile.HasInventory)
                 {
                     int attempts = 0;
-                    while (attempts++ < 20)
+                    while (attempts++ < 30)
                     {
                         m_log.DebugFormat(
                              "[INVENTORY CACHE]: Poll number {0} for inventory items in folder {1} for user {2}", 
