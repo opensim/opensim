@@ -2125,8 +2125,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             byte[] pb = pos.GetBytes();
             Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
 
-            // byte[] vel = velocity.GetBytes();
-            // Array.Copy(vel, 0, outPacket.ObjectData[0].ObjectData, 12, vel.Length);
+            byte[] vel = velocity.GetBytes();
+            Array.Copy(vel, 0, outPacket.ObjectData[0].ObjectData, pb.Length, vel.Length);
 
             byte[] rot = rotation.GetBytes();
             Array.Copy(rot, 0, outPacket.ObjectData[0].ObjectData, 36, rot.Length);
