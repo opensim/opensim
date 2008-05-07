@@ -53,6 +53,11 @@ namespace OpenSim
     {        
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Holds a human readable build version for this server.
+        /// </summary>
+        protected string buildVersion;
+        
         protected string proxyUrl;
         protected int proxyOffset = 0;
 
@@ -337,12 +342,56 @@ namespace OpenSim
         {
             WorldHasComeToAnEnd.Set();
         }
+        
+        /// <summary>
+        /// Print the version information available to the library.  This include a subversion number if the root
+        /// .svn/entries file is present.
+        /// </summary>
+        protected void printAvailableVersionInformation()
+        {
+            // Set BuildVersion String for Show version command
+            string svnFileName = "../.svn/entries";
+            string inputLine = null;
+            int strcmp;
+
+            if (File.Exists(svnFileName))
+            {
+                StreamReader EntriesFile = File.OpenText(svnFileName);
+                inputLine = EntriesFile.ReadLine();
+                while (inputLine != null)
+                {
+                    // using the dir svn revision at the top of entries file
+                    strcmp = String.Compare(inputLine, "dir");
+                    if (strcmp == 0)
+                    {
+                        buildVersion = EntriesFile.ReadLine();
+                        break;
+                    }
+                    else
+                    {
+                        inputLine = EntriesFile.ReadLine();
+                    }
+                }
+                EntriesFile.Close();
+            }
+
+            if ((buildVersion != null) && (buildVersion.Length > 0))
+            {
+                m_log.Info("[STARTUP]: OpenSim version: " + VersionInfo.Version + ", SVN build r" + buildVersion + "\n");
+            }
+            else
+            {
+                m_log.Info("[STARTUP]: OpenSim version: " + VersionInfo.Version + "\n");
+            }
+        }
 
         /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.
         /// </summary>
         protected void InternalStartUp()
         {
+            printAvailableVersionInformation();
+            
             StatsManager.StartCollectingSimExtraStats();
             
             // Do baseclass startup sequence: OpenSim.Region.ClientStack.RegionApplicationBase.StartUp

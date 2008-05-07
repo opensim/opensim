@@ -55,7 +55,6 @@ namespace OpenSim
 
         private string m_timedScript = "disabled";
         private Timer m_scriptTimer;
-        private string buildVersion = null;
 
         public OpenSimMainConsole(IConfigSource configSource)
             : base(configSource)
@@ -112,42 +111,8 @@ namespace OpenSim
                 m_scriptTimer.Interval = 1200 * 1000;
                 m_scriptTimer.Elapsed += RunAutoTimerScript;
             }
+            
             PrintFileToConsole("startuplogo.txt");
-
-            // Set BuildVersion String for Show version command
-            string svnFileName = "../.svn/entries";
-            string inputLine = null;
-            int strcmp;
-
-            if (File.Exists(svnFileName))
-            {
-                StreamReader EntriesFile = File.OpenText(svnFileName);
-                inputLine = EntriesFile.ReadLine();
-                while (inputLine != null)
-                {
-                    // using the dir svn revision at the top of entries file
-                    strcmp = String.Compare(inputLine, "dir");
-                    if (strcmp == 0)
-                    {
-                        buildVersion = EntriesFile.ReadLine();
-                        break;
-                    }
-                    else
-                    {
-                        inputLine = EntriesFile.ReadLine();
-                    }
-                }
-                EntriesFile.Close();
-            }
-
-            if ((buildVersion != null) && (buildVersion.Length > 0))
-            {
-                m_log.Info("OpenSim " + VersionInfo.Version + " r" + buildVersion + "\n");
-            }
-            else
-            {
-                m_log.Info("OpenSim " + VersionInfo.Version + "\n");
-            }
         }
 
         protected ConsoleBase CreateConsole()
