@@ -2085,6 +2085,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             outPacket.ObjectData[0].ID = localID;
             outPacket.ObjectData[0].FullID = objectID;
             outPacket.ObjectData[0].OwnerID = ownerID;
+            outPacket.Header.Reliable = true;
             
             // Anything more than 255 will cause libsecondlife to barf
             if (text.Length > 255)
