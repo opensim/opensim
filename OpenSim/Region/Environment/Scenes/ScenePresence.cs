@@ -797,7 +797,15 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 StandUp();
             }
+            lock (scriptedcontrols)
+            {
+                if (scriptedcontrols.Count > 0)
+                {
+                    SendControlToScripts(flags, LastCommands);
+                    flags = this.RemoveIgnoredControls(flags, IgnoredControls);
 
+                }
+            }
             if (PhysicsActor == null)
             {
                 return;
@@ -817,15 +825,7 @@ namespace OpenSim.Region.Environment.Scenes
             // m_state = agentData.AgentData.State;
             
 
-            lock (scriptedcontrols)
-            {
-                if (scriptedcontrols.Count > 0)
-                {
-                    SendControlToScripts(flags, LastCommands);
-                    flags = this.RemoveIgnoredControls(flags, IgnoredControls);
-
-                }
-            }
+            
 
 
             if (m_allowMovement)
