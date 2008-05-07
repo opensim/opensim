@@ -2054,22 +2054,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         public void SendPrimitiveToClient(
-            ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos,
-            uint flags,
-            LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem,
-            LLQuaternion rotation, byte clickAction)
+                                          ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, 
+                                          LLVector3 pos, LLVector3 vel, LLVector3 acc, LLQuaternion rotation, LLVector3 rvel,
+                                          uint flags, LLUUID objectID, LLUUID ownerID, string text, byte[] color, 
+                                          uint parentID, byte[] particleSystem, byte clickAction)
         {
             byte[] textureanim = new byte[0];
 
-            SendPrimitiveToClient(regionHandle, timeDilation, localID, primShape, pos, flags,
+            SendPrimitiveToClient(regionHandle, timeDilation, localID, primShape, pos, vel,
+                                  acc, rotation, rvel, flags,
                                   objectID, ownerID, text, color, parentID, particleSystem,
-                                  rotation, clickAction, textureanim, false,(uint)0, LLUUID.Zero);
+                                  clickAction, textureanim, false,(uint)0, LLUUID.Zero);
         }
+
         public void SendPrimitiveToClient(
-            ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, LLVector3 pos,
+            ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, 
+            LLVector3 pos, LLVector3 vel, LLVector3 acc, LLQuaternion rotation, LLVector3 rvel,
             uint flags,
             LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem,
-            LLQuaternion rotation, byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, LLUUID AssetId)
+            byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, LLUUID AssetId)
         {
             ObjectUpdatePacket outPacket = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
             // TODO: don't create new blocks if recycling an old packet

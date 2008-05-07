@@ -394,17 +394,19 @@ namespace OpenSim.Region.Examples.SimpleModule
         }
 
         public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID,
-                                                  PrimitiveBaseShape primShape, LLVector3 pos, uint flags,
+                                                  PrimitiveBaseShape primShape, LLVector3 pos, LLVector3 vel, 
+                                                  LLVector3 acc, LLQuaternion rotation, LLVector3 rvel, uint flags,
                                                   LLUUID objectID, LLUUID ownerID, string text, byte[] color,
                                                   uint parentID,
-                                                  byte[] particleSystem, LLQuaternion rotation, byte clickAction)
+                                                  byte[] particleSystem, byte clickAction)
         {
         }
         public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID,
-                                                  PrimitiveBaseShape primShape, LLVector3 pos, uint flags,
+                                                  PrimitiveBaseShape primShape, LLVector3 pos, LLVector3 vel, 
+                                                  LLVector3 acc, LLQuaternion rotation, LLVector3 rvel, uint flags,
                                                   LLUUID objectID, LLUUID ownerID, string text, byte[] color,
                                                   uint parentID,
-                                                  byte[] particleSystem, LLQuaternion rotation, byte clickAction, byte[] textureanimation,
+                                                  byte[] particleSystem, byte clickAction, byte[] textureanimation,
                                                   bool attachment, uint AttachmentPoint, LLUUID AssetId)
         {
         }

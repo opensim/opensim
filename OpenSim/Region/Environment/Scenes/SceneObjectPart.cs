@@ -2331,10 +2331,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="clientFlags"></param>
         public void SendFullUpdateToClient(IClientAPI remoteClient, LLVector3 lPos, uint clientFlags)
         {
-            LLQuaternion lRot;
-            lRot = RotationOffset;
             clientFlags &= ~(uint) LLObject.ObjectFlags.CreateSelected;
-
+            
             if (remoteClient.AgentId == OwnerID)
             {
                 if ((uint) (Flags & LLObject.ObjectFlags.CreateSelected) != 0)
@@ -2346,9 +2344,11 @@ namespace OpenSim.Region.Environment.Scenes
 
 
             byte[] color = new byte[] {m_color.R, m_color.G, m_color.B, m_color.A};
-            remoteClient.SendPrimitiveToClient(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, m_shape, lPos, clientFlags, m_uuid,
+            remoteClient.SendPrimitiveToClient(
+                                               m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, m_shape, 
+                                               lPos, Velocity, Acceleration, RotationOffset, RotationalVelocity, clientFlags, m_uuid,
                                                OwnerID,
-                                               m_text, color, ParentID, m_particleSystem, lRot, m_clickAction, m_TextureAnimation, m_IsAttachment, m_attachmentPoint,fromAssetID);
+                                               m_text, color, ParentID, m_particleSystem, m_clickAction, m_TextureAnimation, m_IsAttachment, m_attachmentPoint,fromAssetID);
         }
 
         /// Terse updates
