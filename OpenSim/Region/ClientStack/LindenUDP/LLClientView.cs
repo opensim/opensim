@@ -2069,7 +2069,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendPrimitiveToClient(
             ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, 
-            LLVector3 pos, LLVector3 velocity, LLVector3 acceleration, LLQuaternion rotation, LLVector3 rotationalvelocity,
+            LLVector3 pos, LLVector3 vel, LLVector3 acc, LLQuaternion rotation, LLVector3 rvel,
             uint flags,
             LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem,
             byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, LLUUID AssetId)
@@ -2085,7 +2085,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             outPacket.ObjectData[0].ID = localID;
             outPacket.ObjectData[0].FullID = objectID;
             outPacket.ObjectData[0].OwnerID = ownerID;
-            outPacket.Header.Reliable = true;
             
             // Anything more than 255 will cause libsecondlife to barf
             if (text.Length > 255)
@@ -2119,92 +2118,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Sound Radius
             outPacket.ObjectData[0].Radius = 20;
 
-            int i = 0;
-            byte[] bytes = new byte[60];
             byte[] pb = pos.GetBytes();
-            Array.Copy(pb, 0, bytes, i, pb.Length);
-            i += 12;
-            // TODO: this code sucks, and also exists in TerseUpdate.
-            // Someone should clean it up.
+            Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
 
-            ushort velx, vely, velz;
-            Vector3 vel = new Vector3(velocity.X, velocity.Y, velocity.Z);
-            
-            vel = vel / 128.0f;
-            vel.x += 1;
-            vel.y += 1;
-            vel.z += 1;
-            //vel
-            velx = (ushort)(32768 * (vel.x));
-            vely = (ushort)(32768 * (vel.y));
-            velz = (ushort)(32768 * (vel.z));
-
-            bytes[i++] = (byte)(velx % 256);
-            bytes[i++] = (byte)((velx >> 8) % 256);
-            bytes[i++] = (byte)(vely % 256);
-            bytes[i++] = (byte)((vely >> 8) % 256);
-            bytes[i++] = (byte)(velz % 256);
-            bytes[i++] = (byte)((velz >> 8) % 256);
-
-            //accel
-            ushort accx, accy, accz;
-            Vector3 acc = new Vector3(acceleration.X, acceleration.Y, acceleration.Z);
-            acc = acc / 128.0f;
-            acc.x += 1;
-            acc.y += 1;
-            acc.z += 1;
-            accx = (ushort)(32768 * (acc.x));
-            accy = (ushort)(32768 * (acc.y));
-            accz = (ushort)(32768 * (acc.z));
-
-            bytes[i++] = (byte)(accx % 256);
-            bytes[i++] = (byte)((accx >> 8) % 256);
-            bytes[i++] = (byte)(accy % 256);
-            bytes[i++] = (byte)((accy >> 8) % 256);
-            bytes[i++] = (byte)(accz % 256);
-            bytes[i++] = (byte)((accz >> 8) % 256);
-
-            ushort rw, rx, ry, rz;
-            rw = (ushort)(32768 * (rotation.W + 1));
-            rx = (ushort)(32768 * (rotation.X + 1));
-            ry = (ushort)(32768 * (rotation.Y + 1));
-            rz = (ushort)(32768 * (rotation.Z + 1));
-
-            //rot
-            bytes[i++] = (byte)(rx % 256);
-            bytes[i++] = (byte)((rx >> 8) % 256);
-            bytes[i++] = (byte)(ry % 256);
-            bytes[i++] = (byte)((ry >> 8) % 256);
-            bytes[i++] = (byte)(rz % 256);
-            bytes[i++] = (byte)((rz >> 8) % 256);
-            bytes[i++] = (byte)(rw % 256);
-            bytes[i++] = (byte)((rw >> 8) % 256);
-
-            //rotation vel
-            ushort rvelx, rvely, rvelz;
-            Vector3 rvel = new Vector3(rotationalvelocity.X, rotationalvelocity.Y, rotationalvelocity.Z);
-
-            rvel = rvel / 128.0f;
-            rvel.x += 1;
-            rvel.y += 1;
-            rvel.z += 1;
-            //vel
-            rvelx = (ushort)(32768 * (rvel.x));
-            rvely = (ushort)(32768 * (rvel.y));
-            rvelz = (ushort)(32768 * (rvel.z));
-
-            bytes[i++] = (byte)(rvelx % 256);
-            bytes[i++] = (byte)((rvelx >> 8) % 256);
-            bytes[i++] = (byte)(rvely % 256);
-            bytes[i++] = (byte)((rvely >> 8) % 256);
-            bytes[i++] = (byte)(rvelz % 256);
-            bytes[i++] = (byte)((rvelz >> 8) % 256);
-
-
-            // byte[] rot = rotation.GetBytes();
-            // Array.Copy(rot, 0, outPacket.ObjectData[0].ObjectData, 36, rot.Length);
-
-            outPacket.ObjectData[0].ObjectData = bytes;
+            byte[] rot = rotation.GetBytes();
+            Array.Copy(rot, 0, outPacket.ObjectData[0].ObjectData, 36, rot.Length);
 
             if (textureanim.Length > 0)
             {
