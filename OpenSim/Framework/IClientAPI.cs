@@ -793,7 +793,7 @@ namespace OpenSim.Framework
 
 
         
-
+        [Obsolete("IClientAPI.OutPacket SHOULD NOT EXIST please refactor appropriately.")]
         void OutPacket(Packet newPack, ThrottleOutPacketType packType);
         void SendWearables(AvatarWearable[] wearables, int serial);
         void SendAppearance(LLUUID agentID, byte[] visualParams, byte[] textureEntry);
