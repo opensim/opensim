@@ -572,6 +572,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 LLQueItem nextPacket = m_packetQueue.Dequeue();
                 if (nextPacket == null)
                 {
+                    m_log.Error("Got a NULL packet in Client Loop, bailing out of our client loop");
                     break;
                 }
                 if (nextPacket.Incoming)
