@@ -2132,7 +2132,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             Array.Copy(rot, 0, outPacket.ObjectData[0].ObjectData, 36, rot.Length);
 
             byte[] rvel = rotational_velocity.GetBytes();
-            Array.Copy(rvel, 0, outPacket.ObjectData[0].ObjectData, 44, rvel.Length);
+            Array.Copy(rvel, 0, outPacket.ObjectData[0].ObjectData, 36 + rot.Length, rvel.Length);
 
             if (textureanim.Length > 0)
             {
