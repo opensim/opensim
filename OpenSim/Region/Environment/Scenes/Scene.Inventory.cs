@@ -1267,10 +1267,7 @@ namespace OpenSim.Region.Environment.Scenes
                       RayStart, RayEnd, RayTargetID, new LLQuaternion(0, 0, 0, 1), 
                       BypassRayCast, bRayEndIsIntersection,true,scale, false);
             
-            if (!Permissions.CanRezObject(remoteClient.AgentId, pos) && !attachment)
-            {
-                return null;         
-            }
+            
 
             // Rez object
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
@@ -1288,6 +1285,11 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             string xmlData = Helpers.FieldToUTF8String(rezAsset.Data);                            
                             SceneObjectGroup group = new SceneObjectGroup(this, m_regionHandle, xmlData);
+                            if (!Permissions.CanRezObject(remoteClient.AgentId, pos, group.Children.Count) && !attachment)
+                            {
+                                return null;
+                            }
+
                             group.ResetIDs();
                             AddEntity(group);
 
@@ -1361,10 +1363,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 LLUUID ownerID = item.OwnerID;
 
-                if (!Permissions.CanRezObject(ownerID, pos))
-                {
-                    return null;
-                }
 
                 AssetBase rezAsset = AssetCache.GetAsset(item.AssetID, false);
 
@@ -1372,6 +1370,11 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     string xmlData = Helpers.FieldToUTF8String(rezAsset.Data);
                     SceneObjectGroup group = new SceneObjectGroup(this, m_regionHandle, xmlData);
+
+                    if (!Permissions.CanRezObject(ownerID, pos, group.Children.Count))
+                    {
+                        return null;
+                    }
                     group.ResetIDs();
                     AddEntity(group);
 

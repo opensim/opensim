@@ -4047,6 +4047,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             //RayEnd: <61.97724, 141.995, 92.58341>   
                             //RayTargetID: 00000000-0000-0000-0000-000000000000
 
+                            //Check to see if adding the prim is allowed; useful for any module wanting to restrict the
+                            //object from rezing initially
+                            
                             handlerAddPrim = OnAddPrim;
                             if (handlerAddPrim != null)
                                 handlerAddPrim(AgentId, addPacket.ObjectData.RayEnd, addPacket.ObjectData.Rotation, shape, addPacket.ObjectData.BypassRaycast, addPacket.ObjectData.RayStart, addPacket.ObjectData.RayTargetID, addPacket.ObjectData.RayEndIsIntersection);

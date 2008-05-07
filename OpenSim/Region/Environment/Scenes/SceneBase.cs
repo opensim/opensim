@@ -71,6 +71,12 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_eventManager; }
         }
 
+
+        protected SceneExternalChecks m_externalChecks;
+        public SceneExternalChecks ExternalChecks
+        {
+            get { return m_externalChecks; }
+        }
         
         protected string m_datastore;
 

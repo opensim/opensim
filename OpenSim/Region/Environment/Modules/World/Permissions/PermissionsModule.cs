@@ -140,11 +140,20 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return false;
         }
 
-        public virtual bool CanRezObject(LLUUID user, LLVector3 position)
+        public virtual bool CanRezObject(LLUUID user, LLVector3 position, int objectCount)
         {
             bool permission = false;
 
+            
+
             string reason = "Insufficient permission";
+
+            //Perform ExternalChecks first!
+            bool results = m_scene.ExternalChecks.ExternalChecksCanRezObject(objectCount, user, position);
+            if (results == false)
+            {
+                return false;
+            }
 
             ILandObject land = m_scene.LandChannel.GetLandObject(position.X, position.Y);
             if (land == null) return false;

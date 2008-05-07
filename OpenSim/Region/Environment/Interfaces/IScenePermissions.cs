@@ -34,8 +34,8 @@ namespace OpenSim.Region.Environment.Interfaces
         bool BypassPermissions { get; set; }
 
         #region Object Permissions
-        
-        bool CanRezObject(LLUUID user, LLVector3 position);
+
+        bool CanRezObject(LLUUID user, LLVector3 position, int count);
         
         /// <summary>
         /// Permissions check - can user delete an object?

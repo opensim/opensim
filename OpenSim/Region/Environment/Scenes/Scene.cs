@@ -241,6 +241,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_seeIntoRegionFromNeighbor = SeeIntoRegionFromNeighbor;
 
             m_eventManager = new EventManager();
+            m_externalChecks = new SceneExternalChecks(this);
 
             //Bind Storage Manager functions to some land manager functions for this scene
             EventManager.OnLandObjectAdded +=
@@ -829,7 +830,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             ForEachScenePresence(delegate(ScenePresence presence) { whatToDo(presence.ControllingClient); });
         }
-
+         
         /// <summary>
         /// 
         /// </summary>
@@ -1244,7 +1245,7 @@ namespace OpenSim.Region.Environment.Scenes
            
             LLVector3 pos = GetNewRezLocation(RayStart, RayEnd, RayTargetID, rot, bypassRaycast, RayEndIsIntersection, true, new LLVector3(0.5f,0.5f,0.5f), false);
 
-            if (Permissions.CanRezObject(ownerID, pos))
+            if (Permissions.CanRezObject(ownerID, pos, 1))
             {
                 // rez ON the ground, not IN the ground
                 pos.Z += 0.25F;
@@ -3217,5 +3218,7 @@ namespace OpenSim.Region.Environment.Scenes
             return visualParams;
         }
         #endregion
+
+
     }
 }
