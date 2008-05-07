@@ -116,7 +116,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void Close()
         {
-            ScenePresences.Clear();
+            lock (ScenePresences)
+            {
+                ScenePresences.Clear();
+            }
+            
             //SceneObjects.Clear();
             Entities.Clear();
         }
@@ -792,6 +796,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public List<ScenePresence> GetScenePresences(FilterAvatarList filter)
         {
+            // No locking of scene presences here since we're passing back a list...
+            
             List<ScenePresence> result = new List<ScenePresence>();
             List<ScenePresence> ScenePresencesList = GetScenePresences();
 
@@ -813,9 +819,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns>null if the agent was not found</returns>
         public ScenePresence GetScenePresence(LLUUID agentID)
         {
-            if (ScenePresences.ContainsKey(agentID))
+            lock (ScenePresences)
             {
-                return ScenePresences[agentID];
+                if (ScenePresences.ContainsKey(agentID))
+                {
+                    return ScenePresences[agentID];
+                }
             }
             
             return null;
@@ -917,16 +926,19 @@ namespace OpenSim.Region.Environment.Scenes
 
         internal bool TryGetAvatarByName(string avatarName, out ScenePresence avatar)
         {
-            foreach (ScenePresence presence in ScenePresences.Values)
+            lock (ScenePresences)
             {
-                if (!presence.IsChildAgent)
+                foreach (ScenePresence presence in ScenePresences.Values)
                 {
-                    string name = presence.ControllingClient.FirstName + " " + presence.ControllingClient.LastName;
-
-                    if (String.Compare(avatarName, name, true) == 0)
+                    if (!presence.IsChildAgent)
                     {
-                        avatar = presence;
-                        return true;
+                        string name = presence.ControllingClient.FirstName + " " + presence.ControllingClient.LastName;
+
+                        if (String.Compare(avatarName, name, true) == 0)
+                        {
+                            avatar = presence;
+                            return true;
+                        }
                     }
                 }
             }
@@ -1008,9 +1020,12 @@ namespace OpenSim.Region.Environment.Scenes
 
         internal void ForEachClient(Action<IClientAPI> action)
         {
-            foreach (ScenePresence presence in ScenePresences.Values)
+            lock (ScenePresences)
             {
-                action(presence.ControllingClient);
+                foreach (ScenePresence presence in ScenePresences.Values)
+                {
+                    action(presence.ControllingClient);
+                }
             }
         }
 

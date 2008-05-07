@@ -2076,18 +2076,21 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (regionHandle == m_regInfo.RegionHandle)
             {
-                if (m_scenePresences.ContainsKey(agentID))
+                lock (m_scenePresences)
                 {
-                    try
+                    if (m_scenePresences.ContainsKey(agentID))
                     {
-                        m_scenePresences[agentID].MakeRootAgent(position, isFlying);
+                        try
+                        {
+                            m_scenePresences[agentID].MakeRootAgent(position, isFlying);
+                        }
+                        catch (Exception e)
+                        {
+                            m_log.Info("[SCENE]: Unable to do Agent Crossing.");
+                            m_log.Debug("[SCENE]: " + e.ToString());
+                        }
+                        //m_innerScene.SwapRootChildAgent(false);
                     }
-                    catch (Exception e)
-                    {
-                        m_log.Info("[SCENE]: Unable to do Agent Crossing.");
-                        m_log.Debug("[SCENE]: " + e.ToString());
-                    }
-                    //m_innerScene.SwapRootChildAgent(false);
                 }
             }
         }
@@ -2203,10 +2206,13 @@ namespace OpenSim.Region.Environment.Scenes
         public void RequestTeleportLocation(IClientAPI remoteClient, ulong regionHandle, LLVector3 position,
                                             LLVector3 lookAt, uint flags)
         {
-            if (m_scenePresences.ContainsKey(remoteClient.AgentId))
+            lock (m_scenePresences)
             {
-                m_sceneGridService.RequestTeleportToLocation(m_scenePresences[remoteClient.AgentId], regionHandle,
-                                                             position, lookAt, flags);
+                if (m_scenePresences.ContainsKey(remoteClient.AgentId))
+                {
+                    m_sceneGridService.RequestTeleportToLocation(m_scenePresences[remoteClient.AgentId], regionHandle,
+                                                                 position, lookAt, flags);
+                }
             }
         }
 
@@ -2218,10 +2224,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="position"></param>
         public void RequestTeleportLandmark(IClientAPI remoteClient, ulong regionHandle, LLVector3 position)
         {
-            if (m_scenePresences.ContainsKey(remoteClient.AgentId))
+            lock (m_scenePresences)
             {
-                m_sceneGridService.RequestTeleportToLocation(m_scenePresences[remoteClient.AgentId], regionHandle,
-                                                             position, LLVector3.Zero, 0);
+                if (m_scenePresences.ContainsKey(remoteClient.AgentId))
+                {
+                    m_sceneGridService.RequestTeleportToLocation(m_scenePresences[remoteClient.AgentId], regionHandle,
+                                                                 position, LLVector3.Zero, 0);
+                }
             }
         }
 
@@ -2353,18 +2362,25 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendUrlToUser(LLUUID avatarID, string objectName, LLUUID objectID, LLUUID ownerID, bool groupOwned,
                                   string message, string url)
         {
-            if (m_scenePresences.ContainsKey(avatarID))
+            lock (m_scenePresences)
             {
-                m_scenePresences[avatarID].ControllingClient.SendLoadURL(objectName, objectID, ownerID, groupOwned,
-                                                                         message, url);
+                if (m_scenePresences.ContainsKey(avatarID))
+                {
+                    m_scenePresences[avatarID].ControllingClient.SendLoadURL(objectName, objectID, ownerID, groupOwned,
+                                                                             message, url);
+                }
             }
         }
 
         public void SendDialogToUser(LLUUID avatarID, string objectName, LLUUID objectID, LLUUID ownerID, string message, LLUUID TextureID, int ch, string[] buttonlabels)
         {
-            if (m_scenePresences.ContainsKey(avatarID))
+            lock (m_scenePresences)
             {
-                m_scenePresences[avatarID].ControllingClient.SendDialog(objectName, objectID, ownerID, message, TextureID, ch, buttonlabels);
+                if (m_scenePresences.ContainsKey(avatarID))
+                {
+                    m_scenePresences[avatarID].ControllingClient.SendDialog(
+                        objectName, objectID, ownerID, message, TextureID, ch, buttonlabels);
+                }
             }
         }
 
@@ -2478,9 +2494,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="modal"></param>
         public void SendAlertToUser(LLUUID agentID, string message, bool modal)
         {
-            if (m_scenePresences.ContainsKey(agentID))
+            lock (m_scenePresences)
             {
-                m_scenePresences[agentID].ControllingClient.SendAgentAlertMessage(message, modal);
+                if (m_scenePresences.ContainsKey(agentID))
+                {
+                    m_scenePresences[agentID].ControllingClient.SendAgentAlertMessage(message, modal);
+                }
             }
         }
 
@@ -2494,27 +2513,30 @@ namespace OpenSim.Region.Environment.Scenes
         public void handleRequestGodlikePowers(LLUUID agentID, LLUUID sessionID, LLUUID token, bool godLike,
                                                IClientAPI controllingClient)
         {
-            // First check that this is the sim owner
-            if (Permissions.GenericEstatePermission(agentID))
+            lock (m_scenePresences)
             {
                 // User needs to be logged into this sim
                 if (m_scenePresences.ContainsKey(agentID))
-                {
-                    // Next we check for spoofing.....
-                    LLUUID testSessionID = m_scenePresences[agentID].ControllingClient.SessionId;
-                    if (sessionID == testSessionID)
+                {   
+                    // First check that this is the sim owner
+                    if (Permissions.GenericEstatePermission(agentID))
                     {
-                        if (sessionID == controllingClient.SessionId)
+                        // Next we check for spoofing.....
+                        LLUUID testSessionID = m_scenePresences[agentID].ControllingClient.SessionId;
+                        if (sessionID == testSessionID)
                         {
-                            //m_log.Info("godlike: " + godLike.ToString());
-                            m_scenePresences[agentID].GrantGodlikePowers(agentID, testSessionID, token, godLike);
+                            if (sessionID == controllingClient.SessionId)
+                            {
+                                //m_log.Info("godlike: " + godLike.ToString());
+                                m_scenePresences[agentID].GrantGodlikePowers(agentID, testSessionID, token, godLike);
+                            }
                         }
                     }
+                    else
+                    {
+                        m_scenePresences[agentID].ControllingClient.SendAgentAlertMessage("Request for god powers denied", false);
+                    }
                 }
-            }
-            else
-            {
-                m_scenePresences[agentID].ControllingClient.SendAgentAlertMessage("Request for god powers denied", false);
             }
         }
 
@@ -2571,55 +2593,59 @@ namespace OpenSim.Region.Environment.Scenes
         {
             // For some reason the client sends this seemingly hard coded UUID for kicking everyone.   Dun-know.
             LLUUID kickUserID = new LLUUID("44e87126e7944ded05b37c42da3d5cdb");
-            if (m_scenePresences.ContainsKey(agentID) || agentID == kickUserID)
+            lock (m_scenePresences)
             {
-                if (Permissions.GenericEstatePermission(godID))
+                if (m_scenePresences.ContainsKey(agentID) || agentID == kickUserID)
                 {
-                    if (agentID == kickUserID)
+                    if (Permissions.GenericEstatePermission(godID))
                     {
-                        ClientManager.ForEachClient(delegate(IClientAPI controller)
-                                                    {
-                                                        if (controller.AgentId != godID)
-                                                            controller.Kick(Helpers.FieldToUTF8String(reason));
-
-
-
-                                                    }
-                            );
-                        // This is a bit crude.   It seems the client will be null before it actually stops the thread
-                        // The thread will kill itself eventually :/
-                        // Is there another way to make sure *all* clients get this 'inter region' message?
-                        ClientManager.ForEachClient(delegate(IClientAPI controller)
-                                                    {
-                                                        ScenePresence p = GetScenePresence(controller.AgentId);
-                                                        bool childagent = !p.Equals(null) && p.IsChildAgent;
-                                                        if (controller.AgentId != godID && !childagent)
-                                                            // Do we really want to kick the initiator of this madness?
-                                                        {
-                                                            controller.Close(true);
-                                                        }
-                                                    }
-                            );
-                    }
-                    else
-                    {
-                        if (m_scenePresences[agentID].IsChildAgent)
+                        if (agentID == kickUserID)
                         {
-                            m_innerScene.removeUserCount(false);
+                            ClientManager.ForEachClient(delegate(IClientAPI controller)
+                                                        {
+                                                            if (controller.AgentId != godID)
+                                                                controller.Kick(Helpers.FieldToUTF8String(reason));
+
+
+
+                                                        }
+                                );
+                            
+                            // This is a bit crude.   It seems the client will be null before it actually stops the thread
+                            // The thread will kill itself eventually :/
+                            // Is there another way to make sure *all* clients get this 'inter region' message?
+                            ClientManager.ForEachClient(delegate(IClientAPI controller)
+                                                        {
+                                                            ScenePresence p = GetScenePresence(controller.AgentId);
+                                                            bool childagent = !p.Equals(null) && p.IsChildAgent;
+                                                            if (controller.AgentId != godID && !childagent)
+                                                                // Do we really want to kick the initiator of this madness?
+                                                            {
+                                                                controller.Close(true);
+                                                            }
+                                                        }
+                                );
                         }
                         else
                         {
-                            m_innerScene.removeUserCount(true);
-                        }
+                            if (m_scenePresences[agentID].IsChildAgent)
+                            {
+                                m_innerScene.removeUserCount(false);
+                            }
+                            else
+                            {
+                                m_innerScene.removeUserCount(true);
+                            }
 
-                        m_scenePresences[agentID].ControllingClient.Kick(Helpers.FieldToUTF8String(reason));
-                        m_scenePresences[agentID].ControllingClient.Close(true);
+                            m_scenePresences[agentID].ControllingClient.Kick(Helpers.FieldToUTF8String(reason));
+                            m_scenePresences[agentID].ControllingClient.Close(true);
+                        }
                     }
-                }
-                else
-                {
-                    if (m_scenePresences.ContainsKey(godID))
-                        m_scenePresences[godID].ControllingClient.SendAgentAlertMessage("Kick request denied", false);
+                    else
+                    {
+                        if (m_scenePresences.ContainsKey(godID))
+                            m_scenePresences[godID].ControllingClient.SendAgentAlertMessage("Kick request denied", false);
+                    }
                 }
             }
         }

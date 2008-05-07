@@ -1506,6 +1506,7 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (ScenePresence avatar in avatars)
             {
                 SendFullUpdateToOtherClient(avatar);
+                
                 if (avatar.LocalId != LocalId)
                 {
                     if (!avatar.m_isChildAgent || m_scene.m_seeIntoRegionFromNeighbor)
