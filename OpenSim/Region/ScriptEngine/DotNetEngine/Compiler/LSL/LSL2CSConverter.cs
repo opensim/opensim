@@ -197,7 +197,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                         // 0 => 1: Get last 
                         Match m =
                           //Regex.Match(cache, @"(?![a-zA-Z_]+)\s*([a-zA-Z_]+)[^a-zA-Z_\(\)]*{",
-                            Regex.Match(cache, @"(?![a-zA-Z_]+)\s*(state\s+)?(?<statename>[a-zA-Z_]+)[^a-zA-Z_\(\)]*{",
+                            Regex.Match(cache, @"(?![a-zA-Z_]+)\s*(state\s+)?(?<statename>[a-zA-Z_][a-zA-Z_0-9]*)[^a-zA-Z_0-9\(\)]*{",
 
                                         RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
@@ -211,7 +211,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                             cache =
                                               //@"(?<s1>(?![a-zA-Z_]+)\s*)" + @"([a-zA-Z_]+)(?<s2>[^a-zA-Z_\(\)]*){",
                                 Regex.Replace(cache,
-                                              @"(?<s1>(?![a-zA-Z_]+)\s*)" + @"(state\s+)?([a-zA-Z_]+)(?<s2>[^a-zA-Z_\(\)]*){",
+                                              @"(?<s1>(?![a-zA-Z_]+)\s*)" + @"(state\s+)?([a-zA-Z_][a-zA-Z_0-9]*)(?<s2>[^a-zA-Z_0-9\(\)]*){",
                                               "${s1}${s2}",
                                               RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.IgnoreCase);
                         }
