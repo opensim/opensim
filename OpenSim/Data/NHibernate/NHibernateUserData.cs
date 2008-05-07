@@ -91,7 +91,7 @@ namespace OpenSim.Data.NHibernate
                 using(ISession session = factory.OpenSession()) {
                     session.Load(typeof(UserProfileData), LLUUID.Zero);
                 }
-            } catch (ObjectNotFoundException e) {
+            } catch (ObjectNotFoundException) {
                 // yes, we know it's not there, but that's ok
             } catch (ADOException e) {
                 Match m = RE.Match(e.ToString());
@@ -109,7 +109,8 @@ namespace OpenSim.Data.NHibernate
                 using(ISession session = factory.OpenSession()) {
                     user = session.Load(typeof(UserProfileData), uuid) as UserProfileData;
                 }
-            } catch (Exception e) {}
+                // BUG: CATCHALL IS BAD.
+            } catch (Exception) {}
             
             return (user != null);
         }

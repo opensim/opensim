@@ -979,7 +979,7 @@ namespace OpenSim.Data.SQLite
             {
                 Helpers.TryParse((string)row["AuthbuyerID"], out authBuyerID);
             }
-            catch (InvalidCastException e)
+            catch (InvalidCastException)
             {
                 // Database table was created before we got here and now has null values :P
                 try

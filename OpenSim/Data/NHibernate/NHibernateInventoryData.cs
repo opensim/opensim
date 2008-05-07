@@ -98,7 +98,7 @@ namespace OpenSim.Data.NHibernate
                 using(ISession session = factory.OpenSession()) {
                     session.Load(typeof(InventoryItemBase), LLUUID.Zero);
                 }
-            } catch (ObjectNotFoundException e) {
+            } catch (ObjectNotFoundException) {
                 // yes, we know it's not there, but that's ok
             } catch (ADOException e) {
                 Match m = RE.Match(e.ToString());
