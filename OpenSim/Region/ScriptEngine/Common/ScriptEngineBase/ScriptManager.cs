@@ -207,11 +207,11 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void DoScriptLoadUnload()
         {
-            if (LUQueue.Count > 0)
-            {
-                LUStruct item = LUQueue.Dequeue();
-                lock (startStopLock)        // Lock so we have only 1 thread working on loading/unloading of scripts
+            lock (LUQueue) {
+                if (LUQueue.Count > 0)
                 {
+                    LUStruct item = LUQueue.Dequeue();
+                    
                     if (item.Action == LUType.Unload)
                     {
                         _StopScript(item.localID, item.itemID);
@@ -222,9 +222,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     }
                 }
             }
-
         }
-
+        
         #endregion
 
         #region Helper functions
@@ -250,18 +249,20 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <param name="localID"></param>
         public void StartScript(uint localID, LLUUID itemID, string Script)
         {
-            if (LUQueue.Count >= LoadUnloadMaxQueueSize)
-            {
-                m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: ERROR: Load/unload queue item count is at " + LUQueue.Count + ". Config variable \"LoadUnloadMaxQueueSize\" is set to " + LoadUnloadMaxQueueSize + ", so ignoring new script.");
-                return;
-            }
+            lock(LUQueue) {
+                if (LUQueue.Count >= LoadUnloadMaxQueueSize)
+                {
+                    m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: ERROR: Load/unload queue item count is at " + LUQueue.Count + ". Config variable \"LoadUnloadMaxQueueSize\" is set to " + LoadUnloadMaxQueueSize + ", so ignoring new script.");
+                    return;
+                }
 
-            LUStruct ls = new LUStruct();
-            ls.localID = localID;
-            ls.itemID = itemID;
-            ls.script = Script;
-            ls.Action = LUType.Load;
-            LUQueue.Enqueue(ls);
+                LUStruct ls = new LUStruct();
+                ls.localID = localID;
+                ls.itemID = itemID;
+                ls.script = Script;
+                ls.Action = LUType.Load;
+                LUQueue.Enqueue(ls);
+            }
         }
 
         /// <summary>
@@ -275,7 +276,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             ls.localID = localID;
             ls.itemID = itemID;
             ls.Action = LUType.Unload;
-            LUQueue.Enqueue(ls);
+            lock (LUQueue) {
+                LUQueue.Enqueue(ls);
+            }
         }
 
         // Create a new instance of the compiler (reuse)
