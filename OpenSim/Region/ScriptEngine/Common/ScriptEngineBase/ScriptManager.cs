@@ -138,8 +138,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             }
         }
 
-        private static int privateThreadCount = 0;
 // TODO: unused
+//        private static int privateThreadCount = 0;
 //         private Thread StartScriptLoadUnloadThread()
 //         {
 //             Thread t = new Thread(ScriptLoadUnloadThreadLoop);

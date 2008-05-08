@@ -195,7 +195,7 @@ namespace OpenSim.Grid.UserServer
                         }
                        
                     }
-                    catch (WebException e)
+                    catch (WebException)
                     {
                         m_log.ErrorFormat(
                             "[USERS]: Could not contact the inventory service at {0} to create an inventory for {1}", 

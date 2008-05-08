@@ -1007,10 +1007,16 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                     m_log.ErrorFormat("[SPLITSCENE] [LocalUpdatePacket] ScenePresence is missing... ({0})", agentID.ToString());
                     return;
                 }
-
-                if (((LLClientView) pre.ControllingClient).IsActive)
+                if (pre.ControllingClient is LLClientView)
                 {
-                    pre.ControllingClient.OutPacket(packet, throttlePacketType);
+                    if (((LLClientView)pre.ControllingClient).IsActive)
+                    {
+                        ((LLClientView)pre.ControllingClient).OutPacket(packet, throttlePacketType);
+                    }
+                    else
+                    {
+                        PacketPool.Instance.ReturnPacket(packet);
+                    }
                 }
                 else
                 {
