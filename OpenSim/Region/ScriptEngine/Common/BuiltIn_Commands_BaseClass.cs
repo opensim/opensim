@@ -1605,9 +1605,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetGeometricCenter();
         }
 
-        public void llGetPrimitiveParams()
+        public LSL_Types.list llGetPrimitiveParams(LSL_Types.list rules)
         {
-            m_LSL_Functions.llGetPrimitiveParams();
+            return m_LSL_Functions.llGetPrimitiveParams(rules);
         }
 
         //

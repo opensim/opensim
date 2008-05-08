@@ -544,7 +544,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         LSL_Types.list llGetBoundingBox(string obj);
         //wiki: vector llGetGeometricCenter()
         LSL_Types.Vector3 llGetGeometricCenter();
-        void llGetPrimitiveParams();
+        //wiki: list llGetPrimitiveParams(list rules)
+        LSL_Types.list llGetPrimitiveParams(LSL_Types.list rules);
         //wiki: string llIntegerToBase64(integer number)
         string llIntegerToBase64(int number);
         //wiki integer llBase64ToInteger(string str)

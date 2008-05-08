@@ -4830,10 +4830,183 @@ namespace OpenSim.Region.ScriptEngine.Common
             return new LSL_Types.Vector3(m_host.GetGeometricCenter().X, m_host.GetGeometricCenter().Y, m_host.GetGeometricCenter().Z);
         }
 
-        public void llGetPrimitiveParams()
+        public LSL_Types.list llGetPrimitiveParams(LSL_Types.list rules)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetPrimitiveParams");
+
+            LSL_Types.list res = new LSL_Types.list();
+            int idx=0;
+            while(idx < rules.Length)
+            {
+                int code=Convert.ToInt32(rules.Data[idx++]);
+                int remain=rules.Length-idx;
+
+                switch(code)
+                {
+                    case 2: // PRIM_MATERIAL
+		        res.Add(new LSL_Types.LSLInteger(m_host.Material));
+                        break;
+
+                    case 3: // PRIM_PHYSICS
+                        if ((m_host.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Physics) != 0)
+                            res.Add(new LSL_Types.LSLInteger(1));
+                        else
+                            res.Add(new LSL_Types.LSLInteger(0));
+                        break;
+
+                    case 4: // PRIM_TEMP_ON_REZ
+                        if ((m_host.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.TemporaryOnRez) != 0)
+                            res.Add(new LSL_Types.LSLInteger(1));
+                        else
+                            res.Add(new LSL_Types.LSLInteger(0));
+                        break;
+
+                    case 5: // PRIM_PHANTOM
+                        if ((m_host.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Phantom) != 0)
+                            res.Add(new LSL_Types.LSLInteger(1));
+                        else
+                            res.Add(new LSL_Types.LSLInteger(0));
+                        break;
+
+                    case 6: // PRIM_POSITION
+                        res.Add(new LSL_Types.Vector3(m_host.AbsolutePosition.X,
+                                                      m_host.AbsolutePosition.Y,
+                                                      m_host.AbsolutePosition.Z));
+                        break;
+
+                    case 7: // PRIM_SIZE
+                        res.Add(new LSL_Types.Vector3(m_host.Scale.X,
+                                                      m_host.Scale.Y,
+                                                      m_host.Scale.Z));
+                        break;
+
+                    case 8: // PRIM_ROTATION
+                        res.Add(new LSL_Types.Quaternion(m_host.RotationOffset.X,
+                                                         m_host.RotationOffset.Y,
+                                                         m_host.RotationOffset.Z,
+                                                         m_host.RotationOffset.W));
+                        break;
+
+		    case  9: // PRIM_TYPE
+                        // TODO--------------
+                        res.Add(new LSL_Types.LSLInteger(0));
+                        break;
+
+                    case 17: // PRIM_TEXTURE
+                        if (remain < 1)
+                            return res;
+
+                        int face=Convert.ToInt32(rules.Data[idx++]);
+                        if (face == -1)
+                            face = 0;
+
+                        LLObject.TextureEntry tex = m_host.Shape.Textures;
+                        LLObject.TextureEntryFace texface = tex.GetFace((uint)face);
+
+                        res.Add(new LSL_Types.LSLString(texface.TextureID.ToString()));
+                        res.Add(new LSL_Types.Vector3(texface.RepeatU,
+                                                      texface.RepeatV,
+                                                      0));
+                        res.Add(new LSL_Types.Vector3(texface.OffsetU,
+                                                      texface.OffsetV,
+                                                      0));
+                        res.Add(new LSL_Types.LSLFloat(texface.Rotation));
+                        break;
+
+                    case 18: // PRIM_COLOR
+                        if (remain < 1)
+                            return res;
+
+                        face=Convert.ToInt32(rules.Data[idx++]);
+
+                        tex = m_host.Shape.Textures;
+                        LLColor texcolor;
+                        if (face == -1) // TMP: Until we can determine number of sides, ALL_SIDES (-1) will return default color
+                            texcolor = tex.DefaultTexture.RGBA;
+                        else
+                            texcolor = tex.GetFace((uint)face).RGBA;
+                        res.Add(new LSL_Types.Vector3((255 - (texcolor.R * 255)) / 255,
+                                                      (255 - (texcolor.G * 255)) / 255,
+                                                      (255 - (texcolor.B * 255)) / 255));
+                        res.Add(new LSL_Types.LSLFloat((texcolor.A * 255) / 255));
+                        break;
+
+                      case 19: // PRIM_BUMP_SHINY
+                        // TODO--------------
+                        if (remain < 1)
+                            return res;
+
+                        face=Convert.ToInt32(rules.Data[idx++]);
+
+                        res.Add(new LSL_Types.LSLInteger(0));
+                        res.Add(new LSL_Types.LSLInteger(0));
+                        break;
+
+                      case 20: // PRIM_FULLBRIGHT
+                        // TODO--------------
+                        if (remain < 1)
+                            return res;
+
+                        face=Convert.ToInt32(rules.Data[idx++]);
+
+                        res.Add(new LSL_Types.LSLInteger(0));
+                        break;
+
+                      case 21: // PRIM_FLEXIBLE
+                        PrimitiveBaseShape shape = m_host.Shape;
+ 
+                        if (shape.FlexiEntry)
+                            res.Add(new LSL_Types.LSLInteger(1));              // active
+                        else
+                            res.Add(new LSL_Types.LSLInteger(0));
+                        res.Add(new LSL_Types.LSLInteger(shape.FlexiSoftness));// softness
+                        res.Add(new LSL_Types.LSLFloat(shape.FlexiGravity));   // gravity
+                        res.Add(new LSL_Types.LSLFloat(shape.FlexiDrag));      // friction
+                        res.Add(new LSL_Types.LSLFloat(shape.FlexiWind));      // wind
+                        res.Add(new LSL_Types.LSLFloat(shape.FlexiTension));   // tension
+                        res.Add(new LSL_Types.Vector3(shape.FlexiForceX,       // force
+                                                      shape.FlexiForceY,
+                                                      shape.FlexiForceZ));
+                        break;
+
+                      case 22: // PRIM_TEXGEN
+                        // TODO--------------
+                        // (PRIM_TEXGEN_DEFAULT, PRIM_TEXGEN_PLANAR)
+                        if (remain < 1)
+                            return res;
+
+                        face=Convert.ToInt32(rules.Data[idx++]);
+
+                        res.Add(new LSL_Types.LSLInteger(0));
+                        break;
+
+                      case 23: // PRIM_POINT_LIGHT:
+                        shape = m_host.Shape;
+ 
+                        if (shape.LightEntry)
+                            res.Add(new LSL_Types.LSLInteger(1));              // active
+                        else
+                            res.Add(new LSL_Types.LSLInteger(0));
+                        res.Add(new LSL_Types.Vector3(shape.LightColorR,       // color
+                                                      shape.LightColorG,
+                                                      shape.LightColorB));
+                        res.Add(new LSL_Types.LSLFloat(shape.LightIntensity)); // intensity
+                        res.Add(new LSL_Types.LSLFloat(shape.LightRadius));    // radius
+                        res.Add(new LSL_Types.LSLFloat(shape.LightFalloff));   // falloff
+                        break;
+
+                      case 24: // PRIM_GLOW
+                        // TODO--------------
+                        if (remain < 1)
+                            return res;
+
+                        face=Convert.ToInt32(rules.Data[idx++]);
+
+                        res.Add(new LSL_Types.LSLFloat(0));
+                        break;
+                }
+            }
+            return res;
         }
 
         //  <remarks>
