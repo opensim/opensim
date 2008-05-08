@@ -425,10 +425,7 @@ namespace OpenSim.Framework
             int totalLength = 1;
             byte extraParamCount = data[i++];
 
-            if (extraParamCount > 0)
-            {
-                int foo = 0;
-            }
+            
             for (int k = 0; k < extraParamCount; k++)
             {
                 ushort epType = Helpers.BytesToUInt16(data, i);
