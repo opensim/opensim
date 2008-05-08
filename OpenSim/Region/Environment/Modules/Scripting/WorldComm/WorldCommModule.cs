@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using libsecondlife;
 using Nini.Config;
 using OpenSim.Framework;
@@ -60,6 +61,21 @@ using OpenSim.Region.Environment.Scenes;
  * be used to prevent in-world repeater loops.  However, the
  * linden functions do not have this capability, so for now
  * thats the way it works.
+ * Instead it blocks messages originating from the same prim.
+ * (not Object!)
+ *
+ * For LSL compliance, note the following:
+ * (Tested again 1.21.1 on May 2, 2008)
+ * 1. 'id' has to be parsed into a LLUUID. None-UUID keys are
+ *    to be replaced by the ZeroID key. (Well, TryParse does
+ *    that for us.
+ * 2. Setting up an listen event from the same script, with the
+ *    same filter settings (including step 1), returns the same
+ *    handle as the original filter.
+ * 3. (TODO) handles should be script-local. Starting from 1.
+ *    Might be actually easier to map the global handle into
+ *    script-local handle in the ScriptEngine. Not sure if its
+ *    worth the effort tho.
  * 
  * **************************************************/
 
@@ -67,25 +83,39 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
 {
     public class WorldCommModule : IRegionModule, IWorldComm
     {
-        private object CommListLock = new object();
-        private object ListLock = new object();
         private ListenerManager m_listenerManager;
-        private string m_name = "WorldCommModule";
         private Queue m_pending;
         private Queue m_pendingQ;
         private Scene m_scene;
-
-        public WorldCommModule()
-        {
-        }
+        private int m_whisperdistance = 10;
+        private int m_saydistance = 30;
+        private int m_shoutdistance = 100;
 
         #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
         {
+            // wrap this in a try block so that defaults will work if
+            // the config file doesn't specify otherwise.
+            int maxlisteners = 1000;
+            int maxhandles = 64;
+            try
+            {
+                m_whisperdistance = config.Configs["Chat"].GetInt("whisper_distance", m_whisperdistance);
+                m_saydistance = config.Configs["Chat"].GetInt("say_distance", m_saydistance);
+                m_shoutdistance = config.Configs["Chat"].GetInt("shout_distance", m_shoutdistance);
+                maxlisteners = config.Configs["Chat"].GetInt("max_listens_per_region", maxlisteners);
+                maxhandles = config.Configs["Chat"].GetInt("max_listens_per_script", maxhandles);
+            }
+            catch (Exception)
+            {
+            }
+            if (maxlisteners < 1) maxlisteners = int.MaxValue;
+            if (maxhandles < 1) maxhandles = int.MaxValue;
+
             m_scene = scene;
             m_scene.RegisterModuleInterface<IWorldComm>(this);
-            m_listenerManager = new ListenerManager();
+            m_listenerManager = new ListenerManager(maxlisteners, maxhandles);
             m_scene.EventManager.OnNewClient += NewClient;
             m_pendingQ = new Queue();
             m_pending = Queue.Synchronized(m_pendingQ);
@@ -101,7 +131,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
 
         public string Name
         {
-            get { return m_name; }
+            get { return "WorldCommModule"; }
         }
 
         public bool IsSharedModule
@@ -113,170 +143,160 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
 
         #region IWorldComm Members
 
-        public int Listen(uint localID, LLUUID itemID, LLUUID hostID, int channel, string name, string id, string msg)
+        /// <summary>
+        /// Create a listen event callback with the specified filters.
+        /// The parameters localID,itemID are needed to uniquely identify
+        /// the script during 'peek' time. Parameter hostID is needed to
+        /// determine the position of the script.
+        /// </summary>
+        /// <param name="localID">localID of the script engine</param>
+        /// <param name="itemID">UUID of the script engine</param>
+        /// <param name="hostID">UUID of the SceneObjectPart</param>
+        /// <param name="channel">channel to listen on</param>
+        /// <param name="name">name to filter on</param>
+        /// <param name="id">key to filter on (user given, could be totally faked)</param>
+        /// <param name="msg">msg to filter on</param>
+        /// <returns>number of the scripts handle</returns>
+        public int Listen(uint localID, LLUUID itemID, LLUUID hostID, int channel, string name, LLUUID id, string msg)
         {
             return m_listenerManager.AddListener(localID, itemID, hostID, channel, name, id, msg);
         }
 
-        public void ListenControl(int handle, int active)
+        /// <summary>
+        /// Sets the listen event with handle as active (active = TRUE) or inactive (active = FALSE).
+        /// The handle used is returned from Listen()
+        /// </summary>
+        /// <param name="itemID">UUID of the script engine</param>
+        /// <param name="handle">handle returned by Listen()</param>
+        /// <param name="active">temp. activate or deactivate the Listen()</param>
+        public void ListenControl(LLUUID itemID, int handle, int active)
         {
-            if (m_listenerManager != null)
-            {
-                if (active == 1)
-                    m_listenerManager.Activate(handle);
-                else if (active == 0)
-                    m_listenerManager.Dectivate(handle);
-            }
+            if (active == 1)
+                m_listenerManager.Activate(itemID, handle);
+            else if (active == 0)
+                m_listenerManager.Dectivate(itemID, handle);
         }
 
-        public void ListenRemove(int handle)
+        /// <summary>
+        /// Removes the listen event callback with handle
+        /// </summary>
+        /// <param name="itemID">UUID of the script engine</param>
+        /// <param name="handle">handle returned by Listen()</param>
+        public void ListenRemove(LLUUID itemID, int handle)
         {
-            if (m_listenerManager != null)
-            {
-                m_listenerManager.Remove(handle);
-            }
+            m_listenerManager.Remove(itemID, handle);
         }
 
+        /// <summary>
+        /// Removes all listen event callbacks for the given itemID
+        /// (script engine)
+        /// </summary>
+        /// <param name="itemID">UUID of the script engine</param>
         public void DeleteListener(LLUUID itemID)
         {
-            if (m_listenerManager != null)
-            {
-                m_listenerManager.DeleteListener(itemID);
-            }
+            m_listenerManager.DeleteListener(itemID);
         }
 
-        // This method scans nearby objects and determines if they are listeners,
-        // and if so if this message fits the filter.  If it does, then
-        // enqueue the message for delivery to the objects listen event handler.
-        // Objects that do an llSay have their messages delivered here, and for 
-        // nearby avatars, the SimChat function is used.
-        public void DeliverMessage(string sourceItemID, ChatTypeEnum type, int channel, string name, string msg)
+        /// <summary>
+        /// This method scans over the objects which registered an interest in listen callbacks.
+        /// For everyone it finds, it checks if it fits the given filter. If it does,  then
+        /// enqueue the message for delivery to the objects listen event handler.
+        /// The enqueued ListenerInfo no longer has filter values, but the actually trigged values.
+        /// Objects that do an llSay have their messages delivered here and for nearby avatars,
+        /// the OnChatFromViewer event is used.
+        /// </summary>
+        /// <param name="type">type of delvery (whisper,say,shout or regionwide)</param>
+        /// <param name="channel">channel to sent on</param>
+        /// <param name="name">name of sender (object or avatar)</param>
+        /// <param name="id">key of sender (object or avatar)</param>
+        /// <param name="msg">msg to sent</param>
+        public void DeliverMessage(ChatTypeEnum type, int channel, string name, LLUUID id, string msg)
         {
             SceneObjectPart source = null;
             ScenePresence avatar = null;
+            LLVector3 position;
 
-            source = m_scene.GetSceneObjectPart(new LLUUID(sourceItemID));
-            if (source == null)
-            {
-                avatar = m_scene.GetScenePresence(new LLUUID(sourceItemID));
+            source = m_scene.GetSceneObjectPart(id);
+            if (source != null)
+                position = source.AbsolutePosition;
+            else {
+                avatar = m_scene.GetScenePresence(id);
+                if (avatar != null)
+                    position = avatar.AbsolutePosition;
+                else
+                   // bail out early, given source could not be found
+                   return;
             }
-            if ((avatar != null) || (source != null))
+
+            // Determine which listen event filters match the given set of arguments, this results
+            // in a limited set of listeners, each belonging a host. If the host is in range, add them
+            // to the pending queue.
+            foreach (ListenerInfo li in m_listenerManager.GetListeners(LLUUID.Zero, channel, name, id, msg))
             {
-                // Loop through the objects in the scene
-                // If they are in proximity, then if they are
-                // listeners, if so add them to the pending queue
+                // Dont process if this message is from yourself!
+                if (li.GetHostID().Equals(id))
+                    continue;
 
-                foreach (ListenerInfo li in m_listenerManager.GetListeners())
+                SceneObjectPart sPart = m_scene.GetSceneObjectPart(li.GetHostID());
+                if (sPart == null)
+                    continue;
+
+                double dis =  Util.GetDistanceTo(sPart.AbsolutePosition, position);
+                switch (type)
                 {
-                    EntityBase sPart;
-
-                    m_scene.Entities.TryGetValue(li.GetHostID(), out sPart);
-
-                    if (sPart != null)
-                    {
-                        double dis = 0;
-
-                        if (source != null)
-                            dis = Util.GetDistanceTo(sPart.AbsolutePosition, source.AbsolutePosition);
-                        else
-                            dis = Util.GetDistanceTo(sPart.AbsolutePosition, avatar.AbsolutePosition);
-
-                        switch (type)
+                    case ChatTypeEnum.Whisper:
+                        if (dis < m_whisperdistance)
                         {
-                            case ChatTypeEnum.Whisper:
-
-                                if ((dis < 10) && (dis > -10))
-                                {
-                                    if (li.GetChannel() == channel)
-                                    {
-                                        ListenerInfo isListener = m_listenerManager.IsListenerMatch(
-                                            sourceItemID, sPart.UUID, channel, name, msg
-                                            );
-                                        if (isListener != null)
-                                        {
-                                            lock (m_pending.SyncRoot)
-                                            {
-                                                m_pending.Enqueue(isListener);
-                                            }
-                                        }
-                                    }
-                                }
-                                break;
-
-                            case ChatTypeEnum.Say:
-
-                                if ((dis < 30) && (dis > -30))
-                                {
-                                    if (li.GetChannel() == channel)
-                                    {
-                                        ListenerInfo isListener = m_listenerManager.IsListenerMatch(
-                                            sourceItemID, sPart.UUID, channel, name, msg
-                                            );
-                                        if (isListener != null)
-                                        {
-                                            lock (m_pending.SyncRoot)
-                                            {
-                                                m_pending.Enqueue(isListener);
-                                            }
-                                        }
-                                    }
-                                }
-                                break;
-
-                            case ChatTypeEnum.Shout:
-                                if ((dis < 100) && (dis > -100))
-                                {
-                                    if (li.GetChannel() == channel)
-                                    {
-                                        ListenerInfo isListener = m_listenerManager.IsListenerMatch(
-                                            sourceItemID, sPart.UUID, channel, name, msg
-                                            );
-                                        if (isListener != null)
-                                        {
-                                            lock (m_pending.SyncRoot)
-                                            {
-                                                m_pending.Enqueue(isListener);
-                                            }
-                                        }
-                                    }
-                                }
-                                break;
-
-                            case ChatTypeEnum.Broadcast:
-                                // Dont process if this message is from itself!
-                                if (li.GetHostID().ToString().Equals(sourceItemID) ||
-                                    sPart.UUID.ToString().Equals(sourceItemID))
-                                    continue;
-
-                                if (li.GetChannel() == channel)
-                                {
-                                    ListenerInfo isListener = m_listenerManager.IsListenerMatch(
-                                        sourceItemID, sPart.UUID, channel, name, msg
-                                        );
-                                    if (isListener != null)
-                                    {
-                                        lock (m_pending.SyncRoot)
-                                        {
-                                            m_pending.Enqueue(isListener);
-                                        }
-                                    }
-                                }
-
-                                break;
+                            lock (m_pending.SyncRoot)
+                            {
+                                m_pending.Enqueue(new ListenerInfo(li,name,id,msg));
+                            }
                         }
-                    }
+                        break;
+
+                    case ChatTypeEnum.Say:
+                        if (dis < m_saydistance)
+                        {
+                            lock (m_pending.SyncRoot)
+                            {
+                                m_pending.Enqueue(new ListenerInfo(li,name,id,msg));
+                            }
+                        }
+                        break;
+
+                    case ChatTypeEnum.Shout:
+                        if (dis < m_shoutdistance)
+                        {
+                            lock (m_pending.SyncRoot)
+                            {
+                                m_pending.Enqueue(new ListenerInfo(li,name,id,msg));
+                            }
+                        }
+                        break;
+
+                    case ChatTypeEnum.Region:
+                        lock (m_pending.SyncRoot)
+                        {
+                            m_pending.Enqueue(new ListenerInfo(li,name,id,msg));
+                        }
+                        break;
                 }
             }
         }
 
+        /// <summary>
+        /// Are there any listen events ready to be dispatched?
+        /// </summary>
+        /// <returns>boolean indication</returns>
         public bool HasMessages()
         {
-            if (m_pending != null)
-                return (m_pending.Count > 0);
-            else
-                return false;
+            return (m_pending.Count > 0);
         }
 
+        /// <summary>
+        /// Pop the first availlable listen event from the queue
+        /// </summary>
+        /// <returns>ListenerInfo with filter filled in</returns>
         public ListenerInfo GetNextMessage()
         {
             ListenerInfo li = null;
@@ -289,19 +309,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             return li;
         }
 
-        public uint PeekNextMessageLocalID()
-        {
-            return ((ListenerInfo) m_pending.Peek()).GetLocalID();
-        }
-
-        public LLUUID PeekNextMessageItemID()
-        {
-            return ((ListenerInfo) m_pending.Peek()).GetItemID();
-        }
-
         #endregion
 
-        public void NewClient(IClientAPI client)
+        private void NewClient(IClientAPI client)
         {
             client.OnChatFromViewer += DeliverClientMessage;
         }
@@ -314,212 +324,267 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
 
         private void DeliverClientMessage(Object sender, ChatFromViewerArgs e)
         {
-            DeliverMessage(e.Sender.AgentId.ToString(),
-                           e.Type, e.Channel,
+            DeliverMessage(e.Type,
+                           e.Channel,
                            e.Sender.FirstName + " " + e.Sender.LastName,
+                           e.Sender.AgentId,
                            e.Message);
         }
     }
 
     public class ListenerManager
     {
-        //private Dictionary<int, ListenerInfo> m_listeners;
-        private object ListenersLock = new object();
-        private Hashtable m_listeners = Hashtable.Synchronized(new Hashtable());
-        private int m_MaxListeners = 100;
+        private Dictionary<int, List<ListenerInfo>> m_listeners = new Dictionary<int, List<ListenerInfo>>();
+        private int m_maxlisteners;
+        private int m_maxhandles;
+        private int m_curlisteners;
 
-        public int AddListener(uint localID, LLUUID itemID, LLUUID hostID, int channel, string name, string id, string msg)
+        public ListenerManager(int maxlisteners, int maxhandles)
         {
-            if (m_listeners.Count < m_MaxListeners)
+            m_maxlisteners = maxlisteners;
+            m_maxhandles = maxhandles;
+            m_curlisteners = 0;
+        }
+
+        public int AddListener(uint localID, LLUUID itemID, LLUUID hostID, int channel, string name, LLUUID id, string msg)
+        {
+            // do we already have a match on this particular filter event?
+            List<ListenerInfo> coll = GetListeners(itemID, channel, name, id, msg);
+
+            if (coll.Count > 0)
             {
-                ListenerInfo isListener = IsListenerMatch(LLUUID.Zero.ToString(), itemID, channel, name, msg);
-
-                if (isListener == null)
-                {
-                    int newHandle = GetNewHandle();
-
-                    if (newHandle > -1)
-                    {
-                        ListenerInfo li = new ListenerInfo(localID, newHandle, itemID, hostID, channel, name, id, msg);
-
-                        lock (m_listeners.SyncRoot)
-                        {
-                            m_listeners.Add(newHandle, li);
-                        }
-
-                        return newHandle;
-                    }
-                }
+                // special case, called with same filter settings, return same handle
+                // (2008-05-02, tested on 1.21.1 server, still holds)
+                return coll[0].GetHandle();
             }
 
+            if (m_curlisteners < m_maxlisteners)
+            {
+                int newHandle = GetNewHandle(itemID);
+
+                if (newHandle > 0)
+                {
+                    ListenerInfo li = new ListenerInfo(newHandle, localID, itemID, hostID, channel, name, id, msg);
+
+                    lock (m_listeners)
+                    {
+                        List<ListenerInfo> listeners;
+                        if (!m_listeners.TryGetValue(channel,out listeners))
+                        {
+                            listeners = new List<ListenerInfo>();
+                            m_listeners.Add(channel, listeners);
+                        }
+                        listeners.Add(li);
+                        m_curlisteners++;
+                    }
+
+                    return newHandle;
+                }
+            }
             return -1;
         }
 
-        public void Remove(int handle)
+        public void Remove(LLUUID itemID, int handle)
         {
-            lock (m_listeners.SyncRoot)
+            lock (m_listeners)
             {
-                m_listeners.Remove(handle);
+                foreach (KeyValuePair<int,List<ListenerInfo>> lis in m_listeners)
+                {
+                    foreach (ListenerInfo li in lis.Value)
+                    {
+                        if (li.GetItemID().Equals(itemID) && li.GetHandle().Equals(handle))
+                        {
+                            lis.Value.Remove(li);
+                            if (lis.Value.Count == 0)
+                            {
+                                m_listeners.Remove(lis.Key);
+                                m_curlisteners--;
+                            }
+                            // there should be only one, so we bail out early
+                            return;
+                        }
+                    }
+                }
             }
         }
 
         public void DeleteListener(LLUUID itemID)
         {
-            ArrayList removedListeners = new ArrayList();
+            List<int> emptyChannels = new List<int>();
+            List<ListenerInfo> removedListeners = new List<ListenerInfo>();
 
-            lock (m_listeners.SyncRoot)
+            lock (m_listeners)
             {
-                IDictionaryEnumerator en = m_listeners.GetEnumerator();
-                while (en.MoveNext())
+                foreach (KeyValuePair<int,List<ListenerInfo>> lis in m_listeners)
                 {
-                    ListenerInfo li = (ListenerInfo) en.Value;
-                    if (li.GetItemID().Equals(itemID))
+                    foreach (ListenerInfo li in lis.Value)
                     {
-                        removedListeners.Add(li.GetHandle());
+                        if (li.GetItemID().Equals(itemID))
+                        {
+                            // store them first, else the enumerated bails on us
+                            removedListeners.Add(li);
+                        }
+                    }
+                    foreach (ListenerInfo li in removedListeners)
+                    {
+                        lis.Value.Remove(li);
+                        m_curlisteners--;
+                    }
+                    removedListeners.Clear();
+                    if (lis.Value.Count == 0)
+                    {
+                        // again, store first, remove later
+                        emptyChannels.Add(lis.Key);
                     }
                 }
-                foreach (int handle in removedListeners)
+                foreach (int channel in emptyChannels)
                 {
-                    m_listeners.Remove(handle);
+                    m_listeners.Remove(channel);
                 }
             }
         }
 
-        private int GetNewHandle()
+        public void Activate(LLUUID itemID, int handle)
         {
-            for (int i = 0; i < int.MaxValue - 1; i++)
+            lock (m_listeners)
             {
-                if (!m_listeners.ContainsKey(i))
+                foreach (KeyValuePair<int,List<ListenerInfo>> lis in m_listeners)
+                {
+                    foreach (ListenerInfo li in lis.Value)
+                    {
+                        if (li.GetItemID().Equals(itemID) && li.GetHandle() == handle)
+                        {
+                            li.Activate();
+                            // only one, bail out
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        public void Dectivate(LLUUID itemID, int handle)
+        {
+            lock (m_listeners)
+            {
+                foreach (KeyValuePair<int,List<ListenerInfo>> lis in m_listeners)
+                {
+                    foreach (ListenerInfo li in lis.Value)
+                    {
+                        if (li.GetItemID().Equals(itemID) && li.GetHandle() == handle)
+                        {
+                            li.Deactivate();
+                            // only one, bail out
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        // non-locked access, since its always called in the context of the lock
+        private int GetNewHandle(LLUUID itemID)
+        {
+            List<int> handles = new List<int>();
+
+            // build a list of used keys for this specific itemID...
+            foreach (KeyValuePair<int,List<ListenerInfo>> lis in m_listeners)
+            {
+                 foreach (ListenerInfo li in lis.Value)
+                 {
+                     if (li.GetItemID().Equals(itemID))
+                         handles.Add(li.GetHandle());
+                 }
+            }
+
+            // Note: 0 is NOT a valid handle for llListen() to return
+            for (int i = 1; i <= m_maxhandles; i++)
+            {
+                if (!handles.Contains(i))
                     return i;
             }
 
             return -1;
         }
 
-        public bool IsListener(LLUUID hostID)
-        {
-            foreach (ListenerInfo li in m_listeners.Values)
-            {
-                if (li.GetHostID().Equals(hostID))
-                    return true;
-            }
-
-            return false;
-        }
-
-        public void Activate(int handle)
-        {
-            if (m_listeners.ContainsKey(handle))
-            {
-                lock (m_listeners.SyncRoot)
-                {
-                    ListenerInfo li = (ListenerInfo) m_listeners[handle];
-                    li.Activate();
-                }
-            }
-        }
-
-        public void Dectivate(int handle)
-        {
-            if (m_listeners.ContainsKey(handle))
-            {
-                ListenerInfo li = (ListenerInfo) m_listeners[handle];
-                li.Deactivate();
-            }
-        }
-
         // Theres probably a more clever and efficient way to
         // do this, maybe with regex.
-        public ListenerInfo IsListenerMatch(string sourceItemID, LLUUID listenerKey, int channel, string name,
-                                            string msg)
+        // PM2008: Ha, one could even be smart and define a specialized Enumerator.
+        public List<ListenerInfo> GetListeners(LLUUID itemID, int channel, string name, LLUUID id, string msg)
         {
-            bool isMatch = true;
-            lock (m_listeners.SyncRoot)
-            {
-                IDictionaryEnumerator en = m_listeners.GetEnumerator();
-                while (en.MoveNext())
-                {
-                    ListenerInfo li = (ListenerInfo) en.Value;
+            List<ListenerInfo> collection = new List<ListenerInfo>();
 
-                    if (li.IsActive())
+            lock (m_listeners)
+            {
+                List<ListenerInfo> listeners;
+                if (!m_listeners.TryGetValue(channel,out listeners))
+                {
+                    return collection;
+                }
+
+                foreach (ListenerInfo li in listeners)
+                {
+                    if (!li.IsActive())
                     {
-                        if (li.GetHostID().Equals(listenerKey))
-                        {
-                            if (channel == li.GetChannel())
-                            {
-                                if ((li.GetID().ToString().Length > 0) &&
-                                    (!li.GetID().Equals(LLUUID.Zero)))
-                                {
-                                    if (!li.GetID().ToString().Equals(sourceItemID))
-                                    {
-                                        isMatch = false;
-                                    }
-                                }
-                                if (isMatch && (li.GetName().Length > 0))
-                                {
-                                    if (li.GetName().Equals(name))
-                                    {
-                                        isMatch = false;
-                                    }
-                                }
-                                if (isMatch)
-                                {
-                                    return new ListenerInfo(
-                                        li.GetLocalID(), li.GetHandle(), li.GetItemID(), li.GetHostID(),
-                                        li.GetChannel(), name, li.GetID(), msg, new LLUUID(sourceItemID)
-                                        );
-                                }
-                            }
-                        }
+                        continue;
                     }
+                    if (!itemID.Equals(LLUUID.Zero) && !li.GetItemID().Equals(itemID))
+                    {
+                        continue;
+                    }
+                    if (li.GetName().Length > 0 && !li.GetName().Equals(name))
+                    {
+                        continue;
+                    }
+                    if (!li.GetID().Equals(LLUUID.Zero) && !li.GetID().Equals(id))
+                    {
+                        continue;
+                    }
+                    if (li.GetMessage().Length > 0 && !li.GetMessage().Equals(msg))
+                    {
+                        continue;
+                    }
+                    collection.Add(li);
                 }
             }
-            return null;
-        }
-
-        public ICollection GetListeners()
-        {
-            return m_listeners.Values;
+            return collection;
         }
     }
 
     public class ListenerInfo
     {
         private bool m_active; // Listener is active or not
-        private int m_channel; // Channel
         private int m_handle; // Assigned handle of this listener
-        private LLUUID m_hostID; // ID of the host/scene part
-        private LLUUID m_id; // ID to filter messages from
-        private LLUUID m_itemID; // ID of the host script engine
         private uint m_localID; // Local ID from script engine
-        private string m_message; // The message
+        private LLUUID m_itemID; // ID of the host script engine
+        private LLUUID m_hostID; // ID of the host/scene part
+        private int m_channel; // Channel
+        private LLUUID m_id; // ID to filter messages from
         private string m_name; // Object name to filter messages from
-        private LLUUID m_sourceItemID; // ID of the scenePart or avatar source of the message
+        private string m_message; // The message
 
-        public ListenerInfo(uint localID, int handle, LLUUID ItemID, LLUUID hostID, int channel, string name, LLUUID id, string message)
+        public ListenerInfo(int handle, uint localID, LLUUID ItemID, LLUUID hostID, int channel, string name, LLUUID id, string message)
         {
-            Initialise(localID, handle, ItemID, hostID, channel, name, id, message);
+            Initialise(handle, localID, ItemID, hostID, channel, name, id, message);
         }
 
-        public ListenerInfo(uint localID, int handle, LLUUID ItemID, LLUUID hostID, int channel, string name, LLUUID id,
-                            string message, LLUUID sourceItemID)
+        public ListenerInfo(ListenerInfo li, string name, LLUUID id, string message)
         {
-            Initialise(localID, handle, ItemID, hostID, channel, name, id, message);
-            m_sourceItemID = sourceItemID;
+            Initialise(li.m_handle, li.m_localID, li.m_itemID, li.m_hostID, li.m_channel, name, id, message);
         }
 
-        private void Initialise(uint localID, int handle, LLUUID ItemID, LLUUID hostID, int channel, string name,
+        private void Initialise(int handle, uint localID, LLUUID ItemID, LLUUID hostID, int channel, string name,
                                 LLUUID id, string message)
         {
+            m_active = true;
             m_handle = handle;
-            m_channel = channel;
+            m_localID = localID;
             m_itemID = ItemID;
             m_hostID = hostID;
+            m_channel = channel;
             m_name = name;
             m_id = id;
             m_message = message;
-            m_active = true;
-            m_localID = localID;
         }
 
         public LLUUID GetItemID()
@@ -530,11 +595,6 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
         public LLUUID GetHostID()
         {
             return m_hostID;
-        }
-
-        public LLUUID GetSourceItemID()
-        {
-            return m_sourceItemID;
         }
 
         public int GetChannel()

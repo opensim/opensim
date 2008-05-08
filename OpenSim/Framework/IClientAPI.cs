@@ -55,6 +55,8 @@ namespace OpenSim.Framework
         StartTyping = 4,
         StopTyping = 5,
         DebugChannel = 6,
+        Region = 7,
+        Owner = 8,
         Broadcast = 0xFF
     }
 

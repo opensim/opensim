@@ -324,6 +324,14 @@ CleanUpOldScriptsOnStartup=true
 ; Set the following to true to allow administrator owned scripts to execute console commands
 AllowosConsoleCommand=false
 
+; Maximum number of llListen events we allow globally in the region
+; Set this to 0 to have no limit imposed.
+max_listens_per_region = 1000
+
+; Maximum number of llListen events we allow per script
+; Set this to 0 to have no limit imposed.
+max_listens_per_script = 64
+
 [DataSnapshot]
 ; The following set of configs pertains to search.
 ; Set index_sims to true to enable search engines to index your searchable data

@@ -32,6 +32,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
 {
     public class Listener
     {
+        // private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public AsyncCommandManager m_CmdManager;
 
         public Listener(AsyncCommandManager CmdManager)
@@ -49,22 +51,23 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
             {
                 while (comms.HasMessages())
                 {
+                    ListenerInfo lInfo = comms.GetNextMessage();
                     if (m_CmdManager.m_ScriptEngine.m_ScriptManager.GetScript(
-                        comms.PeekNextMessageLocalID(), comms.PeekNextMessageItemID()) != null)
+                        lInfo.GetLocalID(), lInfo.GetItemID()) != null)
                     {
-                        ListenerInfo lInfo = comms.GetNextMessage();
-
                         //Deliver data to prim's listen handler
                         object[] resobj = new object[]
                         {
                         //lInfo.GetChannel(), lInfo.GetName(), lInfo.GetID().ToString(), lInfo.GetMessage()
-                            new LSL_Types.LSLInteger(lInfo.GetChannel()), new LSL_Types.LSLString(lInfo.GetName()), new LSL_Types.LSLString(lInfo.GetSourceItemID().ToString()), new LSL_Types.LSLString(lInfo.GetMessage())
+                            new LSL_Types.LSLInteger(lInfo.GetChannel()), new LSL_Types.LSLString(lInfo.GetName()), new LSL_Types.LSLString(lInfo.GetID().ToString()), new LSL_Types.LSLString(lInfo.GetMessage())
                         };
 
                         m_CmdManager.m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
                             lInfo.GetLocalID(), lInfo.GetItemID(), "listen", EventQueueManager.llDetectNull, resobj
                         );
                     }
+                    // else
+                    //     m_log.Info("[ScriptEngineBase.AsyncCommandPlugins: received a listen event for a (no longer) existing script ("+lInfo.GetLocalID().AsString()+")");
                 }
             }
         }

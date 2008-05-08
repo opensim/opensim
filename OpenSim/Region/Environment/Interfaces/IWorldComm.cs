@@ -33,14 +33,12 @@ namespace OpenSim.Region.Environment.Interfaces
 {
     public interface IWorldComm
     {
-        int Listen(uint LocalID, LLUUID itemID, LLUUID hostID, int channel, string name, string id, string msg);
-        void DeliverMessage(string sourceItemID, ChatTypeEnum type, int channel, string name, string msg);
+        int Listen(uint LocalID, LLUUID itemID, LLUUID hostID, int channel, string name, LLUUID id, string msg);
+        void DeliverMessage(ChatTypeEnum type, int channel, string name, LLUUID id, string msg);
         bool HasMessages();
         ListenerInfo GetNextMessage();
-        void ListenControl(int handle, int active);
-        void ListenRemove(int handle);
+        void ListenControl(LLUUID itemID, int handle, int active);
+        void ListenRemove(LLUUID itemID, int handle);
         void DeleteListener(LLUUID itemID);
-        uint PeekNextMessageLocalID();
-        LLUUID PeekNextMessageItemID();
     }
 }

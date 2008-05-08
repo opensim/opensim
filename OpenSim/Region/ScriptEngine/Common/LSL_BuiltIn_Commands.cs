@@ -465,7 +465,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                           ChatTypeEnum.Whisper, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.DeliverMessage(m_host.UUID.ToString(), ChatTypeEnum.Whisper, channelID, m_host.Name, text);
+            wComm.DeliverMessage(ChatTypeEnum.Whisper, channelID, m_host.Name, m_host.UUID, text);
         }
 
         public void llSay(int channelID, string text)
@@ -475,7 +475,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                           ChatTypeEnum.Say, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.DeliverMessage(m_host.UUID.ToString(), ChatTypeEnum.Say, channelID, m_host.Name, text);
+            wComm.DeliverMessage(ChatTypeEnum.Say, channelID, m_host.Name, m_host.UUID, text);
         }
 
         public void llShout(int channelID, string text)
@@ -485,7 +485,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                           ChatTypeEnum.Shout, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.DeliverMessage(m_host.UUID.ToString(), ChatTypeEnum.Shout, channelID, m_host.Name, text);
+            wComm.DeliverMessage(ChatTypeEnum.Shout, channelID, m_host.Name, m_host.UUID, text);
         }
 
         public void llRegionSay(int channelID, string text)
@@ -499,32 +499,30 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.DeliverMessage(m_host.UUID.ToString(), ChatTypeEnum.Broadcast, channelID, m_host.Name, text);
+            wComm.DeliverMessage(ChatTypeEnum.Region, channelID, m_host.Name, m_host.UUID, text);
         }
 
         public int llListen(int channelID, string name, string ID, string msg)
         {
             m_host.AddScriptLPS(1);
-            if (ID == String.Empty)
-            {
-                ID = LLUUID.Zero.ToString();
-            }
+            LLUUID keyID;
+            LLUUID.TryParse(ID, out keyID);
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            return wComm.Listen(m_localID, m_itemID, m_host.UUID, channelID, name, ID, msg);
+            return wComm.Listen(m_localID, m_itemID, m_host.UUID, channelID, name, keyID, msg);
         }
 
         public void llListenControl(int number, int active)
         {
             m_host.AddScriptLPS(1);
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.ListenControl(number, active);
+            wComm.ListenControl(m_itemID, number, active);
         }
 
         public void llListenRemove(int number)
         {
             m_host.AddScriptLPS(1);
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            wComm.ListenRemove(number);
+            wComm.ListenRemove(m_itemID, number);
         }
 
         public void llSensor(string name, string id, int type, double range, double arc)
@@ -5409,9 +5407,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             // llGetOwner ==> m_host.ObjectOwner.ToString()
             llInstantMessage(m_host.ObjectOwner.ToString(),msg);
             
-            //World.SimChat(Helpers.StringToField(msg), ChatTypeEnum.Say, 0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+            //World.SimChat(Helpers.StringToField(msg), ChatTypeEnum.Owner, 0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
             //IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            //wComm.DeliverMessage(m_host.UUID.ToString(), ChatTypeEnum.Say, 0, m_host.Name, msg);
+            //wComm.DeliverMessage(ChatTypeEnum.Owner, 0, m_host.Name, m_host.UUID, msg);
         }
 
         public void llRequestSimulatorData(string simulator, int data)
