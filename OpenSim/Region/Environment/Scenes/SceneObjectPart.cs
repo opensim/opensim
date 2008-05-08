@@ -1920,18 +1920,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void UpdateExtraParam(ushort type, bool inUse, byte[] data)
         {
-            m_shape.ExtraParams = new byte[data.Length + 7];
-            int i = 0;
-            uint length = (uint) data.Length;
-            m_shape.ExtraParams[i++] = 1;
-            m_shape.ExtraParams[i++] = (byte) (type%256);
-            m_shape.ExtraParams[i++] = (byte) ((type >> 8)%256);
-
-            m_shape.ExtraParams[i++] = (byte) (length%256);
-            m_shape.ExtraParams[i++] = (byte) ((length >> 8)%256);
-            m_shape.ExtraParams[i++] = (byte) ((length >> 16)%256);
-            m_shape.ExtraParams[i++] = (byte) ((length >> 24)%256);
-            Array.Copy(data, 0, m_shape.ExtraParams, i, data.Length);
+            m_shape.ReadInUpdateExtraParam(type, inUse, data);
 
             ScheduleFullUpdate();
         }
