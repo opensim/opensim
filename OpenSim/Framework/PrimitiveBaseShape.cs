@@ -422,7 +422,6 @@ namespace OpenSim.Framework
             bool lGotSculpt = false;
 
             int i = 0;
-            int totalLength = 1;
             byte extraParamCount = data[i++];
 
             

@@ -1657,7 +1657,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AvatarPickerReplyPacket replyPacket = new AvatarPickerReplyPacket();
             replyPacket.AgentData.AgentID = AgentData.AgentID;
             replyPacket.AgentData.QueryID = AgentData.QueryID;
-            int i = 0;
+            //int i = 0;
             List<AvatarPickerReplyPacket.DataBlock> data_block = new List<AvatarPickerReplyPacket.DataBlock>();
             foreach (AvatarPickerReplyDataArgs arg in Data)
             {
