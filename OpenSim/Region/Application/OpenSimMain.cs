@@ -351,7 +351,7 @@ namespace OpenSim
         {
             // Set BuildVersion String for Show version command
             string svnFileName = "../.svn/entries";
-            string inputLine = null;
+            string inputLine;
             int strcmp;
 
             if (File.Exists(svnFileName))
@@ -375,7 +375,7 @@ namespace OpenSim
                 EntriesFile.Close();
             }
 
-            if ((buildVersion != null) && (buildVersion.Length > 0))
+            if (!string.IsNullOrEmpty(buildVersion))
             {
                 m_log.Info("[STARTUP]: OpenSim version: " + VersionInfo.Version + ", SVN build r" + buildVersion + "\n");
             }

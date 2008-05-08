@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Net;
 using log4net.Config;
 using Nini.Config;
 using OpenSim.Framework;
@@ -137,7 +138,7 @@ namespace OpenSim
                 //                System.Web.HttpUtility.UrlEncode(msg));
                 //wc.Dispose();
             }
-            catch (Exception)
+            catch (WebException)
             {
                 // Ignore
             }

@@ -643,7 +643,7 @@ namespace OpenSim
                     break;
 
                 case "version":
-                    if ((buildVersion != null) && (buildVersion.Length > 0))
+                    if (!string.IsNullOrEmpty(buildVersion))
                     {
                         m_console.Notice("The build version is: r" + buildVersion);
                     }

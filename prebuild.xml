@@ -969,35 +969,6 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Region.ExtensionsScriptModule" path="OpenSim/Region/ExtensionsScriptModule" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System"/>
-      <Reference name="System.Xml"/>
-      <Reference name="Microsoft.JScript"/>
-      <Reference name="libsecondlife.dll" />
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Region.Environment"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="Axiom.MathLib.dll"/>
-      <Reference name="Nini.dll"/>
-      <Reference name="log4net"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
     <!-- OpenSim app -->
     <Project name="OpenSim" path="OpenSim/Region/Application" type="Exe">
       <Configuration name="Debug">
