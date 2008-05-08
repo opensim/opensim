@@ -116,6 +116,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             ((SceneObjectGroup) ent).IsSelected = false;
                             LandChannel.SetPrimsTainted();
+                            ((SceneObjectGroup)ent).ScheduleGroupForTerseUpdate();
                             break;
                         }
                     }
