@@ -987,7 +987,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             lock (OdeLock)
             {
-                m_log.Debug("[PHYSICS]:ODELOCK");
+                //m_log.Debug("[PHYSICS]:ODELOCK");
                 ((OdeCharacter) actor).Destroy();
                 _characters.Remove((OdeCharacter) actor);
             }
