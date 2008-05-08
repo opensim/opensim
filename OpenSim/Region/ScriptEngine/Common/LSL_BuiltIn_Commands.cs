@@ -531,13 +531,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             LLUUID keyID = LLUUID.Zero;
-            try
-            {
-                if (id.Length > 0) keyID = new LLUUID(id);
-            }
-            catch 
-            { 
-            }
+            LLUUID.TryParse(id, out keyID);
+            
             m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.SenseOnce(m_localID, m_itemID, name, keyID, type, range, arc, m_host);
 
             return;
@@ -547,13 +542,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             LLUUID keyID = LLUUID.Zero;
-            try
-            {
-                if (id.Length > 0) keyID = new LLUUID(id);
-            }
-            catch
-            {
-            }
+            LLUUID.TryParse(id, out keyID);
 
             m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.SetSenseRepeatEvent(m_localID, m_itemID, name, keyID, type, range, arc, rate, m_host);
             return;
@@ -2252,8 +2241,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             m_host.AddScriptLPS(1);
 
-            bool attachment=false; // Attachments not implemented yet. TODO: reflect real attachemnt state
-
             if (m_host.ParentGroup.RootPart.m_IsAttachment && agent == m_host.ParentGroup.RootPart.m_attachedAvatar)
             {
                 // When attached, certain permissions are implicit if requested from owner
@@ -3181,7 +3168,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 return Convert.ToInt32(src.Data[index]);
             }
-            catch (FormatException e)
+            catch (FormatException)
             {
                 return 0;
             }
@@ -3216,7 +3203,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 return Convert.ToDouble(src.Data[index]);
             }
-            catch (FormatException e)
+            catch (FormatException)
             {
                 return 0.0;
             }

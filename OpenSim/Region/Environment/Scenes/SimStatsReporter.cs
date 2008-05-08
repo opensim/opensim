@@ -64,11 +64,6 @@ namespace OpenSim.Region.Environment.Scenes
             PendingDownloads = 19,
             PendingUploads = 20,
             UnAckedBytes = 24,
-
-            // Havok4 related...   May or may not be in upcoming LLclients
-            // (kelly added them sometime late in January 2008)
-            NumRCCSLODReduced = 25,
-            NumRCCSFixed = 26
         }
 
         // Sending a stats update every 3 seconds

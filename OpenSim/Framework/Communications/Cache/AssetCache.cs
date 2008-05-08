@@ -334,18 +334,9 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="asset"></param>
         public void AddAsset(AssetBase asset)
         {
-            string temporary = asset.Temporary ? "temporary" : String.Empty;
-            string type = asset.Type == 0 ? "texture" : "asset";
-
-            string result = "Ignored";
-
             if (asset.Type == 0)
             {
-                if (Textures.ContainsKey(asset.FullID))
-                {
-                    result = "Duplicate ignored.";
-                }
-                else
+                if (!Textures.ContainsKey(asset.FullID))
                 {
                     TextureImage textur = new TextureImage(asset);
                     Textures.Add(textur.FullID, textur);
@@ -353,24 +344,15 @@ namespace OpenSim.Framework.Communications.Cache
                     if (StatsManager.SimExtraStats != null)
                         StatsManager.SimExtraStats.AddTexture(textur);
 
-                    if (asset.Temporary)
-                    {
-                        result = "Added to cache";
-                    }
-                    else
+                    if (!asset.Temporary)
                     {
                         m_assetServer.StoreAndCommitAsset(asset);
-                        result = "Added to server";
                     }
                 }
             }
             else
             {
-                if (Assets.ContainsKey(asset.FullID))
-                {
-                    result = "Duplicate ignored.";
-                }
-                else
+                if (!Assets.ContainsKey(asset.FullID))
                 {
                     AssetInfo assetInf = new AssetInfo(asset);
                     Assets.Add(assetInf.FullID, assetInf);
@@ -378,29 +360,17 @@ namespace OpenSim.Framework.Communications.Cache
                     if (StatsManager.SimExtraStats != null)
                         StatsManager.SimExtraStats.AddAsset(assetInf);
 
-                    if (asset.Temporary)
-                    {
-                        result = "Added to cache";
-                    }
-                    else
+                    if (!asset.Temporary)
                     {
                         m_assetServer.StoreAndCommitAsset(asset);
-                        result = "Added to server";
                     }
                 }
             }
-#if DEBUG
-            //m_log.DebugFormat("[ASSET CACHE]: Adding {0} {1} [{2}]: {3}.", temporary, type, asset.FullID, result);
-#endif
         }
 
         // See IAssetReceiver
         public void AssetReceived(AssetBase asset, bool IsTexture)
         {
-#if DEBUG
-            //m_log.DebugFormat("[ASSET CACHE]: Received {0} [{1}]", IsTexture ? "texture" : "asset", asset.FullID);
-#endif
-
             if (asset.FullID != LLUUID.Zero) // if it is set to zero then the asset wasn't found by the server
             {
                 //check if it is a texture or not
@@ -411,13 +381,7 @@ namespace OpenSim.Framework.Communications.Cache
                 if (IsTexture)
                 {
                     TextureImage image = new TextureImage(asset);
-                    if (Textures.ContainsKey(image.FullID))
-                    {
-#if DEBUG
-                        //m_log.DebugFormat("[ASSET CACHE]: There's already an texture {0} in memory. Skipping.", asset.FullID);
-#endif
-                    }
-                    else
+                    if (!Textures.ContainsKey(image.FullID))
                     {
                         Textures.Add(image.FullID, image);
 
@@ -430,13 +394,7 @@ namespace OpenSim.Framework.Communications.Cache
                 else
                 {
                     AssetInfo assetInf = new AssetInfo(asset);
-                    if (Assets.ContainsKey(assetInf.FullID))
-                    {
-#if DEBUG
-                        //m_log.DebugFormat("[ASSET CACHE]: There's already an asset {0} in memory. Skipping.", asset.FullID);
-#endif
-                    }
-                    else
+                    if (!Assets.ContainsKey(assetInf.FullID))
                     {
                         Assets.Add(assetInf.FullID, assetInf);
 
@@ -446,18 +404,14 @@ namespace OpenSim.Framework.Communications.Cache
                         }
 
                         if (RequestedAssets.ContainsKey(assetInf.FullID))
-                           {
-   #if DEBUG
-                               //m_log.DebugFormat("[ASSET CACHE]: Moving {0} from RequestedAssets to AssetRequests", asset.FullID);
-   #endif
+                        {
+                            AssetRequest req = RequestedAssets[assetInf.FullID];
+                            req.AssetInf = assetInf;
+                            req.NumPackets = CalculateNumPackets(assetInf.Data);
 
-                               AssetRequest req = RequestedAssets[assetInf.FullID];
-                               req.AssetInf = assetInf;
-                               req.NumPackets = CalculateNumPackets(assetInf.Data);
-
-                               RequestedAssets.Remove(assetInf.FullID);
-                               AssetRequests.Add(req);
-                           }
+                            RequestedAssets.Remove(assetInf.FullID);
+                            AssetRequests.Add(req);
+                        }
                     }
                 }
 

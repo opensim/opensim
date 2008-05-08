@@ -335,10 +335,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 ExecutorBase.scriptEvents evflags = Script.Exec.GetStateEventFlags();
                 return (int)evflags;
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                // Console.WriteLine("Failed to get script reference for <" + localID + "," + itemID + ">");
-                // Console.WriteLine(e.ToString());
             }
 
             return 0;

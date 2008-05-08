@@ -264,12 +264,7 @@ namespace OpenSim.Data.MSSQL
                 regionprofile.regionUserURI = (string)reader["regionUserURI"];
                 regionprofile.regionUserRecvKey = (string)reader["regionUserRecvKey"];
                 regionprofile.regionUserSendKey = (string)reader["regionUserSendKey"];
-                try
-                {
-                    regionprofile.owner_uuid = new LLUUID((string)reader["owner_uuid"]);
-                }
-                catch(Exception)
-                {}
+                regionprofile.owner_uuid = new LLUUID((string) reader["owner_uuid"]);
                 // World Map Addition
                 string tempRegionMap = reader["regionMapTexture"].ToString();
                 if (tempRegionMap != String.Empty)

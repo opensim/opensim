@@ -3279,6 +3279,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         m_needAck.Add(Pack.Header.Sequence, Pack);
                         m_unAckedBytes += Pack.ToBytes().Length;
                     }
+                        //BUG: severity=major - This looks like a framework bug!?
                     catch (Exception) // HACKY
                     {
                         // Ignore

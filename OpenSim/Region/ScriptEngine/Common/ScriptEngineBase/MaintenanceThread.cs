@@ -218,7 +218,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                         //}
                     }
                 }
-                catch(ThreadAbortException ex)
+                catch(ThreadAbortException)
                 {
                     m_log.Error("Thread aborted in MaintenanceLoopThread.  If this is during shutdown, please ignore");
                 }

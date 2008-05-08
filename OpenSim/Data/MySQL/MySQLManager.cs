@@ -253,13 +253,7 @@ namespace OpenSim.Data.MySQL
                 lock (dbcon)
                 {
                     // Close the DB connection
-                    try
-                    {
-                        dbcon.Close();
-                    }
-                    catch
-                    {
-                    }
+                    dbcon.Close();
 
                     // Try to reopen it
                     try
@@ -269,7 +263,7 @@ namespace OpenSim.Data.MySQL
                     }
                     catch (Exception e)
                     {
-                        m_log.Error("Unable to reconnect to database " + e.ToString());
+                        m_log.Error("Unable to reconnect to database " + e);
                     }
 
                     // Run the query again
