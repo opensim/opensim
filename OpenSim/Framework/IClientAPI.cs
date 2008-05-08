@@ -245,6 +245,7 @@ namespace OpenSim.Framework
         public float Duration;
         public LLUUID ID;
         public byte Type;
+        public byte[] TypeData;
     }
 
     public class LandUpdateArgs : EventArgs

@@ -2930,6 +2930,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     argument.Duration = viewer.Effect[i].Duration;
                     argument.ID = viewer.Effect[i].ID;
                     argument.Type = viewer.Effect[i].Type;
+                    argument.TypeData = viewer.Effect[i].TypeData;
                     args.Add(argument);
                 }
 
