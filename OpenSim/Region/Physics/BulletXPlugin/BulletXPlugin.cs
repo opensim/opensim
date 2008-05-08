@@ -259,6 +259,8 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 //             else
 //                 nameA = "null";
 
+
+
             BulletXCharacter bxcB = null;
             BulletXPrim bxpB = null;
             t = bodyB.GetType();
@@ -268,20 +270,177 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                 relatedScene._characters.TryGetValue(rb, out bxcB);
                 relatedScene._prims.TryGetValue(rb, out bxpB);
             }
+
 //             String nameB;
 //             if (bxcB != null)
 //                 nameB = bxcB._name;
 //             else if (bxpB != null)
 //                 nameB = bxpB._name;
 //             else
-//                 nameB = "null";
+            //                 nameB = "null";
+            bool needsCollision;
+            ////////////////////////////////////////////////////////
+            //BulletX Mesh Collisions 
+            //added by Jed zhu
+            //data: May 07,2005
+            ////////////////////////////////////////////////////////
+            #region BulletXMeshCollisions Fields
+            if (bxcA != null && bxpB != null)
+                needsCollision = Collision(bxcA, bxpB);
+            else if (bxpA != null && bxcB != null)
+                needsCollision = Collision(bxcB, bxpA);
+            else
+                needsCollision = base.NeedsCollision(bodyA, bodyB);
 
-            bool needsCollision = base.NeedsCollision(bodyA, bodyB);
+            #endregion
+            
 
             //m_log.DebugFormat("[BulletX]: A collision was detected between {0} and {1} --> {2}", nameA, nameB,
                                    //needsCollision);
 
             return needsCollision;
+        }
+        //added by jed zhu
+        //calculas the collision between the Prim and Actor
+        private bool Collision(BulletXCharacter actorA, BulletXPrim primB)
+        {
+            int[] indexBase;
+            Vector3[] vertexBase;
+            Vector3 vNormal, vP1, vP2, vP3;
+            IMesh mesh = primB.GetMesh();
+      
+            float fdistance;
+            if (primB == null)
+                return false;
+            if (mesh == null)
+                return false;
+            if (actorA == null)
+                return false;
+
+            int iVertexCount = mesh.getVertexList().Count;
+            int iIndexCount = mesh.getIndexListAsInt().Length;
+            if (iVertexCount == 0)
+                return false;
+            if (iIndexCount == 0)
+                return false;
+            lock (BulletXScene.BulletXLock)
+            {
+                indexBase = mesh.getIndexListAsInt();
+                vertexBase = new Vector3[iVertexCount];
+                for (int i = 0; i < iVertexCount; i++)
+                {
+                    PhysicsVector v = mesh.getVertexList()[i];
+                    if (v != null) // Note, null has special meaning. See meshing code for details
+                        vertexBase[i] = BulletXMaths.PhysicsVectorToXnaVector3(v);
+                    else
+                        vertexBase[i] = Vector3.Zero;
+                }
+                for (int ix = 0; ix < iIndexCount; ix += 3)
+                {
+                    int ia = indexBase[ix + 0];
+                    int ib = indexBase[ix + 1];
+                    int ic = indexBase[ix + 2];
+                    //
+                    Vector3 v1 = vertexBase[ib] - vertexBase[ia];
+                    Vector3 v2 = vertexBase[ic] - vertexBase[ia];
+
+                    Vector3.Cross(ref v1, ref v2, out vNormal);
+                    Vector3.Normalize(ref vNormal, out vNormal);
+
+                    fdistance = Vector3.Dot(vNormal, vertexBase[ia]) + 5.0f;
+                    if (preCheckCollision(actorA, vNormal, fdistance) == 1)
+                    {
+                        if (CheckCollision(actorA, ia, ib, ic, vNormal, vertexBase) == 1)
+                        {
+                            PhysicsVector v = actorA.Position;
+                            Vector3 v3 = BulletXMaths.PhysicsVectorToXnaVector3(v);
+                            Vector3 vp = vNormal * (fdistance - Vector3.Dot(vNormal, v3) + 0.2f);
+                            actorA.Position += BulletXMaths.XnaVector3ToPhysicsVector(vp);
+                            return false;
+    
+                        }
+                    }
+
+
+                }
+            }
+
+
+            return true;
+        }
+        //added by jed zhu
+        //return value 1: need second check
+        //return value 0: no need check
+
+        private int preCheckCollision(BulletXActor actA, Vector3 vNormal, float fDist)
+        {
+            float fstartSide;
+            PhysicsVector v = actA.Position;
+            Vector3 v3 = BulletXMaths.PhysicsVectorToXnaVector3(v);
+
+            fstartSide = Vector3.Dot(vNormal, v3) - fDist;
+            if (fstartSide <= 0) return 0;
+            else return 1;
+        }
+        //added by jed zhu
+        private int CheckCollision(BulletXActor actA, int ia, int ib, int ic, Vector3 vNormal, Vector3[] vertBase)
+        {
+            Vector3 perPlaneNormal;
+            float fPerPlaneDist;
+            PhysicsVector v = actA.Position;
+            Vector3 v3 = BulletXMaths.PhysicsVectorToXnaVector3(v);
+            //check AB
+            Vector3 v1;
+            v1 = vertBase[ib] - vertBase[ia];
+            Vector3.Cross(ref vNormal, ref v1, out perPlaneNormal);
+            Vector3.Normalize(ref perPlaneNormal, out perPlaneNormal);
+
+            if (Vector3.Dot((vertBase[ic] - vertBase[ia]), perPlaneNormal) < 0)
+                perPlaneNormal = -perPlaneNormal;
+            fPerPlaneDist = Vector3.Dot(perPlaneNormal, vertBase[ia]) - 5.0f;
+
+
+
+            if ((Vector3.Dot(perPlaneNormal, v3) - fPerPlaneDist) < 0)
+                return 0;
+            fPerPlaneDist = Vector3.Dot(perPlaneNormal, vertBase[ic]) + 5.0f;
+            if ((Vector3.Dot(perPlaneNormal, v3) - fPerPlaneDist) > 0)
+                return 0;
+
+            //check BC
+
+            v1 = vertBase[ic] - vertBase[ib];
+            Vector3.Cross(ref vNormal, ref v1, out perPlaneNormal);
+            Vector3.Normalize(ref perPlaneNormal, out perPlaneNormal);
+
+            if (Vector3.Dot((vertBase[ia] - vertBase[ib]), perPlaneNormal) < 0)
+                perPlaneNormal = -perPlaneNormal;
+            fPerPlaneDist = Vector3.Dot(perPlaneNormal, vertBase[ib]) - 5.0f;
+
+
+            if ((Vector3.Dot(perPlaneNormal, v3) - fPerPlaneDist) < 0)
+                return 0;
+            fPerPlaneDist = Vector3.Dot(perPlaneNormal, vertBase[ia]) + 5.0f;
+            if ((Vector3.Dot(perPlaneNormal, v3) - fPerPlaneDist) > 0)
+                return 0;
+            //check CA
+            v1 = vertBase[ia] - vertBase[ic];
+            Vector3.Cross(ref vNormal, ref v1, out perPlaneNormal);
+            Vector3.Normalize(ref perPlaneNormal, out perPlaneNormal);
+
+            if (Vector3.Dot((vertBase[ib] - vertBase[ic]), perPlaneNormal) < 0)
+                perPlaneNormal = -perPlaneNormal;
+            fPerPlaneDist = Vector3.Dot(perPlaneNormal, vertBase[ic]) - 5.0f;
+
+
+            if ((Vector3.Dot(perPlaneNormal, v3) - fPerPlaneDist) < 0)
+                return 0;
+            fPerPlaneDist = Vector3.Dot(perPlaneNormal, vertBase[ib]) + 5.0f;
+            if ((Vector3.Dot(perPlaneNormal, v3) - fPerPlaneDist) > 0)
+                return 0;
+
+            return 1;
+
         }
     }
 
@@ -570,7 +729,9 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
         public override bool IsThreaded
         {
-            get { return (false); // for now we won't be multithreaded
+            get 
+            { 
+                return (false); // for now we won't be multithreaded
             }
         }
 
@@ -1213,6 +1374,11 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         private BulletXScene _parent_scene;
         private PhysicsVector m_prev_position = new PhysicsVector(0, 0, 0);
         private bool m_lastUpdateSent = false;
+        //added by jed zhu 
+        private IMesh _mesh;
+        public IMesh GetMesh() { return _mesh; }
+
+        
 
         public BulletXPrim(String primName, BulletXScene parent_scene, PhysicsVector pos, PhysicsVector size,
                            AxiomQuaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool isPhysical)
@@ -1416,6 +1582,9 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             float _restitution = 0.0f;
             Matrix _startTransform = Matrix.Identity;
             Matrix _centerOfMassOffset = Matrix.Identity;
+            //added by jed zhu
+            //_mesh = mesh;
+
             lock (BulletXScene.BulletXLock)
             {
                 _startTransform.Translation = BulletXMaths.PhysicsVectorToXnaVector3(pos);
