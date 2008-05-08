@@ -184,6 +184,8 @@ namespace OpenSim.Framework
                 effect.Duration = args[i].Duration;
                 effect.ID = args[i].ID;
                 effect.Type = args[i].Type;
+                // This should be the target object I think - Adam
+                effect.TypeData = new byte[0];
                 effectBlock.Add(effect);
             }
             packet.Effect = effectBlock.ToArray();
