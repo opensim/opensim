@@ -60,9 +60,6 @@ namespace OpenSim.Grid.InventoryServer
             LLUUID userID = new LLUUID(rawUserID);
 
             m_log.InfoFormat("[GRID AGENT INVENTORY]: Processing request for inventory of {0}", userID);
-            
-            // uncomment me to simulate an overloaded inventory server
-            //Thread.Sleep(18000);            
 
             InventoryCollection invCollection = new InventoryCollection();
             
@@ -114,9 +111,7 @@ namespace OpenSim.Grid.InventoryServer
         /// <param name="rawUserID"></param>
         /// <returns></returns>        
         public List<InventoryFolderBase> GetInventorySkeleton(Guid rawUserID)
-        {
-            //Thread.Sleep(10000);
-            
+        {            
             LLUUID userID = new LLUUID(rawUserID);
             return GetInventorySkeleton(userID);
         }        

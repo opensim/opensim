@@ -268,12 +268,13 @@ namespace OpenSim.Framework.Communications.Cache
                 // inventory failure.
                 //
                 // This is a crude way of dealing with that by retrying the lookup.
+                //BUG: This should be replaced with a async event.
                 if (!userProfile.HasInventory)
                 {
                     int attempts = 5;
                     while (attempts-- > 0)
                     {
-                        Thread.Sleep(3000);
+                        Thread.Sleep(500);
                         
                         if (userProfile.HasInventory)
                         {
@@ -369,7 +370,7 @@ namespace OpenSim.Framework.Communications.Cache
                              "[INVENTORY CACHE]: Poll number {0} for inventory items in folder {1} for user {2}", 
                              attempts, folderID, agentID);
                         
-                        Thread.Sleep(3000);
+                        Thread.Sleep(500);
                         
                         if (userProfile.HasInventory)
                         {

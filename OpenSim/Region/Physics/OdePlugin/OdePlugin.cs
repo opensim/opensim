@@ -1103,9 +1103,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     if (prim.prim_geom != (IntPtr)0)
                     {
-
-                        
-                        //System.Threading.Thread.Sleep(20);
                         prim.ResetTaints();
 
 

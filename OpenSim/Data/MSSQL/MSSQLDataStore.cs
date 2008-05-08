@@ -431,12 +431,6 @@ namespace OpenSim.Data.MSSQL
 
         public void StoreLandObject(ILandObject parcel)
         {
-            // Instance.StoreLandObject(parcel, regionUUID);
-
-            // Does the new locking fix it?
-            // m_log.Info("[DATASTORE]: Tedds temp fix: Waiting 3 seconds to avoid others writing to table while we hold a dataset of it. (Someone please fix! :))");
-            // System.Threading.Thread.Sleep(2500 + rnd.Next(0, 1000));
-
             lock (m_dataSet)
             {
                 DataTable land = m_landTable;

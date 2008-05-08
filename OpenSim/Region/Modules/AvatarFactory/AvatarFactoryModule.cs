@@ -100,7 +100,8 @@ namespace OpenSim.Region.Modules.AvatarFactory
             }
             else
             {
-                Thread.Sleep(5000); //why is this here? 
+                // BUG: !? (Reduced from 5000 to 500 by Adam)
+                Thread.Sleep(500); //why is this here? 
 
                 //this is the first thread to request this appearance
                 //so let it check the db and if not found then create a default appearance
