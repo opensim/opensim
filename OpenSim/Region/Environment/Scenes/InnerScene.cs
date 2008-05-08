@@ -394,7 +394,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (((SceneObjectGroup)obj).LocalId == objectLocalID)
                     {
                         SceneObjectGroup group = (SceneObjectGroup)obj;
-                        if (m_parentScene.Permissions.CanEditObject(remoteClient.AgentId, obj.UUID))
+                        if (m_parentScene.ExternalChecks.ExternalChecksCanEditScript(obj.UUID, remoteClient.AgentId))
                         {
                             // If the attachment point isn't the same as the one previously used
                             // set it's offset position = 0 so that it appears on the attachment point
@@ -1051,7 +1051,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanEditObjectPosition(remoteClient.AgentId, group.UUID))
+                if (m_parentScene.ExternalChecks.ExternalChecksCanEditObject(group.UUID, remoteClient.AgentId))
                 {
                     group.Resize(scale, localID);
                 }
@@ -1062,7 +1062,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanEditObjectPosition(remoteClient.AgentId, group.UUID))
+                if (m_parentScene.ExternalChecks.ExternalChecksCanEditObject(group.UUID, remoteClient.AgentId))
                 {
                     group.GroupResize(scale, localID);
                 }
@@ -1098,7 +1098,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanEditObjectPosition(remoteClient.AgentId, group.UUID))
+                if (m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(group.UUID, remoteClient.AgentId))
                 {
                     group.UpdateSingleRotation(rot, localID);
                 }
@@ -1116,7 +1116,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanEditObjectPosition(remoteClient.AgentId, group.UUID))
+                if (m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(group.UUID, remoteClient.AgentId))
                 {
                     group.UpdateGroupRotation(rot);
                 }
@@ -1135,7 +1135,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanEditObjectPosition(remoteClient.AgentId, group.UUID))
+                if (m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(group.UUID, remoteClient.AgentId))
                 {
                     group.UpdateGroupRotation(pos, rot);
                 }
@@ -1148,12 +1148,13 @@ namespace OpenSim.Region.Environment.Scenes
             if (group != null)
             {
                 LLVector3 oldPos = group.AbsolutePosition;
-                if (!m_parentScene.Permissions.CanObjectEntry(remoteClient.AgentId, oldPos, pos) && !group.RootPart.m_IsAttachment)
-                {
+                //FIXME: ObjectEntry is not in ExternalChecks!
+                //if (!m_parentScene.Permissions.CanObjectEntry(remoteClient.AgentId, oldPos, pos) && !group.RootPart.m_IsAttachment)
+                //{
                     group.SendGroupTerseUpdate();
-                    return;
-                }
-                if (m_parentScene.Permissions.CanEditObjectPosition(remoteClient.AgentId, group.UUID) || group.RootPart.m_IsAttachment)
+                    //return;
+                //}
+                if (m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(remoteClient.AgentId, group.UUID) || group.RootPart.m_IsAttachment)
                 {
                     group.UpdateSinglePosition(pos, localID);
                 }
@@ -1179,12 +1180,13 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else 
                 {
-                    if (!m_parentScene.Permissions.CanObjectEntry(remoteClient.AgentId, oldPos, pos) && !group.RootPart.m_IsAttachment)
-                    {
+                    //FIXME: ObjectEntry not in ExternalChecks!
+                    //if (!m_parentScene.Permissions.CanObjectEntry(remoteClient.AgentId, oldPos, pos) && !group.RootPart.m_IsAttachment)
+                    //{
                         group.SendGroupTerseUpdate();
-                        return;
-                    }
-                    if (m_parentScene.Permissions.CanEditObjectPosition(remoteClient.AgentId, group.UUID) || group.RootPart.m_IsAttachment)
+                      //  return;
+                    //}
+                        if (m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(group.UUID, remoteClient.AgentId) || group.RootPart.m_IsAttachment)
                     {
                         group.UpdateGroupPosition(pos);
                     }
@@ -1203,7 +1205,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanEditObjectPosition(remoteClient.AgentId, group.UUID))
+                if (m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(group.UUID,remoteClient.AgentId))
                 {
                     group.UpdateTextureEntry(localID, texture);
                 }
@@ -1221,7 +1223,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanEditObject(remoteClient.AgentId, group.UUID))
+                if (m_parentScene.ExternalChecks.ExternalChecksCanEditObject(group.UUID, remoteClient.AgentId))
                 {
                     group.UpdatePrimFlags(localID, (ushort)packet.Type, true, packet.ToBytes());
                 }
@@ -1233,7 +1235,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = GetGroupByPrim(objectID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanEditObjectPosition(remoteClient.AgentId, group.UUID))// && PermissionsMngr.)
+                if (m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(group.UUID, remoteClient.AgentId))// && PermissionsMngr.)
                 {
                     group.GrabMovement(offset, pos, remoteClient);
                 }
@@ -1255,7 +1257,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanEditObject(remoteClient.AgentId, group.UUID))
+                if (m_parentScene.ExternalChecks.ExternalChecksCanEditObject(group.UUID, remoteClient.AgentId))
                 {
                     group.SetPartName(Util.CleanString(name), primLocalID);
                 }
@@ -1272,7 +1274,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanEditObject(remoteClient.AgentId, group.UUID))
+                if (m_parentScene.ExternalChecks.ExternalChecksCanEditObject(group.UUID, remoteClient.AgentId))
                 {
                     group.SetPartDescription(Util.CleanString(description), primLocalID);
                 }
@@ -1285,7 +1287,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanEditObject(agentID, group.UUID))
+                if (m_parentScene.ExternalChecks.ExternalChecksCanEditObject(group.UUID,agentID))
                 {
                     group.UpdateExtraParam(primLocalID, type, inUse, data);
                 }
@@ -1302,7 +1304,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = GetGroupByPrim(primLocalID);
             if (group != null)
             {
-                if (m_parentScene.Permissions.CanEditObjectPosition(agentID, group.GetPartsFullID(primLocalID)))
+                if (m_parentScene.ExternalChecks.ExternalChecksCanEditObject(group.GetPartsFullID(primLocalID), agentID))
                 {
                     ObjectShapePacket.ObjectDataBlock shapeData = new ObjectShapePacket.ObjectDataBlock();
                     shapeData.ObjectLocalID = shapeBlock.ObjectLocalID;
@@ -1489,11 +1491,11 @@ namespace OpenSim.Region.Environment.Scenes
             // * Asset/DRM permission bit "modify" is enabled
             //use CanEditObjectPosition
 
-            if (IncludeInSearch && m_parentScene.Permissions.CanEditObject(user, objid))
+            if (IncludeInSearch && m_parentScene.ExternalChecks.ExternalChecksCanEditObject(objid, user))
             {
                 obj.AddFlag(LLObject.ObjectFlags.JointWheel);
             }
-            else if (!IncludeInSearch && m_parentScene.Permissions.CanEditObjectPosition(user, objid))
+            else if (!IncludeInSearch && m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(objid,user))
             {
                 obj.RemFlag(LLObject.ObjectFlags.JointWheel);
             }
@@ -1526,7 +1528,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (originPrim != null)
             {
-                if (m_parentScene.Permissions.CanCopyObject(AgentID, originPrim.UUID))
+                if (m_parentScene.ExternalChecks.ExternalChecksCanCopyObject(originPrim.Children.Count, originPrim.UUID, AgentID, originPrim.AbsolutePosition))
                 {
                     SceneObjectGroup copy = originPrim.Copy(AgentID, GroupID);
                     copy.AbsolutePosition = copy.AbsolutePosition + offset;

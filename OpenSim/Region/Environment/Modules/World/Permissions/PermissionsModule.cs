@@ -61,12 +61,33 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         {
             m_scene = scene;
             
-            // FIXME: Possibly move all permissions related stuff to its own section
             IConfig myConfig = config.Configs["Startup"];
             
-            m_bypassPermissions = !myConfig.GetBoolean("serverside_object_permissions", false);            
+            m_bypassPermissions = !myConfig.GetBoolean("serverside_object_permissions", true);            
             
             m_scene.RegisterModuleInterface<IScenePermissions>(this);
+
+            //Register External Permission Checks!
+            m_scene.ExternalChecks.addCheckAbandonParcel(this.CanAbandonParcel);
+            m_scene.ExternalChecks.addCheckCopyObject(this.CanCopyObject);
+            m_scene.ExternalChecks.addCheckDeRezObject(this.CanDeRezObject);
+            m_scene.ExternalChecks.addCheckEditEstateTerrain(this.CanEditEstateTerrain);
+            m_scene.ExternalChecks.addCheckEditObject(this.CanEditObject);
+            m_scene.ExternalChecks.addCheckEditParcel(this.CanEditParcel);
+            m_scene.ExternalChecks.addCheckEditScript(this.CanEditScript);
+            m_scene.ExternalChecks.addCheckInstantMessage(this.CanInstantMessage);
+            m_scene.ExternalChecks.addCheckInventoryTransfer(this.CanInventoryTransfer);
+            m_scene.ExternalChecks.addCheckMoveObject(this.CanEditObjectPosition);
+            m_scene.ExternalChecks.addCheckRestartSim(this.CanRestartSim);
+            m_scene.ExternalChecks.addCheckReturnObject(this.CanReturnObject);
+            m_scene.ExternalChecks.addCheckRezObject(this.CanRezObject);
+            m_scene.ExternalChecks.addCheckBeGodLike(this.CanBeGodLike);
+            m_scene.ExternalChecks.addCheckRunConsoleCommand(this.CanRunConsoleCommand);
+            m_scene.ExternalChecks.addCheckRunScript(this.CanRunScript);
+            m_scene.ExternalChecks.addCheckSellParcel(this.CanSellParcel);
+            //m_scene.ExternalChecks.addCheckTakeObject; -- NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckTerraformLandCommand(this.CanTerraform);
+
         }
 
         public void PostInitialise()
@@ -89,12 +110,12 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         #endregion        
 
-        protected virtual void SendPermissionError(LLUUID user, string reason)
+        protected void SendPermissionError(LLUUID user, string reason)
         {
             m_scene.EventManager.TriggerPermissionError(user, reason);
         }
 
-        protected virtual bool IsAdministrator(LLUUID user)
+        protected bool IsAdministrator(LLUUID user)
         {
             if (m_bypassPermissions)
             {
@@ -110,7 +131,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return false;
         }
 
-        public virtual bool IsEstateManager(LLUUID user)
+        public bool IsEstateManager(LLUUID user)
         {
             if (m_bypassPermissions)
             {
@@ -130,30 +151,23 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return false;
         }
 
-        protected virtual bool IsGridUser(LLUUID user)
+        protected bool IsGridUser(LLUUID user)
         {
             return true;
         }
 
-        protected virtual bool IsGuest(LLUUID user)
+        protected bool IsGuest(LLUUID user)
         {
             return false;
         }
 
-        public virtual bool CanRezObject(LLUUID user, LLVector3 position, int objectCount)
+        public bool CanRezObject(int objectCount, LLUUID user, LLVector3 position,Scene scene)
         {
             bool permission = false;
 
             
 
             string reason = "Insufficient permission";
-
-            //Perform ExternalChecks first!
-            bool results = m_scene.ExternalChecks.ExternalChecksCanRezObject(objectCount, user, position);
-            if (results == false)
-            {
-                return false;
-            }
 
             ILandObject land = m_scene.LandChannel.GetLandObject(position.X, position.Y);
             if (land == null) return false;
@@ -189,7 +203,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         }
 
         /// <see cref="Opensim.Region.Environment.Interfaces.IScenePermissions></see>
-        public virtual bool CanObjectEntry(LLUUID user, LLVector3 oldPos, LLVector3 newPos)
+        public bool CanObjectEntry(LLUUID user, LLVector3 oldPos, LLVector3 newPos)
         {
             if ((newPos.X > 257f || newPos.X < -1f || newPos.Y > 257f || newPos.Y < -1f))
             {
@@ -233,7 +247,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         #region Object Permissions
 
-        public virtual uint GenerateClientFlags(LLUUID user, LLUUID objID)
+        public uint GenerateClientFlags(LLUUID user, LLUUID objID)
         {
             // Here's the way this works, 
             // ObjectFlags and Permission flags are two different enumerations
@@ -344,7 +358,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return objectFlagsMask;
         }
 
-        protected virtual bool GenericObjectPermission(LLUUID currentUser, LLUUID objId)
+        protected bool GenericObjectPermission(LLUUID currentUser, LLUUID objId)
         {
             // Default: deny
             bool permission = false;
@@ -414,17 +428,17 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         }
 
         /// <see cref="Opensim.Region.Environment.Interfaces.IScenePermissions></see>
-        public virtual bool CanDeRezObject(LLUUID user, LLUUID obj)
+        public bool CanDeRezObject(LLUUID obj,LLUUID user, Scene scene)
         {
             return GenericObjectPermission(user, obj);
         }
 
-        public virtual bool CanEditObject(LLUUID user, LLUUID obj)
+        public bool CanEditObject(LLUUID obj, LLUUID user, Scene scene)
         {
             return GenericObjectPermission(user, obj);
         }
 
-        public virtual bool CanEditObjectPosition(LLUUID user, LLUUID obj)
+        public bool CanEditObjectPosition(LLUUID obj, LLUUID user, Scene scene)
         {
             bool permission = GenericObjectPermission(user, obj);
             if (!permission)
@@ -499,7 +513,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return permission;
         }
 
-        public virtual bool CanCopyObject(LLUUID user, LLUUID obj)
+        public bool CanCopyObject(int objectCount, LLUUID obj, LLUUID user, Scene scene, LLVector3 objectPosition)
         {
             bool permission = GenericObjectPermission(user, obj);
             if (permission)
@@ -521,15 +535,14 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 // the administrator object permissions to take effect.
                 LLUUID objectOwner = task.OwnerID;
 
-                //Check ExternalChecks!
-                if (m_scene.ExternalChecks.ExternalChecksCanRezObject(task.Children.Count, objectOwner, task.GroupCentrePoint) == false) return false;
+                
                 if ((task.RootPart.EveryoneMask & PERM_COPY) != 0)
                     permission = true;
             }
             return permission;
         }
 
-        public virtual bool CanReturnObject(LLUUID user, LLUUID obj)
+        public bool CanReturnObject(LLUUID obj, LLUUID user, Scene scene)
         {
             return GenericObjectPermission(user, obj);
         }
@@ -538,7 +551,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         #region Communication Permissions
 
-        protected virtual bool GenericCommunicationPermission(LLUUID user, LLUUID target)
+        protected bool GenericCommunicationPermission(LLUUID user, LLUUID target)
         {
             bool permission = false;
             string reason = "Only registered users may communicate with another account.";
@@ -563,36 +576,34 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return permission;
         }
 
-        public virtual bool CanInstantMessage(LLUUID user, LLUUID target)
+        public bool CanInstantMessage(LLUUID user, LLUUID target, Scene scene)
         {
             return GenericCommunicationPermission(user, target);
         }
 
-        public virtual bool CanInventoryTransfer(LLUUID user, LLUUID target)
+        public bool CanInventoryTransfer(LLUUID user, LLUUID target, Scene scene)
         {
             return GenericCommunicationPermission(user, target);
         }
 
         #endregion
 
-        public virtual bool CanEditScript(LLUUID user, LLUUID script)
+        public bool CanEditScript(LLUUID script, LLUUID user, Scene scene)
         {
             return IsAdministrator(user);
         }
 
-        public virtual bool CanRunScript(LLUUID user, LLUUID script)
-        {
-            //External Checks!
-            if (!m_scene.ExternalChecks.ExternalChecksCanRunScript(script, user)) return false;
-            return IsAdministrator(user);
-        }
-
-        public virtual bool CanRunConsoleCommand(LLUUID user)
+        public bool CanRunScript(LLUUID script, LLUUID user, Scene scene)
         {
             return IsAdministrator(user);
         }
 
-        public virtual bool CanTerraform(LLUUID user, LLVector3 position)
+        public bool CanRunConsoleCommand(LLUUID user, Scene scene)
+        {
+            return IsAdministrator(user);
+        }
+
+        public bool CanTerraform(LLUUID user, LLVector3 position, Scene scene)
         {
             bool permission = false;
 
@@ -625,7 +636,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         #region Estate Permissions
 
-        public virtual bool GenericEstatePermission(LLUUID user)
+        public bool GenericEstatePermission(LLUUID user)
         {
             // Default: deny
             bool permission = false;
@@ -641,12 +652,12 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return permission;
         }
 
-        public virtual bool CanEditEstateTerrain(LLUUID user)
+        public bool CanEditEstateTerrain(LLUUID user, Scene scene)
         {
             return GenericEstatePermission(user);
         }
 
-        public virtual bool CanRestartSim(LLUUID user)
+        public bool CanRestartSim(LLUUID user, Scene scene)
         {
             // Since this is potentially going on a grid...    
 
@@ -654,11 +665,16 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             //return m_scene.RegionInfo.MasterAvatarAssignedUUID == user;
         }
 
+        public bool CanBeGodLike(LLUUID user, Scene scene)
+        {
+            return GenericEstatePermission(user);
+        }
+
         #endregion
 
         #region Parcel Permissions
 
-        protected virtual bool GenericParcelPermission(LLUUID user, ILandObject parcel)
+        protected bool GenericParcelPermission(LLUUID user, ILandObject parcel)
         {
             bool permission = false;
 
@@ -685,24 +701,24 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return permission;
         }
 
-        protected virtual bool GenericParcelPermission(LLUUID user, LLVector3 pos)
+        protected bool GenericParcelPermission(LLUUID user, LLVector3 pos)
         {
             ILandObject parcel = m_scene.LandChannel.GetLandObject(pos.X, pos.Y);
             if (parcel == null) return false;
             return GenericParcelPermission(user, parcel);
         }
 
-        public virtual bool CanEditParcel(LLUUID user, ILandObject parcel)
+        public bool CanEditParcel(LLUUID user, ILandObject parcel, Scene scene)
         {
             return GenericParcelPermission(user, parcel);
         }
 
-        public virtual bool CanSellParcel(LLUUID user, ILandObject parcel)
+        public bool CanSellParcel(LLUUID user, ILandObject parcel, Scene scene)
         {
             return GenericParcelPermission(user, parcel);
         }
 
-        public virtual bool CanAbandonParcel(LLUUID user, ILandObject parcel)
+        public bool CanAbandonParcel(LLUUID user, ILandObject parcel, Scene scene)
         {
             return GenericParcelPermission(user, parcel);
         }

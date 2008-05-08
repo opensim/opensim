@@ -258,7 +258,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (x > 255 || x < 0 || y > 255 || y < 0)
                 LSLError("osTerrainSetHeight: Coordinate out of bounds");
 
-            if (World.Permissions.CanTerraform(m_host.OwnerID, new LLVector3(x, y, 0)))
+            if (World.ExternalChecks.ExternalChecksCanTerraformLand(m_host.OwnerID, new LLVector3(x, y, 0)))
             {
                 World.Heightmap[x, y] = val;
                 return 1;
@@ -281,7 +281,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public int osRegionRestart(double seconds)
         {
             m_host.AddScriptLPS(1);
-            if (World.Permissions.CanRestartSim(m_host.OwnerID))
+            if (World.ExternalChecks.ExternalChecksCanRestartSim(m_host.OwnerID))
             {
                 World.Restart((float)seconds);
                 return 1;
@@ -406,7 +406,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             if (config.Configs["LL-Functions"].GetBoolean("AllowosConsoleCommand", false))
             {
-                if (World.Permissions.CanRunConsoleCommand(m_host.OwnerID))
+                if (World.ExternalChecks.ExternalChecksCanRunConsoleCommand(m_host.OwnerID))
                 {
                     MainConsole.Instance.RunCommand(command);
                     return true;

@@ -1245,7 +1245,7 @@ namespace OpenSim.Region.Environment.Scenes
            
             LLVector3 pos = GetNewRezLocation(RayStart, RayEnd, RayTargetID, rot, bypassRaycast, RayEndIsIntersection, true, new LLVector3(0.5f,0.5f,0.5f), false);
 
-            if (Permissions.CanRezObject(ownerID, pos, 1))
+            if ( ExternalChecks.ExternalChecksCanRezObject(1,ownerID,pos))
             {
                 // rez ON the ground, not IN the ground
                 pos.Z += 0.25F;
@@ -2519,7 +2519,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_scenePresences.ContainsKey(agentID))
                 {   
                     // First check that this is the sim owner
-                    if (Permissions.GenericEstatePermission(agentID))
+                    if (ExternalChecks.ExternalChecksCanBeGodLike(agentID))
                     {
                         // Next we check for spoofing.....
                         LLUUID testSessionID = m_scenePresences[agentID].ControllingClient.SessionId;
@@ -2597,7 +2597,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_scenePresences.ContainsKey(agentID) || agentID == kickUserID)
                 {
-                    if (Permissions.GenericEstatePermission(godID))
+                    if (ExternalChecks.ExternalChecksCanBeGodLike(godID))
                     {
                         if (agentID == kickUserID)
                         {
@@ -2918,7 +2918,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     else if ((parcel.landData.landFlags & (uint)Parcel.ParcelFlags.AllowGroupScripts) != 0)
                     {
-                        if (part.OwnerID == parcel.landData.ownerID || (parcel.landData.isGroupOwned && part.GroupID == parcel.landData.groupID) || Permissions.GenericEstatePermission(part.OwnerID))
+                        if (part.OwnerID == parcel.landData.ownerID || (parcel.landData.isGroupOwned && part.GroupID == parcel.landData.groupID) || ExternalChecks.ExternalChecksCanBeGodLike(part.OwnerID))
                         {
                             return true;
                         }

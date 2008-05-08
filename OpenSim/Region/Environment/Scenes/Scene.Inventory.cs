@@ -73,7 +73,7 @@ namespace OpenSim.Region.Environment.Scenes
                 remoteClient.SendInventoryItemCreateUpdate(item);
 
                 int userlevel = 0;
-                if (Permissions.IsEstateManager(remoteClient.AgentId))
+                if (ExternalChecks.ExternalChecksCanBeGodLike(remoteClient.AgentId))
                 {
                     userlevel = 1;
                 }
@@ -988,13 +988,11 @@ namespace OpenSim.Region.Environment.Scenes
                         bool permission;
                         if (DeRezPacket.AgentBlock.Destination == 1)
                         { // Take Copy
-                            permission = Permissions.CanCopyObject(remoteClient.AgentId, 
-                                                                ((SceneObjectGroup) selectedEnt).UUID);
+                            permission = ExternalChecks.ExternalChecksCanTakeObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
                         }
                         else
                         { // Take
-                            permission = Permissions.CanDeRezObject(remoteClient.AgentId, 
-                                                                ((SceneObjectGroup) selectedEnt).UUID);
+                            permission = ExternalChecks.ExternalChecksCanTakeObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
                         }
 
                         if (permission)
@@ -1285,7 +1283,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             string xmlData = Helpers.FieldToUTF8String(rezAsset.Data);                            
                             SceneObjectGroup group = new SceneObjectGroup(this, m_regionHandle, xmlData);
-                            if (!Permissions.CanRezObject(remoteClient.AgentId, pos, group.Children.Count) && !attachment)
+                            if (!ExternalChecks.ExternalChecksCanRezObject(group.Children.Count,remoteClient.AgentId, pos) && !attachment)
                             {
                                 return null;
                             }
@@ -1371,7 +1369,7 @@ namespace OpenSim.Region.Environment.Scenes
                     string xmlData = Helpers.FieldToUTF8String(rezAsset.Data);
                     SceneObjectGroup group = new SceneObjectGroup(this, m_regionHandle, xmlData);
 
-                    if (!Permissions.CanRezObject(ownerID, pos, group.Children.Count))
+                    if (!ExternalChecks.ExternalChecksCanRezObject(group.Children.Count, ownerID, pos))
                     {
                         return null;
                     }

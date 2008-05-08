@@ -181,7 +181,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             //Check to make sure that the script's owner is the estate manager/master
             //World.Permissions.GenericEstatePermission(
-            if (World.Permissions.GenericEstatePermission(m_host.OwnerID))
+            if (World.ExternalChecks.ExternalChecksCanBeGodLike(m_host.OwnerID))
             {
                 World.EventManager.TriggerRequestChangeWaterHeight((float)height);
             }
@@ -2647,7 +2647,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llModifyLand(int action, int brush)
         {
             m_host.AddScriptLPS(1);
-            if (World.Permissions.CanTerraform(m_host.OwnerID, new LLVector3(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, 0)))
+            if (World.ExternalChecks.ExternalChecksCanTerraformLand(m_host.OwnerID, new LLVector3(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, 0)))
             {
                 NotImplemented("llModifyLand");
             }
@@ -3900,7 +3900,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         {
                             if (m_host.ObjectOwner == parcel.landData.ownerID || 
                                 (m_host.OwnerID == m_host.GroupID && m_host.GroupID == parcel.landData.groupID 
-                                && parcel.landData.isGroupOwned) || World.Permissions.GenericEstatePermission(m_host.OwnerID))
+                                && parcel.landData.isGroupOwned) || World.ExternalChecks.ExternalChecksCanBeGodLike(m_host.OwnerID))
                             {
                                 av.StandUp();
                             }
