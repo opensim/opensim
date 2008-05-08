@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -115,24 +116,17 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 
         public void FromBytes(byte[] bytes)
         {
-            int i = 0; // offset
-            try
-            {
-                type = (int) (bytes[i++] + (bytes[i++] << 8) + (bytes[i++] << 16) + (bytes[i++] << 24));
-                throttlePacketType = (int) (bytes[i++] + (bytes[i++] << 8) + (bytes[i++] << 16) + (bytes[i++] << 24));
-                numbytes = (int) (bytes[i++] + (bytes[i++] << 8) + (bytes[i++] << 16) + (bytes[i++] << 24));
-                agent_id = new Guid(
-                    bytes[i++] | (bytes[i++] << 8) | (bytes[i++] << 16) | bytes[i++] << 24,
-                    (short) (bytes[i++] | (bytes[i++] << 8)),
-                    (short) (bytes[i++] | (bytes[i++] << 8)),
-                    bytes[i++], bytes[i++], bytes[i++], bytes[i++],
-                    bytes[i++], bytes[i++], bytes[i++], bytes[i++]);
-                region_port = (int) (bytes[i++] + (bytes[i++] << 8) + (bytes[i++] << 16) + (bytes[i++] << 24));
-            }
-            catch (Exception)
-            {
-                throw new Exception("bad format!!!");
-            }
+            MemoryStream memstr = new MemoryStream(bytes);
+            memstr.Seek(0, SeekOrigin.Begin);
+            BinaryReader binread = new BinaryReader(memstr);
+
+            type = binread.ReadInt32();
+            throttlePacketType = binread.ReadInt32();
+            numbytes = binread.ReadInt32();
+            agent_id = new Guid(binread.ReadBytes(16));
+            region_port = binread.ReadInt32();
+
+            binread.Close();
         }
 
         public byte[] ToBytes()
