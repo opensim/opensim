@@ -1454,7 +1454,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             TimeSpan ScriptTime = DateTime.Now - m_timer;
-            return (double)(ScriptTime.TotalMilliseconds / 1000);
+            return (double)((ScriptTime.TotalMilliseconds / 1000)*World.TimeDilation);
         }
 
         public void llResetTime()
@@ -1468,7 +1468,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             TimeSpan ScriptTime = DateTime.Now - m_timer;
             m_timer = DateTime.Now;
-            return (double)(ScriptTime.TotalMilliseconds / 1000);
+            return (double)((ScriptTime.TotalMilliseconds / 1000)*World.TimeDilation);
         }
 
         public void llSound()
