@@ -187,7 +187,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llPow(fbase, fexponent);
         }
 
-        public int llAbs(int i)
+        public LSL_Types.LSLInteger llAbs(int i)
         {
             return m_LSL_Functions.llAbs(i);
         }
@@ -202,17 +202,17 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llFrand(mag);
         }
 
-        public int llFloor(double f)
+        public LSL_Types.LSLInteger llFloor(double f)
         {
             return m_LSL_Functions.llFloor(f);
         }
 
-        public int llCeil(double f)
+        public LSL_Types.LSLInteger llCeil(double f)
         {
             return m_LSL_Functions.llCeil(f);
         }
 
-        public int llRound(double f)
+        public LSL_Types.LSLInteger llRound(double f)
         {
             return m_LSL_Functions.llRound(f);
         }
@@ -290,7 +290,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llRegionSay(channelID, text);
         }
 
-        public int llListen(int channelID, string name, string ID, string msg)
+        public LSL_Types.LSLInteger llListen(int channelID, string name, string ID, string msg)
         {
             return m_LSL_Functions.llListen(channelID, name, ID, msg);
         }
@@ -335,7 +335,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llDetectedOwner(number);
         }
 
-        public int llDetectedType(int number)
+        public LSL_Types.LSLInteger llDetectedType(int number)
         {
             return m_LSL_Functions.llDetectedType(number);
         }
@@ -360,12 +360,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llDetectedRot(number);
         }
 
-        public int llDetectedGroup(int number)
+        public LSL_Types.LSLInteger llDetectedGroup(int number)
         {
             return m_LSL_Functions.llDetectedGroup(number);
         }
 
-        public int llDetectedLinkNumber(int number)
+        public LSL_Types.LSLInteger llDetectedLinkNumber(int number)
         {
             return m_LSL_Functions.llDetectedLinkNumber(number);
         }
@@ -398,7 +398,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llSetStatus(status, value);
         }
 
-        public int llGetStatus(int status)
+        public LSL_Types.LSLInteger llGetStatus(int status)
         {
             return m_LSL_Functions.llGetStatus(status);
         }
@@ -501,7 +501,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetForce();
         }
 
-        public int llTarget(vector position, double range)
+        public LSL_Types.LSLInteger llTarget(vector position, double range)
         {
             return m_LSL_Functions.llTarget(position, range);
         }
@@ -511,7 +511,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llTargetRemove(number);
         }
 
-        public int llRotTarget(rotation rot, double error)
+        public LSL_Types.LSLInteger llRotTarget(rotation rot, double error)
         {
             return m_LSL_Functions.llRotTarget(rot, error);
         }
@@ -672,7 +672,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llToLower(source);
         }
 
-        public int llGiveMoney(string destination, int amount)
+        public LSL_Types.LSLInteger llGiveMoney(string destination, int amount)
         {
             return m_LSL_Functions.llGiveMoney(destination, amount);
         }
@@ -823,7 +823,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public int llStringLength(string str)
+        public LSL_Types.LSLInteger llStringLength(string str)
         {
             return m_LSL_Functions.llStringLength(str);
         }
@@ -853,7 +853,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llTargetOmega(axis, spinrate, gain);
         }
 
-        public int llGetStartParameter()
+        public LSL_Types.LSLInteger llGetStartParameter()
         {
             return m_LSL_Functions.llGetStartParameter();
         }
@@ -873,12 +873,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetPermissionsKey();
         }
 
-        public int llGetPermissions()
+        public LSL_Types.LSLInteger llGetPermissions()
         {
             return m_LSL_Functions.llGetPermissions();
         }
 
-        public int llGetLinkNumber()
+        public LSL_Types.LSLInteger llGetLinkNumber()
         {
             return m_LSL_Functions.llGetLinkNumber();
         }
@@ -913,7 +913,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetLinkName(linknum);
         }
 
-        public int llGetInventoryNumber(int type)
+        public LSL_Types.LSLInteger llGetInventoryNumber(int type)
         {
             return m_LSL_Functions.llGetInventoryNumber(type);
         }
@@ -1026,7 +1026,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetScriptName();
         }
 
-        public int llGetNumberOfSides()
+        public LSL_Types.LSLInteger llGetNumberOfSides()
         {
             return m_LSL_Functions.llGetNumberOfSides();
         }
@@ -1094,7 +1094,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetTextureRot(side);
         }
 
-        public int llSubStringIndex(string source, string pattern)
+        public LSL_Types.LSLInteger llSubStringIndex(string source, string pattern)
         {
             return m_LSL_Functions.llSubStringIndex(source, pattern);
         }
@@ -1114,7 +1114,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llListSort(src, stride, ascending);
         }
 
-        public int llGetListLength(LSL_Types.list src)
+        public LSL_Types.LSLInteger llGetListLength(LSL_Types.list src)
         {
             return m_LSL_Functions.llGetListLength(src);
         }
@@ -1122,7 +1122,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public int llList2Integer(LSL_Types.list src, int index)
+        public LSL_Types.LSLInteger llList2Integer(LSL_Types.list src, int index)
         {
             return m_LSL_Functions.llList2Integer(src, index);
         }
@@ -1162,7 +1162,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llDeleteSubList(src, start, end);
         }
 
-        public int llGetListEntryType(LSL_Types.list src, int index)
+        public LSL_Types.LSLInteger llGetListEntryType(LSL_Types.list src, int index)
         {
             return m_LSL_Functions.llGetListEntryType(src, index);
         }
@@ -1197,7 +1197,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llListInsertList(dest, src, start);
         }
 
-        public int llListFindList(LSL_Types.list src, LSL_Types.list test)
+        public LSL_Types.LSLInteger llListFindList(LSL_Types.list src, LSL_Types.list test)
         {
             return m_LSL_Functions.llListFindList(src, test);
         }
@@ -1217,12 +1217,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetDate();
         }
 
-        public int llEdgeOfWorld(vector pos, vector dir)
+        public LSL_Types.LSLInteger llEdgeOfWorld(vector pos, vector dir)
         {
             return m_LSL_Functions.llEdgeOfWorld(pos, dir);
         }
 
-        public int llGetAgentInfo(string id)
+        public LSL_Types.LSLInteger llGetAgentInfo(string id)
         {
             return m_LSL_Functions.llGetAgentInfo(id);
         }
@@ -1270,7 +1270,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llParseString2List(str,separators,spacers);
         }
 
-        public int llOverMyLand(string id)
+        public LSL_Types.LSLInteger llOverMyLand(string id)
         {
             return m_LSL_Functions.llOverMyLand(id);
         }
@@ -1290,7 +1290,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetAgentSize(id);
         }
 
-        public int llSameGroup(string agent)
+        public LSL_Types.LSLInteger llSameGroup(string agent)
         {
             return m_LSL_Functions.llSameGroup(agent);
         }
@@ -1315,12 +1315,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGroundContour(offset);
         }
 
-        public int llGetAttached()
+        public LSL_Types.LSLInteger llGetAttached()
         {
             return m_LSL_Functions.llGetAttached();
         }
 
-        public int llGetFreeMemory()
+        public LSL_Types.LSLInteger llGetFreeMemory()
         {
             return m_LSL_Functions.llGetFreeMemory();
         }
@@ -1433,7 +1433,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llDumpList2String(src, seperator);
         }
 
-        public int llScriptDanger(vector pos)
+        public LSL_Types.LSLInteger llScriptDanger(vector pos)
         {
             return m_LSL_Functions.llScriptDanger(pos);
         }
@@ -1453,7 +1453,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llResetOtherScript(name);
         }
 
-        public int llGetScriptState(string name)
+        public LSL_Types.LSLInteger llGetScriptState(string name)
         {
             return m_LSL_Functions.llGetScriptState(name);
         }
@@ -1585,7 +1585,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llSetLinkAlpha(linknumber, alpha, face);
         }
 
-        public int llGetNumberOfPrims()
+        public LSL_Types.LSLInteger llGetNumberOfPrims()
         {
             return m_LSL_Functions.llGetNumberOfPrims();
         }
@@ -1618,7 +1618,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llIntegerToBase64(number);
         }
 
-        public int llBase64ToInteger(string str)
+        public LSL_Types.LSLInteger llBase64ToInteger(string str)
         {
             return m_LSL_Functions.llBase64ToInteger(str);
         }
@@ -1648,7 +1648,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llRezAtRoot(inventory, position, velocity, rot, param);
         }
 
-        public int llGetObjectPermMask(int mask)
+        public LSL_Types.LSLInteger llGetObjectPermMask(int mask)
         {
             return m_LSL_Functions.llGetObjectPermMask(mask);
         }
@@ -1658,7 +1658,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llSetObjectPermMask(mask, value);
         }
 
-        public int llGetInventoryPermMask(string item, int mask)
+        public LSL_Types.LSLInteger llGetInventoryPermMask(string item, int mask)
         {
             return m_LSL_Functions.llGetInventoryPermMask(item, mask);
         }
@@ -1713,7 +1713,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llParcelMediaQuery();
         }
 
-        public int llModPow(int a, int b, int c)
+        public LSL_Types.LSLInteger llModPow(int a, int b, int c)
         {
             return m_LSL_Functions.llModPow(a, b, c);
         }
@@ -1721,7 +1721,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public int llGetInventoryType(string name)
+        public LSL_Types.LSLInteger llGetInventoryType(string name)
         {
             return m_LSL_Functions.llGetInventoryType(name);
         }
@@ -1796,17 +1796,17 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llListStatistics(operation, src);
         }
 
-        public int llGetUnixTime()
+        public LSL_Types.LSLInteger llGetUnixTime()
         {
             return m_LSL_Functions.llGetUnixTime();
         }
 
-        public int llGetParcelFlags(vector pos)
+        public LSL_Types.LSLInteger llGetParcelFlags(vector pos)
         {
             return m_LSL_Functions.llGetParcelFlags(pos);
         }
 
-        public int llGetRegionFlags()
+        public LSL_Types.LSLInteger llGetRegionFlags()
         {
             return m_LSL_Functions.llGetRegionFlags();
         }
@@ -1831,7 +1831,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llResetLandPassList();
         }
 
-        public int llGetParcelPrimCount(vector pos, int category, int sim_wide)
+        public LSL_Types.LSLInteger llGetParcelPrimCount(vector pos, int category, int sim_wide)
         {
             return m_LSL_Functions.llGetParcelPrimCount(pos, category, sim_wide);
         }
@@ -1841,7 +1841,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetParcelPrimOwners(pos);
         }
 
-        public int llGetObjectPrimCount(string object_id)
+        public LSL_Types.LSLInteger llGetObjectPrimCount(string object_id)
         {
             return m_LSL_Functions.llGetObjectPrimCount(object_id);
         }
@@ -1849,7 +1849,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //
         // DO NOT MODIFY HERE: MODIFY IN LSL_BuiltIn_Commands.cs
         //
-        public int llGetParcelMaxPrims(vector pos, int sim_wide)
+        public LSL_Types.LSLInteger llGetParcelMaxPrims(vector pos, int sim_wide)
         {
             return m_LSL_Functions.llGetParcelMaxPrims(pos, sim_wide);
         }

@@ -43,12 +43,12 @@ namespace OpenSim.Region.ScriptEngine.Common
         double llAtan2(double x, double y);
         double llSqrt(double f);
         double llPow(double fbase, double fexponent);
-        int llAbs(int i);
+        LSL_Types.LSLInteger llAbs(int i);
         double llFabs(double f);
         double llFrand(double mag);
-        int llFloor(double f);
-        int llCeil(double f);
-        int llRound(double f);
+        LSL_Types.LSLInteger llFloor(double f);
+        LSL_Types.LSLInteger llCeil(double f);
+        LSL_Types.LSLInteger llRound(double f);
         double llVecMag(LSL_Types.Vector3 v);
         LSL_Types.Vector3 llVecNorm(LSL_Types.Vector3 v);
         double llVecDist(LSL_Types.Vector3 a, LSL_Types.Vector3 b);
@@ -64,7 +64,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         void llSay(int channelID, string text);
         void llShout(int channelID, string text);
         void llRegionSay(int channelID, string text);
-        int llListen(int channelID, string name, string ID, string msg);
+        LSL_Types.LSLInteger llListen(int channelID, string name, string ID, string msg);
         void llListenControl(int number, int active);
         void llListenRemove(int number);
         void llSensor(string name, string id, int type, double range, double arc);
@@ -73,19 +73,19 @@ namespace OpenSim.Region.ScriptEngine.Common
         string llDetectedName(int number);
         string llDetectedKey(int number);
         string llDetectedOwner(int number);
-        int llDetectedType(int number);
+        LSL_Types.LSLInteger llDetectedType(int number);
         LSL_Types.Vector3 llDetectedPos(int number);
         LSL_Types.Vector3 llDetectedVel(int number);
         LSL_Types.Vector3 llDetectedGrab(int number);
         LSL_Types.Quaternion llDetectedRot(int number);
-        int llDetectedGroup(int number);
-        int llDetectedLinkNumber(int number);
+        LSL_Types.LSLInteger llDetectedGroup(int number);
+        LSL_Types.LSLInteger llDetectedLinkNumber(int number);
         void llDie();
         double llGround(LSL_Types.Vector3 offset);
         double llCloud(LSL_Types.Vector3 offset);
         LSL_Types.Vector3 llWind(LSL_Types.Vector3 offset);
         void llSetStatus(int status, int value);
-        int llGetStatus(int status);
+        LSL_Types.LSLInteger llGetStatus(int status);
         void llSetScale(LSL_Types.Vector3 scale);
         LSL_Types.Vector3 llGetScale();
         void llSetColor(LSL_Types.Vector3 color, int face);
@@ -114,11 +114,11 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: vector llGetForce()
         LSL_Types.Vector3 llGetForce();
         //wiki: integer llTarget(vector position, double range)
-        int llTarget(LSL_Types.Vector3 position, double range);
+        LSL_Types.LSLInteger llTarget(LSL_Types.Vector3 position, double range);
         //wiki: llTargetRemove(integer number)
         void llTargetRemove(int number);
         //wiki: integer llRotTarget(rotation rot, double error)
-        int llRotTarget(LSL_Types.Quaternion rot, double error);
+        LSL_Types.LSLInteger llRotTarget(LSL_Types.Quaternion rot, double error);
         //wiki: integer llRotTargetRemove(integer number)
         void llRotTargetRemove(int number);
         //wiki: llMoveToTarget(vector target, double tau)
@@ -180,7 +180,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: string llToLower(string source)
         string llToLower(string source);
         //wiki: integer llGiveMoney(key destination, integer amount)
-        int llGiveMoney(string destination, int amount);
+        LSL_Types.LSLInteger llGiveMoney(string destination, int amount);
         //wiki: (deprecated)
         void llMakeExplosion();
         //wiki: (deprecated)
@@ -238,7 +238,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: llRotLookAt(rotation target, double strength, double damping)
         void llRotLookAt(LSL_Types.Quaternion target, double strength, double damping);
         //wiki: integer llStringLength(string str)
-        int llStringLength(string str);
+        LSL_Types.LSLInteger llStringLength(string str);
         //wiki: llStartAnimation(string anim)
         void llStartAnimation(string anim);
         //wiki: llStopAnimation(string anim)
@@ -250,7 +250,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: llTargetOmega(vector axis, double spinrate, double gain)
         void llTargetOmega(LSL_Types.Vector3 axis, double spinrate, double gain);
         //wiki: integer llGetStartParameter()
-        int llGetStartParameter();
+        LSL_Types.LSLInteger llGetStartParameter();
         //wiki: llGodLikeRezObject(key inventory, vector pos)
         void llGodLikeRezObject(string inventory, LSL_Types.Vector3 pos);
         //wiki: llRequestPermissions(key agent, integer perm)
@@ -258,9 +258,9 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: key llGetPermissionsKey()
         string llGetPermissionsKey();
         //wiki: integer llGetPermissions()
-        int llGetPermissions();
+        LSL_Types.LSLInteger llGetPermissions();
         //wiki integer llGetLinkNumber()
-        int llGetLinkNumber();
+        LSL_Types.LSLInteger llGetLinkNumber();
         //wiki: llSetLinkColor(integer linknumber, vector color, integer face)
         void llSetLinkColor(int linknumber, LSL_Types.Vector3 color, int face);
         //wiki: llCreateLink(key target, integer parent)
@@ -274,7 +274,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: llGetLinkName(integer linknum)
         string llGetLinkName(int linknum);
         //wiki: integer llGetInventoryNumber(integer type)
-        int llGetInventoryNumber(int type);
+        LSL_Types.LSLInteger llGetInventoryNumber(int type);
         //wiki: string llGetInventoryName(integer type, integer number)
         string llGetInventoryName(int type, int number);
         //wiki: llSetScriptState(string name, integer run)
@@ -318,7 +318,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: string llGetScriptName()
         string llGetScriptName();
         //wiki: integer llGetNumberOfSides()
-        int llGetNumberOfSides();
+        LSL_Types.LSLInteger llGetNumberOfSides();
         //wiki: rotation llAxisAngle2Rot(vector axis, double angle)
         LSL_Types.Quaternion llAxisAngle2Rot(LSL_Types.Vector3 axis, double angle);
         //wiki: vector llRot2Axis(rotation rot)
@@ -344,7 +344,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: double llGetTextureRot(integer side)
         double llGetTextureRot(int side);
         //wiki: integer llSubStringIndex(string source, string pattern)
-        int llSubStringIndex(string source, string pattern);
+        LSL_Types.LSLInteger llSubStringIndex(string source, string pattern);
         //wiki: key llGetOwnerKey(key id)
         string llGetOwnerKey(string id);
         //wiki: vector llGetCenterOfMass()
@@ -352,9 +352,9 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: list llListSort(list src, integer stride, integer ascending)
         LSL_Types.list llListSort(LSL_Types.list src, int stride, int ascending);
         //integer llGetListLength(list src)
-        int llGetListLength(LSL_Types.list src);
+        LSL_Types.LSLInteger llGetListLength(LSL_Types.list src);
         //wiki: integer llList2Integer(list src, integer index)
-        int llList2Integer(LSL_Types.list src, int index);
+        LSL_Types.LSLInteger llList2Integer(LSL_Types.list src, int index);
         //wiki: double llList2double(list src, integer index)
         double llList2Float(LSL_Types.list src, int index);
         double osList2Double(LSL_Types.list src, int index);
@@ -371,7 +371,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: llDeleteSubList(list src, integer start, integer end)
         LSL_Types.list llDeleteSubList(LSL_Types.list src, int start, int end);
         //wiki: integer llGetListEntryType( list src, integer index )
-        int llGetListEntryType(LSL_Types.list src, int index);
+        LSL_Types.LSLInteger llGetListEntryType(LSL_Types.list src, int index);
         //wiki: string llList2CSV( list src )
         string llList2CSV(LSL_Types.list src);
         //wiki: list llCSV2List( string src )
@@ -385,7 +385,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: list llListInsertList( list dest, list src, integer start )
         LSL_Types.list llListInsertList(LSL_Types.list dest, LSL_Types.list src, int start);
         //wiki: integer llListFindList( list src, list test )
-        int llListFindList(LSL_Types.list src, LSL_Types.list test);
+        LSL_Types.LSLInteger llListFindList(LSL_Types.list src, LSL_Types.list test);
         //wiki: string llGetObjectName()
         string llGetObjectName();
         //wiki: llSetObjectName(string name)
@@ -393,9 +393,9 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: string llGetDate()
         string llGetDate();
         //wiki: integer llEdgeOfWorld(vector pos, vector dir)
-        int llEdgeOfWorld(LSL_Types.Vector3 pos, LSL_Types.Vector3 dir);
+        LSL_Types.LSLInteger llEdgeOfWorld(LSL_Types.Vector3 pos, LSL_Types.Vector3 dir);
         //wiki: integer llGetAgentInfo(key id)
-        int llGetAgentInfo(string id);
+        LSL_Types.LSLInteger llGetAgentInfo(string id);
         //wiki: llAdjustSoundVolume(double volume)
         void llAdjustSoundVolume(double volume);
         //wiki: llSetSoundQueueing(integer queue)
@@ -414,7 +414,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         void llEjectFromLand(string pest);
         LSL_Types.list llParseString2List(string str, LSL_Types.list separators, LSL_Types.list spacers);
         //wiki: integer llOverMyLand(key id)
-        int llOverMyLand(string id);
+        LSL_Types.LSLInteger llOverMyLand(string id);
         //wiki: key llGetLandOwnerAt(vector pos)
         string llGetLandOwnerAt(LSL_Types.Vector3 pos);
         //wiki: key llGetNotecardLine(string name, integer line)
@@ -422,7 +422,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: vector llGetAgentSize(key id)
         LSL_Types.Vector3 llGetAgentSize(string id);
         //wiki: integer llSameGroup(key agent)
-        int llSameGroup(string agent);
+        LSL_Types.LSLInteger llSameGroup(string agent);
         //wiki: llUnSit(key id)
         void llUnSit(string id);
         //wiki: vector llGroundSlope(vector offset)
@@ -432,9 +432,9 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: vector llGroundContour(vector offset)
         LSL_Types.Vector3 llGroundContour(LSL_Types.Vector3 offset);
         //wiki: integer llGetAttached()
-        int llGetAttached();
+        LSL_Types.LSLInteger llGetAttached();
         //wiki: integer llGetFreeMemory()
-        int llGetFreeMemory();
+        LSL_Types.LSLInteger llGetFreeMemory();
         //wiki: string llGetRegionName()
         string llGetRegionName();
         //wiki: double llGetRegionTimeDilation()
@@ -477,7 +477,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //
         string llDumpList2String(LSL_Types.list src, string seperator);
         //wiki: integer llScriptDanger(vector pos)
-        int llScriptDanger(LSL_Types.Vector3 pos);
+        LSL_Types.LSLInteger llScriptDanger(LSL_Types.Vector3 pos);
         //wiki: llDialog( key avatar, string message, list buttons, integer chat_channel )
         void llDialog(string avatar, string message, LSL_Types.list buttons, int chat_channel);
         //wiki: llVolumeDetect(integer detect)
@@ -485,7 +485,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: llResetOtherScript(string name)
         void llResetOtherScript(string name);
         //wiki: integer llGetScriptState(string name)
-        int llGetScriptState(string name);
+        LSL_Types.LSLInteger llGetScriptState(string name);
         //wiki: (deprecated)
         void llRemoteLoadScript();
         //wiki: llSetRemoteScriptAccessPin(integer pin)
@@ -537,7 +537,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: llSetLinkAlpha(integer linknumber, double alpha, integer face)
         void llSetLinkAlpha(int linknumber, double alpha, int face);
         //wiki: integer llGetNumberOfPrims()
-        int llGetNumberOfPrims();
+        LSL_Types.LSLInteger llGetNumberOfPrims();
         //wiki: key llGetNumberOfNotecardLines(string name)
         string llGetNumberOfNotecardLines(string name);
         //wiki: list llGetBoundingBox( key object )
@@ -549,7 +549,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: string llIntegerToBase64(integer number)
         string llIntegerToBase64(int number);
         //wiki integer llBase64ToInteger(string str)
-        int llBase64ToInteger(string str);
+        LSL_Types.LSLInteger llBase64ToInteger(string str);
         //wiki: double llGetGMTclock()
         double llGetGMTclock();
         //wiki: string llGetSimulatorHostname()
@@ -563,11 +563,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                          LSL_Types.Quaternion rot, int param);
 
         //wiki: integer llGetObjectPermMask(integer mask)
-        int llGetObjectPermMask(int mask);
+        LSL_Types.LSLInteger llGetObjectPermMask(int mask);
         //wiki: llSetObjectPermMask(integer mask, integer value)
         void llSetObjectPermMask(int mask, int value);
         //wiki integer llGetInventoryPermMask(string item, integer mask)
-        int llGetInventoryPermMask(string item, int mask);
+        LSL_Types.LSLInteger llGetInventoryPermMask(string item, int mask);
         //wiki: llSetInventoryPermMask(string item, integer mask, integer value)
         void llSetInventoryPermMask(string item, int mask, int value);
         //wiki: key llGetInventoryCreator(string item)
@@ -587,9 +587,9 @@ namespace OpenSim.Region.ScriptEngine.Common
         void llParcelMediaCommandList(LSL_Types.list commandList);
         void llParcelMediaQuery();
         //wiki integer llModPow(integer a, integer b, integer c)
-        int llModPow(int a, int b, int c);
+        LSL_Types.LSLInteger llModPow(int a, int b, int c);
         //wiki: integer llGetInventoryType(string name)
-        int llGetInventoryType(string name);
+        LSL_Types.LSLInteger llGetInventoryType(string name);
         //wiki: llSetPayPrice( integer price, list quick_pay_buttons )
         void llSetPayPrice(int price, LSL_Types.list quick_pay_buttons);
         //wiki: vector llGetCameraPos()
@@ -619,11 +619,11 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: double llListStatistics( integer operation, list src )
         double llListStatistics(int operation, LSL_Types.list src);
         //wiki: integer llGetUnixTime()
-        int llGetUnixTime();
+        LSL_Types.LSLInteger llGetUnixTime();
         //wiki: integer llGetParcelFlags(vector pos)
-        int llGetParcelFlags(LSL_Types.Vector3 pos);
+        LSL_Types.LSLInteger llGetParcelFlags(LSL_Types.Vector3 pos);
         //wiki: integer llGetRegionFlags()
-        int llGetRegionFlags();
+        LSL_Types.LSLInteger llGetRegionFlags();
         //wiki: string llXorBase64StringsCorrect(string str1, string str2)
         string llXorBase64StringsCorrect(string str1, string str2);
         string llHTTPRequest(string url, LSL_Types.list parameters, string body);
@@ -632,13 +632,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: llResetLandPassList()
         void llResetLandPassList();
         //wiki: integer llGetParcelPrimCount(vector pos, integer category, integer sim_wide)
-        int llGetParcelPrimCount(LSL_Types.Vector3 pos, int category, int sim_wide);
+        LSL_Types.LSLInteger llGetParcelPrimCount(LSL_Types.Vector3 pos, int category, int sim_wide);
         //wiki: list llGetParcelPrimOwners( vector pos )
         LSL_Types.list llGetParcelPrimOwners(LSL_Types.Vector3 pos);
         //wiki: integer llGetObjectPrimCount(key object_id)
-        int llGetObjectPrimCount(string object_id);
+        LSL_Types.LSLInteger llGetObjectPrimCount(string object_id);
         //wiki: integer llGetParcelMaxPrims( vector pos, integer sim_wide )
-        int llGetParcelMaxPrims(LSL_Types.Vector3 pos, int sim_wide);
+        LSL_Types.LSLInteger llGetParcelMaxPrims(LSL_Types.Vector3 pos, int sim_wide);
         //wiki: llGetParcelDetails(vector pos, list params)
         LSL_Types.list llGetParcelDetails(LSL_Types.Vector3 pos, LSL_Types.list param);
         //wiki: llSetLinkTexture(integer linknumber, string texture, integer face )
