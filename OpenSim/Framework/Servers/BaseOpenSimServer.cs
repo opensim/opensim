@@ -52,7 +52,7 @@ namespace OpenSim.Framework.Servers
         /// <summary>
         /// Should be overriden by descendents if they need to perform extra shutdown processing
         /// </summary>
-        protected virtual void Shutdown()
+        public virtual void Shutdown()
         {
             m_console.Close();
             Environment.Exit(0);

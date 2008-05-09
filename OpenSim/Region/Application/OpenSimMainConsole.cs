@@ -120,32 +120,6 @@ namespace OpenSim
             return new ConsoleBase("Region", this);
         }
 
-        /// <summary>
-        /// Performs any last-minute sanity checking and shuts down the region server
-        /// </summary>
-        public override void Shutdown()
-        {
-            if (m_startupCommandsFile != String.Empty)
-            {
-                RunCommandScript(m_shutdownCommandsFile);
-            }
-            
-            if (proxyUrl.Length > 0) 
-            {
-                Util.XmlRpcCommand(proxyUrl, "Stop"); 
-            }
-
-            m_log.Info("[SHUTDOWN]: Closing all threads");
-            m_log.Info("[SHUTDOWN]: Killing listener thread");
-            m_log.Info("[SHUTDOWN]: Killing clients");
-            // TODO: implement this
-            m_log.Info("[SHUTDOWN]: Closing console and terminating");
-
-            m_sceneManager.Close();
-            
-            base.Shutdown();          
-        }
-
         private void RunAutoTimerScript(object sender, EventArgs e)
         {
             if (m_timedScript != "disabled")

@@ -330,17 +330,11 @@ namespace OpenSim
             // We are done with startup
             m_log.InfoFormat("[OPENSIM MAIN]: Startup complete, serving {0} region{1}",
                              m_clientServers.Count.ToString(), m_clientServers.Count > 1 ? "s" : "");
+            
             WorldHasComeToAnEnd.WaitOne();
             m_log.Info("[OPENSIM MAIN]: Shutdown complete, goodbye.");
+            
             Environment.Exit(0);
-        }
-        
-        /// <summary>
-        /// Signal that the end of the world is now.
-        /// </summary>
-        public void ApocalypseNow()
-        {
-            WorldHasComeToAnEnd.Set();
         }
         
         /// <summary>
@@ -689,7 +683,7 @@ namespace OpenSim
         /// <summary>
         /// Performs any last-minute sanity checking and shuts down the region server
         /// </summary>
-        protected virtual void InternalShutdown()
+        public override void Shutdown()
         {
             if (proxyUrl.Length > 0) 
             {
@@ -703,14 +697,10 @@ namespace OpenSim
             m_log.Info("[SHUTDOWN]: Closing console and terminating");
 
             m_sceneManager.Close();
-            // needs to be called by Shutdown() method
-            // Environment.Exit(0);
-        }
-
-        public virtual void Shutdown()
-        {
-            InternalShutdown();
-            ApocalypseNow();
+            
+            WorldHasComeToAnEnd.Set();
+            
+            base.Shutdown();
         }
 
         /// <summary>

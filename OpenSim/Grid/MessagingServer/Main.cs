@@ -142,7 +142,7 @@ namespace OpenSim.Grid.MessagingServer
             }
         }              
 
-        protected override void Shutdown()
+        public override void Shutdown()
         {
             msgsvc.deregisterWithUserServer();
             

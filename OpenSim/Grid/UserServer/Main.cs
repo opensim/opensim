@@ -244,7 +244,7 @@ namespace OpenSim.Grid.UserServer
             }
         }
 
-        protected override void Shutdown()
+        public override void Shutdown()
         {
             m_loginService.OnUserLoggedInAtLocation -= NotifyMessageServersUserLoggedInToLocation;
             
