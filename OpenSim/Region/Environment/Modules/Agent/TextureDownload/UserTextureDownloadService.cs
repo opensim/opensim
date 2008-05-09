@@ -183,9 +183,9 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
                         {
                             missingTextureLimitStrategy.MonitorRequests(textureID);
 
-                            m_log.DebugFormat(
-                                "[USER TEXTURE DOWNLOAD SERVICE]: Queueing first TextureNotFoundSender for {0}, client {1}",
-                                textureID, m_client.AgentId);
+//                            m_log.DebugFormat(
+//                                "[USER TEXTURE DOWNLOAD SERVICE]: Queueing first TextureNotFoundSender for {0}, client {1}",
+//                                textureID, m_client.AgentId);
                         }
 
                         ITextureSender textureNotFoundSender = new TextureNotFoundSender(m_client, textureID);
