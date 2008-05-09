@@ -247,7 +247,7 @@ namespace OpenSim.Framework.Communications.Cache
         public void HandleFetchInventoryDescendents(IClientAPI remoteClient, LLUUID folderID, LLUUID ownerID,
                                                     bool fetchFolders, bool fetchItems, int sortOrder)
         {
-            // XXX We're not handling sortOrder yet!
+            // FIXME MAYBE: We're not handling sortOrder!
 
             InventoryFolderImpl fold = null;
             if ((fold = libraryRoot.FindFolder(folderID)) != null)
@@ -262,68 +262,14 @@ namespace OpenSim.Framework.Communications.Cache
             CachedUserInfo userProfile;
             if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
             {
-                // XXX: When a client crosses into a scene, their entire inventory is fetched
-                // asynchronously.  However, if the client is logging on and does not have a cached root 
-                // folder, then the root folder request usually comes in *before* the async completes, leading to 
-                // inventory failure.
-                //
-                // This is a crude way of dealing with that by retrying the lookup.
-                //BUG: This should be replaced with a async event.
-                if (!userProfile.HasInventory)
-                {
-                    int attempts = 5;
-                    while (attempts-- > 0)
-                    {
-                        Thread.Sleep(2000);
-                        
-                        if (userProfile.HasInventory)
-                        {
-                            break;
-                        }
-                    }
-                }
-                
-                if (userProfile.HasInventory)
-                {
-                    if ((fold = userProfile.RootFolder.FindFolder(folderID)) != null)
-                    {
-//                            m_log.DebugFormat(
-//                                "[AGENT INVENTORY]: Found folder {0} for client {1}", 
-//                                folderID, remoteClient.AgentId);
-                        
-                        remoteClient.SendInventoryFolderDetails(
-                            remoteClient.AgentId, folderID, fold.RequestListOfItems(),
-                            fold.RequestListOfFolders(), fetchFolders, fetchItems);
-
-                        return;
-                    }
-                    else
-                    {
-                        m_log.WarnFormat(
-                            "[AGENT INVENTORY]: Could not find folder {0} requested by user {1} {2}",
-                            folderID, remoteClient.Name, remoteClient.AgentId);
-                    }
-                }
-                else
-                {
-                    m_log.ErrorFormat("[AGENT INVENTORY]: Could not find root folder for user {0}", remoteClient.Name);
-
-                    return;
-                }
+                userProfile.SendInventoryDecendents(remoteClient, folderID, fetchFolders, fetchItems);
             }
             else
             {
                 m_log.ErrorFormat(
                     "[AGENT INVENTORY]: Could not find user profile for {0} {1}", 
                     remoteClient.Name, remoteClient.AgentId);
-                
-                return;
-            }
-
-            // If we've reached this point then we couldn't find the folder, even though the client thinks
-            // it exists
-            m_log.ErrorFormat("[AGENT INVENTORY]: Could not find folder {0} for user {1}",
-                              folderID, remoteClient.Name);
+            }    
         }
 
         /// <summary>
@@ -345,7 +291,7 @@ namespace OpenSim.Framework.Communications.Cache
 //                "[INVENTORY CACHE]: Fetching folders ({0}), items ({1}) from {2} for agent {3}", 
 //                fetchFolders, fetchItems, folderID, agentID);
             
-            // XXX We're not handling sortOrder yet!
+            // FIXME MAYBE: We're not handling sortOrder!
 
             InventoryFolderImpl fold;
             if ((fold = libraryRoot.FindFolder(folderID)) != null)

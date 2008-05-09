@@ -42,7 +42,10 @@ namespace OpenSim.Framework.Communications.Cache
     internal delegate void CreateFolderDelegate(string folderName, LLUUID folderID, ushort folderType, LLUUID parentID);
     internal delegate void MoveFolderDelegate(LLUUID folderID, LLUUID parentID);         
     internal delegate void PurgeFolderDelegate(LLUUID folderID);
-    internal delegate void UpdateFolderDelegate(string name, LLUUID folderID, ushort type, LLUUID parentID);    
+    internal delegate void UpdateFolderDelegate(string name, LLUUID folderID, ushort type, LLUUID parentID);
+    
+    internal delegate void SendInventoryDescendentsDelegate(
+        IClientAPI client, LLUUID folderID, bool fetchFolders, bool fetchItems);
     
     /// <summary>
     /// Stores user profile and inventory data received from backend services for a particular user.
@@ -556,6 +559,52 @@ namespace OpenSim.Framework.Communications.Cache
             }              
             
             return false;
+        }
+        
+        /// <summary>
+        /// Send details of the inventory items and/or folders in a given folder to the client.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="folderID"></param>
+        /// <param name="fetchFolders"></param>
+        /// <param name="fetchItems"></param>
+        /// <returns>true if the request was queued or successfully processed, false otherwise</returns>
+        public bool SendInventoryDecendents(IClientAPI client, LLUUID folderID, bool fetchFolders, bool fetchItems)
+        {
+            if (HasInventory)
+            {
+                InventoryFolderImpl folder;
+                
+                if ((folder = RootFolder.FindFolder(folderID)) != null)
+                {
+//                            m_log.DebugFormat(
+//                                "[AGENT INVENTORY]: Found folder {0} for client {1}", 
+//                                folderID, remoteClient.AgentId);
+                    
+                    client.SendInventoryFolderDetails(
+                        client.AgentId, folderID, folder.RequestListOfItems(),
+                        folder.RequestListOfFolders(), fetchFolders, fetchItems);
+
+                    return true;
+                }
+                else
+                {
+                    m_log.WarnFormat(
+                        "[AGENT INVENTORY]: Could not find folder {0} requested by user {1} {2}",
+                        folderID, client.Name, client.AgentId);
+                    
+                    return false;
+                }
+            }
+            else
+            {
+                AddRequest(
+                    new InventoryRequest(
+                        Delegate.CreateDelegate(typeof(SendInventoryDescendentsDelegate), this, "SendInventoryDecendents"),
+                        new object[] { client, folderID, fetchFolders, fetchItems }));
+
+                return true;
+            }            
         }
     }
     

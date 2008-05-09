@@ -56,10 +56,13 @@ namespace OpenSim.Grid.InventoryServer
         /// <param name="rawUserID"></param>
         /// <returns>The user's inventory.  If an inventory cannot be found then an empty collection is returned.</returns>
         public InventoryCollection GetUserInventory(Guid rawUserID)
-        {            
+        {           
             LLUUID userID = new LLUUID(rawUserID);
 
             m_log.InfoFormat("[GRID AGENT INVENTORY]: Processing request for inventory of {0}", userID);
+            
+            // Uncomment me to simulate a slow responding inventory server
+            //Thread.Sleep(16000);
 
             InventoryCollection invCollection = new InventoryCollection();
             
