@@ -279,30 +279,42 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 //             else
             //                 nameB = "null";
             bool needsCollision;
+            int c1 = 3;
+            int c2 = 3;
+            
             ////////////////////////////////////////////////////////
             //BulletX Mesh Collisions 
             //added by Jed zhu
             //data: May 07,2005
             ////////////////////////////////////////////////////////
             #region BulletXMeshCollisions Fields
-            if (bxcA != null && bxpB != null)
-                needsCollision = Collision(bxcA, bxpB);
-            else if (bxpA != null && bxcB != null)
-                needsCollision = Collision(bxcB, bxpA);
-            else
-                needsCollision = base.NeedsCollision(bodyA, bodyB);
+            
 
+            if (bxcA != null && bxpB != null)
+                c1 = Collision(bxcA, bxpB);
+            if (bxpA != null && bxcB != null)
+                c2 = Collision(bxcB, bxpA);
+            if (c1 < 2)
+                needsCollision = (c1 > 0) ? true : false;
+            else if (c2 < 2)
+                needsCollision = (c2 > 0) ? true : false;
+            else
+                needsCollision = NeedsCollision(bodyA, bodyB);
+
+         
             #endregion
             
 
             //m_log.DebugFormat("[BulletX]: A collision was detected between {0} and {1} --> {2}", nameA, nameB,
                                    //needsCollision);
 
+
             return needsCollision;
         }
         //added by jed zhu
         //calculas the collision between the Prim and Actor
-        private bool Collision(BulletXCharacter actorA, BulletXPrim primB)
+        //
+        private int Collision(BulletXCharacter actorA, BulletXPrim primB)
         {
             int[] indexBase;
             Vector3[] vertexBase;
@@ -311,18 +323,18 @@ namespace OpenSim.Region.Physics.BulletXPlugin
       
             float fdistance;
             if (primB == null)
-                return false;
+                return 3;
             if (mesh == null)
-                return false;
+                return 2;
             if (actorA == null)
-                return false;
+                return 3;
 
             int iVertexCount = mesh.getVertexList().Count;
             int iIndexCount = mesh.getIndexListAsInt().Length;
             if (iVertexCount == 0)
-                return false;
+                return 3;
             if (iIndexCount == 0)
-                return false;
+                return 3;
             lock (BulletXScene.BulletXLock)
             {
                 indexBase = mesh.getIndexListAsInt();
@@ -352,21 +364,18 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                     {
                         if (CheckCollision(actorA, ia, ib, ic, vNormal, vertexBase) == 1)
                         {
-                            PhysicsVector v = actorA.Position;
-                            Vector3 v3 = BulletXMaths.PhysicsVectorToXnaVector3(v);
-                            Vector3 vp = vNormal * (fdistance - Vector3.Dot(vNormal, v3) + 0.2f);
-                            actorA.Position += BulletXMaths.XnaVector3ToPhysicsVector(vp);
-                            return false;
-    
+                            //PhysicsVector v = actorA.Position;
+                            //Vector3 v3 = BulletXMaths.PhysicsVectorToXnaVector3(v);
+                            //Vector3 vp = vNormal * (fdistance - Vector3.Dot(vNormal, v3) + 0.0f);
+                            //actorA.Position += BulletXMaths.XnaVector3ToPhysicsVector(vp);
+                            return 1;  
                         }
                     }
-
-
                 }
             }
 
 
-            return true;
+            return 0;
         }
         //added by jed zhu
         //return value 1: need second check
@@ -379,7 +388,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             Vector3 v3 = BulletXMaths.PhysicsVectorToXnaVector3(v);
 
             fstartSide = Vector3.Dot(vNormal, v3) - fDist;
-            if (fstartSide <= 0) return 0;
+            if (fstartSide > 0) return 0;
             else return 1;
         }
         //added by jed zhu
