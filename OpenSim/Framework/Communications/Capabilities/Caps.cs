@@ -208,7 +208,15 @@ namespace OpenSim.Framework.Communications.Capabilities
 
         // FIXME: these all should probably go into the respective region
         // modules
+        
+        /// <summary>
+        /// Processes a fetch inventory request and sends the reply
 
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="path"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         // Request is like: 
         //<llsd>
         //   <map><key>folders</key>
@@ -255,8 +263,10 @@ namespace OpenSim.Framework.Communications.Capabilities
                 inventoryitemstr = LLSDHelpers.SerialiseLLSDReply(reply);
                 inventoryitemstr = inventoryitemstr.Replace("<llsd><map><key>folders</key><array>", "");
                 inventoryitemstr = inventoryitemstr.Replace("</array></map></llsd>", "");
+                
                 response += inventoryitemstr;
             }
+            
             if (response.Length == 0)
             {
                 // Ter-guess: If requests fail a lot, the client seems to stop requesting descendants.
@@ -276,6 +286,11 @@ namespace OpenSim.Framework.Communications.Capabilities
             return response;
         }
 
+        /// <summary>
+        /// Construct an LLSD reply packet to a CAPS inventory request
+        /// </summary>
+        /// <param name="invFetch"></param>
+        /// <returns></returns>
         private LLSDInventoryDescendents FetchInventoryReply(LLSDFetchInventoryDescendents invFetch)
         {
             LLSDInventoryDescendents reply = new LLSDInventoryDescendents();
@@ -333,6 +348,11 @@ namespace OpenSim.Framework.Communications.Capabilities
             return reply;
         }
 
+        /// <summary>
+        /// Convert an internal inventory item object into an LLSD object.
+        /// </summary>
+        /// <param name="invItem"></param>
+        /// <returns></returns>
         private LLSDInventoryItem ConvertInventoryItem(InventoryItemBase invItem)
         {
             LLSDInventoryItem llsdItem = new LLSDInventoryItem();
