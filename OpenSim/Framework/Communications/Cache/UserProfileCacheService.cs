@@ -274,7 +274,7 @@ namespace OpenSim.Framework.Communications.Cache
                     int attempts = 5;
                     while (attempts-- > 0)
                     {
-                        Thread.Sleep(500);
+                        Thread.Sleep(2000);
                         
                         if (userProfile.HasInventory)
                         {
@@ -370,7 +370,7 @@ namespace OpenSim.Framework.Communications.Cache
                              "[INVENTORY CACHE]: Poll number {0} for inventory items in folder {1} for user {2}", 
                              attempts, folderID, agentID);
                         
-                        Thread.Sleep(500);
+                        Thread.Sleep(2000);
                         
                         if (userProfile.HasInventory)
                         {
