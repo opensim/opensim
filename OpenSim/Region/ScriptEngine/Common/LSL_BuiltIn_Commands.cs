@@ -4172,7 +4172,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             NotImplemented("llGroundRepel");
         }
 
-        public void llGiveInventoryList()
+        public void llGiveInventoryList(string destination, string category, LSL_Types.list inventory)
         {
             m_host.AddScriptLPS(1);
             NotImplemented("llGiveInventoryList");

@@ -445,7 +445,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         void llParticleSystem(LSL_Types.list rules);
         //wiki: llGroundRepel(double height, integer water, double tau)
         void llGroundRepel(double height, int water, double tau);
-        void llGiveInventoryList();
+        //wiki: llGiveInventoryList(string destination, string category, LSL_Types.list inventory)
+        void llGiveInventoryList(string destination, string category, LSL_Types.list inventory);
         //wiki: llSetVehicleType(integer type)
         void llSetVehicleType(int type);
         //wiki: llSetVehicledoubleParam(integer param, double value)

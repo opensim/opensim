@@ -1353,9 +1353,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llGroundRepel(height, water, tau);
         }
 
-        public void llGiveInventoryList()
+        public void llGiveInventoryList(string destination, string category, LSL_Types.list inventory)
         {
-            m_LSL_Functions.llGiveInventoryList();
+            m_LSL_Functions.llGiveInventoryList(destination, category, inventory);
         }
 
         public void llSetVehicleType(int type)
