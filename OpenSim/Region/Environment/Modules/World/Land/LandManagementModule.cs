@@ -51,6 +51,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             m_scene.EventManager.OnValidateLandBuy += landChannel.handleLandValidationRequest;
             m_scene.EventManager.OnLandBuy += landChannel.handleLandBuyRequest;
             m_scene.EventManager.OnNewClient += new EventManager.OnNewClientDelegate(EventManager_OnNewClient);
+            m_scene.EventManager.OnSignificantClientMovement += landChannel.handleSignificantClientMovement;
 
             lock (m_scene)
             {

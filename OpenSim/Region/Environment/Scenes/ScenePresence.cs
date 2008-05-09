@@ -153,7 +153,6 @@ namespace OpenSim.Region.Environment.Scenes
         //neighbouring regions we have enabled a child agent in
         private readonly List<ulong> m_knownChildRegions = new List<ulong>();
 
-        private SignificantClientMovement handlerSignificantClientMovement = null; //OnSignificantClientMovement;
 
         /// <summary>
         /// Implemented Control Flags
@@ -173,10 +172,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// Position at which a significant movement was made
         /// </summary>
         private LLVector3 posLastSignificantMove = new LLVector3();
-
-        public delegate void SignificantClientMovement(IClientAPI remote_client);
-
-        public event SignificantClientMovement OnSignificantClientMovement;
 
         private UpdateQueue m_partsUpdateQueue = new UpdateQueue();
         private Dictionary<LLUUID, ScenePartUpdate> m_updateTimes = new Dictionary<LLUUID, ScenePartUpdate>();
@@ -1617,12 +1612,8 @@ namespace OpenSim.Region.Environment.Scenes
             if (Util.GetDistanceTo(AbsolutePosition, posLastSignificantMove) > 0.5)
             {
                 posLastSignificantMove = AbsolutePosition;
-                handlerSignificantClientMovement = OnSignificantClientMovement;
-                if (handlerSignificantClientMovement != null)
-                {
-                    handlerSignificantClientMovement(m_controllingClient);
-                    m_scene.NotifyMyCoarseLocationChange();
-                }
+                m_scene.EventManager.TriggerSignificantClientMovement(m_controllingClient);
+                m_scene.NotifyMyCoarseLocationChange();
             }
 
             // Minimum Draw distance is 64 meters, the Radius of the draw distance sphere is 32m

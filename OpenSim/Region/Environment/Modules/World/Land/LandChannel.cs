@@ -79,16 +79,6 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         {
             m_scene = scene;
             landIDList.Initialize();
-
-            m_scene.EventManager.OnNewPresence += handleNewPresence;
-        }
-
-        private void handleNewPresence(ScenePresence avatar)
-        {
-            if (avatar.IsChildAgent)
-            {
-                avatar.OnSignificantClientMovement += handleSignificantClientMovement;
-            }
         }
 
         #region Land Object From Storage Functions

@@ -121,6 +121,12 @@ namespace OpenSim.Region.Environment.Scenes
         public event AvatarEnteringNewParcel OnAvatarEnteringNewParcel;
 
 
+        public delegate void SignificantClientMovement(IClientAPI remote_client);
+
+        public event SignificantClientMovement OnSignificantClientMovement;
+
+
+
         public delegate void NewGridInstantMessage(GridInstantMessage message);
 
         public event NewGridInstantMessage OnGridInstantMessageToIMModule;
@@ -279,6 +285,7 @@ namespace OpenSim.Region.Environment.Scenes
         private NewInventoryItemUploadComplete handlerNewInventoryItemUpdateComplete = null;
         private RequestChangeWaterHeight handlerRequestChangeWaterHeight = null; //OnRequestChangeWaterHeight
         private ScriptControlEvent handlerScriptControlEvent = null;
+        private SignificantClientMovement handlerSignificantClientMovement = null;
 
         private LandBuy handlerLandBuy = null;
         private LandBuy handlerValidateLandBuy = null;
@@ -608,6 +615,15 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void TriggerSignificantClientMovement(IClientAPI client)
+        {
+            handlerSignificantClientMovement = OnSignificantClientMovement;
+            if (handlerSignificantClientMovement != null)
+            {
+                handlerSignificantClientMovement(client);
+
+            }
+        }
         internal void TriggerControlEvent(uint p, LLUUID scriptUUID, LLUUID avatarID, uint held, uint _changed)
         {
             handlerScriptControlEvent = OnScriptControlEvent;
