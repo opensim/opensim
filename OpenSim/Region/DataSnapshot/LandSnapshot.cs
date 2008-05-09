@@ -45,7 +45,7 @@ namespace OpenSim.Region.DataSnapshot
         private Scene m_scene = null;
         private DataSnapshotManager m_parent = null;
         //private Dictionary<int, Land> m_landIndexed = new Dictionary<int, Land>();
-        private ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         #region Dead code
 

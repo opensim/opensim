@@ -37,7 +37,7 @@ namespace OpenSim.Region.DataSnapshot
     {
         private Scene m_scene = null;
         private DataSnapshotManager m_parent = null;
-        private ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public void Initialize(Scene scene, DataSnapshotManager parent)
         {

@@ -48,7 +48,7 @@ namespace OpenSim.Region.DataSnapshot
     {
         #region Class members
         private List<Scene> m_scenes = new List<Scene>();
-        private ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private bool m_enabled = false;
         private bool m_configLoaded = false;
         internal object m_syncInit = new object();
