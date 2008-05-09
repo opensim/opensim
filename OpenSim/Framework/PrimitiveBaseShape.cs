@@ -100,13 +100,14 @@ namespace OpenSim.Framework
         // Sculpted
         [XmlIgnore] public LLUUID SculptTexture = LLUUID.Zero;
         [XmlIgnore] public byte SculptType = (byte)0;
+        [XmlIgnore] public byte[] SculptData = new byte[0];
 
         // Flexi
         [XmlIgnore] public int FlexiSoftness = 0;
         [XmlIgnore] public float FlexiTension = 0f;
         [XmlIgnore] public float FlexiDrag = 0f;
         [XmlIgnore] public float FlexiGravity = 0f;
-        [XmlIgnore] public float FlexiWind= 0f;
+        [XmlIgnore] public float FlexiWind = 0f;
         [XmlIgnore] public float FlexiForceX = 0f;
         [XmlIgnore] public float FlexiForceY = 0f;
         [XmlIgnore] public float FlexiForceZ = 0f;

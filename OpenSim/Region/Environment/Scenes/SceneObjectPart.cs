@@ -1921,8 +1921,27 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateExtraParam(ushort type, bool inUse, byte[] data)
         {
             m_shape.ReadInUpdateExtraParam(type, inUse, data);
-
+            if (type == 0x30)
+            {
+                if (m_shape.SculptEntry && m_shape.SculptTexture != LLUUID.Zero)
+                {
+                    //AssetBase tx = m_parentGroup.Scene.getase
+                    m_parentGroup.Scene.AssetCache.GetAsset(m_shape.SculptTexture, SculptTextureCallback, true);
+                }
+            }
             ScheduleFullUpdate();
+
+        }
+        public void SculptTextureCallback(LLUUID textureID, AssetBase texture)
+        {
+            if (m_shape.SculptEntry)
+            {
+                if (texture != null)
+                {
+                    m_shape.SculptData = texture.Data;
+                }
+            }
+
         }
 
         #endregion
