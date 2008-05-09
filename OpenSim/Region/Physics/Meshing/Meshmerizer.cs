@@ -331,11 +331,29 @@ namespace OpenSim.Region.Physics.Meshing
             if (hshape == HollowShape.Triangle)
             {
                 float hollowFactorF = (float)fhollowFactor / (float)50000;
-                Vertex IMM = new Vertex(-0.25f * hollowFactorF, -0.45f * hollowFactorF, 0.0f);
-                Vertex IPM = new Vertex(+0.5f * hollowFactorF, +0f * hollowFactorF, 0.0f);
-                Vertex IPP = new Vertex(-0.25f * hollowFactorF, +0.45f * hollowFactorF, 0.0f);
+                Vertex IMM;
+                Vertex IPM;
+                Vertex IPP;
 
+                if (pshape == ProfileShape.Square)
+                {
+                    // corner points are at 345, 105, and 225 degrees for the triangle within a box
 
+                    //IMM = new Vertex(((float)Math.Cos(345.0 * DEG_TO_RAD) * 0.5f) * hollowFactorF, ((float)Math.Sin(345.0 * DEG_TO_RAD) * 0.5f) * hollowFactorF, 0.0f);
+                    //IPM = new Vertex(((float)Math.Cos(105.0 * DEG_TO_RAD) * 0.5f) * hollowFactorF, ((float)Math.Sin(105.0 * DEG_TO_RAD) * 0.5f) * hollowFactorF, 0.0f);
+                    //IPP = new Vertex(((float)Math.Cos(225.0 * DEG_TO_RAD) * 0.5f) * hollowFactorF, ((float)Math.Sin(225.0 * DEG_TO_RAD) * 0.5f) * hollowFactorF, 0.0f);
+
+                    // hard coded here for speed, the equations are in the commented out lines above
+                    IMM = new Vertex(0.48296f * hollowFactorF, -0.12941f * hollowFactorF, 0.0f);
+                    IPM = new Vertex(-0.12941f * hollowFactorF, 0.48296f * hollowFactorF, 0.0f);
+                    IPP = new Vertex(-0.35355f * hollowFactorF, -0.35355f * hollowFactorF, 0.0f);
+                }
+                else
+                {
+                    IMM = new Vertex(-0.25f * hollowFactorF, -0.45f * hollowFactorF, 0.0f);
+                    IPM = new Vertex(+0.5f * hollowFactorF, +0f * hollowFactorF, 0.0f);
+                    IPP = new Vertex(-0.25f * hollowFactorF, +0.45f * hollowFactorF, 0.0f);
+                }
 
                 holeHull = new SimpleHull();
 
