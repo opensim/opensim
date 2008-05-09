@@ -131,7 +131,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return false;
         }
 
-        public bool IsEstateManager(LLUUID user)
+        protected bool IsEstateManager(LLUUID user)
         {
             if (m_bypassPermissions)
             {
