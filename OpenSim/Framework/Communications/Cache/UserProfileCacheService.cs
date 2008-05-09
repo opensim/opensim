@@ -341,7 +341,9 @@ namespace OpenSim.Framework.Communications.Cache
         public List<InventoryItemBase> HandleFetchInventoryDescendentsCAPS(LLUUID agentID, LLUUID folderID, LLUUID ownerID,
                                                    bool fetchFolders, bool fetchItems, int sortOrder)
         {
-            //m_log.DebugFormat("[INVENTORY CACHE]: Fetching folders/items from {0} for agent {1}", folderID, agentID);
+//            m_log.DebugFormat(
+//                "[INVENTORY CACHE]: Fetching folders ({0}), items ({1}) from {2} for agent {3}", 
+//                fetchFolders, fetchItems, folderID, agentID);
             
             // XXX We're not handling sortOrder yet!
 

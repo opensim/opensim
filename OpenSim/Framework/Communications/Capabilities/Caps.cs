@@ -269,8 +269,9 @@ namespace OpenSim.Framework.Communications.Capabilities
             {
                 response = "<llsd><map><key>folders</key><array>" + response + "</array></map></llsd>";
             }
-
-            //m_log.DebugFormat("[AGENT INVENTORY]: Replying to CAPS fetch inventory request {0}", response);
+            
+            //m_log.DebugFormat("[AGENT INVENTORY]: Replying to CAPS fetch inventory request with following xml");
+            //m_log.Debug(Util.GetFormattedXml(response));
 
             return response;
         }

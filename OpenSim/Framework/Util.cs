@@ -36,6 +36,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml;
 using libsecondlife;
 using log4net;
 using Nini.Config;
@@ -43,6 +44,9 @@ using Nwc.XmlRpc;
 
 namespace OpenSim.Framework
 {
+    /// <summary>
+    /// Miscellaneous utility functions
+    /// </summary>
     public class Util
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -160,6 +164,36 @@ namespace OpenSim.Framework
             // Catch all - covers older windows versions
             // (but those probably wont work anyway)
             return file;
+        }
+        
+        /// <summary>
+        /// Debug utility function to convert unbroken strings of XML into something human readable for occasional debugging purposes.
+        /// 
+        /// Please don't delete me even if I appear currently unused!
+        /// </summary>
+        /// <param name="rawXml"></param>
+        /// <returns></returns>
+        public static string GetFormattedXml(string rawXml)
+        {
+            XmlDocument xd = new XmlDocument();
+            xd.LoadXml(rawXml);
+            
+            StringBuilder sb = new StringBuilder();
+            StringWriter sw = new StringWriter(sb);            
+            
+            XmlTextWriter xtw = new XmlTextWriter(sw);
+            xtw.Formatting = Formatting.Indented;
+            
+            try
+            {
+                xd.WriteTo(xtw);
+            }
+            finally
+            {
+                xtw.Close();            
+            }
+            
+            return sb.ToString();
         }
 
         public static bool IsEnvironmentSupported(ref string reason)
