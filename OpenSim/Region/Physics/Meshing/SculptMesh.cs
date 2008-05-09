@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) Contributors, http://opensimulator.org/
+ * See CONTRIBUTORS.TXT for a full list of copyright holders.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the OpenSim Project nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,23 +35,34 @@ using Image = System.Drawing.Image;
 
 namespace OpenSim.Region.Physics.Meshing
 {
+    // This functionality based on the XNA SculptPreview by John Hurliman.
     public class SculptMesh : Mesh
     {
         Image idata = null;
         Bitmap bLOD = null;
         Bitmap bBitmap = null;
 
-        Vertex northpole = (Vertex)Vertex.Zero;
-        Vertex southpole = (Vertex)Vertex.Zero;
+        Vertex northpole = new Vertex(0, 0, 0);
+        Vertex southpole = new Vertex(0, 0, 0);
 
-        private int lod = 64;
+        private int lod = 32;
         private const float RANGE = 128.0f;
 
         public SculptMesh(byte[] jpegData)
         {
             idata = OpenJPEG.DecodeToImage(jpegData);
             if (idata != null)
+            {
                 bBitmap = new Bitmap(idata);
+                if (bBitmap.Width == bBitmap.Height)
+                {
+                    DoLOD();
+
+                    LoadPoles();
+
+                    processSculptTexture();
+                }
+            }
 
             
         }
@@ -37,17 +75,18 @@ namespace OpenSim.Region.Physics.Meshing
         }
         private void LoadPoles()
         {
-            northpole = (Vertex)Vertex.Zero;
-            for (int x = 0; x < bBitmap.Width; x++)
+            northpole = new Vertex(0, 0, 0);
+            for (int x = 0; x < bLOD.Width; x++)
             {
                 northpole += ColorToVertex(GetPixel(0, 0));
             }
-            northpole /= bBitmap.Width;
+            northpole /= bLOD.Width;
 
-            southpole = (Vertex)Vertex.Zero;
-            for (int x = 0; x < bBitmap.Width; x++)
+            southpole = new Vertex(0, 0, 0);
+            for (int x = 0; x < bLOD.Width; x++)
             {
-                southpole += ColorToVertex(GetPixel(bBitmap.Height - 1, (bBitmap.Height - 1)));
+                //System.Console.WriteLine("Height: " + bLOD.Height.ToString());
+                southpole += ColorToVertex(GetPixel(bLOD.Height - 1, (bLOD.Height - 1)));
             }
             southpole /= bBitmap.Width;
         }
@@ -182,12 +221,16 @@ namespace OpenSim.Region.Physics.Meshing
                     {
                         v1 = ColorToVertex(GetPixel(x, y));
                     }
+
                     // Add the vertex for use later
-                    Add(v1);
+                    if (!vertices.Contains(v1))
+                        Add(v1);
+
                     sVertices[y * COLUMNS + x] = v1;
+                    //System.Console.WriteLine("adding: " + v1.ToString());
                 }
-                Vertex tempVertex = vertices[y * COLUMNS];
-                sVertices[y * COLUMNS + x_max] = tempVertex;
+                //Vertex tempVertex = vertices[y * COLUMNS];
+               // sVertices[y * COLUMNS + x_max] = tempVertex;
             }
 
             // Create the Triangles
@@ -199,32 +242,77 @@ namespace OpenSim.Region.Physics.Meshing
 
                 for (x = 0; x < x_max; x++)
                 {
-                    Triangle tri1 = new Triangle(sVertices[(y * COLUMNS + x)], sVertices[(y * COLUMNS + (x + 1))],
-                                                 sVertices[((y + 1) * COLUMNS + (x + 1))]);
-                    //indices[i++] = (ushort)(y * COLUMNS + x);
-                    //indices[i++] = (ushort)(y * COLUMNS + (x + 1));
-                    //indices[i++] = (ushort)((y + 1) * COLUMNS + (x + 1));
-                    Add(tri1);
-                    Triangle tri2 = new Triangle(sVertices[(y * COLUMNS + x)],sVertices[((y + 1) * COLUMNS + (x + 1))],
-                                                 sVertices[((y + 1) * COLUMNS + x)]);
+                    Vertex vt11 = sVertices[(y * COLUMNS + x)];
+                    Vertex vt12 = sVertices[(y * COLUMNS + (x + 1))];
+                    Vertex vt13 = sVertices[((y + 1) * COLUMNS + (x + 1))];
+                    if (vt11 != null && vt12 != null && vt13 != null)
+                    {
+                        if (vt11 != vt12 && vt11 != vt13 && vt12 != vt13)
+                        {
+                            Triangle tri1 = new Triangle(vt11, vt12, vt13);
+                            //indices[i++] = (ushort)(y * COLUMNS + x);
+                            //indices[i++] = (ushort)(y * COLUMNS + (x + 1));
+                            //indices[i++] = (ushort)((y + 1) * COLUMNS + (x + 1));
+                            Add(tri1);
+                        }
+                    }
 
-                    Add(tri2);
-                    //indices[i++] = (ushort)(y * COLUMNS + x);
-                    //indices[i++] = (ushort)((y + 1) * COLUMNS + (x + 1));
-                    //indices[i++] = (ushort)((y + 1) * COLUMNS + x);
+                    Vertex vt21 = sVertices[(y * COLUMNS + x)];
+                    Vertex vt22 = sVertices[((y + 1) * COLUMNS + (x + 1))];
+                    Vertex vt23 = sVertices[((y + 1) * COLUMNS + x)];
+                    if (vt21 != null && vt22 != null && vt23 != null)
+                    {
+                        if (vt21.Equals(vt22, 0.022f) || vt21.Equals(vt23, 0.022f) || vt22.Equals(vt23, 0.022f))
+                        {
+                        }
+                        else
+                        {
+                            Triangle tri2 = new Triangle(vt21, vt22, vt23);
+                            //indices[i++] = (ushort)(y * COLUMNS + x);
+                            //indices[i++] = (ushort)((y + 1) * COLUMNS + (x + 1));
+                            //indices[i++] = (ushort)((y + 1) * COLUMNS + x);
+                            Add(tri2);
+                        }
+                    }
+                    
                 }
-                Triangle tri3 = new Triangle(sVertices[(y * x_max + x)], sVertices[(y * x_max + 0)], sVertices[((y + 1) * x_max + 0)]);
-                Add(tri3);
-                // Wrap the last cell in the row around
-                //indices[i++] = (ushort)(y * x_max + x); //a
-                //indices[i++] = (ushort)(y * x_max + 0); //b
-                //indices[i++] = (ushort)((y + 1) * x_max + 0); //c
-
-                Triangle tri4 = new Triangle(sVertices[(y * x_max + x)], sVertices[((y + 1) * x_max + 0)], sVertices[((y + 1) * x_max + x)]);
-                Add(tri4);
-                //indices[i++] = (ushort)(y * x_max + x); //a
-                //indices[i++] = (ushort)((y + 1) * x_max + 0); //b
-                //indices[i++] = (ushort)((y + 1) * x_max + x); //c
+                Vertex vt31 = sVertices[(y * x_max + x)];
+                Vertex vt32 = sVertices[(y * x_max + 0)];
+                Vertex vt33 = sVertices[((y + 1) * x_max + 0)];
+                if (vt31 != null && vt32 != null && vt33 != null)
+                {
+                    if (vt31.Equals(vt32, 0.022f) || vt31.Equals(vt33, 0.022f) || vt32.Equals(vt33, 0.022f))
+                    {
+                    }
+                    else
+                    {
+                        //Triangle tri3 = new Triangle(vt31, vt32, vt33);
+                        // Wrap the last cell in the row around
+                        //indices[i++] = (ushort)(y * x_max + x); //a
+                        //indices[i++] = (ushort)(y * x_max + 0); //b
+                        //indices[i++] = (ushort)((y + 1) * x_max + 0); //c
+                        //Add(tri3);
+                    }
+                }
+                
+                Vertex vt41 = sVertices[(y * x_max + x)];
+                Vertex vt42 = sVertices[((y + 1) * x_max + 0)];
+                Vertex vt43 = sVertices[((y + 1) * x_max + x)];
+                if (vt41 != null && vt42 != null && vt43 != null)
+                {
+                    if (vt41.Equals(vt42, 0.022f) || vt31.Equals(vt43, 0.022f) || vt32.Equals(vt43, 0.022f))
+                    {
+                    }
+                    else
+                    {
+                        //Triangle tri4 = new Triangle(vt41, vt42, vt43);
+                        //indices[i++] = (ushort)(y * x_max + x); //a
+                        //indices[i++] = (ushort)((y + 1) * x_max + 0); //b
+                        //indices[i++] = (ushort)((y + 1) * x_max + x); //c
+                        //Add(tri4);
+                    }
+                }
+                
             }
         }
     }

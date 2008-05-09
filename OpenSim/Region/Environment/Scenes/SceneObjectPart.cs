@@ -1568,6 +1568,10 @@ namespace OpenSim.Region.Environment.Scenes
             byte[] extraP = new byte[Shape.ExtraParams.Length];
             Array.Copy(Shape.ExtraParams, extraP, extraP.Length);
             dupe.Shape.ExtraParams = extraP;
+            if (dupe.m_shape.SculptEntry && dupe.m_shape.SculptTexture != LLUUID.Zero)
+            {
+                m_parentGroup.Scene.AssetCache.GetAsset(dupe.m_shape.SculptTexture, dupe.SculptTextureCallback, true);
+            }
             bool UsePhysics = ((dupe.ObjectFlags & (uint) LLObject.ObjectFlags.Physics) != 0);
             dupe.DoPhysicsPropertyUpdate(UsePhysics, true);
 
@@ -1939,6 +1943,10 @@ namespace OpenSim.Region.Environment.Scenes
                 if (texture != null)
                 {
                     m_shape.SculptData = texture.Data;
+                    if (PhysActor != null)
+                    {
+                        PhysActor.Shape = m_shape;
+                    }
                 }
             }
 

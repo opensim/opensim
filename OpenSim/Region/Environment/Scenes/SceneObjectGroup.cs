@@ -2546,5 +2546,18 @@ namespace OpenSim.Region.Environment.Scenes
             }
             return retmass;
         }
+        public void CheckSculptAndLoad()
+        {
+            lock (m_parts)
+            {
+                foreach (SceneObjectPart part in m_parts.Values)
+                {
+                    if (part.Shape.SculptEntry && part.Shape.SculptTexture != LLUUID.Zero)
+                    {
+                        m_scene.AssetCache.GetAsset(part.Shape.SculptTexture, part.SculptTextureCallback, true);
+                    }
+                }
+            }
+        }
     }
 }

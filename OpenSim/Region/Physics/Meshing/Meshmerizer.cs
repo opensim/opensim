@@ -1209,7 +1209,29 @@ namespace OpenSim.Region.Physics.Meshing
 
             return m;
         }
+        private SculptMesh CreateSculptMesh(string primName, PrimitiveBaseShape primShape, PhysicsVector size)
+        {
+            SculptMesh sm = new SculptMesh(primShape.SculptData);
+            // Scale the mesh based on our prim scale
+            foreach (Vertex v in sm.vertices)
+            {
+                v.X *= 0.5f;
+                v.Y *= 0.5f;
+                v.Z *= 0.5f;
+                v.X *= size.X;
+                v.Y *= size.Y;
+                v.Z *= size.Z;
+            }
+            // This was built with the normals pointing inside.. 
+            // therefore we have to invert the normals
+            foreach (Triangle t in sm.triangles)
+            {
+                t.invertNormal();
+            }
+            sm.DumpRaw(baseDir, primName, "Sculpt");
+            return sm;
 
+        }
         public static void CalcNormals(Mesh mesh)
         {
             int iTriangles = mesh.triangles.Count;
@@ -1317,43 +1339,53 @@ namespace OpenSim.Region.Physics.Meshing
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
         {
             Mesh mesh = null;
-
-            switch (primShape.ProfileShape)
+            if (primShape.SculptEntry && primShape.SculptType != (byte)0 && primShape.SculptData.Length > 0)
             {
-                case ProfileShape.Square:
-                    mesh = CreateBoxMesh(primName, primShape, size);
-                    CalcNormals(mesh);
-                    break;
-                case ProfileShape.Circle:
-                    if (primShape.PathCurve == (byte)Extrusion.Straight)
-                    {
-                        mesh = CreateCyllinderMesh(primName, primShape, size);
+                SculptMesh smesh = CreateSculptMesh(primName, primShape, size);
+                mesh = (Mesh)smesh;
+                CalcNormals(mesh);
+            }
+            else
+            {
+                switch (primShape.ProfileShape)
+                {
+                    case ProfileShape.Square:
+                        mesh = CreateBoxMesh(primName, primShape, size);
                         CalcNormals(mesh);
-                    }
-                    break;
-                case ProfileShape.HalfCircle:
-                    if (primShape.PathCurve == (byte)Extrusion.Curve1)
-                    {
-                        mesh = CreateSphereMesh(primName, primShape, size);
+                        break;
+                    case ProfileShape.Circle:
+                        if (primShape.PathCurve == (byte)Extrusion.Straight)
+                        {
+                            mesh = CreateCyllinderMesh(primName, primShape, size);
+                            CalcNormals(mesh);
+                        }
+                        break;
+                    case ProfileShape.HalfCircle:
+                        if (primShape.PathCurve == (byte)Extrusion.Curve1)
+                        {
+                            mesh = CreateSphereMesh(primName, primShape, size);
+                            CalcNormals(mesh);
+                        }
+                        break;
+
+                    case ProfileShape.EquilateralTriangle:
+                        mesh = CreatePrismMesh(primName, primShape, size);
                         CalcNormals(mesh);
-                    }
-                    break;
+                        break;
 
-                case ProfileShape.EquilateralTriangle:
-                    mesh = CreatePrismMesh(primName, primShape, size);
-                    CalcNormals(mesh);
-                    break;
-
-                default:
-                    mesh = CreateBoxMesh(primName, primShape, size);
-                    CalcNormals(mesh);
-                    //Set default mesh to cube otherwise it'll return 
-                    // null and crash on the 'setMesh' method in the physics plugins.
-                    //mesh = null;
-                    break;
+                    default:
+                        mesh = CreateBoxMesh(primName, primShape, size);
+                        CalcNormals(mesh);
+                        //Set default mesh to cube otherwise it'll return 
+                        // null and crash on the 'setMesh' method in the physics plugins.
+                        //mesh = null;
+                        break;
+                }
             }
 
             return mesh;
         }
+
+        
     }
 }
