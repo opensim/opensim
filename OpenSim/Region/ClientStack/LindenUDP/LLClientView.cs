@@ -2200,7 +2200,35 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             terse.Header.Zerocoded = true;
             OutPacket(terse, ThrottleOutPacketType.Task);
         }
+        public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, LLUUID AssetFullID)
+        {
+            AssetUploadCompletePacket newPack = new AssetUploadCompletePacket();
+            newPack.AssetBlock.Type = AssetType;
+            newPack.AssetBlock.Success = Success;
+            newPack.AssetBlock.UUID = AssetFullID;
+            newPack.Header.Zerocoded = true;
+            OutPacket(newPack, ThrottleOutPacketType.Asset);
+        }
+        public void SendXferRequest(ulong XferID, short AssetType, LLUUID vFileID, byte FilePath, byte[] FileName)
+        {
+            RequestXferPacket newPack = new RequestXferPacket();
+            newPack.XferID.ID = XferID;
+            newPack.XferID.VFileType = AssetType;
+            newPack.XferID.VFileID = vFileID;
+            newPack.XferID.FilePath = FilePath;
+            newPack.XferID.Filename = FileName;
+            newPack.Header.Zerocoded = true;
+            OutPacket(newPack, ThrottleOutPacketType.Asset);
 
+        }
+        public void SendConfirmXfer(ulong xferID, uint PacketID)
+        {
+            ConfirmXferPacketPacket newPack = new ConfirmXferPacketPacket();
+            newPack.XferID.ID = xferID;
+            newPack.XferID.Packet = PacketID;
+            newPack.Header.Zerocoded = true;
+            OutPacket(newPack, ThrottleOutPacketType.Asset);
+        }
         #endregion
 
         #region Estate Data Sending Methods

@@ -519,6 +519,15 @@ namespace OpenSim.Region.Examples.SimpleModule
                 OnCompleteMovementToRegion();
             }
         }
+        public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, LLUUID AssetFullID)
+        {
+        }
+        public void SendConfirmXfer(ulong xferID, uint PacketID)
+        {
+        }
+        public void SendXferRequest(ulong XferID, short AssetType, LLUUID vFileID, byte FilePath, byte[] FileName)
+        {
+        }
 
         private void Update()
         {

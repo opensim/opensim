@@ -933,6 +933,10 @@ namespace OpenSim.Framework
         void sendLandObjectOwners(Dictionary<LLUUID, int> ownersAndCount);
         void sendLandParcelOverlay(byte[] data, int sequence_id);
 
+        void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, LLUUID AssetFullID);
+        void SendConfirmXfer(ulong xferID, uint PacketID);
+        void SendXferRequest(ulong XferID, short AssetType, LLUUID vFileID, byte FilePath, byte[] FileName);
+
         byte[] GetThrottlesPacked(float multiplier);
 
 

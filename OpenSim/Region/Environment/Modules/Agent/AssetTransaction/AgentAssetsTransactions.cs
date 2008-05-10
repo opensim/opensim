@@ -190,11 +190,9 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                         Array.Copy(data, 4, buffer2, 0, data.Length - 4);
                         Asset.Data = buffer2;
                     }
-                    ConfirmXferPacketPacket newPack = new ConfirmXferPacketPacket();
-                    newPack.XferID.ID = xferID;
-                    newPack.XferID.Packet = packetID;
-                    newPack.Header.Zerocoded = true;
-                    ourClient.OutPacket(newPack, ThrottleOutPacketType.Asset);
+
+                    ourClient.SendConfirmXfer(xferID, packetID);
+                    
                     if ((packetID & 0x80000000) != 0)
                     {
                         SendCompleteMessage();
@@ -245,25 +243,16 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
             {
                 UploadComplete = false;
                 XferID = Util.GetNextXferID();
-                RequestXferPacket newPack = new RequestXferPacket();
-                newPack.XferID.ID = XferID;
-                newPack.XferID.VFileType = Asset.Type;
-                newPack.XferID.VFileID = Asset.FullID;
-                newPack.XferID.FilePath = 0;
-                newPack.XferID.Filename = new byte[0];
-                newPack.Header.Zerocoded = true;
-                ourClient.OutPacket(newPack, ThrottleOutPacketType.Asset);
+                ourClient.SendXferRequest(XferID, Asset.Type, Asset.FullID, 0, new byte[0]);
             }
 
             protected void SendCompleteMessage()
             {
                 UploadComplete = true;
-                AssetUploadCompletePacket newPack = new AssetUploadCompletePacket();
-                newPack.AssetBlock.Type = Asset.Type;
-                newPack.AssetBlock.Success = true;
-                newPack.AssetBlock.UUID = Asset.FullID;
-                newPack.Header.Zerocoded = true;
-                ourClient.OutPacket(newPack, ThrottleOutPacketType.Asset);
+
+                ourClient.SendAssetUploadCompleteMessage(Asset.Type, true, Asset.FullID);
+
+
                 m_finished = true;
                 if (m_createItem)
                 {
