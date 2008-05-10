@@ -535,6 +535,14 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
+        public void SendShutdownConnectionNotice()
+        {
+        }
+
+        public void SendSimStats(Packet pack)
+        {
+        }
+
         private void Update()
         {
             frame++;

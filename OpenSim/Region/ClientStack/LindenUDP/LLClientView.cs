@@ -436,6 +436,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 kupack.TargetBlock.TargetPort = (ushort)0;
                 kupack.UserInfo.Reason = Helpers.StringToField(message);
                 OutPacket(kupack, ThrottleOutPacketType.Task);
+                // You must sleep here or users get no message!
+                Thread.Sleep(500);
             }
         }
 
@@ -2244,6 +2246,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             im.Header.Zerocoded = true;
             OutPacket(im, ThrottleOutPacketType.Texture);
         }
+        public void SendShutdownConnectionNotice()
+        {
+            OutPacket(PacketPool.Instance.GetPacket(PacketType.DisableSimulator), ThrottleOutPacketType.Unknown);
+        }
+
+        public void SendSimStats(Packet pack)
+        {
+           pack.Header.Reliable = false;
+           OutPacket(pack, ThrottleOutPacketType.Task);
+        }
+
         #endregion
 
         #region Estate Data Sending Methods

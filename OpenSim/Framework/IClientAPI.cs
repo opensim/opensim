@@ -939,6 +939,9 @@ namespace OpenSim.Framework
         
         void SendImagePart(ushort numParts, LLUUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec);
 
+        void SendShutdownConnectionNotice();
+        void SendSimStats(Packet pack);
+
         byte[] GetThrottlesPacked(float multiplier);
 
 

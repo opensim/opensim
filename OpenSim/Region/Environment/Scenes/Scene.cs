@@ -570,8 +570,7 @@ namespace OpenSim.Region.Environment.Scenes
                                      if (!avatar.IsChildAgent)
                                          avatar.ControllingClient.Kick("The simulator is going down.");
 
-                                     avatar.ControllingClient.OutPacket(PacketPool.Instance.GetPacket(PacketType.DisableSimulator),
-                                                                        ThrottleOutPacketType.Task);
+                                     avatar.ControllingClient.SendShutdownConnectionNotice();
                                  });
 
             // Wait here, or the kick messages won't actually get to the agents before the scene terminates.
@@ -790,8 +789,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (!agent.IsChildAgent)
                 {
-                    pack.Header.Reliable = false;
-                    agent.ControllingClient.OutPacket(pack, ThrottleOutPacketType.Task);
+                    agent.ControllingClient.SendSimStats(pack);
                 }
             }
         }
@@ -2140,8 +2138,8 @@ namespace OpenSim.Region.Environment.Scenes
                         m_innerScene.removeUserCount(true);
                     }
                     // Tell a single agent to disconnect from the region.
-                    DisableSimulatorPacket disable = (DisableSimulatorPacket)PacketPool.Instance.GetPacket(PacketType.DisableSimulator);
-                    presence.ControllingClient.OutPacket(disable, ThrottleOutPacketType.Unknown);
+                    presence.ControllingClient.SendShutdownConnectionNotice();
+                    
                     presence.ControllingClient.Close(true);
                 }
             }
