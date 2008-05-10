@@ -936,6 +936,8 @@ namespace OpenSim.Framework
         void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, LLUUID AssetFullID);
         void SendConfirmXfer(ulong xferID, uint PacketID);
         void SendXferRequest(ulong XferID, short AssetType, LLUUID vFileID, byte FilePath, byte[] FileName);
+        
+        void SendImagePart(ushort numParts, LLUUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec);
 
         byte[] GetThrottlesPacked(float multiplier);
 

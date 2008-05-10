@@ -522,10 +522,16 @@ namespace OpenSim.Region.Examples.SimpleModule
         public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, LLUUID AssetFullID)
         {
         }
+
         public void SendConfirmXfer(ulong xferID, uint PacketID)
         {
         }
+
         public void SendXferRequest(ulong XferID, short AssetType, LLUUID vFileID, byte FilePath, byte[] FileName)
+        {
+        }
+
+        public void SendImagePart(ushort numParts, LLUUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec)
         {
         }
 

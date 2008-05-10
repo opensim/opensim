@@ -150,37 +150,27 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
                 {
                     if (NumPackets == 0)
                     {
-                        ImageDataPacket im = new ImageDataPacket();
-                        im.Header.Reliable = false;
-                        im.ImageID.Packets = 1;
-                        im.ImageID.ID = m_asset.FullID;
-                        im.ImageID.Size = (uint) m_asset.Data.Length;
-                        im.ImageData.Data = m_asset.Data;
-                        im.ImageID.Codec = 2;
-                        im.Header.Zerocoded = true;
-                        RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
+                        
+                        RequestUser.SendImagePart(1, m_asset.FullID, (uint)m_asset.Data.Length, m_asset.Data, 2);
+                        
                         PacketCounter++;
                     }
                     else
                     {
-                        ImageDataPacket im = new ImageDataPacket();
-                        im.Header.Reliable = false;
-                        im.ImageID.Packets = (ushort) (NumPackets);
-                        im.ImageID.ID = m_asset.FullID;
-                        im.ImageID.Size = (uint) m_asset.Data.Length;
-                        im.ImageData.Data = new byte[600];
-                        Array.Copy(m_asset.Data, 0, im.ImageData.Data, 0, 600);
-                        im.ImageID.Codec = 2;
-                        im.Header.Zerocoded = true;
-                        RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
+                        
+                        byte[] ImageData1 = new byte[600];
+                        Array.Copy(m_asset.Data, 0, ImageData1, 0, 600);
+
+                        RequestUser.SendImagePart((ushort)(NumPackets), m_asset.FullID, (uint)m_asset.Data.Length, ImageData1, 2);
                         PacketCounter++;
                     }
                 }
                 else
                 {
+                    // Doesn't like to be refactored...    
                     ImagePacketPacket im = new ImagePacketPacket();
                     im.Header.Reliable = false;
-                    im.ImageID.Packet = (ushort) (PacketCounter);
+                    im.ImageID.Packet = (ushort)(PacketCounter);
                     im.ImageID.ID = m_asset.FullID;
                     int size = m_asset.Data.Length - 600 - (1000 * (PacketCounter - 1));
                     if (size > 1000) size = 1000;
@@ -195,8 +185,9 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
                                     m_asset.FullID.ToString());
                         return;
                     }
-                    im.Header.Zerocoded = true;
                     RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
+
+
                     PacketCounter++;
                 }
             }

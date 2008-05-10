@@ -2229,6 +2229,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             newPack.Header.Zerocoded = true;
             OutPacket(newPack, ThrottleOutPacketType.Asset);
         }
+        public void SendImagePart(ushort numParts, LLUUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec)
+        {
+            ImageDataPacket im = new ImageDataPacket();
+            im.Header.Reliable = false;
+            im.ImageID.Packets = numParts;
+            im.ImageID.ID = ImageUUID;
+
+            if (ImageSize > 0)
+                im.ImageID.Size = ImageSize;
+            
+            im.ImageData.Data = ImageData;
+            im.ImageID.Codec = imageCodec;
+            im.Header.Zerocoded = true;
+            OutPacket(im, ThrottleOutPacketType.Texture);
+        }
         #endregion
 
         #region Estate Data Sending Methods
