@@ -157,6 +157,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
                         im.ImageID.Size = (uint) m_asset.Data.Length;
                         im.ImageData.Data = m_asset.Data;
                         im.ImageID.Codec = 2;
+                        im.Header.Zerocoded = true;
                         RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
                         PacketCounter++;
                     }
@@ -170,6 +171,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
                         im.ImageData.Data = new byte[600];
                         Array.Copy(m_asset.Data, 0, im.ImageData.Data, 0, 600);
                         im.ImageID.Codec = 2;
+                        im.Header.Zerocoded = true;
                         RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
                         PacketCounter++;
                     }
@@ -193,6 +195,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
                                     m_asset.FullID.ToString());
                         return;
                     }
+                    im.Header.Zerocoded = true;
                     RequestUser.OutPacket(im, ThrottleOutPacketType.Texture);
                     PacketCounter++;
                 }

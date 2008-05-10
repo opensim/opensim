@@ -606,6 +606,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 Transfer.TransferInfo.Size = (int)req.AssetInf.Data.Length;
                 Transfer.TransferInfo.TransferID = req.TransferRequestID;
+                Transfer.Header.Zerocoded = true;
                 req.RequestUser.OutPacket(Transfer, ThrottleOutPacketType.Asset);
 
                 if (req.NumPackets == 1)
@@ -616,6 +617,7 @@ namespace OpenSim.Framework.Communications.Cache
                     TransferPacket.TransferData.TransferID = req.TransferRequestID;
                     TransferPacket.TransferData.Data = req.AssetInf.Data;
                     TransferPacket.TransferData.Status = 1;
+                    TransferPacket.Header.Zerocoded = true;
                     req.RequestUser.OutPacket(TransferPacket, ThrottleOutPacketType.Asset);
                 }
                 else
@@ -647,7 +649,7 @@ namespace OpenSim.Framework.Communications.Cache
                         {
                             TransferPacket.TransferData.Status = 1;
                         }
-
+                        TransferPacket.Header.Zerocoded = true;
                         req.RequestUser.OutPacket(TransferPacket, ThrottleOutPacketType.Asset);
 
                         processedLength += chunkSize;

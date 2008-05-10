@@ -193,6 +193,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                     ConfirmXferPacketPacket newPack = new ConfirmXferPacketPacket();
                     newPack.XferID.ID = xferID;
                     newPack.XferID.Packet = packetID;
+                    newPack.Header.Zerocoded = true;
                     ourClient.OutPacket(newPack, ThrottleOutPacketType.Asset);
                     if ((packetID & 0x80000000) != 0)
                     {
@@ -250,6 +251,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                 newPack.XferID.VFileID = Asset.FullID;
                 newPack.XferID.FilePath = 0;
                 newPack.XferID.Filename = new byte[0];
+                newPack.Header.Zerocoded = true;
                 ourClient.OutPacket(newPack, ThrottleOutPacketType.Asset);
             }
 
@@ -260,6 +262,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                 newPack.AssetBlock.Type = Asset.Type;
                 newPack.AssetBlock.Success = true;
                 newPack.AssetBlock.UUID = Asset.FullID;
+                newPack.Header.Zerocoded = true;
                 ourClient.OutPacket(newPack, ThrottleOutPacketType.Asset);
                 m_finished = true;
                 if (m_createItem)

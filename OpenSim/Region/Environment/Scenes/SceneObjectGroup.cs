@@ -1424,6 +1424,7 @@ namespace OpenSim.Region.Environment.Scenes
             objPropDB.Name = Helpers.StringToField(RootPart.Name);
             objPropDB.Description = Helpers.StringToField(RootPart.Description);
             objPropFamilyPack.ObjectData = objPropDB;
+            objPropFamilyPack.Header.Zerocoded = true;
             remoteClient.OutPacket(objPropFamilyPack, ThrottleOutPacketType.Task);
         }
 
@@ -1975,7 +1976,7 @@ namespace OpenSim.Region.Environment.Scenes
 //            proper.ObjectData[0].AggregatePerms = 53;
 //            proper.ObjectData[0].AggregatePermTextures = 0;
 //            proper.ObjectData[0].AggregatePermTexturesOwner = 0;
-
+            proper.Header.Zerocoded = true;
             client.OutPacket(proper, ThrottleOutPacketType.Task);
         }
 

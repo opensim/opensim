@@ -1007,6 +1007,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 patches[0] = patchx + 0 + patchy * 16;
 
                 Packet layerpack = LLClientView.TerrainManager.CreateLandPacket(map, patches);
+                layerpack.Header.Zerocoded = true;
                 OutPacket(layerpack, ThrottleOutPacketType.Land);
             }
             catch (Exception e)
@@ -1230,6 +1231,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             kill.ObjectData[0] = new KillObjectPacket.ObjectDataBlock();
             kill.ObjectData[0].ID = localID;
             kill.Header.Reliable = false;
+            kill.Header.Zerocoded = true;
             OutPacket(kill, ThrottleOutPacketType.Task);
         }
 
@@ -1329,6 +1331,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     count++;
                     if (i == MAX_ITEMS_PER_PACKET)
                     {
+                        descend.Header.Zerocoded = true;
                         OutPacket(descend, ThrottleOutPacketType.Asset);
 
                         if ((items.Count - count) > 0)
@@ -1351,6 +1354,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 if (i < MAX_ITEMS_PER_PACKET)
                 {
+                   
                     OutPacket(descend, ThrottleOutPacketType.Asset);
                 }
             }
@@ -1359,7 +1363,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             if (fetchFolders)
             {
                 InventoryDescendentsPacket descend = CreateInventoryDescendentsPacket(ownerID, folderID);
-
+                
                 if (folders.Count < MAX_ITEMS_PER_PACKET)
                 {
                     descend.FolderData = new InventoryDescendentsPacket.FolderDataBlock[folders.Count];
@@ -1424,6 +1428,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private InventoryDescendentsPacket CreateInventoryDescendentsPacket(LLUUID ownerID, LLUUID folderID)
         {
             InventoryDescendentsPacket descend = (InventoryDescendentsPacket)PacketPool.Instance.GetPacket(PacketType.InventoryDescendents);
+            descend.Header.Zerocoded = true;
             descend.AgentData.AgentID = AgentId;
             descend.AgentData.OwnerID = ownerID;
             descend.AgentData.FolderID = folderID;
@@ -1472,7 +1477,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                      inventoryReply.InventoryData[0].ItemID, inventoryReply.InventoryData[0].FolderID,
                                      FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS,
                                      FULL_MASK_PERMISSIONS);
-
+            inventoryReply.Header.Zerocoded = true;
             OutPacket(inventoryReply, ThrottleOutPacketType.Asset);
         }
         
@@ -1527,7 +1532,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                      bulkUpdate.ItemData[0].ItemID, bulkUpdate.ItemData[0].FolderID,
                                      FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS,
                                      FULL_MASK_PERMISSIONS);
-            
+            bulkUpdate.Header.Zerocoded = true;
             OutPacket(bulkUpdate, ThrottleOutPacketType.Asset);
         }
 
@@ -1575,7 +1580,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                      InventoryReply.InventoryData[0].ItemID, InventoryReply.InventoryData[0].FolderID,
                                      FULL_MASK_PERMISSIONS, 1, FULL_MASK_PERMISSIONS, FULL_MASK_PERMISSIONS,
                                      FULL_MASK_PERMISSIONS);
-
+            InventoryReply.Header.Zerocoded = true;
             OutPacket(InventoryReply, ThrottleOutPacketType.Asset);
         }
 
@@ -1588,7 +1593,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             remove.InventoryData = new RemoveInventoryItemPacket.InventoryDataBlock[1];
             remove.InventoryData[0] = new RemoveInventoryItemPacket.InventoryDataBlock();
             remove.InventoryData[0].ItemID = itemID;
-
+            remove.Header.Zerocoded = true;
             OutPacket(remove, ThrottleOutPacketType.Asset);
         }
 
@@ -1754,6 +1759,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             preSound.DataBlock[0].ObjectID = objectID;
             preSound.DataBlock[0].OwnerID = ownerID;
             preSound.DataBlock[0].SoundID = soundID;
+            preSound.Header.Zerocoded = true;
             OutPacket(preSound, ThrottleOutPacketType.Task);
         }
 
@@ -1765,7 +1771,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             sound.DataBlock.OwnerID = ownerID;
             sound.DataBlock.Gain = gain;
             sound.DataBlock.Flags = flags;
-
+  
             OutPacket(sound, ThrottleOutPacketType.Task);
         }
 
@@ -1802,6 +1808,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             viewertime.TimeInfo.SecPerYear     = SecondsPerYear;
             viewertime.TimeInfo.SunPhase       = OrbitalPosition;
             viewertime.Header.Reliable         = false;
+            viewertime.Header.Zerocoded = true;
             OutPacket(viewertime, ThrottleOutPacketType.Task);
         }
 
@@ -1991,7 +1998,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LLVector3 pos2 = new LLVector3((float)Pos.X, (float)Pos.Y, (float)Pos.Z);
             byte[] pb = pos2.GetBytes();
             Array.Copy(pb, 0, objupdate.ObjectData[0].ObjectData, 16, pb.Length);
-
+            objupdate.Header.Zerocoded = true;
             OutPacket(objupdate, ThrottleOutPacketType.Task);
         }
 
@@ -2017,7 +2024,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             terse.Header.Reliable = false;
 
-
+            terse.Header.Zerocoded = true;
             OutPacket(terse, ThrottleOutPacketType.Task);
         }
 
@@ -2042,6 +2049,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ib.Prey = -1;
             loc.Index = ib;
             loc.Header.Reliable = false;
+            loc.Header.Zerocoded = true;
             OutPacket(loc, ThrottleOutPacketType.Task);
         }
 
@@ -2068,7 +2076,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             attach.ObjectData[0] = new ObjectAttachPacket.ObjectDataBlock();
             attach.ObjectData[0].ObjectLocalID = localID;
             attach.ObjectData[0].Rotation = rotation;
-
+            attach.Header.Zerocoded = true;
             OutPacket(attach, ThrottleOutPacketType.Task);
         }
 
@@ -2153,7 +2161,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 outPacket.ObjectData[0].TextureAnim = textureanim;
             }
-
+            outPacket.Header.Zerocoded = true;
             OutPacket(outPacket, ThrottleOutPacketType.Task);
         }
 
@@ -2175,6 +2183,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
             terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation, velocity, rotationalvelocity, state); // AssetID should fall into here probably somehow...   
             terse.Header.Reliable = false;
+            terse.Header.Zerocoded = true;
             OutPacket(terse, ThrottleOutPacketType.Task);
         }
 
@@ -2188,6 +2197,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             terse.ObjectData = new ImprovedTerseObjectUpdatePacket.ObjectDataBlock[1];
             terse.ObjectData[0] = CreatePrimImprovedBlock(localID, position, rotation, velocity, rotationalvelocity, 0);
             terse.Header.Reliable = false;
+            terse.Header.Zerocoded = true;
             OutPacket(terse, ThrottleOutPacketType.Task);
         }
 
@@ -2320,6 +2330,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             packet = (ParcelOverlayPacket)PacketPool.Instance.GetPacket(PacketType.ParcelOverlay);
             packet.ParcelData.Data = data;
             packet.ParcelData.SequenceID = sequence_id;
+            packet.Header.Zerocoded = true;
             this.OutPacket(packet, ThrottleOutPacketType.Task);
         }
         public void sendLandProperties(IClientAPI remote_client,int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int simObjectCapacity, uint regionFlags)
@@ -2405,6 +2416,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                  landData.selectedPrims;
             updatePacket.ParcelData.UserLocation = landData.userLocation;
             updatePacket.ParcelData.UserLookAt = landData.userLookAt;
+            updatePacket.Header.Zerocoded = true;
             remote_client.OutPacket((Packet) updatePacket, ThrottleOutPacketType.Task);
         }
 
@@ -2426,6 +2438,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             replyPacket.List = list.ToArray();
+            replyPacket.Header.Zerocoded = true;
             this.OutPacket((Packet)replyPacket, ThrottleOutPacketType.Task);
         }
 
@@ -2464,6 +2477,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     ObjectIDs.RemoveAt(0);
                 }
                 pack.Data = data;
+                pack.Header.Zerocoded = true;
                 this.OutPacket((Packet)pack, ThrottleOutPacketType.Task);
             }
         }
@@ -2508,7 +2522,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 pack.Data = dataBlock;
             }
-
+            pack.Header.Zerocoded = true;
             this.OutPacket(pack, ThrottleOutPacketType.Task);
         }
 
@@ -3001,6 +3015,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             
             // Temporarily throw these packets on to the wind queue, so we can identify whether these 
             // are somehow the source of the packet bloat.
+            cachedresp.Header.Zerocoded = true;
             OutPacket(cachedresp, ThrottleOutPacketType.Wind);
             return true;
         }
@@ -3203,6 +3218,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             mapReply.LayerData[0].Top = 30000;
             mapReply.LayerData[0].Right = 30000;
             mapReply.LayerData[0].ImageID = new LLUUID("00000000-0000-1111-9999-000000000006");
+            mapReply.Header.Zerocoded = true;
             OutPacket(mapReply, ThrottleOutPacketType.Land);
         }
 
