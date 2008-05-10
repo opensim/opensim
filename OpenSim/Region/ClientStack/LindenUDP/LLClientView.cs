@@ -2257,6 +2257,79 @@ namespace OpenSim.Region.ClientStack.LindenUDP
            OutPacket(pack, ThrottleOutPacketType.Task);
         }
 
+        public void SendObjectPropertiesFamilyData(uint RequestFlags, LLUUID ObjectUUID, LLUUID OwnerID, LLUUID GroupID,
+                                                    uint BaseMask, uint OwnerMask, uint GroupMask, uint EveryoneMask,
+                                                    uint NextOwnerMask, int OwnershipCost, byte SaleType,int SalePrice, uint Category, 
+                                                    LLUUID LastOwnerID, string ObjectName, string Description)
+        {
+            ObjectPropertiesFamilyPacket objPropFamilyPack = (ObjectPropertiesFamilyPacket)PacketPool.Instance.GetPacket(PacketType.ObjectPropertiesFamily);
+            // TODO: don't create new blocks if recycling an old packet
+
+            ObjectPropertiesFamilyPacket.ObjectDataBlock objPropDB = new ObjectPropertiesFamilyPacket.ObjectDataBlock();
+            objPropDB.RequestFlags = RequestFlags;
+            objPropDB.ObjectID = ObjectUUID;
+            objPropDB.OwnerID = OwnerID;
+            objPropDB.GroupID = GroupID;
+            objPropDB.BaseMask = BaseMask;
+            objPropDB.OwnerMask = OwnerMask;
+            objPropDB.GroupMask = GroupMask;
+            objPropDB.EveryoneMask = EveryoneMask;
+            objPropDB.NextOwnerMask = NextOwnerMask;
+
+            // TODO: More properties are needed in SceneObjectPart!
+            objPropDB.OwnershipCost = OwnershipCost;
+            objPropDB.SaleType = SaleType;
+            objPropDB.SalePrice = SalePrice;
+            objPropDB.Category = Category;
+            objPropDB.LastOwnerID = LastOwnerID;
+            objPropDB.Name = Helpers.StringToField(ObjectName);
+            objPropDB.Description = Helpers.StringToField(Description);
+            objPropFamilyPack.ObjectData = objPropDB;
+            objPropFamilyPack.Header.Zerocoded = true;
+            OutPacket(objPropFamilyPack, ThrottleOutPacketType.Task);
+        }
+
+        public void SendObjectPropertiesReply(LLUUID ItemID, ulong CreationDate, LLUUID CreatorUUID, LLUUID FolderUUID, LLUUID FromTaskUUID,
+                                              LLUUID GroupUUID, short InventorySerial, LLUUID LastOwnerUUID, LLUUID ObjectUUID, 
+                                              LLUUID OwnerUUID, string TouchTitle, byte[] TextureID, string SitTitle, string ItemName, 
+                                              string ItemDescription, uint OwnerMask, uint NextOwnerMask, uint GroupMask, uint EveryoneMask, 
+                                              uint BaseMask)
+        {
+            ObjectPropertiesPacket proper = (ObjectPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
+            // TODO: don't create new blocks if recycling an old packet
+
+            proper.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[1];
+            proper.ObjectData[0] = new ObjectPropertiesPacket.ObjectDataBlock();
+            proper.ObjectData[0].ItemID = ItemID;
+            proper.ObjectData[0].CreationDate = CreationDate;
+            proper.ObjectData[0].CreatorID = CreatorUUID;
+            proper.ObjectData[0].FolderID = FolderUUID;
+            proper.ObjectData[0].FromTaskID = FromTaskUUID;
+            proper.ObjectData[0].GroupID = GroupUUID;
+            proper.ObjectData[0].InventorySerial = InventorySerial;
+
+            proper.ObjectData[0].LastOwnerID = LastOwnerUUID;
+            //            proper.ObjectData[0].LastOwnerID = LLUUID.Zero;
+
+            proper.ObjectData[0].ObjectID = ObjectUUID;
+            proper.ObjectData[0].OwnerID = OwnerUUID;
+            proper.ObjectData[0].TouchName = Helpers.StringToField(TouchTitle);
+            proper.ObjectData[0].TextureID = TextureID;
+            proper.ObjectData[0].SitName = Helpers.StringToField(SitTitle);
+            proper.ObjectData[0].Name = Helpers.StringToField(ItemName);
+            proper.ObjectData[0].Description = Helpers.StringToField(ItemDescription);
+            proper.ObjectData[0].OwnerMask = OwnerMask;
+            proper.ObjectData[0].NextOwnerMask = NextOwnerMask;
+            proper.ObjectData[0].GroupMask = GroupMask;
+            proper.ObjectData[0].EveryoneMask = EveryoneMask;
+            proper.ObjectData[0].BaseMask = BaseMask;
+            //            proper.ObjectData[0].AggregatePerms = 53;
+            //            proper.ObjectData[0].AggregatePermTextures = 0;
+            //            proper.ObjectData[0].AggregatePermTexturesOwner = 0;
+            proper.Header.Zerocoded = true;
+            OutPacket(proper, ThrottleOutPacketType.Task);
+        }
+
         #endregion
 
         #region Estate Data Sending Methods

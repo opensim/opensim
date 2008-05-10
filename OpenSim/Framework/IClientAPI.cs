@@ -941,6 +941,17 @@ namespace OpenSim.Framework
 
         void SendShutdownConnectionNotice();
         void SendSimStats(Packet pack);
+        void SendObjectPropertiesFamilyData(uint RequestFlags, LLUUID ObjectUUID, LLUUID OwnerID, LLUUID GroupID,
+                                                    uint BaseMask, uint OwnerMask, uint GroupMask, uint EveryoneMask,
+                                                    uint NextOwnerMask, int OwnershipCost, byte SaleType, int SalePrice, uint Category,
+                                                    LLUUID LastOwnerID, string ObjectName, string Description);
+
+        void SendObjectPropertiesReply(LLUUID ItemID, ulong CreationDate, LLUUID CreatorUUID, LLUUID FolderUUID, LLUUID FromTaskUUID,
+                                              LLUUID GroupUUID, short InventorySerial, LLUUID LastOwnerUUID, LLUUID ObjectUUID,
+                                              LLUUID OwnerUUID, string TouchTitle, byte[] TextureID, string SitTitle, string ItemName,
+                                              string ItemDescription, uint OwnerMask, uint NextOwnerMask, uint GroupMask, uint EveryoneMask,
+                                              uint BaseMask);
+        
 
         byte[] GetThrottlesPacked(float multiplier);
 

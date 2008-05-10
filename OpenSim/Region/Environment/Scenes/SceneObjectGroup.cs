@@ -1400,32 +1400,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="part"></param>
         public void ServiceObjectPropertiesFamilyRequest(IClientAPI remoteClient, LLUUID AgentID, uint RequestFlags)
         {
-            //RootPart.ServiceObjectPropertiesFamilyRequest(remoteClient, AgentID, RequestFlags);
-            ObjectPropertiesFamilyPacket objPropFamilyPack = (ObjectPropertiesFamilyPacket) PacketPool.Instance.GetPacket(PacketType.ObjectPropertiesFamily);
-            // TODO: don't create new blocks if recycling an old packet
 
-            ObjectPropertiesFamilyPacket.ObjectDataBlock objPropDB = new ObjectPropertiesFamilyPacket.ObjectDataBlock();
-            objPropDB.RequestFlags = RequestFlags;
-            objPropDB.ObjectID = RootPart.UUID;
-            objPropDB.OwnerID = RootPart.ObjectOwner;
-            objPropDB.GroupID = RootPart.GroupID;
-            objPropDB.BaseMask = RootPart.BaseMask;
-            objPropDB.OwnerMask = RootPart.OwnerMask;
-            objPropDB.GroupMask = RootPart.GroupMask;
-            objPropDB.EveryoneMask = RootPart.EveryoneMask;
-            objPropDB.NextOwnerMask = RootPart.NextOwnerMask;
-
-            // TODO: More properties are needed in SceneObjectPart!
-            objPropDB.OwnershipCost = RootPart.OwnershipCost;
-            objPropDB.SaleType = RootPart.ObjectSaleType;
-            objPropDB.SalePrice = RootPart.SalePrice;
-            objPropDB.Category = RootPart.Category;
-            objPropDB.LastOwnerID = RootPart.CreatorID;
-            objPropDB.Name = Helpers.StringToField(RootPart.Name);
-            objPropDB.Description = Helpers.StringToField(RootPart.Description);
-            objPropFamilyPack.ObjectData = objPropDB;
-            objPropFamilyPack.Header.Zerocoded = true;
-            remoteClient.OutPacket(objPropFamilyPack, ThrottleOutPacketType.Task);
+            remoteClient.SendObjectPropertiesFamilyData(RequestFlags, RootPart.UUID, RootPart.ObjectOwner, RootPart.GroupID, RootPart.BaseMask,
+                                                        RootPart.OwnerMask, RootPart.GroupMask, RootPart.EveryoneMask, RootPart.NextOwnerMask,
+                                                        RootPart.OwnershipCost, RootPart.ObjectSaleType, RootPart.SalePrice, RootPart.Category,
+                                                        RootPart.CreatorID, RootPart.Name, RootPart.Description);
         }
 
         public void SetPartOwner(SceneObjectPart part, LLUUID cAgentID, LLUUID cGroupID)
@@ -1945,39 +1924,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="client"></param>
         public void GetProperties(IClientAPI client)
         {
-            ObjectPropertiesPacket proper = (ObjectPropertiesPacket) PacketPool.Instance.GetPacket(PacketType.ObjectProperties);
-            // TODO: don't create new blocks if recycling an old packet
 
-            proper.ObjectData = new ObjectPropertiesPacket.ObjectDataBlock[1];
-            proper.ObjectData[0] = new ObjectPropertiesPacket.ObjectDataBlock();
-            proper.ObjectData[0].ItemID = LLUUID.Zero;
-            proper.ObjectData[0].CreationDate = (ulong) m_rootPart.CreationDate;
-            proper.ObjectData[0].CreatorID = m_rootPart.CreatorID;
-            proper.ObjectData[0].FolderID = LLUUID.Zero;
-            proper.ObjectData[0].FromTaskID = LLUUID.Zero;
-            proper.ObjectData[0].GroupID = LLUUID.Zero;
-            proper.ObjectData[0].InventorySerial = (short) m_rootPart.InventorySerial;
+            client.SendObjectPropertiesReply(LLUUID.Zero, (ulong)m_rootPart.CreationDate, m_rootPart.CreatorID, LLUUID.Zero, LLUUID.Zero,
+                                               LLUUID.Zero, (short)m_rootPart.InventorySerial, m_rootPart.LastOwnerID, UUID, m_rootPart.OwnerID,
+                                               m_rootPart.TouchName, new byte[0], m_rootPart.SitName, m_rootPart.Name, m_rootPart.Description,
+                                               m_rootPart.OwnerMask, m_rootPart.NextOwnerMask, m_rootPart.GroupMask, m_rootPart.EveryoneMask,
+                                               m_rootPart.BaseMask);
             
-            proper.ObjectData[0].LastOwnerID = m_rootPart.LastOwnerID;
-//            proper.ObjectData[0].LastOwnerID = LLUUID.Zero;
-            
-            proper.ObjectData[0].ObjectID = UUID;
-            proper.ObjectData[0].OwnerID = m_rootPart.OwnerID;
-            proper.ObjectData[0].TouchName = Helpers.StringToField(m_rootPart.TouchName);
-            proper.ObjectData[0].TextureID = new byte[0];
-            proper.ObjectData[0].SitName = Helpers.StringToField(m_rootPart.SitName);
-            proper.ObjectData[0].Name = Helpers.StringToField(m_rootPart.Name);
-            proper.ObjectData[0].Description = Helpers.StringToField(m_rootPart.Description);
-            proper.ObjectData[0].OwnerMask = m_rootPart.OwnerMask;
-            proper.ObjectData[0].NextOwnerMask = m_rootPart.NextOwnerMask;
-            proper.ObjectData[0].GroupMask = m_rootPart.GroupMask;
-            proper.ObjectData[0].EveryoneMask = m_rootPart.EveryoneMask;
-            proper.ObjectData[0].BaseMask = m_rootPart.BaseMask;
-//            proper.ObjectData[0].AggregatePerms = 53;
-//            proper.ObjectData[0].AggregatePermTextures = 0;
-//            proper.ObjectData[0].AggregatePermTexturesOwner = 0;
-            proper.Header.Zerocoded = true;
-            client.OutPacket(proper, ThrottleOutPacketType.Task);
         }
 
         /// <summary>
