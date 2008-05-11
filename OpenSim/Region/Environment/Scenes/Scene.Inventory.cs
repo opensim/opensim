@@ -1308,7 +1308,20 @@ namespace OpenSim.Region.Environment.Scenes
                                 group.SetFromAssetID(itemID);
                             }
 
-                            SceneObjectPart rootPart = group.GetChildPart(group.UUID);
+                            SceneObjectPart rootPart = null;
+                            try
+                            {
+                                rootPart = group.GetChildPart(group.UUID);
+                            }
+                            catch (NullReferenceException)
+                            {
+                                string isAttachment = "";
+
+                                if (attachment)
+                                    isAttachment = " Object was an attachment";
+                             
+                                m_log.Error("[OJECTREZ]: Error rezzing ItemID: " + itemID + " object has no rootpart." + isAttachment);
+                            }
                             
                             // Since renaming the item in the inventory does not affect the name stored
                             // in the serialization, transfer the correct name from the inventory to the
