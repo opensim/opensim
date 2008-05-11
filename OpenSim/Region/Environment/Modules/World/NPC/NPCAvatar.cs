@@ -83,6 +83,11 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
                              Position, m_scene.RegionInfo.RegionID, new byte[0]);
         }
 
+        public LLUUID GetDefaultAnimation(string name)
+        {
+            return LLUUID.Zero;
+        }
+
         public LLVector3 Position
         {
             get { return m_scene.Entities[m_uuid].AbsolutePosition; }
