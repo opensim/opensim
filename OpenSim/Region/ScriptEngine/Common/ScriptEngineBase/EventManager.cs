@@ -145,7 +145,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void money(uint localID, LLUUID agentID, int amount)
         {
-            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "money", EventQueueManager.llDetectNull, new object[] { agentID.ToString(), new LSL_Types.LSLInteger(amount) });
+            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "money", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLString(agentID.ToString()), new LSL_Types.LSLInteger(amount) });
         }
 
         // TODO: Replace placeholders below

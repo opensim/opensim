@@ -1110,6 +1110,8 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
             }
 
+            
+
             static public implicit operator String(LSLString s)
             {
                 return s.m_string;
@@ -1272,6 +1274,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 i.value++;
                 return i;
             }
+           
 
             public static LSLInteger operator --(LSLInteger i)
             {
