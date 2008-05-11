@@ -4367,6 +4367,42 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             }
                         }
                         break;
+                    case PacketType.ObjectPosition:
+                        // DEPRECATED: but till libsecondlife removes it, people will use it
+                        ObjectPositionPacket position = (ObjectPositionPacket)Pack;
+
+                        for (int i=0; i<position.ObjectData.Length; i++)
+                        {
+                            handlerUpdateVector = OnUpdatePrimGroupPosition;
+                            if (handlerUpdateVector != null)
+                                handlerUpdateVector(position.ObjectData[i].ObjectLocalID, position.ObjectData[i].Position, this);
+                        }
+
+                        break;
+                    case PacketType.ObjectScale:
+                        // DEPRECATED: but till libsecondlife removes it, people will use it
+                        ObjectScalePacket scale = (ObjectScalePacket)Pack;
+
+                        for (int i=0; i<scale.ObjectData.Length; i++)
+                        {
+                            handlerUpdatePrimGroupScale = OnUpdatePrimGroupScale;
+                            if (handlerUpdatePrimGroupScale != null)
+                                handlerUpdatePrimGroupScale(scale.ObjectData[i].ObjectLocalID, scale.ObjectData[i].Scale, this);
+                        }
+
+                        break;
+                    case PacketType.ObjectRotation:
+                        // DEPRECATED: but till libsecondlife removes it, people will use it
+                        ObjectRotationPacket rotation = (ObjectRotationPacket)Pack;
+
+                        for (int i=0; i<rotation.ObjectData.Length; i++)
+                        {
+                            handlerUpdatePrimRotation = OnUpdatePrimGroupRotation;
+                            if (handlerUpdatePrimRotation != null)
+                                handlerUpdatePrimRotation(rotation.ObjectData[i].ObjectLocalID, rotation.ObjectData[i].Rotation, this);
+                        }
+
+                        break;
                     case PacketType.ObjectFlagUpdate:
                         ObjectFlagUpdatePacket flags = (ObjectFlagUpdatePacket)Pack;
 
@@ -5523,10 +5559,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     case PacketType.CompletePingCheck:
                         // TODO: Perhaps this should be processed on the Sim to determine whether or not to drop a dead client
                         //m_log.Warn("[CLIENT]: unhandled CompletePingCheck packet");
-                        break;
-                    case PacketType.ObjectScale:
-                        // TODO: handle this packet
-                        m_log.Warn("[CLIENT]: unhandled ObjectScale packet");
                         break;
                     case PacketType.ViewerStats:
                         // TODO: handle this packet
