@@ -1524,7 +1524,15 @@ namespace OpenSim.Region.Environment.Scenes
 
                 CreateAndAddScenePresence(client, child);
 
-                LandChannel.SendParcelOverlay(client);
+                try
+                {
+                    LandChannel.SendParcelOverlay(client);
+                } //BUG: Mike - please fix this.
+                catch (KeyNotFoundException)
+                {
+                    m_log.Warn("[LAND]: Bug #2 triggered with NPC. LandModule needs a refactor to fix this.");
+                }
+
                 CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
             }
         }

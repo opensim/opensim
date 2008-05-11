@@ -50,9 +50,12 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_log.Info("[PRIM INVENTORY]: Starting scripts in scene");
             
-            foreach (SceneObjectGroup group in Entities.Values)
+            foreach (EntityBase group in Entities.Values)
             {
-                group.StartScripts();
+                if (group is SceneObjectGroup)
+                {
+                    ((SceneObjectGroup) group).StartScripts();
+                }
             }            
         }
 

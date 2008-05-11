@@ -23,11 +23,9 @@ namespace OpenSim.Region.Modules.Python
 
         public void PostInitialise()
         {
-            /*
             m_log.Info("[PYTHON] Initialising IronPython engine.");
             m_python = new PythonEngine();
             m_python.AddToPath(System.Environment.CurrentDirectory + System.IO.Path.DirectorySeparatorChar + "Python");
-            */
         }
 
         public void Close()
