@@ -2136,15 +2136,15 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             if ((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TRIGGER_ANIMATION) != 0)
             {
-                // Do NOT try to parse LLUUID, animations cannot be triggered by ID
-                LLUUID animID=InventoryKey(anim, (int)AssetType.Animation);
-                if (animID == LLUUID.Zero)
-                    return;
-
                 if (World.m_innerScene.ScenePresences.ContainsKey(m_host.TaskInventory[invItemID].PermsGranter))
                 {
                     ScenePresence presence = World.m_innerScene.ScenePresences[m_host.TaskInventory[invItemID].PermsGranter];
-                    presence.AddAnimation(animID);
+					// Do NOT try to parse LLUUID, animations cannot be triggered by ID
+					LLUUID animID=InventoryKey(anim, (int)AssetType.Animation);
+					if (animID == LLUUID.Zero)
+						presence.AddAnimation(anim);
+					else
+						presence.AddAnimation(animID);
                 }
             }
         }
@@ -2170,12 +2170,15 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
 
                 if (animID == LLUUID.Zero)
-                    return;
+					return;
 
                 if (World.m_innerScene.ScenePresences.ContainsKey(m_host.TaskInventory[invItemID].PermsGranter))
                 {
                     ScenePresence presence = World.m_innerScene.ScenePresences[m_host.TaskInventory[invItemID].PermsGranter];
-                    presence.RemoveAnimation(animID);
+					if (animID == LLUUID.Zero)
+						presence.RemoveAnimation(anim);
+					else
+						presence.RemoveAnimation(animID);
                 }
             }
         }

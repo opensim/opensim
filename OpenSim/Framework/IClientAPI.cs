@@ -914,6 +914,7 @@ namespace OpenSim.Framework
 
         void SendSunPos(LLVector3 sunPos, LLVector3 sunVel, ulong CurrentTime, uint SecondsPerSunCycle, uint SecondsPerYear, float OrbitalPosition);
         void SendViewerTime(int phase);
+		LLUUID GetDefaultAnimation(string name);
 
         void SendAvatarProperties(LLUUID avatarID, string aboutText, string bornOn, string charterMember, string flAbout,
                                   uint flags, LLUUID flImageID, LLUUID imageID, string profileURL, LLUUID partnerID);

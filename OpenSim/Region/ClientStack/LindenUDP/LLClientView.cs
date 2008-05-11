@@ -96,6 +96,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private byte[] m_channelVersion = Helpers.StringToField("OpenSimulator 0.5"); // Dummy value needed by libSL
 
+        private Dictionary<string, LLUUID> m_defaultAnimations = new Dictionary<string, LLUUID>();
+
+
         /* protected variables */
 
         protected static Dictionary<PacketType, PacketMethod> PacketHandlers =
@@ -325,6 +328,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_moneyBalance = 1000;
 
             m_channelVersion = Helpers.StringToField(scene.GetSimulatorVersion());
+
+            InitDefaultAnimations();
+
 
             m_scene = scene;
             m_assetCache = assetCache;
@@ -3096,6 +3102,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             scriptQuestion.Data.ObjectOwner = Helpers.StringToField(ownerName);
 
             OutPacket(scriptQuestion, ThrottleOutPacketType.Task);
+        }
+		private void InitDefaultAnimations()
+		{
+		}
+
+        public LLUUID GetDefaultAnimation(string name)
+        {
+            if(m_defaultAnimations.ContainsKey(name))
+                return m_defaultAnimations[name];
+            return LLUUID.Zero;
         }
 
         protected virtual bool Logout(IClientAPI client, Packet packet)

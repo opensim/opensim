@@ -1156,6 +1156,63 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+        public void AddAnimation(string name)
+        {
+            if(m_isChildAgent)
+                return;
+
+            // Don't let this animation become the movement animation
+            if(m_animations.Count < 1)
+                SetMovementAnimation(Animations.AnimsLLUUID["STAND"]);
+
+			LLUUID animID=m_controllingClient.GetDefaultAnimation(name);
+			if(animID == LLUUID.Zero)
+				return;
+
+            if (!m_animations.Contains(animID))
+            {
+                m_animations.Add(animID);
+                m_animationSeqs.Add(m_controllingClient.NextAnimationSequenceNumber);
+                SendAnimPack();
+            }
+        }
+
+        public void RemoveAnimation(string name)
+        {
+            if(m_isChildAgent)
+                return;
+
+			LLUUID animID=m_controllingClient.GetDefaultAnimation(name);
+			if(animID == LLUUID.Zero)
+				return;
+
+            if (m_animations.Contains(animID))
+            {
+                if (m_animations[0] == animID)
+                {
+                    SetMovementAnimation(Animations.AnimsLLUUID["STAND"]);
+                }
+                else
+                {
+                    // What a HACK!! Anim list really needs to be an object!
+                    int idx;
+
+                    for(idx=0;idx < m_animations.Count;idx++)
+                    {
+                        if(m_animations[idx] == animID)
+                        {
+                            int seq=m_animationSeqs[idx];
+
+                            m_animations.Remove(animID);
+                            m_animationSeqs.Remove(seq);
+                            SendAnimPack();
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
 
         public void HandleStartAnim(IClientAPI remoteClient, LLUUID animID)
         {

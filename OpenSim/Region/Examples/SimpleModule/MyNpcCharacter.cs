@@ -449,6 +449,11 @@ namespace OpenSim.Region.Examples.SimpleModule
         {        
         }
 
+		public LLUUID GetDefaultAnimation(string name)
+		{
+			return LLUUID.Zero;
+		}
+
         public void SendTakeControls(int controls, bool passToAgent, bool TakeControls)
         {
         }
