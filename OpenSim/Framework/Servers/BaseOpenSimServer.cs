@@ -54,7 +54,10 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         public virtual void Shutdown()
         {
-            m_console.Close();
+            if(m_console != null)
+            {
+				m_console.Close();
+            }
             Environment.Exit(0);
         }
         
@@ -68,9 +71,9 @@ namespace OpenSim.Framework.Servers
             switch (command)
             {      
                 case "help":
-                    m_console.Notice("quit - equivalent to shutdown.");
-                    m_console.Notice("show uptime - show server startup and uptime.");
-                    m_console.Notice("shutdown - shutdown the server.\n");
+                    Notice("quit - equivalent to shutdown.");
+                    Notice("show uptime - show server startup and uptime.");
+                    Notice("shutdown - shutdown the server.\n");
                     break;
                     
                 case "show":
@@ -96,10 +99,24 @@ namespace OpenSim.Framework.Servers
             switch (ShowWhat)
             {
                 case "uptime":
-                    m_console.Notice("Server has been running since " + m_startuptime.ToString());
-                    m_console.Notice("That is " + (DateTime.Now - m_startuptime).ToString());
+                    Notice("Server has been running since " + m_startuptime.DayOfWeek + ", " + m_startuptime.ToString());
+                    Notice("That is an elapsed time of " + (DateTime.Now - m_startuptime).ToString());
                     break;                    
             }
         }
+
+        /// <summary>
+        /// Console output is only possible if a console has been established.
+        /// That is something that cannot be determined within this class. So
+        /// all attempts to use the console MUST be verified.
+        /// </summary>
+        private void Notice(string msg)
+        {
+            if(m_console != null)
+            {
+                m_console.Notice(msg);
+            }
+        }
+
     }
 }

@@ -71,7 +71,7 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
 
         public void Initialise(OpenSimMain openSim)
         {
-            Console.WriteLine("Starting proxy");
+            m_log.Info("Starting proxy");
             string proxyURL = openSim.ConfigSource.Configs["Network"].GetString("proxy_url", "");
             if (proxyURL.Length == 0) return;
 

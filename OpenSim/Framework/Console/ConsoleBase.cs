@@ -49,8 +49,6 @@ namespace OpenSim.Framework.Console
             m_componentName = componentname;
             m_cmdParser = cmdparser;
 
-            System.Console.WriteLine("Creating new local console");
-
             m_log.Info("[" + m_componentName + "]: Started at " + DateTime.Now.ToString());
         }
 
