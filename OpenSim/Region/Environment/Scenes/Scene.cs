@@ -924,13 +924,20 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Register this region with a grid service
+        /// </summary>
+        /// <exception cref="System.Exception">Thrown if registration of the region itself fails.</exception>
         public void RegisterRegionWithGrid()
         {
             RegisterCommsEvents();
+            
             // These two 'commands' *must be* next to each other or sim rebooting fails.
             m_sceneGridService.RegisterRegion(RegionInfo);
             m_sceneGridService.InformNeighborsThatRegionisUp(RegionInfo);
+            
             Dictionary<string, string> dGridSettings = m_sceneGridService.GetGridSettings();
+            
             if (dGridSettings.ContainsKey("allow_forceful_banlines"))
             {
                 if (dGridSettings["allow_forceful_banlines"] != "TRUE")

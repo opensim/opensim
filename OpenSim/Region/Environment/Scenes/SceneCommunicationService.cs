@@ -84,6 +84,11 @@ namespace OpenSim.Region.Environment.Scenes
             m_commsProvider.InterRegion.rdebugRegionName = _debugRegionName;
         }
 
+        /// <summary>
+        /// Register a region with the grid
+        /// </summary>
+        /// <param name="regionInfos"></param>
+        /// <exception cref="System.Exception">Thrown if region registration fails.</exception>
         public void RegisterRegion(RegionInfo regionInfos)
         {
             m_regionInfo = regionInfos;

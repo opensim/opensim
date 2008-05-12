@@ -129,10 +129,6 @@ namespace OpenSim.Region.ClientStack
 
             scene.LoadWorldMap();
 
-            //moved to opensimMain as these have to happen after modules are initialised 
-            // scene.CreateTerrainTexture(true);
-            // scene.RegisterRegionWithGrid();
-
             scene.PhysicsScene = GetPhysicsScene();
             scene.PhysicsScene.SetTerrain(scene.Heightmap.GetFloatsSerialised());
             scene.PhysicsScene.SetWaterLevel(regionInfo.EstateSettings.waterHeight);

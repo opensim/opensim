@@ -38,6 +38,7 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         /// <param name="regionInfos"> </param>
         /// <returns></returns>
+        /// <exception cref="System.Exception">Thrown if region registration failed</exception>
         RegionCommsListener RegisterRegion(RegionInfo regionInfos);
         
         bool DeregisterRegion(RegionInfo regionInfo);

@@ -388,7 +388,7 @@ namespace OpenSim.Grid.GridServer
                                    " " + sim.regionLocY + " currently occupied by " + existingSim.regionName);
                     }
 
-                    return ErrorResponse("The key required to login your region did not match. Please check your send and receive keys.");
+                    return ErrorResponse("The key required to login your region did not match. Please check your grid send and receive keys.");
                 }
             }
             else

@@ -94,7 +94,7 @@ namespace OpenSim.Region.Communications.OGS1
         // see IGridServices
         public RegionCommsListener RegisterRegion(RegionInfo regionInfo)
         {
-            m_log.DebugFormat(
+            m_log.InfoFormat(
                 "[OGS1 GRID SERVICES]: Attempting to register region {0} with grid at {1}", 
                 regionInfo.RegionName, serversInfo.GridURL);
             
@@ -137,14 +137,16 @@ namespace OpenSim.Region.Communications.OGS1
                 XmlRpcRequest GridReq = new XmlRpcRequest("simulator_login", SendParams);
                 GridResp = GridReq.Send(serversInfo.GridURL, 30000);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                m_log.ErrorFormat(
-                    "[OGS1 GRID SERVICES]: Unable to connect to grid at {0}. Grid server not running?  Exception {1}", 
-                    serversInfo.GridURL, ex);
+                Exception e2 
+                    = new Exception(
+                        String.Format("Unable to connect to grid at {0}. Grid service not running?", serversInfo.GridURL),
+                        e);
                 
-                throw(ex);
+                throw(e2);
             }
+            
             Hashtable GridRespData = (Hashtable)GridResp.Value;
             Hashtable griddatahash = GridRespData;
 
@@ -152,11 +154,10 @@ namespace OpenSim.Region.Communications.OGS1
             if (GridRespData.ContainsKey("error"))
             {
                 string errorstring = (string) GridRespData["error"];
-                m_log.ErrorFormat(
-                    "[OGS1 GRID SERVICES]: Unable to connect to grid at {0}: {1}", 
-                    serversInfo.GridURL, errorstring);
                 
-                return null;
+                Exception e = new Exception(String.Format("Unable to connect to grid at {0}: {1}", serversInfo.GridURL, errorstring));
+                
+                throw e;
             }
             else
             {
@@ -292,7 +293,7 @@ namespace OpenSim.Region.Communications.OGS1
 
             if (responseData.ContainsKey("error"))
             {
-                Console.WriteLine("error received from grid server" + responseData["error"]);
+                m_log.WarnFormat("[OGS1 GRID SERVICES]: Error received from grid server: {0}", responseData["error"]);
                 return null;
             }
 
@@ -355,7 +356,7 @@ namespace OpenSim.Region.Communications.OGS1
 
                     if (responseData.ContainsKey("error"))
                     {
-                        m_log.Error("[OGS1 GRID SERVICES]: Error received from grid server" + responseData["error"]);
+                        m_log.Error("[OGS1 GRID SERVICES]: Error received from grid server: " + responseData["error"]);
                         return null;
                     }
 
