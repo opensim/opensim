@@ -81,7 +81,7 @@ namespace OpenSim.Region.Environment.Modules
         private double SunSpeed;                  // Rate of passage in radians/second
         private double SeasonSpeed;               // Rate of change for seasonal effects
         private double HoursToRadians;            // Rate of change for seasonal effects
-        private long m_offset = 0;                // seconds offset from UTC
+        private long TicksOffset = 0;                // seconds offset from UTC
         // Calculated every update
         private float  OrbitalPosition;           // Orbital placement at a point in time
         private double HorizonShift;              // Axis offset to skew day and night
@@ -100,7 +100,7 @@ namespace OpenSim.Region.Environment.Modules
         private ulong CurrentTime
         {
             get { 
-                return (ulong)(((System.DateTime.Now.Ticks)-TicksToEpoch)/10000000 + m_offset);
+                return (ulong)(((System.DateTime.Now.Ticks) - TicksToEpoch + TicksOffset)/10000000);
             }
         }
 
@@ -117,7 +117,9 @@ namespace OpenSim.Region.Environment.Modules
             m_frame = 0;
 
             TimeZone local = TimeZone.CurrentTimeZone;
-            m_offset = local.GetUtcOffset(local.ToLocalTime(DateTime.Now)).Seconds;
+            TicksOffset = local.GetUtcOffset(local.ToLocalTime(DateTime.Now)).Ticks;
+            
+            m_log.Debug("[SUN] localtime offset is " + TicksOffset);
 
             // Align ticks with Second Life
 
