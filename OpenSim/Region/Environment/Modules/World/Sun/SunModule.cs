@@ -75,13 +75,13 @@ namespace OpenSim.Region.Environment.Modules
         private Scene  m_scene          = null;
 
         // Calculated Once in the lifetime of a region
-        private ulong  TicksToEpoch;              // Elapsed time for 1/1/1970
+        private long  TicksToEpoch;              // Elapsed time for 1/1/1970
         private uint   SecondsPerSunCycle;        // Length of a virtual day in RW seconds
         private uint   SecondsPerYear;            // Length of a virtual year in RW seconds
         private double SunSpeed;                  // Rate of passage in radians/second
         private double SeasonSpeed;               // Rate of change for seasonal effects
         private double HoursToRadians;            // Rate of change for seasonal effects
-
+        private long m_offset = 0;                // seconds offset from UTC
         // Calculated every update
         private float  OrbitalPosition;           // Orbital placement at a point in time
         private double HorizonShift;              // Axis offset to skew day and night
@@ -95,10 +95,13 @@ namespace OpenSim.Region.Environment.Modules
         private LLVector3 Velocity = new LLVector3(0,0,0);
         private LLQuaternion  Tilt = new LLQuaternion(1,0,0,0);
 
+
         // Current time in elpased seconds since Jan 1st 1970
         private ulong CurrentTime
         {
-            get { return (ulong)((((ulong)System.DateTime.Now.Ticks)-TicksToEpoch)/10000000); }
+            get { 
+                return (ulong)(((System.DateTime.Now.Ticks)-TicksToEpoch)/10000000 + m_offset);
+            }
         }
 
         // Called immediately after the module is loaded for a given region
@@ -113,9 +116,12 @@ namespace OpenSim.Region.Environment.Modules
 
             m_frame = 0;
 
+            TimeZone local = TimeZone.CurrentTimeZone;
+            m_offset = local.GetUtcOffset(local.ToLocalTime(DateTime.Now)).Seconds;
+
             // Align ticks with Second Life
 
-            TicksToEpoch = (ulong) new System.DateTime(1970,1,1).Ticks;
+            TicksToEpoch = new System.DateTime(1970,1,1).Ticks;
 
             // Just in case they don't have the stanzas
             try
