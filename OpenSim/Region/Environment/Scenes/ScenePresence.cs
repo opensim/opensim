@@ -1226,6 +1226,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_animations.Add(Animations.AnimsLLUUID["STAND"]);
                 m_animationSeqs.Add(1);
+                SendAnimPack();
             }
             else
             {
@@ -1235,6 +1236,7 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         m_animations[0] = animID;
                         m_animationSeqs[0] = m_controllingClient.NextAnimationSequenceNumber;
+                        SendAnimPack();
                     }
                 }
                 catch
@@ -1242,9 +1244,9 @@ namespace OpenSim.Region.Environment.Scenes
                     m_log.Warn("[AVATAR]: SetMovementAnimation for avatar failed. Attempting recovery...");
                     m_animations[0] = animID;
                     m_animationSeqs[0] = m_controllingClient.NextAnimationSequenceNumber;
+                    SendAnimPack();
                 }
             }
-            SendAnimPack();
         }
 
         /// <summary>
