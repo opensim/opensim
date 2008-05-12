@@ -248,10 +248,18 @@ namespace OpenSim.Grid.GridServer
         /// </summary>
         /// <param name="sim"></param>
         /// <returns></returns>        
-        protected virtual bool ValidateOverwrite(RegionProfileData sim, RegionProfileData existingSim)
+        protected virtual void ValidateOverwrite(RegionProfileData sim, RegionProfileData existingSim)
         {            
-            return (existingSim.regionRecvKey == sim.regionRecvKey &&
-                    existingSim.regionSendKey == sim.regionSendKey);
+            if (!(existingSim.regionRecvKey == sim.regionRecvKey && existingSim.regionSendKey == sim.regionSendKey))
+            {
+                throw new LoginException(
+                    String.Format(
+                        "Authentication failed when trying to login existing region {0} at location {1} {2} currently occupied by {3}"
+                            + " with the region's send key {4} (expected {5}) and the region's receive key {6} (expected {7})",
+                            sim.regionName, sim.regionLocX, sim.regionLocY, existingSim.regionName, 
+                            sim.regionSendKey, existingSim.regionSendKey, sim.regionRecvKey, existingSim.regionRecvKey),
+                    "The keys required to login your region did not match the grid server keys.  Please check your grid send and receive keys.");
+            }
         }
 
         /// <summary>
@@ -260,15 +268,30 @@ namespace OpenSim.Grid.GridServer
         /// Currently, this means checking that the keys passed in by the new region 
         /// match those in the grid server's configuration.
         /// </summary>
+        /// 
         /// <param name="sim"></param>
-        /// <returns></returns>
-        protected virtual bool ValidateNewRegion(RegionProfileData sim)
+        /// <exception cref="LoginException">Thrown if region login failed</exception>
+        protected virtual void ValidateNewRegion(RegionProfileData sim)
         {            
-            return (sim.regionRecvKey == Config.SimSendKey &&
-                    sim.regionSendKey == Config.SimRecvKey);
+            if (!(sim.regionRecvKey == Config.SimSendKey && sim.regionSendKey == Config.SimRecvKey))
+            {
+                throw new LoginException(
+                    String.Format(
+                        "Authentication failed when trying to login new region {0} at location {1} {2}"
+                            + " with the region's send key {3} (expected {4}) and the region's receive key {5} (expected {6})",
+                            sim.regionName, sim.regionLocX, sim.regionLocY, 
+                            sim.regionSendKey, Config.SimRecvKey, sim.regionRecvKey, Config.SimSendKey),
+                    "The keys required to login your region did not match your existing region keys.  Please check your grid send and receive keys.");
+            }
+                
         }
 
-        private static XmlRpcResponse ErrorResponse(string error)
+        /// <summary>
+        /// Construct an XMLRPC error response
+        /// </summary>
+        /// <param name="error"></param>
+        /// <returns></returns>
+        public static XmlRpcResponse ErrorResponse(string error)
         {
             XmlRpcResponse errorResponse = new XmlRpcResponse();
             Hashtable errorResponseData = new Hashtable();
@@ -280,7 +303,7 @@ namespace OpenSim.Grid.GridServer
         /// <summary>
         /// Performed when a region connects to the grid server initially.
         /// </summary>
-        /// <param name="request">The XMLRPC Request</param>
+        /// <param name="request">The XML RPC Request</param>
         /// <returns>Startup parameters</returns>
         public XmlRpcResponse XmlRpcSimulatorLoginMethod(XmlRpcRequest request)
         {
@@ -310,86 +333,72 @@ namespace OpenSim.Grid.GridServer
 
             existingSim = GetRegion(sim.regionHandle);
 
+            
             if (existingSim == null || existingSim.UUID == sim.UUID || sim.UUID != sim.originUUID)
             {
-                bool validated;
-
-                if (existingSim == null)
-                {
-                    validated = ValidateNewRegion(sim);
-                }
-                else
-                {
-                    validated = ValidateOverwrite(sim, existingSim);
-                }
-
-                if (validated)
-                {
-                    foreach (KeyValuePair<string, IGridData> kvp in _plugins)
-                    {
-                        try
-                        {
-                            DataResponse insertResponse;
-
-                            if( existingSim == null )
-                            {
-                                insertResponse = kvp.Value.AddProfile(sim);
-                            }
-                            else
-                            {
-                                insertResponse = kvp.Value.UpdateProfile(sim);
-                            }
-
-                            switch (insertResponse)
-                            {
-                                case DataResponse.RESPONSE_OK:
-                                    m_log.Info("[LOGIN END]: " + (existingSim == null ? "New" : "Existing") + " sim login successful: " + sim.regionName);
-                                    break;
-                                case DataResponse.RESPONSE_ERROR:
-                                    m_log.Warn("[LOGIN END]: Sim login failed (Error): " + sim.regionName);
-                                    break;
-                                case DataResponse.RESPONSE_INVALIDCREDENTIALS:
-                                    m_log.Warn("[LOGIN END]: " +
-                                                          "Sim login failed (Invalid Credentials): " + sim.regionName);
-                                    break;
-                                case DataResponse.RESPONSE_AUTHREQUIRED:
-                                    m_log.Warn("[LOGIN END]: " +
-                                                          "Sim login failed (Authentication Required): " +
-                                                          sim.regionName);
-                                    break;
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            m_log.Warn("[LOGIN END]: " +
-                                                  "Unable to login region " + sim.UUID.ToString() + " via " + kvp.Key);
-                            m_log.Warn("[LOGIN END]: " + e.ToString());
-                        }
-                    }
-
-                    XmlRpcResponse response = CreateLoginResponse(sim);
-
-                    return response;
-                }
-                else
+                try
                 {
                     if (existingSim == null)
                     {
-                        m_log.WarnFormat(
-                            "[LOGIN END]: Authentication failed when trying to login new region {0} at location {1} {2}"
-                                + " with TheSim.regionSendKey {3} (expected {4}) and TheSim.regionRecvKey {5} (expected {6})",
-                                sim.regionName, sim.regionLocX, sim.regionLocY, 
-                                sim.regionSendKey, Config.SimRecvKey, sim.regionRecvKey, Config.SimSendKey);
+                        ValidateNewRegion(sim);
                     }
                     else
                     {
-                        m_log.Warn("[LOGIN END]: Authentication failed when trying to login region " + sim.regionName +
-                                   " at location " + sim.regionLocX +
-                                   " " + sim.regionLocY + " currently occupied by " + existingSim.regionName);
+                        ValidateOverwrite(sim, existingSim);
                     }
-
-                    return ErrorResponse("The key required to login your region did not match. Please check your grid send and receive keys.");
                 }
+                catch (LoginException e)
+                {
+                    m_log.WarnFormat("[LOGIN END]: {0}", e.Message);
+                    
+                    return e.XmlRpcErrorResponse;
+                }
+
+                foreach (KeyValuePair<string, IGridData> kvp in _plugins)
+                {
+                    try
+                    {
+                        DataResponse insertResponse;
+
+                        if( existingSim == null )
+                        {
+                            insertResponse = kvp.Value.AddProfile(sim);
+                        }
+                        else
+                        {
+                            insertResponse = kvp.Value.UpdateProfile(sim);
+                        }
+
+                        switch (insertResponse)
+                        {
+                            case DataResponse.RESPONSE_OK:
+                                m_log.Info("[LOGIN END]: " + (existingSim == null ? "New" : "Existing") + " sim login successful: " + sim.regionName);
+                                break;
+                            case DataResponse.RESPONSE_ERROR:
+                                m_log.Warn("[LOGIN END]: Sim login failed (Error): " + sim.regionName);
+                                break;
+                            case DataResponse.RESPONSE_INVALIDCREDENTIALS:
+                                m_log.Warn("[LOGIN END]: " +
+                                                      "Sim login failed (Invalid Credentials): " + sim.regionName);
+                                break;
+                            case DataResponse.RESPONSE_AUTHREQUIRED:
+                                m_log.Warn("[LOGIN END]: " +
+                                                      "Sim login failed (Authentication Required): " +
+                                                      sim.regionName);
+                                break;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        m_log.Warn("[LOGIN END]: " +
+                                              "Unable to login region " + sim.UUID.ToString() + " via " + kvp.Key);
+                        m_log.Warn("[LOGIN END]: " + e.ToString());
+                    }
+                }
+
+                XmlRpcResponse response = CreateLoginResponse(sim);
+
+                return response;
             }
             else
             {
@@ -1064,5 +1073,34 @@ namespace OpenSim.Grid.GridServer
             }
             return response;
         }
+    }
+    
+    /// <summary>
+    /// Exception generated when a simulator fails to login to the grid
+    /// </summary>
+    public class LoginException : Exception
+    {
+        /// <summary>
+        /// Return an XmlRpcResponse version of the exception message suitable for sending to a client
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="xmlRpcMessage"></param>
+        public XmlRpcResponse XmlRpcErrorResponse
+        {
+            get { return m_xmlRpcErrorResponse; }
+        }
+        private XmlRpcResponse m_xmlRpcErrorResponse;
+
+        public LoginException(string message, string xmlRpcMessage) : base(message)
+        {
+            // FIXME: Might be neater to refactor and put the method inside here
+            m_xmlRpcErrorResponse = GridManager.ErrorResponse(xmlRpcMessage);
+        }
+
+        public LoginException(string message, string xmlRpcMessage, Exception e) : base(message, e)
+        {
+            // FIXME: Might be neater to refactor and put the method inside here
+            m_xmlRpcErrorResponse = GridManager.ErrorResponse(xmlRpcMessage);
+        }                        
     }
 }
