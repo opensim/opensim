@@ -1157,10 +1157,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return new LSLString(d);
             }
 
-			public static implicit operator Vector3(LSLString s)
-			{
-				return new Vector3(s.m_string);
-			}
+            public static implicit operator Vector3(LSLString s)
+            {
+                return new Vector3(s.m_string);
+            }
 
             #endregion
 
@@ -1287,15 +1287,15 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return (double)i.value;
             }
 
-			public static bool operator true(LSLInteger i)
-			{
-				return i.value != 0;
-			}
+            public static bool operator true(LSLInteger i)
+            {
+                return i.value != 0;
+            }
 
-			public static bool operator false(LSLInteger i)
-			{
-				return i.value == 0;
-			}
+            public static bool operator false(LSLInteger i)
+            {
+                return i.value == 0;
+            }
 
             #region Overriders
 

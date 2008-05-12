@@ -3103,9 +3103,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             OutPacket(scriptQuestion, ThrottleOutPacketType.Task);
         }
-		private void InitDefaultAnimations()
-		{
-		}
+        private void InitDefaultAnimations()
+        {
+        }
 
         public LLUUID GetDefaultAnimation(string name)
         {

@@ -532,8 +532,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             LLUUID.TryParse(id, out keyID);
             
             m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.SenseOnce(m_localID, m_itemID, name, keyID, type, range, arc, m_host);
-
-            return;
        }
 
         public void llSensorRepeat(string name, string id, int type, double range, double arc, double rate)
@@ -543,14 +541,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             LLUUID.TryParse(id, out keyID);
 
             m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.SetSenseRepeatEvent(m_localID, m_itemID, name, keyID, type, range, arc, rate, m_host);
-            return;
        }
 
         public void llSensorRemove()
         {
             m_host.AddScriptLPS(1);
             m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.UnSetSenseRepeaterEvents(m_localID, m_itemID);
-            return;
         }
 
         public string resolveName(LLUUID objecUUID)
@@ -762,7 +758,6 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             World.DeleteSceneObjectGroup(m_host.ParentGroup);
-            return;
         }
 
         public double llGround(LSL_Types.Vector3 offset)
@@ -849,7 +844,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                 m_host.SetAxisRotation(statusrotationaxis, value);
 
             }
-            return;
         }
 
         public LSL_Types.LSLInteger llGetStatus(int status)
@@ -921,7 +915,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             tmp.Z = (float)scale.z;
             part.Scale = tmp;
             part.SendFullUpdateToAllClients();
-            return;
         }
 
         public LSL_Types.Vector3 llGetScale()
@@ -2139,12 +2132,12 @@ namespace OpenSim.Region.ScriptEngine.Common
                 if (World.m_innerScene.ScenePresences.ContainsKey(m_host.TaskInventory[invItemID].PermsGranter))
                 {
                     ScenePresence presence = World.m_innerScene.ScenePresences[m_host.TaskInventory[invItemID].PermsGranter];
-					// Do NOT try to parse LLUUID, animations cannot be triggered by ID
-					LLUUID animID=InventoryKey(anim, (int)AssetType.Animation);
-					if (animID == LLUUID.Zero)
-						presence.AddAnimation(anim);
-					else
-						presence.AddAnimation(animID);
+                    // Do NOT try to parse LLUUID, animations cannot be triggered by ID
+                    LLUUID animID=InventoryKey(anim, (int)AssetType.Animation);
+                    if (animID == LLUUID.Zero)
+                        presence.AddAnimation(anim);
+                    else
+                        presence.AddAnimation(animID);
                 }
             }
         }
@@ -2170,15 +2163,15 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
 
                 if (animID == LLUUID.Zero)
-					return;
+                    return;
 
                 if (World.m_innerScene.ScenePresences.ContainsKey(m_host.TaskInventory[invItemID].PermsGranter))
                 {
                     ScenePresence presence = World.m_innerScene.ScenePresences[m_host.TaskInventory[invItemID].PermsGranter];
-					if (animID == LLUUID.Zero)
-						presence.RemoveAnimation(anim);
-					else
-						presence.RemoveAnimation(animID);
+                    if (animID == LLUUID.Zero)
+                        presence.RemoveAnimation(anim);
+                    else
+                        presence.RemoveAnimation(animID);
                 }
             }
         }
@@ -2547,7 +2540,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSetScriptState(string name, int run)
         {
-
             LLUUID item;
             ScriptManager sm;
             IScript script = null;
@@ -2576,11 +2568,8 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (script == null)
                 ShoutError("llSetScriptState: script "+name+" not found");
 
-            // If we didn;t find it, then it's safe to 
+            // If we didn't find it, then it's safe to 
             // assume it is not running.
-
-            return;
-
         }
 
         public double llGetEnergy()
@@ -4083,7 +4072,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         break;
 
                     // Xantor 03-May-2008
-                    // Wiki:    PSYS_SRC_TEXTURE 	 string 	 inventory item name or key of the particle texture
+                    // Wiki:    PSYS_SRC_TEXTURE      string      inventory item name or key of the particle texture
                     //          "" = default texture.                   
                     case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_TEXTURE:
                         LLUUID tkey = LLUUID.Zero;
@@ -4363,7 +4352,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llResetOtherScript(string name)
         {
-
             LLUUID item;
             ScriptManager sm;
             IScript script = null;
@@ -4382,16 +4370,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (script == null)
                 ShoutError("llResetOtherScript: script "+name+" not found");
 
-            // If we didn;t find it, then it's safe to 
+            // If we didn't find it, then it's safe to 
             // assume it is not running.
-
-            return;
-
         }
 
         public LSL_Types.LSLInteger llGetScriptState(string name)
         {
-
             LLUUID item;
             ScriptManager sm;
             IScript script = null;
@@ -4417,11 +4401,10 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (script == null)
                 ShoutError("llGetScriptState: script "+name+" not found");
 
-            // If we didn;t find it, then it's safe to 
+            // If we didn't find it, then it's safe to 
             // assume it is not running.
 
             return 0;
-
         }
 
         public void llRemoteLoadScript()
@@ -4503,27 +4486,26 @@ namespace OpenSim.Region.ScriptEngine.Common
                 {
                     if ((partInst.LinkNum + 1) == linknumber)
                     {
-                        part=partInst;
+                        part = partInst;
                         break;
                     }
                 }
             }
             else
             {
-                part=m_host;
+                part = m_host;
             }
 
             if (part == null)
                 return;
 
+            int idx = 0;
 
-            int idx=0;
-
-            while(idx < rules.Length)
+            while (idx < rules.Length)
             {
-                int code=Convert.ToInt32(rules.Data[idx++]);
+                int code = Convert.ToInt32(rules.Data[idx++]);
 
-                int remain=rules.Length-idx;
+                int remain = rules.Length - idx;
 
                 int face;
                 LSL_Types.Vector3 v;
@@ -4586,7 +4568,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                         SetScale(part, v);
 
                         break;
-
                 }
             }
         }
@@ -4847,7 +4828,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 switch(code)
                 {
                     case 2: // PRIM_MATERIAL
-		        res.Add(new LSL_Types.LSLInteger(m_host.Material));
+                        res.Add(new LSL_Types.LSLInteger(m_host.Material));
                         break;
 
                     case 3: // PRIM_PHYSICS
@@ -4890,7 +4871,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                                                          m_host.RotationOffset.W));
                         break;
 
-		    case  9: // PRIM_TYPE
+                    case 9: // PRIM_TYPE
                         // TODO--------------
                         res.Add(new LSL_Types.LSLInteger(0));
                         break;
@@ -4934,7 +4915,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         res.Add(new LSL_Types.LSLFloat((texcolor.A * 255) / 255));
                         break;
 
-                      case 19: // PRIM_BUMP_SHINY
+                    case 19: // PRIM_BUMP_SHINY
                         // TODO--------------
                         if (remain < 1)
                             return res;
@@ -4945,7 +4926,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         res.Add(new LSL_Types.LSLInteger(0));
                         break;
 
-                      case 20: // PRIM_FULLBRIGHT
+                    case 20: // PRIM_FULLBRIGHT
                         // TODO--------------
                         if (remain < 1)
                             return res;
@@ -4955,7 +4936,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         res.Add(new LSL_Types.LSLInteger(0));
                         break;
 
-                      case 21: // PRIM_FLEXIBLE
+                    case 21: // PRIM_FLEXIBLE
                         PrimitiveBaseShape shape = m_host.Shape;
  
                         if (shape.FlexiEntry)
@@ -4972,7 +4953,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                                                       shape.FlexiForceZ));
                         break;
 
-                      case 22: // PRIM_TEXGEN
+                    case 22: // PRIM_TEXGEN
                         // TODO--------------
                         // (PRIM_TEXGEN_DEFAULT, PRIM_TEXGEN_PLANAR)
                         if (remain < 1)
@@ -4983,7 +4964,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         res.Add(new LSL_Types.LSLInteger(0));
                         break;
 
-                      case 23: // PRIM_POINT_LIGHT:
+                    case 23: // PRIM_POINT_LIGHT:
                         shape = m_host.Shape;
  
                         if (shape.LightEntry)
@@ -4998,7 +4979,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         res.Add(new LSL_Types.LSLFloat(shape.LightFalloff));   // falloff
                         break;
 
-                      case 24: // PRIM_GLOW
+                    case 24: // PRIM_GLOW
                         // TODO--------------
                         if (remain < 1)
                             return res;
@@ -5141,7 +5122,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public string llIntegerToBase64(int number)
         {
-
             // uninitialized string
 
             char[] imdt = new char[8];
@@ -5160,7 +5140,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             imdt[0] = i2ctable[number>>26 & 0x3F];
 
             return new string(imdt);
-
         }
 
         //  <summary>
@@ -5206,7 +5185,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.LSLInteger llBase64ToInteger(string str)
         {
-
             int number = 0;
             int digit;
 
@@ -5263,7 +5241,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             // ignore trailing padding
  
             return number;
-
         }
 
         public double llGetGMTclock()
@@ -5334,7 +5311,6 @@ namespace OpenSim.Region.ScriptEngine.Common
     
         public LSL_Types.list llParseStringKeepNulls(string src, LSL_Types.list separators, LSL_Types.list spacers)
         {
-
             int         beginning = 0;
             int         srclen    = src.Length;
             int         seplen    = separators.Length;
@@ -5456,7 +5432,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
 
             return tokens;
-
         }
 
         public void llRezAtRoot(string inventory, LSL_Types.Vector3 position, LSL_Types.Vector3 velocity,

@@ -616,7 +616,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void MakeChildAgent()
         {
-            if(m_animations.Count > 0)
+            if (m_animations.Count > 0)
             {
                 LLUUID movement=m_animations[0];
 
@@ -1110,11 +1110,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AddAnimation(LLUUID animID)
         {
-            if(m_isChildAgent)
+            if (m_isChildAgent)
                 return;
 
             // Don't let this animation become the movement animation
-            if(m_animations.Count < 1)
+            if (m_animations.Count < 1)
                 SetMovementAnimation(Animations.AnimsLLUUID["STAND"]);
 
             if (!m_animations.Contains(animID))
@@ -1127,7 +1127,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void RemoveAnimation(LLUUID animID)
         {
-            if(m_isChildAgent)
+            if (m_isChildAgent)
                 return;
 
             if (m_animations.Contains(animID))
@@ -1143,7 +1143,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     for(idx=0;idx < m_animations.Count;idx++)
                     {
-                        if(m_animations[idx] == animID)
+                        if (m_animations[idx] == animID)
                         {
                             int seq=m_animationSeqs[idx];
 
@@ -1158,16 +1158,16 @@ namespace OpenSim.Region.Environment.Scenes
         }
         public void AddAnimation(string name)
         {
-            if(m_isChildAgent)
+            if (m_isChildAgent)
                 return;
 
             // Don't let this animation become the movement animation
-            if(m_animations.Count < 1)
+            if (m_animations.Count < 1)
                 SetMovementAnimation(Animations.AnimsLLUUID["STAND"]);
 
-			LLUUID animID=m_controllingClient.GetDefaultAnimation(name);
-			if(animID == LLUUID.Zero)
-				return;
+            LLUUID animID=m_controllingClient.GetDefaultAnimation(name);
+            if (animID == LLUUID.Zero)
+                return;
 
             if (!m_animations.Contains(animID))
             {
@@ -1179,12 +1179,12 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void RemoveAnimation(string name)
         {
-            if(m_isChildAgent)
+            if (m_isChildAgent)
                 return;
 
-			LLUUID animID=m_controllingClient.GetDefaultAnimation(name);
-			if(animID == LLUUID.Zero)
-				return;
+            LLUUID animID=m_controllingClient.GetDefaultAnimation(name);
+            if (animID == LLUUID.Zero)
+                return;
 
             if (m_animations.Contains(animID))
             {
@@ -1199,7 +1199,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     for(idx=0;idx < m_animations.Count;idx++)
                     {
-                        if(m_animations[idx] == animID)
+                        if (m_animations[idx] == animID)
                         {
                             int seq=m_animationSeqs[idx];
 
@@ -1231,7 +1231,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         protected void SetMovementAnimation(LLUUID anim)
         {
-            if(m_animations.Count < 1)
+            if (m_animations.Count < 1)
             {
                 m_animations.Add(Animations.AnimsLLUUID["STAND"]);
                 m_animationSeqs.Add(1);
@@ -1649,7 +1649,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="seqs"></param>
         public void SendAnimPack(LLUUID[] animations, int[] seqs)
         {
-            if(m_isChildAgent)
+            if (m_isChildAgent)
                 return;
 
             m_scene.Broadcast(
