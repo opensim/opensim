@@ -52,15 +52,21 @@ namespace OpenSim.Region.Environment.Modules
         private bool   ready = false;
 
         // Configurable values
+        private string m_mode           = "SL";
         private int    m_frame_mod      = 0;
         private double m_day_length     = 0;
         private int    m_year_length    = 0;
         private double m_day_night      = 0;
+        private double m_longitude      = 0;
+        private double m_latitude       = 0;
         // Configurable defaults                     Defaults close to SL
+        private string d_mode           = "SL";
         private int    d_frame_mod      = 100;    // Every 10 seconds (actually less)
         private double d_day_length     = 4;      // A VW day is 4 RW hours long
         private int    d_year_length    = 60;     // There are 60 VW days in a VW year
         private double d_day_night      = 0.45;   // axis offset: ratio of light-to-dark, approx 1:3
+        private double d_longitude      = -73.53;	
+        private double d_latitude       = 41.29;
 
         // Frame counter
         private uint   m_frame          = 0;
@@ -114,6 +120,12 @@ namespace OpenSim.Region.Environment.Modules
             // Just in case they don't have the stanzas
             try
             {
+                // Mode: determines how the sun is handled
+                m_mode = config.Configs["Sun"].GetString("mode", d_mode);
+                // Mode: determines how the sun is handled
+                m_latitude = config.Configs["Sun"].GetDouble("latitude", d_latitude);
+                // Mode: determines how the sun is handled
+                m_longitude = config.Configs["Sun"].GetDouble("longitude", d_longitude);
                 // Day length in decimal hours
                 m_year_length = config.Configs["Sun"].GetInt("year_length", d_year_length);
                 // Day length in decimal hours
@@ -126,43 +138,58 @@ namespace OpenSim.Region.Environment.Modules
             catch (Exception e)
             {
                 m_log.Debug("[SUN] Configuration access failed, using defaults. Reason: "+e.Message);
+                m_mode        = d_mode;
                 m_year_length = d_year_length;
                 m_day_length  = d_day_length;
                 m_day_night   = d_day_night;
                 m_frame_mod   = d_frame_mod;
+                m_latitude    = d_latitude;
+                m_longitude   = d_longitude;
             }
 
-            // Time taken to complete a cycle (day and season)
+            switch(m_mode)
+            {
 
-            SecondsPerSunCycle = (uint) (m_day_length * 60 * 60);
-            SecondsPerYear     = (uint) (SecondsPerSunCycle*m_year_length);
+                case "T1" :
 
-            // Ration of real-to-virtual time
+                default :
 
-            VWTimeRatio        = 24/m_day_length;
+                case "SL" :
+					// Time taken to complete a cycle (day and season)
 
-            // Speed of rotation needed to complete a cycle in the
-            // designated period (day and season)
+					SecondsPerSunCycle = (uint) (m_day_length * 60 * 60);
+					SecondsPerYear     = (uint) (SecondsPerSunCycle*m_year_length);
 
-            SunSpeed           = SunCycle/SecondsPerSunCycle;
-            SeasonSpeed        = SeasonalCycle/SecondsPerYear;
+					// Ration of real-to-virtual time
 
-            // Horizon translation
+					VWTimeRatio        = 24/m_day_length;
 
-            HorizonShift      = m_day_night; // Z axis translation
-            HoursToRadians    = (SunCycle/24)*VWTimeRatio;
+					// Speed of rotation needed to complete a cycle in the
+					// designated period (day and season)
 
-            //  Insert our event handling hooks
+					SunSpeed           = SunCycle/SecondsPerSunCycle;
+					SeasonSpeed        = SeasonalCycle/SecondsPerYear;
 
-            scene.EventManager.OnFrame     += SunUpdate;
-            scene.EventManager.OnNewClient += SunToClient;
+					// Horizon translation
 
-            ready = true;
+					HorizonShift      = m_day_night; // Z axis translation
+					HoursToRadians    = (SunCycle/24)*VWTimeRatio;
 
-            m_log.Debug("[SUN] Initialization completed. Day is "+SecondsPerSunCycle+" seconds, and year is "+m_year_length+" days");
-            m_log.Debug("[SUN] Axis offset is "+m_day_night);
-            m_log.Debug("[SUN] Positional data updated every "+m_frame_mod+" frames");
+					//  Insert our event handling hooks
 
+					scene.EventManager.OnFrame     += SunUpdate;
+					scene.EventManager.OnNewClient += SunToClient;
+
+					ready = true;
+
+					m_log.Debug("[SUN] Mode is "+m_mode);
+					m_log.Debug("[SUN] Initialization completed. Day is "+SecondsPerSunCycle+" seconds, and year is "+m_year_length+" days");
+					m_log.Debug("[SUN] Axis offset is "+m_day_night);
+					m_log.Debug("[SUN] Positional data updated every "+m_frame_mod+" frames");
+
+                    break;
+
+            }
         }
 
         public void PostInitialise()
@@ -189,10 +216,14 @@ namespace OpenSim.Region.Environment.Modules
 
         public void SunToClient(IClientAPI client)
         {
-            if(ready)
+            if(m_mode != "T1")
             {
-                GenSunPos();    // Generate shared values once
-                client.SendSunPos(Position, Velocity, CurrentTime, SecondsPerSunCycle, SecondsPerYear, OrbitalPosition);
+				if(ready)
+				{
+					GenSunPos();    // Generate shared values once
+					client.SendSunPos(Position, Velocity, CurrentTime, SecondsPerSunCycle, SecondsPerYear, OrbitalPosition);
+                    m_log.Debug("[SUN] Initial update for new client");
+				}
             }
         }
 
