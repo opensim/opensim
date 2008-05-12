@@ -655,6 +655,11 @@ namespace OpenSim
             return GetPhysicsScene(m_physicsEngine, m_meshEngineName);
         }
 
+        /// <summary>
+        /// Handler to supply the current status of this sim
+        /// 
+        /// Currently this is always OK if the simulator is still listening for connections on its HTTP service
+        /// </summary>
         protected class SimStatusHandler : IStreamedRequestHandler
         {
             public byte[] Handle(string path, Stream request)

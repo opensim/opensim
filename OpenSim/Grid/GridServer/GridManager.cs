@@ -249,7 +249,7 @@ namespace OpenSim.Grid.GridServer
         /// <param name="sim"></param>
         /// <returns></returns>        
         protected virtual bool ValidateOverwrite(RegionProfileData sim, RegionProfileData existingSim)
-        {
+        {            
             return (existingSim.regionRecvKey == sim.regionRecvKey &&
                     existingSim.regionSendKey == sim.regionSendKey);
         }
@@ -263,7 +263,7 @@ namespace OpenSim.Grid.GridServer
         /// <param name="sim"></param>
         /// <returns></returns>
         protected virtual bool ValidateNewRegion(RegionProfileData sim)
-        {
+        {            
             return (sim.regionRecvKey == Config.SimSendKey &&
                     sim.regionSendKey == Config.SimRecvKey);
         }
@@ -292,7 +292,7 @@ namespace OpenSim.Grid.GridServer
 
             if (!requestData.ContainsKey("UUID") || !LLUUID.TryParse((string)requestData["UUID"], out uuid))
             {
-                m_log.Info("[GRID]: Region connected without a UUID, ignoring.");
+                m_log.Warn("[LOGIN PRELUDE]: Region connected without a UUID, sending back error response.");
                 return ErrorResponse("No UUID passed to grid server - unable to connect you");
             }
 
@@ -302,9 +302,11 @@ namespace OpenSim.Grid.GridServer
             }
             catch (FormatException e)
             {
-                m_log.Info("[GRID]: Invalid login parameters, ignoring.");
+                m_log.Warn("[LOGIN PRELUDE]: Invalid login parameters, sending back error response.");
                 return ErrorResponse("Wrong format in login parameters. Please verify parameters." + e.ToString() );
             }
+            
+            m_log.InfoFormat("[LOGIN BEGIN]: Received login request from simulator: {0}", sim.regionName);
 
             existingSim = GetRegion(sim.regionHandle);
 
@@ -341,27 +343,27 @@ namespace OpenSim.Grid.GridServer
                             switch (insertResponse)
                             {
                                 case DataResponse.RESPONSE_OK:
-                                    m_log.Info("[grid]: New sim " + (existingSim == null ? "creation" : "connection") + " successful: " + sim.regionName);
+                                    m_log.Info("[LOGIN END]: " + (existingSim == null ? "New" : "Existing") + " sim login successful: " + sim.regionName);
                                     break;
                                 case DataResponse.RESPONSE_ERROR:
-                                    m_log.Warn("[storage]: New sim creation failed (Error): " + sim.regionName);
+                                    m_log.Warn("[LOGIN END]: Sim login failed (Error): " + sim.regionName);
                                     break;
                                 case DataResponse.RESPONSE_INVALIDCREDENTIALS:
-                                    m_log.Warn("[storage]: " +
-                                                          "New sim creation failed (Invalid Credentials): " + sim.regionName);
+                                    m_log.Warn("[LOGIN END]: " +
+                                                          "Sim login failed (Invalid Credentials): " + sim.regionName);
                                     break;
                                 case DataResponse.RESPONSE_AUTHREQUIRED:
-                                    m_log.Warn("[storage]: " +
-                                                          "New sim creation failed (Authentication Required): " +
+                                    m_log.Warn("[LOGIN END]: " +
+                                                          "Sim login failed (Authentication Required): " +
                                                           sim.regionName);
                                     break;
                             }
                         }
                         catch (Exception e)
                         {
-                            m_log.Warn("[storage]: " +
-                                                  "Unable to add region " + sim.UUID.ToString() + " via " + kvp.Key);
-                            m_log.Warn("[storage]: " + e.ToString());
+                            m_log.Warn("[LOGIN END]: " +
+                                                  "Unable to login region " + sim.UUID.ToString() + " via " + kvp.Key);
+                            m_log.Warn("[LOGIN END]: " + e.ToString());
                         }
                     }
 
@@ -373,24 +375,26 @@ namespace OpenSim.Grid.GridServer
                 {
                     if (existingSim == null)
                     {
-                        m_log.Warn("[grid]: Authentication failed when trying to add new region " + sim.regionName +
-                                   " at location " + sim.regionLocX +
-                                   " " + sim.regionLocY + " with TheSim.regionRecvKey " + sim.regionRecvKey + "(" + Config.SimSendKey + ") and TheSim.regionRecvKey " + sim.regionSendKey + "(" + Config.SimRecvKey + ") ");
+                        m_log.WarnFormat(
+                            "[LOGIN END]: Authentication failed when trying to login new region {0} at location {1} {2}"
+                                + " with TheSim.regionSendKey {3} (expected {4}) and TheSim.regionRecvKey {5} (expected {6})",
+                                sim.regionName, sim.regionLocX, sim.regionLocY, 
+                                sim.regionSendKey, Config.SimRecvKey, sim.regionRecvKey, Config.SimSendKey);
                     }
                     else
                     {
-                        m_log.Warn("[grid]: Authentication failed when trying to add new region " + sim.regionName +
+                        m_log.Warn("[LOGIN END]: Authentication failed when trying to login region " + sim.regionName +
                                    " at location " + sim.regionLocX +
                                    " " + sim.regionLocY + " currently occupied by " + existingSim.regionName);
                     }
 
-                    return ErrorResponse("The key required to connect to your region did not match. Please check your send and recieve keys.");
+                    return ErrorResponse("The key required to login your region did not match. Please check your send and receive keys.");
                 }
             }
             else
             {
-                m_log.Warn("[grid]: Failed to add new region " + sim.regionName + " at location " + sim.regionLocX + " " + sim.regionLocY + " currently occupied by " + existingSim.regionName);
-                return ErrorResponse("Another region already exists at that location. Try another");
+                m_log.Warn("[LOGIN END]: Failed to login region " + sim.regionName + " at location " + sim.regionLocX + " " + sim.regionLocY + " currently occupied by " + existingSim.regionName);
+                return ErrorResponse("Another region already exists at that location.  Please try another.");
             }
         }
 
@@ -537,8 +541,7 @@ namespace OpenSim.Grid.GridServer
             else
             {
                 sim.regionSecret = Config.SimRecvKey;
-            }
-            
+            }            
             
             sim.regionDataURI = String.Empty;
             sim.regionAssetURI = Config.DefaultAssetServer;
