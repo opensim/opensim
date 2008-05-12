@@ -753,8 +753,7 @@ namespace OpenSim.Grid.GridServer
                     Hashtable simProfileBlock = new Hashtable();
                     simProfileBlock["x"] = aSim.Value.regionLocX.ToString();
                     simProfileBlock["y"] = aSim.Value.regionLocY.ToString();
-                    Console.WriteLine("send neighbour info for " + aSim.Value.regionLocX.ToString() + " , " +
-                                      aSim.Value.regionLocY.ToString());
+                    //m_log.DebugFormat("[MAP]: Sending neighbour info for {0},{1}", aSim.Value.regionLocX, aSim.Value.regionLocY);
                     simProfileBlock["name"] = aSim.Value.regionName;
                     simProfileBlock["access"] = 21;
                     simProfileBlock["region-flags"] = 512;
