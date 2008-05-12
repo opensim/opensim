@@ -632,10 +632,12 @@ namespace OpenSim.Framework
 
         LLUUID SecureSessionId { get; }
 
+        [Obsolete("LLClientView Specific - Use .Name instead. Do not assume an av has two names")]
         string FirstName { get; }
-
+        [Obsolete("LLClientView Specific - Use .Name instead. Do not assume an av has two names")]
         string LastName { get; }
 
+        [Obsolete("LLClientView Specific - Replace with ???")]
         int NextAnimationSequenceNumber { get; }
 
         /// <summary>
@@ -651,13 +653,21 @@ namespace OpenSim.Framework
             set;
         }
 
+        [Obsolete("LLClientView Specific - Circuits are unique to LLClientView")]
         uint CircuitCode { get; }
+        [Obsolete("LLClientView Specific - Replace with more bare-bones arguments.")]
         event ImprovedInstantMessage OnInstantMessage;
+        [Obsolete("LLClientView Specific - Replace with more bare-bones arguments. Rename OnChat.")]
         event ChatFromViewer OnChatFromViewer;
+        [Obsolete("LLClientView Specific - Replace with more bare-bones arguments.")]
         event TextureRequest OnRequestTexture;
+        [Obsolete("LLClientView Specific - Remove bitbuckets.")]
         event RezObject OnRezObject;
+        [Obsolete("LLClientView Specific - Replace with more suitable arguments.")]
         event ModifyTerrain OnModifyTerrain;
+        [Obsolete("LLClientView Specific.")]
         event SetAppearance OnSetAppearance;
+        [Obsolete("LLClientView Specific - Replace and rename OnAvatarUpdate. Difference from SetAppearance?")]
         event AvatarNowWearing OnAvatarNowWearing;
         event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
         event UUIDNameRequest OnDetachAttachmentIntoInv;
