@@ -613,7 +613,8 @@ namespace OpenSim.Grid.GridServer
             {
                 //TheSim = GetRegion(new LLUUID((string) requestData["UUID"]));
                 uuid = requestData["UUID"].ToString();
-                Console.WriteLine("deleting region " + uuid);
+                m_log.InfoFormat("[LOGOUT]: Logging out region: {0}", uuid);
+
                 //                logToDB((new LLUUID((string)requestData["UUID"])).ToString(),"XmlRpcDeleteRegionMethod","", 5,"Attempting delete with UUID.");
             }
             else
