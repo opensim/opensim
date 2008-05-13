@@ -1568,7 +1568,24 @@ namespace OpenSim.Region.Environment.Scenes
                 cadu.GroupAccess = 0;
                 cadu.Position = new sLLVector3(AbsolutePosition);
                 cadu.regionHandle = m_scene.RegionInfo.RegionHandle;
-                cadu.throttles = ControllingClient.GetThrottlesPacked(1f);
+                float multiplier = 1;
+                int innacurateNeighbors = m_scene.GetInaccurateNeighborCount();
+                if (innacurateNeighbors != 0)
+                {
+                    multiplier = 1f / (float)innacurateNeighbors;
+                }
+                if (multiplier <= 0f)
+                {
+                    multiplier = 0.25f;
+                }
+
+                //m_log.Info("[NeighborThrottle]: " + m_scene.GetInaccurateNeighborCount().ToString() + " - m: " + multiplier.ToString()); 
+                cadu.throttles = ControllingClient.GetThrottlesPacked(multiplier);
+                
+
+                
+
+                
                 cadu.Velocity = new sLLVector3(Velocity); 
                 m_scene.SendOutChildAgentUpdates(cadu,this);
                 m_LastChildAgentUpdatePosition.X = AbsolutePosition.X;

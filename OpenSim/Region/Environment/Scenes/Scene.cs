@@ -361,11 +361,12 @@ namespace OpenSim.Region.Environment.Scenes
                 // If the RegionInfo isn't exact but is for the same XY World location, 
                 // then the above loop will fix that.
 
-                if (!(m_neighbours.Contains(otherRegion)))
+                if (!(CheckNeighborRegion(otherRegion)))
                 {
                     lock (m_neighbours)
                     {
                         m_neighbours.Add(otherRegion);
+                        //m_log.Info("[UP]: " + otherRegion.RegionHandle.ToString());
                     }
                 }
                 // If these are cast to INT because long + negative values + abs returns invalid data
@@ -407,7 +408,36 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         // Given float seconds, this will restart the region.
+        public void AddNeighborRegion(RegionInfo region)
+        {
+            lock (m_neighbours)
+            {
+                if (!CheckNeighborRegion(region))
+                {
+                    m_neighbours.Add(region);
 
+                }
+            }
+        }
+
+        public bool CheckNeighborRegion(RegionInfo region)
+        {
+            bool found = false;
+            lock (m_neighbours)
+            {
+                foreach (RegionInfo reg in m_neighbours)
+                {
+                    if (reg.RegionHandle == region.RegionHandle)
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            return found;
+        
+                    
+        }
         public virtual void Restart(float seconds)
         {
             // notifications are done in 15 second increments
@@ -556,7 +586,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
         }
-
+        public int GetInaccurateNeighborCount()
+        {
+            lock (m_neighbours)
+                return m_neighbours.Count;
+        }
         // This is the method that shuts down the scene.
         public override void Close()
         {
@@ -647,6 +681,7 @@ namespace OpenSim.Region.Environment.Scenes
             // Aquire a lock so only one update call happens at once
             updateLock.WaitOne();
             float physicsFPS = 0;
+            //m_log.Info("sadfadf" + m_neighbours.Count.ToString());
             int agentsInScene = m_innerScene.GetRootAgentCount() + m_innerScene.GetChildAgentCount();
 
             if (agentsInScene > 21)

@@ -361,6 +361,13 @@ namespace OpenSim.Region.Environment.Scenes
             if (regionAccepted)
             {
                 m_log.Info("[INTERGRID]: Completed informing neighbors that I'm here");
+                handlerRegionUp = OnRegionUp;
+                
+                // yes, we're notifying ourselves.
+                if (handlerRegionUp != null)
+                    handlerRegionUp(region);
+
+                
             }
             else
             {
