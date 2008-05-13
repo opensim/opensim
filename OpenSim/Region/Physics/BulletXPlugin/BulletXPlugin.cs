@@ -278,7 +278,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 //                 nameB = bxpB._name;
 //             else
             //                 nameB = "null";
-            bool needsCollision;
+            bool needsCollision;// = base.NeedsCollision(bodyA, bodyB);
             int c1 = 3;
             int c2 = 3;
             
@@ -288,7 +288,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             //data: May 07,2005
             ////////////////////////////////////////////////////////
             #region BulletXMeshCollisions Fields
-            
+
 
             if (bxcA != null && bxpB != null)
                 c1 = Collision(bxcA, bxpB);
@@ -299,7 +299,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             else if (c2 < 2)
                 needsCollision = (c2 > 0) ? true : false;
             else
-                needsCollision = NeedsCollision(bodyA, bodyB);
+                needsCollision = base.NeedsCollision(bodyA, bodyB);
 
          
             #endregion
@@ -320,7 +320,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             Vector3[] vertexBase;
             Vector3 vNormal, vP1, vP2, vP3;
             IMesh mesh = primB.GetMesh();
-      
+
             float fdistance;
             if (primB == null)
                 return 3;
@@ -359,16 +359,16 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                     Vector3.Cross(ref v1, ref v2, out vNormal);
                     Vector3.Normalize(ref vNormal, out vNormal);
 
-                    fdistance = Vector3.Dot(vNormal, vertexBase[ia]) + 5.0f;
+                    fdistance = Vector3.Dot(vNormal, vertexBase[ia]) + 0.50f;
                     if (preCheckCollision(actorA, vNormal, fdistance) == 1)
                     {
                         if (CheckCollision(actorA, ia, ib, ic, vNormal, vertexBase) == 1)
                         {
                             //PhysicsVector v = actorA.Position;
                             //Vector3 v3 = BulletXMaths.PhysicsVectorToXnaVector3(v);
-                            //Vector3 vp = vNormal * (fdistance - Vector3.Dot(vNormal, v3) + 0.0f);
+                            //Vector3 vp = vNormal * (fdistance - Vector3.Dot(vNormal, v3) + 0.2f);
                             //actorA.Position += BulletXMaths.XnaVector3ToPhysicsVector(vp);
-                            return 1;  
+                            return 1;
                         }
                     }
                 }
@@ -406,13 +406,13 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
             if (Vector3.Dot((vertBase[ic] - vertBase[ia]), perPlaneNormal) < 0)
                 perPlaneNormal = -perPlaneNormal;
-            fPerPlaneDist = Vector3.Dot(perPlaneNormal, vertBase[ia]) - 5.0f;
+            fPerPlaneDist = Vector3.Dot(perPlaneNormal, vertBase[ia]) - 0.50f;
 
 
 
             if ((Vector3.Dot(perPlaneNormal, v3) - fPerPlaneDist) < 0)
                 return 0;
-            fPerPlaneDist = Vector3.Dot(perPlaneNormal, vertBase[ic]) + 5.0f;
+            fPerPlaneDist = Vector3.Dot(perPlaneNormal, vertBase[ic]) + 0.50f;
             if ((Vector3.Dot(perPlaneNormal, v3) - fPerPlaneDist) > 0)
                 return 0;
 
@@ -424,12 +424,12 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
             if (Vector3.Dot((vertBase[ia] - vertBase[ib]), perPlaneNormal) < 0)
                 perPlaneNormal = -perPlaneNormal;
-            fPerPlaneDist = Vector3.Dot(perPlaneNormal, vertBase[ib]) - 5.0f;
+            fPerPlaneDist = Vector3.Dot(perPlaneNormal, vertBase[ib]) - 0.50f;
 
 
             if ((Vector3.Dot(perPlaneNormal, v3) - fPerPlaneDist) < 0)
                 return 0;
-            fPerPlaneDist = Vector3.Dot(perPlaneNormal, vertBase[ia]) + 5.0f;
+            fPerPlaneDist = Vector3.Dot(perPlaneNormal, vertBase[ia]) + 0.50f;
             if ((Vector3.Dot(perPlaneNormal, v3) - fPerPlaneDist) > 0)
                 return 0;
             //check CA
@@ -439,12 +439,12 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
             if (Vector3.Dot((vertBase[ib] - vertBase[ic]), perPlaneNormal) < 0)
                 perPlaneNormal = -perPlaneNormal;
-            fPerPlaneDist = Vector3.Dot(perPlaneNormal, vertBase[ic]) - 5.0f;
+            fPerPlaneDist = Vector3.Dot(perPlaneNormal, vertBase[ic]) - 0.50f;
 
 
             if ((Vector3.Dot(perPlaneNormal, v3) - fPerPlaneDist) < 0)
                 return 0;
-            fPerPlaneDist = Vector3.Dot(perPlaneNormal, vertBase[ib]) + 5.0f;
+            fPerPlaneDist = Vector3.Dot(perPlaneNormal, vertBase[ib]) + 0.50f;
             if ((Vector3.Dot(perPlaneNormal, v3) - fPerPlaneDist) > 0)
                 return 0;
 
@@ -1592,7 +1592,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             Matrix _startTransform = Matrix.Identity;
             Matrix _centerOfMassOffset = Matrix.Identity;
             //added by jed zhu
-            //_mesh = mesh;
+            _mesh = mesh;
 
             lock (BulletXScene.BulletXLock)
             {
