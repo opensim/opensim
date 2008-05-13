@@ -56,7 +56,7 @@ namespace OpenSim.Region.Physics.Meshing
         // Setting baseDir to a path will enable the dumping of raw files
         // raw files can be imported by blender so a visual inspection of the results can be done
         //        const string baseDir = "rawFiles";
-        private const string baseDir = "rawFiles";
+        private const string baseDir = null; //"rawFiles";
         private const float DEG_TO_RAD = 0.01745329238f;
 
 // TODO: unused
