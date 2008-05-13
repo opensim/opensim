@@ -72,7 +72,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
                     if (z > 0.0)
                     {
                         z *= duration;
-                        map[x, y] += (map[x, y] * (1.0 - z)) + (m_revertmap[x, y] * z);
+                        map[x, y] = (map[x, y] * (1.0 - z)) + (m_revertmap[x, y] * z);
                     }
                 }
             }
