@@ -679,15 +679,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns>null if the agent was not found</returns>
         public ScenePresence GetScenePresence(LLUUID agentID)
         {
-            lock (ScenePresences)
-            {
-                if (ScenePresences.ContainsKey(agentID))
-                {
-                    return ScenePresences[agentID];
-                }
-            }
+            ScenePresence sp;
+            ScenePresences.TryGetValue(agentID, out sp);
             
-            return null;
+            return sp;
         }
 
         private SceneObjectGroup GetGroupByPrim(uint localID)
