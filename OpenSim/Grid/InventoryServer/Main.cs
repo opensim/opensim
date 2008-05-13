@@ -41,8 +41,7 @@ namespace OpenSim.Grid.InventoryServer
     public class OpenInventory_Main : BaseOpenSimServer, conscmd_callback
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        private InventoryManager m_inventoryManager;
+        
         private InventoryConfig m_config;
         private GridInventoryService m_inventoryService;
 
@@ -71,7 +70,6 @@ namespace OpenSim.Grid.InventoryServer
             m_config = new InventoryConfig(LogName, (Path.Combine(Util.configDir(), "InventoryServer_Config.xml")));
 
             m_inventoryService = new GridInventoryService();
-            // m_inventoryManager = new InventoryManager();
             m_inventoryService.AddPlugin(m_config.DatabaseProvider, m_config.DatabaseConnect);
 
             m_log.Info("[" + LogName + "]: Starting HTTP server ...");
@@ -121,8 +119,6 @@ namespace OpenSim.Grid.InventoryServer
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<Guid, List<InventoryFolderBase>>
                     ("POST", "/RootFolders/", m_inventoryService.GetInventorySkeleton));
-
-            // httpServer.AddStreamHandler(new InventoryManager.GetInventory(m_inventoryManager));
         }
 
         private void Work()
