@@ -15,17 +15,17 @@ namespace OpenSim.Framework.Communications
     /// </summary>
     /// <remarks>
     /// This class is a generic implementation of a REST (Representational State Transfer) web service. This
-    /// class is designed to execute both synchroneously and asynchroneously.
+    /// class is designed to execute both synchronously and asynchronously.
     /// 
-    /// Internally the implementation works as a two stage asynchroneous web-client.
-    /// When the request is initiated, RestClient will query asynchroneously for for a web-response,
+    /// Internally the implementation works as a two stage asynchronous web-client.
+    /// When the request is initiated, RestClient will query asynchronously for for a web-response,
     /// sleeping until the initial response is returned by the server. Once the initial response is retrieved
-    /// the second stage of asynchroneous requests will be triggered, in an attempt to read of the response
-    /// object into a memorystream as a sequence of asynchroneous reads.
+    /// the second stage of asynchronous requests will be triggered, in an attempt to read of the response
+    /// object into a memorystream as a sequence of asynchronous reads.
     /// 
     /// The asynchronisity of RestClient is designed to move as much processing into the back-ground, allowing 
-    /// other threads to execute, while it waits for a response from the web-service. RestClient it self, can be
-    /// invoked by the caller in either synchroneous mode or asynchroneous mode.
+    /// other threads to execute, while it waits for a response from the web-service. RestClient itself can be
+    /// invoked by the caller in either synchronous mode or asynchronous modes.
     /// </remarks>
     public class RestClient
     {
@@ -245,7 +245,7 @@ namespace OpenSim.Framework.Communications
         #endregion Async communications with server
 
         /// <summary>
-        /// Perform synchroneous request
+        /// Perform a synchronous request
         /// </summary>
         public Stream Request()
         {

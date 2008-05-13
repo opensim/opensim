@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Xml;
 using libsecondlife;
@@ -36,6 +37,7 @@ using Nwc.XmlRpc;
 using OpenSim.Data;
 using OpenSim.Data.MySQL;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications;
 using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.GridServer
@@ -248,7 +250,7 @@ namespace OpenSim.Grid.GridServer
         /// </summary>
         /// <param name="sim"></param>
         /// <returns></returns>        
-        protected virtual void ValidateOverwrite(RegionProfileData sim, RegionProfileData existingSim)
+        protected virtual void ValidateOverwriteKeys(RegionProfileData sim, RegionProfileData existingSim)
         {            
             if (!(existingSim.regionRecvKey == sim.regionRecvKey && existingSim.regionSendKey == sim.regionSendKey))
             {
@@ -271,7 +273,7 @@ namespace OpenSim.Grid.GridServer
         /// 
         /// <param name="sim"></param>
         /// <exception cref="LoginException">Thrown if region login failed</exception>
-        protected virtual void ValidateNewRegion(RegionProfileData sim)
+        protected virtual void ValidateNewRegionKeys(RegionProfileData sim)
         {            
             if (!(sim.regionRecvKey == Config.SimSendKey && sim.regionSendKey == Config.SimRecvKey))
             {
@@ -282,8 +284,51 @@ namespace OpenSim.Grid.GridServer
                             sim.regionName, sim.regionLocX, sim.regionLocY, 
                             sim.regionSendKey, Config.SimRecvKey, sim.regionRecvKey, Config.SimSendKey),
                     "The keys required to login your region did not match your existing region keys.  Please check your grid send and receive keys.");
+            }                
+        }
+
+        /// <summary>
+        /// Check that a region's http uri is externally contactable.
+        /// </summary>
+        /// <param name="sim"></param>
+        /// <exception cref="LoginException">Thrown if the region is not contactable</exception>
+        protected virtual void ValidateRegionContactable(RegionProfileData sim)
+        {
+            string regionStatusUrl = String.Format("{0}{1}", sim.httpServerURI, "simstatus/");
+            string regionStatusResponse;            
+            
+            RestClient rc = new RestClient(regionStatusUrl);
+            rc.RequestMethod = "GET";            
+            
+            m_log.DebugFormat("[LOGIN]: Contacting {0} for status of region {1}", regionStatusUrl, sim.regionName);
+            
+            try
+            {
+                Stream rs = rc.Request();
+                StreamReader sr = new StreamReader(rs);
+                regionStatusResponse = sr.ReadToEnd();
+                sr.Close();
             }
-                
+            catch (Exception e)
+            {
+                throw new LoginException(
+                   String.Format("Region status request to {0} failed", regionStatusUrl),
+                   String.Format(
+                       "The grid service could not contact the http url {0} at your region.  Please make sure this url is reachable by the grid service", 
+                       regionStatusUrl),
+                   e);
+            }            
+            
+            if (!regionStatusResponse.Equals("OK"))
+            {
+                throw new LoginException(
+                    String.Format(
+                        "Region {0} at {1} returned status response {2} rather than {3}", 
+                        sim.regionName, regionStatusUrl, regionStatusResponse, "OK"),
+                    String.Format(
+                        "When the grid service asked for the status of your region, it received the response {0} rather than {1}.  Please check your status",
+                        regionStatusResponse, "OK"));
+            }         
         }
 
         /// <summary>
@@ -332,7 +377,6 @@ namespace OpenSim.Grid.GridServer
             m_log.InfoFormat("[LOGIN BEGIN]: Received login request from simulator: {0}", sim.regionName);
 
             existingSim = GetRegion(sim.regionHandle);
-
             
             if (existingSim == null || existingSim.UUID == sim.UUID || sim.UUID != sim.originUUID)
             {
@@ -340,12 +384,14 @@ namespace OpenSim.Grid.GridServer
                 {
                     if (existingSim == null)
                     {
-                        ValidateNewRegion(sim);
+                        ValidateNewRegionKeys(sim);
                     }
                     else
                     {
-                        ValidateOverwrite(sim, existingSim);
+                        ValidateOverwriteKeys(sim, existingSim);
                     }
+                    
+                    ValidateRegionContactable(sim);
                 }
                 catch (LoginException e)
                 {

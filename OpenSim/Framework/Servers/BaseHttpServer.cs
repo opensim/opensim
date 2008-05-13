@@ -144,6 +144,8 @@ namespace OpenSim.Framework.Servers
     
                 string path = request.RawUrl;
                 string handlerKey = GetHandlerKey(request.HttpMethod, path);
+                
+                //m_log.DebugFormat("[BASE HTTP SERVER]: Handling {0} request for {1}", request.HttpMethod, path);
     
                 IRequestHandler requestHandler;
     
@@ -154,6 +156,7 @@ namespace OpenSim.Framework.Servers
                     if (requestHandler is IStreamedRequestHandler)
                     {
                         IStreamedRequestHandler streamedRequestHandler = requestHandler as IStreamedRequestHandler;
+                                          
                         buffer = streamedRequestHandler.Handle(path, request.InputStream);
                     }
                     else
@@ -179,7 +182,7 @@ namespace OpenSim.Framework.Servers
                     }
                     catch (HttpListenerException)
                     {
-                        m_log.InfoFormat("[BASE HTTP SERVER] Http request abnormally terminated.");
+                        m_log.WarnFormat("[BASE HTTP SERVER]: HTTP request abnormally terminated.");
                     }
                 }
                 else

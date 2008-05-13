@@ -91,11 +91,11 @@ namespace OpenSim.Grid.GridServer
 
             m_httpServer.Start();
 
-            m_log.Info("[GRID]: Starting sim status checker");
-
-            Timer simCheckTimer = new Timer(3600000 * 3); // 3 Hours between updates.
-            simCheckTimer.Elapsed += new ElapsedEventHandler(CheckSims);
-            simCheckTimer.Enabled = true;
+//            m_log.Info("[GRID]: Starting sim status checker");
+//
+//            Timer simCheckTimer = new Timer(3600000 * 3); // 3 Hours between updates.
+//            simCheckTimer.Elapsed += new ElapsedEventHandler(CheckSims);
+//            simCheckTimer.Enabled = true;
         }
 
         protected void AddHttpHandlers()

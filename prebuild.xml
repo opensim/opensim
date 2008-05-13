@@ -1273,6 +1273,7 @@
       <Reference name="System.Xml" localCopy="false"/>
       <Reference name="Mono.Addins.dll" />
       <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Servers"/>
       <Reference name="OpenSim.Data"/>
