@@ -364,7 +364,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return objectFlagsMask;
         }
 
-        protected bool GenericObjectPermission(LLUUID currentUser, LLUUID objId)
+        protected bool GenericObjectPermission(LLUUID currentUser, LLUUID objId, bool denyOnLocked)
         {
             // Default: deny
             bool permission = false;
@@ -394,7 +394,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             // Nobody but the object owner can set permissions on an object
             //
 
-            if (locked && (!IsAdministrator(currentUser)))
+            if (locked && (!IsAdministrator(currentUser)) && denyOnLocked)
             {
                 return false;
             }
@@ -528,7 +528,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-                if (!GenericObjectPermission(owner, objectID))
+                if (!GenericObjectPermission(owner, objectID, true))
                 {
                     //They can't even edit the object
                     return false;
@@ -542,7 +542,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-                return GenericObjectPermission(objectID, deleter);
+                return GenericObjectPermission(objectID, deleter, false);
             }
 
             private bool CanEditObject(LLUUID objectID, LLUUID editorID, Scene scene)
@@ -551,7 +551,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
 
-                return GenericObjectPermission(editorID, objectID);
+                return GenericObjectPermission(editorID, objectID, true);
             }
 
             private bool CanEditParcel(LLUUID user, ILandObject parcel, Scene scene)
@@ -600,7 +600,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-                bool permission = GenericObjectPermission(moverID, objectID);
+                bool permission = GenericObjectPermission(moverID, objectID, true);
                 if (!permission)
                 {
                     if (!m_scene.Entities.ContainsKey(objectID))
@@ -724,7 +724,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-                return GenericObjectPermission(returnerID, objectID);
+                return GenericObjectPermission(returnerID, objectID, false);
             }
 
             private bool CanRezObject(int objectCount, LLUUID owner, LLVector3 objectPosition, Scene scene)
@@ -786,7 +786,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-                return GenericObjectPermission(stealer,objectID);
+                return GenericObjectPermission(stealer,objectID, false);
             }
 
             private bool CanTakeCopyObject(LLUUID objectID, LLUUID userID, Scene inScene)
@@ -794,7 +794,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-                bool permission = GenericObjectPermission(userID, objectID);
+                bool permission = GenericObjectPermission(userID, objectID,false);
                 if (permission)
                 {
                     if (!m_scene.Entities.ContainsKey(objectID))
