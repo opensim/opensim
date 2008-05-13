@@ -1923,8 +1923,8 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             if (m_host.TaskInventory[InventorySelf()].PermsGranter != LLUUID.Zero)
             {
-
-                ScenePresence presence = World.m_innerScene.ScenePresences[m_host.TaskInventory[InventorySelf()].PermsGranter];
+                ScenePresence presence = World.GetScenePresence(m_host.TaskInventory[InventorySelf()].PermsGranter);
+                
                 if (presence != null)
                 {
                     if ((m_host.TaskInventory[InventorySelf()].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TAKE_CONTROLS) != 0)
@@ -1950,8 +1950,8 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             if (m_host.TaskInventory[InventorySelf()].PermsGranter != LLUUID.Zero)
             {
-
-                ScenePresence presence = World.m_innerScene.ScenePresences[m_host.TaskInventory[InventorySelf()].PermsGranter];
+                ScenePresence presence = World.GetScenePresence(m_host.TaskInventory[InventorySelf()].PermsGranter);
+                
                 if (presence != null)
                 {
                     if ((m_host.TaskInventory[InventorySelf()].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TAKE_CONTROLS) != 0)
@@ -2129,9 +2129,10 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             if ((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TRIGGER_ANIMATION) != 0)
             {
-                if (World.m_innerScene.ScenePresences.ContainsKey(m_host.TaskInventory[invItemID].PermsGranter))
+                ScenePresence presence = World.GetScenePresence(m_host.TaskInventory[invItemID].PermsGranter);
+                
+                if (presence != null)
                 {
-                    ScenePresence presence = World.m_innerScene.ScenePresences[m_host.TaskInventory[invItemID].PermsGranter];
                     // Do NOT try to parse LLUUID, animations cannot be triggered by ID
                     LLUUID animID=InventoryKey(anim, (int)AssetType.Animation);
                     if (animID == LLUUID.Zero)
@@ -2165,9 +2166,10 @@ namespace OpenSim.Region.ScriptEngine.Common
                 if (animID == LLUUID.Zero)
                     return;
 
-                if (World.m_innerScene.ScenePresences.ContainsKey(m_host.TaskInventory[invItemID].PermsGranter))
+                ScenePresence presence = World.GetScenePresence(m_host.TaskInventory[invItemID].PermsGranter);
+                
+                if (presence != null)
                 {
-                    ScenePresence presence = World.m_innerScene.ScenePresences[m_host.TaskInventory[invItemID].PermsGranter];
                     if (animID == LLUUID.Zero)
                         presence.RemoveAnimation(anim);
                     else
@@ -2271,13 +2273,14 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
             }
 
-            if (World.m_innerScene.ScenePresences.ContainsKey(agentID))
+            ScenePresence presence = World.GetScenePresence(agentID);
+            
+            if (presence != null)
             {
                 string ownerName=resolveName(m_host.ParentGroup.RootPart.OwnerID);
                 if (ownerName == String.Empty)
                     ownerName="(hippos)";
 
-                ScenePresence presence = World.m_innerScene.ScenePresences[agentID];
                 if (!m_waitingForScriptAnswer)
                 {
                     m_host.TaskInventory[invItemID].PermsGranter=agentID;
@@ -3711,10 +3714,13 @@ namespace OpenSim.Region.ScriptEngine.Common
             LLUUID key = new LLUUID();
             if (LLUUID.TryParse(id,out key))
             {
-                if (World.m_innerScene.ScenePresences.ContainsKey(key))
+                ScenePresence presence = World.GetScenePresence(key);
+                
+                if (presence != null)
                 {
-                    return World.m_innerScene.ScenePresences[key].Firstname + " " + World.m_innerScene.ScenePresences[key].Lastname;
+                    return presence.Name;
                 }
+                
                 if (World.GetSceneObjectPart(key) != null)
                 {
                     return World.GetSceneObjectPart(key).Name;
@@ -3867,9 +3873,9 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             LLUUID key = new LLUUID();
             if (LLUUID.TryParse(id, out key))
-            {
-                
+            {                
                 ScenePresence av = World.GetScenePresence(key);
+                
                 if (av != null)
                 {
                     if (llAvatarOnSitTarget() == id)
@@ -6162,10 +6168,11 @@ namespace OpenSim.Region.ScriptEngine.Common
             LLUUID key = new LLUUID();
             if (LLUUID.TryParse(id, out key))
             {
-                if (World.m_innerScene.ScenePresences.ContainsKey(key))
+                ScenePresence av = World.GetScenePresence(key);
+                
+                if (av != null);
                 {
-                    ScenePresence av = World.m_innerScene.ScenePresences[key];
-                    foreach(object o in args.Data)
+                    foreach (object o in args.Data)
                     {
                         switch(o.ToString())
                         {

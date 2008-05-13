@@ -207,6 +207,7 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_innerScene.Entities; }
             set { m_innerScene.Entities = value; }
         }
+        
         public Dictionary<LLUUID, ScenePresence> m_restorePresences
         {
             get { return m_innerScene.RestorePresences; }
@@ -3095,7 +3096,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Request a List of all m_scenePresences in this World
+        /// Request a List of all ScenePresences in this region
         /// </summary>
         /// <returns></returns>
         public List<ScenePresence> GetScenePresences()
@@ -3104,7 +3105,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Request a filtered list of m_scenePresences in this World
+        /// Request a filtered list of ScenePresences in this region
         /// </summary>
         /// <param name="filter"></param>
         /// <returns></returns>
@@ -3114,7 +3115,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Request a Avatar by UUID
+        /// Request a scene presence by UUID
         /// </summary>
         /// <param name="avatarID"></param>
         /// <returns></returns>

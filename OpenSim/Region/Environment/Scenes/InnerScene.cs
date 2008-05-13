@@ -53,7 +53,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Fields
 
-        public Dictionary<LLUUID, ScenePresence> ScenePresences;
+        internal Dictionary<LLUUID, ScenePresence> ScenePresences;
         // SceneObjects is not currently populated or used.
         //public Dictionary<LLUUID, SceneObjectGroup> SceneObjects;
         public Dictionary<LLUUID, EntityBase> Entities;
