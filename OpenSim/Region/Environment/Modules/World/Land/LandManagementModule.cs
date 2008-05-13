@@ -52,7 +52,6 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             m_scene.EventManager.OnLandBuy += landChannel.handleLandBuyRequest;
             m_scene.EventManager.OnNewClient += new EventManager.OnNewClientDelegate(EventManager_OnNewClient);
             m_scene.EventManager.OnSignificantClientMovement += landChannel.handleSignificantClientMovement;
-
             lock (m_scene)
             {
                 m_scene.LandChannel = (ILandChannel) landChannel;
@@ -70,7 +69,10 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             client.OnParcelObjectOwnerRequest += new ParcelObjectOwnerRequest(landChannel.handleParcelObjectOwnersRequest);
             client.OnParcelAccessListRequest += new ParcelAccessListRequest(landChannel.handleParcelAccessRequest);
             client.OnParcelAccessListUpdateRequest += new ParcelAccessListUpdateRequest(landChannel.handleParcelAccessUpdateRequest);
+            client.OnParcelAbandonRequest += new ParcelAbandonRequest(landChannel.handleParcelAbandonRequest);
         }
+
+        
 
         public void PostInitialise()
         {

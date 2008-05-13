@@ -32,6 +32,7 @@ namespace OpenSim.Region.Environment.Interfaces
     public interface IScenePermissions
     {
         bool BypassPermissions { get; set; }
+        bool BypassPermissionsValue { get; set; }
         uint GenerateClientFlags(LLUUID user, LLUUID objID);
     }
 }

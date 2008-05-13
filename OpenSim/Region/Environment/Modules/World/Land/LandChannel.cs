@@ -400,7 +400,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
             //If we are still here, then they are subdividing within one piece of land
             //Check owner
-            if (startLandObject.landData.ownerID != attempting_user_id)
+            if (!m_scene.ExternalChecks.ExternalChecksCanEditParcel(attempting_user_id,startLandObject))
             {
                 return;
             }
@@ -469,7 +469,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             {
                 return;
             }
-            if (masterLandObject.landData.ownerID != attempting_user_id)
+            if (!m_scene.ExternalChecks.ExternalChecksCanEditParcel(attempting_user_id, masterLandObject))
             {
                 return;
             }
@@ -655,6 +655,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public void handleParcelSelectObjectsRequest(int local_id, int request_type, IClientAPI remote_client)
         {
+            
             landList[local_id].sendForceObjectSelect(local_id, request_type, remote_client);
         }
 
@@ -663,6 +664,18 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             landList[local_id].sendLandObjectOwners(remote_client);
         }
 
+        public void handleParcelAbandonRequest(int local_id, IClientAPI remote_client)
+        {
+            if (landList.ContainsKey(local_id))
+            {
+                if (m_scene.ExternalChecks.ExternalChecksCanAbandonParcel(remote_client.AgentId, landList[local_id]))
+                {
+                    landList[local_id].landData.ownerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+                    m_scene.Broadcast(SendParcelOverlay);
+                }
+            }
+
+        }
         #endregion
 
         #region ILandChannel Members

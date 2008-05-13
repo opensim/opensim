@@ -281,7 +281,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public int osRegionRestart(double seconds)
         {
             m_host.AddScriptLPS(1);
-            if (World.ExternalChecks.ExternalChecksCanRestartSim(m_host.OwnerID))
+            if (World.ExternalChecks.ExternalChecksCanIssueEstateCommand(m_host.OwnerID))
             {
                 World.Restart((float)seconds);
                 return 1;

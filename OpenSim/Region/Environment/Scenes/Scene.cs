@@ -1146,13 +1146,20 @@ namespace OpenSim.Region.Environment.Scenes
             m_log.Info("[SCENE]: Loading land objects from storage");
             List<LandData> landData = m_storageManager.DataStore.LoadLandObjects(regionID);
 
-            if (landData.Count == 0)
+            if (LandChannel != null)
             {
-                LandChannel.NoLandDataFromStorage();
+                if (landData.Count == 0)
+                {
+                    LandChannel.NoLandDataFromStorage();
+                }
+                else
+                {
+                    LandChannel.IncomingLandObjectsFromStorage(landData);
+                }
             }
             else
             {
-                LandChannel.IncomingLandObjectsFromStorage(landData);
+                m_log.Error("[SCENE]: Land Channel is not defined. Cannot load from storage!");
             }
         }
 

@@ -988,17 +988,28 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     if (selectedEnt != null)
                     {
-                        bool permission;
-                        if (DeRezPacket.AgentBlock.Destination == 1)
-                        { // Take Copy
-                            permission = ExternalChecks.ExternalChecksCanTakeObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
+                        bool permissionToTake = false;
+                        bool permissionToDelete = false;
+                        if (DeRezPacket.AgentBlock.Destination == 1)// Take Copy
+                        { 
+                            permissionToTake = ExternalChecks.ExternalChecksCanTakeCopyObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
+                            permissionToDelete = false; //Just taking copy! 
+
                         }
-                        else
-                        { // Take
-                            permission = ExternalChecks.ExternalChecksCanTakeObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
+                        else if(DeRezPacket.AgentBlock.Destination == 4) //Take
+                        {
+                            // Take
+                            permissionToTake = ExternalChecks.ExternalChecksCanTakeObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
+                            permissionToDelete = permissionToTake; //If they can take, they can delete!
                         }
 
-                        if (permission)
+                        else if (DeRezPacket.AgentBlock.Destination == 6) //Delete
+                        {
+                            permissionToTake = false;
+                            permissionToDelete = ExternalChecks.ExternalChecksCanDeleteObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
+                        }
+
+                        if (permissionToTake)
                         {
                             SceneObjectGroup objectGroup = (SceneObjectGroup) selectedEnt;
                             string sceneObjectXml = objectGroup.ToXmlString();
@@ -1044,8 +1055,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 remoteClient.SendInventoryItemCreateUpdate(item);
                             }
 
-                            // FIXME: Nasty hardcoding.  If Destination is 1 then client wants us to take a copy
-                            if (DeRezPacket.AgentBlock.Destination != 1)
+                            if (permissionToDelete)
                             {
                                 DeleteSceneObjectGroup(objectGroup);
                             }

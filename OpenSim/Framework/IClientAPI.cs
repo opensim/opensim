@@ -500,6 +500,8 @@ namespace OpenSim.Framework
 
     public delegate void ParcelObjectOwnerRequest(int local_id, IClientAPI remote_client);
 
+    public delegate void ParcelAbandonRequest(int local_id, IClientAPI remote_client);
+
     public delegate void EstateOwnerMessageRequest(LLUUID AgentID, LLUUID SessionID, LLUUID TransactionID, LLUUID Invoice, byte[] Method, byte[][] Parameters, IClientAPI remote_client);
 
     public delegate void RegionInfoRequest(IClientAPI remote_client);
@@ -762,6 +764,7 @@ namespace OpenSim.Framework
         event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
         event ParcelSelectObjects OnParcelSelectObjects;
         event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
+        event ParcelAbandonRequest OnParcelAbandonRequest;  
         event RegionInfoRequest OnRegionInfoRequest;
         event EstateCovenantRequest OnEstateCovenantRequest;
 

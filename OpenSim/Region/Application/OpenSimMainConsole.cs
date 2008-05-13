@@ -244,7 +244,6 @@ namespace OpenSim
                     m_console.Notice("force-update - force an update of prims in the scene");
                     m_console.Notice("load-xml [filename] - load prims from XML");
                     m_console.Notice("load-xml2 [filename] - load prims from XML using version 2 format");
-                    m_console.Notice("permissions [true/false] - turn on/off permissions on the scene");
                     m_console.Notice("restart - disconnects all clients and restarts the sims in the instance.");
                     m_console.Notice("remove-region [name] - remove a region");
                     m_console.Notice("save-xml [filename] - save prims to XML");
@@ -366,12 +365,6 @@ namespace OpenSim
                     {
                         RunCommandScript(cmdparams[0]);
                     }
-                    break;
-
-                case "permissions":
-                    // Treats each user as a super-admin when disabled
-                    bool permissions = Convert.ToBoolean(cmdparams[0]);
-                    m_sceneManager.SetBypassPermissionsOnCurrentScene(!permissions);
                     break;
 
                 case "backup":
@@ -538,7 +531,6 @@ namespace OpenSim
                     }
 
                     break;  
-
                 default:
                     string[] tmpPluginArgs = new string[cmdparams.Length + 1];
                     cmdparams.CopyTo(tmpPluginArgs, 1);

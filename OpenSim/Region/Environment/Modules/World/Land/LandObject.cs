@@ -127,12 +127,19 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public void updateLandProperties(LandUpdateArgs args, IClientAPI remote_client)
         {
-            if (remote_client.AgentId == landData.ownerID)
+            if (m_scene.ExternalChecks.ExternalChecksCanEditParcel(remote_client.AgentId,this))
             {
                 //Needs later group support
                 LandData newData = landData.Copy();
 
-                newData.authBuyerID = args.AuthBuyerID;
+                if (args.AuthBuyerID != newData.authBuyerID || args.SalePrice != newData.salePrice)
+                {
+                    if (m_scene.ExternalChecks.ExternalChecksCanSellParcel(remote_client.AgentId, this))
+                    {
+                        newData.authBuyerID = args.AuthBuyerID;
+                        newData.salePrice = args.SalePrice;
+                    }
+                }
                 newData.category = args.Category;
                 newData.landDesc = args.Desc;
                 newData.groupID = args.GroupID;
@@ -145,7 +152,6 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 newData.landFlags = args.ParcelFlags;
                 newData.passHours = args.PassHours;
                 newData.passPrice = args.PassPrice;
-                newData.salePrice = args.SalePrice;
                 newData.snapshotID = args.SnapshotID;
                 newData.userLocation = args.UserLocation;
                 newData.userLookAt = args.UserLookAt;
@@ -587,27 +593,30 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public void sendForceObjectSelect(int local_id, int request_type, IClientAPI remote_client)
         {
-            List<uint> resultLocalIDs = new List<uint>();
-            foreach (SceneObjectGroup obj in primsOverMe)
+            if (m_scene.ExternalChecks.ExternalChecksCanEditParcel(remote_client.AgentId, this))
             {
-                if (obj.LocalId > 0)
+                List<uint> resultLocalIDs = new List<uint>();
+                foreach (SceneObjectGroup obj in primsOverMe)
                 {
-                    if (request_type == LandChannel.LAND_SELECT_OBJECTS_OWNER && obj.OwnerID == landData.ownerID)
+                    if (obj.LocalId > 0)
                     {
-                        resultLocalIDs.Add(obj.LocalId);
-                    }
+                        if (request_type == LandChannel.LAND_SELECT_OBJECTS_OWNER && obj.OwnerID == landData.ownerID)
+                        {
+                            resultLocalIDs.Add(obj.LocalId);
+                        }
                         // else if (request_type == LandManager.LAND_SELECT_OBJECTS_GROUP && ...) // TODO: group support
                         // {
                         // }
-                    else if (request_type == LandChannel.LAND_SELECT_OBJECTS_OTHER &&
-                             obj.OwnerID != remote_client.AgentId)
-                    {
-                        resultLocalIDs.Add(obj.LocalId);
+                        else if (request_type == LandChannel.LAND_SELECT_OBJECTS_OTHER &&
+                                 obj.OwnerID != remote_client.AgentId)
+                        {
+                            resultLocalIDs.Add(obj.LocalId);
+                        }
                     }
                 }
-            }
 
-            remote_client.sendForceClientSelectObjects(resultLocalIDs);
+                remote_client.sendForceClientSelectObjects(resultLocalIDs);
+            }
         }
 
         /// <summary>
@@ -620,32 +629,35 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         /// </param>
         public void sendLandObjectOwners(IClientAPI remote_client)
         {
-            Dictionary<LLUUID, int> primCount = new Dictionary<LLUUID, int>();
-
-            foreach (SceneObjectGroup obj in primsOverMe)
+            if (m_scene.ExternalChecks.ExternalChecksCanEditParcel(remote_client.AgentId, this))
             {
-                try
+                Dictionary<LLUUID, int> primCount = new Dictionary<LLUUID, int>();
+
+                foreach (SceneObjectGroup obj in primsOverMe)
                 {
-                    if (!primCount.ContainsKey(obj.OwnerID))
+                    try
                     {
-                        primCount.Add(obj.OwnerID, 0);
+                        if (!primCount.ContainsKey(obj.OwnerID))
+                        {
+                            primCount.Add(obj.OwnerID, 0);
+                        }
+                    }
+                    catch (NullReferenceException)
+                    {
+                        m_log.Info("[LAND]: " + "Got Null Reference when searching land owners from the parcel panel");
+                    }
+                    try
+                    {
+                        primCount[obj.OwnerID] += obj.PrimCount;
+                    }
+                    catch (KeyNotFoundException)
+                    {
+                        m_log.Error("[LAND]: Unable to match a prim with it's owner.");
                     }
                 }
-                catch (NullReferenceException)
-                {
-                    m_log.Info("[LAND]: " + "Got Null Reference when searching land owners from the parcel panel");
-                }
-                try
-                {
-                    primCount[obj.OwnerID] += obj.PrimCount;
-                }
-                catch (KeyNotFoundException)
-                {
-                    m_log.Error("[LAND]: Unable to match a prim with it's owner.");
-                }
-            }
 
-            remote_client.sendLandObjectOwners(primCount);
+                remote_client.sendLandObjectOwners(primCount);
+            }
         }
 
         public Dictionary<LLUUID, int> getLandObjectOwners()

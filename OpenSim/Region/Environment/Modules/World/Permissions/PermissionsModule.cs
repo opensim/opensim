@@ -27,16 +27,23 @@
 
 using libsecondlife;
 using Nini.Config;
-
+using System;
+using System.Reflection;
+using log4net;
 using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Modules.Framework;
+using OpenSim.Region.Environment.Modules.Framework.InterfaceCommander;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.World.Permissions
 {
-    public class PermissionsModule : IRegionModule, IScenePermissions
+    public class PermissionsModule : IRegionModule, IScenePermissions, ICommandableModule
     {
         protected Scene m_scene;
+        private readonly Commander m_commander = new Commander("Permissions");
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        #region Constants
         // These are here for testing.  They will be taken out
         
         //private uint PERM_ALL = (uint)2147483647;
@@ -45,15 +52,88 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         private uint PERM_MOVE = (uint)524288;
         //private uint PERM_TRANS = (uint)8192;
         private uint PERM_LOCKED = (uint)540672;
-        
+
+        #endregion
+
+        #region Bypass Permissions / Debug Permissions Stuff
+
         // Bypasses the permissions engine 
         private bool m_bypassPermissions = false;
-
+        private bool m_bypassPermissionsValue = true;
+        private bool m_debugPermissions = false;
         public bool BypassPermissions
         {
             get { return m_bypassPermissions; }
             set { m_bypassPermissions = value; }
         }
+
+        public bool BypassPermissionsValue
+        {
+            get { return m_bypassPermissionsValue; }
+            set { m_bypassPermissionsValue = value; }
+        }
+
+        public bool DebugPermissions
+        {
+            get { return m_debugPermissions; }
+            set { m_debugPermissions = value; }
+        }
+        #endregion
+
+        #region ICommandableModule Members
+
+        public ICommander CommandInterface
+        {
+            get { throw new System.NotImplementedException(); }
+        }
+
+
+        private void InterfaceDebugPermissions(Object[] args)
+        {
+            if ((bool)args[0] == true)
+            {
+                m_debugPermissions = true;
+                m_log.Info("[PERMISSIONS]: Permissions Debugging Enabled.");
+            }
+            else
+            {
+                m_debugPermissions = false;
+                m_log.Info("[PERMISSIONS]:  Permissions Debugging Disabled.");
+            }
+        }
+
+        private void InterfaceBypassPermissions(Object[] args)
+        {
+            if ((bool)args[0] == true)
+            {
+                m_log.Info("[PERMISSIONS]: Permissions Bypass Enabled.");
+                m_bypassPermissionsValue = (bool)args[1];
+            }
+            else
+            {
+                m_bypassPermissions = false;
+                m_log.Info("[PERMISSIONS]:  Permissions Bypass Disabled. Normal Operation.");
+            }
+        }
+
+        /// <summary>
+        /// Processes commandline input. Do not call directly.
+        /// </summary>
+        /// <param name="args">Commandline arguments</param>
+        private void EventManager_OnPluginConsole(string[] args)
+        {
+            if (args[0] == "permissions")
+            {
+                string[] tmpArgs = new string[args.Length - 2];
+                int i;
+                for (i = 2; i < args.Length; i++)
+                    tmpArgs[i - 2] = args[i];
+
+                m_commander.ProcessConsoleCommand(args[1], tmpArgs);
+            }
+        }
+
+        #endregion
 
         #region IRegionModule Members
 
@@ -67,28 +147,51 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             
             m_scene.RegisterModuleInterface<IScenePermissions>(this);
 
-            //Register External Permission Checks!
-            m_scene.ExternalChecks.addCheckAbandonParcel(this.CanAbandonParcel);
-            m_scene.ExternalChecks.addCheckCopyObject(this.CanCopyObject);
-            m_scene.ExternalChecks.addCheckDeRezObject(this.CanDeRezObject);
-            m_scene.ExternalChecks.addCheckEditEstateTerrain(this.CanEditEstateTerrain);
-            m_scene.ExternalChecks.addCheckEditObject(this.CanEditObject);
-            m_scene.ExternalChecks.addCheckEditParcel(this.CanEditParcel);
-            m_scene.ExternalChecks.addCheckEditScript(this.CanEditScript);
-            m_scene.ExternalChecks.addCheckInstantMessage(this.CanInstantMessage);
-            m_scene.ExternalChecks.addCheckInventoryTransfer(this.CanInventoryTransfer);
-            m_scene.ExternalChecks.addCheckMoveObject(this.CanEditObjectPosition);
-            m_scene.ExternalChecks.addCheckRestartSim(this.CanRestartSim);
-            m_scene.ExternalChecks.addCheckReturnObject(this.CanReturnObject);
-            m_scene.ExternalChecks.addCheckRezObject(this.CanRezObject);
-            m_scene.ExternalChecks.addCheckBeGodLike(this.CanBeGodLike);
-            m_scene.ExternalChecks.addCheckRunConsoleCommand(this.CanRunConsoleCommand);
-            m_scene.ExternalChecks.addCheckRunScript(this.CanRunScript);
-            m_scene.ExternalChecks.addCheckSellParcel(this.CanSellParcel);
-            //m_scene.ExternalChecks.addCheckTakeObject; -- NOT YET IMPLEMENTED
-            m_scene.ExternalChecks.addCheckTerraformLandCommand(this.CanTerraform);
+            //Register functions with Scene External Checks!
+            m_scene.ExternalChecks.addCheckAbandonParcel(CanAbandonParcel); //FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addCheckBeGodLike(CanBeGodLike); //FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addCheckDuplicateObject(CanDuplicateObject); //FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addCheckDeleteObject(CanDeleteObject); //MAYBE FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addCheckEditObject(CanEditObject);//MAYBE FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addCheckEditParcel(CanEditParcel); //FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addCheckEditScript(CanEditScript); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckInstantMessage(CanInstantMessage); //FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addCheckInventoryTransfer(CanInventoryTransfer); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckIssueEstateCommand(CanIssueEstateCommand); //FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addCheckMoveObject(CanMoveObject); //HOPEFULLY FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addCheckObjectEntry(CanObjectEntry); //FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addCheckReturnObject(CanReturnObject); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckRezObject(CanRezObject); //HOPEFULLY FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addCheckRunConsoleCommand(CanRunConsoleCommand); //FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addCheckRunScript(CanRunScript); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckSellParcel(CanSellParcel); //FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addCheckTakeObject(CanTakeObject); //FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addCheckTakeCopyObject(CanTakeCopyObject); //FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addCheckTerraformLand(CanTerraformLand); //FULL IMPLEMENTED (POINT ONLY!!! NOT AREA!!!)
+            m_scene.ExternalChecks.addCheckViewScript(CanViewScript); //NOT YET IMPLEMENTED
 
+            //NEEDED PERMS:
+            //CanLinkObject
+            //CanDelinkObject
+            //CanBuyLand
+
+
+            //Register Debug Commands
+            Command bypassCommand = new Command("bypass", InterfaceBypassPermissions, "Force the permissions a specific way to test permissions");
+            bypassCommand.AddArgument("enable_bypass_perms", "true to enable bypassing all perms", "Boolean");
+            bypassCommand.AddArgument("bypass_perms_value", "true/false: true will ignore all perms; false will restrict everything", "Boolean");
+
+            m_commander.RegisterCommand("bypass", bypassCommand);
+
+            Command debugCommand = new Command("debug", InterfaceDebugPermissions, "Force the permissions a specific way to test permissions");
+            debugCommand.AddArgument("enable_debug_perms", "true to enable debugging to console all perms", "Boolean");
+
+            m_commander.RegisterCommand("debug", debugCommand);
+            m_scene.RegisterModuleCommander("CommanderPermissions", m_commander);
+
+            m_scene.EventManager.OnPluginConsole += new EventManager.OnPluginConsoleDelegate(EventManager_OnPluginConsole);
         }
+
 
         public void PostInitialise()
         {
@@ -110,18 +213,19 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         #endregion        
 
+        #region Helper Functions
         protected void SendPermissionError(LLUUID user, string reason)
         {
             m_scene.EventManager.TriggerPermissionError(user, reason);
         }
+        protected void DebugPermissionInformation(string permissionCalled)
+        {
+            if(m_debugPermissions)
+                m_log.Info("[PERMISSIONS]: " + permissionCalled + " was called from " + m_scene.RegionInfo.RegionName);
+        }
 
         protected bool IsAdministrator(LLUUID user)
         {
-            if (m_bypassPermissions)
-            {
-                return true;
-            }
-
             // If there is no master avatar, return false
             if (m_scene.RegionInfo.MasterAvatarAssignedUUID != LLUUID.Zero)
             {
@@ -133,117 +237,19 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         protected bool IsEstateManager(LLUUID user)
         {
-            if (m_bypassPermissions)
-            {
-                return true;
-            }
-
             if (user != LLUUID.Zero)
             {
                 LLUUID[] estatemanagers = m_scene.RegionInfo.EstateSettings.estateManagers;
-                for (int i = 0; i < estatemanagers.Length; i++)
+                foreach(LLUUID estatemanager in estatemanagers)
                 {
-                    if (estatemanagers[i] == user)
+                    if (estatemanager == user)
                         return true;
                 }
             }
 
             return false;
         }
-
-        protected bool IsGridUser(LLUUID user)
-        {
-            return true;
-        }
-
-        protected bool IsGuest(LLUUID user)
-        {
-            return false;
-        }
-
-        public bool CanRezObject(int objectCount, LLUUID user, LLVector3 position,Scene scene)
-        {
-            bool permission = false;
-
-            
-
-            string reason = "Insufficient permission";
-
-            ILandObject land = m_scene.LandChannel.GetLandObject(position.X, position.Y);
-            if (land == null) return false;
-
-            if ((land.landData.landFlags & ((int)Parcel.ParcelFlags.CreateObjects)) ==
-                (int)Parcel.ParcelFlags.CreateObjects)
-                permission = true;
-
-            //TODO: check for group rights
-
-            if (IsAdministrator(user))
-            {
-                permission = true;
-            }
-            else
-            {
-                reason = "Not an administrator";
-            }
-
-            if (GenericParcelPermission(user, position))
-            {
-                permission = true;
-            }
-            else
-            {
-                reason = "Not the parcel owner";
-            }
-
-            if (!permission)
-                SendPermissionError(user, reason);
-
-            return permission;
-        }
-
-        /// <see cref="Opensim.Region.Environment.Interfaces.IScenePermissions></see>
-        public bool CanObjectEntry(LLUUID user, LLVector3 oldPos, LLVector3 newPos)
-        {
-            if ((newPos.X > 257f || newPos.X < -1f || newPos.Y > 257f || newPos.Y < -1f))
-            {
-                return true;
-            }
-
-            ILandObject land1 = m_scene.LandChannel.GetLandObject(oldPos.X, oldPos.Y);
-            ILandObject land2 = m_scene.LandChannel.GetLandObject(newPos.X, newPos.Y);
-
-            if (land1 == null || land2 == null)
-            {
-                return false;
-            }
-            if (land2 == null)
-            {
-                // need this for crossing borders
-                return true;
-            }
-
-            if (land1.landData.globalID == land2.landData.globalID)
-            {
-                return true;
-            }
-
-            if ((land2.landData.landFlags & ((int)Parcel.ParcelFlags.AllowAllObjectEntry)) != 0)
-            {
-                return true;
-            }
-
-            //TODO: check for group rights
-
-            if (GenericParcelPermission(user, newPos))
-            {
-                return true;
-            }
-
-            SendPermissionError(user, "Not allowed to move objects in this parcel!");
-
-            return false;
-        }
+#endregion
 
         #region Object Permissions
 
@@ -427,143 +433,16 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return permission;
         }
 
-        /// <see cref="Opensim.Region.Environment.Interfaces.IScenePermissions></see>
-        public bool CanDeRezObject(LLUUID obj,LLUUID user, Scene scene)
-        {
-            return GenericObjectPermission(user, obj);
-        }
-
-        public bool CanEditObject(LLUUID obj, LLUUID user, Scene scene)
-        {
-            return GenericObjectPermission(user, obj);
-        }
-
-        public bool CanEditObjectPosition(LLUUID obj, LLUUID user, Scene scene)
-        {
-            bool permission = GenericObjectPermission(user, obj);
-            if (!permission)
-            {
-                if (!m_scene.Entities.ContainsKey(obj))
-                {
-                    return false;
-                }
-
-                // The client 
-                // may request to edit linked parts, and therefore, it needs 
-                // to also check for SceneObjectPart
-
-                // If it's not an object, we cant edit it.
-                if ((!(m_scene.Entities[obj] is SceneObjectGroup)))
-                {
-                    return false;
-                }
-
-
-                SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[obj];
-
-
-                LLUUID taskOwner = null;
-                // Added this because at this point in time it wouldn't be wise for 
-                // the administrator object permissions to take effect.
-                LLUUID objectOwner = task.OwnerID;
-
-                // Anyone can move
-                if ((task.RootPart.EveryoneMask & PERM_MOVE) != 0)
-                    permission = true;
-
-                // Locked
-                if ((task.RootPart.OwnerMask & PERM_LOCKED) == 0)
-                    permission = false;
-
-            }
-            else
-            {
-                bool locked = false;
-                if (!m_scene.Entities.ContainsKey(obj))
-                {
-                    return false;
-                }
-
-                // If it's not an object, we cant edit it.
-                if ((!(m_scene.Entities[obj] is SceneObjectGroup)))
-                {
-                    return false;
-                }
-
-
-                SceneObjectGroup group = (SceneObjectGroup)m_scene.Entities[obj];
-
-                LLUUID objectOwner = group.OwnerID;
-                locked = ((group.RootPart.OwnerMask & PERM_LOCKED) == 0);
-
-
-                // This is an exception to the generic object permission.
-                // Administrators who lock their objects should not be able to move them, 
-                // however generic object permission should return true.
-                // This keeps locked objects from being affected by random click + drag actions by accident
-                // and allows the administrator to grab or delete a locked object.
-
-                // Administrators and estate managers are still able to click+grab locked objects not 
-                // owned by them in the scene
-                // This is by design.
-
-                if (locked && (user == objectOwner))
-                    return false;
-            }
-            return permission;
-        }
-
-        public bool CanCopyObject(int objectCount, LLUUID obj, LLUUID user, Scene scene, LLVector3 objectPosition)
-        {
-            bool permission = GenericObjectPermission(user, obj);
-            if (permission)
-            {
-                if (!m_scene.Entities.ContainsKey(obj))
-                {
-                    return false;
-                }
-
-                // If it's not an object, we cant edit it.
-                if (!(m_scene.Entities[obj] is SceneObjectGroup))
-                {
-                    return false;
-                }
-
-                SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[obj];
-                LLUUID taskOwner = null;
-                // Added this because at this point in time it wouldn't be wise for 
-                // the administrator object permissions to take effect.
-                LLUUID objectOwner = task.OwnerID;
-
-                
-                if ((task.RootPart.EveryoneMask & PERM_COPY) != 0)
-                    permission = true;
-            }
-            return permission;
-        }
-
-        public bool CanReturnObject(LLUUID obj, LLUUID user, Scene scene)
-        {
-            return GenericObjectPermission(user, obj);
-        }
 
         #endregion
 
-        #region Communication Permissions
-
+        #region Generic Permissions
         protected bool GenericCommunicationPermission(LLUUID user, LLUUID target)
         {
             bool permission = false;
             string reason = "Only registered users may communicate with another account.";
 
-            if (IsGridUser(user))
-                permission = true;
-
-            if (!IsGridUser(user))
-            {
-                permission = false;
-                reason = "The person that you are messaging is not a registered user.";
-            }
+            
             if (IsAdministrator(user))
                 permission = true;
 
@@ -575,66 +454,6 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
             return permission;
         }
-
-        public bool CanInstantMessage(LLUUID user, LLUUID target, Scene scene)
-        {
-            return GenericCommunicationPermission(user, target);
-        }
-
-        public bool CanInventoryTransfer(LLUUID user, LLUUID target, Scene scene)
-        {
-            return GenericCommunicationPermission(user, target);
-        }
-
-        #endregion
-
-        public bool CanEditScript(LLUUID script, LLUUID user, Scene scene)
-        {
-            return IsAdministrator(user);
-        }
-
-        public bool CanRunScript(LLUUID script, LLUUID user, Scene scene)
-        {
-            return IsAdministrator(user);
-        }
-
-        public bool CanRunConsoleCommand(LLUUID user, Scene scene)
-        {
-            return IsAdministrator(user);
-        }
-
-        public bool CanTerraform(LLUUID user, LLVector3 position, Scene scene)
-        {
-            bool permission = false;
-
-            // Estate override
-            if (GenericEstatePermission(user))
-                permission = true;
-
-            float X = position.X;
-            float Y = position.Y;
-
-            if (X > 255)
-                X = 255;
-            if (Y > 255)
-                Y = 255;
-            if (X < 0)
-                X = 0;
-            if (Y < 0)
-                Y = 0;
-
-            // Land owner can terraform too
-            ILandObject parcel = m_scene.LandChannel.GetLandObject(X, Y);
-            if (parcel != null && GenericParcelPermission(user, parcel))
-                permission = true;
-
-            if (!permission)
-                SendPermissionError(user, "Not authorized to terraform at this location.");
-
-            return permission;
-        }
-
-        #region Estate Permissions
 
         public bool GenericEstatePermission(LLUUID user)
         {
@@ -651,28 +470,6 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
             return permission;
         }
-
-        public bool CanEditEstateTerrain(LLUUID user, Scene scene)
-        {
-            return GenericEstatePermission(user);
-        }
-
-        public bool CanRestartSim(LLUUID user, Scene scene)
-        {
-            // Since this is potentially going on a grid...    
-
-            return GenericEstatePermission(user);
-            //return m_scene.RegionInfo.MasterAvatarAssignedUUID == user;
-        }
-
-        public bool CanBeGodLike(LLUUID user, Scene scene)
-        {
-            return GenericEstatePermission(user);
-        }
-
-        #endregion
-
-        #region Parcel Permissions
 
         protected bool GenericParcelPermission(LLUUID user, ILandObject parcel)
         {
@@ -707,22 +504,365 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             if (parcel == null) return false;
             return GenericParcelPermission(user, parcel);
         }
+#endregion
+        
+        #region Permission Checks
+            private bool CanAbandonParcel(LLUUID user, ILandObject parcel, Scene scene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-        public bool CanEditParcel(LLUUID user, ILandObject parcel, Scene scene)
-        {
-            return GenericParcelPermission(user, parcel);
-        }
+                return GenericParcelPermission(user, parcel);
+            }
 
-        public bool CanSellParcel(LLUUID user, ILandObject parcel, Scene scene)
-        {
-            return GenericParcelPermission(user, parcel);
-        }
+            private bool CanBeGodLike(LLUUID user, Scene scene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-        public bool CanAbandonParcel(LLUUID user, ILandObject parcel, Scene scene)
-        {
-            return GenericParcelPermission(user, parcel);
-        }
+                return IsAdministrator(user);
+            }
 
+            private bool CanDuplicateObject(int objectCount, LLUUID objectID, LLUUID owner, Scene scene, LLVector3 objectPosition)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                if (!GenericObjectPermission(owner, objectID))
+                {
+                    //They can't even edit the object
+                    return false;
+                }
+                //If they can rez, they can duplicate
+                return CanRezObject(objectCount, owner, objectPosition, scene);
+            }
+
+            private bool CanDeleteObject(LLUUID objectID, LLUUID deleter, Scene scene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                return GenericObjectPermission(objectID, deleter);
+            }
+
+            private bool CanEditObject(LLUUID objectID, LLUUID editorID, Scene scene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+
+                return GenericObjectPermission(editorID, objectID);
+            }
+
+            private bool CanEditParcel(LLUUID user, ILandObject parcel, Scene scene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                return GenericParcelPermission(user, parcel);
+            }
+
+            private bool CanEditScript(LLUUID script, LLUUID user, Scene scene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                return true;
+            }
+
+            private bool CanInstantMessage(LLUUID user, LLUUID target, Scene startScene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+
+                return GenericCommunicationPermission(user, target);
+            }
+
+            private bool CanInventoryTransfer(LLUUID user, LLUUID target, Scene startScene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+                
+                return GenericCommunicationPermission(user, target);
+            }
+
+            private bool CanIssueEstateCommand(LLUUID user, Scene requestFromScene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                return GenericEstatePermission(user);
+            }
+
+            private bool CanMoveObject(LLUUID objectID, LLUUID moverID, Scene scene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                bool permission = GenericObjectPermission(moverID, objectID);
+                if (!permission)
+                {
+                    if (!m_scene.Entities.ContainsKey(objectID))
+                    {
+                        return false;
+                    }
+
+                    // The client 
+                    // may request to edit linked parts, and therefore, it needs 
+                    // to also check for SceneObjectPart
+
+                    // If it's not an object, we cant edit it.
+                    if ((!(m_scene.Entities[objectID] is SceneObjectGroup)))
+                    {
+                        return false;
+                    }
+
+
+                    SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objectID];
+
+
+                    LLUUID taskOwner = null;
+                    // Added this because at this point in time it wouldn't be wise for 
+                    // the administrator object permissions to take effect.
+                    LLUUID objectOwner = task.OwnerID;
+
+                    // Anyone can move
+                    if ((task.RootPart.EveryoneMask & PERM_MOVE) != 0)
+                        permission = true;
+
+                    // Locked
+                    if ((task.RootPart.OwnerMask & PERM_LOCKED) == 0)
+                        permission = false;
+
+                }
+                else
+                {
+                    bool locked = false;
+                    if (!m_scene.Entities.ContainsKey(objectID))
+                    {
+                        return false;
+                    }
+
+                    // If it's not an object, we cant edit it.
+                    if ((!(m_scene.Entities[objectID] is SceneObjectGroup)))
+                    {
+                        return false;
+                    }
+
+
+                    SceneObjectGroup group = (SceneObjectGroup)m_scene.Entities[objectID];
+
+                    LLUUID objectOwner = group.OwnerID;
+                    locked = ((group.RootPart.OwnerMask & PERM_LOCKED) == 0);
+
+
+                    // This is an exception to the generic object permission.
+                    // Administrators who lock their objects should not be able to move them, 
+                    // however generic object permission should return true.
+                    // This keeps locked objects from being affected by random click + drag actions by accident
+                    // and allows the administrator to grab or delete a locked object.
+
+                    // Administrators and estate managers are still able to click+grab locked objects not 
+                    // owned by them in the scene
+                    // This is by design.
+
+                    if (locked && (moverID == objectOwner))
+                        return false;
+                }
+                return permission;
+            }
+
+            private bool CanObjectEntry(LLUUID objectID, LLVector3 newPoint, Scene scene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                if ((newPoint.X > 257f || newPoint.X < -1f || newPoint.Y > 257f || newPoint.Y < -1f))
+                {
+                    return true;
+                }
+
+                ILandObject land = m_scene.LandChannel.GetLandObject(newPoint.X, newPoint.Y);
+
+                if (land == null)
+                {
+                    return false;
+                }
+
+                if ((land.landData.landFlags & ((int)Parcel.ParcelFlags.AllowAllObjectEntry)) != 0)
+                {
+                    return true;
+                }
+
+                //TODO: check for group rights
+
+                if (!m_scene.Entities.ContainsKey(objectID))
+                {
+                    return false;
+                }
+
+                // If it's not an object, we cant edit it.
+                if (!(m_scene.Entities[objectID] is SceneObjectGroup))
+                {
+                    return false;
+                }
+
+                SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objectID];
+
+                if (GenericParcelPermission(task.OwnerID, newPoint))
+                {
+                    return true;
+                }
+
+                //Otherwise, false!
+                return false;
+            }
+
+            private bool CanReturnObject(LLUUID objectID, LLUUID returnerID, Scene scene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                return GenericObjectPermission(returnerID, objectID);
+            }
+
+            private bool CanRezObject(int objectCount, LLUUID owner, LLVector3 objectPosition, Scene scene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                bool permission = false;
+
+                ILandObject land = m_scene.LandChannel.GetLandObject(objectPosition.X, objectPosition.Y);
+                if (land == null) return false;
+
+                if ((land.landData.landFlags & ((int)Parcel.ParcelFlags.CreateObjects)) ==
+                    (int)Parcel.ParcelFlags.CreateObjects)
+                    permission = true;
+
+                //TODO: check for group rights
+
+                if (IsAdministrator(owner))
+                {
+                    permission = true;
+                }
+
+                if (GenericParcelPermission(owner, objectPosition))
+                {
+                    permission = true;
+                }
+
+                return permission;
+            }
+
+            private bool CanRunConsoleCommand(LLUUID user, Scene requestFromScene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+
+                return IsAdministrator(user);
+            }
+
+            private bool CanRunScript(LLUUID script, LLUUID user, Scene scene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                return true;
+            }
+
+            private bool CanSellParcel(LLUUID user, ILandObject parcel, Scene scene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                return GenericParcelPermission(user, parcel);
+            }
+
+            private bool CanTakeObject(LLUUID objectID, LLUUID stealer, Scene scene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                return GenericObjectPermission(stealer,objectID);
+            }
+
+            private bool CanTakeCopyObject(LLUUID objectID, LLUUID userID, Scene inScene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                bool permission = GenericObjectPermission(userID, objectID);
+                if (permission)
+                {
+                    if (!m_scene.Entities.ContainsKey(objectID))
+                    {
+                        return false;
+                    }
+
+                    // If it's not an object, we cant edit it.
+                    if (!(m_scene.Entities[objectID] is SceneObjectGroup))
+                    {
+                        return false;
+                    }
+
+                    SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objectID];
+                    LLUUID taskOwner = null;
+                    // Added this because at this point in time it wouldn't be wise for 
+                    // the administrator object permissions to take effect.
+                    LLUUID objectOwner = task.OwnerID;
+
+
+                    if ((task.RootPart.EveryoneMask & PERM_COPY) != 0)
+                        permission = true;
+                }
+                return permission;
+            }
+
+            private bool CanTerraformLand(LLUUID user, LLVector3 position, Scene requestFromScene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                bool permission = false;
+
+                // Estate override
+                if (GenericEstatePermission(user))
+                    permission = true;
+
+                float X = position.X;
+                float Y = position.Y;
+
+                if (X > 255)
+                    X = 255;
+                if (Y > 255)
+                    Y = 255;
+                if (X < 0)
+                    X = 0;
+                if (Y < 0)
+                    Y = 0;
+
+                // Land owner can terraform too
+                ILandObject parcel = m_scene.LandChannel.GetLandObject(X, Y);
+                if (parcel != null && GenericParcelPermission(user, parcel))
+                    permission = true;
+
+
+                return permission;
+            }
+
+            private bool CanViewScript(LLUUID script, LLUUID user, Scene scene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                return true;
+            }
         #endregion
+
+
     }
+
 }
