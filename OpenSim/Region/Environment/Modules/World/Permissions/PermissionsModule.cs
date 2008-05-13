@@ -551,7 +551,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
 
-                return GenericObjectPermission(editorID, objectID, true);
+                return GenericObjectPermission(editorID, objectID, false);
             }
 
             private bool CanEditParcel(LLUUID user, ILandObject parcel, Scene scene)
