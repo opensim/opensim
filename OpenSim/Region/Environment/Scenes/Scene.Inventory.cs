@@ -1054,11 +1054,12 @@ namespace OpenSim.Region.Environment.Scenes
                                 userInfo.AddItem(item);
                                 remoteClient.SendInventoryItemCreateUpdate(item);
                             }
+                        }
 
-                            if (permissionToDelete)
-                            {
-                                DeleteSceneObjectGroup(objectGroup);
-                            }
+
+                        if (permissionToDelete)
+                        {
+                            DeleteSceneObjectGroup(objectGroup);
                         }
                     }
                 }
