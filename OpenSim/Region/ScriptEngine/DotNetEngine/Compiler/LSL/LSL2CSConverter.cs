@@ -97,7 +97,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             for (int p = 0; p < blocked.Length;p++)
             {
                 
-                Match SecurityM = Regex.Match(Script, "[;}][^\"']+" + blocked[p].Replace(".", "\\.") + "\\.[^\"']", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline | RegexOptions.IgnoreCase);
+                Match SecurityM = Regex.Match(Script, "[;}][^\"']+" + blocked[p].Replace(".", "\\.") + "\\.[^\"']", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
                 if (SecurityM.Success)
                     throw new Exception("CS0103: 'The name '" + blocked[p] + "' does not exist in the current context'");
 
