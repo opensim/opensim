@@ -1009,9 +1009,10 @@ namespace OpenSim.Region.Environment.Scenes
                             permissionToDelete = ExternalChecks.ExternalChecksCanDeleteObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
                         }
 
+                        SceneObjectGroup objectGroup = (SceneObjectGroup)selectedEnt;
+
                         if (permissionToTake)
                         {
-                            SceneObjectGroup objectGroup = (SceneObjectGroup) selectedEnt;
                             string sceneObjectXml = objectGroup.ToXmlString();
 
                             CachedUserInfo userInfo =
