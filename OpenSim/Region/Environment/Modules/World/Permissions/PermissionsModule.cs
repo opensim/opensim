@@ -28,6 +28,8 @@
 using libsecondlife;
 using Nini.Config;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using OpenSim.Region.Environment.Interfaces;
@@ -143,6 +145,13 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             
             IConfig myConfig = config.Configs["Startup"];
             
+			string permissionModules = myConfig.GetString("permissionmodules", "DefaultPermissionsModule");
+
+			List<string> modules=new List<string>(permissionModules.Split(','));
+
+			if(!modules.Contains("DefaultPermissionsModule"))
+				return;
+
             m_bypassPermissions = !myConfig.GetBoolean("serverside_object_permissions", true);            
             
             m_scene.RegisterModuleInterface<IScenePermissions>(this);

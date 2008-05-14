@@ -72,6 +72,8 @@ physics = basicphysics
 
 startup_console_commands_file = "startup_commands.txt"
 shutdown_console_commands_file = "shutdown_commands.txt"
+
+;permissionmodules = "DefaultPermissionsModule"
 serverside_object_permissions = false
 
 ; if you would like to allow prims to be physical and move by physics with the physical checkbox in the client set this to true.
