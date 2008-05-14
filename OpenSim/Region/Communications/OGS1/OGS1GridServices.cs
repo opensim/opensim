@@ -852,9 +852,9 @@ namespace OpenSim.Region.Communications.OGS1
         }
 
         // UGLY!
-        public bool RegionUp(SearializableRegionInfo region, ulong regionhandle)
+        public bool RegionUp(SerializableRegionInfo region, ulong regionhandle)
         {
-            SearializableRegionInfo regInfo = null;
+            SerializableRegionInfo regInfo = null;
             try
             {
                 // You may ask why this is in here...   
@@ -863,7 +863,7 @@ namespace OpenSim.Region.Communications.OGS1
                 // it's own remoting port!  How special.
                 RegionUpData regiondata = new RegionUpData(region.RegionLocX, region.RegionLocY, region.ExternalHostName, region.InternalEndPoint.Port);
 
-                region = new SearializableRegionInfo(RequestNeighbourInfo(region.RegionHandle));
+                region = new SerializableRegionInfo(RequestNeighbourInfo(region.RegionHandle));
                 region.RemotingAddress = region.ExternalHostName;                  
                 region.RemotingPort = NetworkServersInfo.RemotingListenerPort;                
                 region.HttpPort = serversInfo.HttpListenerPort;
@@ -873,7 +873,7 @@ namespace OpenSim.Region.Communications.OGS1
                     return true;
                 }
 
-                regInfo = new SearializableRegionInfo(RequestNeighbourInfo(regionhandle));
+                regInfo = new SerializableRegionInfo(RequestNeighbourInfo(regionhandle));
                 if (regInfo != null)
                 {
                     // If we're not trying to remote to ourselves.

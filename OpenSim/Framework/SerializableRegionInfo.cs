@@ -33,7 +33,7 @@ using libsecondlife;
 namespace OpenSim.Framework
 {
     [Serializable]
-    public class SearializableRegionInfo
+    public class SerializableRegionInfo
     {
         public bool m_allow_alternate_ports;
         protected string m_externalHostName;
@@ -60,11 +60,11 @@ namespace OpenSim.Framework
         /// <summary>
         /// This is a serializable version of RegionInfo
         /// </summary>
-        public SearializableRegionInfo()
+        public SerializableRegionInfo()
         {
         }
 
-        public SearializableRegionInfo(RegionInfo ConvertFrom)
+        public SerializableRegionInfo(RegionInfo ConvertFrom)
         {
             m_regionLocX = ConvertFrom.RegionLocX;
             m_regionLocY = ConvertFrom.RegionLocY;
@@ -80,7 +80,7 @@ namespace OpenSim.Framework
             ServerURI = ConvertFrom.ServerURI;
         }
 
-        public SearializableRegionInfo(uint regionLocX, uint regionLocY, IPEndPoint internalEndPoint, string externalUri)
+        public SerializableRegionInfo(uint regionLocX, uint regionLocY, IPEndPoint internalEndPoint, string externalUri)
         {
             m_regionLocX = regionLocX;
             m_regionLocY = regionLocY;
@@ -89,7 +89,7 @@ namespace OpenSim.Framework
             m_externalHostName = externalUri;
         }
 
-        public SearializableRegionInfo(uint regionLocX, uint regionLocY, string externalUri, uint port)
+        public SerializableRegionInfo(uint regionLocX, uint regionLocY, string externalUri, uint port)
         {
             m_regionLocX = regionLocX;
             m_regionLocY = regionLocY;

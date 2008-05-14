@@ -356,7 +356,7 @@ namespace OpenSim.Region.Environment.Scenes
             //RegionUpData regiondata = new RegionUpData(region.RegionLocX, region.RegionLocY, region.ExternalHostName, region.InternalEndPoint.Port);
 
             bool regionAccepted =
-                m_commsProvider.InterRegion.RegionUp(new SearializableRegionInfo(region), regionhandle);
+                m_commsProvider.InterRegion.RegionUp(new SerializableRegionInfo(region), regionhandle);
 
             if (regionAccepted)
             {
@@ -399,7 +399,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
 
-            //bool val = m_commsProvider.InterRegion.RegionUp(new SearializableRegionInfo(region));
+            //bool val = m_commsProvider.InterRegion.RegionUp(new SerializableRegionInfo(region));
         }
 
         public delegate void SendChildAgentDataUpdateDelegate(ChildAgentDataUpdate cAgentData, ScenePresence presence);

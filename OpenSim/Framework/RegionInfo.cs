@@ -233,7 +233,7 @@ namespace OpenSim.Framework
         {
         }
 
-        public RegionInfo(SearializableRegionInfo ConvertFrom)
+        public RegionInfo(SerializableRegionInfo ConvertFrom)
         {
             m_regionLocX = ConvertFrom.RegionLocX;
             m_regionLocY = ConvertFrom.RegionLocY;

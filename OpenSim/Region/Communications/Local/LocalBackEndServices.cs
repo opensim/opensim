@@ -227,7 +227,7 @@ namespace OpenSim.Region.Communications.Local
             return false;
         }
 
-        public virtual bool RegionUp(SearializableRegionInfo sregion, ulong regionhandle)
+        public virtual bool RegionUp(SerializableRegionInfo sregion, ulong regionhandle)
         {
             RegionInfo region = new RegionInfo(sregion);
 

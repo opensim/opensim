@@ -422,7 +422,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             }
 
             // serialization of region data
-            SearializableRegionInfo dst_region = new SearializableRegionInfo(src_region);
+            SerializableRegionInfo dst_region = new SerializableRegionInfo(src_region);
 
             string filename = export_dir + "RegionInfo_" + src_region.RegionID + ".bin";
             Util.SerializeToFile(filename, dst_region);
@@ -480,7 +480,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 {
                     m_log.InfoFormat("[BALANCER] RegionInfo filename = [{0}]", filename);
 
-                    dst_region = new RegionInfo((SearializableRegionInfo) Util.DeserializeFromFile(filename));
+                    dst_region = new RegionInfo((SerializableRegionInfo) Util.DeserializeFromFile(filename));
 
                     m_log.InfoFormat("[BALANCER] " + "RegionID = [{0}]", dst_region.RegionID.ToString());
                     m_log.InfoFormat("[BALANCER] " + "RegionHandle = [{0}]", dst_region.RegionHandle);
