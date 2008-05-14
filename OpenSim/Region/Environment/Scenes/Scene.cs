@@ -115,7 +115,6 @@ namespace OpenSim.Region.Environment.Scenes
         protected IXMLRPC m_xmlrpcModule;
         protected IWorldComm m_worldCommModule;
         protected IAvatarFactory m_AvatarFactory;
-        protected IScenePermissions m_permissions;
         protected IConfigSource m_config;
 
         // Central Update Loop
@@ -171,14 +170,6 @@ namespace OpenSim.Region.Environment.Scenes
         public float TimeDilation
         {
             get { return m_timedilation; }
-        }
-
-        /// <summary>
-        /// The reference by which general permissions in the scene can be set and queried.
-        /// </summary>
-        public IScenePermissions Permissions
-        {
-            get { return m_permissions; }
         }
 
         public int TimePhase
@@ -660,7 +651,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_worldCommModule = RequestModuleInterface<IWorldComm>();
             XferManager = RequestModuleInterface<IXfer>();
             m_AvatarFactory = RequestModuleInterface<IAvatarFactory>();
-            m_permissions = RequestModuleInterface<IScenePermissions>();
         }
 
         #endregion

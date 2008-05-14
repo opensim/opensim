@@ -63,23 +63,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         private bool m_bypassPermissions = false;
         private bool m_bypassPermissionsValue = true;
         private bool m_debugPermissions = false;
-        public bool BypassPermissions
-        {
-            get { return m_bypassPermissions; }
-            set { m_bypassPermissions = value; }
-        }
 
-        public bool BypassPermissionsValue
-        {
-            get { return m_bypassPermissionsValue; }
-            set { m_bypassPermissionsValue = value; }
-        }
-
-        public bool DebugPermissions
-        {
-            get { return m_debugPermissions; }
-            set { m_debugPermissions = value; }
-        }
         #endregion
 
         #region ICommandableModule Members
@@ -157,7 +141,10 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             m_scene.RegisterModuleInterface<IScenePermissions>(this);
 
             //Register functions with Scene External Checks!
+            m_scene.ExternalChecks.addBypassPermissions(BypassPermissions); //FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addSetBypassPermissions(SetBypassPermissions); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckAbandonParcel(CanAbandonParcel); //FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addGenerateClientFlags(GenerateClientFlags); //NOT YET FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckBeGodLike(CanBeGodLike); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckDuplicateObject(CanDuplicateObject); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckDeleteObject(CanDeleteObject); //MAYBE FULLY IMPLEMENTED
@@ -259,6 +246,16 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return false;
         }
 #endregion
+
+		public bool BypassPermissions()
+		{
+			return m_bypassPermissions;
+		}
+
+		public void SetBypassPermissions(bool value)
+		{
+			m_bypassPermissions=value;
+		}
 
         #region Object Permissions
 

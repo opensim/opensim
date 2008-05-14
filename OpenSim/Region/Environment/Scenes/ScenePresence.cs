@@ -476,13 +476,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public uint GenerateClientFlags(LLUUID ObjectID)
         {
-			if(m_scene.Permissions == null)
-			{
-				SceneObjectPart task=m_scene.GetSceneObjectPart(ObjectID);
-
-				return task.GetEffectiveObjectFlags() | (uint)2147483647;
-			}
-            return m_scene.Permissions.GenerateClientFlags(m_uuid, ObjectID);
+            return m_scene.ExternalChecks.ExternalChecksGenerateClientFlags(m_uuid, ObjectID);
         }
 
         /// <summary>

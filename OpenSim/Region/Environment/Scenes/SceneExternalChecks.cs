@@ -45,6 +45,78 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Object Permission Checks
 
+            public delegate uint GenerateClientFlags(LLUUID userID, LLUUID objectIDID);
+            private List<GenerateClientFlags> GenerateClientFlagsCheckFunctions = new List<GenerateClientFlags>();
+
+            public void addGenerateClientFlags(GenerateClientFlags delegateFunc)
+            {
+                if (!GenerateClientFlagsCheckFunctions.Contains(delegateFunc))
+                    GenerateClientFlagsCheckFunctions.Add(delegateFunc);
+            }
+            public void removeGenerateClientFlags(GenerateClientFlags delegateFunc)
+            {
+                if (GenerateClientFlagsCheckFunctions.Contains(delegateFunc))
+                    GenerateClientFlagsCheckFunctions.Remove(delegateFunc);
+            }
+
+            public uint ExternalChecksGenerateClientFlags(LLUUID userID, LLUUID objectID)
+            {
+				uint perms=(uint)2147483647;
+                foreach (GenerateClientFlags check in GenerateClientFlagsCheckFunctions)
+                {
+					perms &= check(userID, objectID);
+                }
+                return perms;
+            }
+
+            public delegate void SetBypassPermissions(bool value);
+            private List<SetBypassPermissions> SetBypassPermissionsCheckFunctions = new List<SetBypassPermissions>();
+
+            public void addSetBypassPermissions(SetBypassPermissions delegateFunc)
+            {
+                if (!SetBypassPermissionsCheckFunctions.Contains(delegateFunc))
+                    SetBypassPermissionsCheckFunctions.Add(delegateFunc);
+            }
+            public void removeSetBypassPermissions(SetBypassPermissions delegateFunc)
+            {
+                if (SetBypassPermissionsCheckFunctions.Contains(delegateFunc))
+                    SetBypassPermissionsCheckFunctions.Remove(delegateFunc);
+            }
+
+            public void ExternalChecksSetBypassPermissions(bool value)
+            {
+                foreach (SetBypassPermissions check in SetBypassPermissionsCheckFunctions)
+                {
+                    check(value);
+                }
+            }
+
+            public delegate bool BypassPermissions();
+            private List<BypassPermissions> BypassPermissionsCheckFunctions = new List<BypassPermissions>();
+
+            public void addBypassPermissions(BypassPermissions delegateFunc)
+            {
+                if (!BypassPermissionsCheckFunctions.Contains(delegateFunc))
+                    BypassPermissionsCheckFunctions.Add(delegateFunc);
+            }
+            public void removeBypassPermissions(BypassPermissions delegateFunc)
+            {
+                if (BypassPermissionsCheckFunctions.Contains(delegateFunc))
+                    BypassPermissionsCheckFunctions.Remove(delegateFunc);
+            }
+
+            public bool ExternalChecksBypassPermissions()
+            {
+                foreach (BypassPermissions check in BypassPermissionsCheckFunctions)
+                {
+                    if (check() == false)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
             #region REZ OBJECT
             public delegate bool CanRezObject(int objectCount, LLUUID owner, LLVector3 objectPosition, Scene scene);
             private List<CanRezObject> CanRezObjectCheckFunctions = new List<CanRezObject>();
