@@ -551,7 +551,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-                return GenericObjectPermission(objectID, deleter, false);
+                return GenericObjectPermission(deleter, objectID, false);
             }
 
             private bool CanEditObject(LLUUID objectID, LLUUID editorID, Scene scene)
