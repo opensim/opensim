@@ -2247,7 +2247,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private void SendObjectPropertiesToClient(LLUUID AgentID)
         {
-            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
+            List<ScenePresence> avatars = m_parentGroup.Scene.GetScenePresences();
             for (int i = 0; i < avatars.Count; i++)
             {
                 // Ugly reference :(
@@ -2277,7 +2277,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void AddFullUpdateToAllAvatars()
         {
-            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
+            List<ScenePresence> avatars = m_parentGroup.Scene.GetScenePresences();
             for (int i = 0; i < avatars.Count; i++)
             {
                 avatars[i].QueuePartForUpdate(this);
@@ -2286,7 +2286,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SendFullUpdateToAllClientsExcept(LLUUID agentID)
         {
-            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
+            List<ScenePresence> avatars = m_parentGroup.Scene.GetScenePresences();
             for (int i = 0; i < avatars.Count; i++)
             {
                 // Ugly reference :(
@@ -2309,7 +2309,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendFullUpdateToAllClients()
         {
-            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
+            List<ScenePresence> avatars = m_parentGroup.Scene.GetScenePresences();
             for (int i = 0; i < avatars.Count; i++)
             {
                 // Ugly reference :(
@@ -2370,7 +2370,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Terse updates
         public void AddTerseUpdateToAllAvatars()
         {
-            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
+            List<ScenePresence> avatars = m_parentGroup.Scene.GetScenePresences();
             for (int i = 0; i < avatars.Count; i++)
             {
                 avatars[i].QueuePartForUpdate(this);
@@ -2387,7 +2387,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendTerseUpdateToAllClients()
         {
-            List<ScenePresence> avatars = m_parentGroup.GetScenePresences();
+            List<ScenePresence> avatars = m_parentGroup.Scene.GetScenePresences();
             for (int i = 0; i < avatars.Count; i++)
             {
                 m_parentGroup.SendPartTerseUpdate(avatars[i].ControllingClient, this);

@@ -3096,7 +3096,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Request a List of all ScenePresences in this region
+        /// Request a List of all ScenePresences in this region.  This returns child agents as well as root agents.
         /// </summary>
         /// <returns></returns>
         public List<ScenePresence> GetScenePresences()

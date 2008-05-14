@@ -35,13 +35,15 @@ namespace OpenSim.Region.Environment.Scenes
 {
     [Serializable]
     public abstract class EntityBase : ISerializable
-    {
-        protected Scene m_scene;
-        
+    {   
+        /// <summary>
+        /// The scene to which this entity belongs
+        /// </summary>
         public Scene Scene
         {
             get { return m_scene; }
         }
+        protected Scene m_scene;
 
         protected LLUUID m_uuid;
 

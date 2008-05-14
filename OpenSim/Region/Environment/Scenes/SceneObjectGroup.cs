@@ -785,15 +785,6 @@ namespace OpenSim.Region.Environment.Scenes
             part.ClearUndoState();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public List<ScenePresence> GetScenePresences()
-        {
-            return m_scene.GetScenePresences();
-        }
-
         public override void UpdateMovement()
         {
             lock (m_parts)
@@ -933,7 +924,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    List<ScenePresence> avatars = GetScenePresences();
+                    List<ScenePresence> avatars = Scene.GetScenePresences();
                     for (int i = 0; i < avatars.Count; i++)
                     {
                         if (avatars[i].ParentID == LocalId)
