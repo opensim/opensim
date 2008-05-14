@@ -615,7 +615,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     {
                         if ((script = sm.GetScript(m_localID, m_itemID)) != null)
                         {
-                            if (script.llDetectParams._key[0] != null)
+                            if (script.llDetectParams._key[0])
                             {
                                 return new LLUUID(script.llDetectParams._key[0]);
                             }
