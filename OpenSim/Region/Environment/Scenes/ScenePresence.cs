@@ -213,6 +213,11 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_invulnerable; }
         }
 
+		public float GodLevel
+		{
+			get { return m_godlevel; }
+		}
+
         private readonly ulong m_regionHandle;
 
         public ulong RegionHandle
