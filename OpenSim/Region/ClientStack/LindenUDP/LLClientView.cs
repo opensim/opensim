@@ -5704,6 +5704,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             OutPacket(logReply, ThrottleOutPacketType.Task);
         }
+
         public void SendHealth(float health)
         {
             HealthMessagePacket healthpacket = (HealthMessagePacket)PacketPool.Instance.GetPacket(PacketType.HealthMessage);
@@ -5711,6 +5712,33 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(healthpacket, ThrottleOutPacketType.Task);
         }
 
+        public void SendAgentOnline(LLUUID[] agentIDs)
+        {
+            OnlineNotificationPacket onp = new OnlineNotificationPacket();
+            OnlineNotificationPacket.AgentBlockBlock[] onpb = new OnlineNotificationPacket.AgentBlockBlock[agentIDs.Length];
+            for (int i = 0; i < agentIDs.Length; i++)
+            {
+                OnlineNotificationPacket.AgentBlockBlock onpbl = new OnlineNotificationPacket.AgentBlockBlock();
+                onpbl.AgentID = agentIDs[i];
+                onpb[i] = onpbl;
+            }
+            onp.AgentBlock = onpb;
+            OutPacket(onp, ThrottleOutPacketType.Task);
+        }
+
+        public void SendAgentOffline(LLUUID[] agentIDs)
+        {
+            OfflineNotificationPacket offp = new OfflineNotificationPacket();
+            OfflineNotificationPacket.AgentBlockBlock[] offpb = new OfflineNotificationPacket.AgentBlockBlock[agentIDs.Length];
+            for (int i = 0; i < agentIDs.Length; i++)
+            {
+                OfflineNotificationPacket.AgentBlockBlock onpbl = new OfflineNotificationPacket.AgentBlockBlock();
+                onpbl.AgentID = agentIDs[i];
+                offpb[i] = onpbl;
+            }
+            offp.AgentBlock = offpb;
+            OutPacket(offp, ThrottleOutPacketType.Task);
+        }
         public ClientInfo GetClientInfo()
         {
             //MainLog.Instance.Verbose("CLIENT", "GetClientInfo BGN");

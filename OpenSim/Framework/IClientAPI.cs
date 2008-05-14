@@ -663,7 +663,7 @@ namespace OpenSim.Framework
         event ChatFromViewer OnChatFromViewer;
         [Obsolete("LLClientView Specific - Replace with more bare-bones arguments.")]
         event TextureRequest OnRequestTexture;
-        [Obsolete("LLClientView Specific - Remove bitbuckets.")]
+        [Obsolete("LLClientView Specific - Remove bitbuckets. Adam, can you be more specific here..  as I don't see any bit buckets.")]
         event RezObject OnRezObject;
         [Obsolete("LLClientView Specific - Replace with more suitable arguments.")]
         event ModifyTerrain OnModifyTerrain;
@@ -965,7 +965,9 @@ namespace OpenSim.Framework
                                               LLUUID OwnerUUID, string TouchTitle, byte[] TextureID, string SitTitle, string ItemName,
                                               string ItemDescription, uint OwnerMask, uint NextOwnerMask, uint GroupMask, uint EveryoneMask,
                                               uint BaseMask);
-        
+        void SendAgentOffline(LLUUID[] agentIDs);
+
+        void SendAgentOnline(LLUUID[] agentIDs);
 
         byte[] GetThrottlesPacked(float multiplier);
 

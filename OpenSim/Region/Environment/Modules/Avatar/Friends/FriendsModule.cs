@@ -164,13 +164,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                             if (fli.Friend == client.AgentId)
                             {
                                 fli.onlinestatus = true;
-                                OnlineNotificationPacket onp = new OnlineNotificationPacket();
-                                OnlineNotificationPacket.AgentBlockBlock[] onpb = new OnlineNotificationPacket.AgentBlockBlock[1];
-                                OnlineNotificationPacket.AgentBlockBlock onpbl = new OnlineNotificationPacket.AgentBlockBlock();
-                                onpbl.AgentID = client.AgentId;
-                                onpb[0] = onpbl;
-                                onp.AgentBlock = onpb;
-                                av.ControllingClient.OutPacket(onp, ThrottleOutPacketType.Task);
+                                LLUUID[] Agents = new LLUUID[1];
+                                Agents[0] = client.AgentId;
+                                av.ControllingClient.SendAgentOnline(Agents);
+                               
                             }
                         }
                     }
@@ -179,16 +176,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
             if (UpdateUsers.Count > 0)
             {
-                OnlineNotificationPacket onp = new OnlineNotificationPacket();
-                OnlineNotificationPacket.AgentBlockBlock[] onpb = new OnlineNotificationPacket.AgentBlockBlock[UpdateUsers.Count];
-                for (int i = 0; i < UpdateUsers.Count; i++)
-                {
-                    OnlineNotificationPacket.AgentBlockBlock onpbl = new OnlineNotificationPacket.AgentBlockBlock();
-                    onpbl.AgentID = UpdateUsers[i];
-                    onpb[i] = onpbl;
-                }
-                onp.AgentBlock = onpb;
-                client.OutPacket(onp, ThrottleOutPacketType.Task);
+
+                client.SendAgentOnline(UpdateUsers.ToArray());
+
             }
         }
 
@@ -278,13 +268,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                     ScenePresence av = GetPresenceFromAgentID(updateUsers[i]);
                     if (av != null)
                     {
-                        OfflineNotificationPacket onp = new OfflineNotificationPacket();
-                        OfflineNotificationPacket.AgentBlockBlock[] onpb = new OfflineNotificationPacket.AgentBlockBlock[1];
-                        OfflineNotificationPacket.AgentBlockBlock onpbl = new OfflineNotificationPacket.AgentBlockBlock();
-                        onpbl.AgentID = AgentId;
-                        onpb[0] = onpbl;
-                        onp.AgentBlock = onpb;
-                        av.ControllingClient.OutPacket(onp, ThrottleOutPacketType.Task);
+                        LLUUID[] agents = new LLUUID[1];
+                        agents[0] = AgentId;
+                        av.ControllingClient.SendAgentOffline(agents);
                     }
                 }
             }
@@ -388,7 +374,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 msg.timestamp = timestamp;
                 if (client != null)
                 {
-                    msg.fromAgentName = client.FirstName + " " + client.LastName; // fromAgentName;
+                    msg.fromAgentName = client.Name; // fromAgentName;
                 }
                 else
                 {
@@ -439,7 +425,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 GridInstantMessage msg = new GridInstantMessage();
                 msg.toAgentID = m_pendingFriendRequests[transactionID].UUID;
                 msg.fromAgentID = agentID.UUID;
-                msg.fromAgentName = client.FirstName + " " + client.LastName;
+                msg.fromAgentName = client.Name;
                 msg.fromAgentSession = client.SessionId.UUID;
                 msg.fromGroup = false;
                 msg.imSessionID = transactionID.UUID;
@@ -477,7 +463,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 GridInstantMessage msg = new GridInstantMessage();
                 msg.toAgentID = m_pendingFriendRequests[transactionID].UUID;
                 msg.fromAgentID = agentID.UUID;
-                msg.fromAgentName = client.FirstName + " " + client.LastName;
+                msg.fromAgentName = client.Name;
                 msg.fromAgentSession = client.SessionId.UUID;
                 msg.fromGroup = false;
                 msg.imSessionID = transactionID.UUID;

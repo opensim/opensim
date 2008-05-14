@@ -83,6 +83,16 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
                              Position, m_scene.RegionInfo.RegionID, new byte[0]);
         }
 
+        public void SendAgentOffline(LLUUID[] agentIDs)
+        {
+
+        }
+
+        public void SendAgentOnline(LLUUID[] agentIDs)
+        {
+
+        }
+
         public LLUUID GetDefaultAnimation(string name)
         {
             return LLUUID.Zero;

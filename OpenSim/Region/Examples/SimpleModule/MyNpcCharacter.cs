@@ -563,6 +563,17 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
+
+        public void SendAgentOffline(LLUUID[] agentIDs)
+        {
+
+        }
+
+        public void SendAgentOnline(LLUUID[] agentIDs)
+        {
+
+        }
+
         private void Update()
         {
             frame++;
