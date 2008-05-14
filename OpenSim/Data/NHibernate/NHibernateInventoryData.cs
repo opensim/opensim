@@ -392,22 +392,15 @@ namespace OpenSim.Data.NHibernate
         {
             using (ISession session = factory.OpenSession())
             {
-                //                try
-                //                {
-                    ICriteria criteria = session.CreateCriteria(typeof(InventoryFolderBase));
-                    criteria.Add(Expression.Eq("ParentID", LLUUID.Zero));
-                    criteria.Add(Expression.Eq("Owner", user));
-                    foreach (InventoryFolderBase folder in criteria.List())
-                    {
-                        return folder;
-                    }
-                    m_log.ErrorFormat("No Inventory Root Folder Found for: {0}", user);
-                    return new InventoryFolderBase();
-//                 }
-//                 catch
-//                 {
-//                     return new InventoryFolderBase();
-//                 }
+                ICriteria criteria = session.CreateCriteria(typeof(InventoryFolderBase));
+                criteria.Add(Expression.Eq("ParentID", LLUUID.Zero));
+                criteria.Add(Expression.Eq("Owner", user));
+                foreach (InventoryFolderBase folder in criteria.List())
+                {
+                    return folder;
+                }
+                m_log.ErrorFormat("No Inventory Root Folder Found for: {0}", user);
+                return null;
             }
         }
         
@@ -420,19 +413,13 @@ namespace OpenSim.Data.NHibernate
         {
             using (ISession session = factory.OpenSession())
             {
-                // try
-//                 {
-                    ICriteria criteria = session.CreateCriteria(typeof(InventoryFolderBase));
-                    criteria.Add(Expression.Eq("ParentID", parentID));
-                    foreach (InventoryFolderBase item in criteria.List())
-                    {
-                        folders.Add(item);
-                    }
-                    //                }
-                    //                catch
-                    //                {
-                    // m_log.ErrorFormat("Can't run getInventoryFolders for Folder ID: {0}", parentID);
-                    //  }
+                
+                ICriteria criteria = session.CreateCriteria(typeof(InventoryFolderBase));
+                criteria.Add(Expression.Eq("ParentID", parentID));
+                foreach (InventoryFolderBase item in criteria.List())
+                {
+                    folders.Add(item);
+                }
             }
         }
 
