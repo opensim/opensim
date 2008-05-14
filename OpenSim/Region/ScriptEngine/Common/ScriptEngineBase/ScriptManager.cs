@@ -207,7 +207,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void DoScriptLoadUnload()
         {
-            lock (LUQueue) {
+            lock (LUQueue)
+            {
                 if (LUQueue.Count > 0)
                 {
                     LUStruct item = LUQueue.Dequeue();
@@ -216,7 +217,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     {
                         _StopScript(item.localID, item.itemID);
                     }
-                    if (item.Action == LUType.Load)
+                    else if (item.Action == LUType.Load)
                     {
                         _StartScript(item.localID, item.itemID, item.script);
                     }
@@ -249,7 +250,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// <param name="localID"></param>
         public void StartScript(uint localID, LLUUID itemID, string Script)
         {
-            lock(LUQueue) {
+            lock (LUQueue)
+            {
                 if (LUQueue.Count >= LoadUnloadMaxQueueSize)
                 {
                     m_scriptEngine.Log.Error("[" + m_scriptEngine.ScriptEngineName + "]: ERROR: Load/unload queue item count is at " + LUQueue.Count + ". Config variable \"LoadUnloadMaxQueueSize\" is set to " + LoadUnloadMaxQueueSize + ", so ignoring new script.");
@@ -276,7 +278,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             ls.localID = localID;
             ls.itemID = itemID;
             ls.Action = LUType.Unload;
-            lock (LUQueue) {
+            lock (LUQueue)
+            {
                 LUQueue.Enqueue(ls);
             }
         }

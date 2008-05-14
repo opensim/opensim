@@ -78,43 +78,47 @@ namespace OpenSim.Region.DataSnapshot
             if (!m_scenes.Contains(scene))
                 m_scenes.Add(scene);
             
-            if (!m_configLoaded) {
+            if (!m_configLoaded)
+            {
                 m_configLoaded = true;
                 m_log.Info("[DATASNAPSHOT]: Loading configuration");
                 //Read from the config for options
-                 lock (m_syncInit) {
-                    try {
-                        m_enabled = config.Configs["DataSnapshot"].GetBoolean("index_sims", m_enabled);
-                        if (config.Configs["Startup"].GetBoolean("gridmode", true))
-                        {
-                            m_gridinfo.Add("gridserverURL", config.Configs["Network"].GetString("grid_server_url", "harbl"));
-                            m_gridinfo.Add("userserverURL", config.Configs["Network"].GetString("user_server_url", "harbl"));
-                            m_gridinfo.Add("assetserverURL", config.Configs["Network"].GetString("asset_server_url", "harbl"));
-                        }
-                        else
-                        {
-                            //Non gridmode stuff
-                        }
+                 lock (m_syncInit)
+                 {
+                     try
+                     {
+                         m_enabled = config.Configs["DataSnapshot"].GetBoolean("index_sims", m_enabled);
+                         if (config.Configs["Startup"].GetBoolean("gridmode", true))
+                         {
+                             m_gridinfo.Add("gridserverURL", config.Configs["Network"].GetString("grid_server_url", "harbl"));
+                             m_gridinfo.Add("userserverURL", config.Configs["Network"].GetString("user_server_url", "harbl"));
+                             m_gridinfo.Add("assetserverURL", config.Configs["Network"].GetString("asset_server_url", "harbl"));
+                         }
+                         else
+                         {
+                             //Non gridmode stuff
+                         }
 
-                        m_gridinfo.Add("Name", config.Configs["DataSnapshot"].GetString("gridname", "harbl"));
-                        m_maxSnapshots = config.Configs["DataSnapshot"].GetInt("max_snapshots", m_maxSnapshots);
-                        m_period = config.Configs["DataSnapshot"].GetInt("default_snapshot_period", m_period);
-                        m_snapsDir = config.Configs["DataSnapshot"].GetString("snapshot_cache_directory", m_snapsDir);
-                        m_dataServices = config.Configs["DataSnapshot"].GetString("data_services", m_dataServices);
-                        m_listener_port = config.Configs["Network"].GetString("http_listener_port", m_listener_port);
-                        //BUG: Naming a search data module "DESUDESUDESU" will cause it to not get loaded by default.
-                        //RESOLUTION: Wontfix, there are no Suiseiseki-loving developers
-                        String[] annoying_string_array = config.Configs["DataSnapshot"].GetString("disable_modules", "DESUDESUDESU").Split(".".ToCharArray());
-                        foreach (String bloody_wanker in annoying_string_array) {
-                            m_disabledModules.Add(bloody_wanker);
-                        }
-
-                    } catch (Exception) {
+                         m_gridinfo.Add("Name", config.Configs["DataSnapshot"].GetString("gridname", "harbl"));
+                         m_maxSnapshots = config.Configs["DataSnapshot"].GetInt("max_snapshots", m_maxSnapshots);
+                         m_period = config.Configs["DataSnapshot"].GetInt("default_snapshot_period", m_period);
+                         m_snapsDir = config.Configs["DataSnapshot"].GetString("snapshot_cache_directory", m_snapsDir);
+                         m_dataServices = config.Configs["DataSnapshot"].GetString("data_services", m_dataServices);
+                         m_listener_port = config.Configs["Network"].GetString("http_listener_port", m_listener_port);
+                         //BUG: Naming a search data module "DESUDESUDESU" will cause it to not get loaded by default.
+                         //RESOLUTION: Wontfix, there are no Suiseiseki-loving developers
+                         String[] annoying_string_array = config.Configs["DataSnapshot"].GetString("disable_modules", "DESUDESUDESU").Split(".".ToCharArray());
+                         foreach (String bloody_wanker in annoying_string_array)
+                         {
+                             m_disabledModules.Add(bloody_wanker);
+                         }
+                     }
+                     catch (Exception)
+                     {
                         m_log.Info("[DATASNAPSHOT]: Could not load configuration. DataSnapshot will be disabled.");
                         m_enabled = false;
                         return;
                     }
-      
                 }
             }
             if (Directory.Exists(m_snapsDir))
@@ -134,7 +138,6 @@ namespace OpenSim.Region.DataSnapshot
                     m_log.Error("[DATASNAPSHOT] Failed to create " + m_snapsDir + " directory.");
                 }
             }
-
 
             if (m_enabled)
             {

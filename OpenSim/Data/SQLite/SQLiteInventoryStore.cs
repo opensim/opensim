@@ -52,7 +52,8 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         public void Initialise(string dbconnect)
         {
-            if (dbconnect == string.Empty) {
+            if (dbconnect == string.Empty)
+            {
                 dbconnect = "URI=file:inventoryStore.db,version=3";
             }
             m_log.Info("[INVENTORY DB]: Sqlite - connecting: " + dbconnect);

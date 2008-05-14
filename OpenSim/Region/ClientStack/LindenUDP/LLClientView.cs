@@ -4601,13 +4601,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         ObjectIncludeInSearchPacket packInSearch = (ObjectIncludeInSearchPacket)Pack;
                         handlerObjectIncludeInSearch = null;
 
-                        foreach (ObjectIncludeInSearchPacket.ObjectDataBlock objData in packInSearch.ObjectData) {
+                        foreach (ObjectIncludeInSearchPacket.ObjectDataBlock objData in packInSearch.ObjectData)
+                        {
                             bool inSearch = objData.IncludeInSearch;
                             uint localID = objData.ObjectLocalID;
 
                             handlerObjectIncludeInSearch = OnObjectIncludeInSearch;
 
-                            if (handlerObjectIncludeInSearch != null) {
+                            if (handlerObjectIncludeInSearch != null)
+                            {
                                 handlerObjectIncludeInSearch(this, inSearch, localID);
                             }
                         }

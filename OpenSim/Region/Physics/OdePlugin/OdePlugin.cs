@@ -294,7 +294,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         internal void waitForSpaceUnlock(IntPtr space)
         {
             //if (space != (IntPtr)0)
-                //while (d.SpaceLockQuery(space)){  } // Wait and do nothing
+                //while (d.SpaceLockQuery(space)) { } // Wait and do nothing
         }
 
         /// <summary>
@@ -952,7 +952,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void addCollisionEventReporting(PhysicsActor obj)
         {
-            lock(_collisionEventPrim)
+            lock (_collisionEventPrim)
             {
                 if (!_collisionEventPrim.Contains(obj))
                     _collisionEventPrim.Add(obj);

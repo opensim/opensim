@@ -159,7 +159,7 @@ namespace OpenSim.Framework
             return; // packet pool disabled
 
             /* // Commented out to remove a compiler warning. :)
-            lock(pool)
+            lock (pool)
             {
                 PacketType type=packet.Type;
 

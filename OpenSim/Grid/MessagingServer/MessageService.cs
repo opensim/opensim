@@ -234,7 +234,7 @@ namespace OpenSim.Grid.MessagingServer
                 for (int i = 0; i < AgentsNeedingNotification.Count; i++)
                 {
                     // TODO: Do Region Notifications
-                    lock(m_presences)
+                    lock (m_presences)
                     {
                         if (m_presences.Contains(AgentsNeedingNotification[i]))
                         {

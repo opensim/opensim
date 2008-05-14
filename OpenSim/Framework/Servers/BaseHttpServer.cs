@@ -372,8 +372,14 @@ namespace OpenSim.Framework.Servers
             LLSD llsdRequest = null;
             LLSD llsdResponse = null;
 
-            try { llsdRequest = LLSDParser.DeserializeXml(requestBody); }
-            catch (Exception ex) { m_log.Warn("[HTTPD]: Error - " + ex.Message); }
+            try
+            {
+                llsdRequest = LLSDParser.DeserializeXml(requestBody);
+            }
+            catch (Exception ex)
+            {
+                m_log.Warn("[HTTPD]: Error - " + ex.Message);
+            }
 
             if (llsdRequest != null && m_llsdHandler != null)
             {

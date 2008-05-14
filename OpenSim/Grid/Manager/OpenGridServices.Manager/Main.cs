@@ -62,47 +62,57 @@ namespace OpenGridServices.Manager
                 operation=PendingOperations.Dequeue();
                 Console.WriteLine(operation);
                 cmd = operation.Split(sep)[0];
-                switch (cmd) {
+                switch (cmd)
+                {
                     case "connect_to_gridserver":
                         win.SetStatus("Connecting to grid server...");
-                        if (gridserverConn.Connect(operation.Split(sep)[1], operation.Split(sep)[2], operation.Split(sep)[3])) {
+                        if (gridserverConn.Connect(operation.Split(sep)[1], operation.Split(sep)[2], operation.Split(sep)[3]))
+                        {
                             win.SetStatus("Connected OK with session ID:" + gridserverConn.SessionID);
                             win.SetGridServerConnected(true);
                             Thread.Sleep(3000);
                             win.SetStatus("Downloading region maps...");
                             gridserverConn.DownloadMap();
-                        } else {
+                        }
+                        else
+                        {
                             win.SetStatus("Could not connect");
                         }
-                    break;
+                        break;
                     
                     case "restart_gridserver":
                         win.SetStatus("Restarting grid server...");
-                        if (gridserverConn.RestartServer()) {
+                        if (gridserverConn.RestartServer())
+                        {
                             win.SetStatus("Restarted server OK");
                             Thread.Sleep(3000);
                             win.SetStatus("");
-                        } else {
+                        }
+                        else
+                        {
                             win.SetStatus("Error restarting grid server!!!");
                         }
-                    break;
+                        break;
                     
                     case "shutdown_gridserver":
                         win.SetStatus("Shutting down grid server...");
-                        if (gridserverConn.ShutdownServer()) {
+                        if (gridserverConn.ShutdownServer())
+                        {
                             win.SetStatus("Grid server shutdown");
                             win.SetGridServerConnected(false);
                             Thread.Sleep(3000);
                             win.SetStatus("");
-                        } else {
+                        }
+                        else
+                        {
                             win.SetStatus("Could not shutdown grid server!!!");
                         }
-                    break;
+                        break;
                     
                     case "disconnect_gridserver":
                         gridserverConn.DisconnectServer();
                         win.SetGridServerConnected(false);
-                    break;
+                        break;
                 }
             }
         }

@@ -148,7 +148,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 return;
             }
 
-            lock (this) {
+            lock (this)
+            {
                 switch (item.throttleType)
                 {
                     case ThrottleOutPacketType.Resend:

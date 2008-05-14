@@ -39,7 +39,8 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
         public Dictionary<uint, object> GlobalVariables = new Dictionary<uint, object>();
         public Dictionary<uint, object> LocalVariables = new Dictionary<uint, object>();
         //public System.Collections.Generic.List<string> FunctionList = new System.Collections.Generic.List<string>();
-        //public void AddFunction(String x) {
+        //public void AddFunction(String x)
+        //{
         //    FunctionList.Add(x);
         //}
         //public Stack<StackItemStruct> LSLStack = new Stack<StackItemStruct>;
@@ -56,11 +57,9 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
             return LSL_Builtins;
         }
 
-
         public LSL_BaseClass()
         {
         }
-
 
         public virtual int OverrideMe()
         {
@@ -72,8 +71,6 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
             LSL_Builtins = LSLBuiltins;
 
             Common.SendToLog("OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO.LSL_BaseClass.Start() called");
-            //LSL_Builtins.llSay(0, "Test");
-            return;
         }
 
         public void AddToStatic(UInt32 index, object obj)

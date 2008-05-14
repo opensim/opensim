@@ -195,7 +195,8 @@ namespace OpenSim.Region.Environment.Scenes
             public int transactiontype;
             public string description;
 
-            public MoneyTransferArgs(LLUUID asender, LLUUID areceiver, int aamount, int atransactiontype, string adescription) {
+            public MoneyTransferArgs(LLUUID asender, LLUUID areceiver, int aamount, int atransactiontype, string adescription)
+            {
                 sender = asender;
                 receiver = areceiver;
                 amount = aamount;

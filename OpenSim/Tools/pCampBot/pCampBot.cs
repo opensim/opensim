@@ -47,9 +47,12 @@ namespace pCampBot
         public static void Main(string[] args)
         {
             IConfig config = ParseConfig(args);
-            if (config.Get("help") != null || config.Get("loginuri") == null) {
+            if (config.Get("help") != null || config.Get("loginuri") == null)
+            {
                 Help();
-            } else {
+            }
+            else
+            {
                 int botcount = config.GetInt("botcount", 1);
                 
                 BotManager bm = new BotManager();

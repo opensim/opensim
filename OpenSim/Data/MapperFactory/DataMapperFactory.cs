@@ -41,7 +41,8 @@ namespace OpenSim.Data.MapperFactory
 
         static public BaseDatabaseConnector GetDataBaseMapper(MAPPER_TYPE type, string connectionString)
         {
-            switch (type) {
+            switch (type)
+            {
                 case MAPPER_TYPE.MySQL:
                     return new MySQLDatabaseMapper(connectionString);
                 case MAPPER_TYPE.MSSQL:

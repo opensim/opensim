@@ -44,7 +44,6 @@ namespace OpenSim.TestSuite
     {
         public static void Main(string[] args)
         {
-
             // TODO: config parser
 
             // TODO: load tests from addings
@@ -52,9 +51,12 @@ namespace OpenSim.TestSuite
             // TODO: create base bot cloud for use in tests
 
             IConfig config = ParseConfig(args);
-            if (config.Get("help") != null || config.Get("loginuri") == null) {
+            if (config.Get("help") != null || config.Get("loginuri") == null)
+            {
                 Help();
-            } else {
+            }
+            else
+            {
                 // TODO: unused: int botcount = config.GetInt("botcount", 1);
                 
                 // BotManager bm = new BotManager();

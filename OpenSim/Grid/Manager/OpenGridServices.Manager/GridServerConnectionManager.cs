@@ -46,7 +46,8 @@ namespace OpenGridServices.Manager
         
         public bool Connect(string GridServerURL, string username, string password)
         {
-            try {
+            try
+            {
                 this.ServerURL=GridServerURL;
                 Hashtable LoginParamsHT = new Hashtable();
                 LoginParamsHT["username"]=username;
@@ -55,16 +56,21 @@ namespace OpenGridServices.Manager
                 LoginParams.Add(LoginParamsHT);
                 XmlRpcRequest GridLoginReq = new XmlRpcRequest("manager_login",LoginParams);
                 XmlRpcResponse GridResp = GridLoginReq.Send(ServerURL,3000);
-                if (GridResp.IsFault) {
+                if (GridResp.IsFault)
+                {
                     connected=false;
                     return false;
-                } else {
+                }
+                else
+                {
                     Hashtable gridrespData = (Hashtable)GridResp.Value;
                     this.SessionID = new LLUUID((string)gridrespData["session_id"]);
                     connected=true;
                     return true;
                 }
-            } catch(Exception e) {
+            }
+            catch(Exception e)
+            {
                 Console.WriteLine(e.ToString());
                 connected=false;
                 return false;
@@ -107,20 +113,26 @@ namespace OpenGridServices.Manager
         
         public bool ShutdownServer()
         {
-            try {
+            try
+            {
                 Hashtable ShutdownParamsHT = new Hashtable();
                 ArrayList ShutdownParams = new ArrayList();
                 ShutdownParamsHT["session_id"]=this.SessionID.ToString();
                 ShutdownParams.Add(ShutdownParamsHT);
                 XmlRpcRequest GridShutdownReq = new XmlRpcRequest("shutdown",ShutdownParams);
                 XmlRpcResponse GridResp = GridShutdownReq.Send(this.ServerURL, 3000);
-                if (GridResp.IsFault) {
+                if (GridResp.IsFault)
+                {
                     return false;
-                } else {
+                }
+                else
+                {
                     connected=false;
                     return true;
                 }
-            } catch(Exception e) {
+            }
+            catch(Exception e)
+            {
                 Console.WriteLine(e.ToString());
                 return false;
             }

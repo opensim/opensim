@@ -181,8 +181,10 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
         }
 
 /*
-        public void recevie() {
-            if (mConnection == null) {
+        public void receive()
+        {
+            if (mConnection == null)
+            {
                 throw new Exception("client not initialized");
             }
             try
@@ -191,7 +193,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             }
             catch (Exception e)
             {
-                    Console.WriteLine(e.ToString());
+                Console.WriteLine(e.ToString());
                 mConnection = null;
             }
         }

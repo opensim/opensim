@@ -55,7 +55,7 @@ namespace OpenSim.Framework.Utilities
         public static uint GetNextXferID()
         {
             uint id = 0;
-            lock(XferLock)
+            lock (XferLock)
             {
                 id = nextXferID;
                 nextXferID++;

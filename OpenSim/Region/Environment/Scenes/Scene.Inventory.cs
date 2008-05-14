@@ -815,7 +815,8 @@ namespace OpenSim.Region.Environment.Scenes
             agentItem.Folder = folderId;
             agentItem.EveryOnePermissions = taskItem.EveryoneMask;
             
-            if (remoteClient.AgentId != taskItem.OwnerID) {
+            if (remoteClient.AgentId != taskItem.OwnerID)
+            {
                 agentItem.BasePermissions = taskItem.NextOwnerMask;
                 agentItem.CurrentPermissions = taskItem.NextOwnerMask;
                 agentItem.NextPermissions = taskItem.NextOwnerMask;
@@ -1038,7 +1039,8 @@ namespace OpenSim.Region.Environment.Scenes
                                 item.InvType = asset.InvType;
                                 item.Folder = DeRezPacket.AgentBlock.DestinationID;
                                 item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
-                                if (remoteClient.AgentId != objectGroup.RootPart.OwnerID) {
+                                if (remoteClient.AgentId != objectGroup.RootPart.OwnerID)
+                                {
                                     item.BasePermissions = objectGroup.RootPart.NextOwnerMask;
                                     item.CurrentPermissions = objectGroup.RootPart.NextOwnerMask;
                                     item.NextPermissions = objectGroup.RootPart.NextOwnerMask;

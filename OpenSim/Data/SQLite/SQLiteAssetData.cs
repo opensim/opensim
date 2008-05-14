@@ -58,7 +58,8 @@ namespace OpenSim.Data.SQLite
 
         override public void Initialise(string dbconnect)
         {
-            if (dbconnect == string.Empty) {
+            if (dbconnect == string.Empty)
+            {
                 dbconnect = "URI=file:AssetStorage.db,version=3";
             }
             m_conn = new SqliteConnection(dbconnect);

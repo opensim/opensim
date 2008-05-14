@@ -39,7 +39,8 @@ namespace OpenGridServices.Manager
 
         protected virtual void OnResponse(object o, Gtk.ResponseArgs args)
         {
-            switch (args.ResponseId) {
+            switch (args.ResponseId)
+            {
                 case Gtk.ResponseType.Ok:
                     MainClass.PendingOperations.Enqueue("connect_to_gridserver " + this.entry1.Text + " " + this.entry2.Text + " " + this.entry3.Text);
                 break;

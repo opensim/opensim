@@ -579,7 +579,8 @@ namespace OpenSim.Region.Physics.Meshing
             
             if (pathShearX != 0)
             {
-                if (pathShearX > 50) {
+                if (pathShearX > 50)
+                {
                     // Complimentary byte.  Negative values wrap around the byte.  Positive values go up to 50
                     extr.pushX = (((float)(256 - pathShearX) / 100) * -1f);
                    // m_log.Warn("pushX: " + extr.pushX);
@@ -593,7 +594,8 @@ namespace OpenSim.Region.Physics.Meshing
 
             if (pathShearY != 0)
             {
-                if (pathShearY > 50) {
+                if (pathShearY > 50)
+                {
                     // Complimentary byte.  Negative values wrap around the byte.  Positive values go up to 50
                     extr.pushY = (((float)(256 - pathShearY) / 100) * -1f);
                     //m_log.Warn("pushY: " + extr.pushY);
