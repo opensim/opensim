@@ -92,7 +92,16 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
 
         }
+        public void SendSitResponse(LLUUID TargetID, LLVector3 OffsetPos, LLQuaternion SitOrientation, bool autopilot,
+                                        LLVector3 CameraAtOffset, LLVector3 CameraEyeOffset, bool ForceMouseLook)
+        {
 
+        }
+
+        public void SendAdminResponse(LLUUID Token, uint AdminLevel)
+        {
+
+        }
         public LLUUID GetDefaultAnimation(string name)
         {
             return LLUUID.Zero;

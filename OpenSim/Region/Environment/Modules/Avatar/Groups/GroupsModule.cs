@@ -176,7 +176,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
                             ActiveGroupTitle = grp.ActiveGroupTitle;
                         }
 
-                        //remoteClient.SendAgentDataUpdate(AgentID, ActiveGroupID, firstname, lastname, ActiveGroupPowers, ActiveGroupName, ActiveGroupTitle);
+                        remoteClient.SendAgentDataUpdate(AgentID, ActiveGroupID, firstname, lastname, ActiveGroupPowers, ActiveGroupName, ActiveGroupTitle);
                     }
                 }
             }

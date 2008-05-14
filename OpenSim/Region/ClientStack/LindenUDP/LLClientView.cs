@@ -5739,6 +5739,39 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             offp.AgentBlock = offpb;
             OutPacket(offp, ThrottleOutPacketType.Task);
         }
+
+        public void SendSitResponse(LLUUID TargetID, LLVector3 OffsetPos, LLQuaternion SitOrientation, bool autopilot, 
+                                        LLVector3 CameraAtOffset, LLVector3 CameraEyeOffset, bool ForceMouseLook)
+        {
+            AvatarSitResponsePacket avatarSitResponse = new AvatarSitResponsePacket();
+            avatarSitResponse.SitObject.ID = TargetID;
+            if (CameraAtOffset != LLVector3.Zero)
+            {
+                avatarSitResponse.SitTransform.CameraAtOffset = CameraAtOffset;
+                avatarSitResponse.SitTransform.CameraEyeOffset = CameraEyeOffset;
+            }
+            avatarSitResponse.SitTransform.ForceMouselook = ForceMouseLook;
+            avatarSitResponse.SitTransform.AutoPilot = autopilot;
+            avatarSitResponse.SitTransform.SitPosition = OffsetPos;
+            avatarSitResponse.SitTransform.SitRotation = SitOrientation;
+
+            OutPacket(avatarSitResponse, ThrottleOutPacketType.Task);
+        }
+        public void SendAdminResponse(LLUUID Token, uint AdminLevel)
+        {
+            GrantGodlikePowersPacket respondPacket = new GrantGodlikePowersPacket();
+            GrantGodlikePowersPacket.GrantDataBlock gdb = new GrantGodlikePowersPacket.GrantDataBlock();
+            GrantGodlikePowersPacket.AgentDataBlock adb = new GrantGodlikePowersPacket.AgentDataBlock();
+
+            adb.AgentID = AgentId;
+            adb.SessionID = SessionId; // More security          
+            gdb.GodLevel = (byte)AdminLevel;
+            gdb.Token = Token;
+            //respondPacket.AgentData = (GrantGodlikePowersPacket.AgentDataBlock)ablock;
+            respondPacket.GrantData = gdb;
+            respondPacket.AgentData = adb;
+            OutPacket(respondPacket, ThrottleOutPacketType.Task);
+        }
         public ClientInfo GetClientInfo()
         {
             //MainLog.Instance.Verbose("CLIENT", "GetClientInfo BGN");

@@ -942,10 +942,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         private void SendSitResponse(IClientAPI remoteClient, LLUUID targetID, LLVector3 offset)
         {
-            AvatarSitResponsePacket avatarSitResponse = new AvatarSitResponsePacket();
+            
 
-            avatarSitResponse.SitObject.ID = targetID;
-
+            
+            
             bool autopilot = true;
             LLVector3 pos = new LLVector3();
             LLQuaternion sitOrientation = new LLQuaternion(0, 0, 0, 1);
@@ -1000,12 +1000,8 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
 
-            avatarSitResponse.SitTransform.AutoPilot = autopilot;
-            avatarSitResponse.SitTransform.SitPosition = offset;
-            avatarSitResponse.SitTransform.SitRotation = sitOrientation;
-
-            remoteClient.OutPacket(avatarSitResponse, ThrottleOutPacketType.Task);
-
+            ControllingClient.SendSitResponse(targetID, offset, sitOrientation, autopilot, LLVector3.Zero, LLVector3.Zero, false);
+            
             // This calls HandleAgentSit twice, once from here, and the client calls 
             // HandleAgentSit itself after it gets to the location
             // It doesn't get to the location until we've moved them there though 
@@ -1710,29 +1706,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void GrantGodlikePowers(LLUUID agentID, LLUUID sessionID, LLUUID token, bool godStatus)
         {
-            GrantGodlikePowersPacket respondPacket = new GrantGodlikePowersPacket();
-            GrantGodlikePowersPacket.GrantDataBlock gdb = new GrantGodlikePowersPacket.GrantDataBlock();
-            GrantGodlikePowersPacket.AgentDataBlock adb = new GrantGodlikePowersPacket.AgentDataBlock();
-
-            adb.AgentID = agentID;
-            adb.SessionID = sessionID; // More security
-
             if (godStatus)
             {
-                gdb.GodLevel = (byte)250;
                 m_godlevel = 250;
             }
             else
             {
-                gdb.GodLevel = (byte)0;
                 m_godlevel = 0;
             }
-            
-            gdb.Token = token;
-            //respondPacket.AgentData = (GrantGodlikePowersPacket.AgentDataBlock)ablock;
-            respondPacket.GrantData = gdb;
-            respondPacket.AgentData = adb;
-            ControllingClient.OutPacket(respondPacket, ThrottleOutPacketType.Task);
+
+            ControllingClient.SendAdminResponse(token, (uint)m_godlevel);
         }
 
         /// <summary>

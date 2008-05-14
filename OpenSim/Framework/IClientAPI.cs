@@ -634,9 +634,9 @@ namespace OpenSim.Framework
 
         LLUUID SecureSessionId { get; }
 
-        [Obsolete("LLClientView Specific - Use .Name instead. Do not assume an av has two names")]
+        [Obsolete("LLClientView Specific - Use .Name instead. Do not assume an av has two names.  Adam, this is impossible to completely refactor out.  Nor would I suggest it. All applications that i've ever dealt with have firstname and lastname.  However the firstname and lastname are not always the username.")]
         string FirstName { get; }
-        [Obsolete("LLClientView Specific - Use .Name instead. Do not assume an av has two names")]
+        [Obsolete("LLClientView Specific - Use .Name instead. Do not assume an av has two names.  Adam, this is impossible to completely refactor out.  Nor would I suggest it. All applications that i've ever dealt with have firstname and lastname.  However the firstname and lastname are not always the username.")]
         string LastName { get; }
 
         [Obsolete("LLClientView Specific - Replace with ???")]
@@ -809,7 +809,7 @@ namespace OpenSim.Framework
 
 
         
-        [Obsolete("IClientAPI.OutPacket SHOULD NOT EXIST please refactor appropriately.")]
+        [Obsolete("IClientAPI.OutPacket SHOULD NOT EXIST outside of LLClientView please refactor appropriately.")]
         void OutPacket(Packet newPack, ThrottleOutPacketType packType);
         void SendWearables(AvatarWearable[] wearables, int serial);
         void SendAppearance(LLUUID agentID, byte[] visualParams, byte[] textureEntry);
@@ -968,6 +968,11 @@ namespace OpenSim.Framework
         void SendAgentOffline(LLUUID[] agentIDs);
 
         void SendAgentOnline(LLUUID[] agentIDs);
+
+        void SendSitResponse(LLUUID TargetID, LLVector3 OffsetPos, LLQuaternion SitOrientation, bool autopilot,
+                                        LLVector3 CameraAtOffset, LLVector3 CameraEyeOffset, bool ForceMouseLook);
+
+        void SendAdminResponse(LLUUID Token, uint AdminLevel);
 
         byte[] GetThrottlesPacked(float multiplier);
 

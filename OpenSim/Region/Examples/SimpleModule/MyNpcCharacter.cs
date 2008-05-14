@@ -563,13 +563,22 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-
         public void SendAgentOffline(LLUUID[] agentIDs)
         {
 
         }
 
         public void SendAgentOnline(LLUUID[] agentIDs)
+        {
+
+        }
+
+        public void SendSitResponse(LLUUID TargetID, LLVector3 OffsetPos, LLQuaternion SitOrientation, bool autopilot,
+                                        LLVector3 CameraAtOffset, LLVector3 CameraEyeOffset, bool ForceMouseLook)
+        {
+        }
+
+        public void SendAdminResponse(LLUUID Token, uint AdminLevel)
         {
 
         }
