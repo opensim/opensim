@@ -137,7 +137,7 @@ namespace OpenSim.Framework
                 }
             }
         }
-
+        [Obsolete("Using Obsolete to drive development is invalid.  Obsolete presumes that something new has already been created to replace this.")]
         public uint[] GetAllCircuits(LLUUID agentId)
         {
             List<uint> circuits = new List<uint>();

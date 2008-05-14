@@ -144,6 +144,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
 
         private void OnAgentDataUpdateRequest(IClientAPI remoteClient, LLUUID AgentID, LLUUID SessionID)
         {
+            // Adam, this is one of those impossible to refactor items without resorting to .Split hackery
             string firstname = remoteClient.FirstName;
             string lastname = remoteClient.LastName;
 
