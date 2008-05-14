@@ -752,17 +752,20 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Xml"/>
       <Reference name="System.Drawing"/>
-	  <Reference name="System.Runtime.Remoting"/>
+	    <Reference name="System.Runtime.Remoting"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Region.Physics.Manager"/>
       <Reference name="OpenSim.Framework.Servers"/>
-	  <!-- Unit tests -->
-	  <Reference name="OpenSim.Tests.Common"/>
-	  <Reference name="nunit.framework.dll"/>
+      <Reference name="OpenSim.Framework.Statistics"/>
+      <Reference name="OpenSim.Region.Physics.Manager"/>
+
+      <!-- Unit tests -->
+      <Reference name="OpenSim.Tests.Common"/>
+      <Reference name="nunit.framework.dll"/>
+
       <!-- For scripting in funny languages by default -->
       <Reference name="Microsoft.JScript"/>
       <Reference name="XMLRPC.dll"/>
@@ -770,6 +773,7 @@
       <Reference name="OpenSim.Data.Base"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net"/>
+
       <Files>
         <Match pattern="*.cs" recurse="true"/>
       </Files>

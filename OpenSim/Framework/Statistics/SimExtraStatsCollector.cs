@@ -42,6 +42,7 @@ namespace OpenSim.Framework.Statistics
         private long texturesInCache;        
         private long assetCacheMemoryUsage;
         private long textureCacheMemoryUsage;
+        private long blockedMissingTextureRequests;
         
         private long inventoryServiceRetrievalFailures;
         
@@ -49,6 +50,14 @@ namespace OpenSim.Framework.Statistics
         public long TexturesInCache { get { return texturesInCache; } }
         public long AssetCacheMemoryUsage { get { return assetCacheMemoryUsage; } }
         public long TextureCacheMemoryUsage { get { return textureCacheMemoryUsage; } }
+
+        /// <summary>
+        /// Number of persistent requests for missing textures we have started blocking from clients.  To some extent
+        /// this is just a temporary statistic to keep this problem in view - the root cause of this lies either
+        /// in a mishandling of the reply protocol, related to avatar appearance or may even originate in graphics
+        /// driver bugs on clients (though this seems less likely).
+        /// </summary>
+        public long BlockedMissingTextureRequests { get { return blockedMissingTextureRequests; } }
         
         /// <summary>
         /// Number of known failures to retrieve avatar inventory from the inventory service.  This does not
@@ -71,13 +80,19 @@ namespace OpenSim.Framework.Statistics
         
         public void AddTexture(AssetBase image)
         {
-            // Tedd: I added null check to avoid exception. Don't know if texturesInCache should ++ anyway?
             if (image.Data != null)
             {
                 texturesInCache++;
+                
+                // This could have been a pull stat, though there was originally a nebulous idea to measure flow rates
                 textureCacheMemoryUsage += image.Data.Length;
             }
         }  
+        
+        public void AddBlockedMissingTextureRequest()
+        {
+            blockedMissingTextureRequests++;
+        }
         
         public void AddInventoryServiceRetrievalFailure()
         {
@@ -116,14 +131,22 @@ namespace OpenSim.Framework.Statistics
         public string Report()
         {    
             StringBuilder sb = new StringBuilder(Environment.NewLine);
-            sb.Append("ASSET CACHE STATISTICS");
+            sb.Append("ASSET STATISTICS");
             sb.Append(Environment.NewLine);            
             sb.Append(
                 string.Format(
-@"Asset   cache contains {0,6} assets   using {1,10:0.000}K
-Texture cache contains {2,6} textures using {3,10:0.000}K" + Environment.NewLine,
-                    AssetsInCache, AssetCacheMemoryUsage / 1024.0, 
-                    TexturesInCache, TextureCacheMemoryUsage / 1024.0));
+@"Asset   cache contains {0,6} assets   using {1,10:0.000}K" + Environment.NewLine,
+                    AssetsInCache, AssetCacheMemoryUsage / 1024.0));
+            
+            sb.Append(Environment.NewLine);
+            sb.Append("TEXTURE STATISTICS");
+            sb.Append(Environment.NewLine);            
+            sb.Append(
+                string.Format(
+@"Texture cache contains {0,6} textures using {1,10:0.000}K
+Blocked requests for missing textures: {2}" + Environment.NewLine,
+                    TexturesInCache, TextureCacheMemoryUsage / 1024.0,
+                    BlockedMissingTextureRequests));            
             
             sb.Append(Environment.NewLine);
             sb.Append("INVENTORY STATISTICS");

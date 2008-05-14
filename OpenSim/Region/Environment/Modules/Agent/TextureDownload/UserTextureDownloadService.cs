@@ -31,6 +31,7 @@ using libsecondlife;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Limit;
+using OpenSim.Framework.Statistics;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
@@ -125,10 +126,11 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
                         {
                             if (missingTextureLimitStrategy.IsFirstRefusal(e.RequestedAssetID))
                             {
+                                if (StatsManager.SimExtraStats != null)
+                                    StatsManager.SimExtraStats.AddBlockedMissingTextureRequest();
+                                
                                 // Commenting out this message for now as it causes too much noise with other 
                                 // debug messages.  
-                                // TODO: possibly record this as a statistic in the future
-                                //
 //                                m_log.DebugFormat(
 //                                    "[USER TEXTURE DOWNLOAD SERVICE]: Dropping requests for notified missing texture {0} for client {1} since we have received more than {2} requests",
 //                                    e.RequestedAssetID, m_client.AgentId, MAX_ALLOWED_TEXTURE_REQUESTS);
