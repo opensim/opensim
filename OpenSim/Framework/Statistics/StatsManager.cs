@@ -32,13 +32,13 @@ namespace OpenSim.Framework.Statistics
     /// </summary>
     public class StatsManager
     {
-        private static AssetStatsReporter assetStats;
-        private static UserStatsReporter userStats;
-        private static SimExtraStatsReporter simExtraStats;                
+        private static AssetStatsCollector assetStats;
+        private static UserStatsCollector userStats;
+        private static SimExtraStatsCollector simExtraStats;                
         
-        public static AssetStatsReporter AssetStats { get { return assetStats; } }
-        public static UserStatsReporter UserStats { get { return userStats; } }
-        public static SimExtraStatsReporter SimExtraStats { get { return simExtraStats; } }
+        public static AssetStatsCollector AssetStats { get { return assetStats; } }
+        public static UserStatsCollector UserStats { get { return userStats; } }
+        public static SimExtraStatsCollector SimExtraStats { get { return simExtraStats; } }
         
         private StatsManager() {}
         
@@ -48,7 +48,7 @@ namespace OpenSim.Framework.Statistics
         /// </summary>        
         public static void StartCollectingAssetStats()
         {
-            assetStats = new AssetStatsReporter();
+            assetStats = new AssetStatsCollector();
         }
         
         /// <summary>
@@ -57,7 +57,7 @@ namespace OpenSim.Framework.Statistics
         /// </summary>        
         public static void StartCollectingUserStats()
         {
-            userStats = new UserStatsReporter();
+            userStats = new UserStatsCollector();
         }        
         
         /// <summary>
@@ -66,7 +66,7 @@ namespace OpenSim.Framework.Statistics
         /// </summary>
         public static void StartCollectingSimExtraStats()
         {
-            simExtraStats = new SimExtraStatsReporter();
+            simExtraStats = new SimExtraStatsCollector();
         }
     }
 }

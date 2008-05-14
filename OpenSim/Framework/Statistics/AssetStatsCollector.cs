@@ -25,30 +25,30 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Timers;
 
 namespace OpenSim.Framework.Statistics
 {
     /// <summary>
-    /// Description of UserStatsReporter.
+    /// Asset service statistics collection
     /// </summary>
-    public class UserStatsReporter
+    public class AssetStatsCollector
     {
         private Timer ageStatsTimer = new Timer(24 * 60 * 60 * 1000);
+        private DateTime startTime = DateTime.Now;
         
-        private int successfulLoginsToday;
-        public int SuccessfulLoginsToday { get { return successfulLoginsToday; } }
+        private long assetRequestsToday;    
+        private long assetRequestsNotFoundToday;
+        private long assetRequestsYesterday;
+        private long assetRequestsNotFoundYesterday;
         
-        private int successfulLoginsYesterday;
-        public int SuccessfulLoginsYesterday { get { return successfulLoginsYesterday; } }    
+        public long AssetRequestsToday { get { return assetRequestsToday; } }
+        public long AssetRequestsNotFoundToday { get { return assetRequestsNotFoundToday; } }        
+        public long AssetRequestsYesterday { get { return assetRequestsYesterday; } }
+        public long AssetRequestsNotFoundYesterday { get { return assetRequestsNotFoundYesterday; } }        
         
-        private int successfulLogins;
-        public int SuccessfulLogins { get { return successfulLogins; } }
-        
-        private int logouts;
-        public int Logouts { get { return logouts; } }
-        
-        public UserStatsReporter()
+        public AssetStatsCollector()
         {
             ageStatsTimer.Elapsed += new ElapsedEventHandler(OnAgeing);
             ageStatsTimer.Enabled = true;
@@ -56,25 +56,30 @@ namespace OpenSim.Framework.Statistics
         
         private void OnAgeing(object source, ElapsedEventArgs e)
         {
-            successfulLoginsYesterday = successfulLoginsToday;
+            assetRequestsYesterday = assetRequestsToday;
             
             // There is a possibility that an asset request could occur between the execution of these
             // two statements.  But we're better off without the synchronization overhead.
-            successfulLoginsToday = 0;            
+            assetRequestsToday = 0;   
+            
+            assetRequestsNotFoundYesterday = assetRequestsNotFoundToday;
+            assetRequestsNotFoundToday = 0;
         }
         
         /// <summary>
-        /// Record a successful login
+        /// Record that an asset request failed to find an asset
         /// </summary>
-        public void AddSuccessfulLogin()
+        public void AddNotFoundRequest()
         {
-            successfulLogins++;            
-            successfulLoginsToday++;
+            assetRequestsNotFoundToday++;
         }
         
-        public void AddLogout()
+        /// <summary>
+        /// Record that a request was made to the asset server
+        /// </summary>
+        public void AddRequest()
         {
-            logouts++;
+            assetRequestsToday++;
         }
 
         /// <summary>
@@ -83,10 +88,17 @@ namespace OpenSim.Framework.Statistics
         /// <returns></returns>
         public string Report()
         {
+            double elapsedHours = (DateTime.Now - startTime).TotalHours;
+            if (elapsedHours <= 0) { elapsedHours = 1; }  // prevent divide by zero
+            
+            long assetRequestsTodayPerHour = (long)Math.Round(AssetRequestsToday / elapsedHours);
+            long assetRequestsYesterdayPerHour = (long)Math.Round(AssetRequestsYesterday / 24.0);
+            
             return string.Format(
-@"Successful logins total : {0}, today : {1}, yesterday : {2}
-          Logouts total : {3}",
-                SuccessfulLogins, SuccessfulLoginsToday, SuccessfulLoginsYesterday, Logouts);
+@"Asset requests today     : {0}  ({1} per hour)  of which {2} were not found
+Asset requests yesterday : {3}  ({4} per hour)  of which {5} were not found",
+                AssetRequestsToday, assetRequestsTodayPerHour, AssetRequestsNotFoundToday,
+                AssetRequestsYesterday, assetRequestsYesterdayPerHour, AssetRequestsNotFoundYesterday);
         }
     }
 }

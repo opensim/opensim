@@ -28,7 +28,7 @@
 namespace OpenSim.Framework.Statistics.Interfaces
 {
     /// <summary>
-    /// Description of IPullStatsProvider.
+    /// Implemented by objects which allow statistical information to be pulled from them.
     /// </summary>
     public interface IPullStatsProvider
     {

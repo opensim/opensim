@@ -33,7 +33,10 @@ using OpenSim.Framework.Statistics.Interfaces;
 
 namespace OpenSim.Framework.Statistics
 {  
-    public class SimExtraStatsReporter
+    /// <summary>
+    /// Collects sim statistics which aren't already being collected for the linden viewer's statistics pane
+    /// </summary>
+    public class SimExtraStatsCollector
     {        
         private long assetsInCache;
         private long texturesInCache;        
@@ -48,8 +51,8 @@ namespace OpenSim.Framework.Statistics
         /// <summary>
         /// Retain a dictionary of all packet queues stats reporters
         /// </summary>
-        private IDictionary<LLUUID, PacketQueueStatsReporter> packetQueueStatsReporters
-            = new Dictionary<LLUUID, PacketQueueStatsReporter>();
+        private IDictionary<LLUUID, PacketQueueStatsCollector> packetQueueStatsCollectors
+            = new Dictionary<LLUUID, PacketQueueStatsCollector>();
         
         public void AddAsset(AssetBase asset)
         {
@@ -74,9 +77,9 @@ namespace OpenSim.Framework.Statistics
         /// <param name="provider"></param>
         public void RegisterPacketQueueStatsProvider(LLUUID uuid, IPullStatsProvider provider)
         {
-            lock (packetQueueStatsReporters)
+            lock (packetQueueStatsCollectors)
             {
-                packetQueueStatsReporters[uuid] = new PacketQueueStatsReporter(provider);
+                packetQueueStatsCollectors[uuid] = new PacketQueueStatsCollector(provider);
             }
         }
         
@@ -86,9 +89,9 @@ namespace OpenSim.Framework.Statistics
         /// <param name="uuid">An agent LLUUID</param>
         public void DeregisterPacketQueueStatsProvider(LLUUID uuid)
         {
-            lock (packetQueueStatsReporters)
+            lock (packetQueueStatsCollectors)
             {
-                packetQueueStatsReporters.Remove(uuid);
+                packetQueueStatsCollectors.Remove(uuid);
             }
         }
 
@@ -118,10 +121,10 @@ Texture cache contains {2,6} textures using {3,10:0.000}K" + Environment.NewLine
                     "Send", "In", "Out", "Resend", "Land", "Wind", "Cloud", "Task", "Texture", "Asset"));
             sb.Append(Environment.NewLine);            
                 
-            foreach (LLUUID key in packetQueueStatsReporters.Keys)
+            foreach (LLUUID key in packetQueueStatsCollectors.Keys)
             {
                 sb.Append(string.Format("{0}: ", key));
-                sb.Append(packetQueueStatsReporters[key].Report());
+                sb.Append(packetQueueStatsCollectors[key].Report());
                 sb.Append(Environment.NewLine);
             }
             
@@ -132,11 +135,11 @@ Texture cache contains {2,6} textures using {3,10:0.000}K" + Environment.NewLine
     /// <summary>
     /// Pull packet queue stats from packet queues and report
     /// </summary>
-    public class PacketQueueStatsReporter
+    public class PacketQueueStatsCollector
     {
         private IPullStatsProvider m_statsProvider;
         
-        public PacketQueueStatsReporter(IPullStatsProvider provider)
+        public PacketQueueStatsCollector(IPullStatsProvider provider)
         {
             m_statsProvider = provider;    
         }
