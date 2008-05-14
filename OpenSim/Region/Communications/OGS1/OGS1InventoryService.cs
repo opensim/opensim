@@ -35,6 +35,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
+using OpenSim.Framework.Statistics;
 
 namespace OpenSim.Region.Communications.OGS1
 {
@@ -79,8 +80,11 @@ namespace OpenSim.Region.Communications.OGS1
                 }
                 catch (WebException e)
                 {
+                    if (StatsManager.SimExtraStats != null)
+                        StatsManager.SimExtraStats.AddInventoryServiceRetrievalFailure();
+                    
                     m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Request inventory operation failed, {0} {1}", 
-                         e.Source, e.Message);
+                        e.Source, e.Message);                        
                 }
             }
             else

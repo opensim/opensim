@@ -43,10 +43,19 @@ namespace OpenSim.Framework.Statistics
         private long assetCacheMemoryUsage;
         private long textureCacheMemoryUsage;
         
+        private long inventoryServiceRetrievalFailures;
+        
         public long AssetsInCache { get { return assetsInCache; } }
         public long TexturesInCache { get { return texturesInCache; } }
         public long AssetCacheMemoryUsage { get { return assetCacheMemoryUsage; } }
         public long TextureCacheMemoryUsage { get { return textureCacheMemoryUsage; } }
+        
+        /// <summary>
+        /// Number of known failures to retrieve avatar inventory from the inventory service.  This does not
+        /// cover situations where the inventory service accepts the request but never returns any data, since
+        /// we do not yet timeout this situation.
+        /// </summary>
+        public long InventoryServiceRetrievalFailures { get { return inventoryServiceRetrievalFailures; } }
         
         /// <summary>
         /// Retain a dictionary of all packet queues stats reporters
@@ -69,6 +78,11 @@ namespace OpenSim.Framework.Statistics
                 textureCacheMemoryUsage += image.Data.Length;
             }
         }  
+        
+        public void AddInventoryServiceRetrievalFailure()
+        {
+            inventoryServiceRetrievalFailures++;
+        }
         
         /// <summary>
         /// Register as a packet queue stats provider
@@ -110,7 +124,15 @@ namespace OpenSim.Framework.Statistics
 Texture cache contains {2,6} textures using {3,10:0.000}K" + Environment.NewLine,
                     AssetsInCache, AssetCacheMemoryUsage / 1024.0, 
                     TexturesInCache, TextureCacheMemoryUsage / 1024.0));
-
+            
+            sb.Append(Environment.NewLine);
+            sb.Append("INVENTORY STATISTICS");
+            sb.Append(Environment.NewLine);
+            sb.Append(
+                string.Format(
+                    "Initial inventory caching failures: {0}" + Environment.NewLine,
+                    InventoryServiceRetrievalFailures));
+                                    
             sb.Append(Environment.NewLine);
             sb.Append("PACKET QUEUE STATISTICS");
             sb.Append(Environment.NewLine);
