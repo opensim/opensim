@@ -238,6 +238,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                         // prevents a sim crash.
                         m_log.Info("[FRIEND]: Unable to enumerate last friendlist user.  User logged off");
                     }
+                    catch (ArgumentOutOfRangeException)
+                    {
+                        // Ignore the index out of range exception.  
+                        // This causes friend lists to get out of sync slightly..  however
+                        // prevents a sim crash.
+                        m_log.Info("[FRIEND]: Unable to enumerate last friendlist user.  User logged off");
+                    }
 
                     for (int j = 0; j < flfli.Count; j++)
                     {
