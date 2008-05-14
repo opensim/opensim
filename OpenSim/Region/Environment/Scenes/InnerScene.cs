@@ -1001,7 +1001,7 @@ namespace OpenSim.Region.Environment.Scenes
                     group.SendGroupTerseUpdate();
                     return;
                 }
-                if (m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(remoteClient.AgentId, group.UUID) || group.RootPart.m_IsAttachment)
+                if (m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(group.UUID, remoteClient.AgentId) || group.RootPart.m_IsAttachment)
                 {
                     group.UpdateSinglePosition(pos, localID);
                 }
