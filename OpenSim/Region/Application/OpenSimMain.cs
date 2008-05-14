@@ -96,6 +96,8 @@ namespace OpenSim
         
         protected List<IApplicationPlugin> m_plugins = new List<IApplicationPlugin>();
 
+        protected IConfigSource m_finalConfig = null;
+
         protected IniConfigSource m_config;
         
         public IniConfigSource ConfigSource
@@ -309,10 +311,10 @@ namespace OpenSim
 
                 m_dumpAssetsToFile = standaloneConfig.GetBoolean("dump_assets_to_file", false);
             }
-            //if (!m_sandbox)
-                //m_SendChildAgentTaskData = false;
+            
 
             m_networkServersInfo.loadFromConfiguration(m_config);
+            
         }
 
         private ManualResetEvent WorldHasComeToAnEnd = new ManualResetEvent(false);
@@ -622,7 +624,8 @@ namespace OpenSim
             return
                 new Scene(regionInfo, circuitManager, m_commsManager, sceneGridService, m_assetCache,
                           storageManager, m_httpServer,
-                          m_moduleLoader, m_dumpAssetsToFile, m_physicalPrim, m_see_into_region_from_neighbor);
+                          m_moduleLoader, m_dumpAssetsToFile, m_physicalPrim, m_see_into_region_from_neighbor, m_config);
+            
         }
 
         public void handleRestartRegion(RegionInfo whichRegion)
@@ -668,7 +671,7 @@ namespace OpenSim
 
         protected override PhysicsScene GetPhysicsScene()
         {
-            return GetPhysicsScene(m_physicsEngine, m_meshEngineName);
+            return GetPhysicsScene(m_physicsEngine, m_meshEngineName, m_config);
         }
 
         /// <summary>

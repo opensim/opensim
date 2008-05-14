@@ -34,6 +34,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 using XnaDevRu.BulletX;
 using XnaDevRu.BulletX.Dynamics;
+using Nini.Config;
 using AxiomQuaternion = Axiom.Math.Quaternion;
 
 #endregion
@@ -483,6 +484,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         internal Dictionary<RigidBody, BulletXPrim> _prims = new Dictionary<RigidBody, BulletXPrim>();
 
         public IMesher mesher;
+        private IConfigSource m_config;
 
 
         public static float Gravity
@@ -536,9 +538,10 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             //this._heightmap = new float[65536];
         }
 
-        public override void Initialise(IMesher meshmerizer)
+        public override void Initialise(IMesher meshmerizer, IConfigSource config)
         {
             mesher = meshmerizer;
+            m_config = config;
         }
 
         public override void Dispose()

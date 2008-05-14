@@ -32,6 +32,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Axiom.Math;
 using log4net;
+using Nini.Config;
 using Ode.NET;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
@@ -193,6 +194,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public IMesher mesher;
 
+        private IConfigSource m_config;
+
 
         /// <summary>
         /// Initiailizes the scene
@@ -286,9 +289,10 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         
         // Initialize the mesh plugin
-        public override void Initialise(IMesher meshmerizer)
+        public override void Initialise(IMesher meshmerizer, IConfigSource config)
         {
             mesher = meshmerizer;
+            m_config = config;
         }
 
         internal void waitForSpaceUnlock(IntPtr space)

@@ -27,6 +27,7 @@
 
 using System;
 using Axiom.Math;
+using Nini.Config;
 using NUnit.Framework;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
@@ -50,7 +51,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // Getting Physics Scene
             ps = cbt.GetScene();
             // Initializing Physics Scene.
-            ps.Initialise(imp.GetMesher());
+            ps.Initialise(imp.GetMesher(),null);
             float[] _heightmap = new float[256 * 256];
             for (int i = 0; i<(256*256);i++)
             {

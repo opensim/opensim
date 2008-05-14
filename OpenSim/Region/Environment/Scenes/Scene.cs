@@ -43,6 +43,7 @@ using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
+using Nini.Config;
 using Caps=OpenSim.Framework.Communications.Capabilities.Caps;
 using Image=System.Drawing.Image;
 using Timer=System.Timers.Timer;
@@ -115,6 +116,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected IWorldComm m_worldCommModule;
         protected IAvatarFactory m_AvatarFactory;
         protected IScenePermissions m_permissions;
+        protected IConfigSource m_config;
 
         // Central Update Loop
 
@@ -134,6 +136,7 @@ namespace OpenSim.Region.Environment.Scenes
         private int m_update_backup = 200;
         private int m_update_terrain = 50;
         private int m_update_land = 1;
+        
 
         private int frameMS = 0;
         private int physicsMS2 = 0;
@@ -223,8 +226,9 @@ namespace OpenSim.Region.Environment.Scenes
         public Scene(RegionInfo regInfo, AgentCircuitManager authen,
                      CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
                      AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer,
-                     ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim, bool SeeIntoRegionFromNeighbor)
+                     ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim, bool SeeIntoRegionFromNeighbor, IConfigSource config)
         {
+            m_config = config;
             updateLock = new Mutex(false);
             m_moduleLoader = moduleLoader;
             m_authenticateHandler = authen;

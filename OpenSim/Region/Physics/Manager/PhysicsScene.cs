@@ -28,6 +28,7 @@
 using System.Reflection;
 using Axiom.Math;
 using log4net;
+using Nini.Config;
 using OpenSim.Framework;
 
 namespace OpenSim.Region.Physics.Manager
@@ -58,7 +59,7 @@ namespace OpenSim.Region.Physics.Manager
         }
 
 
-        public abstract void Initialise(IMesher meshmerizer);
+        public abstract void Initialise(IMesher meshmerizer, IConfigSource config);
 
         public abstract PhysicsActor AddAvatar(string avName, PhysicsVector position, PhysicsVector size);
 
@@ -92,7 +93,7 @@ namespace OpenSim.Region.Physics.Manager
             private static int m_workIndicator;
 
 
-            public override void Initialise(IMesher meshmerizer)
+            public override void Initialise(IMesher meshmerizer, IConfigSource config)
             {
                 // Does nothing right now
             }

@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using Axiom.Math;
+using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 
@@ -73,7 +74,7 @@ namespace OpenSim.Region.Physics.POSPlugin
         {
         }
 
-        public override void Initialise(IMesher meshmerizer)
+        public override void Initialise(IMesher meshmerizer, IConfigSource config)
         {
             // Does nothing right now
         }

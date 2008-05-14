@@ -29,6 +29,7 @@ using System.Reflection;
 using System.Threading;
 using log4net;
 using Mono.Addins;
+using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.RegionLoader.Filesystem;
 using OpenSim.Framework.RegionLoader.Web;

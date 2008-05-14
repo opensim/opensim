@@ -30,6 +30,7 @@ using System.Net;
 using System.Reflection;
 using libsecondlife;
 using log4net;
+using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
@@ -99,12 +100,12 @@ namespace OpenSim.Region.ClientStack
         protected abstract PhysicsScene GetPhysicsScene();
         protected abstract StorageManager CreateStorageManager(string connectionstring);
 
-        protected PhysicsScene GetPhysicsScene(string engine, string meshEngine)
+        protected PhysicsScene GetPhysicsScene(string engine, string meshEngine, IConfigSource config)
         {
             PhysicsPluginManager physicsPluginManager;
             physicsPluginManager = new PhysicsPluginManager();
             physicsPluginManager.LoadPlugins();
-            return physicsPluginManager.GetPhysicsScene(engine, meshEngine);
+            return physicsPluginManager.GetPhysicsScene(engine, meshEngine, config);
         }
 
         protected Scene SetupScene(RegionInfo regionInfo, out IClientNetworkServer clientServer)

@@ -505,6 +505,7 @@
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="Nini.dll" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
       <Files>
@@ -527,6 +528,7 @@
       <ReferencePath>../../../../bin/</ReferencePath>
       <Reference name="System" localCopy="false"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="Nini.dll" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
       <Files>
@@ -550,6 +552,7 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="Nini.dll" />
       <Reference name="PhysX_Wrapper_Dotnet.dll" localCopy="false"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
@@ -574,6 +577,7 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="libsecondlife.dll"/>
+      <Reference name="Nini.dll" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
@@ -602,6 +606,7 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="Nini.dll" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console" localCopy="false"/>
       <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
@@ -630,6 +635,7 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Drawing"/>
       <Reference name="libsecondlife.dll"/>
+      <Reference name="Nini.dll" />
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Region.Physics.Manager" localCopy="false"/>
