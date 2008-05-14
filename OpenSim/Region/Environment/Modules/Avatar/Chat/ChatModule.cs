@@ -252,7 +252,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
                 if ((m_irc.Enabled) && (m_irc.Connected))
                 {
-                    string clientName = client.FirstName + " " + client.LastName;
+                    string clientName = client.Name;
                     // handles simple case. May not work for hundred connecting in per second.
                     // and the NewClients calles getting interleved
                     // but filters out multiple reports

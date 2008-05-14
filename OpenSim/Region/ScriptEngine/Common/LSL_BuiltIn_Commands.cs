@@ -6170,7 +6170,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 ScenePresence av = World.GetScenePresence(key);
                 
-                if (av != null);
+                if (av != null)
                 {
                     foreach (object o in args.Data)
                     {

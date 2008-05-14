@@ -787,7 +787,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (!presence.IsChildAgent)
                     {
-                        string name = presence.ControllingClient.FirstName + " " + presence.ControllingClient.LastName;
+                        string name = presence.ControllingClient.Name;
 
                         if (String.Compare(avatarName, name, true) == 0)
                         {

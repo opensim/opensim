@@ -331,7 +331,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                                                  m_host.AbsolutePosition,
                                                                  m_host.Name, m_host.UUID);
                                 }
-                                catch (Exception f)
+                                catch (Exception)
                                 {
                                     //}
                                     //else

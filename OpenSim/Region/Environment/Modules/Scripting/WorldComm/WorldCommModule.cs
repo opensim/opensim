@@ -326,7 +326,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
         {
             DeliverMessage(e.Type,
                            e.Channel,
-                           e.Sender.FirstName + " " + e.Sender.LastName,
+                           e.Sender.Name,
                            e.Sender.AgentId,
                            e.Message);
         }

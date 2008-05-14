@@ -139,7 +139,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
                     m_grouplistmap.Add(client.AgentId, testGroupList);
                 }
             }
-            m_log.Info("[GROUP]: Adding " + client.FirstName + " " + client.LastName + " to OpenSimulator Tester group");
+            m_log.Info("[GROUP]: Adding " + client.Name + " to OpenSimulator Tester group");
         }
 
         private void OnAgentDataUpdateRequest(IClientAPI remoteClient, LLUUID AgentID, LLUUID SessionID)
@@ -210,7 +210,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
                     IClientAPI cli = m_iclientmap[agentID];
                     if (cli != null)
                     {
-                        m_log.Info("[GROUP]: Removing all reference to groups for " + cli.FirstName + " " + cli.LastName);
+                        m_log.Info("[GROUP]: Removing all reference to groups for " + cli.Name);
                     }
                     else
                     {
