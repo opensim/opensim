@@ -2202,8 +2202,8 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.LSLInteger llGetStartParameter()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetStartParameter");
-            return 0;
+            // NotImplemented("llGetStartParameter");
+            return m_host.ParentGroup.StartParameter;
         }
 
         public void llGodLikeRezObject(string inventory, LSL_Types.Vector3 pos)

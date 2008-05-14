@@ -1406,6 +1406,9 @@ namespace OpenSim.Region.Environment.Scenes
                     group.ResetIDs();
                     AddEntity(group);
 
+                    // Set the startup parameter for on_rez event and llGetStartParameter() function
+                    group.StartParameter = param;
+
                     // we set it's position in world.
                     group.AbsolutePosition = pos;
 

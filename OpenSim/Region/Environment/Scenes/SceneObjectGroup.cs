@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Xml;
+using System.Xml.Serialization;
 using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
@@ -109,6 +110,7 @@ namespace OpenSim.Region.Environment.Scenes
         private bool m_scriptListens_atTarget = false;
         private bool m_scriptListens_notAtTarget = false;
 
+        private int m_startparameter = 0;
 
         #region Properties
 
@@ -120,6 +122,16 @@ namespace OpenSim.Region.Environment.Scenes
         /// saying what prim(s) that user has selected. 
         /// </summary>
         protected bool m_isSelected = false;
+
+        /// <summary>
+        /// Set start parameter for on_rez event and llGetStartParameter()
+        /// </summary>
+        [XmlIgnore]
+        public int StartParameter
+        {
+            get { return m_startparameter; }
+            set { m_startparameter = value; }
+        }
 
         /// <summary>
         /// 
