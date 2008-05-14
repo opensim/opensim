@@ -60,7 +60,8 @@ namespace OpenSim.Data.NHibernate
             // Split out the dialect, driver, and connect string
             char[] split = {';'};
             string[] parts = connect.Split(split, 3);
-            if (parts.Length != 3) {
+            if (parts.Length != 3)
+            {
                 // TODO: make this a real exception type
                 throw new Exception("Malformed Inventory connection string '" + connect + "'");
             }
@@ -96,15 +97,22 @@ namespace OpenSim.Data.NHibernate
         {
             string regex = @"no such table: Assets";
             Regex RE = new Regex(regex, RegexOptions.Multiline);
-            try {
-                using (ISession session = factory.OpenSession()) {
+            try
+            {
+                using (ISession session = factory.OpenSession())
+                {
                     session.Load(typeof(AssetBase), LLUUID.Zero);
                 }
-            } catch (ObjectNotFoundException) {
+            }
+            catch (ObjectNotFoundException)
+            {
                 // yes, we know it's not there, but that's ok
-            } catch (ADOException e) {
+            }
+            catch (ADOException e)
+            {
                 Match m = RE.Match(e.ToString());
-                if (m.Success) {
+                if (m.Success)
+                {
                     // We don't have this table, so create it.
                     new SchemaExport(cfg).Create(true, true);
                 }
@@ -113,10 +121,14 @@ namespace OpenSim.Data.NHibernate
 
         override public AssetBase FetchAsset(LLUUID uuid)
         {
-            using (ISession session = factory.OpenSession()) {
-                try {
+            using (ISession session = factory.OpenSession())
+            {
+                try
+                {
                     return session.Load(typeof(AssetBase), uuid) as AssetBase;
-                } catch {
+                }
+                catch
+                {
                     return null;
                 }
             }
@@ -124,9 +136,12 @@ namespace OpenSim.Data.NHibernate
 
         override public void CreateAsset(AssetBase asset)
         {
-            if (!ExistsAsset(asset.FullID)) {
-                using (ISession session = factory.OpenSession()) {
-                    using (ITransaction transaction = session.BeginTransaction()) {
+            if (!ExistsAsset(asset.FullID))
+            {
+                using (ISession session = factory.OpenSession())
+                {
+                    using (ITransaction transaction = session.BeginTransaction())
+                    {
                         session.Save(asset);
                         transaction.Commit();
                     }
@@ -136,9 +151,12 @@ namespace OpenSim.Data.NHibernate
 
         override public void UpdateAsset(AssetBase asset)
         {
-            if (ExistsAsset(asset.FullID)) {
-                using (ISession session = factory.OpenSession()) {
-                    using (ITransaction transaction = session.BeginTransaction()) {
+            if (ExistsAsset(asset.FullID))
+            {
+                using (ISession session = factory.OpenSession())
+                {
+                    using (ITransaction transaction = session.BeginTransaction())
+                    {
                         session.Update(asset);
                         transaction.Commit();
                     }

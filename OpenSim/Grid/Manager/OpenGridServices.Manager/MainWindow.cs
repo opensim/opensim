@@ -32,7 +32,7 @@ namespace OpenGridServices.Manager
 {
     public partial class MainWindow: Gtk.Window
     {
-        public MainWindow (): base (Gtk.WindowType.Toplevel)
+        public MainWindow() : base (Gtk.WindowType.Toplevel)
         {
             Build();
         }
@@ -57,10 +57,13 @@ namespace OpenGridServices.Manager
 
         public void SetGridServerConnected(bool connected)
         {
-            if (connected) {
+            if (connected)
+            {
                 this.ConnectToGridserver.Visible=false;
                 this.DisconnectFromGridServer.Visible=true;
-            } else {
+            }
+            else
+            {
                 this.ConnectToGridserver.Visible=true;
                 this.DisconnectFromGridServer.Visible=false;
             }

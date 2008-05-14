@@ -745,13 +745,7 @@ namespace OpenSim
         /// <param name="regionnum">The first out parameter describing the number of regions</param>
         public void GetRegionNumber(out int regionnum)
         {
-            int accounter = 0;
-            //List<string> regionNameList = new List<string>();
-
-            m_sceneManager.ForEachScene(delegate(Scene scene) {
-                    accounter++;
-                });
-            regionnum = accounter;
+            regionnum = m_sceneManager.Scenes.Count;
         }
     }
 }

@@ -34,7 +34,8 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
     {
         //public System.Collections.Generic.Dictionary<Byte, Type> OpCode_Add_Types;
 
-        //LSO_Enums() {
+        //LSO_Enums()
+        //{
         //    OpCode_Add_Types.Add(51, typeof(String));
         //    OpCode_Add_Types.Add(17, typeof(UInt32));
         //}

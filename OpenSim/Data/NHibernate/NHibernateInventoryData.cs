@@ -57,7 +57,8 @@ namespace OpenSim.Data.NHibernate
             // Split out the dialect, driver, and connect string
             char[] split = {';'};
             string[] parts = connect.Split(split, 3);
-            if (parts.Length != 3) {
+            if (parts.Length != 3)
+            {
                 // TODO: make this a real exception type
                 throw new Exception("Malformed Inventory connection string '" + connect + "'");
             }
@@ -94,15 +95,22 @@ namespace OpenSim.Data.NHibernate
         {
             string regex = @"no such table: Inventory";
             Regex RE = new Regex(regex, RegexOptions.Multiline);
-            try {
-                using (ISession session = factory.OpenSession()) {
+            try
+            {
+                using (ISession session = factory.OpenSession())
+                {
                     session.Load(typeof(InventoryItemBase), LLUUID.Zero);
                 }
-            } catch (ObjectNotFoundException) {
+            }
+            catch (ObjectNotFoundException)
+            {
                 // yes, we know it's not there, but that's ok
-            } catch (ADOException e) {
+            }
+            catch (ADOException e)
+            {
                 Match m = RE.Match(e.ToString());
-                if (m.Success) {
+                if (m.Success)
+                {
                     // We don't have this table, so create it.
                     new SchemaExport(cfg).Create(true, true);
                 }
@@ -125,10 +133,14 @@ namespace OpenSim.Data.NHibernate
         /// <returns>A class containing item information</returns>
         public InventoryItemBase getInventoryItem(LLUUID item)
         {
-            using (ISession session = factory.OpenSession()) {
-                try {
+            using (ISession session = factory.OpenSession())
+            {
+                try
+                {
                     return session.Load(typeof(InventoryItemBase), item) as InventoryItemBase;
-                } catch {
+                }
+                catch
+                {
                     m_log.ErrorFormat("Couldn't find inventory item: {0}", item);
                     return null;
                 }
@@ -141,14 +153,19 @@ namespace OpenSim.Data.NHibernate
         /// <param name="item">The item to be created</param>
         public void addInventoryItem(InventoryItemBase item)
         {
-            if (!ExistsItem(item.ID)) {
-                using (ISession session = factory.OpenSession()) {
-                    using (ITransaction transaction = session.BeginTransaction()) {
+            if (!ExistsItem(item.ID))
+            {
+                using (ISession session = factory.OpenSession())
+                {
+                    using (ITransaction transaction = session.BeginTransaction())
+                    {
                         session.Save(item);
                         transaction.Commit();
                     }
                 }
-            } else {
+            }
+            else
+            {
                 m_log.ErrorFormat("Attempted to add Inventory Item {0} that already exists, updating instead", item.ID);
                 updateInventoryItem(item);
             }
@@ -160,14 +177,19 @@ namespace OpenSim.Data.NHibernate
         /// <param name="item">The updated item</param>
         public void updateInventoryItem(InventoryItemBase item)
         {
-            if (ExistsItem(item.ID)) {
-                using (ISession session = factory.OpenSession()) {
-                    using (ITransaction transaction = session.BeginTransaction()) {
+            if (ExistsItem(item.ID))
+            {
+                using (ISession session = factory.OpenSession())
+                {
+                    using (ITransaction transaction = session.BeginTransaction())
+                    {
                         session.Update(item);
                         transaction.Commit();
                     }
                 }
-            } else {
+            }
+            else
+            {
                 m_log.ErrorFormat("Attempted to add Inventory Item {0} that already exists", item.ID);
             }
         }
@@ -178,14 +200,15 @@ namespace OpenSim.Data.NHibernate
         /// <param name="item"></param>
         public void deleteInventoryItem(LLUUID itemID)
         {
-            using (ISession session = factory.OpenSession()) {
-                using (ITransaction transaction = session.BeginTransaction()) {
+            using (ISession session = factory.OpenSession())
+            {
+                using (ITransaction transaction = session.BeginTransaction())
+                {
                     session.Delete(itemID);
                     transaction.Commit();
                 }
             }
         }
-
 
         /// <summary>
         /// Returns an inventory folder by its UUID
@@ -194,10 +217,14 @@ namespace OpenSim.Data.NHibernate
         /// <returns>A class containing folder information</returns>
         public InventoryFolderBase getInventoryFolder(LLUUID folder)
         {
-            using (ISession session = factory.OpenSession()) {
-                try {
+            using (ISession session = factory.OpenSession())
+            {
+                try
+                {
                     return session.Load(typeof(InventoryFolderBase), folder) as InventoryFolderBase;
-                } catch {
+                }
+                catch
+                {
                     m_log.ErrorFormat("Couldn't find inventory item: {0}", folder);
                     return null;
                 }
@@ -210,14 +237,19 @@ namespace OpenSim.Data.NHibernate
         /// <param name="folder">The folder to be created</param>
         public void addInventoryFolder(InventoryFolderBase folder)
         {
-            if (!ExistsFolder(folder.ID)) {
-                using (ISession session = factory.OpenSession()) {
-                    using (ITransaction transaction = session.BeginTransaction()) {
+            if (!ExistsFolder(folder.ID))
+            {
+                using (ISession session = factory.OpenSession())
+                {
+                    using (ITransaction transaction = session.BeginTransaction())
+                    {
                         session.Save(folder);
                         transaction.Commit();
                     }
                 }
-            } else {
+            }
+            else
+            {
                 m_log.ErrorFormat("Attempted to add Inventory Folder {0} that already exists, updating instead", folder.ID);
                 updateInventoryFolder(folder);
             }
@@ -229,14 +261,19 @@ namespace OpenSim.Data.NHibernate
         /// <param name="folder">The updated folder</param>
         public void updateInventoryFolder(InventoryFolderBase folder)
         {
-            if (ExistsFolder(folder.ID)) {
-                using (ISession session = factory.OpenSession()) {
-                    using (ITransaction transaction = session.BeginTransaction()) {
+            if (ExistsFolder(folder.ID))
+            {
+                using (ISession session = factory.OpenSession())
+                {
+                    using (ITransaction transaction = session.BeginTransaction())
+                    {
                         session.Update(folder);
                         transaction.Commit();
                     }
                 }
-            } else {
+            }
+            else
+            {
                 m_log.ErrorFormat("Attempted to add Inventory Folder {0} that already exists", folder.ID);
             }
         }
@@ -247,8 +284,10 @@ namespace OpenSim.Data.NHibernate
         /// <param name="folder"></param>
         public void deleteInventoryFolder(LLUUID folderID)
         {
-            using (ISession session = factory.OpenSession()) {
-                using (ITransaction transaction = session.BeginTransaction()) {
+            using (ISession session = factory.OpenSession())
+            {
+                using (ITransaction transaction = session.BeginTransaction())
+                {
                     session.Delete(folderID.ToString());
                     transaction.Commit();
                 }
@@ -324,7 +363,8 @@ namespace OpenSim.Data.NHibernate
         /// <returns>A List of InventoryItemBase items</returns>
         public List<InventoryItemBase> getInventoryInFolder(LLUUID folderID)
         {
-            using (ISession session = factory.OpenSession()) {
+            using (ISession session = factory.OpenSession())
+            {
                 // try {
                     ICriteria criteria = session.CreateCriteria(typeof(InventoryItemBase));
                     criteria.Add(Expression.Eq("Folder", folderID));
@@ -334,7 +374,9 @@ namespace OpenSim.Data.NHibernate
                         list.Add(item);
                     }
                     return list;
-//                 } catch {
+//                 }
+//                 catch
+//                 {
 //                     return new List<InventoryItemBase>();
 //                 }
             }
@@ -348,8 +390,10 @@ namespace OpenSim.Data.NHibernate
         // see InventoryItemBase.getUserRootFolder
         public InventoryFolderBase getUserRootFolder(LLUUID user)
         {
-            using (ISession session = factory.OpenSession()) {
-                //                try {
+            using (ISession session = factory.OpenSession())
+            {
+                //                try
+                //                {
                     ICriteria criteria = session.CreateCriteria(typeof(InventoryFolderBase));
                     criteria.Add(Expression.Eq("ParentID", LLUUID.Zero));
                     criteria.Add(Expression.Eq("Owner", user));
@@ -359,7 +403,9 @@ namespace OpenSim.Data.NHibernate
                     }
                     m_log.ErrorFormat("No Inventory Root Folder Found for: {0}", user);
                     return new InventoryFolderBase();
-//                 } catch {
+//                 }
+//                 catch
+//                 {
 //                     return new InventoryFolderBase();
 //                 }
             }
@@ -372,15 +418,19 @@ namespace OpenSim.Data.NHibernate
         /// <param name="parentID">ID of parent</param>
         private void getInventoryFolders(ref List<InventoryFolderBase> folders, LLUUID parentID)
         {
-            using (ISession session = factory.OpenSession()) {
-                // try {
+            using (ISession session = factory.OpenSession())
+            {
+                // try
+//                 {
                     ICriteria criteria = session.CreateCriteria(typeof(InventoryFolderBase));
                     criteria.Add(Expression.Eq("ParentID", parentID));
                     foreach (InventoryFolderBase item in criteria.List())
                     {
                         folders.Add(item);
                     }
-                    //                } catch {
+                    //                }
+                    //                catch
+                    //                {
                     // m_log.ErrorFormat("Can't run getInventoryFolders for Folder ID: {0}", parentID);
                     //  }
             }

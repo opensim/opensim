@@ -163,7 +163,8 @@ namespace OpenSim.Grid.UserServer
 
                 theUser.CurrentAgent.Region = SimInfo.UUID;
                 theUser.CurrentAgent.Handle = SimInfo.regionHandle;
-                if (start_x >= 0 && start_y >= 0 && start_z >= 0) {
+                if (start_x >= 0 && start_y >= 0 && start_z >= 0)
+                {
                     LLVector3 tmp_v = new LLVector3(start_x, start_y, start_z);
                     theUser.CurrentAgent.Position = tmp_v;
                 }

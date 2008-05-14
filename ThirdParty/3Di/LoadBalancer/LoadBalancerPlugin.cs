@@ -147,7 +147,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 foreach (ScenePresence pre in presences)
                 {
                     IClientAPI client = pre.ControllingClient;
-                    //if (pre.MovementFlag!=0 && client.PacketProcessingEnabled==true) {
+                    //if (pre.MovementFlag!=0 && client.PacketProcessingEnabled==true)
                     if (client.IsActive)
                     {
                         get_scene_presence_filter++;
@@ -160,7 +160,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 foreach (ScenePresence pre in avatars)
                 {
                     IClientAPI client = pre.ControllingClient;
-                    //if (pre.MovementFlag!=0 && client.PacketProcessingEnabled==true) {
+                    //if (pre.MovementFlag!=0 && client.PacketProcessingEnabled==true)
                     if (client.IsActive)
                     {
                         get_avatar_filter++;

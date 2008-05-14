@@ -35,24 +35,29 @@
 //    {
 
 
-//        public float llSin() {
+//        public float llSin()
+//        {
 //            float f = (float)LSLStack.Pop();
 //            return LSL_Builtins.llSin(f);
 //        }
-//        public float llCos() {
+//        public float llCos()
+//        {
 //            float f = (float)LSLStack.Pop();
 //            return LSL_Builtins.llCos(f);
 //        }
-//        public float llTan() {
+//        public float llTan()
+//        {
 //            float f = (float)LSLStack.Pop();
 //            return LSL_Builtins.llTan(f);
 //        }
-//        public float llAtan2() {
+//        public float llAtan2()
+//        {
 //            float x = (float)LSLStack.Pop();
 //            float y = (float)LSLStack.Pop();
 //            return LSL_Builtins.llAtan2(x, y);
 //        }
-//        public float llSqrt() {
+//        public float llSqrt()
+//        {
 //            float f = (float)LSLStack.Pop();
 //            return LSL_Builtins.llSqrt(f);
 //        }
