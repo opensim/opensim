@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using libsecondlife;
-using libsecondlife.Packets;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
