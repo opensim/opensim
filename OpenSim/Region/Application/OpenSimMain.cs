@@ -90,35 +90,40 @@ namespace OpenSim
         private string m_standaloneUserSource;
 
         protected string m_assetStorage = "local";
-
+        
         public ConsoleCommand CreateAccount = null;
         protected bool m_dumpAssetsToFile;
-
+        
         protected List<IApplicationPlugin> m_plugins = new List<IApplicationPlugin>();
 
         protected IniConfigSource m_config;
-
+        
         public IniConfigSource ConfigSource
         {
             get { return m_config; }
             set { m_config = value; }
         }
-
-        public BaseHttpServer HttpServer
-        {
-            get { return m_httpServer; }
-        }
-
+        
         public List<IClientNetworkServer> ClientServers
         {
             get { return m_clientServers; }
         }
-
+        
         public List<RegionInfo> RegionData
         {
             get { return m_regionData; }
         }
-
+        
+        public new BaseHttpServer HttpServer
+        {
+            get { return m_httpServer; }
+        }
+            
+        public new uint HttpServerPort
+        {
+            get { return m_httpServerPort; }
+        }
+            
         protected ModuleLoader m_moduleLoader;
 
         public ModuleLoader ModuleLoader

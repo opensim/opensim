@@ -34,6 +34,11 @@ namespace OpenSim.Framework.Servers
     {
         private RestMethod m_restMethod;
 
+        public RestMethod Method 
+        {
+            get { return m_restMethod; }
+        }
+
         public override byte[] Handle(string path, Stream request)
         {
             Encoding encoding = Encoding.UTF8;

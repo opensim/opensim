@@ -162,6 +162,14 @@ shout_distance = 100
 enabled = false
 access_password = unknown
 
+[RestPlugins]
+enabled = false
+password = unknown
+prefix = /admin
+
+[RestRegionPlugin]
+enabled = false
+
 ; Uncomment the following for IRC bridge
 ; experimental, so if it breaks... keep both parts... yada yada
 ; also, not good error detection when it fails
@@ -325,10 +333,6 @@ CleanUpOldScriptsOnStartup=true
 [LL-Functions]
 ; Set the following to true to allow administrator owned scripts to execute console commands
 AllowosConsoleCommand=false
-
-; Maximum number of llListen events we allow globally in the region
-; Set this to 0 to have no limit imposed.
-max_listens_per_region = 1000
 
 ; Maximum number of llListen events we allow per script
 ; Set this to 0 to have no limit imposed.
