@@ -391,7 +391,7 @@ namespace OpenSim
         {
             printAvailableVersionInformation();
             
-            StatsManager.StartCollectingSimExtraStats();
+            m_stats = StatsManager.StartCollectingSimExtraStats();
             
             // Do baseclass startup sequence: OpenSim.Region.ClientStack.RegionApplicationBase.StartUp
             // TerrainManager, StorageManager, HTTP Server

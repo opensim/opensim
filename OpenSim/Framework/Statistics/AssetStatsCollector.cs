@@ -33,7 +33,7 @@ namespace OpenSim.Framework.Statistics
     /// <summary>
     /// Asset service statistics collection
     /// </summary>
-    public class AssetStatsCollector
+    public class AssetStatsCollector : IStatsCollector
     {
         private Timer ageStatsTimer = new Timer(24 * 60 * 60 * 1000);
         private DateTime startTime = DateTime.Now;

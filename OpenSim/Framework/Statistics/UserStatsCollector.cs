@@ -32,7 +32,7 @@ namespace OpenSim.Framework.Statistics
     /// <summary>
     /// Collects user service statistics
     /// </summary>
-    public class UserStatsCollector
+    public class UserStatsCollector : IStatsCollector
     {
         private Timer ageStatsTimer = new Timer(24 * 60 * 60 * 1000);
         

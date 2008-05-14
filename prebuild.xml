@@ -451,6 +451,7 @@
       <Reference name="System.Xml"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Framework.Statistics"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="XMLRPC.dll"/>
       <Reference name="log4net"/>

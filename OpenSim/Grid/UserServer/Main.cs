@@ -88,7 +88,7 @@ namespace OpenSim.Grid.UserServer
         {
             Cfg = new UserConfig("USER SERVER", (Path.Combine(Util.configDir(), "UserServer_Config.xml")));
             
-            StatsManager.StartCollectingUserStats();
+            m_stats = StatsManager.StartCollectingUserStats();
 
             m_log.Info("[REGION]: Establishing data connection");
             m_userManager = new UserManager();            
@@ -219,16 +219,11 @@ namespace OpenSim.Grid.UserServer
             {
                 case "help":
                     m_console.Notice("create user - create a new user");
-                    m_console.Notice("stats - statistical information for this server");
                     break;
 
                 case "create":
                     do_create(cmdparams[0]);
-                    break;
-                    
-                case "stats":
-                    m_console.Notice(StatsManager.UserStats.Report());
-                    break;                    
+                    break;                  
 
                 case "test-inventory":
                     //  RestObjectPosterResponse<List<InventoryFolderBase>> requester = new RestObjectPosterResponse<List<InventoryFolderBase>>();

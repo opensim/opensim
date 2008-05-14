@@ -36,7 +36,7 @@ namespace OpenSim.Framework.Statistics
     /// <summary>
     /// Collects sim statistics which aren't already being collected for the linden viewer's statistics pane
     /// </summary>
-    public class SimExtraStatsCollector
+    public class SimExtraStatsCollector : IStatsCollector
     {        
         private long assetsInCache;
         private long texturesInCache;        
@@ -135,7 +135,7 @@ Texture cache contains {2,6} textures using {3,10:0.000}K" + Environment.NewLine
     /// <summary>
     /// Pull packet queue stats from packet queues and report
     /// </summary>
-    public class PacketQueueStatsCollector
+    public class PacketQueueStatsCollector : IStatsCollector
     {
         private IPullStatsProvider m_statsProvider;
         

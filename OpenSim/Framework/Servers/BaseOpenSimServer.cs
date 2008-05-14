@@ -27,6 +27,7 @@
 
 using System;
 using OpenSim.Framework.Console;
+using OpenSim.Framework.Statistics;
 
 namespace OpenSim.Framework.Servers
 {
@@ -43,6 +44,11 @@ namespace OpenSim.Framework.Servers
         {
             get { return m_httpServer; }
         }
+        
+        /// <summary>
+        /// Holds the non-viewer statistics collection object for this service/server
+        /// </summary>
+        protected IStatsCollector m_stats;
         
         public BaseOpenSimServer()
         {
@@ -72,6 +78,10 @@ namespace OpenSim.Framework.Servers
             {      
                 case "help":
                     Notice("quit - equivalent to shutdown.");
+                
+                    if (m_stats != null)
+                        Notice("show stats - statistical information for this server");
+                
                     Notice("show uptime - show server startup and uptime.");
                     Notice("shutdown - shutdown the server.\n");
                     break;
@@ -97,7 +107,14 @@ namespace OpenSim.Framework.Servers
         public virtual void Show(string ShowWhat)
         {
             switch (ShowWhat)
-            {
+            {                                    
+                case "stats":
+                    if (m_stats != null)
+                    {
+                        Notice(m_stats.Report());
+                    }
+                    break; 
+                
                 case "uptime":
                     Notice("Server has been running since " + m_startuptime.DayOfWeek + ", " + m_startuptime.ToString());
                     Notice("That is an elapsed time of " + (DateTime.Now - m_startuptime).ToString());

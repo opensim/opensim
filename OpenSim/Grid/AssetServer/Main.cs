@@ -98,7 +98,7 @@ namespace OpenSim.Grid.AssetServer
             m_log.Info("[ASSET]: Starting HTTP process");
             m_httpServer = new BaseHttpServer(m_config.HttpPort);
 
-            StatsManager.StartCollectingAssetStats();
+            m_stats = StatsManager.StartCollectingAssetStats();
 
             AddHttpHandlers();
 
@@ -179,16 +179,7 @@ namespace OpenSim.Grid.AssetServer
             base.RunCmd(cmd, cmdparams);
             
             switch (cmd)
-            {
-                case "help":
-                    m_console.Notice("stats - statistical information for this server");
-                    
-                    break;                  
-                    
-                case "stats":
-                    m_console.Notice("STATS", Environment.NewLine + StatsManager.AssetStats.Report());
-                    break;
-
+            {                                   
                 case "shutdown":
                     m_console.Close();
                     Environment.Exit(0);

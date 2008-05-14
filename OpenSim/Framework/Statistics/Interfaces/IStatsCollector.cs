@@ -28,51 +28,14 @@
 namespace OpenSim.Framework.Statistics
 {    
     /// <summary>
-    /// Singleton used to provide access to statistics reporters
+    /// Implemented by classes which collect up non-viewer statistical information
     /// </summary>
-    public class StatsManager
+    public interface IStatsCollector
     {
-        private static AssetStatsCollector assetStats;
-        private static UserStatsCollector userStats;
-        private static SimExtraStatsCollector simExtraStats;                
-        
-        public static AssetStatsCollector AssetStats { get { return assetStats; } }
-        public static UserStatsCollector UserStats { get { return userStats; } }
-        public static SimExtraStatsCollector SimExtraStats { get { return simExtraStats; } }
-        
-        private StatsManager() {}
-        
         /// <summary>
-        /// Start collecting statistics related to assets.
-        /// Should only be called once.
-        /// </summary>        
-        public static AssetStatsCollector StartCollectingAssetStats()
-        {
-            assetStats = new AssetStatsCollector();
-            
-            return assetStats;
-        }
-        
-        /// <summary>
-        /// Start collecting statistics related to users.
-        /// Should only be called once.
-        /// </summary>        
-        public static UserStatsCollector StartCollectingUserStats()
-        {
-            userStats = new UserStatsCollector();
-            
-            return userStats;
-        }        
-        
-        /// <summary>
-        /// Start collecting extra sim statistics apart from those collected for the client.  
-        /// Should only be called once.
+        /// Report back collected statistical information.
         /// </summary>
-        public static SimExtraStatsCollector StartCollectingSimExtraStats()
-        {
-            simExtraStats = new SimExtraStatsCollector();
-            
-            return simExtraStats;
-        }
+        /// <returns></returns>
+        string Report();        
     }
 }

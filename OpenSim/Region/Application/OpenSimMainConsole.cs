@@ -252,8 +252,7 @@ namespace OpenSim
                     m_console.Notice("set-time [x] - set the current scene time phase");
                     m_console.Notice("show assets - show state of asset cache.");
                     m_console.Notice("show users - show info about connected users.");
-                    m_console.Notice("show modules - shows info about loaded modules.");
-                    m_console.Notice("show stats - statistical information for this server");
+                    m_console.Notice("show modules - shows info about loaded modules.");                    
                     m_console.Notice("show version - show the running build version.");
                     m_console.Notice("threads - list threads");
                     m_console.Notice("config set section field value - set a config value");
@@ -594,18 +593,6 @@ namespace OpenSim
                                              scene.RegionInfo.RegionLocX + " , Region YLoc: " +
                                              scene.RegionInfo.RegionLocY);
                         });
-                    break;
-                                    
-                case "stats":
-                    if (StatsManager.SimExtraStats != null)
-                    {
-                        m_console.Notice(
-                            "STATS", Environment.NewLine + StatsManager.SimExtraStats.Report());                    
-                    }
-                    else
-                    {
-                        m_console.Notice("Extra sim statistics collection has not been enabled");
-                    }
                     break;
 
                 case "version":
