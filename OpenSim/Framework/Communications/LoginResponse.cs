@@ -248,7 +248,7 @@ namespace OpenSim.Framework.Communications
         {
             return GenerateFailureResponse(
                 "key",
-                "The agent inventory service is not responding.  Please notify your login region operator.",
+                "The avatar inventory service is not responding.  Please notify your login region operator.",
                 "false");     
         }
 
