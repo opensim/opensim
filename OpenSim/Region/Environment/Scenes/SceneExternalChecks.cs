@@ -118,11 +118,11 @@ namespace OpenSim.Region.Environment.Scenes
                     CanTakeObjectCheckFunctions.Remove(delegateFunc);
             }
 
-            public bool ExternalChecksCanTakeObject(LLUUID objectID, LLUUID stealer)
+            public bool ExternalChecksCanTakeObject(LLUUID objectID, LLUUID AvatarTakingUUID)
             {
                 foreach (CanTakeObject check in CanTakeObjectCheckFunctions)
                 {
-                    if (check(objectID, stealer, m_scene) == false)
+                    if (check(objectID, AvatarTakingUUID, m_scene) == false)
                     {
                         return false;
                     }

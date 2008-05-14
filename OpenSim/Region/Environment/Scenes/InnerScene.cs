@@ -397,7 +397,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (((SceneObjectGroup)obj).LocalId == objectLocalID)
                     {
                         SceneObjectGroup group = (SceneObjectGroup)obj;
-                        if (m_parentScene.ExternalChecks.ExternalChecksCanEditScript(obj.UUID, remoteClient.AgentId))
+                        if (m_parentScene.ExternalChecks.ExternalChecksCanTakeObject(obj.UUID, remoteClient.AgentId))
                         {
                             // If the attachment point isn't the same as the one previously used
                             // set it's offset position = 0 so that it appears on the attachment point
