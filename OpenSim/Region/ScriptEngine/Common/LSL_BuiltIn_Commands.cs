@@ -849,7 +849,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.LSLInteger llGetStatus(int status)
         {
             m_host.AddScriptLPS(1);
-            Console.WriteLine(m_host.UUID.ToString() + " status is " + m_host.GetEffectiveObjectFlags().ToString());
+            // Console.WriteLine(m_host.UUID.ToString() + " status is " + m_host.GetEffectiveObjectFlags().ToString());
             switch (status)
             {
                 case BuiltIn_Commands_BaseClass.STATUS_PHYSICS:
@@ -896,7 +896,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                     NotImplemented("llGetStatus - STATUS_SANDBOX");
                     return 0;
             }
-            NotImplemented("llGetStatus - Unknown Status parameter");
             return 0;
         }
 
@@ -965,10 +964,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                 part.UpdateTexture(tex);
                 return;
             }
-            else
-            {
-                NotImplemented("llSetColor");
-            }
         }
 
         public double llGetAlpha(int face)
@@ -1022,10 +1017,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                 part.UpdateTexture(tex);
                 return;
             }
-            else
-            {
-                NotImplemented("llSetAlpha");
-            }
         }
 
         public LSL_Types.Vector3 llGetColor(int face)
@@ -1052,7 +1043,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
             else
             {
-                NotImplemented("llGetColor");
                 return new LSL_Types.Vector3();
             }
         }
@@ -1098,10 +1088,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                 part.UpdateTexture(tex);
                 return;
             }
-            else
-            {
-                NotImplemented("llSetTexture");
-            }
         }
 
         public void llScaleTexture(double u, double v, int face)
@@ -1138,10 +1124,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                 part.UpdateTexture(tex);
                 return;
             }
-            else
-            {
-                NotImplemented("llScaleTexture");
-            }
         }
 
         public void llOffsetTexture(double u, double v, int face)
@@ -1177,10 +1159,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                 part.UpdateTexture(tex);
                 return;
             }
-            else
-            {
-                NotImplemented("llOffsetTexture");
-            }
         }
 
         public void llRotateTexture(double rotation, int face)
@@ -1213,10 +1191,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                 part.UpdateTexture(tex);
                 return;
             }
-            else
-            {
-                NotImplemented("llRotateTexture");
-            }
         }
 
         public string llGetTexture(int face)
@@ -1235,7 +1209,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
             else
             {
-                NotImplemented("llGetTexture");
                 return String.Empty;
             }
         }
@@ -2452,10 +2425,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
                 return;
             }
-            else
-            {
-                NotImplemented("llSetLinkColor");
-            }
         }
 
         public void llCreateLink(string target, int parent)
@@ -2642,10 +2611,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llModifyLand(int action, int brush)
         {
             m_host.AddScriptLPS(1);
-            if (World.ExternalChecks.ExternalChecksCanTerraformLand(m_host.OwnerID, new LLVector3(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, 0)))
-            {
-                NotImplemented("llModifyLand");
-            }
+            World.ExternalChecks.ExternalChecksCanTerraformLand(m_host.OwnerID, new LLVector3(m_host.AbsolutePosition.X, m_host.AbsolutePosition.Y, 0));
         }
 
         public void llCollisionSound(string impact_sound, double impact_volume)
@@ -4792,10 +4758,6 @@ namespace OpenSim.Region.ScriptEngine.Common
                     }
                 }
                 return;
-            }
-            else
-            {
-                NotImplemented("llSetLinkAlpha");
             }
         }
 
