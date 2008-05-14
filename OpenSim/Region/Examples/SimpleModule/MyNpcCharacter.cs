@@ -583,6 +583,11 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         }
 
+        public void SendGroupMembership(GroupData[] GroupMembership)
+        {
+
+        }
+
         private void Update()
         {
             frame++;

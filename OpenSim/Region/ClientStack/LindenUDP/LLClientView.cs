@@ -5758,6 +5758,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             OutPacket(avatarSitResponse, ThrottleOutPacketType.Task);
         }
+
         public void SendAdminResponse(LLUUID Token, uint AdminLevel)
         {
             GrantGodlikePowersPacket respondPacket = new GrantGodlikePowersPacket();
@@ -5773,6 +5774,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             respondPacket.AgentData = adb;
             OutPacket(respondPacket, ThrottleOutPacketType.Task);
         }
+
+        public void SendGroupMembership(GroupData[] GroupMembership)
+        {
+            AgentGroupDataUpdatePacket Groupupdate = new AgentGroupDataUpdatePacket();
+            AgentGroupDataUpdatePacket.GroupDataBlock[] Groups = new AgentGroupDataUpdatePacket.GroupDataBlock[GroupMembership.Length];
+            for (int i = 0; i < GroupMembership.Length; i++)
+            {
+                AgentGroupDataUpdatePacket.GroupDataBlock Group = new AgentGroupDataUpdatePacket.GroupDataBlock();
+                Group.AcceptNotices = GroupMembership[i].AcceptNotices;
+                Group.Contribution = GroupMembership[i].contribution;
+                Group.GroupID = GroupMembership[i].GroupID;
+                Group.GroupInsigniaID = GroupMembership[i].GroupPicture;
+                Group.GroupName = Helpers.StringToField(GroupMembership[i].groupName);
+                Group.GroupPowers = GroupMembership[i].groupPowers;
+                Groups[i] = Group;
+                Groupupdate.GroupData = Groups;
+                
+            }
+            Groupupdate.AgentData.AgentID = AgentId;
+            OutPacket(Groupupdate, ThrottleOutPacketType.Task);
+
+        }
+
         public ClientInfo GetClientInfo()
         {
             //MainLog.Instance.Verbose("CLIENT", "GetClientInfo BGN");

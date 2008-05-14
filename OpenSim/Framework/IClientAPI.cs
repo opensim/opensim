@@ -973,6 +973,9 @@ namespace OpenSim.Framework
                                         LLVector3 CameraAtOffset, LLVector3 CameraEyeOffset, bool ForceMouseLook);
 
         void SendAdminResponse(LLUUID Token, uint AdminLevel);
+       
+        void SendGroupMembership(GroupData[] GroupMembership);
+        
 
         byte[] GetThrottlesPacked(float multiplier);
 

@@ -102,6 +102,12 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
 
         }
+
+        public void SendGroupMembership(GroupData[] GroupMembership)
+        {
+
+        }
+
         public LLUUID GetDefaultAnimation(string name)
         {
             return LLUUID.Zero;
