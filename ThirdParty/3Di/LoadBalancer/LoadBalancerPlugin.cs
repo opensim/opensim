@@ -147,7 +147,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 foreach (ScenePresence pre in presences)
                 {
                     IClientAPI client = pre.ControllingClient;
-                    //if(pre.MovementFlag!=0 && client.PacketProcessingEnabled==true) {
+                    //if (pre.MovementFlag!=0 && client.PacketProcessingEnabled==true) {
                     if (client.IsActive)
                     {
                         get_scene_presence_filter++;
@@ -160,7 +160,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 foreach (ScenePresence pre in avatars)
                 {
                     IClientAPI client = pre.ControllingClient;
-                    //if(pre.MovementFlag!=0 && client.PacketProcessingEnabled==true) {
+                    //if (pre.MovementFlag!=0 && client.PacketProcessingEnabled==true) {
                     if (client.IsActive)
                     {
                         get_avatar_filter++;
@@ -884,7 +884,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 
                     // Because data changes by the physics simulation when the client doesn't move, 
                     // if MovementFlag is false, It is necessary to synchronize.
-                    //if(pre.MovementFlag!=0 && client.PacketProcessingEnabled==true) 
+                    //if (pre.MovementFlag!=0 && client.PacketProcessingEnabled==true) 
                     if (client.IsActive)
                     {
                         //m_log.Info("[SPLITSCENE] "+String.Format("Client moving in {0} {1}", scene.RegionInfo.RegionID, pre.AbsolutePosition));

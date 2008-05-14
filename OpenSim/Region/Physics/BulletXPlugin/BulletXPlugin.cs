@@ -729,7 +729,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             {
                 prim.UpdateKinetics();
             }
-            //if(this._simFlatPlanet!=null) this._simFlatPlanet.Restore();
+            //if (this._simFlatPlanet!=null) this._simFlatPlanet.Restore();
         }
 
         public override void GetResults()

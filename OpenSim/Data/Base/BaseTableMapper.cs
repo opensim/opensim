@@ -125,7 +125,7 @@ namespace OpenSim.Data.Base
 
         // HACK: This is a temporary function used by TryGetValue().
         // Due to a bug in mono 1.2.6, delegate blocks cannot contain
-        // a using() block.  This has been fixed in SVN, so the next
+        // a using block.  This has been fixed in SVN, so the next
         // mono release should work.
         private void TryGetConnectionValue(DbConnection connection, TPrimaryKey primaryKey, ref TRowMapper result, ref bool success)
         {
@@ -137,7 +137,7 @@ namespace OpenSim.Data.Base
                 {
                     if (reader.Read())
                     {
-                        result = FromReader( CreateReader(reader));
+                        result = FromReader(CreateReader(reader));
                         success = true;
                     }
                     else
@@ -165,7 +165,7 @@ namespace OpenSim.Data.Base
 
         // HACK: This is a temporary function used by Remove().
         // Due to a bug in mono 1.2.6, delegate blocks cannot contain
-        // a using() block.  This has been fixed in SVN, so the next
+        // a using block.  This has been fixed in SVN, so the next
         // mono release should work.
         protected virtual void TryDelete(DbConnection connection, TPrimaryKey id, ref int deleted)
         {
@@ -215,7 +215,7 @@ namespace OpenSim.Data.Base
 
         // HACK: This is a temporary function used by Update().
         // Due to a bug in mono 1.2.6, delegate blocks cannot contain
-        // a using() block.  This has been fixed in SVN, so the next
+        // a using block.  This has been fixed in SVN, so the next
         // mono release should work.
         protected void TryUpdate(DbConnection connection, TPrimaryKey primaryKey, TRowMapper value, ref int updated)
         {
@@ -246,7 +246,7 @@ namespace OpenSim.Data.Base
 
         // HACK: This is a temporary function used by Add().
         // Due to a bug in mono 1.2.6, delegate blocks cannot contain
-        // a using() block.  This has been fixed in SVN, so the next
+        // a using block.  This has been fixed in SVN, so the next
         // mono release should work.
         protected void TryAdd(DbConnection connection, TRowMapper value, ref int added)
         {

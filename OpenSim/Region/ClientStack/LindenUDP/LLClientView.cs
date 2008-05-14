@@ -1204,11 +1204,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendPayPrice(LLUUID objectID, int[] payPrice)
         {
-            if(payPrice[0] == 0 &&
-               payPrice[1] == 0 &&
-               payPrice[2] == 0 &&
-               payPrice[3] == 0 &&
-               payPrice[4] == 0)
+            if (payPrice[0] == 0 &&
+                payPrice[1] == 0 &&
+                payPrice[2] == 0 &&
+                payPrice[3] == 0 &&
+                payPrice[4] == 0)
                 return;
 
             PayPriceReplyPacket payPriceReply = (PayPriceReplyPacket)PacketPool.Instance.GetPacket(PacketType.PayPriceReply);
@@ -3094,7 +3094,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return true;
         }
            
-
         public void SendScriptQuestion(LLUUID taskID, string taskName, string ownerName, LLUUID itemID, int question)
         {
             ScriptQuestionPacket scriptQuestion = (ScriptQuestionPacket)PacketPool.Instance.GetPacket(PacketType.ScriptQuestion);
@@ -3108,13 +3107,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             OutPacket(scriptQuestion, ThrottleOutPacketType.Task);
         }
+
         private void InitDefaultAnimations()
         {
         }
 
         public LLUUID GetDefaultAnimation(string name)
         {
-            if(m_defaultAnimations.ContainsKey(name))
+            if (m_defaultAnimations.ContainsKey(name))
                 return m_defaultAnimations[name];
             return LLUUID.Zero;
         }
@@ -3318,8 +3318,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 handlerUpdatePrimGroupScale = OnUpdatePrimGroupScale;
                                 if (handlerUpdatePrimGroupScale != null)
                                 {
-
-                                    // Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z );
+                                    // Console.WriteLine("new scale is " + scale.X + " , " + scale.Y + " , " + scale.Z);
                                     handlerUpdatePrimGroupScale(localId, scale5, this);
                                     handlerUpdateVector = OnUpdatePrimGroupPosition;
 

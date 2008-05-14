@@ -87,7 +87,7 @@ namespace OpenSim.Grid.GridServer
 
             AddHttpHandlers();
 
-            LoadGridPlugins( );
+            LoadGridPlugins();
 
             m_httpServer.Start();
 

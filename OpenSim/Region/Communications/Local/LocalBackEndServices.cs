@@ -91,7 +91,7 @@ namespace OpenSim.Region.Communications.Local
             //Console.WriteLine("CommsManager - Region " + regionInfo.RegionHandle + " , " + regionInfo.RegionLocX + " , "+ regionInfo.RegionLocY +" is registering");
             if (!m_regions.ContainsKey(regionInfo.RegionHandle))
             {
-                //Console.WriteLine("CommsManager - Adding Region " + regionInfo.RegionHandle );
+                //Console.WriteLine("CommsManager - Adding Region " + regionInfo.RegionHandle);
                 m_regions.Add(regionInfo.RegionHandle, regionInfo);
 
                 RegionCommsListener regionHost = new RegionCommsListener();
@@ -180,7 +180,7 @@ namespace OpenSim.Region.Communications.Local
 
         public RegionInfo RequestClosestRegion(string regionName)
         {
-            foreach(RegionInfo regInfo in m_regions.Values)
+            foreach (RegionInfo regInfo in m_regions.Values)
             {
                 if (regInfo.RegionName == regionName) return regInfo;
             }

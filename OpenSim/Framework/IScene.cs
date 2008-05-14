@@ -31,7 +31,7 @@ namespace OpenSim.Framework
 {
     public delegate void restart(RegionInfo thisRegion);
 
-    //public delegate void regionup ( RegionInfo thisRegion );
+    //public delegate void regionup (RegionInfo thisRegion);
 
     public enum RegionStatus : int
     {

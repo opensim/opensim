@@ -45,7 +45,7 @@ namespace OpenGridServices.Manager
 
         public static void DoMainLoop()
         {
-            while(!QuitReq)
+            while (!QuitReq)
             {
                 Application.RunIteration();
             }
@@ -57,15 +57,15 @@ namespace OpenGridServices.Manager
             string cmd;
             char[] sep = new char[1];
             sep[0]=' ';
-            while(!QuitReq)
+            while (!QuitReq)
             {
                 operation=PendingOperations.Dequeue();
                 Console.WriteLine(operation);
                 cmd = operation.Split(sep)[0];
-                switch(cmd) {
+                switch (cmd) {
                     case "connect_to_gridserver":
                         win.SetStatus("Connecting to grid server...");
-                        if(gridserverConn.Connect(operation.Split(sep)[1],operation.Split(sep)[2],operation.Split(sep)[3])) {
+                        if (gridserverConn.Connect(operation.Split(sep)[1], operation.Split(sep)[2], operation.Split(sep)[3])) {
                             win.SetStatus("Connected OK with session ID:" + gridserverConn.SessionID);
                             win.SetGridServerConnected(true);
                             Thread.Sleep(3000);
@@ -78,7 +78,7 @@ namespace OpenGridServices.Manager
                     
                     case "restart_gridserver":
                         win.SetStatus("Restarting grid server...");
-                        if(gridserverConn.RestartServer()) {
+                        if (gridserverConn.RestartServer()) {
                             win.SetStatus("Restarted server OK");
                             Thread.Sleep(3000);
                             win.SetStatus("");
@@ -89,7 +89,7 @@ namespace OpenGridServices.Manager
                     
                     case "shutdown_gridserver":
                         win.SetStatus("Shutting down grid server...");
-                        if(gridserverConn.ShutdownServer()) {
+                        if (gridserverConn.ShutdownServer()) {
                             win.SetStatus("Grid server shutdown");
                             win.SetGridServerConnected(false);
                             Thread.Sleep(3000);

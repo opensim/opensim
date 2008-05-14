@@ -1263,7 +1263,7 @@ namespace OpenSim.Region.Environment.Scenes
                 //bool colliding = (m_physicsActor.IsColliding==true);
                 //if (controlland) 
                 //    m_log.Info("[AGENT]: landCommand");
-                //if (colliding ) 
+                //if (colliding) 
                 //    m_log.Info("[AGENT]: colliding");
                 //if (m_physicsActor.Flying && colliding && controlland)
                 //{

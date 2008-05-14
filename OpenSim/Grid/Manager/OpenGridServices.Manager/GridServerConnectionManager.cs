@@ -55,7 +55,7 @@ namespace OpenGridServices.Manager
                 LoginParams.Add(LoginParamsHT);
                 XmlRpcRequest GridLoginReq = new XmlRpcRequest("manager_login",LoginParams);
                 XmlRpcResponse GridResp = GridLoginReq.Send(ServerURL,3000);
-                if(GridResp.IsFault) {
+                if (GridResp.IsFault) {
                     connected=false;
                     return false;
                 } else {
@@ -87,14 +87,15 @@ namespace OpenGridServices.Manager
                 // TODO - ERROR!
             }
 
-            for(int i=0; i<=rootnode.ChildNodes.Count; i++)
+            for (int i = 0; i <= rootnode.ChildNodes.Count; i++)
             {
-                if(rootnode.ChildNodes.Item(i).Name != "region") {
+                if (rootnode.ChildNodes.Item(i).Name != "region")
+                {
                     // TODO - ERROR!
-                } else {
+                }
+                else
+                {
                     TempRegionData = new RegionBlock();
-
-                    
                 }
             }
         }
@@ -112,8 +113,8 @@ namespace OpenGridServices.Manager
                 ShutdownParamsHT["session_id"]=this.SessionID.ToString();
                 ShutdownParams.Add(ShutdownParamsHT);
                 XmlRpcRequest GridShutdownReq = new XmlRpcRequest("shutdown",ShutdownParams);
-                XmlRpcResponse GridResp = GridShutdownReq.Send(this.ServerURL,3000);
-                if(GridResp.IsFault) {
+                XmlRpcResponse GridResp = GridShutdownReq.Send(this.ServerURL, 3000);
+                if (GridResp.IsFault) {
                     return false;
                 } else {
                     connected=false;

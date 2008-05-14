@@ -235,7 +235,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                             // dot=dot(forward_dir,obj_dir)
                             // mag_fwd = mag(forward_dir)
                             // mag_obj = mag(obj_dir)
-                            // ang = acos( dot /(mag_fwd*mag_obj))
+                            // ang = acos(dot /(mag_fwd*mag_obj))
                             double ang_obj = 0;
                             try
                             {

@@ -122,7 +122,7 @@ namespace OpenSim.Framework
             get
             {
                 // Old one defaults to IPv6
-                //return new IPEndPoint( Dns.GetHostAddresses( m_externalHostName )[0], m_internalEndPoint.Port );
+                //return new IPEndPoint(Dns.GetHostAddresses(m_externalHostName)[0], m_internalEndPoint.Port);
 
                 IPAddress ia = null;
                 // If it is already an IP, don't resolve it - just return directly

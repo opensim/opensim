@@ -506,7 +506,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 int src;
                 int dest=0;
 
-                for(src = 0 ; src < m_data.Length ; src++)
+                for (src = 0; src < m_data.Length; src++)
                 {
                     if (src < start || src > end)
                         ret[dest++]=m_data[src];
@@ -624,9 +624,9 @@ namespace OpenSim.Region.ScriptEngine.Common
                     Array.Copy(Data, 0, ret, 0, Data.Length);
 
                     keys=new string[Data.Length];
-                    int k;
-                    for(k=0;k<Data.Length;k++)
-                        keys[k]=Data[k].ToString();
+
+                    for (int k = 0; k < Data.Length; k++)
+                        keys[k] = Data[k].ToString();
 
                     Array.Sort(keys, ret);
 
@@ -644,11 +644,11 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                 int i;
 
-                while(src < Data.Length)
+                while (src < Data.Length)
                 {
                     Object[] o=new Object[stride];
 
-                    for(i=0;i<stride;i++)
+                    for (i = 0; i < stride; i++)
                     {
                         if (src < Data.Length)
                             o[i]=Data[src++];
@@ -672,11 +672,9 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                 Object[] sorted=new Object[stride*vals.Length];
 
-                int j;
-
-                for(i=0;i<vals.Length;i++)
-                    for(j=0;j<stride;j++)
-                        sorted[i*stride+j]=vals[i][j];
+                for (i = 0; i < vals.Length; i++)
+                    for (int j = 0; j < stride; j++)
+                        sorted[i*stride+j] = vals[i][j];
 
                 return new list(sorted);
             }
@@ -691,7 +689,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             public string ToCSV()
             {
                 string ret = "";
-                foreach(object o in this.Data)
+                foreach (object o in this.Data)
                 {
                     if (ret == "")
                     {

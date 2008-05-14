@@ -163,7 +163,7 @@ namespace OpenSim.Framework
             {
                 PacketType type=packet.Type;
 
-                if(pool[type] == null)
+                if (pool[type] == null)
                 {
                     pool[type] = new Stack();
                 }

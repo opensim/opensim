@@ -412,7 +412,7 @@ namespace OpenSim.Framework.Servers
 
         public void HandleHTTPRequest(HttpListenerRequest request, HttpListenerResponse response)
         {
-            switch( request.HttpMethod )
+            switch (request.HttpMethod)
             {
                 case "OPTIONS":
                     response.StatusCode = 200;

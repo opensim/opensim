@@ -220,7 +220,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         }
         protected void DebugPermissionInformation(string permissionCalled)
         {
-            if(m_debugPermissions)
+            if (m_debugPermissions)
                 m_log.Info("[PERMISSIONS]: " + permissionCalled + " was called from " + m_scene.RegionInfo.RegionName);
         }
 
@@ -240,7 +240,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             if (user != LLUUID.Zero)
             {
                 LLUUID[] estatemanagers = m_scene.RegionInfo.EstateSettings.estateManagers;
-                foreach(LLUUID estatemanager in estatemanagers)
+                foreach (LLUUID estatemanager in estatemanagers)
                 {
                     if (estatemanager == user)
                         return true;

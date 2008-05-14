@@ -371,7 +371,7 @@ namespace OpenSim.Grid.GridServer
             catch (FormatException e)
             {
                 m_log.Warn("[LOGIN PRELUDE]: Invalid login parameters, sending back error response.");
-                return ErrorResponse("Wrong format in login parameters. Please verify parameters." + e.ToString() );
+                return ErrorResponse("Wrong format in login parameters. Please verify parameters." + e.ToString());
             }
             
             m_log.InfoFormat("[LOGIN BEGIN]: Received login request from simulator: {0}", sim.regionName);
@@ -406,7 +406,7 @@ namespace OpenSim.Grid.GridServer
                     {
                         DataResponse insertResponse;
 
-                        if( existingSim == null )
+                        if (existingSim == null)
                         {
                             insertResponse = kvp.Value.AddProfile(sim);
                         }

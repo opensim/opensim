@@ -51,7 +51,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             public void addCheckRezObject(CanRezObject delegateFunc)
             {
-                if(!CanRezObjectCheckFunctions.Contains(delegateFunc))
+                if (!CanRezObjectCheckFunctions.Contains(delegateFunc))
                     CanRezObjectCheckFunctions.Add(delegateFunc);
             }
             public void removeCheckRezObject(CanRezObject delegateFunc)

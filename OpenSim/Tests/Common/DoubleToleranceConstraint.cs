@@ -53,14 +53,14 @@ namespace OpenSim.Tests.Common
             {
                 throw new ArgumentException("Constraint cannot be used upon null values.");
             }
-            if( valueToBeTested.GetType() != typeof(double))
+            if (valueToBeTested.GetType() != typeof(double))
             {
                 throw new ArgumentException("Constraint cannot be used upon non double-values.");
             }
 
             _valueToBeTested = (double)valueToBeTested;
 
-            return IsWithinDoubleConstraint(_valueToBeTested, _baseValue );
+            return IsWithinDoubleConstraint(_valueToBeTested, _baseValue);
         }
 
         public override void WriteDescriptionTo(MessageWriter writer)

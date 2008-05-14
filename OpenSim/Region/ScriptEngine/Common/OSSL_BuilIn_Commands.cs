@@ -340,7 +340,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 IDynamicTextureManager textureManager = World.RequestModuleInterface<IDynamicTextureManager>();
                 LLUUID createdTexture =
                     textureManager.AddDynamicTextureURL(World.RegionInfo.RegionID, m_host.UUID, contentType, url,
-                                                        extraParams, timer, true, (byte) alpha );
+                                                        extraParams, timer, true, (byte) alpha);
                 return createdTexture.ToString();
             }
             else

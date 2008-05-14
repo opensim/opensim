@@ -147,13 +147,12 @@ namespace OpenSim.Test.Inventory
             Assert.IsNotNull(folders, "Failed to get rootfolders for user");
 
             bool foundRoot = false;
-            foreach(InventoryFolderBase f in folders) {
-
+            foreach (InventoryFolderBase f in folders)
+            {
                 // a root folder has a zero valued LLUUID
                 Assert.AreEqual(f.parentID, LLUUID.Zero, "non root folder returned");
 
-
-                if(f.agentID == root.agentID)
+                if (f.agentID == root.agentID)
                 {
                     // we cannot have two different user specific root folders
                     Assert.IsFalse(foundRoot, "Two different user specific root folders returned");

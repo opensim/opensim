@@ -278,7 +278,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                    list.Add(entry.AgentID);
                 }
             }
-            if(list.Count == 0)
+            if (list.Count == 0)
             {
                 list.Add(LLUUID.Zero);
             }

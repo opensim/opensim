@@ -46,7 +46,7 @@ namespace OpenSim.Data.MSSQLMapper
 
         public override object ConvertToDbType(object value)
         {
-            if( value is UInt32 )
+            if (value is UInt32)
             {
                 UInt32 tmpVal = (UInt32) value;
                 Int64 result = Convert.ToInt64(tmpVal);

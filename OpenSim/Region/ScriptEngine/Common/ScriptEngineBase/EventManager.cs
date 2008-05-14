@@ -76,7 +76,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
                 // TODO: HOOK ALL EVENTS UP TO SERVER!
                 IMoneyModule money=myScriptEngine.World.RequestModuleInterface<IMoneyModule>();
-                if(money != null)
+                if (money != null)
                 {
                     money.OnObjectPaid+=HandleObjectPaid;
                 }
@@ -91,7 +91,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         private void HandleObjectPaid(LLUUID objectID, LLUUID agentID, int amount)
         {
             SceneObjectPart part=myScriptEngine.World.GetSceneObjectPart(objectID);
-            if(part != null)
+            if (part != null)
             {
                 money(part.LocalId, agentID, amount);
             }

@@ -65,7 +65,7 @@ namespace OpenUser.Config.UserConfigDb4o
             {
                 db = Db4oFactory.OpenFile("openuser.yap");
                 IObjectSet result = db.Get(typeof(DbUserConfig));
-                if(result.Count==1)
+                if (result.Count == 1)
                 {
                     m_log.Info("[DBUSERCONFIG]: DbUserConfig.cs:InitConfig() - Found a UserConfig object in the local database, loading");
                     foreach (DbUserConfig cfg in result)

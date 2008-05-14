@@ -297,10 +297,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                     // Send inner exception
                                     string[] lines=e.InnerException.ToString().Replace("\r", "").Split('\n');
                                     int line=0;
-                                    foreach(string t in lines)
+                                    foreach (string t in lines)
                                     {
                                         int idx=t.IndexOf("SecondLife.Script.");
-                                        if(idx != -1)
+                                        if (idx != -1)
                                         {
                                             int colon=t.IndexOf(":");
                                             line=Convert.ToInt32(t.Substring(colon+1));

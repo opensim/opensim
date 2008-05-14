@@ -596,7 +596,7 @@ namespace OpenSim.Region.Environment.Scenes
                     ScenePresence presence;
                     TryGetAvatar(remoteClient.AgentId, out presence);
                     byte[] data = null;
-                    if(invType == 3 && presence != null) // libsecondlife.asset.assettype.landmark = 3 - needs to be turned into an enum
+                    if (invType == 3 && presence != null) // libsecondlife.asset.assettype.landmark = 3 - needs to be turned into an enum
                     {
                         LLVector3 pos=presence.AbsolutePosition;
                         string strdata=String.Format("Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\n",
@@ -996,7 +996,7 @@ namespace OpenSim.Region.Environment.Scenes
                             permissionToDelete = false; //Just taking copy! 
 
                         }
-                        else if(DeRezPacket.AgentBlock.Destination == 4) //Take
+                        else if (DeRezPacket.AgentBlock.Destination == 4) //Take
                         {
                             // Take
                             permissionToTake = ExternalChecks.ExternalChecksCanTakeObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);

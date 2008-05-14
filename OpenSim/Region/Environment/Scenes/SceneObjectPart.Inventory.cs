@@ -263,7 +263,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             foreach (TaskInventoryItem item in m_taskInventory.Values)
             {
-                if(item.Name == name)
+                if (item.Name == name)
                     return true;
             }
             return false;
@@ -271,14 +271,14 @@ namespace OpenSim.Region.Environment.Scenes
 
         private string FindAvailableInventoryName(string name)
         {
-            if(!InventoryContainsName(name))
+            if (!InventoryContainsName(name))
                 return name;
 
             int suffix=1;
-            while(suffix < 256)
+            while (suffix < 256)
             {
                 string tryName=String.Format("{0} {1}", name, suffix);
-                if(!InventoryContainsName(tryName))
+                if (!InventoryContainsName(tryName))
                     return tryName;
                 suffix++;
             }
@@ -296,7 +296,7 @@ namespace OpenSim.Region.Environment.Scenes
             item.ParentPartID = UUID;
 
             string name=FindAvailableInventoryName(item.Name);
-            if(name == String.Empty)
+            if (name == String.Empty)
                 return;
 
             item.Name=name;

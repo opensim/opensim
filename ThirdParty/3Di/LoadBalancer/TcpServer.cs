@@ -150,7 +150,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                         state.ms_ptr.Read(packet, 0, state.header.numbytes);
 
 /*
-                        for(int i=0; i<state.header.numbytes; i++) {
+                        for (int i=0; i<state.header.numbytes; i++) {
                             System.Console.Write(packet[i] + " ");
                         }
                         System.Console.WriteLine();

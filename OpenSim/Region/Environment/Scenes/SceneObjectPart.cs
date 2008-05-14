@@ -2049,7 +2049,7 @@ namespace OpenSim.Region.Environment.Scenes
             data[pos] = (byte)pTexAnim.SizeY; pos++;
 
             Helpers.FloatToBytes(pTexAnim.Start).CopyTo(data, pos);
-            Helpers.FloatToBytes(pTexAnim.Length ).CopyTo(data, pos + 4);
+            Helpers.FloatToBytes(pTexAnim.Length).CopyTo(data, pos + 4);
             Helpers.FloatToBytes(pTexAnim.Rate).CopyTo(data, pos + 8);
 
             m_TextureAnimation = data;
@@ -2495,7 +2495,7 @@ namespace OpenSim.Region.Environment.Scenes
                                    (int) (color.x*0xff),
                                    (int) (color.y*0xff),
                                    (int) (color.z*0xff));
-            SetText( text );
+            SetText(text);
         }
 
         public int registerTargetWaypoint(LLVector3 target, float tolerance)

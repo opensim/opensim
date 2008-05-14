@@ -137,7 +137,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
-                if(inv.Value.Type == 10 && inv.Value.ItemID == m_itemID)
+                if (inv.Value.Type == 10 && inv.Value.ItemID == m_itemID)
                 {
                     invItemID=inv.Key;
                     break;
@@ -152,9 +152,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
-                if(inv.Value.Name == name)
+                if (inv.Value.Name == name)
                 {
-                    if(inv.Value.Type != type)
+                    if (inv.Value.Type != type)
                         return LLUUID.Zero;
 
                     return inv.Value.AssetID.ToString();
@@ -168,7 +168,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
-                if(inv.Value.Name == name)
+                if (inv.Value.Name == name)
                 {
                     return inv.Value.AssetID.ToString();
                 }
@@ -362,11 +362,11 @@ namespace OpenSim.Region.ScriptEngine.Common
             double x,y,z,s;
 
             double c1 = Math.Cos(v.y / 2);  
-            double s1 = Math.Sin(v.y / 2 );
-            double c2 = Math.Cos(v.z / 2 );
-            double s2 = Math.Sin(v.z / 2 );
-            double c3 = Math.Cos(v.x / 2 );
-            double s3 = Math.Sin(v.x / 2 );
+            double s1 = Math.Sin(v.y / 2);
+            double c2 = Math.Cos(v.z / 2);
+            double s2 = Math.Sin(v.z / 2);
+            double c3 = Math.Cos(v.x / 2);
+            double s3 = Math.Sin(v.x / 2);
 
             double c1c2 = c1 * c2;
             double s1s2 = s1 * s2;
@@ -2900,7 +2900,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 rotation rot = llEuler2Rot(<0,70,0> * DEG_TO_RAD);
                 
-                llOwnerSay("to get here, we rotate over: "+ (string) llRot2Axis(rot) );
+                llOwnerSay("to get here, we rotate over: "+ (string) llRot2Axis(rot));
                 llOwnerSay("and we rotate for: "+ (llRot2Angle(rot) * RAD_TO_DEG));
     
                 // convert back and forth between quaternion <-> vector and angle
@@ -3339,14 +3339,13 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (src.Data.Length > 0)
             {
                 ret = src.Data[x++].ToString();
-                for(;x<src.Data.Length;x++)
+                for (; x < src.Data.Length; x++)
                 {
                     ret += ", "+src.Data[x].ToString();
                 }
             }
 
             return ret;
-
         }
 
         /// <summary>
@@ -3367,9 +3366,9 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             m_host.AddScriptLPS(1);
 
-            for(int i=0; i<src.Length; i++)
+            for (int i = 0; i < src.Length; i++)
             {
-                switch(src[i])
+                switch (src[i])
                 {
                     case '<' :
                         parens++;
@@ -3435,15 +3434,14 @@ namespace OpenSim.Region.ScriptEngine.Common
  
             if (src.Length != stride && src.Length%stride == 0)
             {
-
                 chunkk = src.Length/stride;
 
                 chunks = new int[chunkk];
 
-                for(int i=0;i<chunkk;i++)
+                for (int i = 0; i < chunkk; i++)
                     chunks[i] = i;
 
-                for(int i=0; i<chunkk-1; i++)
+                for (int i = 0; i < chunkk - 1; i++)
                 {
                     //  randomly select 2 chunks
                     index1 = rand.Next(rand.Next(65536));
@@ -3461,10 +3459,13 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                 result = new LSL_Types.list();
 
-                for(int i=0; i<chunkk; i++)
-                    for(int j=0;j<stride;j++)
+                for (int i = 0; i < chunkk; i++)
+                {
+                    for (int j = 0; j < stride; j++)
+                    {
                         result.Add(src.Data[chunks[i]*stride+j]);
-
+                    }
+                }
             }
             else {
                 object[] array = new object[src.Length];
@@ -3540,25 +3541,28 @@ namespace OpenSim.Region.ScriptEngine.Common
                     stride = 1;
 
                 if (stride > 0)
-                    for(int i=0;i<src.Length;i+=stride)
+                {
+                    for (int i = 0; i < src.Length; i += stride)
                     {
                         if (i<=ei[0] && i>=si[0])
                             result.Add(src.Data[i]);
                         if (twopass && i>=si[1] && i<=ei[1])
                             result.Add(src.Data[i]);
                     }
+                }
                 else if (stride < 0)
-                    for(int i=src.Length-1;i>=0;i+=stride)
+                {
+                    for (int i = src.Length - 1; i >= 0; i += stride)
                     {
-                        if (i<=ei[0] && i>=si[0])
+                        if (i <= ei[0] && i >= si[0])
                             result.Add(src.Data[i]);
-                        if (twopass && i>=si[1] && i<=ei[1])
+                        if (twopass && i >= si[1] && i <= ei[1])
                             result.Add(src.Data[i]);
                     }
+                }
             }
 
             return result;
-
         }
 
         public LSL_Types.Vector3 llGetRegionCorner()
@@ -3635,12 +3639,12 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             if (src.Length != 0 && test.Length != 0)
             {
-                for(int i=0; i< length; i++)
+                for (int i = 0; i < length; i++)
                 {
                    if (src.Data[i].Equals(test.Data[0]))
                    {
                        int j;
-                       for(j=1;j<test.Length;j++)
+                       for (j = 1; j < test.Length; j++)
                            if (!src.Data[i+j].Equals(test.Data[j]))
                                break;
                        if (j == test.Length)
@@ -4328,7 +4332,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return;
             }
             string[] buts = new string[buttons.Length];
-            for(int i = 0; i < buttons.Length; i++)
+            for (int i = 0; i < buttons.Length; i++)
             {
                 if (buttons.Data[i].ToString() == String.Empty)
                 {
@@ -4516,7 +4520,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 int face;
                 LSL_Types.Vector3 v;
 
-                switch(code)
+                switch (code)
                 {
                     case 6: // PRIM_POSITION
                         if (remain < 1)
@@ -4826,12 +4830,12 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             LSL_Types.list res = new LSL_Types.list();
             int idx=0;
-            while(idx < rules.Length)
+            while (idx < rules.Length)
             {
                 int code=Convert.ToInt32(rules.Data[idx++]);
                 int remain=rules.Length-idx;
 
-                switch(code)
+                switch (code)
                 {
                     case 2: // PRIM_MATERIAL
                         res.Add(new LSL_Types.LSLInteger(m_host.Material));
@@ -5339,19 +5343,20 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             //    All entries are initially valid
 
-            for(int i=0; i<mlen; i++) active[i] = true;
+            for (int i = 0; i < mlen; i++)
+                active[i] = true;
 
             offset[mlen] = srclen;
             
-            while(beginning<srclen)
+            while (beginning < srclen)
             {
 
                 best = mlen;    // as bad as it gets
 
                 //    Scan for separators
 
-                for(j=0; j<seplen; j++)
-                {    
+                for (j = 0; j < seplen; j++)
+                {
                     if (active[j])
                     {
                         // scan all of the markers
@@ -5359,7 +5364,8 @@ namespace OpenSim.Region.ScriptEngine.Common
                         { 
                             // not present at all
                             active[j] = false;
-                        } else
+                        }
+                        else
                         {
                             // present and correct
                             if (offset[j] < offset[best])
@@ -5377,7 +5383,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                 if (offset[best] != beginning)
                 {
-                    for(j=seplen; (j<mlen) && (offset[best] > beginning); j++)
+                    for (j = seplen; (j < mlen) && (offset[best] > beginning); j++)
                     {    
                         if (active[j])
                         {
@@ -6174,7 +6180,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 {
                     foreach (object o in args.Data)
                     {
-                        switch(o.ToString())
+                        switch (o.ToString())
                         {
                             case "1":
                                 ret.Add(av.Firstname + " " + av.Lastname);
@@ -6207,9 +6213,9 @@ namespace OpenSim.Region.ScriptEngine.Common
                 SceneObjectPart obj = World.GetSceneObjectPart(key);
                 if (obj != null)
                 {
-                    foreach(object o in args.Data)
+                    foreach (object o in args.Data)
                     {
-                        switch(o.ToString())
+                        switch (o.ToString())
                         {
                             case "1":
                                 ret.Add(obj.Name);

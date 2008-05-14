@@ -79,7 +79,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public bool m_returnCollisions = false;
 
         // Default we're a Geometry
-        private CollisionCategories m_collisionCategories = (CollisionCategories.Geom );
+        private CollisionCategories m_collisionCategories = (CollisionCategories.Geom);
 
         // Default, Collide with Other Geometries, spaces and Bodies
         private CollisionCategories m_collisionFlags = m_default_collisionFlags;
@@ -1170,9 +1170,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (m_usePID)
                 {
-
                     // If we're using the PID controller, then we have no gravity             
-                    fz = ((9.8f) * this.Mass );
+                    fz = 9.8f * this.Mass;
 
                     //  no lock; for now it's only called from within Simulate()
 

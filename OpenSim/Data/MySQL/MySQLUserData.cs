@@ -69,7 +69,7 @@ namespace OpenSim.Data.MySQL
             string settingPort = iniFile.ParseFileReadValue("port");
             
             m_usersTableName = iniFile.ParseFileReadValue("userstablename");
-            if( m_usersTableName == null )
+            if (m_usersTableName == null)
             {
                 m_usersTableName = "users";
             }

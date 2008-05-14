@@ -407,7 +407,7 @@ namespace OpenSim.GUI
                         portBox1.Text = "13050";
                         MessageBox.Show("Enter Usable port number, defaulting to 13050.");
                     }
-                    if(aPort < 13000)
+                    if (aPort < 13000)
                     {
                         portBox1.Text = "13000";
                         MessageBox.Show("Enter Usable port number, defaulting to 13000.");

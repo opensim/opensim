@@ -452,7 +452,7 @@ namespace OpenSim.Region.Environment.Scenes
                           d);
         }
 
-        public delegate void SendCloseChildAgentDelegate( LLUUID agentID, List<ulong> regionlst);
+        public delegate void SendCloseChildAgentDelegate(LLUUID agentID, List<ulong> regionlst);
 
         /// <summary>
         /// This Closes child agents on neighboring regions
@@ -568,7 +568,8 @@ namespace OpenSim.Region.Environment.Scenes
                         // assume local regions are always up
                         destRegionUp = true;
                     }
-                    if(destRegionUp)
+
+                    if (destRegionUp)
                     {
                         avatar.Close();
                         

@@ -143,7 +143,7 @@ namespace OpenSim.Data
             PrimitiveBaseShape shape = new PrimitiveBaseShape();
 
             PrimitiveBaseShapeRowMapper mapper = new PrimitiveBaseShapeRowMapper(m_schema, shape);
-            mapper.FillObject( reader );
+            mapper.FillObject(reader);
 
             return mapper;
         }
@@ -162,7 +162,7 @@ namespace OpenSim.Data
 
         private PrimitiveBaseShapeRowMapper CreateRowMapper(Guid sceneObjectPartId, PrimitiveBaseShape primitiveBaseShape)
         {
-            PrimitiveBaseShapeRowMapper mapper = new PrimitiveBaseShapeRowMapper( m_schema, primitiveBaseShape );
+            PrimitiveBaseShapeRowMapper mapper = new PrimitiveBaseShapeRowMapper(m_schema, primitiveBaseShape);
             mapper.SceneObjectPartId = sceneObjectPartId;
             return mapper;
         }

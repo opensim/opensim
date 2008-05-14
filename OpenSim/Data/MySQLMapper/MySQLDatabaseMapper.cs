@@ -52,7 +52,7 @@ namespace OpenSim.Data.MySQLMapper
 
         public override BaseDataReader CreateReader(IDataReader reader)
         {
-            return new MySQLDataReader( reader );
+            return new MySQLDataReader(reader);
         }
     }
 }

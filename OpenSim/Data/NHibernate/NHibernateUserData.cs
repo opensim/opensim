@@ -88,14 +88,14 @@ namespace OpenSim.Data.NHibernate
             string regex = @"no such table: UserProfiles";
             Regex RE = new Regex(regex, RegexOptions.Multiline);
             try {
-                using(ISession session = factory.OpenSession()) {
+                using (ISession session = factory.OpenSession()) {
                     session.Load(typeof(UserProfileData), LLUUID.Zero);
                 }
             } catch (ObjectNotFoundException) {
                 // yes, we know it's not there, but that's ok
             } catch (ADOException e) {
                 Match m = RE.Match(e.ToString());
-                if(m.Success) {
+                if (m.Success) {
                     // We don't have this table, so create it.
                     new SchemaExport(cfg).Create(true, true);
                 }
@@ -106,7 +106,7 @@ namespace OpenSim.Data.NHibernate
         {
             UserProfileData user = null;
             try {
-                using(ISession session = factory.OpenSession()) {
+                using (ISession session = factory.OpenSession()) {
                     user = session.Load(typeof(UserProfileData), uuid) as UserProfileData;
                 }
                 // BUG: CATCHALL IS BAD.
@@ -119,7 +119,7 @@ namespace OpenSim.Data.NHibernate
         {
             UserProfileData user;
             // TODO: I'm sure I'll have to do something silly here
-            using(ISession session = factory.OpenSession()) {
+            using (ISession session = factory.OpenSession()) {
                 user = session.Load(typeof(UserProfileData), uuid) as UserProfileData;
                 user.CurrentAgent = GetAgentByUUID(uuid);
             }
@@ -129,8 +129,8 @@ namespace OpenSim.Data.NHibernate
         override public void AddNewUserProfile(UserProfileData profile)
         {
             if (!ExistsUser(profile.ID)) {
-                using(ISession session = factory.OpenSession()) {
-                    using(ITransaction transaction = session.BeginTransaction()) {
+                using (ISession session = factory.OpenSession()) {
+                    using (ITransaction transaction = session.BeginTransaction()) {
                         session.Save(profile);
                         SetAgentData(profile.ID, profile.CurrentAgent, session);
                         // TODO: save agent
@@ -166,8 +166,8 @@ namespace OpenSim.Data.NHibernate
         override public bool UpdateUserProfile(UserProfileData profile)
         {
             if (ExistsUser(profile.ID)) {
-                using(ISession session = factory.OpenSession()) {
-                    using(ITransaction transaction = session.BeginTransaction()) {
+                using (ISession session = factory.OpenSession()) {
+                    using (ITransaction transaction = session.BeginTransaction()) {
                         session.Update(profile);
                         SetAgentData(profile.ID, profile.CurrentAgent, session);
                         transaction.Commit();
@@ -183,8 +183,8 @@ namespace OpenSim.Data.NHibernate
         
         override public void AddNewUserAgent(UserAgentData agent)
         {
-            using(ISession session = factory.OpenSession()) {
-                using(ITransaction transaction = session.BeginTransaction()) {
+            using (ISession session = factory.OpenSession()) {
+                using (ITransaction transaction = session.BeginTransaction()) {
                     session.Save(agent);
                     transaction.Commit();
                 }
@@ -193,8 +193,8 @@ namespace OpenSim.Data.NHibernate
         
         public void UpdateUserAgent(UserAgentData agent)
         {
-            using(ISession session = factory.OpenSession()) {
-                using(ITransaction transaction = session.BeginTransaction()) {
+            using (ISession session = factory.OpenSession()) {
+                using (ITransaction transaction = session.BeginTransaction()) {
                     session.Update(agent);
                     transaction.Commit();
                 }
@@ -206,7 +206,7 @@ namespace OpenSim.Data.NHibernate
         override public UserAgentData GetAgentByUUID(LLUUID uuid)
         {
             try {
-                using(ISession session = factory.OpenSession()) {
+                using (ISession session = factory.OpenSession()) {
                     return session.Load(typeof(UserAgentData), uuid) as UserAgentData;
                 }
             } catch {
@@ -216,7 +216,7 @@ namespace OpenSim.Data.NHibernate
 
         override public UserProfileData GetUserByName(string fname, string lname)
         {
-            using(ISession session = factory.OpenSession()) {
+            using (ISession session = factory.OpenSession()) {
                 ICriteria criteria = session.CreateCriteria(typeof(UserProfileData));
                 criteria.Add(Expression.Eq("FirstName", fname));
                 criteria.Add(Expression.Eq("SurName", lname));
@@ -247,11 +247,11 @@ namespace OpenSim.Data.NHibernate
             
             if (querysplit.Length == 2)
             {
-                using(ISession session = factory.OpenSession()) {
+                using (ISession session = factory.OpenSession()) {
                     ICriteria criteria = session.CreateCriteria(typeof(UserProfileData));
                     criteria.Add(Expression.Like("FirstName", querysplit[0]));
                     criteria.Add(Expression.Like("SurName", querysplit[1]));
-                    foreach(UserProfileData profile in criteria.List())
+                    foreach (UserProfileData profile in criteria.List())
                     {
                         AvatarPickerAvatar user = new AvatarPickerAvatar();
                         user.AvatarID = profile.ID;
@@ -280,7 +280,7 @@ namespace OpenSim.Data.NHibernate
         {
             UserAppearance appearance;
             // TODO: I'm sure I'll have to do something silly here
-            using(ISession session = factory.OpenSession()) {
+            using (ISession session = factory.OpenSession()) {
                 appearance = session.Load(typeof(UserAppearance), user) as UserAppearance;
             }
             return appearance;
@@ -289,7 +289,7 @@ namespace OpenSim.Data.NHibernate
         private bool ExistsAppearance(LLUUID uuid)
         {
             UserAppearance appearance;
-            using(ISession session = factory.OpenSession()) {
+            using (ISession session = factory.OpenSession()) {
                 appearance = session.Load(typeof(UserAppearance), uuid) as UserAppearance;
             }
             return (appearance == null) ? false : true;
@@ -299,8 +299,8 @@ namespace OpenSim.Data.NHibernate
         override public void UpdateUserAppearance(LLUUID user, UserAppearance appearance)
         {
             bool exists = ExistsAppearance(user);
-            using(ISession session = factory.OpenSession()) {
-                using(ITransaction transaction = session.BeginTransaction()) {
+            using (ISession session = factory.OpenSession()) {
+                using (ITransaction transaction = session.BeginTransaction()) {
                     if (exists) {
                         session.Update(appearance);
                     } else {

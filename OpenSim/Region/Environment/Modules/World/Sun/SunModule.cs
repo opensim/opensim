@@ -65,7 +65,7 @@ namespace OpenSim.Region.Environment.Modules
         private double d_day_length     = 4;      // A VW day is 4 RW hours long
         private int    d_year_length    = 60;     // There are 60 VW days in a VW year
         private double d_day_night      = 0.45;   // axis offset: ratio of light-to-dark, approx 1:3
-        private double d_longitude      = -73.53;	
+        private double d_longitude      = -73.53;
         private double d_latitude       = 41.29;
 
         // Frame counter
@@ -155,48 +155,44 @@ namespace OpenSim.Region.Environment.Modules
                 m_longitude   = d_longitude;
             }
 
-            switch(m_mode)
+            switch (m_mode)
             {
+                case "T1":
+                default:
+                case "SL":
+                    // Time taken to complete a cycle (day and season)
 
-                case "T1" :
+                    SecondsPerSunCycle = (uint) (m_day_length * 60 * 60);
+                    SecondsPerYear     = (uint) (SecondsPerSunCycle*m_year_length);
 
-                default :
+                    // Ration of real-to-virtual time
 
-                case "SL" :
-					// Time taken to complete a cycle (day and season)
+                    VWTimeRatio        = 24/m_day_length;
 
-					SecondsPerSunCycle = (uint) (m_day_length * 60 * 60);
-					SecondsPerYear     = (uint) (SecondsPerSunCycle*m_year_length);
+                    // Speed of rotation needed to complete a cycle in the
+                    // designated period (day and season)
 
-					// Ration of real-to-virtual time
+                    SunSpeed           = SunCycle/SecondsPerSunCycle;
+                    SeasonSpeed        = SeasonalCycle/SecondsPerYear;
 
-					VWTimeRatio        = 24/m_day_length;
+                    // Horizon translation
 
-					// Speed of rotation needed to complete a cycle in the
-					// designated period (day and season)
+                    HorizonShift      = m_day_night; // Z axis translation
+                    HoursToRadians    = (SunCycle/24)*VWTimeRatio;
 
-					SunSpeed           = SunCycle/SecondsPerSunCycle;
-					SeasonSpeed        = SeasonalCycle/SecondsPerYear;
+                    //  Insert our event handling hooks
 
-					// Horizon translation
+                    scene.EventManager.OnFrame     += SunUpdate;
+                    scene.EventManager.OnNewClient += SunToClient;
 
-					HorizonShift      = m_day_night; // Z axis translation
-					HoursToRadians    = (SunCycle/24)*VWTimeRatio;
+                    ready = true;
 
-					//  Insert our event handling hooks
-
-					scene.EventManager.OnFrame     += SunUpdate;
-					scene.EventManager.OnNewClient += SunToClient;
-
-					ready = true;
-
-					m_log.Debug("[SUN] Mode is "+m_mode);
-					m_log.Debug("[SUN] Initialization completed. Day is "+SecondsPerSunCycle+" seconds, and year is "+m_year_length+" days");
-					m_log.Debug("[SUN] Axis offset is "+m_day_night);
-					m_log.Debug("[SUN] Positional data updated every "+m_frame_mod+" frames");
+                    m_log.Debug("[SUN] Mode is "+m_mode);
+                    m_log.Debug("[SUN] Initialization completed. Day is "+SecondsPerSunCycle+" seconds, and year is "+m_year_length+" days");
+                    m_log.Debug("[SUN] Axis offset is "+m_day_night);
+                    m_log.Debug("[SUN] Positional data updated every "+m_frame_mod+" frames");
 
                     break;
-
             }
         }
 
@@ -224,21 +220,20 @@ namespace OpenSim.Region.Environment.Modules
 
         public void SunToClient(IClientAPI client)
         {
-            if(m_mode != "T1")
+            if (m_mode != "T1")
             {
-				if(ready)
-				{
-					GenSunPos();    // Generate shared values once
-					client.SendSunPos(Position, Velocity, CurrentTime, SecondsPerSunCycle, SecondsPerYear, OrbitalPosition);
+                if (ready)
+                {
+                    GenSunPos();    // Generate shared values once
+                    client.SendSunPos(Position, Velocity, CurrentTime, SecondsPerSunCycle, SecondsPerYear, OrbitalPosition);
                     m_log.Debug("[SUN] Initial update for new client");
-				}
+                }
             }
         }
 
         public void SunUpdate()
         {
-
-            if(((m_frame++%m_frame_mod) != 0) || !ready)
+            if (((m_frame++%m_frame_mod) != 0) || !ready)
             {
                 return;
             }
@@ -253,7 +248,6 @@ namespace OpenSim.Region.Environment.Modules
 
             // set estate settings for region access to sun position 
             m_scene.RegionInfo.EstateSettings.sunPosition = Position;
-
         }
 
         /// <summary>

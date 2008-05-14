@@ -1333,7 +1333,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler
             if (chunk.Count > 0)
                 tmp.Add(chunk);
 
-            // Decreate (<- what kind of word is that? :D ) array back into a list
+            // Decreate (<- what kind of word is that? :D) array back into a list
             int rnd;
             List<string> ret = new List<string>();
             while (tmp.Count > 0)

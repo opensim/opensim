@@ -54,9 +54,9 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         public virtual void Shutdown()
         {
-            if(m_console != null)
+            if (m_console != null)
             {
-				m_console.Close();
+                m_console.Close();
             }
             Environment.Exit(0);
         }
@@ -112,7 +112,7 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         private void Notice(string msg)
         {
-            if(m_console != null)
+            if (m_console != null)
             {
                 m_console.Notice(msg);
             }

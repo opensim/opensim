@@ -512,7 +512,7 @@ namespace OpenSim.Data.MySQL
                     retval.FirstLifeImage = tmp;
                 }
                 
-                if(reader.IsDBNull(reader.GetOrdinal("webLoginKey")))
+                if (reader.IsDBNull(reader.GetOrdinal("webLoginKey")))
                 {
                     retval.WebLoginKey = LLUUID.Zero;
                 }

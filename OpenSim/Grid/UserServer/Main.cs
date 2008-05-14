@@ -266,8 +266,8 @@ namespace OpenSim.Grid.UserServer
                                                                 float positionZ, string firstname, string lastname)
         {
             
-            m_messagesService.TellMessageServersAboutUser( agentID, sessionID, RegionID, regionhandle, positionX,
-                positionY,  positionZ, firstname, lastname);
+            m_messagesService.TellMessageServersAboutUser(agentID, sessionID, RegionID, regionhandle, positionX,
+                                                          positionY,  positionZ, firstname, lastname);
         }
     }
 }

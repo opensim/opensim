@@ -155,7 +155,7 @@ namespace OpenSim.Data.SQLite
                 cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(uuid)));
                 using (IDataReader reader = cmd.ExecuteReader()) 
                 {
-                    if(reader.Read())
+                    if (reader.Read())
                     {
                         reader.Close();
                         return true;

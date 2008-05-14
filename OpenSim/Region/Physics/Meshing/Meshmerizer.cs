@@ -162,7 +162,7 @@ namespace OpenSim.Region.Physics.Meshing
                 }
 
                 // each simplex still in the list belongs to the hull of the region in question
-                // The new vertex (yes, we still deal with verices here :-) ) forms a triangle 
+                // The new vertex (yes, we still deal with verices here :-)) forms a triangle 
                 // with each of these simplices. Build the new triangles and add them to the list
                 foreach (Simplex s in simplices)
                 {

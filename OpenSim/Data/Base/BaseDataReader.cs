@@ -117,7 +117,7 @@ namespace OpenSim.Data.Base
             return m_source.GetGuid(m_source.GetOrdinal(name));
         }
 
-        public UInt32 GetUInt32(string name )
+        public UInt32 GetUInt32(string name)
         {
             return (UInt32)GetInt32(name);
         }
@@ -129,9 +129,9 @@ namespace OpenSim.Data.Base
             return int32;            
         }
 
-        public Int64 GetInt64(string  name)
+        public Int64 GetInt64(string name)
         {
-            int ordinal = m_source.GetOrdinal( name );
+            int ordinal = m_source.GetOrdinal(name);
             long int64 = m_source.GetInt64(ordinal);
             return int64;
         }

@@ -159,7 +159,7 @@ namespace OpenSim.Grid.UserServer
                                                 ulong regionhandle, float positionX, float positionY, 
                                                 float positionZ, string firstname, string lastname)
         {
-            // Loop over registered Message Servers ( AND THERE WILL BE MORE THEN ONE :D )
+            // Loop over registered Message Servers (AND THERE WILL BE MORE THEN ONE :D)
             lock (MessageServers)
             {
                 if (MessageServers.Count > 0)

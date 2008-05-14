@@ -61,14 +61,9 @@ namespace OpenSim.Tests.Common
 
             _valueToBeTested = (LLVector3) valueToBeTested;
 
-            if (    IsWithinDoubleConstraint(_valueToBeTested.X,_baseValue.X) &&
-                    IsWithinDoubleConstraint(_valueToBeTested.Y,_baseValue.Y) &&
-                    IsWithinDoubleConstraint(_valueToBeTested.Z,_baseValue.Z) )
-            {
-                return true;
-            }
-
-            return false;
+            return (IsWithinDoubleConstraint(_valueToBeTested.X, _baseValue.X) &&
+                    IsWithinDoubleConstraint(_valueToBeTested.Y, _baseValue.Y) &&
+                    IsWithinDoubleConstraint(_valueToBeTested.Z, _baseValue.Z));
         }
 
         public override void WriteDescriptionTo(MessageWriter writer)

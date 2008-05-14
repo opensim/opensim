@@ -364,21 +364,21 @@ namespace OpenSim.Grid.ScriptEngine.Common
         List<string> llList2List(List<string> src, int start, int end);
         //wiki: llDeleteSubList(list src, integer start, integer end)
         List<string> llDeleteSubList(List<string> src, int start, int end);
-        //wiki: integer llGetListEntryType( list src, integer index )
+        //wiki: integer llGetListEntryType(list src, integer index)
         int llGetListEntryType(List<string> src, int index);
-        //wiki: string llList2CSV( list src )
+        //wiki: string llList2CSV(list src)
         string llList2CSV(List<string> src);
-        //wiki: list llCSV2List( string src )
+        //wiki: list llCSV2List(string src)
         List<string> llCSV2List(string src);
-        //wiki: list llListRandomize( list src, integer stride )
+        //wiki: list llListRandomize(list src, integer stride)
         List<string> llListRandomize(List<string> src, int stride);
-        //wiki: list llList2ListStrided( list src, integer start, integer end, integer stride )
+        //wiki: list llList2ListStrided(list src, integer start, integer end, integer stride)
         List<string> llList2ListStrided(List<string> src, int start, int end, int stride);
-        //wiki: vector llGetRegionCorner( )
+        //wiki: vector llGetRegionCorner()
         LSL_Types.Vector3 llGetRegionCorner();
-        //wiki: list llListInsertList( list dest, list src, integer start )
+        //wiki: list llListInsertList(list dest, list src, integer start)
         List<string> llListInsertList(List<string> dest, List<string> src, int start);
-        //wiki: integer llListFindList( list src, list test )
+        //wiki: integer llListFindList(list src, list test)
         int llListFindList(List<string> src, List<string> test);
         //wiki: string llGetObjectName()
         string llGetObjectName();
@@ -469,7 +469,7 @@ namespace OpenSim.Grid.ScriptEngine.Common
         void llDumpList2String();
         //wiki: integer llScriptDanger(vector pos)
         void llScriptDanger(LSL_Types.Vector3 pos);
-        //wiki: llDialog( key avatar, string message, list buttons, integer chat_channel )
+        //wiki: llDialog(key avatar, string message, list buttons, integer chat_channel)
         void llDialog(string avatar, string message, List<string> buttons, int chat_channel);
         //wiki: llVolumeDetect(integer detect)
         void llVolumeDetect(int detect);
@@ -493,7 +493,7 @@ namespace OpenSim.Grid.ScriptEngine.Common
         void llCloseRemoteDataChannel(string channel);
         //wiki: string llMD5String(string src, integer nonce)
         string llMD5String(string src, int nonce);
-        //wiki: llSetPrimitiveParams( list rules )
+        //wiki: llSetPrimitiveParams(list rules)
         void llSetPrimitiveParams(List<string> rules);
         //wiki: string llStringToBase64(string str)
         string llStringToBase64(string str);
@@ -507,7 +507,7 @@ namespace OpenSim.Grid.ScriptEngine.Common
         double llLog10(double val);
         //wiki: double llLog(double val)
         double llLog(double val);
-        //wiki: list llGetAnimationList( key id )
+        //wiki: list llGetAnimationList(key id)
         List<string> llGetAnimationList(string id);
         //wiki: llSetParcelMusicURL(string url)
         void llSetParcelMusicURL(string url);
@@ -529,7 +529,7 @@ namespace OpenSim.Grid.ScriptEngine.Common
         int llGetNumberOfPrims();
         //wiki: key llGetNumberOfNotecardLines(string name)
         string llGetNumberOfNotecardLines(string name);
-        //wiki: list llGetBoundingBox( key object )
+        //wiki: list llGetBoundingBox(key object)
         List<string> llGetBoundingBox(string obj);
         //wiki: vector llGetGeometricCenter()
         LSL_Types.Vector3 llGetGeometricCenter();
@@ -544,7 +544,7 @@ namespace OpenSim.Grid.ScriptEngine.Common
         string llGetSimulatorHostname();
         //llSetLocalRot(rotation rot)
         void llSetLocalRot(LSL_Types.Quaternion rot);
-        //wiki: list llParseStringKeepNulls( string src, list separators, list spacers )
+        //wiki: list llParseStringKeepNulls(string src, list separators, list spacers)
         List<string> llParseStringKeepNulls(string src, List<string> seperators, List<string> spacers);
         //wiki: llRezAtRoot(string inventory, vector position, vector velocity, rotation rot, integer param)
         void llRezAtRoot(string inventory, LSL_Types.Vector3 position, LSL_Types.Vector3 velocity,
@@ -571,14 +571,14 @@ namespace OpenSim.Grid.ScriptEngine.Common
         void llListReplaceList();
         //wiki: llLoadURL(key avatar_id, string message, string url)
         void llLoadURL(string avatar_id, string message, string url);
-        //wiki: llParcelMediaCommandList( list commandList )
+        //wiki: llParcelMediaCommandList(list commandList)
         void llParcelMediaCommandList(List<string> commandList);
         void llParcelMediaQuery();
         //wiki integer llModPow(integer a, integer b, integer c)
         int llModPow(int a, int b, int c);
         //wiki: integer llGetInventoryType(string name)
         int llGetInventoryType(string name);
-        //wiki: llSetPayPrice( integer price, list quick_pay_buttons )
+        //wiki: llSetPayPrice(integer price, list quick_pay_buttons)
         void llSetPayPrice(int price, List<string> quick_pay_buttons);
         //wiki: vector llGetCameraPos()
         LSL_Types.Vector3 llGetCameraPos();
@@ -600,11 +600,11 @@ namespace OpenSim.Grid.ScriptEngine.Common
         void llRemoveFromLandPassList(string avatar);
         //wiki: llRemoveFromLandBanList(key avatar)
         void llRemoveFromLandBanList(string avatar);
-        //wiki: llSetCameraParams( list rules )
+        //wiki: llSetCameraParams(list rules)
         void llSetCameraParams(List<string> rules);
         //wiki: llClearCameraParams()
         void llClearCameraParams();
-        //wiki: double llListStatistics( integer operation, list src )
+        //wiki: double llListStatistics(integer operation, list src)
         double llListStatistics(int operation, List<string> src);
         //wiki: integer llGetUnixTime()
         int llGetUnixTime();
@@ -621,11 +621,11 @@ namespace OpenSim.Grid.ScriptEngine.Common
         void llResetLandPassList();
         //wiki integer llGetParcelPrimCount(vector pos, integer category, integer sim_wide)
         int llGetParcelPrimCount(LSL_Types.Vector3 pos, int category, int sim_wide);
-        //wiki: list llGetParcelPrimOwners( vector pos )
+        //wiki: list llGetParcelPrimOwners(vector pos)
         List<string> llGetParcelPrimOwners(LSL_Types.Vector3 pos);
         //wiki: integer llGetObjectPrimCount(key object_id)
         int llGetObjectPrimCount(string object_id);
-        //wiki: integer llGetParcelMaxPrims( vector pos, integer sim_wide )
+        //wiki: integer llGetParcelMaxPrims(vector pos, integer sim_wide)
         int llGetParcelMaxPrims(LSL_Types.Vector3 pos, int sim_wide);
         //wiki list llGetParcelDetails(vector pos, list params)
         List<string> llGetParcelDetails(LSL_Types.Vector3 pos, List<string> param);

@@ -103,7 +103,7 @@ namespace OpenSim.Region.Examples.SimpleModule
 
             for (int i = 0; i < (objs*objs*objs); i++)
             {
-                LLVector3 posOffset = new LLVector3((i % objs) * 4, ((i % (objs*objs)) / ( objs )) * 4, (i / (objs*objs)) * 4);
+                LLVector3 posOffset = new LLVector3((i % objs) * 4, ((i % (objs*objs)) / (objs)) * 4, (i / (objs*objs)) * 4);
                 ComplexObject complexObject =
                     new ComplexObject(m_scene, regionInfo.RegionHandle, LLUUID.Zero, m_scene.PrimIDAllocate(),
                                       pos + posOffset);
