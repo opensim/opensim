@@ -99,6 +99,123 @@ namespace OpenSim.Framework
             set { m_wearables = value; }
         }
 
+        public LLUUID BodyItem {
+            get { return m_wearables[BODY].ItemID; }
+            set { m_wearables[BODY].ItemID = value; }
+        }
+        public LLUUID BodyAsset {
+            get { return m_wearables[BODY].AssetID; }
+            set { m_wearables[BODY].AssetID = value; }
+        }
+        public LLUUID SkinItem {
+            get { return m_wearables[SKIN].ItemID; }
+            set { m_wearables[SKIN].ItemID = value; }
+        }
+        public LLUUID SkinAsset {
+            get { return m_wearables[SKIN].AssetID; }
+            set { m_wearables[SKIN].AssetID = value; }
+        }
+        public LLUUID HairItem {
+            get { return m_wearables[HAIR].ItemID; }
+            set { m_wearables[HAIR].ItemID = value; }
+        }
+        public LLUUID HairAsset {
+            get { return m_wearables[HAIR].AssetID; }
+            set { m_wearables[HAIR].AssetID = value; }
+        }
+        public LLUUID EyesItem {
+            get { return m_wearables[EYES].ItemID; }
+            set { m_wearables[EYES].ItemID = value; }
+        }
+        public LLUUID EyesAsset {
+            get { return m_wearables[EYES].AssetID; }
+            set { m_wearables[EYES].AssetID = value; }
+        }
+        public LLUUID ShirtItem {
+            get { return m_wearables[SHIRT].ItemID; }
+            set { m_wearables[SHIRT].ItemID = value; }
+        }
+        public LLUUID ShirtAsset {
+            get { return m_wearables[SHIRT].AssetID; }
+            set { m_wearables[SHIRT].AssetID = value; }
+        }
+        public LLUUID PantsItem {
+            get { return m_wearables[PANTS].ItemID; }
+            set { m_wearables[PANTS].ItemID = value; }
+        }
+        public LLUUID PantsAsset {
+            get { return m_wearables[BODY].AssetID; }
+            set { m_wearables[BODY].AssetID = value; }
+        }
+        public LLUUID ShoesItem {
+            get { return m_wearables[SHOES].ItemID; }
+            set { m_wearables[SHOES].ItemID = value; }
+        }
+        public LLUUID ShoesAsset {
+            get { return m_wearables[SHOES].AssetID; }
+            set { m_wearables[SHOES].AssetID = value; }
+        }
+        public LLUUID SocksItem {
+            get { return m_wearables[SOCKS].ItemID; }
+            set { m_wearables[SOCKS].ItemID = value; }
+        }
+        public LLUUID SocksAsset {
+            get { return m_wearables[SOCKS].AssetID; }
+            set { m_wearables[SOCKS].AssetID = value; }
+        }
+        public LLUUID JacketItem {
+            get { return m_wearables[JACKET].ItemID; }
+            set { m_wearables[JACKET].ItemID = value; }
+        }
+        public LLUUID JacketAsset {
+            get { return m_wearables[JACKET].AssetID; }
+            set { m_wearables[JACKET].AssetID = value; }
+        }
+        public LLUUID GlovesItem {
+            get { return m_wearables[GLOVES].ItemID; }
+            set { m_wearables[GLOVES].ItemID = value; }
+        }
+        public LLUUID GlovesAsset {
+            get { return m_wearables[GLOVES].AssetID; }
+            set { m_wearables[GLOVES].AssetID = value; }
+        }
+        public LLUUID UnderShirtItem {
+            get { return m_wearables[UNDERSHIRT].ItemID; }
+            set { m_wearables[UNDERSHIRT].ItemID = value; }
+        }
+        public LLUUID UnderShirtAsset {
+            get { return m_wearables[UNDERSHIRT].AssetID; }
+            set { m_wearables[UNDERSHIRT].AssetID = value; }
+        }
+        public LLUUID UnderPantsItem {
+            get { return m_wearables[UNDERPANTS].ItemID; }
+            set { m_wearables[UNDERPANTS].ItemID = value; }
+        }
+        public LLUUID UnderPantsAsset {
+            get { return m_wearables[UNDERPANTS].AssetID; }
+            set { m_wearables[UNDERPANTS].AssetID = value; }
+        }
+        public LLUUID SkirtItem {
+            get { return m_wearables[SKIRT].ItemID; }
+            set { m_wearables[SKIRT].ItemID = value; }
+        }
+        public LLUUID SkirtAsset {
+            get { return m_wearables[SKIRT].AssetID; }
+            set { m_wearables[SKIRT].AssetID = value; }
+        }
+
+        public void SetDefaultWearables() 
+        {
+            m_wearables[BODY].AssetID = BODY_ASSET;
+            m_wearables[BODY].ItemID = BODY_ITEM;
+            m_wearables[SKIN].AssetID = SKIN_ASSET;
+            m_wearables[SKIN].ItemID = SKIN_ITEM;
+            m_wearables[SHIRT].AssetID = SHIRT_ASSET;
+            m_wearables[SHIRT].ItemID = SHIRT_ITEM;
+            m_wearables[PANTS].AssetID = PANTS_ASSET;
+            m_wearables[PANTS].ItemID = PANTS_ITEM;
+        }
+
         protected LLObject.TextureEntry m_texture;
 
         public LLObject.TextureEntry Texture
