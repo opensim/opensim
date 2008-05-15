@@ -33,6 +33,8 @@ namespace OpenSim.Data
 {
     public abstract class UserDataBase : IUserData
     {
+        private Dictionary<LLUUID, AvatarAppearance> aplist = new Dictionary<LLUUID, AvatarAppearance>();
+
         public abstract UserProfileData GetUserByUUID(LLUUID user);
         public abstract UserProfileData GetUserByName(string fname, string lname);        
         public abstract UserAgentData GetAgentByUUID(LLUUID user);
@@ -53,8 +55,16 @@ namespace OpenSim.Data
         public abstract string Name {get;}
         public abstract void Initialise(string connect);
         public abstract List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query);
-        public abstract AvatarAppearance GetUserAppearance(LLUUID user);
-        public abstract void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance);
+        public AvatarAppearance GetUserAppearance(LLUUID user) {
+            if (aplist[user] != null) {
+                aplist[user] = new AvatarAppearance();
+                aplist[user].Owner = user;
+            }
+            return aplist[user];
+        }
+        public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance) {
+            aplist[user] = appearance;
+        }
         public abstract void AddAttachment(LLUUID user, LLUUID item);
         public abstract void RemoveAttachment(LLUUID user, LLUUID item);
         public abstract List<LLUUID> GetAttachments(LLUUID user);

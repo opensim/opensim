@@ -1797,16 +1797,18 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected void GetAvatarAppearance(IClientAPI client, out AvatarAppearance appearance)
         {
-            if (m_AvatarFactory == null ||
-                !m_AvatarFactory.TryGetAvatarAppearance(client.AgentId, out appearance))
-            {
-                //not found Appearance
-                m_log.Warn("[AVATAR DEBUGGING]: Couldn't fetch avatar appearance from factory, please report this to the opensim mantis");
-                byte[] visualParams;
-                AvatarWearable[] wearables;
-                GetDefaultAvatarAppearance(out wearables, out visualParams);
-                appearance = new AvatarAppearance(client.AgentId, wearables, visualParams);
-            }
+            appearance = CommsManager.UserService.GetUserAppearance(client.AgentId);
+
+            // if (m_AvatarFactory == null ||
+            //     !m_AvatarFactory.TryGetAvatarAppearance(client.AgentId, out appearance))
+            // {
+            //     //not found Appearance
+            //     m_log.Warn("[AVATAR DEBUGGING]: Couldn't fetch avatar appearance from factory, please report this to the opensim mantis");
+            //     byte[] visualParams;
+            //     AvatarWearable[] wearables;
+            //     GetDefaultAvatarAppearance(out wearables, out visualParams);
+            //     appearance = new AvatarAppearance(client.AgentId, wearables, visualParams);
+            // }
         }
 
         /// <summary>

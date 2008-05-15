@@ -405,6 +405,8 @@ namespace OpenSim.Region.Environment.Scenes
             RegisterToEvents();
             SetDirectionVectors();
 
+            m_appearance = m_scene.CommsManager.UserService.GetUserAppearance(client.AgentId);
+
             try
             {
                 m_scene.LandChannel.SendLandUpdate(this, true);
@@ -1465,6 +1467,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetWearable(IClientAPI client, int wearableId, AvatarWearable wearable)
         {
             m_appearance.SetWearable(wearableId, wearable);
+            m_scene.CommsManager.UserService.UpdateUserAppearance(client.AgentId, m_appearance);
             client.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
         }
 
@@ -1506,6 +1509,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetAppearance(byte[] texture, List<byte> visualParam)
         {
             m_appearance.SetAppearance(texture, visualParam);
+            m_scene.CommsManager.UserService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
             SetHeight(m_appearance.AvatarHeight);
 
             SendAppearanceToAllOtherAgents();
@@ -1804,6 +1808,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         static ScenePresence()
         {
+            
             LLObject.TextureEntry textu = AvatarAppearance.GetDefaultTexture();
             DefaultTexture = textu.ToBytes();
         }
@@ -2030,6 +2035,8 @@ namespace OpenSim.Region.Environment.Scenes
             m_controllingClient = client;
             m_regionInfo = region;
             m_scene = scene;
+            m_appearance = m_scene.CommsManager.UserService.GetUserAppearance(client.AgentId);
+
             RegisterToEvents();
 
             /*
