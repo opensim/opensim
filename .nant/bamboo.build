@@ -22,14 +22,6 @@
     <touch file="../${projectdir}/bin/startup_commands.txt" />
 
     <mkdir dir="../test-results" />
-    <nunit2>
-      <formatter type="Xml" usefile="true" extension=".xml" outputdir="../test-results" />
-      <test>
-        <assemblies>
-          <include name="../bin/OpenSim*.dll" />
-        </assemblies>
-      </test>
-    </nunit2>
     
     <zip zipfile="../${projectdir}.zip">
       <fileset basedir="${projectdir}/">
