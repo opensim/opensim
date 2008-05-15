@@ -67,14 +67,17 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector _acceleration;
         private PhysicsVector m_rotationalVelocity;
         private float m_mass = 80f;
-        private float m_density = 60f;
+        public float m_density = 60f;
         private bool m_pidControllerActive = true;
-        private float PID_D = 800.0f;
-        private float PID_P = 900.0f;
+        public float PID_D = 800.0f;
+        public float PID_P = 900.0f;
         //private static float POSTURE_SERVO = 10000.0f;
-        public static float CAPSULE_RADIUS = 0.37f;
+        public float CAPSULE_RADIUS = 0.37f;
         public float CAPSULE_LENGTH = 2.140599f;
-        private float m_tensor = 3800000f;
+        public float m_tensor = 3800000f;
+        public float heightFudgeFactor = 0.52f;
+        public float walkDivisor = 1.3f;
+        public float runDivisor = 0.8f;
         private bool flying = false;
         private bool m_iscolliding = false;
         private bool m_iscollidingGround = false;
@@ -115,7 +118,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public int m_eventsubscription = 0;
         private CollisionEventUpdate CollisionEventsThisFrame = new CollisionEventUpdate();
 
-        public OdeCharacter(String avName, OdeScene parent_scene, PhysicsVector pos, CollisionLocker dode, PhysicsVector size)
+        public OdeCharacter(String avName, OdeScene parent_scene, PhysicsVector pos, CollisionLocker dode, PhysicsVector size, float pid_d, float pid_p, float capsule_radius, float tensor, float density, float height_fudge_factor, float walk_divisor, float rundivisor)
         {
             ode = dode;
             _velocity = new PhysicsVector();
@@ -124,14 +127,15 @@ namespace OpenSim.Region.Physics.OdePlugin
             _acceleration = new PhysicsVector();
             _parent_scene = parent_scene;
 
-            if (Environment.OSVersion.Platform == PlatformID.Unix)
-            {
-                m_tensor = 2000000f;
-            }
-            else
-            {
-                m_tensor = 1300000f;
-            }
+            PID_D = pid_d;
+            PID_P = pid_p;
+            CAPSULE_RADIUS = capsule_radius;
+            m_tensor = tensor;
+            m_density = density;
+            heightFudgeFactor = height_fudge_factor;
+            walkDivisor = walk_divisor;
+            runDivisor = rundivisor;
+
 
             m_StandUpRotation =
                 new d.Matrix3(0.5f, 0.7071068f, 0.5f, -0.7071068f, 0f, 0.7071068f, 0.5f, -0.7071068f,
@@ -141,7 +145,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 m_colliderarr[i] = false;
             }
-            CAPSULE_LENGTH = (size.Z - ((size.Z * 0.52f))); 
+            CAPSULE_LENGTH = (size.Z - ((size.Z * height_fudge_factor))); 
 
             lock (OdeScene.OdeLock)
             {
@@ -391,7 +395,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     float capsuleradius = CAPSULE_RADIUS;
                     //capsuleradius = 0.2f;
 
-                    CAPSULE_LENGTH = (SetSize.Z - ((SetSize.Z*0.52f))); // subtract 43% of the size
+                    CAPSULE_LENGTH = (SetSize.Z - ((SetSize.Z * heightFudgeFactor))); // subtract 43% of the size
                     //m_log.Info("[SIZE]: " + CAPSULE_LENGTH.ToString());
                     d.BodyDestroy(Body);
 
@@ -415,15 +419,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="npositionZ"></param>
         private void AvatarGeomAndBodyCreation(float npositionX, float npositionY, float npositionZ, float tensor)
         {
-
-            if (Environment.OSVersion.Platform == PlatformID.Unix)
-            {
-                m_tensor = 2000000f;
-            }
-            else
-            {
-                m_tensor = 550000f;
-            }
 
             int dAMotorEuler = 1;
             _parent_scene.waitForSpaceUnlock(_parent_scene.space);
@@ -662,17 +657,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             // If the PID Controller isn't active then we set our force 
             // calculating base velocity to the current position
-            if (Environment.OSVersion.Platform == PlatformID.Unix)
-            {
-                PID_D = 3200.0f;
-                PID_P = 1400.0f;
-            }
-            else
-            {
-                PID_D = 2200.0f;
-                PID_P = 900.0f;
-            }
-             
+            
 
             if (m_pidControllerActive == false)
             {
@@ -686,11 +671,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (!m_alwaysRun)
             {
-                movementdivisor = 1.3f;
+                movementdivisor = walkDivisor;
             }
             else
             {
-                movementdivisor = 0.8f;
+                movementdivisor = runDivisor;
             }
 
             //  if velocity is zero, use position control; otherwise, velocity control
@@ -830,11 +815,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 _velocity.Y = (vec.Y);
 
                 _velocity.Z = (vec.Z);
+                
                 if (_velocity.Z < -6 && !m_hackSentFall)
                 {
-                    // Collisionupdates will be used in the future, right now the're not being used.
                     m_hackSentFall = true;
-                    //base.SendCollisionUpdate(new CollisionEventUpdate());
                     m_pidControllerActive = false;
                 }
                 else if (flying && !m_hackSentFly)

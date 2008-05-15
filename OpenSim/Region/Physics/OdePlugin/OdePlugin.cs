@@ -166,6 +166,16 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float mAvatarObjectContactBounce = 0.1f;
 
 
+        private float avPIDD = 3200f;
+        private float avPIDP = 1400f;
+        private float avCapRadius = 0.37f;
+        private float avStandupTensor = 2000000f;
+        private float avDensity = 80f;
+        private float avHeightFudgeFactor = 0.52f;
+        private float avMovementDivisorWalk = 1.3f;
+        private float avMovementDivisorRun = 0.8f;
+
+
         private float[] _heightmap;
 
         private float[] _watermap;
@@ -271,6 +281,21 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             mesher = meshmerizer;
             m_config = config;
+            // Defaults
+            
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                avPIDD = 3200.0f;
+                avPIDP = 1400.0f;
+                avStandupTensor = 2000000f;
+            }
+            else
+            {
+                avPIDD = 2200.0f;
+                avPIDP = 900.0f;
+                avStandupTensor = 550000f;
+            }
+
             if (m_config != null)
             {
                 IConfig physicsconfig = m_config.Configs["ODEPhysicsSettings"];
@@ -305,6 +330,26 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     ODE_STEPSIZE = physicsconfig.GetFloat("world_stepsize", 0.020f);
                     m_physicsiterations = physicsconfig.GetInt("world_internal_steps_without_collisions", 10);
+
+                    avDensity = physicsconfig.GetFloat("av_density", 80f);
+                    avHeightFudgeFactor = physicsconfig.GetFloat("av_height_fudge_factor", 0.52f);
+                    avMovementDivisorWalk = physicsconfig.GetFloat("av_movement_divisor_walk", 1.3f);
+                    avMovementDivisorRun = physicsconfig.GetFloat("av_movement_divisor_run", 0.8f);
+                    avCapRadius = physicsconfig.GetFloat("av_capsule_radius", 0.37f);
+
+                    if (Environment.OSVersion.Platform == PlatformID.Unix)
+                    {
+                        avPIDD = physicsconfig.GetFloat("av_pid_derivative_linux", 3200.0f);
+                        avPIDP = physicsconfig.GetFloat("av_pid_proportional_linux", 1400.0f);
+                        avStandupTensor = physicsconfig.GetFloat("av_capsule_standup_tensor_linux", 2000000f);
+                    }
+                    else
+                    {
+                        avPIDD = physicsconfig.GetFloat("av_pid_derivative_win", 2200.0f);
+                        avPIDP = physicsconfig.GetFloat("av_pid_proportional_win", 900.0f);
+                        avStandupTensor = physicsconfig.GetFloat("av_capsule_standup_tensor_win", 550000f);
+                    }
+                    
 
                 }
 
@@ -1054,7 +1099,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             pos.X = position.X;
             pos.Y = position.Y;
             pos.Z = position.Z;
-            OdeCharacter newAv = new OdeCharacter(avName, this, pos, ode, size);
+            OdeCharacter newAv = new OdeCharacter(avName, this, pos, ode, size, avPIDD, avPIDP, avCapRadius, avStandupTensor, avDensity, avHeightFudgeFactor, avMovementDivisorWalk, avMovementDivisorRun);
             _characters.Add(newAv);
             return newAv;
         }
