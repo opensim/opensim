@@ -294,40 +294,19 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         //Now we start getting into quaternions which means sin/cos, matrices and vectors. ckrinke
 
-        // Xantor's new llRot2Euler
-        public LSL_Types.Vector3 llRot2Euler(LSL_Types.Quaternion r)
-        {
-            m_host.AddScriptLPS(1);
-            double x, y, z;
-            double sqw = r.s*r.s;
-            double sqx = r.x*r.x;
-            double sqy = r.y*r.y;
-            double sqz = r.z*r.z;
-            double unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
-            double test = r.x*r.y + r.z*r.s;
-            if (test > 0.499 * unit)  // singularity at north pole
-            {
-                x = 0;
-                y = 2 * Math.Atan2(r.x, r.s);
-                z = Math.PI/2;
-                return new LSL_Types.Vector3(x, y, z);
-            }
-            if (test < -0.499 * unit) // singularity at south pole
-            {
-                x = 0;
-                y = -2 * Math.Atan2(r.x,r.s);
-                z = -Math.PI/2;
-                return new LSL_Types.Vector3(x, y, z);
-            }
-            x = Math.Atan2(2 * r.x * r.s - 2 * r.y * r.z, -sqx + sqy - sqz + sqw);
-            y = Math.Atan2(2*r.y*r.s-2*r.x*r.z , sqx - sqy - sqz + sqw);
-            z = Math.Asin(2*test/unit);
-            return new LSL_Types.Vector3(x, y, z);
-        }
-        
+        // Utility function for llRot2Euler
 
-        // Old implementation of llRot2Euler
-        /*  
+        // normalize an angle between 0 - 2*PI (0 and 360 degrees)
+        private double NormalizeAngle(double angle)
+        {
+            angle = angle % (Math.PI * 2);
+            if (angle < 0) angle = angle + Math.PI * 2;
+            return angle;
+        }
+
+
+        // Old implementation of llRot2Euler, now normalized
+
         public LSL_Types.Vector3 llRot2Euler(LSL_Types.Quaternion r)
         {
             m_host.AddScriptLPS(1);
@@ -338,88 +317,56 @@ namespace OpenSim.Region.ScriptEngine.Common
             double n = 2 * (r.y * r.s + r.x * r.z);
             double p = m * m - n * n;
             if (p > 0)
-                return new LSL_Types.Vector3(Math.Atan2(2.0 * (r.x * r.s - r.y * r.z), (-t.x - t.y + t.z + t.s)),
-                                             Math.Atan2(n, Math.Sqrt(p)),
-                                             Math.Atan2(2.0 * (r.z * r.s - r.x * r.y), (t.x - t.y - t.z + t.s)));
+                return new LSL_Types.Vector3(NormalizeAngle(Math.Atan2(2.0 * (r.x * r.s - r.y * r.z), (-t.x - t.y + t.z + t.s))),
+                                             NormalizeAngle(Math.Atan2(n, Math.Sqrt(p))),
+                                             NormalizeAngle(Math.Atan2(2.0 * (r.z * r.s - r.x * r.y), (t.x - t.y - t.z + t.s))));
             else if (n > 0)
-                return new LSL_Types.Vector3(0.0, Math.PI / 2, Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z));
+                return new LSL_Types.Vector3(0.0, Math.PI / 2, NormalizeAngle(Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z)));
             else
-                return new LSL_Types.Vector3(0.0, -Math.PI / 2, Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z));
+                return new LSL_Types.Vector3(0.0, -Math.PI / 2, NormalizeAngle(Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z)));
         }
-        */
-         
-        // Xantor's new llEuler2Rot()
+
+
+        // Xantor's newer llEuler2Rot() *try the second* inverted quaternions (-x,-y,-z,w) as LL seems to like
+        // New and improved, now actually works as described. Prim rotates as expected as does llRot2Euler.
+
         /* From wiki:
         The Euler angle vector (in radians) is converted to a rotation by doing the rotations around the 3 axes 
         in Z, Y, X order. So llEuler2Rot(<1.0, 2.0, 3.0> * DEG_TO_RAD) generates a rotation by taking the zero rotation, 
         a vector pointing along the X axis, first rotating it 3 degrees around the global Z axis, then rotating the resulting 
         vector 2 degrees around the global Y axis, and finally rotating that 1 degree around the global X axis.
         */
+
         public LSL_Types.Quaternion llEuler2Rot(LSL_Types.Vector3 v)
         {
             m_host.AddScriptLPS(1);
 
-            double x,y,z,s;
+            double x,y,z,s,s_i;
 
-            double c1 = Math.Cos(v.y / 2);  
-            double s1 = Math.Sin(v.y / 2);
-            double c2 = Math.Cos(v.z / 2);
-            double s2 = Math.Sin(v.z / 2);
-            double c3 = Math.Cos(v.x / 2);
-            double s3 = Math.Sin(v.x / 2);
-
-            double c1c2 = c1 * c2;
-            double s1s2 = s1 * s2;
-
-            s = c1c2 * c3 - s1s2 * s3;
-            x = c1c2 * s3 + s1s2 * c3;
-            y = s1 * c2 * c3 + c1 * s2 * s3;
-            z = c1 * s2 * c3 - s1 * c2 * s3;
-
+            double cosX = Math.Cos(v.x);
+            double cosY = Math.Cos(v.y);
+            double cosZ = Math.Cos(v.z);
+            double sinX = Math.Sin(v.x);
+            double sinY = Math.Sin(v.y);
+            double sinZ = Math.Sin(v.z);
+            
+            s = Math.Sqrt( cosY * cosZ - sinX * sinY * sinZ + cosX * cosZ + cosX * cosY + 1.0f) * 0.5f;
+            if (Math.Abs(s) < 0.00001) // null rotation
+            {
+           		x = 0.0f;
+                y = 1.0f;
+            	z = 0.0f;
+            }
+            else
+            {
+            	s_i = 1.0f / (4.0f * s);
+            	x = - ( -sinX * cosY - cosX * sinY * sinZ - sinX * cosZ) * s_i;
+            	y = - ( -cosX * sinY * cosZ + sinX * sinZ - sinY) * s_i;
+            	z = - ( -cosY * sinZ - sinX * sinY * cosZ - cosX * sinZ) * s_i;		
+            }
             return new LSL_Types.Quaternion(x, y, z, s);
         }
-        
-        
-        /*
-        // Old implementation
-        public LSL_Types.Quaternion llEuler2Rot(LSL_Types.Vector3 v)
-        {
-            m_host.AddScriptLPS(1);
-            //this comes from from http://lslwiki.net/lslwiki/wakka.php?wakka=LibraryRotationFunctions but is incomplete as of 8/19/07
-            float err = 0.00001f;
-            double ax = Math.Sin(v.x / 2);
-            double aw = Math.Cos(v.x / 2);
-            double by = Math.Sin(v.y / 2);
-            double bw = Math.Cos(v.y / 2);
-            double cz = Math.Sin(v.z / 2);
-            double cw = Math.Cos(v.z / 2);
-            LSL_Types.Quaternion a1 = new LSL_Types.Quaternion(0.0, 0.0, cz, cw);
-            LSL_Types.Quaternion a2 = new LSL_Types.Quaternion(0.0, by, 0.0, bw);
-            LSL_Types.Quaternion a3 = new LSL_Types.Quaternion(ax, 0.0, 0.0, aw);
-            LSL_Types.Quaternion a = (a1 * a2) * a3;
-            //This multiplication doesnt compile, yet.            a = a1 * a2 * a3;
-            LSL_Types.Quaternion b = new LSL_Types.Quaternion(ax * bw * cw + aw * by * cz,
-                                                              aw * by * cw - ax * bw * cz, aw * bw * cz + ax * by * cw,
-                                                              aw * bw * cw - ax * by * cz);
-            LSL_Types.Quaternion c = new LSL_Types.Quaternion();
-            //This addition doesnt compile yet c = a + b;
-            LSL_Types.Quaternion d = new LSL_Types.Quaternion();
-            //This addition doesnt compile yet d = a - b;
-            if ((Math.Abs(c.x) > err && Math.Abs(d.x) > err) ||
-                (Math.Abs(c.y) > err && Math.Abs(d.y) > err) ||
-                (Math.Abs(c.z) > err && Math.Abs(d.z) > err) ||
-                (Math.Abs(c.s) > err && Math.Abs(d.s) > err))
-            {
-                return b;
-                //return a new Quaternion that is null until I figure this out
-                //                return b;
-                //            return a;
-            }
-            return a;
-        }
-          
-        */
-        
+               
 
         public LSL_Types.Quaternion llAxes2Rot(LSL_Types.Vector3 fwd, LSL_Types.Vector3 left, LSL_Types.Vector3 up)
         {
