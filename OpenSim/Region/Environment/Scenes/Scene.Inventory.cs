@@ -1094,12 +1094,20 @@ namespace OpenSim.Region.Environment.Scenes
                                 item.Folder = DeRezPacket.AgentBlock.DestinationID;
                                 if ((remoteClient.AgentId != objectGroup.RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
                                 {
-									objectGroup.ApplyNextOwnerPermissions();
+									uint perms=objectGroup.GetEffectivePermissions();
+									uint nextPerms=(perms & 7) << 13;
+									if((nextPerms & (uint)PermissionMask.Copy) == 0)
+										perms &= ~(uint)PermissionMask.Copy;
+									if((nextPerms & (uint)PermissionMask.Transfer) == 0)
+										perms &= ~(uint)PermissionMask.Transfer;
+									if((nextPerms & (uint)PermissionMask.Modify) == 0)
+										perms &= ~(uint)PermissionMask.Modify;
 
-                                    item.BasePermissions = objectGroup.GetEffectivePermissions() & objectGroup.RootPart.NextOwnerMask;
-                                    item.CurrentPermissions = objectGroup.GetEffectivePermissions() & objectGroup.RootPart.NextOwnerMask;
-                                    item.NextPermissions = objectGroup.GetEffectivePermissions() & objectGroup.RootPart.NextOwnerMask;
+                                    item.BasePermissions = perms & objectGroup.RootPart.NextOwnerMask;
+                                    item.CurrentPermissions = item.BasePermissions;
+                                    item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
 									item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask & objectGroup.RootPart.NextOwnerMask;
+									item.CurrentPermissions |= 8; // Slam!
                                 }
                                 else
                                 {
