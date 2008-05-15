@@ -33,7 +33,7 @@ using libsecondlife;
 using libsecondlife.Packets;
 using OpenSim.Framework;
 
-namespace OpenSim.Region.Environment.Scenes
+namespace OpenSim.Framework
 {
     [Serializable]
     public class AvatarAppearance : ISerializable
@@ -153,28 +153,12 @@ namespace OpenSim.Region.Environment.Scenes
             // (float)m_visualParams[25] = Height
             // (float)m_visualParams[125] = LegLength
             m_avatarHeight = (1.50856f + (((float) m_visualParams[25]/255.0f)*(2.525506f - 1.50856f)))
-                             + (((float) m_visualParams[125]/255.0f)/1.5f);
+                + (((float) m_visualParams[125]/255.0f)/1.5f);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="avatar"></param>
-        public void SendAppearanceToOtherAgent(ScenePresence avatar)
-        {
-            avatar.ControllingClient.SendAppearance(m_scenePresenceID, m_visualParams,
-                                                    m_textureEntry.ToBytes());
-        }
-
-        public void SetWearable(IClientAPI client, int wearableId, AvatarWearable wearable)
+        public void SetWearable(int wearableId, AvatarWearable wearable)
         {
             m_wearables[wearableId] = wearable;
-            SendOwnWearables(client);
-        }
-
-        public void SendOwnWearables(IClientAPI ourClient)
-        {
-            ourClient.SendWearables(m_wearables, m_wearablesSerial++);
         }
 
         public static LLObject.TextureEntry GetDefaultTextureEntry()

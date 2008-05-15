@@ -1461,16 +1461,20 @@ namespace OpenSim.Region.Environment.Scenes
             SendAppearanceToAllOtherAgents();
         }
 
+
+        public void SetWearable(IClientAPI client, int wearableId, AvatarWearable wearable)
+        {
+            m_appearance.SetWearable(wearableId, wearable);
+            client.SendWearables(m_appearance.Wearables, m_appearance.WearablesSerial++);
+        }
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="client"></param>
         public void SendOwnAppearance()
         {
-            m_appearance.SendOwnWearables(ControllingClient);
-
-            // TODO: remove this once the SunModule is slightly more tested
-            // m_controllingClient.SendViewerTime(m_scene.TimePhase);
+            ControllingClient.SendWearables(m_appearance.Wearables, m_appearance.WearablesSerial++);
         }
 
         /// <summary>
@@ -1484,15 +1488,19 @@ namespace OpenSim.Region.Environment.Scenes
                                          {
                                              if (scenePresence.UUID != UUID)
                                              {
-                                                 m_appearance.SendAppearanceToOtherAgent(scenePresence);
+                                                 SendAppearanceToOtherAgent(scenePresence);
                                              }
                                          });
             m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
         }
 
         public void SendAppearanceToOtherAgent(ScenePresence avatar)
-        {
-            m_appearance.SendAppearanceToOtherAgent(avatar);
+        { 
+            avatar.ControllingClient.SendAppearance(
+                                                    m_appearance.ScenePresenceID,
+                                                    m_appearance.VisualParams,
+                                                    m_appearance.TextureEntry.ToBytes()
+                                                    );
         }
 
         public void SetAppearance(byte[] texture, List<byte> visualParam)
@@ -1505,7 +1513,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetWearable(int wearableId, AvatarWearable wearable)
         {
-            m_appearance.SetWearable(ControllingClient, wearableId, wearable);
+            m_appearance.SetWearable(wearableId, wearable);
         }
 
         /// <summary>
