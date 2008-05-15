@@ -68,27 +68,27 @@ namespace OpenSim.Framework
 
         public readonly static int VISUALPARAM_COUNT = 218;
 
-        protected LLUUID m_scenePresenceID;
+        protected LLUUID m_owner;
 
-        public LLUUID ScenePresenceID
+        public LLUUID Owner
         {
-            get { return m_scenePresenceID; }
-            set { m_scenePresenceID = value; }
+            get { return m_owner; }
+            set { m_owner = value; }
         }
-        protected int m_wearablesSerial = 1;
+        protected int m_serial = 1;
 
-        public int WearablesSerial
+        public int Serial
         {
-            get { return m_wearablesSerial; }
-            set { m_wearablesSerial = value; }
+            get { return m_serial; }
+            set { m_serial = value; }
         }
 
-        protected byte[] m_visualParams;
+        protected byte[] m_visualparams;
 
         public byte[] VisualParams
         {
-            get { return m_visualParams; }
-            set { m_visualParams = value; }
+            get { return m_visualparams; }
+            set { m_visualparams = value; }
         }
 
         protected AvatarWearable[] m_wearables;
@@ -99,12 +99,12 @@ namespace OpenSim.Framework
             set { m_wearables = value; }
         }
 
-        protected LLObject.TextureEntry m_textureEntry;
+        protected LLObject.TextureEntry m_texture;
 
-        public LLObject.TextureEntry TextureEntry
+        public LLObject.TextureEntry Texture
         {
-            get { return m_textureEntry; }
-            set { m_textureEntry = value; }
+            get { return m_texture; }
+            set { m_texture = value; }
         }
 
         protected float m_avatarHeight = 0;
@@ -123,18 +123,18 @@ namespace OpenSim.Framework
                 // this makes them all null
                 m_wearables[i] = new AvatarWearable();
             }
-            m_wearablesSerial = 0;
-            m_scenePresenceID = LLUUID.Zero;
-            m_visualParams = new byte[VISUALPARAM_COUNT];
+            m_serial = 0;
+            m_owner = LLUUID.Zero;
+            m_visualparams = new byte[VISUALPARAM_COUNT];
         }
 
         public AvatarAppearance(LLUUID avatarID, AvatarWearable[] wearables, byte[] visualParams)
         {
-            m_scenePresenceID = avatarID;
-            m_wearablesSerial = 1;
+            m_owner = avatarID;
+            m_serial = 1;
             m_wearables = wearables;
-            m_visualParams = visualParams;
-            m_textureEntry = GetDefaultTextureEntry();
+            m_visualparams = visualParams;
+            m_texture = GetDefaultTexture();
         }
 
         /// <summary>
@@ -145,15 +145,15 @@ namespace OpenSim.Framework
         public void SetAppearance(byte[] texture, List<byte> visualParam)
         {
             LLObject.TextureEntry textureEnt = new LLObject.TextureEntry(texture, 0, texture.Length);
-            m_textureEntry = textureEnt;
+            m_texture = textureEnt;
 
-            m_visualParams = visualParam.ToArray();
+            m_visualparams = visualParam.ToArray();
 
             // Teravus : Nifty AV Height Getting Maaaaagical formula.  Oh how we love turning 0-255 into meters.
             // (float)m_visualParams[25] = Height
             // (float)m_visualParams[125] = LegLength
-            m_avatarHeight = (1.50856f + (((float) m_visualParams[25]/255.0f)*(2.525506f - 1.50856f)))
-                + (((float) m_visualParams[125]/255.0f)/1.5f);
+            m_avatarHeight = (1.50856f + (((float) m_visualparams[25]/255.0f)*(2.525506f - 1.50856f)))
+                + (((float) m_visualparams[125]/255.0f)/1.5f);
         }
 
         public void SetWearable(int wearableId, AvatarWearable wearable)
@@ -161,7 +161,7 @@ namespace OpenSim.Framework
             m_wearables[wearableId] = wearable;
         }
 
-        public static LLObject.TextureEntry GetDefaultTextureEntry()
+        public static LLObject.TextureEntry GetDefaultTexture()
         {
             LLObject.TextureEntry textu = new LLObject.TextureEntry(new LLUUID("C228D1CF-4B5D-4BA8-84F4-899A0796AA97"));
             textu.CreateFace(0).TextureID = new LLUUID("00000000-0000-1111-9999-000000000012");
@@ -183,13 +183,13 @@ namespace OpenSim.Framework
                 throw new ArgumentNullException("info");
             }
 
-            m_scenePresenceID = new LLUUID((Guid)info.GetValue("m_scenePresenceID", typeof(Guid)));
-            m_wearablesSerial = (int)info.GetValue("m_wearablesSerial", typeof(int));
-            m_visualParams = (byte[])info.GetValue("m_visualParams", typeof(byte[]));
+            m_owner = new LLUUID((Guid)info.GetValue("m_scenePresenceID", typeof(Guid)));
+            m_serial = (int)info.GetValue("m_wearablesSerial", typeof(int));
+            m_visualparams = (byte[])info.GetValue("m_visualParams", typeof(byte[]));
             m_wearables = (AvatarWearable[])info.GetValue("m_wearables", typeof(AvatarWearable[]));
 
             byte[] m_textureEntry_work = (byte[])info.GetValue("m_textureEntry", typeof(byte[]));
-            m_textureEntry = new LLObject.TextureEntry(m_textureEntry_work, 0, m_textureEntry_work.Length);
+            m_texture = new LLObject.TextureEntry(m_textureEntry_work, 0, m_textureEntry_work.Length);
 
             m_avatarHeight = (float)info.GetValue("m_avatarHeight", typeof(float));
 
@@ -206,11 +206,11 @@ namespace OpenSim.Framework
                 throw new ArgumentNullException("info");
             }
 
-            info.AddValue("m_scenePresenceID", m_scenePresenceID.UUID);
-            info.AddValue("m_wearablesSerial", m_wearablesSerial);
-            info.AddValue("m_visualParams", m_visualParams);
+            info.AddValue("m_scenePresenceID", m_owner.UUID);
+            info.AddValue("m_wearablesSerial", m_serial);
+            info.AddValue("m_visualParams", m_visualparams);
             info.AddValue("m_wearables", m_wearables);
-            info.AddValue("m_textureEntry", m_textureEntry.ToBytes());
+            info.AddValue("m_textureEntry", m_texture.ToBytes());
             info.AddValue("m_avatarHeight", m_avatarHeight);
         }
     }

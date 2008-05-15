@@ -50,12 +50,12 @@ namespace OpenSim.Region.Modules.AvatarFactory
             m_schema = rowMapperSchema;
 
             m_keyFieldMapper = rowMapperSchema.AddMapping<Guid>("UUID",
-       delegate(AppearanceRowMapper mapper) { return mapper.Object.ScenePresenceID.UUID; },
-       delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.ScenePresenceID = new LLUUID(value.ToString()); });
+       delegate(AppearanceRowMapper mapper) { return mapper.Object.Owner.UUID; },
+       delegate(AppearanceRowMapper mapper, Guid value) { mapper.Object.Owner = new LLUUID(value.ToString()); });
 
             rowMapperSchema.AddMapping<uint>("Serial",
-                  delegate(AppearanceRowMapper mapper) { return (uint)mapper.Object.WearablesSerial; },
-       delegate(AppearanceRowMapper mapper, uint value) { mapper.Object.WearablesSerial = (int)value; });
+                  delegate(AppearanceRowMapper mapper) { return (uint)mapper.Object.Serial; },
+       delegate(AppearanceRowMapper mapper, uint value) { mapper.Object.Serial = (int)value; });
 
             rowMapperSchema.AddMapping<Guid>("WearableItem0",
                  delegate(AppearanceRowMapper mapper) { return mapper.Object.Wearables[0].ItemID.UUID; },
@@ -196,7 +196,7 @@ namespace OpenSim.Region.Modules.AvatarFactory
         public bool Update(Guid userID, AvatarAppearance appearance)
         {
             AppearanceRowMapper mapper = CreateRowMapper(appearance);
-            return Update(appearance.ScenePresenceID.UUID, mapper);
+            return Update(appearance.Owner.UUID, mapper);
         }
 
         protected AppearanceRowMapper CreateRowMapper(AvatarAppearance appearance)

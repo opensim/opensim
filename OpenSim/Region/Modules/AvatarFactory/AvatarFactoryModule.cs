@@ -182,7 +182,7 @@ namespace OpenSim.Region.Modules.AvatarFactory
                 if (m_appearanceMapper.TryGetValue(avatarId.UUID, out appearance))
                 {
                     appearance.VisualParams = GetDefaultVisualParams();
-                    appearance.TextureEntry = AvatarAppearance.GetDefaultTextureEntry();
+                    appearance.Texture = AvatarAppearance.GetDefaultTexture();
                     lock (m_avatarsAppearance)
                     {
                         m_avatarsAppearance[avatarId] = appearance;

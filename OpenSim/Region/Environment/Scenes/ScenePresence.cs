@@ -1415,7 +1415,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendFullUpdateToOtherClient(ScenePresence remoteAvatar)
         {
             remoteAvatar.m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid,
-                                                            LocalId, m_pos, m_appearance.TextureEntry.ToBytes(),
+                                                            LocalId, m_pos, m_appearance.Texture.ToBytes(),
                                                             m_parentID);
             m_scene.AddAgentUpdates(1);
         }
@@ -1451,7 +1451,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendInitialData()
         {
             m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid, LocalId,
-                                               m_pos, m_appearance.TextureEntry.ToBytes(), m_parentID);
+                                               m_pos, m_appearance.Texture.ToBytes(), m_parentID);
             if (!m_isChildAgent)
             {
                 m_scene.InformClientOfNeighbours(this);
@@ -1465,7 +1465,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetWearable(IClientAPI client, int wearableId, AvatarWearable wearable)
         {
             m_appearance.SetWearable(wearableId, wearable);
-            client.SendWearables(m_appearance.Wearables, m_appearance.WearablesSerial++);
+            client.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
         }
 
         /// <summary>
@@ -1474,7 +1474,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="client"></param>
         public void SendOwnAppearance()
         {
-            ControllingClient.SendWearables(m_appearance.Wearables, m_appearance.WearablesSerial++);
+            ControllingClient.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
         }
 
         /// <summary>
@@ -1497,9 +1497,9 @@ namespace OpenSim.Region.Environment.Scenes
         public void SendAppearanceToOtherAgent(ScenePresence avatar)
         { 
             avatar.ControllingClient.SendAppearance(
-                                                    m_appearance.ScenePresenceID,
+                                                    m_appearance.Owner,
                                                     m_appearance.VisualParams,
-                                                    m_appearance.TextureEntry.ToBytes()
+                                                    m_appearance.Texture.ToBytes()
                                                     );
         }
 
@@ -1804,7 +1804,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         static ScenePresence()
         {
-            LLObject.TextureEntry textu = AvatarAppearance.GetDefaultTextureEntry();
+            LLObject.TextureEntry textu = AvatarAppearance.GetDefaultTexture();
             DefaultTexture = textu.ToBytes();
         }
 
@@ -1983,7 +1983,7 @@ namespace OpenSim.Region.Environment.Scenes
 */
             if (DefaultTexture == null)
             {
-                LLObject.TextureEntry textu = AvatarAppearance.GetDefaultTextureEntry();
+                LLObject.TextureEntry textu = AvatarAppearance.GetDefaultTexture();
                 DefaultTexture = textu.ToBytes();
             }
         }
@@ -2064,7 +2064,7 @@ namespace OpenSim.Region.Environment.Scenes
 */
             if (DefaultTexture == null)
             {
-                LLObject.TextureEntry textu = AvatarAppearance.GetDefaultTextureEntry();
+                LLObject.TextureEntry textu = AvatarAppearance.GetDefaultTexture();
                 DefaultTexture = textu.ToBytes();
             }
 
