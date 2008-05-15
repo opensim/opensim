@@ -1229,7 +1229,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // never be called if the prim is physical(active)
 
             // All physical prim end up in the root space
-            Thread.Sleep(20);
+            //Thread.Sleep(20);
             if (currentspace != space)
             {
                 //m_log.Info("[SPACE]: C:" + currentspace.ToString() + " g:" + geom.ToString());
