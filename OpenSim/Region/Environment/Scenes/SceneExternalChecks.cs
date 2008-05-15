@@ -61,7 +61,16 @@ namespace OpenSim.Region.Environment.Scenes
 
             public uint ExternalChecksGenerateClientFlags(LLUUID userID, LLUUID objectID)
             {
-				uint perms=(uint)2147483647;
+				SceneObjectPart part=m_scene.GetSceneObjectPart(objectID);
+
+				uint perms=part.GetEffectiveObjectFlags() |
+						(uint)LLObject.ObjectFlags.ObjectModify |
+						(uint)LLObject.ObjectFlags.ObjectCopy |
+						(uint)LLObject.ObjectFlags.ObjectMove |
+						(uint)LLObject.ObjectFlags.ObjectTransfer |
+						(uint)LLObject.ObjectFlags.ObjectYouOwner |
+						(uint)LLObject.ObjectFlags.ObjectYouOfficer;
+
                 foreach (GenerateClientFlags check in GenerateClientFlagsCheckFunctions)
                 {
 					perms &= check(userID, objectID);
@@ -108,6 +117,32 @@ namespace OpenSim.Region.Environment.Scenes
             public bool ExternalChecksBypassPermissions()
             {
                 foreach (BypassPermissions check in BypassPermissionsCheckFunctions)
+                {
+                    if (check() == false)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            public delegate bool PropagatePermissions();
+            private List<PropagatePermissions> PropagatePermissionsCheckFunctions = new List<PropagatePermissions>();
+
+            public void addPropagatePermissions(PropagatePermissions delegateFunc)
+            {
+                if (!PropagatePermissionsCheckFunctions.Contains(delegateFunc))
+                    PropagatePermissionsCheckFunctions.Add(delegateFunc);
+            }
+            public void removePropagatePermissions(PropagatePermissions delegateFunc)
+            {
+                if (PropagatePermissionsCheckFunctions.Contains(delegateFunc))
+                    PropagatePermissionsCheckFunctions.Remove(delegateFunc);
+            }
+
+            public bool ExternalChecksPropagatePermissions()
+            {
+                foreach (PropagatePermissions check in PropagatePermissionsCheckFunctions)
                 {
                     if (check() == false)
                     {

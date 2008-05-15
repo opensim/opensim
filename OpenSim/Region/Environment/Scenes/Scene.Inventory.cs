@@ -284,6 +284,7 @@ namespace OpenSim.Region.Environment.Scenes
                         item.Name = itemUpd.Name;
                         item.Description = itemUpd.Description;
                         item.NextPermissions = itemUpd.NextPermissions;
+						item.CurrentPermissions |= 8; // Slam!
                         item.EveryOnePermissions = itemUpd.EveryOnePermissions;
 
                         // TODO: Requires sanity checks
@@ -347,7 +348,13 @@ namespace OpenSim.Region.Environment.Scenes
                 InventoryItemBase item = senderUserInfo.RootFolder.FindItem(itemId);
                 
                 if (item != null)
-                {             
+                {
+					if (!ExternalChecks.ExternalChecksBypassPermissions())
+					{
+						if((item.CurrentPermissions & (uint)PermissionMask.Transfer) == 0)
+							return;
+					}
+
                     // TODO get recipient's root folder
                     CachedUserInfo recipientUserInfo 
                         = CommsManager.UserProfileCacheService.GetUserDetails(recipientClient.AgentId);                    
@@ -365,12 +372,37 @@ namespace OpenSim.Region.Environment.Scenes
                         itemCopy.AssetType = item.AssetType;
                         itemCopy.InvType = item.InvType;
                         itemCopy.Folder = recipientUserInfo.RootFolder.ID;
-                        itemCopy.CurrentPermissions = 2147483647;
-                        itemCopy.NextPermissions = 2147483647;
-                        itemCopy.EveryOnePermissions = item.EveryOnePermissions;
-                        itemCopy.BasePermissions = item.BasePermissions;
-                        itemCopy.CurrentPermissions = item.CurrentPermissions;
+						if (ExternalChecks.ExternalChecksPropagatePermissions())
+						{
+							if(item.InvType == 6)
+							{
+								itemCopy.BasePermissions &= ~(uint)(PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer);
+								itemCopy.BasePermissions |= (item.CurrentPermissions & 7) << 13;
+							}
+							else
+							{
+							Console.WriteLine("Non-Prim item ==>");
+								itemCopy.BasePermissions = item.BasePermissions & item.NextPermissions;
+							}
 
+							itemCopy.CurrentPermissions = itemCopy.BasePermissions;
+							if((item.CurrentPermissions & 8) != 0) // Propagate slam bit
+							{
+								itemCopy.CurrentPermissions = item.NextPermissions;
+								itemCopy.BasePermissions=itemCopy.CurrentPermissions;
+								itemCopy.CurrentPermissions |= 8;
+							}
+
+							itemCopy.NextPermissions = item.NextPermissions;
+							itemCopy.EveryOnePermissions = item.EveryOnePermissions & item.NextPermissions;
+						}
+						else
+						{
+							itemCopy.CurrentPermissions = item.CurrentPermissions;
+							itemCopy.NextPermissions = item.NextPermissions;
+							itemCopy.EveryOnePermissions = item.EveryOnePermissions & item.NextPermissions;
+							itemCopy.BasePermissions = item.BasePermissions;
+						}
                         itemCopy.GroupID = item.GroupID;
                         itemCopy.GroupOwned = item.GroupOwned;
                         itemCopy.Flags = item.Flags;
@@ -379,6 +411,12 @@ namespace OpenSim.Region.Environment.Scenes
 
                         recipientUserInfo.AddItem(itemCopy);
                         
+						if (!ExternalChecks.ExternalChecksBypassPermissions())
+						{
+							if((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+								senderUserInfo.DeleteItem(itemId);
+						}
+
                         // Let the recipient client know about this new item
                         recipientClient.SendBulkUpdateInventory(itemCopy);                         
                     }
@@ -446,9 +484,16 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (asset != null)
             {
-                // TODO: preserve current permissions?
-                CreateNewInventoryItem(
-                    remoteClient, newFolderID, callbackID, asset, item.NextPermissions);
+				if(remoteClient.AgentId == oldAgentID)
+				{
+					CreateNewInventoryItem(
+						remoteClient, newFolderID, callbackID, asset, item.BasePermissions, item.CurrentPermissions, item.EveryOnePermissions, item.NextPermissions);
+				}
+				else
+				{
+					CreateNewInventoryItem(
+						remoteClient, newFolderID, callbackID, asset, item.NextPermissions, item.NextPermissions, item.EveryOnePermissions & item.NextPermissions, item.NextPermissions);
+				}
             }
             else
             {
@@ -507,7 +552,6 @@ namespace OpenSim.Region.Environment.Scenes
                     
                     userInfo.DeleteItem(item.ID);
 
-                    // TODO: preserve current permissions?
                     AddInventoryItem(remoteClient, item);
                 }
                 else
@@ -525,6 +569,12 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        private void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID folderID, uint callbackID,
+                                            AssetBase asset, uint nextOwnerMask)
+		{
+			CreateNewInventoryItem(remoteClient, folderID, callbackID, asset, nextOwnerMask, nextOwnerMask, 0, nextOwnerMask);
+		}
+
         /// <summary>
         /// Create a new inventory item.
         /// </summary>
@@ -534,7 +584,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="asset"></param>
         /// <param name="nextOwnerMask"></param>
         private void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID folderID, uint callbackID,
-                                            AssetBase asset, uint nextOwnerMask)
+                                            AssetBase asset, uint baseMask, uint currentMask, uint everyoneMask, uint nextOwnerMask)
         {
             CachedUserInfo userInfo 
                 = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
@@ -551,8 +601,10 @@ namespace OpenSim.Region.Environment.Scenes
                 item.AssetType = asset.Type;
                 item.InvType = asset.InvType;
                 item.Folder = folderID;
-                item.CurrentPermissions = 2147483647;
+                item.CurrentPermissions = currentMask;
                 item.NextPermissions = nextOwnerMask;
+				item.EveryOnePermissions = everyoneMask;
+				item.BasePermissions = baseMask;
 
                 userInfo.AddItem(item);
                 remoteClient.SendInventoryItemCreateUpdate(item);
@@ -766,9 +818,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="itemID"></param>
         public void MoveTaskInventoryItem(IClientAPI remoteClient, LLUUID folderId, uint primLocalId, LLUUID itemId)
         {
-            SceneObjectGroup group = GetGroupByPrim(primLocalId);
+            SceneObjectPart part = GetSceneObjectPart(primLocalId);
             
-            if (null == group)
+            if (null == part)
             {
                 m_log.WarnFormat(
                     "[PRIM INVENTORY]: " +
@@ -778,7 +830,7 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
             }      
             
-            TaskInventoryItem taskItem = group.GetInventoryItem(primLocalId, itemId);
+            TaskInventoryItem taskItem = part.GetInventoryItem(itemId);
             
             if (null == taskItem)
             {
@@ -786,19 +838,9 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
             }
             
-//                        bool permission;
-//                            permission = Permissions.CanCopyObject(remoteClient.AgentId, 
-//                                                                ((SceneObjectGroup) selectedEnt).UUID);
-            
-            // Pending resolving upstream problems with permissions, we just won't allow anybody who is not the owner
-            // to copy
+            // Only owner can copy
             if (remoteClient.AgentId != taskItem.OwnerID)
             {
-                m_log.InfoFormat(
-                    "[PRIM INVENTORY]: Attempt made by {0} {1} to copy inventory item {2} {3} in prim {4} {5},"
-                        + " but temporarily not allowed pending upstream bugfixes/feature implementation",
-                    remoteClient.Name, remoteClient.AgentId, taskItem.Name, taskItem.ItemID, group.Name, group.UUID);
-
                 return;
             }
             
@@ -813,22 +855,29 @@ namespace OpenSim.Region.Environment.Scenes
             agentItem.AssetType = taskItem.Type;
             agentItem.InvType = taskItem.InvType;
             agentItem.Folder = folderId;
-            agentItem.EveryOnePermissions = taskItem.EveryoneMask;
             
-            if (remoteClient.AgentId != taskItem.OwnerID)
+            if ((remoteClient.AgentId != taskItem.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
             {
                 agentItem.BasePermissions = taskItem.NextOwnerMask;
                 agentItem.CurrentPermissions = taskItem.NextOwnerMask;
                 agentItem.NextPermissions = taskItem.NextOwnerMask;
+				agentItem.EveryOnePermissions = taskItem.EveryoneMask & taskItem.NextOwnerMask;
             }
             else
             {
                 agentItem.BasePermissions = taskItem.BaseMask;
                 agentItem.CurrentPermissions = taskItem.OwnerMask;
-                agentItem.NextPermissions = taskItem.NextOwnerMask;                    
+                agentItem.NextPermissions = taskItem.NextOwnerMask;
+				agentItem.EveryOnePermissions = taskItem.EveryoneMask;
             }
                 
             AddInventoryItem(remoteClient, agentItem);
+			if (!ExternalChecks.ExternalChecksBypassPermissions())
+			{
+				if((taskItem.OwnerMask & (uint)PermissionMask.Copy) == 0)
+					part.RemoveInventoryItem(itemId);
+			}
+				
         }
 
         /// <summary>
@@ -842,9 +891,9 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateTaskInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID folderID,
                                         uint primLocalID)
         {
-            SceneObjectGroup group = GetGroupByPrim(primLocalID);
+            SceneObjectPart part = GetSceneObjectPart(primLocalID);
 
-            if (group != null)
+            if (part != null)
             {
                 LLUUID copyID = LLUUID.Random();
                 if (itemID != LLUUID.Zero)
@@ -864,11 +913,16 @@ namespace OpenSim.Region.Environment.Scenes
 
                         if (item != null)
                         {
-                            group.AddInventoryItem(remoteClient, primLocalID, item, copyID);
+                            part.ParentGroup.AddInventoryItem(remoteClient, primLocalID, item, copyID);
                             m_log.InfoFormat(
                                 "[PRIM INVENTORY]: Update with item {0} requested of prim {1} for {2}", 
                                 item.Name, primLocalID, remoteClient.Name);
-                            group.GetProperties(remoteClient);
+                            part.ParentGroup.GetProperties(remoteClient);
+							if (!ExternalChecks.ExternalChecksBypassPermissions())
+							{
+								if((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+									RemoveInventoryItem(remoteClient, itemID);
+							}
                         }
                         else
                         {
@@ -915,12 +969,12 @@ namespace OpenSim.Region.Environment.Scenes
                         
                     if (item != null)
                     {
-                        SceneObjectGroup group = GetGroupByPrim(localID);
-                        if (group != null)
+                        SceneObjectPart part = GetSceneObjectPart(localID);
+                        if (part != null)
                         {
-                            group.AddInventoryItem(remoteClient, localID, item, copyID);
-                            group.StartScript(localID, copyID);
-                            group.GetProperties(remoteClient);
+                            part.ParentGroup.AddInventoryItem(remoteClient, localID, item, copyID);
+                            part.ParentGroup.StartScript(localID, copyID);
+                            part.ParentGroup.GetProperties(remoteClient);
     
     //                        m_log.InfoFormat("[PRIMINVENTORY]: " +
     //                                         "Rezzed script {0} into prim local ID {1} for user {2}",
@@ -959,7 +1013,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="packet"></param>
         /// <param name="simClient"></param>
         public virtual void DeRezObject(Packet packet, IClientAPI remoteClient)
-        {     
+        {
             DeRezObjectPacket DeRezPacket = (DeRezObjectPacket) packet;
 
             if (DeRezPacket.AgentBlock.DestinationID == LLUUID.Zero)
@@ -1038,18 +1092,21 @@ namespace OpenSim.Region.Environment.Scenes
                                 item.AssetType = asset.Type;
                                 item.InvType = asset.InvType;
                                 item.Folder = DeRezPacket.AgentBlock.DestinationID;
-                                item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
-                                if (remoteClient.AgentId != objectGroup.RootPart.OwnerID)
+                                if ((remoteClient.AgentId != objectGroup.RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
                                 {
-                                    item.BasePermissions = objectGroup.RootPart.NextOwnerMask;
-                                    item.CurrentPermissions = objectGroup.RootPart.NextOwnerMask;
-                                    item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
+									objectGroup.ApplyNextOwnerPermissions();
+
+                                    item.BasePermissions = objectGroup.GetEffectivePermissions() & objectGroup.RootPart.NextOwnerMask;
+                                    item.CurrentPermissions = objectGroup.GetEffectivePermissions() & objectGroup.RootPart.NextOwnerMask;
+                                    item.NextPermissions = objectGroup.GetEffectivePermissions() & objectGroup.RootPart.NextOwnerMask;
+									item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask & objectGroup.RootPart.NextOwnerMask;
                                 }
                                 else
                                 {
-                                    item.BasePermissions = objectGroup.RootPart.BaseMask;
-                                    item.CurrentPermissions = objectGroup.RootPart.OwnerMask;
+                                    item.BasePermissions = objectGroup.GetEffectivePermissions();
+                                    item.CurrentPermissions = objectGroup.GetEffectivePermissions();
                                     item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
+									item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
                                 }
 
                                 // TODO: add the new fields (Flags, Sale info, etc)
@@ -1068,6 +1125,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+
         public void updateKnownAsset(IClientAPI remoteClient, SceneObjectGroup grp, LLUUID assetID, LLUUID agentID)
         {
             SceneObjectGroup objectGroup = grp;
@@ -1130,19 +1188,20 @@ namespace OpenSim.Region.Environment.Scenes
                     // Sticking it in root folder for now..    objects folder later?
 
                     item.Folder = foundFolder;// DeRezPacket.AgentBlock.DestinationID;
-                    item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
-                    if (agentID != objectGroup.RootPart.OwnerID)
+                    if ((agentID != objectGroup.RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
                     {
                         item.BasePermissions = objectGroup.RootPart.NextOwnerMask;
                         item.CurrentPermissions = objectGroup.RootPart.NextOwnerMask;
                         item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
+						item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask & objectGroup.RootPart.NextOwnerMask;
                     }
-                    else
-                    {
-                        item.BasePermissions = objectGroup.RootPart.BaseMask;
-                        item.CurrentPermissions = objectGroup.RootPart.OwnerMask;
+					else
+					{
+                        item.BasePermissions = objectGroup.GetEffectivePermissions();
+                        item.CurrentPermissions = objectGroup.GetEffectivePermissions();
                         item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
-                    }
+						item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
+					}
 
                     userInfo.AddItem(item);
 
@@ -1187,18 +1246,19 @@ namespace OpenSim.Region.Environment.Scenes
                     // Sticking it in root folder for now..    objects folder later?
 
                     item.Folder = userInfo.RootFolder.ID;// DeRezPacket.AgentBlock.DestinationID;
-                    item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
-                    if (remoteClient.AgentId != objectGroup.RootPart.OwnerID)
+                    if ((remoteClient.AgentId != objectGroup.RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
                     {
                         item.BasePermissions = objectGroup.RootPart.NextOwnerMask;
                         item.CurrentPermissions = objectGroup.RootPart.NextOwnerMask;
                         item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
+						item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask & objectGroup.RootPart.NextOwnerMask;
                     }
                     else
                     {
                         item.BasePermissions = objectGroup.RootPart.BaseMask;
                         item.CurrentPermissions = objectGroup.RootPart.OwnerMask;
                         item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
+						item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
                     }
 
                     userInfo.AddItem(item);
@@ -1344,18 +1404,33 @@ namespace OpenSim.Region.Environment.Scenes
                             rootPart.Description = item.Description;
 
                             List<SceneObjectPart> partList = new List<SceneObjectPart>(group.Children.Values);
+
+							if(rootPart.OwnerID != item.Owner)
+							{
+								if((item.CurrentPermissions & 8) != 0)
+								{
+									foreach (SceneObjectPart part in partList)
+									{
+										part.EveryoneMask = item.EveryOnePermissions;
+										part.NextOwnerMask = item.NextPermissions;
+									}
+								}
+								group.ApplyNextOwnerPermissions();
+							}
+
                             foreach (SceneObjectPart part in partList)
                             {
                                 if (part.OwnerID != item.Owner)
                                 {
                                     part.LastOwnerID = part.OwnerID;
                                     part.OwnerID = item.Owner;
-                                    part.EveryoneMask = item.EveryOnePermissions;
-                                    part.BaseMask = item.BasePermissions;
-                                    part.OwnerMask = item.CurrentPermissions;
-                                    part.NextOwnerMask = item.NextPermissions;
                                     part.ChangeInventoryOwner(item.Owner);
                                 }
+								else if(((item.CurrentPermissions & 8) != 0) && (!attachment)) // Slam!
+								{
+                                    part.EveryoneMask = item.EveryOnePermissions;
+                                    part.NextOwnerMask = item.NextPermissions;
+								}
                             }
  
                             rootPart.TrimPermissions();
@@ -1421,18 +1496,33 @@ namespace OpenSim.Region.Environment.Scenes
                     rootPart.Description = item.Description;
 
                     List<SceneObjectPart> partList = new List<SceneObjectPart>(group.Children.Values);
+
+					if(rootPart.OwnerID != item.OwnerID)
+					{
+						if((item.OwnerMask & 8) != 0)
+						{
+							foreach (SceneObjectPart part in partList)
+							{
+								part.EveryoneMask = item.EveryoneMask;
+								part.NextOwnerMask = item.NextOwnerMask;
+							}
+						}
+						group.ApplyNextOwnerPermissions();
+					}
+
                     foreach (SceneObjectPart part in partList)
                     {
                         if (part.OwnerID != item.OwnerID)
                         {
                             part.LastOwnerID = part.OwnerID;
                             part.OwnerID = item.OwnerID;
-                            part.EveryoneMask = item.EveryoneMask;
-                            part.BaseMask = item.BaseMask;
-                            part.OwnerMask = item.OwnerMask;
-                            part.NextOwnerMask = item.NextOwnerMask;
                             part.ChangeInventoryOwner(item.OwnerID);
                         }
+						else if((item.OwnerMask & 8) != 0) // Slam!
+						{
+							part.EveryoneMask = item.EveryoneMask;
+							part.NextOwnerMask = item.NextOwnerMask;
+						}
                     }
                     rootPart.TrimPermissions();
                     if (group.RootPart.Shape.PCode == (byte)PCode.Prim)

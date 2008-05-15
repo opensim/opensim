@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Reflection;
 using libsecondlife;
 using log4net;
@@ -282,5 +283,38 @@ namespace OpenSim.Region.Environment.Scenes
             
             return -1;
         } 
+
+		public uint GetEffectivePermissions()
+		{
+			uint perms=(uint)(PermissionMask.Modify |
+							  PermissionMask.Copy |
+							  PermissionMask.Move |
+							  PermissionMask.Transfer) | 7;
+
+			foreach (SceneObjectPart part in m_parts.Values)
+				perms &= part.MaskEffectivePermissions();
+
+			if((RootPart.OwnerMask & (uint)PermissionMask.Modify) == 0)
+				perms &= ~(uint)PermissionMask.Modify;
+			if((RootPart.OwnerMask & (uint)PermissionMask.Copy) == 0)
+				perms &= ~(uint)PermissionMask.Copy;
+			if((RootPart.OwnerMask & (uint)PermissionMask.Transfer) == 0)
+				perms &= ~(uint)PermissionMask.Transfer;
+
+			if((RootPart.OwnerMask & RootPart.NextOwnerMask & (uint)PermissionMask.Modify) == 0)
+				perms &= ~((uint)PermissionMask.Modify >> 13);
+			if((RootPart.OwnerMask & RootPart.NextOwnerMask & (uint)PermissionMask.Copy) == 0)
+				perms &= ~((uint)PermissionMask.Copy >> 13);
+			if((RootPart.OwnerMask & RootPart.NextOwnerMask & (uint)PermissionMask.Transfer) == 0)
+				perms &= ~((uint)PermissionMask.Transfer >> 13);
+
+			return perms;
+		}
+
+		public void ApplyNextOwnerPermissions()
+		{
+			foreach (SceneObjectPart part in m_parts.Values)
+				part.ApplyNextOwnerPermissions();
+		}
     }
 }

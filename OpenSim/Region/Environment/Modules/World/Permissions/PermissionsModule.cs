@@ -143,6 +143,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             //Register functions with Scene External Checks!
             m_scene.ExternalChecks.addBypassPermissions(BypassPermissions); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addSetBypassPermissions(SetBypassPermissions); //FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addPropagatePermissions(PropagatePermissions); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckAbandonParcel(CanAbandonParcel); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addGenerateClientFlags(GenerateClientFlags); //NOT YET FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckBeGodLike(CanBeGodLike); //FULLY IMPLEMENTED
@@ -250,6 +251,11 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return false;
         }
 #endregion
+
+		public bool PropagatePermissions()
+		{
+			return false;
+		}
 
 		public bool BypassPermissions()
 		{
@@ -813,7 +819,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
                 bool permission = GenericObjectPermission(userID, objectID,false);
-                if (permission)
+                if (!permission)
                 {
                     if (!m_scene.Entities.ContainsKey(objectID))
                     {

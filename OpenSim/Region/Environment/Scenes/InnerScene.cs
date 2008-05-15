@@ -1339,11 +1339,11 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (IncludeInSearch && m_parentScene.ExternalChecks.ExternalChecksCanEditObject(objid, user))
             {
-                obj.AddFlag(LLObject.ObjectFlags.JointWheel);
+                obj.ParentGroup.RootPart.AddFlag(LLObject.ObjectFlags.JointWheel);
             }
             else if (!IncludeInSearch && m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(objid,user))
             {
-                obj.RemFlag(LLObject.ObjectFlags.JointWheel);
+                obj.ParentGroup.RootPart.RemFlag(LLObject.ObjectFlags.JointWheel);
             }
         }
 

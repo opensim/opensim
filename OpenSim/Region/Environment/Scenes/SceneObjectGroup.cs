@@ -1352,7 +1352,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 // Apply Next Owner Permissions if we're not bypassing permissions
                 if (!m_scene.ExternalChecks.ExternalChecksBypassPermissions())
-                    m_rootPart.ApplyNextOwnerPermissions();
+                    ApplyNextOwnerPermissions();
             }
 
             part.ScheduleFullUpdate();

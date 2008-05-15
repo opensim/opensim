@@ -813,11 +813,9 @@ namespace OpenSim.Region.Environment.Scenes
             // Prims currently only contain a single folder (Contents).  From looking at the Second Life protocol,
             // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from 
             // the prim into an agent inventory (Linden client reports that the "Object not found for drop" in its log
-            m_folderID = UUID;
 
             Flags = 0;
-            Flags |=  LLObject.ObjectFlags.AllowInventoryDrop |
-                      LLObject.ObjectFlags.CreateSelected;
+            Flags |= LLObject.ObjectFlags.CreateSelected;
 
             TrimPermissions();
             //m_undo = new UndoStack<UndoState>(ParentGroup.GetSceneMaxUndo());
@@ -877,9 +875,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public static SceneObjectPart FromXml(XmlReader xmlReader)
         {
+            // It's not necessary to persist this
+
             XmlSerializer serializer = new XmlSerializer(typeof (SceneObjectPart));
             SceneObjectPart newobject = (SceneObjectPart) serializer.Deserialize(xmlReader);
-
             return newobject;
         }
          
@@ -911,15 +910,6 @@ namespace OpenSim.Region.Environment.Scenes
                     DoPhysicsPropertyUpdate(RigidBody, true);
                 }
             }
-        }
-
-        public void ApplyNextOwnerPermissions()
-        {
-            BaseMask = NextOwnerMask;
-            OwnerMask = NextOwnerMask;
-
-            TriggerScriptChangedEvent(Changed.OWNER);
-            
         }
 
         public void TrimPermissions()
@@ -2541,7 +2531,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             info.AddValue("m_inventoryFileName", m_inventoryFileName);
-            info.AddValue("m_folderID", m_folderID.UUID);
+            info.AddValue("m_folderID", UUID);
             info.AddValue("PhysActor", PhysActor);
 
             Dictionary<Guid, TaskInventoryItem> TaskInventory_work = new Dictionary<Guid, TaskInventoryItem>();

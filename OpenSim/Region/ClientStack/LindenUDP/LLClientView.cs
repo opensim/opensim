@@ -4528,7 +4528,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 handlerObjectPermissions = OnObjectPermissions;
 
                                 if (handlerObjectPermissions != null)
-                                    OnObjectPermissions(this, AgentID, SessionID, field, localID, mask, set);
+                                    handlerObjectPermissions(this, AgentID, SessionID, field, localID, mask, set);
                             }
                         }
 
