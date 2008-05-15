@@ -25,14 +25,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Reflection;
 using System.Collections.Generic;
 using libsecondlife;
+using log4net;
 using OpenSim.Framework;
 
 namespace OpenSim.Data
 {
     public abstract class UserDataBase : IUserData
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private Dictionary<LLUUID, AvatarAppearance> aplist = new Dictionary<LLUUID, AvatarAppearance>();
 
         public abstract UserProfileData GetUserByUUID(LLUUID user);
@@ -56,14 +60,21 @@ namespace OpenSim.Data
         public abstract void Initialise(string connect);
         public abstract List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query);
         public AvatarAppearance GetUserAppearance(LLUUID user) {
-            if (aplist[user] != null) {
+            AvatarAppearance aa;
+            try {
+                m_log.Info("[APPEARANCE] Found appearance for " + user.ToString());
+                aa = aplist[user];
+            } catch (System.Collections.Generic.KeyNotFoundException e) {
+                m_log.Info("[APPEARANCE] Setting up default appearance for " + user.ToString());
                 aplist[user] = new AvatarAppearance();
                 aplist[user].Owner = user;
+                aa = aplist[user];
             }
-            return aplist[user];
+            return aa;
         }
         public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance) {
             aplist[user] = appearance;
+            m_log.Info("[APPEARANCE] Setting appearance for " + user.ToString());
         }
         public abstract void AddAttachment(LLUUID user, LLUUID item);
         public abstract void RemoveAttachment(LLUUID user, LLUUID item);
