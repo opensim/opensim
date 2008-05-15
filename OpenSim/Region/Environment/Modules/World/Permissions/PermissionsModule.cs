@@ -151,6 +151,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             m_scene.ExternalChecks.addCheckEditObject(CanEditObject);//MAYBE FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckEditParcel(CanEditParcel); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckEditScript(CanEditScript); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckEditNotecard(CanEditNotecard); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckInstantMessage(CanInstantMessage); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckInventoryTransfer(CanInventoryTransfer); //NOT YET IMPLEMENTED
             m_scene.ExternalChecks.addCheckIssueEstateCommand(CanIssueEstateCommand); //FULLY IMPLEMENTED
@@ -165,11 +166,14 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             m_scene.ExternalChecks.addCheckTakeCopyObject(CanTakeCopyObject); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckTerraformLand(CanTerraformLand); //FULL IMPLEMENTED (POINT ONLY!!! NOT AREA!!!)
             m_scene.ExternalChecks.addCheckViewScript(CanViewScript); //NOT YET IMPLEMENTED
-
-            //NEEDED PERMS:
-            //CanLinkObject
-            //CanDelinkObject
-            //CanBuyLand
+            m_scene.ExternalChecks.addCheckViewNotecard(CanViewNotecard); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckCanLinkObject(CanLinkObject); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckCanDelinkObject(CanDelinkObject); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckCanBuyLand(CanBuyLand); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckCanCopyInventory(CanCopyInventory); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckCanDeleteInventory(CanDeleteInventory); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckCanCreateInventory(CanCreateInventory); //NOT YET IMPLEMENTED
+            m_scene.ExternalChecks.addCheckCanTeleport(CanTeleport); //NOT YET IMPLEMENTED
 
 
             //Register Debug Commands
@@ -568,7 +572,15 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return GenericParcelPermission(user, parcel);
             }
 
-            private bool CanEditScript(LLUUID script, LLUUID user, Scene scene)
+            private bool CanEditScript(LLUUID script, LLUUID objectID, LLUUID user, Scene scene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                return true;
+            }
+
+            private bool CanEditNotecard(LLUUID notecard, LLUUID objectID, LLUUID user, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -771,7 +783,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return IsAdministrator(user);
             }
 
-            private bool CanRunScript(LLUUID script, LLUUID user, Scene scene)
+            private bool CanRunScript(LLUUID script, LLUUID objectID, LLUUID user, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
@@ -859,14 +871,79 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return permission;
             }
 
-            private bool CanViewScript(LLUUID script, LLUUID user, Scene scene)
+            private bool CanViewScript(LLUUID script, LLUUID objectID, LLUUID user, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
                 return true;
             }
+
+            private bool CanViewNotecard(LLUUID notecard, LLUUID objectID, LLUUID user, Scene scene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                return true;
+            }
+
         #endregion
+
+			public bool CanLinkObject(LLUUID userID, LLUUID objectID)
+			{
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+				return true;
+			}
+
+			public bool CanDelinkObject(LLUUID userID, LLUUID objectID)
+			{
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+				return true;
+			}
+
+			public bool CanBuyLand(LLUUID userID, ILandObject parcel, Scene scene)
+			{
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+				return true;
+			}
+
+			public bool CanCopyInventory(LLUUID itemID, LLUUID objectID, LLUUID userID)
+			{
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+				return true;
+			}
+
+			public bool CanDeleteInventory(LLUUID itemID, LLUUID objectID, LLUUID userID)
+			{
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+				return true;
+			}
+
+			public bool CanCreateInventory(uint invType, LLUUID objectID, LLUUID userID)
+			{
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+				return true;
+			}
+
+			public bool CanTeleport(LLUUID userID)
+			{
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+				return true;
+			}
 
 
     }

@@ -437,7 +437,7 @@ namespace OpenSim.Region.Environment.Scenes
             #endregion
 
             #region VIEW SCRIPT
-            public delegate bool CanViewScript(LLUUID script, LLUUID user, Scene scene);
+            public delegate bool CanViewScript(LLUUID script, LLUUID objectID, LLUUID user, Scene scene);
             private List<CanViewScript> CanViewScriptCheckFunctions = new List<CanViewScript>();
 
             public void addCheckViewScript(CanViewScript delegateFunc)
@@ -451,11 +451,37 @@ namespace OpenSim.Region.Environment.Scenes
                     CanViewScriptCheckFunctions.Remove(delegateFunc);
             }
 
-            public bool ExternalChecksCanViewScript(LLUUID script, LLUUID user)
+            public bool ExternalChecksCanViewScript(LLUUID script, LLUUID objectID, LLUUID user)
             {
                 foreach (CanViewScript check in CanViewScriptCheckFunctions)
                 {
-                    if (check(script, user, m_scene) == false)
+                    if (check(script, objectID, user, m_scene) == false)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            public delegate bool CanViewNotecard(LLUUID script, LLUUID objectID, LLUUID user, Scene scene);
+            private List<CanViewNotecard> CanViewNotecardCheckFunctions = new List<CanViewNotecard>();
+
+            public void addCheckViewNotecard(CanViewNotecard delegateFunc)
+            {
+                if (!CanViewNotecardCheckFunctions.Contains(delegateFunc))
+                    CanViewNotecardCheckFunctions.Add(delegateFunc);
+            }
+            public void removeCheckViewNotecard(CanViewNotecard delegateFunc)
+            {
+                if (CanViewNotecardCheckFunctions.Contains(delegateFunc))
+                    CanViewNotecardCheckFunctions.Remove(delegateFunc);
+            }
+
+            public bool ExternalChecksCanViewNotecard(LLUUID script, LLUUID objectID, LLUUID user)
+            {
+                foreach (CanViewNotecard check in CanViewNotecardCheckFunctions)
+                {
+                    if (check(script, objectID, user, m_scene) == false)
                     {
                         return false;
                     }
@@ -466,7 +492,7 @@ namespace OpenSim.Region.Environment.Scenes
             #endregion
 
             #region EDIT SCRIPT
-            public delegate bool CanEditScript(LLUUID script, LLUUID user, Scene scene);
+            public delegate bool CanEditScript(LLUUID script, LLUUID objectID, LLUUID user, Scene scene);
             private List<CanEditScript> CanEditScriptCheckFunctions = new List<CanEditScript>();
 
             public void addCheckEditScript(CanEditScript delegateFunc)
@@ -480,11 +506,37 @@ namespace OpenSim.Region.Environment.Scenes
                     CanEditScriptCheckFunctions.Remove(delegateFunc);
             }
 
-            public bool ExternalChecksCanEditScript(LLUUID script, LLUUID user)
+            public bool ExternalChecksCanEditScript(LLUUID script, LLUUID objectID, LLUUID user)
             {
                 foreach (CanEditScript check in CanEditScriptCheckFunctions)
                 {
-                    if (check(script, user, m_scene) == false)
+                    if (check(script, objectID, user, m_scene) == false)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            public delegate bool CanEditNotecard(LLUUID notecard, LLUUID objectID, LLUUID user, Scene scene);
+            private List<CanEditNotecard> CanEditNotecardCheckFunctions = new List<CanEditNotecard>();
+
+            public void addCheckEditNotecard(CanEditNotecard delegateFunc)
+            {
+                if (!CanEditNotecardCheckFunctions.Contains(delegateFunc))
+                    CanEditNotecardCheckFunctions.Add(delegateFunc);
+            }
+            public void removeCheckEditNotecard(CanEditNotecard delegateFunc)
+            {
+                if (CanEditNotecardCheckFunctions.Contains(delegateFunc))
+                    CanEditNotecardCheckFunctions.Remove(delegateFunc);
+            }
+
+            public bool ExternalChecksCanEditNotecard(LLUUID script, LLUUID objectID, LLUUID user)
+            {
+                foreach (CanEditNotecard check in CanEditNotecardCheckFunctions)
+                {
+                    if (check(script, objectID, user, m_scene) == false)
                     {
                         return false;
                     }
@@ -495,7 +547,7 @@ namespace OpenSim.Region.Environment.Scenes
             #endregion
 
             #region RUN SCRIPT
-            public delegate bool CanRunScript(LLUUID script, LLUUID user, Scene scene);
+            public delegate bool CanRunScript(LLUUID script, LLUUID objectID, LLUUID user, Scene scene);
             private List<CanRunScript> CanRunScriptCheckFunctions = new List<CanRunScript>();
 
             public void addCheckRunScript(CanRunScript delegateFunc)
@@ -509,11 +561,11 @@ namespace OpenSim.Region.Environment.Scenes
                     CanRunScriptCheckFunctions.Remove(delegateFunc);
             }
 
-            public bool ExternalChecksCanRunScript(LLUUID script, LLUUID user)
+            public bool ExternalChecksCanRunScript(LLUUID script, LLUUID objectID, LLUUID user)
             {
                 foreach (CanRunScript check in CanRunScriptCheckFunctions)
                 {
-                    if (check(script, user, m_scene) == false)
+                    if (check(script, objectID, user, m_scene) == false)
                     {
                         return false;
                     }
@@ -721,9 +773,189 @@ namespace OpenSim.Region.Environment.Scenes
             }
             #endregion
 
+            public delegate bool CanBuyLand(LLUUID user, ILandObject parcel, Scene scene);
+            private List<CanBuyLand> CanBuyLandCheckFunctions = new List<CanBuyLand>();
+
+            public void addCheckCanBuyLand(CanBuyLand delegateFunc)
+            {
+                if (!CanBuyLandCheckFunctions.Contains(delegateFunc))
+                    CanBuyLandCheckFunctions.Add(delegateFunc);
+            }
+            public void removeCheckCanBuyLand(CanBuyLand delegateFunc)
+            {
+                if (CanBuyLandCheckFunctions.Contains(delegateFunc))
+                    CanBuyLandCheckFunctions.Remove(delegateFunc);
+            }
+
+            public bool ExternalChecksCanBuyLand(LLUUID user, ILandObject parcel)
+            {
+                foreach (CanBuyLand check in CanBuyLandCheckFunctions)
+                {
+                    if (check(user, parcel, m_scene) == false)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            public delegate bool CanLinkObject(LLUUID user, LLUUID objectID);
+            private List<CanLinkObject> CanLinkObjectCheckFunctions = new List<CanLinkObject>();
+
+            public void addCheckCanLinkObject(CanLinkObject delegateFunc)
+            {
+                if (!CanLinkObjectCheckFunctions.Contains(delegateFunc))
+                    CanLinkObjectCheckFunctions.Add(delegateFunc);
+            }
+            public void removeCheckCanLinkObject(CanLinkObject delegateFunc)
+            {
+                if (CanLinkObjectCheckFunctions.Contains(delegateFunc))
+                    CanLinkObjectCheckFunctions.Remove(delegateFunc);
+            }
+
+            public bool ExternalChecksCanLinkObject(LLUUID user, LLUUID objectID)
+            {
+                foreach (CanLinkObject check in CanLinkObjectCheckFunctions)
+                {
+                    if (check(user, objectID) == false)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            public delegate bool CanDelinkObject(LLUUID user, LLUUID objectID);
+            private List<CanDelinkObject> CanDelinkObjectCheckFunctions = new List<CanDelinkObject>();
+
+            public void addCheckCanDelinkObject(CanDelinkObject delegateFunc)
+            {
+                if (!CanDelinkObjectCheckFunctions.Contains(delegateFunc))
+                    CanDelinkObjectCheckFunctions.Add(delegateFunc);
+            }
+            public void removeCheckCanDelinkObject(CanDelinkObject delegateFunc)
+            {
+                if (CanDelinkObjectCheckFunctions.Contains(delegateFunc))
+                    CanDelinkObjectCheckFunctions.Remove(delegateFunc);
+            }
+
+            public bool ExternalChecksCanDelinkObject(LLUUID user, LLUUID objectID)
+            {
+                foreach (CanDelinkObject check in CanDelinkObjectCheckFunctions)
+                {
+                    if (check(user, objectID) == false)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
         #endregion
 
+            public delegate bool CanCreateInventory(uint invType, LLUUID objectID, LLUUID userID);
+            private List<CanCreateInventory> CanCreateInventoryCheckFunctions = new List<CanCreateInventory>();
 
+            public void addCheckCanCreateInventory(CanCreateInventory delegateFunc)
+            {
+                if (!CanCreateInventoryCheckFunctions.Contains(delegateFunc))
+                    CanCreateInventoryCheckFunctions.Add(delegateFunc);
+            }
+            public void removeCheckCanCreateInventory(CanCreateInventory delegateFunc)
+            {
+                if (CanCreateInventoryCheckFunctions.Contains(delegateFunc))
+                    CanCreateInventoryCheckFunctions.Remove(delegateFunc);
+            }
+
+            public bool ExternalChecksCanCreateInventory(uint invType, LLUUID objectID, LLUUID userID)
+            {
+                foreach (CanCreateInventory check in CanCreateInventoryCheckFunctions)
+                {
+                    if (check(invType, objectID, userID) == false)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            public delegate bool CanCopyInventory(LLUUID itemID, LLUUID objectID, LLUUID userID);
+            private List<CanCopyInventory> CanCopyInventoryCheckFunctions = new List<CanCopyInventory>();
+
+            public void addCheckCanCopyInventory(CanCopyInventory delegateFunc)
+            {
+                if (!CanCopyInventoryCheckFunctions.Contains(delegateFunc))
+                    CanCopyInventoryCheckFunctions.Add(delegateFunc);
+            }
+            public void removeCheckCanCopyInventory(CanCopyInventory delegateFunc)
+            {
+                if (CanCopyInventoryCheckFunctions.Contains(delegateFunc))
+                    CanCopyInventoryCheckFunctions.Remove(delegateFunc);
+            }
+
+            public bool ExternalChecksCanCopyInventory(LLUUID itemID, LLUUID objectID, LLUUID userID)
+            {
+                foreach (CanCopyInventory check in CanCopyInventoryCheckFunctions)
+                {
+                    if (check(itemID, objectID, userID) == false)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            public delegate bool CanDeleteInventory(LLUUID itemID, LLUUID objectID, LLUUID userID);
+            private List<CanDeleteInventory> CanDeleteInventoryCheckFunctions = new List<CanDeleteInventory>();
+
+            public void addCheckCanDeleteInventory(CanDeleteInventory delegateFunc)
+            {
+                if (!CanDeleteInventoryCheckFunctions.Contains(delegateFunc))
+                    CanDeleteInventoryCheckFunctions.Add(delegateFunc);
+            }
+            public void removeCheckCanDeleteInventory(CanDeleteInventory delegateFunc)
+            {
+                if (CanDeleteInventoryCheckFunctions.Contains(delegateFunc))
+                    CanDeleteInventoryCheckFunctions.Remove(delegateFunc);
+            }
+
+            public bool ExternalChecksCanDeleteInventory(LLUUID itemID, LLUUID objectID, LLUUID userID)
+            {
+                foreach (CanDeleteInventory check in CanDeleteInventoryCheckFunctions)
+                {
+                    if (check(itemID, objectID, userID) == false)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            public delegate bool CanTeleport(LLUUID userID);
+            private List<CanTeleport> CanTeleportCheckFunctions = new List<CanTeleport>();
+
+            public void addCheckCanTeleport(CanTeleport delegateFunc)
+            {
+                if (!CanTeleportCheckFunctions.Contains(delegateFunc))
+                    CanTeleportCheckFunctions.Add(delegateFunc);
+            }
+            public void removeCheckCanTeleport(CanTeleport delegateFunc)
+            {
+                if (CanTeleportCheckFunctions.Contains(delegateFunc))
+                    CanTeleportCheckFunctions.Remove(delegateFunc);
+            }
+
+            public bool ExternalChecksCanTeleport(LLUUID userID)
+            {
+                foreach (CanTeleport check in CanTeleportCheckFunctions)
+                {
+                    if (check(userID) == false)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
     }
 }
     
