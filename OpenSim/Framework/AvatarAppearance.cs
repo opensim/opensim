@@ -243,6 +243,8 @@ namespace OpenSim.Framework
             m_serial = 0;
             m_owner = LLUUID.Zero;
             m_visualparams = new byte[VISUALPARAM_COUNT];
+            SetDefaultWearables();
+            m_texture = GetDefaultTexture();
         }
 
         public AvatarAppearance(LLUUID avatarID, AvatarWearable[] wearables, byte[] visualParams)
