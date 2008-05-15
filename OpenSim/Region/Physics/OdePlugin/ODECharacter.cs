@@ -780,7 +780,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             if (flying)
             {
-                vec.Z += (9.8f*m_mass);
+                vec.Z += ((-1 * _parent_scene.gravityz)*m_mass);
             }
 
 

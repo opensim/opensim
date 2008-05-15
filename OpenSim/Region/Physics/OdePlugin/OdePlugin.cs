@@ -127,8 +127,20 @@ namespace OpenSim.Region.Physics.OdePlugin
         private const uint m_regionWidth = Constants.RegionSize;
         private const uint m_regionHeight = Constants.RegionSize;
 
-        private static float ODE_STEPSIZE = 0.020f;
-        private static float metersInSpace = 29.9f;
+        private float ODE_STEPSIZE = 0.020f;
+        private float metersInSpace = 29.9f;
+
+        public float gravityx = 0f;
+        public float gravityy = 0f;
+        public float gravityz = -9.8f;
+
+        private float contactsurfacelayer = 0.001f;
+
+        private int worldHashspaceLow = -4;
+        private int worldHashspaceHigh = 128;
+
+        private int smallHashspaceLow = -4;
+        private int smallHashspaceHigh = 66;
 
         private float waterlevel = 0f;
         private int framecount = 0;
@@ -138,6 +150,21 @@ namespace OpenSim.Region.Physics.OdePlugin
         private IntPtr LandGeom = (IntPtr) 0;
 
         private IntPtr WaterGeom = (IntPtr)0;
+
+        private float nmTerrainContactFriction = 255.0f;
+        private float nmTerrainContactBounce = 0.1f;
+        private float nmTerrainContactERP = 0.1025f;
+
+        private float mTerrainContactFriction = 75f;
+        private float mTerrainContactBounce = 0.1f;
+        private float mTerrainContactERP = 0.05025f;
+
+        private float nmAvatarObjectContactFriction = 250f;
+        private float nmAvatarObjectContactBounce = 0.1f;
+
+        private float mAvatarObjectContactFriction = 75f;
+        private float mAvatarObjectContactBounce = 0.1f;
+
 
         private float[] _heightmap;
 
@@ -188,7 +215,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         //private IntPtr tmpSpace;
         // split static geometry collision handling into spaces of 30 meters
-        public IntPtr[,] staticPrimspace = new IntPtr[(int) (300/metersInSpace),(int) (300/metersInSpace)];
+        public IntPtr[,] staticPrimspace;
 
         public static Object OdeLock = new Object();
 
@@ -208,25 +235,94 @@ namespace OpenSim.Region.Physics.OdePlugin
             nearCallback = near;
             triCallback = TriCallback;
             triArrayCallback = TriArrayCallback;
-            /*
-            contact.surface.mode |= d.ContactFlags.Approx1 | d.ContactFlags.SoftCFM | d.ContactFlags.SoftERP;
-            contact.surface.mu = 10.0f;
-            contact.surface.bounce = 0.9f;
-            contact.surface.soft_erp = 0.005f;
-            contact.surface.soft_cfm = 0.00003f;
-            */
+            
+
+           
+
+            lock (OdeLock)
+            {
+
+                // Creat the world and the first space
+                world = d.WorldCreate();
+                space = d.HashSpaceCreate(IntPtr.Zero);
+                
+                contactgroup = d.JointGroupCreate(0);
+                //contactgroup
+
+
+
+                
+                d.WorldSetAutoDisableFlag(world, false);
+                
+            }
+
+            // zero out a heightmap array float array (single dimention [flattened]))
+            _heightmap = new float[514*514];
+            _watermap = new float[258 * 258];
+
+            // Zero out the prim spaces array (we split our space into smaller spaces so 
+            // we can hit test less.
+            
+        }
+
+        
+        // Initialize the mesh plugin
+        public override void Initialise(IMesher meshmerizer, IConfigSource config)
+        {
+            mesher = meshmerizer;
+            m_config = config;
+            if (m_config != null)
+            {
+                IConfig physicsconfig = m_config.Configs["ODEPhysicsSettings"];
+                if (physicsconfig != null)
+                {
+                    gravityx = physicsconfig.GetFloat("world_gravityx", 0f);
+                    gravityy = physicsconfig.GetFloat("world_gravityy", 0f);
+                    gravityz = physicsconfig.GetFloat("world_gravityz", -9.8f);
+
+                    worldHashspaceLow = physicsconfig.GetInt("world_hashspace_low", -4);
+                    worldHashspaceHigh = physicsconfig.GetInt("world_hashspace_high", 128);
+
+                    metersInSpace = physicsconfig.GetFloat("meters_in_small_space", 29.9f);
+                    smallHashspaceLow = physicsconfig.GetInt("small_hashspace_size_low", -4);
+                    smallHashspaceHigh = physicsconfig.GetInt("small_hashspace_size_high", 66);
+
+                    contactsurfacelayer = physicsconfig.GetFloat("world_contact_surface_layer", 0.001f);
+
+                    nmTerrainContactFriction = physicsconfig.GetFloat("nm_terraincontact_friction", 255.0f);
+                    nmTerrainContactBounce = physicsconfig.GetFloat("nm_terraincontact_bounce", 0.1f);
+                    nmTerrainContactERP = physicsconfig.GetFloat("nm_terraincontact_erp", 0.1025f);
+
+                    mTerrainContactFriction = physicsconfig.GetFloat("m_terraincontact_friction", 75f);
+                    mTerrainContactBounce = physicsconfig.GetFloat("m_terraincontact_bounce", 0.1f);
+                    mTerrainContactERP = physicsconfig.GetFloat("m_terraincontact_erp", 0.05025f);
+
+                    nmAvatarObjectContactFriction = physicsconfig.GetFloat("objectcontact_friction", 250f);
+                    nmAvatarObjectContactBounce = physicsconfig.GetFloat("objectcontact_bounce", 0.2f);
+
+                    mAvatarObjectContactFriction = physicsconfig.GetFloat("m_avatarobjectcontact_friction", 75f);
+                    mAvatarObjectContactBounce = physicsconfig.GetFloat("m_avatarobjectcontact_bounce", 0.1f);
+
+                    ODE_STEPSIZE = physicsconfig.GetFloat("world_stepsize", 0.020f);
+                    m_physicsiterations = physicsconfig.GetInt("world_internal_steps_without_collisions", 10);
+
+                }
+
+            }
+
+            staticPrimspace = new IntPtr[(int)(300 / metersInSpace), (int)(300 / metersInSpace)];
 
             // Centeral contact friction and bounce
-            contact.surface.mu = 250.0f;
-            contact.surface.bounce = 0.2f;
+            contact.surface.mu = nmAvatarObjectContactFriction;
+            contact.surface.bounce = nmAvatarObjectContactBounce;
 
             // Terrain contact friction and Bounce 
             // This is the *non* moving version.   Use this when an avatar 
             // isn't moving to keep it in place better
             TerrainContact.surface.mode |= d.ContactFlags.SoftERP;
-            TerrainContact.surface.mu = 255.0f;
-            TerrainContact.surface.bounce = 0.1f;
-            TerrainContact.surface.soft_erp = 0.1025f;
+            TerrainContact.surface.mu = nmTerrainContactFriction;
+            TerrainContact.surface.bounce = nmTerrainContactBounce;
+            TerrainContact.surface.soft_erp = nmTerrainContactERP;
 
             WaterContact.surface.mode |= (d.ContactFlags.SoftERP | d.ContactFlags.SoftCFM);
             WaterContact.surface.mu = 0f; // No friction
@@ -238,46 +334,29 @@ namespace OpenSim.Region.Physics.OdePlugin
             // THis is the *non* moving version of friction and bounce 
             // Use this when an avatar comes in contact with a prim
             // and is moving
-            AvatarMovementprimContact.surface.mu = 75.0f;
-            AvatarMovementprimContact.surface.bounce = 0.1f;
+            AvatarMovementprimContact.surface.mu = mAvatarObjectContactFriction;
+            AvatarMovementprimContact.surface.bounce = mAvatarObjectContactBounce;
 
             // Terrain contact friction bounce and various error correcting calculations
             // Use this when an avatar is in contact with the terrain and moving.
             AvatarMovementTerrainContact.surface.mode |= d.ContactFlags.SoftERP;
-            AvatarMovementTerrainContact.surface.mu = 75.0f;
-            AvatarMovementTerrainContact.surface.bounce = 0.05f;
-            AvatarMovementTerrainContact.surface.soft_erp = 0.05025f;
+            AvatarMovementTerrainContact.surface.mu = mTerrainContactFriction;
+            AvatarMovementTerrainContact.surface.bounce = mTerrainContactBounce;
+            AvatarMovementTerrainContact.surface.soft_erp = mTerrainContactERP;
 
-            lock (OdeLock)
-            {
+            d.HashSpaceSetLevels(space, worldHashspaceLow, worldHashspaceHigh);
 
-                // Creat the world and the first space
-                world = d.WorldCreate();
-                space = d.HashSpaceCreate(IntPtr.Zero);
-                d.HashSpaceSetLevels(space, -4, 128);
-                contactgroup = d.JointGroupCreate(0);
-                //contactgroup
+            // Set the gravity,, don't disable things automatically (we set it explicitly on some things)
 
+            d.WorldSetGravity(world, gravityx, gravityy, gravityz);
+            d.WorldSetContactSurfaceLayer(world, contactsurfacelayer);
 
-                // Set the gravity,, don't disable things automatically (we set it explicitly on some things)
+            // Set how many steps we go without running collision testing
+            // This is in addition to the step size.
+            // Essentially Steps * m_physicsiterations
+            d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
+            //d.WorldSetContactMaxCorrectingVel(world, 1000.0f);
 
-                d.WorldSetGravity(world, 0.0f, 0.0f, -9.8f);
-                d.WorldSetAutoDisableFlag(world, false);
-                d.WorldSetContactSurfaceLayer(world, 0.001f);
-                
-                // Set how many steps we go without running collision testing
-                // This is in addition to the step size.
-                // Essentially Steps * m_physicsiterations
-                d.WorldSetQuickStepNumIterations(world, m_physicsiterations);
-                ///d.WorldSetContactMaxCorrectingVel(world, 1000.0f);
-            }
-
-            // zero out a heightmap array float array (single dimention [flattened]))
-            _heightmap = new float[514*514];
-            _watermap = new float[258 * 258];
-
-            // Zero out the prim spaces array (we split our space into smaller spaces so 
-            // we can hit test less.
             for (int i = 0; i < staticPrimspace.GetLength(0); i++)
             {
                 for (int j = 0; j < staticPrimspace.GetLength(1); j++)
@@ -285,14 +364,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     staticPrimspace[i, j] = IntPtr.Zero;
                 }
             }
-        }
 
-        
-        // Initialize the mesh plugin
-        public override void Initialise(IMesher meshmerizer, IConfigSource config)
-        {
-            mesher = meshmerizer;
-            m_config = config;
         }
 
         internal void waitForSpaceUnlock(IntPtr space)
@@ -649,8 +721,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
 
                         }
-                        WaterContact.surface.soft_cfm = 0.0000f;
-                        WaterContact.surface.soft_erp = 0.00000f;
+                        //WaterContact.surface.soft_cfm = 0.0000f;
+                        //WaterContact.surface.soft_erp = 0.00000f;
                         if (contacts[i].depth > 0.1f)
                         {
                             contacts[i].depth *= 52;
@@ -1345,7 +1417,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (newspace == IntPtr.Zero)
             {
                 newspace = createprimspace(iprimspaceArrItem[0], iprimspaceArrItem[1]);
-                d.HashSpaceSetLevels(newspace, -4, 66);
+                d.HashSpaceSetLevels(newspace, smallHashspaceLow, smallHashspaceHigh);
             }
 
             return newspace;

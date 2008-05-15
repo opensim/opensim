@@ -1155,14 +1155,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                     
                     if (m_buoyancy > 0)
                     {
-                         fz = ((9.8f * m_buoyancy) * m_mass);
+                         fz = (((-1 * _parent_scene.gravityz) * m_buoyancy) * m_mass);
                          
                         //d.Vector3 l_velocity = d.BodyGetLinearVel(Body);
-                        //m_log.Info("Using Buoyancy: " + buoyancy + " G: " + (9.8f * m_buoyancy) + "mass:" + m_mass + "  Pos: " + Position.ToString());
+                         //m_log.Info("Using Buoyancy: " + buoyancy + " G: " + (_parent_scene.gravityz * m_buoyancy) + "mass:" + m_mass + "  Pos: " + Position.ToString());
                     }
                     else 
                     {
-                        fz = (-1 * ((9.8f * (-1 * m_buoyancy)) * m_mass));
+                        fz = (-1 * (((-1 * _parent_scene.gravityz) * (-1 * m_buoyancy)) * m_mass));
                     }
                     
 
@@ -1171,7 +1171,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (m_usePID)
                 {
                     // If we're using the PID controller, then we have no gravity             
-                    fz = 9.8f * this.Mass;
+                    fz = (-1 * _parent_scene.gravityz) * this.Mass;
 
                     //  no lock; for now it's only called from within Simulate()
 

@@ -158,6 +158,56 @@ whisper_distance = 10
 say_distance = 30
 shout_distance = 100
 
+[ODEPhysicsSettings]
+
+;# World Settings
+
+;Gravity.  Feel like falling up?  change world_gravityz to 9.8 instead of -9.8.  m/s
+world_gravityx = 0
+world_gravityy = 0
+world_gravityz = -9.8
+
+; World Step size. (warning these are dangerous.  Changing these will probably cause your scene to explode dramatically)
+; reference: fps = (0.09375/ODE_STEPSIZE) * 1000;
+world_stepsize = 0.020
+world_internal_steps_without_collisions = 10
+
+;World Space settings. Affects memory consumption vs Collider CPU time for avatar and physical prim
+world_hashspace_size_low = -4
+world_hashSpace_size_high = 128
+
+;Dynamic space settings Affects memory consumption vs Collider CPU time for static prim
+meters_in_small_space = 29.9
+small_hashspace_size_low = -4
+small_hashspace_size_high = 66
+
+; # Contact properties. (the stuff that happens when things come in contact with each other)
+
+; surface layer around geometries other geometries can sink into before generating a contact
+world_contact_surface_layer = 0.001
+
+; Non Moving Terrain Contact (avatar isn't moving)
+nm_terraincontact_friction = 255.0
+nm_terraincontact_bounce = 0.1
+nm_terraincontact_erp = 0.1025
+
+; Moving Terrain Contact (avatar is moving)
+
+m_terraincontact_friction = 75.0
+m_terraincontact_bounce = 0.05
+m_terrainContact_erp = 0.05025
+
+; Moving Avatar to object Contact
+
+m_avatarobjectcontact_friction = 75.0
+m_avatarobjectcontact_bounce = 0.1
+
+; Object to Object Contact and Non-Moving Avatar to object
+
+objectcontact_friction = 250.0
+objectcontact_bounce = 0.2
+
+
 [RemoteAdmin]
 enabled = false
 access_password = unknown
