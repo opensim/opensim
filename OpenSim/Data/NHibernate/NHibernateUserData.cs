@@ -306,29 +306,29 @@ namespace OpenSim.Data.NHibernate
 
         /// Appearance
         /// TODO: stubs for now to get us to a compiling state gently
-        override public UserAppearance GetUserAppearance(LLUUID user) 
+        override public AvatarAppearance GetUserAppearance(LLUUID user) 
         {
-            UserAppearance appearance;
+            AvatarAppearance appearance;
             // TODO: I'm sure I'll have to do something silly here
             using (ISession session = factory.OpenSession())
             {
-                appearance = session.Load(typeof(UserAppearance), user) as UserAppearance;
+                appearance = session.Load(typeof(AvatarAppearance), user) as AvatarAppearance;
             }
             return appearance;
         }
 
         private bool ExistsAppearance(LLUUID uuid)
         {
-            UserAppearance appearance;
+            AvatarAppearance appearance;
             using (ISession session = factory.OpenSession())
             {
-                appearance = session.Load(typeof(UserAppearance), uuid) as UserAppearance;
+                appearance = session.Load(typeof(AvatarAppearance), uuid) as AvatarAppearance;
             }
             return (appearance == null) ? false : true;
         }
 
 
-        override public void UpdateUserAppearance(LLUUID user, UserAppearance appearance)
+        override public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
         {
             bool exists = ExistsAppearance(user);
             using (ISession session = factory.OpenSession())

@@ -598,7 +598,7 @@ namespace OpenSim.Framework.Communications
 
         /// Appearance
         /// TODO: stubs for now to get us to a compiling state gently
-        public UserAppearance GetUserAppearance(LLUUID user) 
+        public AvatarAppearance GetUserAppearance(LLUUID user) 
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
             {
@@ -611,10 +611,10 @@ namespace OpenSim.Framework.Communications
                     m_log.InfoFormat("[USERSTORAGE]: Unable to find user appearance {0} via {1} ({2})", user.ToString(), plugin.Key, e.ToString());
                 }
             }
-            return new UserAppearance();
+            return new AvatarAppearance();
         }
 
-        public void UpdateUserAppearance(LLUUID user, UserAppearance appearance)
+        public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
             {

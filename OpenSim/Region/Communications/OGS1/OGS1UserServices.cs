@@ -550,12 +550,12 @@ namespace OpenSim.Region.Communications.OGS1
 
         /// Appearance
         /// TODO: stubs for now to get us to a compiling state gently
-        public UserAppearance GetUserAppearance(LLUUID user) 
+        public AvatarAppearance GetUserAppearance(LLUUID user) 
         {
-            return new UserAppearance();
+            return new AvatarAppearance();
         }
 
-        public void UpdateUserAppearance(LLUUID user, UserAppearance appearance)
+        public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
         {
             return;
         }
