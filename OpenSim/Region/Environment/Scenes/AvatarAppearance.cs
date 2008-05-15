@@ -38,6 +38,36 @@ namespace OpenSim.Region.Environment.Scenes
     [Serializable]
     public class AvatarAppearance : ISerializable
     {
+        // these are guessed at by the list here -
+        // http://wiki.secondlife.com/wiki/Avatar_Appearance.  We'll
+        // correct them over time for when were are wrong.
+        public readonly static int BODY = 0;
+        public readonly static int SKIN = 1;
+        public readonly static int HAIR = 2;
+        public readonly static int EYES = 3;
+        public readonly static int SHIRT = 4;
+        public readonly static int PANTS = 5;
+        public readonly static int SHOES = 6;
+        public readonly static int SOCKS = 7;
+        public readonly static int JACKET = 8;
+        public readonly static int GLOVES = 9;
+        public readonly static int UNDERSHIRT = 10;
+        public readonly static int UNDERPANTS = 11;
+        public readonly static int SKIRT = 12;
+
+        private readonly static int MAX_WEARABLES = 13;
+ 
+        private static LLUUID BODY_ASSET = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
+        private static LLUUID BODY_ITEM = new LLUUID("66c41e39-38f9-f75a-024e-585989bfaba9");
+        private static LLUUID SKIN_ASSET = new LLUUID("77c41e39-38f9-f75a-024e-585989bbabbb");
+        private static LLUUID SKIN_ITEM = new LLUUID("77c41e39-38f9-f75a-024e-585989bfabc9");
+        private static LLUUID SHIRT_ASSET = new LLUUID("00000000-38f9-1111-024e-222222111110");
+        private static LLUUID SHIRT_ITEM = new LLUUID("77c41e39-38f9-f75a-0000-585989bf0000");
+        private static LLUUID PANTS_ASSET = new LLUUID("00000000-38f9-1111-024e-222222111120");
+        private static LLUUID PANTS_ITEM = new LLUUID("77c41e39-38f9-f75a-0000-5859892f1111");
+
+        public readonly static int VISUALPARAM_COUNT = 218;
+
         protected LLUUID m_scenePresenceID;
 
         public LLUUID ScenePresenceID
@@ -87,6 +117,15 @@ namespace OpenSim.Region.Environment.Scenes
 
         public AvatarAppearance()
         {
+            m_wearables = new AvatarWearable[MAX_WEARABLES];
+            for (int i = 0; i < MAX_WEARABLES; i++)
+            {
+                // this makes them all null
+                m_wearables[i] = new AvatarWearable();
+            }
+            m_wearablesSerial = 0;
+            m_scenePresenceID = LLUUID.Zero;
+            m_visualParams = new byte[VISUALPARAM_COUNT];
         }
 
         public AvatarAppearance(LLUUID avatarID, AvatarWearable[] wearables, byte[] visualParams)
