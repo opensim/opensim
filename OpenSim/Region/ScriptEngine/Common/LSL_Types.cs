@@ -211,21 +211,16 @@ namespace OpenSim.Region.ScriptEngine.Common
                 Quaternion vq = new Quaternion(v.x, v.y, v.z, 0);
                 Quaternion nq = new Quaternion(-r.x, -r.y, -r.z, r.s);
 
-                Quaternion result = (r * vq) * nq;
+                // adapted for operator * computing "b * a"
+                Quaternion result = nq * (vq * r);
 
                 return new Vector3(result.x, result.y, result.z);
             }
 
-            // I *think* this is how it works....
-            public static Vector3 operator /(Vector3 vec, Quaternion quat)
+            public static Vector3 operator /(Vector3 v, Quaternion r)
             {
-                quat.s = -quat.s;
-                Quaternion vq = new Quaternion(vec.x, vec.y, vec.z, 0);
-                Quaternion nq = new Quaternion(-quat.x, -quat.y, -quat.z, quat.s);
-
-                Quaternion result = (quat * vq) * nq;
-
-                return new Vector3(result.x, result.y, result.z);
+                r.s = -r.s;
+                return v * r;
             }
 
             #endregion
@@ -371,9 +366,8 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             public static Quaternion operator /(Quaternion a, Quaternion b)
             {
-                Quaternion c = a * b;
-                c.s = c.s * -1;
-                return c;
+                b.s = -b.s;
+                return a * b;
             }
 
             public static Quaternion operator -(Quaternion a, Quaternion b)
@@ -381,7 +375,8 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return new Quaternion(a.x - b.x, a.y - b.y, a.z - b.z, a.s - b.s);
             }
 
-            public static Quaternion operator *(Quaternion a, Quaternion b)
+            // using the equations below, we need to do "b * a" to be compatible with LSL
+            public static Quaternion operator *(Quaternion b, Quaternion a)
             {
                 Quaternion c;
                 c.x = a.s * b.x + a.x * b.s + a.y * b.z - a.z * b.y;
