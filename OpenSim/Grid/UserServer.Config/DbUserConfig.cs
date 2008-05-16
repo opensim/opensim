@@ -40,7 +40,7 @@ namespace OpenUser.Config.UserConfigDb4o
         public UserConfig GetConfigObject()
         {
             m_log.Info("[DBUSERCONFIG]: Loading Db40Config dll");
-            return ( new DbUserConfig());
+            return new DbUserConfig();
         }
     }
 

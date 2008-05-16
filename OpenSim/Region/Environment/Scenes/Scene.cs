@@ -1284,10 +1284,9 @@ namespace OpenSim.Region.Environment.Scenes
                                        byte bypassRaycast, LLVector3 RayStart, LLUUID RayTargetID,
                                        byte RayEndIsIntersection)
         {
+            LLVector3 pos = GetNewRezLocation(RayStart, RayEnd, RayTargetID, rot, bypassRaycast, RayEndIsIntersection, true, new LLVector3(0.5f, 0.5f, 0.5f), false);
 
-            LLVector3 pos = GetNewRezLocation(RayStart, RayEnd, RayTargetID, rot, bypassRaycast, RayEndIsIntersection, true, new LLVector3(0.5f,0.5f,0.5f), false);
-
-            if ( ExternalChecks.ExternalChecksCanRezObject(1,ownerID,pos))
+            if (ExternalChecks.ExternalChecksCanRezObject(1, ownerID, pos))
             {
                 // rez ON the ground, not IN the ground
                 pos.Z += 0.25F;
@@ -1515,8 +1514,6 @@ namespace OpenSim.Region.Environment.Scenes
                                 }
                             }
                         }
-
-
                     }
                 }
                 return true;
@@ -1525,7 +1522,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 return false;
             }
-
         }
 
         #endregion
@@ -1658,6 +1654,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             EventManager.TriggerOnNewClient(client);
         }
+
         public virtual void TeleportClientHome(LLUUID AgentId, IClientAPI client)
         {
             UserProfileData UserProfile = CommsManager.UserService.GetUserProfile(AgentId);
@@ -1701,7 +1698,7 @@ namespace OpenSim.Region.Environment.Scenes
                     EntityIntersection ei = target.TestIntersectionOBB(NewRay, new Quaternion(1, 0, 0, 0), frontFacesOnly, false);
 
                     // Un-comment out the following line to Get Raytrace results printed to the console.
-                   // m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
+                    // m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
                     float ScaleOffset = 0.5f;
 
                     // If we hit something
@@ -1745,18 +1742,13 @@ namespace OpenSim.Region.Environment.Scenes
                         m_innerScene.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID);
                     }
 
-
                     return;
                 }
+
                 return;
-
-
             }
-
-
-
-
         }
+
         public virtual void SetHomeRezPoint(IClientAPI remoteClient, ulong regionHandle, LLVector3 position, LLVector3 lookAt, uint flags)
         {
             UserProfileData UserProfile = CommsManager.UserService.GetUserProfile(remoteClient.AgentId);
@@ -1938,7 +1930,6 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
-
         }
 
         public override void CloseAllAgents(uint circuitcode)
@@ -2013,7 +2004,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_sceneGridService.Close();
         }
-
 
         /// <summary>
         /// Do the work necessary to initiate a new user connection.
@@ -2164,7 +2154,6 @@ namespace OpenSim.Region.Environment.Scenes
                     childAgentUpdate.ChildAgentDataUpdate(cAgentData, tRegionX, tRegionY, rRegionX, rRegionY);
                     // Not Implemented:
                     //TODO: Do we need to pass the message on to one of our neighbors?
-
                 }
                 return true;
             }

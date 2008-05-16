@@ -62,7 +62,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             }
 
             m_svnClient.Commit3(svnfilenames, true, false);
-            m_log.Info("[SVNBACKUP]: Server backup successful ( " + String.Concat(regions.ToArray()) + ").");
+            m_log.Info("[SVNBACKUP]: Server backup successful (" + String.Concat(regions.ToArray()) + ").");
         }
 
         private List<string> CreateAndAddExport(Scene scene)

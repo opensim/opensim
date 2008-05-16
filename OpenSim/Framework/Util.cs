@@ -58,7 +58,7 @@ namespace OpenSim.Framework
         private static string regexInvalidPathChars = "[" + new String(Path.GetInvalidPathChars()) + "]";
         private static object XferLock = new object();
 
-        #region Vector Equasions
+        #region Vector Equations
 
         /// <summary>
         /// Get the distance between two 3d vectors
@@ -214,8 +214,8 @@ namespace OpenSim.Framework
             }
 
             // Windows 2000 / Pre-SP2 XP
-            if (Environment.OSVersion.Version.Major == 5 && (
-                                                                Environment.OSVersion.Version.Minor == 0))
+            if (Environment.OSVersion.Version.Major == 5 &&
+                Environment.OSVersion.Version.Minor == 0)
             {
                 reason = "Please update to Windows XP Service Pack 2 or Server2003";
                 return false;
@@ -544,7 +544,6 @@ namespace OpenSim.Framework
         /// <summary>
         /// returns the contents of /etc/issue on Unix Systems
         /// Use this for where it's absolutely necessary to implement platform specific stuff
-        /// ( like the ODE library :P
         /// </summary>
         /// <returns></returns>
         public static string ReadEtcIssue()

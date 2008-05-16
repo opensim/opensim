@@ -2312,7 +2312,7 @@ namespace OpenSim.Region.Environment.Scenes
             /*
             Dictionary<Guid, ScenePartUpdate> updateTimes_work = new Dictionary<Guid, ScenePartUpdate>();
 
-            foreach ( LLUUID id in m_updateTimes.Keys)
+            foreach (LLUUID id in m_updateTimes.Keys)
             {
                 updateTimes_work.Add(id.UUID, m_updateTimes[id]);
             }

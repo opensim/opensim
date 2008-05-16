@@ -75,8 +75,8 @@ namespace OpenSim.Data.NHibernate
             cfg.AddAssembly("OpenSim.Data.NHibernate");
 
             HbmSerializer.Default.Validate = true;
-            using ( MemoryStream stream =
-                    HbmSerializer.Default.Serialize(Assembly.GetExecutingAssembly()))
+            using (MemoryStream stream =
+                   HbmSerializer.Default.Serialize(Assembly.GetExecutingAssembly()))
                 cfg.AddInputStream(stream);
 
             // If uncommented this will auto create tables, but it
@@ -89,7 +89,6 @@ namespace OpenSim.Data.NHibernate
 
             InitDB();
         }
-
 
         private void InitDB()
         {
@@ -116,7 +115,6 @@ namespace OpenSim.Data.NHibernate
                 }
             }
         }
-
 
         /*****************************************************************
          *

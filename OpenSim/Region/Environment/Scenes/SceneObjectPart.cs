@@ -1282,7 +1282,7 @@ namespace OpenSim.Region.Environment.Scenes
                     //}
                 //}
                 //a = (d - iray.Origin.Dot(normals[i])) / s;
-                //if ( iray.Direction.Dot(normals[i]) < 0)
+                //if (iray.Direction.Dot(normals[i]) < 0)
                 //{
                     //if (a > fmax)
                     //{
