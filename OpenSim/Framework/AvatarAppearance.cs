@@ -371,6 +371,14 @@ namespace OpenSim.Framework
             VisualParams = (byte[])h["visual_params"];
             Texture = new LLObject.TextureEntry((byte[])h["texture"], 0, ((byte[])h["texture"]).Length);
             AvatarHeight = (float)Convert.ToDouble((string)h["avatar_height"]);
+            
+            m_wearables = new AvatarWearable[MAX_WEARABLES];
+            for (int i = 0; i < MAX_WEARABLES; i++)
+            {
+                // this makes them all null
+                m_wearables[i] = new AvatarWearable();
+            }
+
             BodyItem = new LLUUID((string)h["body_item"]);
             BodyAsset = new LLUUID((string)h["body_asset"]);
             SkinItem = new LLUUID((string)h["skin_item"]);  
