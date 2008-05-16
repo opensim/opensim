@@ -453,7 +453,7 @@ namespace OpenSim.Framework.Communications.Cache
         // See IAssetReceiver
         public void AssetNotFound(LLUUID assetID, bool IsTexture)
         {
-            m_log.WarnFormat("[ASSET CACHE]: AssetNotFound for {0}", assetID);
+            //m_log.WarnFormat("[ASSET CACHE]: AssetNotFound for {0}", assetID);
 
             if (IsTexture)
             {

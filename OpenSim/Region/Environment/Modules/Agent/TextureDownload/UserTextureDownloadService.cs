@@ -46,6 +46,12 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
     {
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
+        /// <summary>
+        /// True if the service has been closed, probably because a user with texture requests still queued
+        /// logged out.
+        /// </summary>
+        private bool closed;
 
         /// <summary>
         /// We will allow the client to request the same texture n times before dropping further requests
@@ -169,11 +175,14 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         public void TextureCallback(LLUUID textureID, AssetBase texture)
         {
             //m_log.DebugFormat("[USER TEXTURE DOWNLOAD SERVICE]: Calling TextureCallback with {0}, texture == null is {1}", textureID, (texture == null ? true : false));
+            
+            // There may still be texture requests pending for a logged out client
+            if (closed)
+                return;
 
             lock (m_textureSenders)
             {
                 TextureSender.TextureSender textureSender;
-
                 if (m_textureSenders.TryGetValue(textureID, out textureSender))
                 {
                     // XXX It may be perfectly valid for a texture to have no data...  but if we pass
@@ -211,7 +220,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
                 else
                 {
                     m_log.WarnFormat(
-                        "Got a texture uuid {0} with no sender object to handle it, this shouldn't happen",
+                        "[USER TEXTURE DOWNLOAD SERVICE]: Got a texture uuid {0} with no sender object to handle it, this shouldn't happen",
                         textureID);
                 }
             }
@@ -237,6 +246,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         /// </summary>
         internal void Close()
         {
+            closed = true;
+            
             lock (m_textureSenders)
             {
                 foreach (TextureSender.TextureSender textureSender in m_textureSenders.Values)
@@ -246,6 +257,9 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
 
                 m_textureSenders.Clear();
             }
+            
+            // XXX: It might be possible to also remove pending texture requests from the asset cache queues,
+            // though this might also be more trouble than it's worth.
         }
     }
 }
