@@ -74,7 +74,7 @@ namespace OpenSim.Data
         }
         public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance) {
             aplist[user] = appearance;
-            m_log.Info("[APPEARANCE] Setting appearance for " + user.ToString() + appearance.ToString() );
+            m_log.Info("[APPEARANCE] Setting appearance for " + user.ToString() + appearance.ToString());
         }
         public abstract void AddAttachment(LLUUID user, LLUUID item);
         public abstract void RemoveAttachment(LLUUID user, LLUUID item);

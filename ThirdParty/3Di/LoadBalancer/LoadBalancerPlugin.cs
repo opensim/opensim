@@ -839,8 +839,8 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
         {
             //m_log.Info("[SPLITSCENE] "+String.Format("UpdatePhysics called {0}", regionID));
 
-            //m_log.Info("[SPLITSCENE] "+"LocalUpdatePhysics [region port:{0}, client:{1}, position:{2}, velocity:{3}, flying:{4}]", 
-            //                                       regionPort, scenePresenceID.ToString(), position.ToString(), 
+            //m_log.Info("[SPLITSCENE] "+"LocalUpdatePhysics [region port:{0}, client:{1}, position:{2}, velocity:{3}, flying:{4}]",
+            //                                       regionPort, scenePresenceID.ToString(), position.ToString(),
             //                                       velocity.ToString(), flying);
 
             RegionInfo region = SearchRegionFromPortNum(regionPort);
@@ -857,7 +857,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                     return;
                 }
 
-//                m_log.Info("[SPLITSCENE] "+"LocalUpdatePhysics [region:{0}, client:{1}]", 
+//                m_log.Info("[SPLITSCENE] "+"LocalUpdatePhysics [region:{0}, client:{1}]",
 //                                                                             regionID.ToString(), pre.UUID.ToString());
 
                 pre.AbsolutePosition = position; // will set PhysicsActor.Position
@@ -882,9 +882,9 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                 {
                     LLClientView client = (LLClientView) pre.ControllingClient;
 
-                    // Because data changes by the physics simulation when the client doesn't move, 
+                    // Because data changes by the physics simulation when the client doesn't move,
                     // if MovementFlag is false, It is necessary to synchronize.
-                    //if (pre.MovementFlag!=0 && client.PacketProcessingEnabled==true) 
+                    //if (pre.MovementFlag!=0 && client.PacketProcessingEnabled==true)
                     if (client.IsActive)
                     {
                         //m_log.Info("[SPLITSCENE] "+String.Format("Client moving in {0} {1}", scene.RegionInfo.RegionID, pre.AbsolutePosition));
@@ -898,14 +898,14 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 
                             if (isLocalNeighbour[i])
                             {
-                                //m_log.Info("[SPLITSCENE] "+"Synchronize ScenePresence (Local) [region:{0}=>{1}, client:{2}]", 
+                                //m_log.Info("[SPLITSCENE] "+"Synchronize ScenePresence (Local) [region:{0}=>{1}, client:{2}]",
                                 //                                             scene.RegionInfo.RegionID, regionPortList[i], pre.UUID.ToString());
                                 LocalUpdatePhysics(regionPortList[i], pre.UUID, pre.AbsolutePosition, pre.Velocity, pre.PhysicsActor.Flying);
                             }
                             else
                             {
-                                //m_log.Info("[SPLITSCENE] "+"Synchronize ScenePresence (Remote) [region port:{0}, client:{1}, position:{2}, velocity:{3}, flying:{4}]", 
-                                //                                   regionPortList[i], pre.UUID.ToString(), pre.AbsolutePosition.ToString(), 
+                                //m_log.Info("[SPLITSCENE] "+"Synchronize ScenePresence (Remote) [region port:{0}, client:{1}, position:{2}, velocity:{3}, flying:{4}]",
+                                //                                   regionPortList[i], pre.UUID.ToString(), pre.AbsolutePosition.ToString(),
                                 //                                   pre.Velocity.ToString(), pre.PhysicsActor.Flying);
 
 
@@ -917,8 +917,8 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 /*
   byte[] buff = new byte[12+12+1];
 
-  Buffer.BlockCopy(pre.AbsolutePosition.GetBytes(), 0, buff, 0, 12); 
-  Buffer.BlockCopy(pre.Velocity.GetBytes(), 0, buff, 12, 12); 
+  Buffer.BlockCopy(pre.AbsolutePosition.GetBytes(), 0, buff, 0, 12);
+  Buffer.BlockCopy(pre.Velocity.GetBytes(), 0, buff, 12, 12);
   buff[24] = (byte)((pre.PhysicsActor.Flying)?1:0);
 
   // create header
@@ -959,13 +959,13 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 
                 if (isLocalNeighbour[i])
                 {
-                    //m_log.Info("[SPLITSCENE] "+"Synchronize Packet (Local) [type:{0}, client:{1}]", 
+                    //m_log.Info("[SPLITSCENE] "+"Synchronize Packet (Local) [type:{0}, client:{1}]",
                     //                packet.Type.ToString(), agentID.ToString());
                     LocalUpdatePacket(regionPortList[i], agentID, packet, throttlePacketType);
                 }
                 else
                 {
-                    //m_log.Info("[SPLITSCENE] "+"Synchronize Packet (Remote) [type:{0}, client:{1}]", 
+                    //m_log.Info("[SPLITSCENE] "+"Synchronize Packet (Remote) [type:{0}, client:{1}]",
                     //                            packet.Type.ToString(), agentID.ToString());
                     // to bytes
                     byte[] buff = packet.ToBytes();
@@ -995,7 +995,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
 
             RegionInfo region = SearchRegionFromPortNum(regionPort);
 
-//            m_log.Info("[SPLITSCENE] "+"LocalUpdatePacket [region port:{0}, client:{1}, packet type:{2}]", 
+//            m_log.Info("[SPLITSCENE] "+"LocalUpdatePacket [region port:{0}, client:{1}, packet type:{2}]",
 //                                                          regionPort, agentID.ToString(), packet.GetType().ToString());
 
             if (sceneManager.TryGetScene(region.RegionID, out scene))

@@ -144,7 +144,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
                     {
                         //MainLog.Instance.Verbose("TCPSERVER", "Processing body");
 
-                        // reading body 
+                        // reading body
                         byte[] packet = new byte[state.header.numbytes];
                         state.ms_ptr.Position = current_pos + TcpClient.internalPacketHeaderSize;
                         state.ms_ptr.Read(packet, 0, state.header.numbytes);
