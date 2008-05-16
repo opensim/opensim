@@ -33,6 +33,9 @@ using System.Text.RegularExpressions;
 using libsecondlife;
 using log4net;
 using OpenSim.Framework;
+using OpenSim.Data.Base;
+using OpenSim.Data.MapperFactory;
+using OpenSim.Data.MySQLMapper;
 
 namespace OpenSim.Data.MySQL
 {
@@ -51,44 +54,65 @@ namespace OpenSim.Data.MySQL
         private string m_agentsTableName;
         private string m_usersTableName;
         private string m_userFriendsTableName;
+        private string m_connectString;
+        private BaseDatabaseConnector m_databaseMapper;
+        private AppearanceTableMapper m_appearanceMapper;
 
         /// <summary>
         /// Loads and initialises the MySQL storage plugin
         /// </summary>
         override public void Initialise(string connect)
         {
-            // TODO: actually do something with our connect string
-            // instead of loading the second config
+            if (connect == String.Empty) {
+                // TODO: actually do something with our connect string
+                // instead of loading the second config
 
-            IniFile iniFile = new IniFile("mysql_connection.ini");
-            string settingHostname = iniFile.ParseFileReadValue("hostname");
-            string settingDatabase = iniFile.ParseFileReadValue("database");
-            string settingUsername = iniFile.ParseFileReadValue("username");
-            string settingPassword = iniFile.ParseFileReadValue("password");
-            string settingPooling = iniFile.ParseFileReadValue("pooling");
-            string settingPort = iniFile.ParseFileReadValue("port");
+                m_log.Warn("Using obsoletely mysql_connection.ini, try using user_source connect string instead");
+                IniFile iniFile = new IniFile("mysql_connection.ini");
+                string settingHostname = iniFile.ParseFileReadValue("hostname");
+                string settingDatabase = iniFile.ParseFileReadValue("database");
+                string settingUsername = iniFile.ParseFileReadValue("username");
+                string settingPassword = iniFile.ParseFileReadValue("password");
+                string settingPooling = iniFile.ParseFileReadValue("pooling");
+                string settingPort = iniFile.ParseFileReadValue("port");
+                
+                m_usersTableName = iniFile.ParseFileReadValue("userstablename");
+                if (m_usersTableName == null)
+                {
+                    m_usersTableName = "users";
+                }
 
-            m_usersTableName = iniFile.ParseFileReadValue("userstablename");
-            if (m_usersTableName == null)
-            {
+                m_userFriendsTableName = iniFile.ParseFileReadValue("userfriendstablename");
+                if (m_userFriendsTableName == null)
+                {
+                    m_userFriendsTableName = "userfriends";
+                }
+                
+                m_agentsTableName = iniFile.ParseFileReadValue("agentstablename");
+                if (m_agentsTableName == null)
+                {
+                    m_agentsTableName = "agents";
+                }
+
+                m_connectString = "Server=" + settingHostname + ";Port=" + settingPort + ";Database=" + settingDatabase + ";User ID=" +
+                    settingUsername + ";Password=" + settingPassword + ";Pooling=" + settingPooling + ";";
+                
+                database = new MySQLManager(m_connectString);
+            } else {
+                m_connectString = connect;
+                m_agentsTableName = "agents";
                 m_usersTableName = "users";
-            }
-
-            m_userFriendsTableName = iniFile.ParseFileReadValue("userfriendstablename");
-            if (m_userFriendsTableName == null)
-            {
                 m_userFriendsTableName = "userfriends";
             }
-
-            m_agentsTableName = iniFile.ParseFileReadValue("agentstablename");
-            if (m_agentsTableName == null)
-            {
-                m_agentsTableName = "agents";
-            }
-
-            database =
-                new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling,
-                                 settingPort);
+            
+            string mapperTypeStr = "MySQL";
+            DataMapperFactory.MAPPER_TYPE mapperType =
+                (DataMapperFactory.MAPPER_TYPE)
+                Enum.Parse(typeof (DataMapperFactory.MAPPER_TYPE), mapperTypeStr);
+            
+            m_databaseMapper = DataMapperFactory.GetDataBaseMapper(mapperType, m_connectString);
+            
+            m_appearanceMapper = new AppearanceTableMapper(m_databaseMapper, "AvatarAppearance");
 
             TestTables();
         }
@@ -630,15 +654,24 @@ namespace OpenSim.Data.MySQL
 
         /// Appearance
         /// TODO: stubs for now to get us to a compiling state gently
-        // override public AvatarAppearance GetUserAppearance(LLUUID user)
-        // {
-        //     return new AvatarAppearance();
-        // }
+        // override 
+        public AvatarAppearance GetUserAppearance(LLUUID user)
+        {
+            AvatarAppearance appearance = null;
+            if (!m_appearanceMapper.TryGetValue(user.UUID, out appearance))
+            {
+                appearance = new AvatarAppearance();
+                appearance.Owner = user;
+                UpdateUserAppearance(user, appearance);
+            }
+            return appearance;
+        }
 
-        // override public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
-        // {
-        //     return;
-        // }
+        // override 
+        public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
+        {
+            m_appearanceMapper.Update(user.UUID, appearance);
+        }
 
         override public void AddAttachment(LLUUID user, LLUUID item)
         {

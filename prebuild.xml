@@ -1272,6 +1272,9 @@
       <Reference name="System.Data"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data"/>
+      <Reference name="OpenSim.Data.MapperFactory"/>
+      <Reference name="OpenSim.Data.Base"/>
+      <Reference name="OpenSim.Data.MySQLMapper"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="MySql.Data.dll"/>
       <Reference name="OpenSim.Framework.Console"/>
