@@ -97,6 +97,11 @@ namespace OpenSim.Region.Communications.OGS1
                            "): " + data["error_desc"]);
                 return null;
             }
+            else
+            {
+                return new AvatarAppearance(data);
+            }
+            
             return null;
         }
 
@@ -569,14 +574,14 @@ namespace OpenSim.Region.Communications.OGS1
             try
             {
                 Hashtable param = new Hashtable();
-                param["ownerID"] = user.ToString();
+                param["owner"] = user.ToString();
 
                 IList parameters = new ArrayList();
                 parameters.Add(param);
                 XmlRpcRequest req = new XmlRpcRequest("get_user_appearance", parameters);
                 XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 8000);
                 Hashtable respData = (Hashtable) resp.Value;
-
+                
                 return ConvertXMLRPCDataToAvatarAppearance(respData);
             }
             catch (WebException e)
@@ -590,7 +595,46 @@ namespace OpenSim.Region.Communications.OGS1
 
         public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
         {
-            return;
+            try
+            {
+                Hashtable param = appearance.ToHashTable();
+                param["owner"] = user.ToString();
+
+                IList parameters = new ArrayList();
+                parameters.Add(param);
+                XmlRpcRequest req = new XmlRpcRequest("update_user_appearance", parameters);
+                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 8000);
+                Hashtable respData = (Hashtable) resp.Value;
+                
+                if (respData != null)
+                {
+                    if (respData.Contains("returnString"))
+                    {
+                        if ((string)respData["returnString"] == "TRUE")
+                        {
+
+                        }
+                        else
+                        {
+                            m_log.Warn("[GRID]: Unable to update_user_appearance, User Server Reported an issue");
+                        }
+                    }
+                    else
+                    {
+                        m_log.Warn("[GRID]: Unable to update_user_appearance, UserServer didn't understand me!");
+                    }
+                }
+                else
+                {
+                    m_log.Warn("[GRID]: Unable to update_user_appearance, UserServer didn't understand me!");
+                }
+            }
+            catch (WebException e)
+            {
+                m_log.Warn("[OGS1 USER SERVICES]: Error when trying to update Avatar's appearance: " +
+                           e.Message);
+                // Return Empty list (no friends)
+            }
         }
 
         public void AddAttachment(LLUUID user, LLUUID item)
