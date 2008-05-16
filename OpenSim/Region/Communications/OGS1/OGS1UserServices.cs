@@ -89,20 +89,26 @@ namespace OpenSim.Region.Communications.OGS1
 
         public AvatarAppearance ConvertXMLRPCDataToAvatarAppearance(Hashtable data)
         {
-            if (data.Contains("error_type"))
+            if (data != null) 
             {
-                m_log.Warn("[GRID]: " +
-                           "Error sent by user server when trying to get user appearance: (" +
-                           data["error_type"] +
-                           "): " + data["error_desc"]);
-                return null;
+                if (data.Contains("error_type"))
+                {
+                    m_log.Warn("[GRID]: " +
+                               "Error sent by user server when trying to get user appearance: (" +
+                               data["error_type"] +
+                               "): " + data["error_desc"]);
+                    return new AvatarAppearance();
+                }
+                else
+                {
+                    return new AvatarAppearance(data);
+                }
             }
             else
             {
-                return new AvatarAppearance(data);
+                m_log.Error("[GRID]: The avatar appearance is null, something bad happenend");
+                return new AvatarAppearance();
             }
-            
-            return null;
         }
 
         public List<AvatarPickerAvatar> ConvertXMLRPCDataToAvatarPickerList(LLUUID queryID, Hashtable data)
