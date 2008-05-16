@@ -65,7 +65,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         private Dictionary<LLUUID, TextureImage> Textures;
 
-        ///
+        /// <summary>
         /// Assets requests which are waiting for asset server data.  This includes texture requests
         /// </summary>
          private Dictionary<LLUUID, AssetRequest> RequestedAssets;
@@ -74,7 +74,6 @@ namespace OpenSim.Framework.Communications.Cache
         /// Asset requests with data which are ready to be sent back to requesters.  This includes textures.
         /// </summary>
         private List<AssetRequest> AssetRequests;
-
 
         /// <summary>
         /// Until the asset request is fulfilled, each asset request is associated with a list of requesters
@@ -166,11 +165,11 @@ namespace OpenSim.Framework.Communications.Cache
             m_assetServer = assetServer;
             m_assetServer.SetReceiver(this);
 
-             m_assetCacheThread = new Thread(new ThreadStart(RunAssetManager));
-              m_assetCacheThread.Name = "AssetCacheThread";
-              m_assetCacheThread.IsBackground = true;
-              m_assetCacheThread.Start();
-             ThreadTracker.Add(m_assetCacheThread);
+            m_assetCacheThread = new Thread(new ThreadStart(RunAssetManager));
+            m_assetCacheThread.Name = "AssetCacheThread";
+            m_assetCacheThread.IsBackground = true;
+            m_assetCacheThread.Start();
+            ThreadTracker.Add(m_assetCacheThread);
         }
 
         /// <summary>
@@ -452,10 +451,19 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         // See IAssetReceiver
-        public void AssetNotFound(LLUUID assetID)
+        public void AssetNotFound(LLUUID assetID, bool IsTexture)
         {
-            // m_log.WarnFormat("[ASSET CACHE]: AssetNotFound for {0}", assetID);
+            m_log.WarnFormat("[ASSET CACHE]: AssetNotFound for {0}", assetID);
 
+            if (IsTexture)
+            {
+                Textures[assetID] = null;
+            }
+            else
+            {
+                Assets[assetID] = null;
+            }
+            
             // Notify requesters for this asset
             AssetRequestsList reqList = null;
             lock (RequestLists)
@@ -509,7 +517,7 @@ namespace OpenSim.Framework.Communications.Cache
         }
 
         /// <summary>
-        /// Make an asset request the result of which will be packeted up and sent directly back to the client.
+        /// Handle an asset request from the client.  The result will be sent back asynchronously.
         /// </summary>
         /// <param name="userInfo"></param>
         /// <param name="transferRequest"></param>
@@ -546,12 +554,21 @@ namespace OpenSim.Framework.Communications.Cache
                     RequestedAssets.Add(requestID, request);
                     m_assetServer.RequestAsset(requestID, false);
                 }
+                
                 return;
             }
-            //it is in our cache
+            
+            // It has an entry in our cache
             AssetInfo asset = Assets[requestID];
-
-            // add to the AssetRequests list
+            
+            // FIXME: We never tell the client about assets which do not exist when requested by this transfer mechanism, which can't be right.
+            if (null == asset)
+            {
+                m_log.DebugFormat("[ASSET CACHE]: Asset transfer request for asset which is {0} already known to be missing", requestID);
+                return;
+            }
+                
+            // The asset is knosn to exist and is in our cache, so add it to the AssetRequests list
             AssetRequest req = new AssetRequest();
             req.RequestUser = userInfo;
             req.RequestAssetID = requestID;

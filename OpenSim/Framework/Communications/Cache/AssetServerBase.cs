@@ -78,7 +78,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 //m_log.ErrorFormat("[ASSET SERVER]: Asset {0} not found by asset server", req.AssetID);
 
-                m_receiver.AssetNotFound(req.AssetID);
+                m_receiver.AssetNotFound(req.AssetID, req.IsTexture);
             }
         }
 

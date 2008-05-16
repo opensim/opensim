@@ -58,7 +58,8 @@ namespace OpenSim.Framework
         /// Call back made when an asset server could not retrieve a requested asset
         /// </summary>
         /// <param name="assetID"></param>
-        void AssetNotFound(LLUUID assetID);
+        /// <param name="IsTexture"></param>
+        void AssetNotFound(LLUUID assetID, bool IsTexture);
     }
 
     public interface IAssetPlugin
