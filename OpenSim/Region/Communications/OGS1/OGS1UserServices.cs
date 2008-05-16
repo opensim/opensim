@@ -87,6 +87,19 @@ namespace OpenSim.Region.Communications.OGS1
             return userData;
         }
 
+        public AvatarAppearance ConvertXMLRPCDataToAvatarAppearance(Hashtable data)
+        {
+            if (data.Contains("error_type"))
+            {
+                m_log.Warn("[GRID]: " +
+                           "Error sent by user server when trying to get user appearance: (" +
+                           data["error_type"] +
+                           "): " + data["error_desc"]);
+                return null;
+            }
+            return null;
+        }
+
         public List<AvatarPickerAvatar> ConvertXMLRPCDataToAvatarPickerList(LLUUID queryID, Hashtable data)
         {
             List<AvatarPickerAvatar> pickerlist = new List<AvatarPickerAvatar>();
@@ -552,7 +565,27 @@ namespace OpenSim.Region.Communications.OGS1
         /// TODO: stubs for now to get us to a compiling state gently
         public AvatarAppearance GetUserAppearance(LLUUID user)
         {
-            return new AvatarAppearance();
+            AvatarAppearance appearance = null;
+            try
+            {
+                Hashtable param = new Hashtable();
+                param["ownerID"] = user.ToString();
+
+                IList parameters = new ArrayList();
+                parameters.Add(param);
+                XmlRpcRequest req = new XmlRpcRequest("get_user_appearance", parameters);
+                XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 8000);
+                Hashtable respData = (Hashtable) resp.Value;
+
+                return ConvertXMLRPCDataToAvatarAppearance(respData);
+            }
+            catch (WebException e)
+            {
+                m_log.Warn("[OGS1 USER SERVICES]: Error when trying to fetch Avatar's appearance: " +
+                           e.Message);
+                // Return Empty list (no friends)
+            }
+            return appearance;
         }
 
         public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
