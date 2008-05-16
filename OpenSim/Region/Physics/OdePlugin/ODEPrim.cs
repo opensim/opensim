@@ -65,6 +65,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private PhysicsVector m_PIDTarget = new PhysicsVector(0, 0, 0);
         private float m_PIDTau = 0f;
+        private float PID_D = 35f;
+        private float PID_G = 25f;
+        private float m_tensor = 5f;
+        private int body_autodisable_frames = 20;
+        
+        
+
         private bool m_usePID = false;
 
         private const CollisionCategories m_default_collisionFlags = (CollisionCategories.Geom
@@ -94,7 +101,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public uint m_localID = 0;
 
-        public GCHandle gc;
+        //public GCHandle gc;
         private CollisionLocker ode;
 
         private bool m_taintforce = false;
@@ -147,11 +154,16 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
 
             _target_velocity = new PhysicsVector(0, 0, 0);
-            gc = GCHandle.Alloc(prim_geom, GCHandleType.Pinned);
+            //gc = GCHandle.Alloc(prim_geom, GCHandleType.Pinned);
             ode = dode;
             _velocity = new PhysicsVector();
             _position = pos;
             m_taintposition = pos;
+            PID_D = parent_scene.bodyPIDD;
+            PID_G = parent_scene.bodyPIDG;
+            m_density = parent_scene.geomDefaultDensity;
+            m_tensor = parent_scene.bodyMotorJointMaxforceTensor;
+            body_autodisable_frames = parent_scene.bodyFramesAutoDisable;
             //if (_position.X > 257)
             //{
                 //_position.X = 257;
@@ -306,7 +318,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
             d.BodySetAutoDisableFlag(Body, true);
-            d.BodySetAutoDisableSteps(Body, 20);
+            d.BodySetAutoDisableSteps(Body, body_autodisable_frames);
 
             m_interpenetrationcount = 0;
             m_collisionscore = 0;
@@ -677,6 +689,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             Thread.Sleep(10);
 
+            
             //Kill Body so that mesh can re-make the geom
             if (IsPhysical && Body != (IntPtr) 0)
             {
@@ -799,7 +812,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             d.JointDestroy(Amotor);
                             Amotor = (IntPtr)0;
-                        }
+                        } 
                     }
                 }
             }
@@ -951,7 +964,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (_parent_scene.needsMeshing(_pbs))
                 {
                     // Don't need to re-enable body..   it's done in SetMesh
-                    _mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size);
+                    _mesh = _parent_scene.mesher.CreateMesh(m_primName, _pbs, _size, _parent_scene.meshSculptLOD);
                     // createmesh returns null when it's a shape that isn't a cube.
                 }
             }
@@ -1138,7 +1151,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (IsPhysical && Body != (IntPtr)0 && !m_isSelected)
             {
-                float PID_D = 2200.0f;
+                
                 //float PID_P = 900.0f;
 
 
@@ -1177,21 +1190,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     // If the PID Controller isn't active then we set our force
                     // calculating base velocity to the current position
-                    if (Environment.OSVersion.Platform == PlatformID.Unix)
-                    {
-                        PID_D = 3200.0f;
-                        //PID_P = 1400.0f;
-                    }
-                    else
-                    {
-                        PID_D = 2200.0f;
-                        //PID_P = 900.0f;
-                    }
-                    PID_D = 35f;
-
-
-                    //PID_P = 1.0f;
-                    float PID_G = 25;
+                    
+                    
 
                     if ((m_PIDTau < 1))
                     {
@@ -1333,13 +1333,27 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (Body == (IntPtr)0)
                 {
-                    enableBody();
+                    if (_pbs.SculptEntry && _parent_scene.meshSculptedPrim)
+                    {
+                        changeshape(2f);
+                    }
+                    else
+                    {
+                        enableBody();
+                    }
                 }
             }
             else
             {
                 if (Body != (IntPtr)0)
                 {
+                    if (_pbs.SculptEntry && _parent_scene.meshSculptedPrim)
+                    {
+                        if (prim_geom != IntPtr.Zero)
+                            d.GeomDestroy(prim_geom);
+
+                        changeadd(2f);
+                    }
                     disableBody();
                 }
             }
@@ -1386,8 +1400,12 @@ namespace OpenSim.Region.Physics.OdePlugin
             // Construction of new prim
             if (_parent_scene.needsMeshing(_pbs))
             {
+                float meshlod = _parent_scene.meshSculptLOD;
+
+                if (IsPhysical)
+                    meshlod = _parent_scene.MeshSculptphysicalLOD;
                 // Don't need to re-enable body..   it's done in SetMesh
-                IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size);
+                IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod);
                 // createmesh returns null when it's a shape that isn't a cube.
                 if (mesh != null)
                 {
@@ -1556,10 +1574,16 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (_size.Y <= 0) _size.Y = 0.01f;
             if (_size.Z <= 0) _size.Z = 0.01f;
             // Construction of new prim
+            
             if (_parent_scene.needsMeshing(_pbs))
             {
                 // Don't need to re-enable body..   it's done in SetMesh
-                IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size);
+                float meshlod = _parent_scene.meshSculptLOD;
+
+                if (IsPhysical)
+                    meshlod = _parent_scene.MeshSculptphysicalLOD;
+
+                IMesh mesh = _parent_scene.mesher.CreateMesh(oldname, _pbs, _size, meshlod);
                 // createmesh returns null when it's a shape that isn't a cube.
                 if (mesh != null)
                 {
@@ -1910,12 +1934,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override void CrossingFailure()
         {
             m_crossingfailures++;
-            if (m_crossingfailures > 5)
+            if (m_crossingfailures > _parent_scene.geomCrossingFailuresBeforeOutofbounds)
             {
                 base.RaiseOutOfBounds(_position);
                 return;
             }
-            else if (m_crossingfailures == 5)
+            else if (m_crossingfailures == _parent_scene.geomCrossingFailuresBeforeOutofbounds)
             {
                 m_log.Warn("[PHYSICS]: Too many crossing failures for: " + m_primName);
             }
@@ -1982,7 +2006,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         //base.RaiseOutOfBounds(l_position);
 
-                        if (m_crossingfailures < 5)
+                        if (m_crossingfailures < _parent_scene.geomCrossingFailuresBeforeOutofbounds)
                         {
                             _position = l_position;
                             //_parent_scene.remActivePrim(this);
@@ -2107,7 +2131,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         _orientation.y = ori.Y;
                         _orientation.z = ori.Z;
                         m_lastUpdateSent = false;
-                        if (!m_throttleUpdates || throttleCounter > 15)
+                        if (!m_throttleUpdates || throttleCounter > _parent_scene.geomUpdatesPerThrottledUpdate)
                         {
                             if (_parent == null)
                                 base.RequestPhysicsterseUpdate();
@@ -2164,15 +2188,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 Amotor = IntPtr.Zero;
             }
 
-            float m_tensor = 0f;
-            if (Environment.OSVersion.Platform == PlatformID.Unix)
-            {
-                m_tensor = 2f;
-            }
-            else
-            {
-                m_tensor = 5f;
-            }
+            
 
             float axisnum = 3;
 

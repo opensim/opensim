@@ -1295,9 +1295,9 @@ namespace OpenSim.Region.Physics.Meshing
 
             return m;
         }
-        private SculptMesh CreateSculptMesh(string primName, PrimitiveBaseShape primShape, PhysicsVector size)
+        private SculptMesh CreateSculptMesh(string primName, PrimitiveBaseShape primShape, PhysicsVector size, float lod)
         {
-            SculptMesh sm = new SculptMesh(primShape.SculptData);
+            SculptMesh sm = new SculptMesh(primShape.SculptData, lod);
             // Scale the mesh based on our prim scale
             foreach (Vertex v in sm.vertices)
             {
@@ -1422,12 +1422,13 @@ namespace OpenSim.Region.Physics.Meshing
             }
         }
 
-        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
+        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size, float lod)
         {
             Mesh mesh = null;
             if (primShape.SculptEntry && primShape.SculptType != (byte)0 && primShape.SculptData.Length > 0)
             {
-                SculptMesh smesh = CreateSculptMesh(primName, primShape, size);
+                
+                SculptMesh smesh = CreateSculptMesh(primName, primShape, size, lod);
                 mesh = (Mesh)smesh;
                 CalcNormals(mesh);
             }

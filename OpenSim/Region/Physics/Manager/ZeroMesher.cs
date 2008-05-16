@@ -60,7 +60,7 @@ namespace OpenSim.Region.Physics.Manager
 
     public class ZeroMesher : IMesher
     {
-        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
+        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size, float lod)
         {
             return null;
         }

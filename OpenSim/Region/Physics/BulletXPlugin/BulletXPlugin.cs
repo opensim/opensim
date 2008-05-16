@@ -612,7 +612,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
                     }
                     else
                     {
-                        IMesh mesh = mesher.CreateMesh(primName, pbs, size);
+                        IMesh mesh = mesher.CreateMesh(primName, pbs, size, 32f);
                         result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical);
                     }
                     break;

@@ -48,8 +48,11 @@ namespace OpenSim.Region.Physics.Meshing
         private int lod = 32;
         private const float RANGE = 128.0f;
 
-        public SculptMesh(byte[] jpegData)
+        public SculptMesh(byte[] jpegData, float _lod)
         {
+            if (_lod == 2f || _lod == 4f || _lod == 8f || _lod == 16f || _lod == 32f || _lod == 64f)
+                lod = (int)_lod;
+
             idata = OpenJPEG.DecodeToImage(jpegData);
             if (idata != null)
             {
@@ -61,6 +64,10 @@ namespace OpenSim.Region.Physics.Meshing
                     LoadPoles();
 
                     processSculptTexture();
+
+                    bLOD.Dispose();
+                    bBitmap.Dispose();
+                    idata.Dispose();
                 }
             }
 

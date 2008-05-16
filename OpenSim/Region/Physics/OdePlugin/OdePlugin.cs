@@ -171,6 +171,25 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float avMovementDivisorWalk = 1.3f;
         private float avMovementDivisorRun = 0.8f;
 
+        public bool meshSculptedPrim = true;
+
+        public float meshSculptLOD = 32;
+        public float MeshSculptphysicalLOD = 16;
+
+        public float geomDefaultDensity = 10.000006836f;
+
+        public int geomContactPointsStartthrottle = 3;
+        public int geomUpdatesPerThrottledUpdate = 15;
+
+        public float bodyPIDD = 35f;
+        public float bodyPIDG = 25;
+
+        public int geomCrossingFailuresBeforeOutofbounds = 5;
+
+        public float bodyMotorJointMaxforceTensor = 2;
+
+        public int bodyFramesAutoDisable = 20;
+
         private float[] _heightmap;
 
         private float[] _watermap;
@@ -320,17 +339,35 @@ namespace OpenSim.Region.Physics.OdePlugin
                     avMovementDivisorRun = physicsconfig.GetFloat("av_movement_divisor_run", 0.8f);
                     avCapRadius = physicsconfig.GetFloat("av_capsule_radius", 0.37f);
 
+                    geomContactPointsStartthrottle = physicsconfig.GetInt("geom_contactpoints_start_throttling", 3);
+                    geomUpdatesPerThrottledUpdate = physicsconfig.GetInt("geom_updates_before_throttled_update", 15);
+                    geomCrossingFailuresBeforeOutofbounds = physicsconfig.GetInt("geom_crossing_faiures_before_outofbounds", 5);
+
+                    geomDefaultDensity = physicsconfig.GetFloat("geometry_default_density", 10.000006836f);
+                    bodyFramesAutoDisable = physicsconfig.GetInt("body_frames_auto_disable", 20);
+                    
+                    bodyPIDD = physicsconfig.GetFloat("body_pid_derivative", 35f);
+                    bodyPIDG = physicsconfig.GetFloat("body_pid_gain", 25f);
+
+                    meshSculptedPrim = physicsconfig.GetBoolean("mesh_sculpted_prim", true);
+                    meshSculptLOD = physicsconfig.GetFloat("mesh_lod", 32f);
+                    MeshSculptphysicalLOD = physicsconfig.GetFloat("mesh_physical_lod", 16f);
+                    
+
                     if (Environment.OSVersion.Platform == PlatformID.Unix)
                     {
                         avPIDD = physicsconfig.GetFloat("av_pid_derivative_linux", 3200.0f);
                         avPIDP = physicsconfig.GetFloat("av_pid_proportional_linux", 1400.0f);
                         avStandupTensor = physicsconfig.GetFloat("av_capsule_standup_tensor_linux", 2000000f);
+                        bodyMotorJointMaxforceTensor = physicsconfig.GetFloat("body_motor_joint_maxforce_tensor_linux", 2f);
+
                     }
                     else
                     {
                         avPIDD = physicsconfig.GetFloat("av_pid_derivative_win", 2200.0f);
                         avPIDP = physicsconfig.GetFloat("av_pid_proportional_win", 900.0f);
                         avStandupTensor = physicsconfig.GetFloat("av_capsule_standup_tensor_win", 550000f);
+                        bodyMotorJointMaxforceTensor = physicsconfig.GetFloat("body_motor_joint_maxforce_tensor_win", 5f);
                     }
                 }
             }
@@ -765,7 +802,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.JointAttach(joint, b1, b2);
                 }
                 collision_accounting_events(p1, p2, max_collision_depth);
-                if (count > 3)
+                if (count > geomContactPointsStartthrottle)
                 {
                     // If there are more then 3 contact points, it's likely
                     // that we've got a pile of objects
@@ -1117,7 +1154,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     /// support simple box & hollow box now; later, more shapes
                     if (needsMeshing(pbs))
                     {
-                        mesh = mesher.CreateMesh(primName, pbs, size);
+                        mesh = mesher.CreateMesh(primName, pbs, size, 32f);
                     }
 
                     break;
@@ -1474,6 +1511,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <returns></returns>
         public bool needsMeshing(PrimitiveBaseShape pbs)
         {
+            if (pbs.SculptEntry && !meshSculptedPrim)
+            {
+                return false;
+            }
+
             if (pbs.ProfileHollow != 0)
                 return true;
 
@@ -1495,7 +1537,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return true;
 
             if (pbs.ProfileShape == ProfileShape.EquilateralTriangle)
-            return true;
+                return true;
+
+            
 
             return false;
         }

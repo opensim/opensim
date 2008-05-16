@@ -242,6 +242,40 @@ av_movement_divisor_walk = 1.3
 ; speed of movement with Always Run on
 av_movement_divisor_run = 0.8
 
+; # Object options
+; used in the mass calculation.
+geometry_default_density = 10.000006836
+
+; amount of ODE steps where object is non moving for ODE to automatically put it to sleep
+body_frames_auto_disable = 20
+
+; used to control llMove2Target
+body_pid_derivative = 35
+body_pid_gain = 25
+
+; amount of time a geom/body will try to cross a region border before it gets disabled
+geom_crossing_faiures_before_outofbounds = 5
+
+; start throttling the object updates if object comes in contact with 3 or more other objects
+geom_contactpoints_start_throttling = 3
+
+; send 1 update for every x updates below when throttled
+geom_updates_before_throttled_update = 15
+
+; Used for llSetStatus.  How rigid the object rotation is held on the axis specified
+body_motor_joint_maxforce_tensor_linux = 2
+body_motor_joint_maxforce_tensor_win = 5
+
+; # Sculpted Prim settings
+
+; Do we want to mesh sculpted prim to collide like they look?
+mesh_sculpted_prim = true
+
+; number^2 non-physical level of detail of the sculpt texture.  32x32 - 1024 verticies
+mesh_lod = 32
+
+; number^2 physical level of detail of the sculpt texture.  16x16 - 256 verticies
+mesh_physical_lod = 16
 
 [RemoteAdmin]
 enabled = false
