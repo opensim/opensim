@@ -103,6 +103,7 @@ namespace OpenSim.Data.MySQL
                 m_agentsTableName = "agents";
                 m_usersTableName = "users";
                 m_userFriendsTableName = "userfriends";
+                database = new MySQLManager(m_connectString);
             }
             
             string mapperTypeStr = "MySQL";
