@@ -1451,9 +1451,14 @@ namespace OpenSim.Region.Environment.Scenes
         ///
         /// </summary>
         public void SendInitialData()
-        {
+        {  
+            // justincc - very temporary fix for the fact that m_apperance appears to be null at this point in grid mode
+            if (null == m_appearance)
+                m_appearance = new AvatarAppearance();
+            
             m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid, LocalId,
                                                m_pos, m_appearance.Texture.ToBytes(), m_parentID);
+            
             if (!m_isChildAgent)
             {
                 m_scene.InformClientOfNeighbours(this);

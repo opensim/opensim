@@ -371,85 +371,81 @@ namespace OpenSim.Framework.Communications.Cache
         // See IAssetReceiver
         public void AssetReceived(AssetBase asset, bool IsTexture)
         {
-            if (asset.FullID != LLUUID.Zero) // if it is set to zero then the asset wasn't found by the server
+            //check if it is a texture or not
+            //then add to the correct cache list
+            //then check for waiting requests for this asset/texture (in the Requested lists)
+            //and move those requests into the Requests list.
+            if (IsTexture)
             {
-                //check if it is a texture or not
-                //then add to the correct cache list
-                //then check for waiting requests for this asset/texture (in the Requested lists)
-                //and move those requests into the Requests list.
-
-                if (IsTexture)
+                TextureImage image = new TextureImage(asset);
+                if (!Textures.ContainsKey(image.FullID))
                 {
-                    TextureImage image = new TextureImage(asset);
-                    if (!Textures.ContainsKey(image.FullID))
-                    {
-                        Textures.Add(image.FullID, image);
+                    Textures.Add(image.FullID, image);
 
-                        if (StatsManager.SimExtraStats != null)
-                        {
-                            StatsManager.SimExtraStats.AddTexture(image);
-                        }
+                    if (StatsManager.SimExtraStats != null)
+                    {
+                        StatsManager.SimExtraStats.AddTexture(image);
                     }
                 }
-                else
+            }
+            else
+            {
+                AssetInfo assetInf = new AssetInfo(asset);
+                if (!Assets.ContainsKey(assetInf.FullID))
                 {
-                    AssetInfo assetInf = new AssetInfo(asset);
-                    if (!Assets.ContainsKey(assetInf.FullID))
+                    Assets.Add(assetInf.FullID, assetInf);
+
+                    if (StatsManager.SimExtraStats != null)
                     {
-                        Assets.Add(assetInf.FullID, assetInf);
+                        StatsManager.SimExtraStats.AddAsset(assetInf);
+                    }
 
-                        if (StatsManager.SimExtraStats != null)
-                        {
-                            StatsManager.SimExtraStats.AddAsset(assetInf);
-                        }
+                    if (RequestedAssets.ContainsKey(assetInf.FullID))
+                    {
+                        AssetRequest req = RequestedAssets[assetInf.FullID];
+                        req.AssetInf = assetInf;
+                        req.NumPackets = CalculateNumPackets(assetInf.Data);
 
-                        if (RequestedAssets.ContainsKey(assetInf.FullID))
-                        {
-                            AssetRequest req = RequestedAssets[assetInf.FullID];
-                            req.AssetInf = assetInf;
-                            req.NumPackets = CalculateNumPackets(assetInf.Data);
-
-                            RequestedAssets.Remove(assetInf.FullID);
-                            AssetRequests.Add(req);
-                        }
+                        RequestedAssets.Remove(assetInf.FullID);
+                        AssetRequests.Add(req);
                     }
                 }
+            }
 
-                // Notify requesters for this asset
-                if (RequestLists.ContainsKey(asset.FullID))
+            // Notify requesters for this asset
+            if (RequestLists.ContainsKey(asset.FullID))
+            {
+                AssetRequestsList reqList = null;
+                lock (RequestLists)
                 {
-                    AssetRequestsList reqList = null;
+                    //m_log.Info("AssetCache: Lock taken on requestLists (AssetReceived #1)");
+                    reqList = RequestLists[asset.FullID];
+
+                }
+                //m_log.Info("AssetCache: Lock released on requestLists (AssetReceived #1)");
+                if (reqList != null)
+                {
+                    //making a copy of the list is not ideal
+                    //but the old method of locking around this whole block of code was causing a multi-thread lock
+                    //between this and the TextureDownloadModule
+                    //while the localAsset thread running this and trying to send a texture to the callback in the
+                    //texturedownloadmodule , and hitting a lock in there. While the texturedownload thread (which was holding
+                    // the lock in the texturedownload module) was trying to
+                    //request a new asset and hitting a lock in here on the RequestLists.
+
+                    List<NewAssetRequest> theseRequests = new List<NewAssetRequest>(reqList.Requests);
+                    reqList.Requests.Clear();
+
                     lock (RequestLists)
                     {
-                        //m_log.Info("AssetCache: Lock taken on requestLists (AssetReceived #1)");
-                        reqList = RequestLists[asset.FullID];
-
+                       // m_log.Info("AssetCache: Lock taken on requestLists (AssetReceived #2)");
+                        RequestLists.Remove(asset.FullID);
                     }
-                    //m_log.Info("AssetCache: Lock released on requestLists (AssetReceived #1)");
-                    if (reqList != null)
+                    //m_log.Info("AssetCache: Lock released on requestLists (AssetReceived #2)");
+
+                    foreach (NewAssetRequest req in theseRequests)
                     {
-                        //making a copy of the list is not ideal
-                        //but the old method of locking around this whole block of code was causing a multi-thread lock
-                        //between this and the TextureDownloadModule
-                        //while the localAsset thread running this and trying to send a texture to the callback in the
-                        //texturedownloadmodule , and hitting a lock in there. While the texturedownload thread (which was holding
-                        // the lock in the texturedownload module) was trying to
-                        //request a new asset and hitting a lock in here on the RequestLists.
-
-                        List<NewAssetRequest> theseRequests = new List<NewAssetRequest>(reqList.Requests);
-                        reqList.Requests.Clear();
-
-                        lock (RequestLists)
-                        {
-                           // m_log.Info("AssetCache: Lock taken on requestLists (AssetReceived #2)");
-                            RequestLists.Remove(asset.FullID);
-                        }
-                        //m_log.Info("AssetCache: Lock released on requestLists (AssetReceived #2)");
-
-                        foreach (NewAssetRequest req in theseRequests)
-                        {
-                            req.Callback(asset.FullID, asset);
-                        }
+                        req.Callback(asset.FullID, asset);
                     }
                 }
             }

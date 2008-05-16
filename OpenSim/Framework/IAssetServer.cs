@@ -41,7 +41,10 @@ namespace OpenSim.Framework
         void Close();
     }
 
-    // could change to delegate?
+    /// <summary>
+    /// Implemented by classes which with to asynchronously receive asset data from the asset service
+    /// </summary>
+    /// <remarks>could change to delegate?</remarks>
     public interface IAssetReceiver
     {
         /// <summary>
