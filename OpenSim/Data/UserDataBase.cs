@@ -62,19 +62,19 @@ namespace OpenSim.Data
         public AvatarAppearance GetUserAppearance(LLUUID user) {
             AvatarAppearance aa;
             try {
-                m_log.Info("[APPEARANCE] Found appearance for " + user.ToString());
                 aa = aplist[user];
+                m_log.Info("[APPEARANCE] Found appearance for " + user.ToString() + aa.ToString());
             } catch (System.Collections.Generic.KeyNotFoundException e) {
-                m_log.Info("[APPEARANCE] Setting up default appearance for " + user.ToString());
                 aplist[user] = new AvatarAppearance();
                 aplist[user].Owner = user;
                 aa = aplist[user];
+                m_log.Info("[APPEARANCE] Setting up default appearance for " + user.ToString() + aa.ToString());
             }
             return aa;
         }
         public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance) {
             aplist[user] = appearance;
-            m_log.Info("[APPEARANCE] Setting appearance for " + user.ToString());
+            m_log.Info("[APPEARANCE] Setting appearance for " + user.ToString() + appearance.ToString() );
         }
         public abstract void AddAttachment(LLUUID user, LLUUID item);
         public abstract void RemoveAttachment(LLUUID user, LLUUID item);

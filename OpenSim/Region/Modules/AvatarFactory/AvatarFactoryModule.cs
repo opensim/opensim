@@ -274,47 +274,37 @@ namespace OpenSim.Region.Modules.AvatarFactory
         {
             IClientAPI clientView = (IClientAPI)sender;
             CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(clientView.AgentId);
+            AvatarAppearance avatAppearance = m_scene.CommsManager.UserService.GetUserAppearance(clientView.AgentId);
             if (profile != null)
             {
                 if (profile.RootFolder != null)
                 {
-                    if (m_avatarsAppearance.ContainsKey(clientView.AgentId))
+                    
+                    foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
                     {
-                        AvatarAppearance avatAppearance = null;
-                        lock (m_avatarsAppearance)
+                        if (wear.Type < 13)
                         {
-                            avatAppearance = m_avatarsAppearance[clientView.AgentId];
-                        }
-
-                        foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
-                        {
-                            if (wear.Type < 13)
+                            if (wear.ItemID == LLUUID.Zero)
                             {
-                                if (wear.ItemID == LLUUID.Zero)
+                                avatAppearance.Wearables[wear.Type].ItemID = LLUUID.Zero;
+                                avatAppearance.Wearables[wear.Type].AssetID = LLUUID.Zero;
+                            }
+                            else
+                            {
+                                LLUUID assetId;
+                                
+                                InventoryItemBase baseItem = profile.RootFolder.FindItem(wear.ItemID);
+                                
+                                if (baseItem != null)
                                 {
-                                    avatAppearance.Wearables[wear.Type].ItemID = LLUUID.Zero;
-                                    avatAppearance.Wearables[wear.Type].AssetID = LLUUID.Zero;
-
-                                    UpdateDatabase(clientView.AgentId, avatAppearance);
-                                }
-                                else
-                                {
-                                    LLUUID assetId;
-
-                                    InventoryItemBase baseItem = profile.RootFolder.FindItem(wear.ItemID);
-                                    
-                                    if (baseItem != null)
-                                    {
-                                        assetId = baseItem.AssetID;
-                                        avatAppearance.Wearables[wear.Type].AssetID = assetId;
-                                        avatAppearance.Wearables[wear.Type].ItemID = wear.ItemID;
-
-                                        UpdateDatabase(clientView.AgentId, avatAppearance);
-                                    }
+                                    assetId = baseItem.AssetID;
+                                    avatAppearance.Wearables[wear.Type].AssetID = assetId;
+                                    avatAppearance.Wearables[wear.Type].ItemID = wear.ItemID;
                                 }
                             }
                         }
                     }
+                    m_scene.CommsManager.UserService.UpdateUserAppearance(clientView.AgentId, avatAppearance);
                 }
             }
         }

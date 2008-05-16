@@ -293,6 +293,16 @@ namespace OpenSim.Framework
             return textu;
         }
 
+        public override String ToString()
+        {
+            String s = "[Wearables] =>";
+            s += "Body Item: " + BodyItem.ToString() + ";";
+            s += "Skin Item: " + SkinItem.ToString() + ";";
+            s += "Shirt Item: " + ShirtItem.ToString() + ";";
+            s += "Pants Item: " + PantsItem.ToString() + ";";
+            return s;
+        }
+
         protected AvatarAppearance(SerializationInfo info, StreamingContext context)
         {
             //System.Console.WriteLine("AvatarAppearance Deserialize BGN");
