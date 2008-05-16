@@ -29,9 +29,8 @@ using System;
 using libsecondlife;
 using OpenSim.Data.Base;
 using OpenSim.Framework;
-using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.Modules.AvatarFactory
+namespace OpenSim.Data.Base
 {
     public class AppearanceRowMapper : BaseRowMapper<AvatarAppearance>
     {
