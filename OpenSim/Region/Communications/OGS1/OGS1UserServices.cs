@@ -584,7 +584,7 @@ namespace OpenSim.Region.Communications.OGS1
 
                 IList parameters = new ArrayList();
                 parameters.Add(param);
-                XmlRpcRequest req = new XmlRpcRequest("get_user_appearance", parameters);
+                XmlRpcRequest req = new XmlRpcRequest("get_avatar_appearance", parameters);
                 XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 8000);
                 Hashtable respData = (Hashtable) resp.Value;
                 
@@ -608,7 +608,7 @@ namespace OpenSim.Region.Communications.OGS1
 
                 IList parameters = new ArrayList();
                 parameters.Add(param);
-                XmlRpcRequest req = new XmlRpcRequest("update_user_appearance", parameters);
+                XmlRpcRequest req = new XmlRpcRequest("update_avatar_appearance", parameters);
                 XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 8000);
                 Hashtable respData = (Hashtable) resp.Value;
                 
