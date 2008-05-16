@@ -247,6 +247,50 @@ namespace OpenSim.Grid.UserServer
             return FriendListItemListtoXmlRPCResponse(returndata);
         }
 
+        public XmlRpcResponse XmlRPCGetAvatarAppearance(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+            AvatarAppearance appearance = null;
+            Hashtable responseData = null;
+            if (requestData.Contains("owner"))
+            {
+                appearance = GetUserAppearance(new LLUUID((string)requestData["owner"]));
+                responseData = appearance.ToHashTable();
+            } 
+            else
+            {
+                responseData = new Hashtable();
+                responseData["error_type"] = "unknown_avatar";
+                responseData["error_desc"] = "The avatar appearance requested is not in the database";
+            }
+
+            response.Value = responseData;
+            return response;
+        }
+
+        public XmlRpcResponse XmlRPCUpdateAvatarAppearance(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable responseData = null;
+            if (requestData.Contains("owner"))
+            {
+                AvatarAppearance appearance = new AvatarAppearance(requestData);
+                UpdateUserAppearance(new LLUUID((string)requestData["owner"]), appearance);
+                responseData = new Hashtable();
+                responseData["returnString"] = "TRUE";
+            } 
+            else
+            {
+                responseData = new Hashtable();
+                responseData["error_type"] = "unknown_avatar";
+                responseData["error_desc"] = "The avatar appearance requested is not in the database";
+            }
+            response.Value = responseData;
+            return response;
+        }
+
         public XmlRpcResponse XmlRPCGetUserMethodName(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();
