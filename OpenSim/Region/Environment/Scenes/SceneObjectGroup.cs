@@ -1927,13 +1927,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="client"></param>
         public void GetProperties(IClientAPI client)
         {
-
-            client.SendObjectPropertiesReply(LLUUID.Zero, (ulong)m_rootPart.CreationDate, m_rootPart.CreatorID, LLUUID.Zero, LLUUID.Zero,
-                                               LLUUID.Zero, (short)m_rootPart.InventorySerial, m_rootPart.LastOwnerID, UUID, m_rootPart.OwnerID,
-                                               m_rootPart.TouchName, new byte[0], m_rootPart.SitName, m_rootPart.Name, m_rootPart.Description,
-                                               m_rootPart.OwnerMask, m_rootPart.NextOwnerMask, m_rootPart.GroupMask, m_rootPart.EveryoneMask,
-                                               m_rootPart.BaseMask);
-
+			m_rootPart.GetProperties(client);
         }
 
         /// <summary>

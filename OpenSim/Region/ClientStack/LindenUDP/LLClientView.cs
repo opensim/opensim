@@ -5007,10 +5007,29 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         RezScriptPacket rezScriptx = (RezScriptPacket)Pack;
 
                         handlerRezScript = OnRezScript;
+						InventoryItemBase item=new InventoryItemBase();
+						item.ID=rezScriptx.InventoryBlock.ItemID;
+						item.Folder=rezScriptx.InventoryBlock.FolderID;
+						item.Creator=rezScriptx.InventoryBlock.CreatorID;
+						item.Owner=rezScriptx.InventoryBlock.OwnerID;
+						item.BasePermissions=rezScriptx.InventoryBlock.BaseMask;
+						item.CurrentPermissions=rezScriptx.InventoryBlock.OwnerMask;
+						item.EveryOnePermissions=rezScriptx.InventoryBlock.EveryoneMask;
+						item.NextPermissions=rezScriptx.InventoryBlock.NextOwnerMask;
+						item.GroupOwned=rezScriptx.InventoryBlock.GroupOwned;
+						item.GroupID=rezScriptx.InventoryBlock.GroupID;
+						item.AssetType=rezScriptx.InventoryBlock.Type;
+						item.InvType=rezScriptx.InventoryBlock.InvType;
+						item.Flags=rezScriptx.InventoryBlock.Flags;
+						item.SaleType=rezScriptx.InventoryBlock.SaleType;
+						item.SalePrice=rezScriptx.InventoryBlock.SalePrice;
+						item.Name=Util.FieldToString(rezScriptx.InventoryBlock.Name);
+						item.Description=Util.FieldToString(rezScriptx.InventoryBlock.Description);
+						item.CreationDate=(int)rezScriptx.InventoryBlock.CreationDate;
 
                         if (handlerRezScript != null)
                         {
-                            handlerRezScript(this, rezScriptx.InventoryBlock.ItemID, rezScriptx.UpdateBlock.ObjectLocalID);
+                            handlerRezScript(this, item, rezScriptx.InventoryBlock.TransactionID, rezScriptx.UpdateBlock.ObjectLocalID);
                         }
                         break;
 

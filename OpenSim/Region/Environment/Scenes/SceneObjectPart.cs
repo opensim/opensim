@@ -759,7 +759,6 @@ namespace OpenSim.Region.Environment.Scenes
         public SceneObjectPart()
         {
             // It's not necessary to persist this
-            m_inventoryFileName = "inventory_" + LLUUID.Random().ToString() + ".tmp";
             m_TextureAnimation = new byte[0];
         }
 
@@ -808,7 +807,6 @@ namespace OpenSim.Region.Environment.Scenes
             AngularVelocity = new LLVector3(0, 0, 0);
             Acceleration = new LLVector3(0, 0, 0);
             m_TextureAnimation = new byte[0];
-            m_inventoryFileName = "inventory_" + LLUUID.Random().ToString() + ".tmp";
 
             // Prims currently only contain a single folder (Contents).  From looking at the Second Life protocol,
             // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from
@@ -2530,7 +2528,7 @@ namespace OpenSim.Region.Environment.Scenes
                 throw new ArgumentNullException("info");
             }
 
-            info.AddValue("m_inventoryFileName", m_inventoryFileName);
+            info.AddValue("m_inventoryFileName", GetInventoryFileName());
             info.AddValue("m_folderID", UUID);
             info.AddValue("PhysActor", PhysActor);
 
@@ -2758,5 +2756,17 @@ namespace OpenSim.Region.Environment.Scenes
 
             return m_parentGroup.RootPart.DIE_AT_EDGE;
         }
+
+        public void GetProperties(IClientAPI client)
+        {
+
+            client.SendObjectPropertiesReply(LLUUID.Zero, (ulong)CreationDate, CreatorID, LLUUID.Zero, LLUUID.Zero,
+                                               LLUUID.Zero, (short)InventorySerial, LastOwnerID, UUID, OwnerID,
+                                               ParentGroup.RootPart.TouchName, new byte[0], ParentGroup.RootPart.SitName, Name, Description,
+                                               ParentGroup.RootPart.OwnerMask, ParentGroup.RootPart.NextOwnerMask, ParentGroup.RootPart.GroupMask, ParentGroup.RootPart.EveryoneMask,
+                                               ParentGroup.RootPart.BaseMask);
+
+        }
+
     }
 }

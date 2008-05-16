@@ -221,7 +221,7 @@ namespace OpenSim.Region.Environment.Scenes
             // Update item with new asset
             item.AssetID = asset.FullID;
             group.UpdateInventoryItem(item);
-            group.GetProperties(remoteClient);
+            part.GetProperties(remoteClient);
 
             // Trigger rerunning of script (use TriggerRezScript event, see RezScript)
             if (isScriptRunning)
@@ -572,7 +572,7 @@ namespace OpenSim.Region.Environment.Scenes
         private void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID folderID, uint callbackID,
                                             AssetBase asset, uint nextOwnerMask)
         {
-            CreateNewInventoryItem(remoteClient, folderID, callbackID, asset, nextOwnerMask, nextOwnerMask, 0, nextOwnerMask);
+            CreateNewInventoryItem(remoteClient, folderID, callbackID, asset, (uint)PermissionMask.All, (uint)PermissionMask.All, 0, nextOwnerMask);
         }
 
         /// <summary>
@@ -789,11 +789,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public void RemoveTaskInventory(IClientAPI remoteClient, LLUUID itemID, uint localID)
         {
-            SceneObjectGroup group = GetGroupByPrim(localID);
+            SceneObjectPart part = GetSceneObjectPart(localID);
+            SceneObjectGroup group = part.ParentGroup;
             if (group != null)
             {
                 int type = group.RemoveInventoryItem(localID, itemID);
-                group.GetProperties(remoteClient);
+                part.GetProperties(remoteClient);
                 if (type == 10)
                 {
                     EventManager.TriggerRemoveScript(localID, itemID);
@@ -917,7 +918,7 @@ namespace OpenSim.Region.Environment.Scenes
                             m_log.InfoFormat(
                                 "[PRIM INVENTORY]: Update with item {0} requested of prim {1} for {2}",
                                 item.Name, primLocalID, remoteClient.Name);
-                            part.ParentGroup.GetProperties(remoteClient);
+                            part.GetProperties(remoteClient);
                             if (!ExternalChecks.ExternalChecksBypassPermissions())
                             {
                                 if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
@@ -948,8 +949,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         /// <param name="itemID"> </param>
         /// <param name="localID"></param>
-        public void RezScript(IClientAPI remoteClient, LLUUID itemID, uint localID)
+        public void RezScript(IClientAPI remoteClient, InventoryItemBase itemBase, LLUUID transactionID, uint localID)
         {
+			LLUUID itemID=itemBase.ID;
             LLUUID copyID = LLUUID.Random();
 
             if (itemID != LLUUID.Zero)
@@ -974,7 +976,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             part.ParentGroup.AddInventoryItem(remoteClient, localID, item, copyID);
                             part.ParentGroup.StartScript(localID, copyID);
-                            part.ParentGroup.GetProperties(remoteClient);
+                            part.GetProperties(remoteClient);
 
     //                        m_log.InfoFormat("[PRIMINVENTORY]: " +
     //                                         "Rezzed script {0} into prim local ID {1} for user {2}",
@@ -999,11 +1001,38 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else  // If the itemID is zero then the script has been rezzed directly in an object's inventory
             {
-                // not yet implemented
-                // TODO Need to get more details from original RezScript packet
-                // XXX jc tmp
-//                AssetBase asset = CreateAsset("chimney sweep", "sailor.lsl", 10, 10, null);
-//                AssetCache.AddAsset(asset);
+				SceneObjectPart part=GetSceneObjectPart(itemBase.Folder);
+				if(part == null)
+					return;
+
+                AssetBase asset = CreateAsset(itemBase.Name, itemBase.Description, (sbyte)itemBase.InvType, (sbyte)itemBase.AssetType, Encoding.ASCII.GetBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}"));
+                AssetCache.AddAsset(asset);
+
+				TaskInventoryItem taskItem=new TaskInventoryItem();
+
+				taskItem.ResetIDs(itemBase.Folder);
+				taskItem.ParentID = itemBase.Folder;
+				taskItem.CreationDate = (uint)itemBase.CreationDate;
+				taskItem.Name = itemBase.Name;
+				taskItem.Description = itemBase.Description;
+				taskItem.Type = itemBase.AssetType;
+				taskItem.InvType = itemBase.InvType;
+				taskItem.OwnerID = itemBase.Owner;
+				taskItem.CreatorID = itemBase.Creator;
+				taskItem.BaseMask = itemBase.BasePermissions;
+				taskItem.OwnerMask = itemBase.CurrentPermissions;
+				taskItem.EveryoneMask = itemBase.EveryOnePermissions;
+				taskItem.NextOwnerMask = itemBase.NextPermissions;
+				taskItem.GroupID = itemBase.GroupID;
+				taskItem.GroupMask = 0;
+				taskItem.Flags = itemBase.Flags;
+				taskItem.PermsGranter = LLUUID.Zero;
+				taskItem.PermsMask = 0;
+				taskItem.AssetID = asset.ID;
+
+				part.AddInventoryItem(taskItem);
+				part.GetProperties(remoteClient);
+				part.StartScript(taskItem);
             }
         }
 

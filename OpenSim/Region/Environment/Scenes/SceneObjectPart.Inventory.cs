@@ -42,6 +42,7 @@ namespace OpenSim.Region.Environment.Scenes
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_inventoryFileName = String.Empty;
+		private int m_inventoryFileNameSerial = 0;
 
         /// <summary>
         /// Exposing this is not particularly good, but it's one of the least evils at the moment to see
@@ -444,6 +445,17 @@ namespace OpenSim.Region.Environment.Scenes
             return -1;
         }
 
+		public string GetInventoryFileName()
+		{
+			if(m_inventoryFileName == String.Empty)
+				m_inventoryFileName = "inventory_" + LLUUID.Random().ToString() + ".tmp";
+			if(m_inventoryFileNameSerial < m_inventorySerial)
+			{
+				m_inventoryFileName = "inventory_" + LLUUID.Random().ToString() + ".tmp";
+			}
+			return m_inventoryFileName;
+		}
+
         /// <summary>
         /// Return the name with which a client can request a xfer of this prim's inventory metadata
         /// </summary>
@@ -458,7 +470,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_inventorySerial > 0)
             {
                 client.SendTaskInventory(m_uuid, (short)m_inventorySerial,
-                                         Helpers.StringToField(m_inventoryFileName));
+                                         Helpers.StringToField(GetInventoryFileName()));
                 return true;
             }
             else

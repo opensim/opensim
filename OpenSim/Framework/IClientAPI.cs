@@ -564,7 +564,7 @@ namespace OpenSim.Framework
 
     public delegate void RequestAsset(IClientAPI remoteClient, RequestAssetArgs transferRequest);
 
-    public delegate void RezScript(IClientAPI remoteClient, LLUUID itemID, uint localID);
+    public delegate void RezScript(IClientAPI remoteClient, InventoryItemBase item, LLUUID transactionID, uint localID);
 
     public delegate void UpdateTaskInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID folderID, uint localID);
 
