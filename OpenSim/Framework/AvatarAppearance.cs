@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
@@ -323,6 +324,79 @@ namespace OpenSim.Framework
             m_avatarHeight = (float)info.GetValue("m_avatarHeight", typeof(float));
 
             //System.Console.WriteLine("AvatarAppearance Deserialize END");
+        }
+
+        // this is used for OGS1
+        public Hashtable ToHashTable()
+        {
+            Hashtable h = new Hashtable();
+            h["owner"] = Owner.ToString();
+            h["serial"] = Serial.ToString();
+            h["visual_params"] = VisualParams;
+            h["texture"] = Texture.ToBytes();
+            h["avatar_height"] = AvatarHeight.ToString();
+            h["body_item"] = BodyItem.ToString();
+            h["body_asset"] = BodyAsset.ToString();
+            h["skin_item"] = SkinItem.ToString();
+            h["skin_asset"] = SkinAsset.ToString();
+            h["hair_item"] = HairItem.ToString();
+            h["hair_asset"] = HairAsset.ToString();
+            h["eyes_item"] = EyesItem.ToString();
+            h["eyes_asset"] = EyesAsset.ToString();
+            h["shirt_item"] = ShirtItem.ToString();
+            h["shirt_asset"] = ShirtAsset.ToString();
+            h["pants_item"] = PantsItem.ToString();
+            h["pants_asset"] = PantsAsset.ToString();
+            h["shoes_item"] = ShoesItem.ToString();
+            h["shoes_asset"] = ShoesAsset.ToString();
+            h["socks_item"] = SocksItem.ToString();
+            h["socks_asset"] = SocksAsset.ToString();
+            h["jacket_item"] = JacketItem.ToString();
+            h["jacket_asset"] = JacketAsset.ToString();
+            h["gloves_item"] = GlovesItem.ToString();
+            h["gloves_asset"] = GlovesAsset.ToString();
+            h["undershirt_item"] = UnderShirtItem.ToString();
+            h["undershirt_asset"] = UnderShirtAsset.ToString();
+            h["underpants_item"] = UnderPantsItem.ToString();
+            h["underpants_asset"] = UnderPantsAsset.ToString();
+            h["skirt_item"] = SkirtItem.ToString();
+            h["skirt_asset"] = SkirtAsset.ToString();
+            return h;
+        }
+
+        public AvatarAppearance(Hashtable h)
+        {
+            Owner = new LLUUID((string)h["owner"]);
+            Serial = Convert.ToInt32((string)h["serial"]);
+            VisualParams = (byte[])h["visual_params"];
+            Texture = new LLObject.TextureEntry((byte[])h["texture"], 0, ((byte[])h["texture"]).Length);
+            AvatarHeight = (float)Convert.ToDouble((string)h["avatar_height"]);
+            BodyItem = new LLUUID((string)h["body_item"]);
+            BodyAsset = new LLUUID((string)h["body_asset"]);
+            SkinItem = new LLUUID((string)h["skin_item"]);  
+            SkinAsset = new LLUUID((string)h["skin_asset"]);  
+            HairItem = new LLUUID((string)h["hair_item"]);  
+            HairAsset = new LLUUID((string)h["hair_asset"]);  
+            EyesItem = new LLUUID((string)h["eyes_item"]);  
+            EyesAsset = new LLUUID((string)h["eyes_asset"]);  
+            ShirtItem = new LLUUID((string)h["shirt_item"]);  
+            ShirtAsset = new LLUUID((string)h["shirt_asset"]);  
+            PantsItem = new LLUUID((string)h["pants_item"]);  
+            PantsAsset = new LLUUID((string)h["pants_asset"]);  
+            ShoesItem = new LLUUID((string)h["shoes_item"]);  
+            ShoesAsset = new LLUUID((string)h["shoes_asset"]);  
+            SocksItem = new LLUUID((string)h["socks_item"]);  
+            SocksAsset = new LLUUID((string)h["socks_asset"]);  
+            JacketItem = new LLUUID((string)h["jacket_item"]);  
+            JacketAsset = new LLUUID((string)h["jacket_asset"]);  
+            GlovesItem = new LLUUID((string)h["gloves_item"]);  
+            GlovesAsset = new LLUUID((string)h["gloves_asset"]);  
+            UnderShirtItem = new LLUUID((string)h["undershirt_item"]);  
+            UnderShirtAsset = new LLUUID((string)h["undershirt_asset"]);  
+            UnderPantsItem = new LLUUID((string)h["underpants_item"]);  
+            UnderPantsAsset = new LLUUID((string)h["underpants_asset"]);  
+            SkirtItem = new LLUUID((string)h["skirt_item"]);  
+            SkirtAsset = new LLUUID((string)h["skirt_asset"]);  
         }
 
         [SecurityPermission(SecurityAction.LinkDemand,
