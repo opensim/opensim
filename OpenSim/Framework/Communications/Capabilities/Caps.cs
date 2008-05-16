@@ -678,6 +678,8 @@ namespace OpenSim.Framework.Communications.Capabilities
             item.InvType = inType;
             item.Folder = parentFolder;
             item.CurrentPermissions = 2147483647;
+            item.BasePermissions = 2147483647;
+            item.EveryOnePermissions = 0;
             item.NextPermissions = 2147483647;
 
             if (AddNewInventoryItem != null)
