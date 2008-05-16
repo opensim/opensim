@@ -40,13 +40,13 @@ namespace OpenSim.Framework.Communications
     /// </summary>
     public abstract class InventoryServiceBase : IInventoryServices
     {
-        private static readonly ILog m_log 
+        private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected Dictionary<string, IInventoryData> m_plugins = new Dictionary<string, IInventoryData>();
 
         #region Plugin methods
-        
+
         /// <summary>
         /// Adds a new user server plugin - plugins will be requested in the order they were loaded.
         /// </summary>
@@ -76,42 +76,42 @@ namespace OpenSim.Framework.Communications
                 }
             }
         }
-        
+
         #endregion
-        
-        #region IInventoryServices methods        
-        
+
+        #region IInventoryServices methods
+
         // See IInventoryServices
         public List<InventoryFolderBase> GetInventorySkeleton(LLUUID userId)
         {
 //            m_log.DebugFormat("[AGENT INVENTORY]: Getting inventory skeleton for {0}", userId);
-                                            
+
             InventoryFolderBase rootFolder = RequestRootFolder(userId);
-            
+
             // Agent has no inventory structure yet.
             if (null == rootFolder)
             {
-                return null;                    
-            }            
-            
-            List<InventoryFolderBase> userFolders = new List<InventoryFolderBase>();                        
-            
+                return null;
+            }
+
+            List<InventoryFolderBase> userFolders = new List<InventoryFolderBase>();
+
             userFolders.Add(rootFolder);
-                         
+
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
                 IList<InventoryFolderBase> folders = plugin.Value.getFolderHierarchy(rootFolder.ID);
                 userFolders.AddRange(folders);
-            }    
-            
+            }
+
 //            foreach (InventoryFolderBase folder in userFolders)
 //            {
 //                m_log.DebugFormat("[AGENT INVENTORY]: Got folder {0} {1}", folder.name, folder.folderID);
 //            }
-            
+
             return userFolders;
         }
-        
+
         // See IInventoryServices
         public virtual bool HasInventoryForUser(LLUUID userID)
         {
@@ -133,31 +133,31 @@ namespace OpenSim.Framework.Communications
         public bool CreateNewUserInventory(LLUUID user)
         {
             InventoryFolderBase existingRootFolder = RequestRootFolder(user);
-            
+
             if (null != existingRootFolder)
             {
                 m_log.WarnFormat(
                     "[AGENT INVENTORY]: Did not create a new inventory for user {0} since they already have "
-                    + "a root inventory folder with id {1}", 
+                    + "a root inventory folder with id {1}",
                     user, existingRootFolder.ID);
             }
             else
-            {                
+            {
                 UsersInventory inven = new UsersInventory();
                 inven.CreateNewInventorySet(user);
                 AddNewInventorySet(inven);
-                
+
                 return true;
             }
-            
+
             return false;
-        }      
-        
+        }
+
         // See IInventoryServices
-        public abstract void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback);       
-        
+        public abstract void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback);
+
         #endregion
-        
+
         #region Methods used by GridInventoryService
 
         public List<InventoryFolderBase> RequestSubFolders(LLUUID parentFolderID)
@@ -180,21 +180,21 @@ namespace OpenSim.Framework.Communications
             }
             return itemsList;
         }
-        
+
         #endregion
 
         // See IInventoryServices
         public bool AddFolder(InventoryFolderBase folder)
         {
             m_log.DebugFormat(
-                "[AGENT INVENTORY]: Adding folder {0} {1} to folder {2}", folder.Name, folder.ID, folder.ParentID);            
-            
+                "[AGENT INVENTORY]: Adding folder {0} {1} to folder {2}", folder.Name, folder.ID, folder.ParentID);
+
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
                 plugin.Value.addInventoryFolder(folder);
             }
-            
-            // FIXME: Should return false on failure 
+
+            // FIXME: Should return false on failure
             return true;
         }
 
@@ -203,14 +203,14 @@ namespace OpenSim.Framework.Communications
         {
             m_log.DebugFormat(
                 "[AGENT INVENTORY]: Moving folder {0} {1} to folder {2}", folder.Name, folder.ID, folder.ParentID);
-            
+
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
                 plugin.Value.moveInventoryFolder(folder);
             }
-            
-            // FIXME: Should return false on failure 
-            return true;            
+
+            // FIXME: Should return false on failure
+            return true;
         }
 
         // See IInventoryServices
@@ -218,14 +218,14 @@ namespace OpenSim.Framework.Communications
         {
             m_log.DebugFormat(
                 "[AGENT INVENTORY]: Adding item {0} {1} to folder {2}", item.Name, item.ID, item.Folder);
-            
+
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
                 plugin.Value.addInventoryItem(item);
             }
-            
-            // FIXME: Should return false on failure 
-            return true;            
+
+            // FIXME: Should return false on failure
+            return true;
         }
 
         // See IInventoryServices
@@ -233,14 +233,14 @@ namespace OpenSim.Framework.Communications
         {
             m_log.InfoFormat(
                 "[AGENT INVENTORY]: Updating item {0} {1} in folder {2}", item.Name, item.ID, item.Folder);
-            
+
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
                 plugin.Value.updateInventoryItem(item);
             }
-            
-            // FIXME: Should return false on failure 
-            return true;            
+
+            // FIXME: Should return false on failure
+            return true;
         }
 
         // See IInventoryServices
@@ -248,19 +248,19 @@ namespace OpenSim.Framework.Communications
         {
             m_log.InfoFormat(
                 "[AGENT INVENTORY]: Deleting item {0} {1} from folder {2}", item.Name, item.ID, item.Folder);
-            
+
             foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
             {
                 plugin.Value.deleteInventoryItem(item.ID);
             }
-            
-            // FIXME: Should return false on failure 
-            return true;            
+
+            // FIXME: Should return false on failure
+            return true;
         }
-        
+
         /// <summary>
         /// Purge a folder of all items items and subfolders.
-        /// 
+        ///
         /// FIXME: Really nasty in a sense, because we have to query the database to get information we may
         /// already know...  Needs heavy refactoring.
         /// </summary>
@@ -269,13 +269,13 @@ namespace OpenSim.Framework.Communications
         {
             m_log.DebugFormat(
                 "[AGENT INVENTORY]: Purging folder {0} {1} of its contents", folder.Name, folder.ID);
-            
+
             List<InventoryFolderBase> subFolders = RequestSubFolders(folder.ID);
-            
+
             foreach (InventoryFolderBase subFolder in subFolders)
             {
 //                m_log.DebugFormat("[AGENT INVENTORY]: Deleting folder {0} {1}", subFolder.Name, subFolder.ID);
-                
+
                 foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
                 {
                     plugin.Value.deleteInventoryFolder(subFolder.ID);
@@ -288,17 +288,17 @@ namespace OpenSim.Framework.Communications
             {
                 DeleteItem(item);
             }
-            
-            // FIXME: Should return false on failure 
-            return true;            
+
+            // FIXME: Should return false on failure
+            return true;
         }
-        
+
         private void AddNewInventorySet(UsersInventory inventory)
         {
             foreach (InventoryFolderBase folder in inventory.Folders.Values)
             {
                 AddFolder(folder);
-            }         
+            }
         }
 
         /// <summary>
@@ -340,7 +340,7 @@ namespace OpenSim.Framework.Communications
                 folder.Type = (short)AssetType.Bodypart;
                 folder.Version = 1;
                 Folders.Add(folder.ID, folder);
-                
+
                 folder = new InventoryFolderBase();
                 folder.ParentID = rootFolder;
                 folder.Owner = user;
@@ -348,7 +348,7 @@ namespace OpenSim.Framework.Communications
                 folder.Name = "Calling Cards";
                 folder.Type = (short)AssetType.CallingCard;
                 folder.Version = 1;
-                Folders.Add(folder.ID, folder);                
+                Folders.Add(folder.ID, folder);
 
                 folder = new InventoryFolderBase();
                 folder.ParentID = rootFolder;

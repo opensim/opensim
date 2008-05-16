@@ -82,11 +82,11 @@ namespace OpenSim.Framework.Utilities
         /// Convert a variable length field (byte array) to a string, with a
         /// field name prepended to each line of the output
         /// </summary>
-        /// <remarks>If the byte array has unprintable characters in it, a 
+        /// <remarks>If the byte array has unprintable characters in it, a
         /// hex dump will be put in the string instead</remarks>
         /// <param name="bytes">The byte array to convert to a string</param>
         /// <param name="fieldName">A field name to prepend to each line of output</param>
-        /// <returns>An ASCII string or a string containing a hex dump, minus 
+        /// <returns>An ASCII string or a string containing a hex dump, minus
         /// the null terminator</returns>
         public static string FieldToString(byte[] bytes, string fieldName)
         {

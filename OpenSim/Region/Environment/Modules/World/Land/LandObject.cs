@@ -622,7 +622,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         /// <summary>
         /// Notify the parcel owner each avatar that owns prims situated on their land.  This notification includes
         /// aggreagete details such as the number of prims.
-        ///  
+        ///
         /// </summary>
         /// <param name="remote_client">
         /// A <see cref="IClientAPI"/>

@@ -35,7 +35,7 @@ namespace OpenSim.Region.Environment.Scenes
 {
     [Serializable]
     public abstract class EntityBase : ISerializable
-    {   
+    {
         /// <summary>
         /// The scene to which this entity belongs
         /// </summary>
@@ -56,7 +56,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected string m_name;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public virtual string Name
         {
@@ -67,7 +67,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected LLVector3 m_pos;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public virtual LLVector3 AbsolutePosition
         {
@@ -79,7 +79,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected LLVector3 m_rotationalvelocity;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public virtual LLVector3 Velocity
         {
@@ -118,7 +118,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public abstract void UpdateMovement();
 

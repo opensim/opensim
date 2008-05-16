@@ -31,14 +31,14 @@ namespace OpenSim.Framework.Communications.Limit
 {
     /// <summary>
     /// Limit requests by discarding them after they've been repeated a certain number of times.
-    /// </summary>    
+    /// </summary>
     public class RepeatLimitStrategy<TId> : IRequestLimitStrategy<TId>
     {
         /// <summary>
         /// Record each asset request that we're notified about.
         /// </summary>
         private readonly Dictionary<TId, int> requestCounts = new Dictionary<TId, int>();
-        
+
         /// <summary>
         /// The maximum number of requests that can be made before we drop subsequent requests.
         /// </summary>
@@ -47,7 +47,7 @@ namespace OpenSim.Framework.Communications.Limit
         {
             get { return m_maxRequests; }
         }
-       
+
         /// <summary></summary>
         /// <param name="maxRequests">The maximum number of requests that may be served before all further
         /// requests are dropped.</param>
@@ -55,52 +55,52 @@ namespace OpenSim.Framework.Communications.Limit
         {
             m_maxRequests = maxRequests;
         }
-        
+
         /// <summary>
         /// <see cref="IRequestLimitStrategy"/>
         /// </summary>
         public bool AllowRequest(TId id)
-        {                 
+        {
             if (requestCounts.ContainsKey(id))
             {
                 requestCounts[id] += 1;
-                
+
                 if (requestCounts[id] > m_maxRequests)
-                {                    
+                {
                     return false;
-                }                                                         
+                }
             }
-            
+
             return true;
         }
-        
+
         /// <summary>
         /// <see cref="IRequestLimitStrategy"/>
-        /// </summary>        
+        /// </summary>
         public bool IsFirstRefusal(TId id)
         {
             if (requestCounts.ContainsKey(id) && m_maxRequests + 1 == requestCounts[id])
             {
                 return true;
-            }            
-            
+            }
+
             return false;
         }
-        
+
         /// <summary>
         /// <see cref="IRequestLimitStrategy"/>
-        /// </summary>        
+        /// </summary>
         public void MonitorRequests(TId id)
         {
             if (!IsMonitoringRequests(id))
             {
                 requestCounts.Add(id, 1);
-            }            
-        }  
-        
+            }
+        }
+
         /// <summary>
         /// <see cref="IRequestLimitStrategy"/>
-        /// </summary>         
+        /// </summary>
         public bool IsMonitoringRequests(TId id)
         {
             return requestCounts.ContainsKey(id);

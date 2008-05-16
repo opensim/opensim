@@ -47,7 +47,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         #region Constants
         // These are here for testing.  They will be taken out
-        
+
         //private uint PERM_ALL = (uint)2147483647;
         private uint PERM_COPY = (uint)32768;
         //private uint PERM_MODIFY = (uint)16384;
@@ -59,7 +59,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         #region Bypass Permissions / Debug Permissions Stuff
 
-        // Bypasses the permissions engine 
+        // Bypasses the permissions engine
         private bool m_bypassPermissions = false;
         private bool m_bypassPermissionsValue = true;
         private bool m_debugPermissions = false;
@@ -126,18 +126,18 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         public void Initialise(Scene scene, IConfigSource config)
         {
             m_scene = scene;
-            
+
             IConfig myConfig = config.Configs["Startup"];
-            
-			string permissionModules = myConfig.GetString("permissionmodules", "DefaultPermissionsModule");
 
-			List<string> modules=new List<string>(permissionModules.Split(','));
+            string permissionModules = myConfig.GetString("permissionmodules", "DefaultPermissionsModule");
 
-			if(!modules.Contains("DefaultPermissionsModule"))
-				return;
+            List<string> modules=new List<string>(permissionModules.Split(','));
 
-            m_bypassPermissions = !myConfig.GetBoolean("serverside_object_permissions", true);            
-            
+            if (!modules.Contains("DefaultPermissionsModule"))
+                return;
+
+            m_bypassPermissions = !myConfig.GetBoolean("serverside_object_permissions", true);
+
             m_scene.RegisterModuleInterface<IScenePermissions>(this);
 
             //Register functions with Scene External Checks!
@@ -212,7 +212,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             get { return false; }
         }
 
-        #endregion        
+        #endregion
 
         #region Helper Functions
         protected void SendPermissionError(LLUUID user, string reason)
@@ -252,38 +252,38 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         }
 #endregion
 
-		public bool PropagatePermissions()
-		{
-			return false;
-		}
+        public bool PropagatePermissions()
+        {
+            return false;
+        }
 
-		public bool BypassPermissions()
-		{
-			return m_bypassPermissions;
-		}
+        public bool BypassPermissions()
+        {
+            return m_bypassPermissions;
+        }
 
-		public void SetBypassPermissions(bool value)
-		{
-			m_bypassPermissions=value;
-		}
+        public void SetBypassPermissions(bool value)
+        {
+            m_bypassPermissions=value;
+        }
 
         #region Object Permissions
 
         public uint GenerateClientFlags(LLUUID user, LLUUID objID)
         {
-            // Here's the way this works, 
+            // Here's the way this works,
             // ObjectFlags and Permission flags are two different enumerations
             // ObjectFlags, however, tells the client to change what it will allow the user to do.
-            // So, that means that all of the permissions type ObjectFlags are /temporary/ and only 
-            // supposed to be set when customizing the objectflags for the client.  
+            // So, that means that all of the permissions type ObjectFlags are /temporary/ and only
+            // supposed to be set when customizing the objectflags for the client.
 
-            // These temporary objectflags get computed and added in this function based on the 
+            // These temporary objectflags get computed and added in this function based on the
             // Permission mask that's appropriate!
             // Outside of this method, they should never be added to objectflags!
             // -teravus
 
             SceneObjectPart task=m_scene.GetSceneObjectPart(objID);
-            
+
             // this shouldn't ever happen..     return no permissions/objectflags.
             if (task == null)
                 return (uint)0;
@@ -292,7 +292,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             LLUUID objectOwner = task.OwnerID;
 
 
-            // Remove any of the objectFlags that are temporary.  These will get added back if appropriate 
+            // Remove any of the objectFlags that are temporary.  These will get added back if appropriate
             // in the next bit of code
 
             objflags &= (uint)
@@ -354,7 +354,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         private uint ApplyObjectModifyMasks(uint setPermissionMask, uint objectFlagsMask)
         {
-            // We are adding the temporary objectflags to the object's objectflags based on the 
+            // We are adding the temporary objectflags to the object's objectflags based on the
             // permission flag given.  These change the F flags on the client.
 
             if ((setPermissionMask & (uint)PermissionMask.Copy) != 0)
@@ -404,7 +404,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             locked = ((group.RootPart.OwnerMask & PERM_LOCKED) == 0);
 
             // People shouldn't be able to do anything with locked objects, except the Administrator
-            // The 'set permissions' runs through a different permission check, so when an object owner 
+            // The 'set permissions' runs through a different permission check, so when an object owner
             // sets an object locked, the only thing that they can do is unlock it.
             //
             // Nobody but the object owner can set permissions on an object
@@ -458,7 +458,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             bool permission = false;
             string reason = "Only registered users may communicate with another account.";
 
-            
+
             if (IsAdministrator(user))
                 permission = true;
 
@@ -521,7 +521,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             return GenericParcelPermission(user, parcel);
         }
 #endregion
-        
+
         #region Permission Checks
             private bool CanAbandonParcel(LLUUID user, ILandObject parcel, Scene scene)
             {
@@ -607,7 +607,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
-                
+
                 return GenericCommunicationPermission(user, target);
             }
 
@@ -632,8 +632,8 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                         return false;
                     }
 
-                    // The client 
-                    // may request to edit linked parts, and therefore, it needs 
+                    // The client
+                    // may request to edit linked parts, and therefore, it needs
                     // to also check for SceneObjectPart
 
                     // If it's not an object, we cant edit it.
@@ -647,7 +647,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
 
                     LLUUID taskOwner = null;
-                    // Added this because at this point in time it wouldn't be wise for 
+                    // Added this because at this point in time it wouldn't be wise for
                     // the administrator object permissions to take effect.
                     LLUUID objectOwner = task.OwnerID;
 
@@ -682,12 +682,12 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
 
                     // This is an exception to the generic object permission.
-                    // Administrators who lock their objects should not be able to move them, 
+                    // Administrators who lock their objects should not be able to move them,
                     // however generic object permission should return true.
                     // This keeps locked objects from being affected by random click + drag actions by accident
                     // and allows the administrator to grab or delete a locked object.
 
-                    // Administrators and estate managers are still able to click+grab locked objects not 
+                    // Administrators and estate managers are still able to click+grab locked objects not
                     // owned by them in the scene
                     // This is by design.
 
@@ -834,7 +834,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
                     SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objectID];
                     LLUUID taskOwner = null;
-                    // Added this because at this point in time it wouldn't be wise for 
+                    // Added this because at this point in time it wouldn't be wise for
                     // the administrator object permissions to take effect.
                     LLUUID objectOwner = task.OwnerID;
 
@@ -895,61 +895,61 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         #endregion
 
-			public bool CanLinkObject(LLUUID userID, LLUUID objectID)
-			{
+            public bool CanLinkObject(LLUUID userID, LLUUID objectID)
+            {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-				return true;
-			}
+                return true;
+            }
 
-			public bool CanDelinkObject(LLUUID userID, LLUUID objectID)
-			{
+            public bool CanDelinkObject(LLUUID userID, LLUUID objectID)
+            {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-				return true;
-			}
+                return true;
+            }
 
-			public bool CanBuyLand(LLUUID userID, ILandObject parcel, Scene scene)
-			{
+            public bool CanBuyLand(LLUUID userID, ILandObject parcel, Scene scene)
+            {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-				return true;
-			}
+                return true;
+            }
 
-			public bool CanCopyInventory(LLUUID itemID, LLUUID objectID, LLUUID userID)
-			{
+            public bool CanCopyInventory(LLUUID itemID, LLUUID objectID, LLUUID userID)
+            {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-				return true;
-			}
+                return true;
+            }
 
-			public bool CanDeleteInventory(LLUUID itemID, LLUUID objectID, LLUUID userID)
-			{
+            public bool CanDeleteInventory(LLUUID itemID, LLUUID objectID, LLUUID userID)
+            {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-				return true;
-			}
+                return true;
+            }
 
-			public bool CanCreateInventory(uint invType, LLUUID objectID, LLUUID userID)
-			{
+            public bool CanCreateInventory(uint invType, LLUUID objectID, LLUUID userID)
+            {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-				return true;
-			}
+                return true;
+            }
 
-			public bool CanTeleport(LLUUID userID)
-			{
+            public bool CanTeleport(LLUUID userID)
+            {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-				return true;
-			}
+                return true;
+            }
 
 
     }

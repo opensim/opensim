@@ -165,10 +165,10 @@ namespace OpenSim.Framework
             // (but those probably wont work anyway)
             return file;
         }
-        
+
         /// <summary>
         /// Debug utility function to convert unbroken strings of XML into something human readable for occasional debugging purposes.
-        /// 
+        ///
         /// Please don't delete me even if I appear currently unused!
         /// </summary>
         /// <param name="rawXml"></param>
@@ -177,22 +177,22 @@ namespace OpenSim.Framework
         {
             XmlDocument xd = new XmlDocument();
             xd.LoadXml(rawXml);
-            
+
             StringBuilder sb = new StringBuilder();
-            StringWriter sw = new StringWriter(sb);            
-            
+            StringWriter sw = new StringWriter(sb);
+
             XmlTextWriter xtw = new XmlTextWriter(sw);
             xtw.Formatting = Formatting.Indented;
-            
+
             try
             {
                 xd.WriteTo(xtw);
             }
             finally
             {
-                xtw.Close();            
+                xtw.Close();
             }
-            
+
             return sb.ToString();
         }
 
@@ -284,11 +284,11 @@ namespace OpenSim.Framework
         /// Convert a variable length field (byte array) to a string, with a
         /// field name prepended to each line of the output
         /// </summary>
-        /// <remarks>If the byte array has unprintable characters in it, a 
+        /// <remarks>If the byte array has unprintable characters in it, a
         /// hex dump will be put in the string instead</remarks>
         /// <param name="bytes">The byte array to convert to a string</param>
         /// <param name="fieldName">A field name to prepend to each line of output</param>
-        /// <returns>An ASCII string or a string containing a hex dump, minus 
+        /// <returns>An ASCII string or a string containing a hex dump, minus
         /// the null terminator</returns>
         public static string FieldToString(byte[] bytes, string fieldName)
         {

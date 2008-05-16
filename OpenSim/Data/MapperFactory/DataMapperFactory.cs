@@ -49,7 +49,7 @@ namespace OpenSim.Data.MapperFactory
                     return new MSSQLDatabaseMapper(connectionString);
                 default:
                     throw new ArgumentException("Unknown Database Mapper type [" + type + "].");
-            }            
+            }
         }
     }
 }

@@ -34,9 +34,9 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
     //     *
     //     * These are internal "assembly" commands,
     //     *  basic operators like "ADD", "PUSH" and "POP"
-    //     * 
+    //     *
     //     * It also contains managed stack and keeps track of internal variables, etc.
-    //     * 
+    //     *
     //     */
 
 

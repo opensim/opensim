@@ -34,17 +34,17 @@ namespace OpenSim.Framework.Communications.Capabilities
     {
         /// <summary>
         /// The item containing the script to update
-        /// </summary> 
+        /// </summary>
         public LLUUID item_id;
 
         /// <summary>
         /// The task containing the script
-        /// </summary> 
+        /// </summary>
         public LLUUID task_id;
 
         /// <summary>
         /// Signals whether the script is currently active
-        /// </summary> 
+        /// </summary>
         public int is_script_running;
     }
 }

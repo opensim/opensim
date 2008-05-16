@@ -115,7 +115,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                         Thread.Sleep(cmdHandlerThreadCycleSleepms);
                         //lock (ScriptEngine.ScriptEngines)
                         //{
-                            foreach (ScriptEngine se in new ArrayList(ScriptEngine.ScriptEngines)) 
+                            foreach (ScriptEngine se in new ArrayList(ScriptEngine.ScriptEngines))
                             {
                                 se.m_ASYNCLSLCommandManager.DoOneCmdHandlerPass();
                             }
@@ -176,7 +176,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         #region Check llRemoteData channels
 
-       
+
         #endregion
 
         #region Check llListeners

@@ -239,7 +239,7 @@ namespace OpenSim.Framework.Communications
                 "Could not authenticate your avatar. Please check your username and password, and check the grid if problems persist.",
                 "false");
         }
-        
+
         /// <summary>
         /// Response to indicate that login failed because the agent's inventory was not available.
         /// </summary>
@@ -249,7 +249,7 @@ namespace OpenSim.Framework.Communications
             return GenerateFailureResponse(
                 "key",
                 "The avatar inventory service is not responding.  Please notify your login region operator.",
-                "false");     
+                "false");
         }
 
         public XmlRpcResponse CreateAlreadyLoggedInResponse()

@@ -35,43 +35,43 @@ namespace OpenSim.Framework.Statistics
     public class UserStatsCollector : IStatsCollector
     {
         private Timer ageStatsTimer = new Timer(24 * 60 * 60 * 1000);
-        
+
         private int successfulLoginsToday;
         public int SuccessfulLoginsToday { get { return successfulLoginsToday; } }
-        
+
         private int successfulLoginsYesterday;
-        public int SuccessfulLoginsYesterday { get { return successfulLoginsYesterday; } }    
-        
+        public int SuccessfulLoginsYesterday { get { return successfulLoginsYesterday; } }
+
         private int successfulLogins;
         public int SuccessfulLogins { get { return successfulLogins; } }
-        
+
         private int logouts;
         public int Logouts { get { return logouts; } }
-        
+
         public UserStatsCollector()
         {
             ageStatsTimer.Elapsed += new ElapsedEventHandler(OnAgeing);
             ageStatsTimer.Enabled = true;
         }
-        
+
         private void OnAgeing(object source, ElapsedEventArgs e)
         {
             successfulLoginsYesterday = successfulLoginsToday;
-            
+
             // There is a possibility that an asset request could occur between the execution of these
             // two statements.  But we're better off without the synchronization overhead.
-            successfulLoginsToday = 0;            
+            successfulLoginsToday = 0;
         }
-        
+
         /// <summary>
         /// Record a successful login
         /// </summary>
         public void AddSuccessfulLogin()
         {
-            successfulLogins++;            
+            successfulLogins++;
             successfulLoginsToday++;
         }
-        
+
         public void AddLogout()
         {
             logouts++;

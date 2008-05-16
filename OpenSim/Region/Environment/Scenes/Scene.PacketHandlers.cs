@@ -35,7 +35,7 @@ namespace OpenSim.Region.Environment.Scenes
     public partial class Scene
     {
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="message"></param>
         /// <param name="type"></param>
@@ -81,7 +81,7 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (EntityBase ent in EntitieList)
             {
                 if (ent is SceneObjectGroup)
-                {                    
+                {
                     if (((SceneObjectGroup) ent).LocalId == primLocalID)
                     {
                         // A prim is only tainted if it's allowed to be edited by the person clicking it.
@@ -98,7 +98,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="primLocalID"></param>
         /// <param name="remoteClient"></param>
@@ -139,10 +139,10 @@ namespace OpenSim.Region.Environment.Scenes
                agentId, groupId, final, groupOwned, removeContribution, parcelLocalID, parcelArea, parcelPrice, authenticated);
 
             // First, allow all validators a stab at it
-            m_eventManager.TriggerValidateLandBuy(this, args);        
+            m_eventManager.TriggerValidateLandBuy(this, args);
 
             // Then, check validation and transfer
-            m_eventManager.TriggerLandBuy(this, args);        
+            m_eventManager.TriggerLandBuy(this, args);
         }
 
         public virtual void ProcessObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)

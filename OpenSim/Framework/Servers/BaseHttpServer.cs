@@ -82,10 +82,10 @@ namespace OpenSim.Framework.Servers
             string path = handler.Path;
 
             string handlerKey = GetHandlerKey(httpMethod, path);
-                                    
+
             if (!m_streamHandlers.ContainsKey(handlerKey))
             {
-                //m_log.DebugFormat("[BASE HTTP SERVER]: Adding handler key {0}", handlerKey);                
+                //m_log.DebugFormat("[BASE HTTP SERVER]: Adding handler key {0}", handlerKey);
                 m_streamHandlers.Add(handlerKey, handler);
             }
         }
@@ -135,20 +135,20 @@ namespace OpenSim.Framework.Servers
             try
             {
                 HttpListenerContext context = (HttpListenerContext) stateinfo;
-    
+
                 HttpListenerRequest request = context.Request;
                 HttpListenerResponse response = context.Response;
-    
+
                 response.KeepAlive = false;
                 response.SendChunked = false;
-    
+
                 string path = request.RawUrl;
                 string handlerKey = GetHandlerKey(request.HttpMethod, path);
-                
+
                 //m_log.DebugFormat("[BASE HTTP SERVER]: Handling {0} request for {1}", request.HttpMethod, path);
-    
+
                 IRequestHandler requestHandler;
-    
+
                 if (TryGetStreamHandler(handlerKey, out requestHandler))
                 {
                     // Okay, so this is bad, but should be considered temporary until everything is IStreamHandler.
@@ -156,13 +156,13 @@ namespace OpenSim.Framework.Servers
                     if (requestHandler is IStreamedRequestHandler)
                     {
                         IStreamedRequestHandler streamedRequestHandler = requestHandler as IStreamedRequestHandler;
-                                          
+
                         buffer = streamedRequestHandler.Handle(path, request.InputStream);
                     }
                     else
                     {
                         IStreamHandler streamHandler = (IStreamHandler) requestHandler;
-    
+
                         using (MemoryStream memoryStream = new MemoryStream())
                         {
                             streamHandler.Handle(path, request.InputStream, memoryStream);
@@ -170,11 +170,11 @@ namespace OpenSim.Framework.Servers
                             buffer = memoryStream.ToArray();
                         }
                     }
-    
+
                     request.InputStream.Close();
                     response.ContentType = requestHandler.ContentType;
                     response.ContentLength64 = buffer.LongLength;
-    
+
                     try
                     {
                         response.OutputStream.Write(buffer, 0, buffer.Length);
@@ -273,7 +273,7 @@ namespace OpenSim.Framework.Servers
                 return true;
             }
         }
-        
+
         /// <summary>
         /// Try all the registered xmlrpc handlers when an xmlrpc request is received.
         /// Sends back an XMLRPC unknown request response if no handler is registered for the requested method.
@@ -434,7 +434,7 @@ namespace OpenSim.Framework.Servers
         {
             // This is a test.  There's a workable alternative..  as this way sucks.
             // We'd like to put this into a text file parhaps that's easily editable.
-            // 
+            //
             // For this test to work, I used the following secondlife.exe parameters
             // "C:\Program Files\SecondLifeWindLight\SecondLifeWindLight.exe" -settings settings_windlight.xml -channel "Second Life WindLight"  -set SystemLanguage en-us -loginpage http://10.1.1.2:8002/?show_login_form=TRUE -loginuri http://10.1.1.2:8002 -user 10.1.1.2
             //
@@ -461,7 +461,7 @@ namespace OpenSim.Framework.Servers
             string[] querystringkeys = request.QueryString.AllKeys;
             string[] rHeaders = request.Headers.AllKeys;
 
-            
+
             foreach (string queryname in querystringkeys)
             {
                 keysvals.Add(queryname, request.QueryString[queryname]);
@@ -489,7 +489,7 @@ namespace OpenSim.Framework.Servers
                 {
                     Hashtable responsedata = requestprocessor(keysvals);
                     DoHTTPGruntWork(responsedata,response);
-                       
+
                     //SendHTML500(response);
                 }
                 else
@@ -519,7 +519,7 @@ namespace OpenSim.Framework.Servers
                 contentType = "text/html";
             }
 
-            // We're forgoing the usual error status codes here because the client 
+            // We're forgoing the usual error status codes here because the client
             // ignores anything but 200 and 301
 
             response.StatusCode = 200;
@@ -649,10 +649,10 @@ namespace OpenSim.Framework.Servers
 
         public void RemoveStreamHandler(string httpMethod, string path)
         {
-            string handlerKey = GetHandlerKey(httpMethod, path);            
-            
+            string handlerKey = GetHandlerKey(httpMethod, path);
+
             //m_log.DebugFormat("[BASE HTTP SERVER]: Removing handler key {0}", handlerKey);
-            
+
             m_streamHandlers.Remove(handlerKey);
         }
 
@@ -660,7 +660,7 @@ namespace OpenSim.Framework.Servers
         {
             m_HTTPHandlers.Remove(GetHandlerKey(httpMethod, path));
         }
-        
+
         public string GetHTTP404(string host)
         {
             string file = Path.Combine(Util.configDir(), "http_404.html");

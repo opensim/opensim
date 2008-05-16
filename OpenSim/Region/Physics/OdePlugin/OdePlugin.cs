@@ -42,7 +42,7 @@ using OpenSim.Region.Physics.Manager;
 namespace OpenSim.Region.Physics.OdePlugin
 {
     /// <summary>
-    /// ODE plugin 
+    /// ODE plugin
     /// </summary>
     public class OdePlugin : IPhysicsPlugin
     {
@@ -50,7 +50,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private CollisionLocker ode;
         private OdeScene _mScene;
-
 
         public OdePlugin()
         {
@@ -81,14 +80,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
     }
 
-
-    public enum StatusIndicators : int 
+    public enum StatusIndicators : int
     {
         Generic = 0,
         Start = 1,
         End = 2
     }
-
 
     public struct sCollisionData
     {
@@ -165,7 +162,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float mAvatarObjectContactFriction = 75f;
         private float mAvatarObjectContactBounce = 0.1f;
 
-
         private float avPIDD = 3200f;
         private float avPIDP = 1400f;
         private float avCapRadius = 0.37f;
@@ -175,13 +171,12 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float avMovementDivisorWalk = 1.3f;
         private float avMovementDivisorRun = 0.8f;
 
-
         private float[] _heightmap;
 
         private float[] _watermap;
 
         private float[] _origheightmap;
-        
+
         private d.NearCallback nearCallback;
         public d.TriCallback triCallback;
         public d.TriArrayCallback triArrayCallback;
@@ -199,7 +194,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         private d.Contact AvatarMovementprimContact;
         private d.Contact AvatarMovementTerrainContact;
         private d.Contact WaterContact;
-
 
 //Ckrinke: Comment out until used. We declare it, initialize it, but do not use it
 //Ckrinke        private int m_randomizeWater = 200;
@@ -233,7 +227,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private IConfigSource m_config;
 
-
         /// <summary>
         /// Initiailizes the scene
         /// Sets many properties that ODE requires to be stable
@@ -245,44 +238,34 @@ namespace OpenSim.Region.Physics.OdePlugin
             nearCallback = near;
             triCallback = TriCallback;
             triArrayCallback = TriArrayCallback;
-            
-
-           
 
             lock (OdeLock)
             {
-
-                // Creat the world and the first space
+                // Create the world and the first space
                 world = d.WorldCreate();
                 space = d.HashSpaceCreate(IntPtr.Zero);
-                
+
                 contactgroup = d.JointGroupCreate(0);
                 //contactgroup
 
-
-
-                
                 d.WorldSetAutoDisableFlag(world, false);
-                
             }
 
             // zero out a heightmap array float array (single dimention [flattened]))
             _heightmap = new float[514*514];
             _watermap = new float[258 * 258];
 
-            // Zero out the prim spaces array (we split our space into smaller spaces so 
+            // Zero out the prim spaces array (we split our space into smaller spaces so
             // we can hit test less.
-            
         }
 
-        
         // Initialize the mesh plugin
         public override void Initialise(IMesher meshmerizer, IConfigSource config)
         {
             mesher = meshmerizer;
             m_config = config;
             // Defaults
-            
+
             if (Environment.OSVersion.Platform == PlatformID.Unix)
             {
                 avPIDD = 3200.0f;
@@ -349,10 +332,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         avPIDP = physicsconfig.GetFloat("av_pid_proportional_win", 900.0f);
                         avStandupTensor = physicsconfig.GetFloat("av_capsule_standup_tensor_win", 550000f);
                     }
-                    
-
                 }
-
             }
 
             staticPrimspace = new IntPtr[(int)(300 / metersInSpace), (int)(300 / metersInSpace)];
@@ -361,8 +341,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             contact.surface.mu = nmAvatarObjectContactFriction;
             contact.surface.bounce = nmAvatarObjectContactBounce;
 
-            // Terrain contact friction and Bounce 
-            // This is the *non* moving version.   Use this when an avatar 
+            // Terrain contact friction and Bounce
+            // This is the *non* moving version.   Use this when an avatar
             // isn't moving to keep it in place better
             TerrainContact.surface.mode |= d.ContactFlags.SoftERP;
             TerrainContact.surface.mu = nmTerrainContactFriction;
@@ -376,7 +356,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             WaterContact.surface.soft_erp = 0.010f;
 
             // Prim contact friction and bounce
-            // THis is the *non* moving version of friction and bounce 
+            // THis is the *non* moving version of friction and bounce
             // Use this when an avatar comes in contact with a prim
             // and is moving
             AvatarMovementprimContact.surface.mu = mAvatarObjectContactFriction;
@@ -409,7 +389,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     staticPrimspace[i, j] = IntPtr.Zero;
                 }
             }
-
         }
 
         internal void waitForSpaceUnlock(IntPtr space)
@@ -439,17 +418,17 @@ namespace OpenSim.Region.Physics.OdePlugin
         private void near(IntPtr space, IntPtr g1, IntPtr g2)
         {
             //  no lock here!  It's invoked from within Simulate(), which is thread-locked
-            
-            // Test if we're collidng a geom with a space.  
+
+            // Test if we're colliding a geom with a space.
             // If so we have to drill down into the space recursively
 
             if (d.GeomIsSpace(g1) || d.GeomIsSpace(g2))
             {
                 if (g1 == (IntPtr)0 || g2 == (IntPtr)0)
                     return;
-                // Separating static prim geometry spaces.   
-                // We'll be calling near recursivly if one 
-                // of them is a space to find all of the 
+                // Separating static prim geometry spaces.
+                // We'll be calling near recursivly if one
+                // of them is a space to find all of the
                 // contact points in the space
                 try
                 {
@@ -462,12 +441,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 //Colliding a space or a geom with a space or a geom. so drill down
 
-                //Collide all geoms in each space..   
+                //Collide all geoms in each space..
                 //if (d.GeomIsSpace(g1)) d.SpaceCollide(g1, IntPtr.Zero, nearCallback);
                 //if (d.GeomIsSpace(g2)) d.SpaceCollide(g2, IntPtr.Zero, nearCallback);
                 return;
             }
-
 
             if (g1 == (IntPtr)0 || g2 == (IntPtr)0)
                 return;
@@ -499,23 +477,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             int count = 0;
             try
             {
-                
                 // Colliding Geom To Geom
                 // This portion of the function 'was' blatantly ripped off from BoxStack.cs
-                
-
-                
 
                 if (g1 == g2)
                     return; // Can't collide with yourself
 
                 if (b1 != IntPtr.Zero && b2 != IntPtr.Zero && d.AreConnectedExcluding(b1, b2, d.JointType.Contact))
                     return;
-                
+
                 lock (contacts)
                 {
-                    
-
                     count = d.Collide(g1, g2, contacts.GetLength(0), contacts, d.ContactGeom.SizeOf);
                 }
             }
@@ -527,7 +499,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             catch (AccessViolationException)
             {
-                
+
                 m_log.Warn("[PHYSICS]: Unable to collide test an object");
                 return;
             }
@@ -539,6 +511,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 p1 = PANull;
             }
+
             if (!actor_name_map.TryGetValue(g2, out p2))
             {
                 p2 = PANull;
@@ -554,14 +527,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // If we're colliding with terrain, use 'TerrainContact' instead of contact.
                 // allows us to have different settings
 
-                
-
                 // We only need to test p2 for 'jump crouch purposes'
                 p2.IsColliding = true;
 
                 //if ((framecount % m_returncollisions) == 0)
-                    
-
 
                 switch (p1.PhysicsActorType)
                 {
@@ -588,41 +557,39 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     //This is disabled at the moment only because it needs more tweaking
                     //It will eventually be uncommented
-                     
+
                     if (contacts[i].depth >= 1.00f)
                     {
                         //m_log.Debug("[PHYSICS]: " + contacts[i].depth.ToString());
                     }
-                     
+
                     //If you interpenetrate a prim with an agent
                     if ((p2.PhysicsActorType == (int) ActorTypes.Agent &&
                          p1.PhysicsActorType == (int) ActorTypes.Prim) ||
                         (p1.PhysicsActorType == (int) ActorTypes.Agent &&
                          p2.PhysicsActorType == (int) ActorTypes.Prim))
                     {
-
-                        
                         # region disabled code1
                         //contacts[i].depth = contacts[i].depth * 4.15f;
                         /*
                         if (p2.PhysicsActorType == (int) ActorTypes.Agent)
-                        {   
+                        {
                             p2.CollidingObj = true;
                             contacts[i].depth = 0.003f;
                             p2.Velocity = p2.Velocity + new PhysicsVector(0, 0, 2.5f);
                             OdeCharacter character = (OdeCharacter) p2;
                             character.SetPidStatus(true);
                             contacts[i].pos = new d.Vector3(contacts[i].pos.X + (p1.Size.X / 2), contacts[i].pos.Y + (p1.Size.Y / 2), contacts[i].pos.Z + (p1.Size.Z / 2));
-                            
+
                         }
                         else
                         {
-                            
+
                             //contacts[i].depth = 0.0000000f;
                         }
                         if (p1.PhysicsActorType == (int) ActorTypes.Agent)
                         {
-                            
+
                             p1.CollidingObj = true;
                             contacts[i].depth = 0.003f;
                             p1.Velocity = p1.Velocity + new PhysicsVector(0, 0, 2.5f);
@@ -632,14 +599,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                         else
                         {
-                            
+
                             //contacts[i].depth = 0.0000000f;
                         }
                           */
                         #endregion
-                        
                     }
-                    
 
                     // If you interpenetrate a prim with another prim
                     if (p1.PhysicsActorType == (int) ActorTypes.Prim && p2.PhysicsActorType == (int) ActorTypes.Prim)
@@ -649,7 +614,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         //OdePrim op2 = (OdePrim)p2;
                         //op1.m_collisionscore++;
                         //op2.m_collisionscore++;
-                        
 
                         //if (op1.m_collisionscore > 8000 || op2.m_collisionscore > 8000)
                         //{
@@ -658,11 +622,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                             //op2.m_taintdisable = true;
                             //AddPhysicsActorTaint(p2);
                         //}
-                       
+
                         //if (contacts[i].depth >= 0.25f)
                         //{
                             // Don't collide, one or both prim will expld.
-                            
 
                             //op1.m_interpenetrationcount++;
                             //op2.m_interpenetrationcount++;
@@ -678,17 +641,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 //AddPhysicsActorTaint(p2);
                             //}
 
-                           
                             //contacts[i].depth = contacts[i].depth / 8f;
                             //contacts[i].normal = new d.Vector3(0, 0, 1);
                         //}
                         //if (op1.m_disabled || op2.m_disabled)
                         //{
-                            //Manually disabled objects stay disabled 
+                            //Manually disabled objects stay disabled
                             //contacts[i].depth = 0f;
                         //}
                         #endregion
                     }
+
                     if (contacts[i].depth >= 1.00f)
                     {
                         //m_log.Info("[P]: " + contacts[i].depth.ToString());
@@ -713,6 +676,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             else
                             {
                             }
+
                             if (p1.PhysicsActorType == (int) ActorTypes.Agent)
                             {
                                 OdeCharacter character = (OdeCharacter)p1;
@@ -738,7 +702,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 if (contacts[i].depth >= 0f)
                 {
-                    // If we're collidng against terrain
+                    // If we're colliding against terrain
                     if (name1 == "Terrain" || name2 == "Terrain")
                     {
                         // If we're moving
@@ -760,12 +724,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         if ((p2.PhysicsActorType == (int)ActorTypes.Prim))
                         {
-
                         }
                         else
                         {
-
                         }
+
                         //WaterContact.surface.soft_cfm = 0.0000f;
                         //WaterContact.surface.soft_erp = 0.00000f;
                         if (contacts[i].depth > 0.1f)
@@ -775,7 +738,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             //contacts[i].pos = new d.Vector3(0, 0, contacts[i].pos.Z - 5f);
                         }
                         WaterContact.geom = contacts[i];
-                        
+
                         joint = d.JointCreateContact(world, contactgroup, ref WaterContact);
 
                         //m_log.Info("[PHYSICS]: Prim Water Contact" + contacts[i].depth);
@@ -806,7 +769,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     // If there are more then 3 contact points, it's likely
                     // that we've got a pile of objects
-                    // 
+                    //
                     // We don't want to send out hundreds of terse updates over and over again
                     // so lets throttle them and send them again after it's somewhat sorted out.
                     p2.ThrottleUpdates = true;
@@ -814,7 +777,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //System.Console.WriteLine(count.ToString());
                 //System.Console.WriteLine("near: A collision was detected between {1} and {2}", 0, name1, name2);
             }
-            
         }
 
         private void collision_accounting_events(PhysicsActor p1, PhysicsActor p2, float collisiondepth)
@@ -831,7 +793,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 case ActorTypes.Agent:
                     cc2 = (OdeCharacter)p2;
-                    
+
                         obj1LocalID = cc2.m_localID;
                         switch ((ActorTypes)p1.PhysicsActorType)
                         {
@@ -840,7 +802,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 obj2LocalID = cc1.m_localID;
                                 cc1.AddCollisionEvent(cc2.m_localID, collisiondepth);
                                 //ctype = (int)CollisionCategories.Character;
-                                
+
                                 //if (cc1.CollidingObj)
                                     //cStartStop = (int)StatusIndicators.Generic;
                                 //else
@@ -858,7 +820,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     //cStartStop = (int)StatusIndicators.Generic;
                                 //else
                                     //cStartStop = (int)StatusIndicators.Start;
-                                
+
                                 //returncollisions = true;
                                 break;
 
@@ -869,14 +831,12 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 //returncollisions = true;
                                 break;
                         }
-                        
 
-                    
                     cc2.AddCollisionEvent(obj2LocalID, collisiondepth);
                     break;
                 case ActorTypes.Prim:
                     cp2 = (OdePrim)p2;
-                    
+
                         obj1LocalID = cp2.m_localID;
                         switch ((ActorTypes)p1.PhysicsActorType)
                         {
@@ -891,7 +851,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 //else
                                     //cStartStop = (int)StatusIndicators.Start;
                                 //returncollisions = true;
-                                
+
                                 break;
                             case ActorTypes.Prim:
                                 cp1 = (OdePrim)p1;
@@ -903,7 +863,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     //cStartStop = (int)StatusIndicators.Generic;
                                 //else
                                     //cStartStop = (int)StatusIndicators.Start;
-                                
+
                                 //returncollisions = true;
                                 break;
 
@@ -911,11 +871,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                             case ActorTypes.Unknown:
                                 obj2LocalID = 0;
                                 //ctype = (int)CollisionCategories.Land;
-                                
+
                                 //returncollisions = true;
                                 break;
                         }
-                    
+
                     cp2.AddCollisionEvent(obj2LocalID, collisiondepth);
                     break;
             }
@@ -999,7 +959,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <param name="timeStep"></param>
         private void collision_optimized(float timeStep)
         {
-            
+
             foreach (OdeCharacter chr in _characters)
             {
                 // Reset the collision values to false
@@ -1008,7 +968,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 chr.IsColliding = false;
                 chr.CollidingGround = false;
                 chr.CollidingObj = false;
-                
+
                 // test the avatar's geometry for collision with the space
                 // This will return near and the space that they are the closest to
                 // And we'll run this again against the avatar and the space segment
@@ -1029,15 +989,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                     //forcedZ = true;
                 //}
             }
-            
 
-            
             lock (_activeprims)
             {
-
                 foreach (OdePrim chr in _activeprims)
                 {
-                    
                     if (d.BodyIsEnabled(chr.Body) && (!chr.m_disabled))
                     {
                         try
@@ -1049,18 +1005,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 else
                                     m_log.Debug("[PHYSICS]: unable to collide test active prim against space.  The space was zero, the geom was zero or it was in the process of being removed");
                             }
-
                         }
                         catch (AccessViolationException)
                         {
                             m_log.Warn("[PHYSICS]: Unable to space collide");
                         }
-                        
                     }
-                    
                 }
             }
-           
         }
 
         #endregion
@@ -1077,7 +1029,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 if (!_collisionEventPrim.Contains(obj))
                     _collisionEventPrim.Add(obj);
-
             }
         }
 
@@ -1089,7 +1040,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     _collisionEventPrim.Remove(obj);
             }
         }
-
 
         #region Add/Remove Entities
 
@@ -1131,8 +1081,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             rot.y = rotation.y;
             rot.z = rotation.z;
 
-
-
             OdePrim newPrim;
             lock (OdeLock)
             {
@@ -1140,7 +1088,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                 _prims.Add(newPrim);
             }
-
 
             return newPrim;
         }
@@ -1178,10 +1125,8 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             result = AddPrim(primName, position, size, rotation, mesh, pbs, isPhysical);
 
-
             return result;
         }
-
 
         public void remActivePrim(OdePrim deactivatePrim)
         {
@@ -1210,8 +1155,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// This is called from within simulate but outside the locked portion
         /// We need to do our own locking here
         /// Essentially, we need to remove the prim from our space segment, whatever segment it's in.
-        /// 
-        /// If there are no more prim in the segment, we need to empty (spacedestroy)the segment and reclaim memory 
+        ///
+        /// If there are no more prim in the segment, we need to empty (spacedestroy)the segment and reclaim memory
         /// that the space was using.
         /// </summary>
         /// <param name="prim"></param>
@@ -1225,7 +1170,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                     if (prim.prim_geom != (IntPtr)0)
                     {
                         prim.ResetTaints();
-
 
                         if (prim.IsPhysical)
                         {
@@ -1267,7 +1211,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 m_log.Warn("[PHYSICS]: Unable to remove prim from physics scene");
                             }
-
                         }
                         catch (AccessViolationException)
                         {
@@ -1297,8 +1240,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         //}
                         //}
                     }
-
-                    
                 }
             }
         }
@@ -1337,12 +1278,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <returns>a pointer to the new space it's in</returns>
         public IntPtr recalculateSpaceForGeom(IntPtr geom, PhysicsVector pos, IntPtr currentspace)
         {
-            
-            // Called from setting the Position and Size of an ODEPrim so 
+            // Called from setting the Position and Size of an ODEPrim so
             // it's already in locked space.
 
             // we don't want to remove the main space
-            // we don't need to test physical here because this function should 
+            // we don't need to test physical here because this function should
             // never be called if the prim is physical(active)
 
             // All physical prim end up in the root space
@@ -1399,7 +1339,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             waitForSpaceUnlock(space);
                             d.SpaceRemove(space, currentspace);
                             // free up memory used by the space.
-                            
+
                             //d.SpaceDestroy(currentspace);
                             resetSpaceArrayItemToZero(currentspace);
                         }
@@ -1418,7 +1358,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     if (d.SpaceQuery(currentspace, geom))
                     {
-
                         if (d.GeomIsSpace(currentspace))
                         {
                             waitForSpaceUnlock(currentspace);
@@ -1453,8 +1392,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
             }
 
-            // The routines in the Position and Size sections do the 'inserting' into the space, 
-            // so all we have to do is make sure that the space that we're putting the prim into 
+            // The routines in the Position and Size sections do the 'inserting' into the space,
+            // so all we have to do is make sure that the space that we're putting the prim into
             // is in the 'main' space.
             int[] iprimspaceArrItem = calculateSpaceArrayItemFromPos(pos);
             IntPtr newspace = calculateSpaceForGeom(pos);
@@ -1492,11 +1431,11 @@ namespace OpenSim.Region.Physics.OdePlugin
         public IntPtr calculateSpaceForGeom(PhysicsVector pos)
         {
             IntPtr locationbasedspace =IntPtr.Zero;
-            
+
                 int[] xyspace = calculateSpaceArrayItemFromPos(pos);
                 //m_log.Info("[Physics]: Attempting to use arrayItem: " + xyspace[0].ToString() + "," + xyspace[1].ToString());
                 locationbasedspace = staticPrimspace[xyspace[0], xyspace[1]];
-           
+
             //locationbasedspace = space;
             return locationbasedspace;
         }
@@ -1523,13 +1462,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (returnint[1] < 0)
                 returnint[1] = 0;
 
-
             return returnint;
         }
+
         #endregion
-
-
-
 
         /// <summary>
         /// Routine to figure out if we need to mesh this prim with our mesher
@@ -1564,7 +1500,6 @@ namespace OpenSim.Region.Physics.OdePlugin
             return false;
         }
 
-        
         /// <summary>
         /// Called after our prim properties are set Scale, position etc.
         /// We use this event queue like method to keep changes to the physical scene occuring in the threadlocked mutex
@@ -1586,7 +1521,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         /// <summary>
         /// This is our main simulate loop
-        /// It's thread locked by a Mutex in the scene. 
+        /// It's thread locked by a Mutex in the scene.
         /// It holds Collisions, it instructs ODE to step through the physical reactions
         /// It moves the objects around in memory
         /// It calls the methods that report back to the object owners.. (scenepresence, SceneObjectGroup)
@@ -1597,7 +1532,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (framecount >= int.MaxValue)
                 framecount = 0;
-            
+
             framecount++;
 
             float fps = 0;
@@ -1605,11 +1540,10 @@ namespace OpenSim.Region.Physics.OdePlugin
             step_time += timeStep;
 
 
-            // If We're loaded down by something else, 
+            // If We're loaded down by something else,
             // or debugging with the Visual Studio project on pause
             // skip a few frames to catch up gracefully.
             // without shooting the physicsactors all over the place
-
 
             if (step_time >= m_SkipFramesAtms)
             {
@@ -1623,7 +1557,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             lock (OdeLock)
             {
-                // Process 10 frames if the sim is running normal..  
+                // Process 10 frames if the sim is running normal..
                 // process 5 frames if the sim is running slow
                 //try
                 //{
@@ -1642,13 +1576,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //(step_time == 0.004f, there's 250 of those per second.   Times the step time/step size
                 step_time = 0.09375f;
                 fps = (step_time/ODE_STEPSIZE) * 1000;
-                
+
                 while (step_time > 0.0f)
                 {
                     //lock (ode)
                     //{
                         //if (!ode.lockquery())
-                        //{ 
+                        //{
                            // ode.dlock(world);
                             try
                             {
@@ -1661,9 +1595,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                                     }
                                 }
 
-                                
                                 bool processedtaints = false;
-                                
+
                                 lock (_taintedPrim)
                                 {
                                     foreach (OdePrim prim in _taintedPrim)
@@ -1679,10 +1612,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                                         processedtaints = true;
                                         prim.m_collisionscore = 0;
                                     }
-                                
+
                                     if (processedtaints)
                                         _taintedPrim = new List<OdePrim>();
-
                                 }
 
                                 lock (_activeprims)
@@ -1696,7 +1628,6 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                                 //if ((framecount % m_randomizeWater) == 0)
                                    // randomizeWater(waterlevel);
-                                
 
                                 collision_optimized(timeStep);
 
@@ -1718,7 +1649,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                                                 pobj.SendCollisions();
                                                 break;
                                         }
-                                            
                                     }
                                 }
 
@@ -1726,13 +1656,13 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                                 d.JointGroupEmpty(contactgroup);
                                 //ode.dunlock(world);
-                            } 
+                            }
                             catch (Exception e)
                             {
                                 m_log.Error("[PHYSICS]: " + e.Message.ToString() + e.TargetSite.ToString());
                                 ode.dunlock(world);
                             }
-                                
+
                             step_time -= ODE_STEPSIZE;
                             i++;
                         //}
@@ -1765,7 +1695,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                     }
                 }
-                
             }
             return fps;
         }
@@ -1780,7 +1709,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             get { return (false); }
         }
 
-        #region ODE Specific Terrain Fixes 
+        #region ODE Specific Terrain Fixes
         public float[] ResizeTerrain512NearestNeighbour(float[] heightMap)
         {
             float[] returnarr = new float[262144];
@@ -1800,7 +1729,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // This particular way is quick but it only works on a multiple of the original
 
             // The idea behind this method can be described with the following diagrams
-            // second pass and third pass happen in the same loop really..  just separated 
+            // second pass and third pass happen in the same loop really..  just separated
             // them to show what this does.
 
             // First Pass
@@ -1893,6 +1822,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             return returnarr;
         }
+
         public float[] ResizeTerrain512Interpolation(float[] heightMap)
         {
             float[] returnarr = new float[262144];
@@ -1912,7 +1842,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             // This particular way is quick but it only works on a multiple of the original
 
             // The idea behind this method can be described with the following diagrams
-            // second pass and third pass happen in the same loop really..  just separated 
+            // second pass and third pass happen in the same loop really..  just separated
             // them to show what this does.
 
             // First Pass
@@ -2139,7 +2069,6 @@ namespace OpenSim.Region.Physics.OdePlugin
                // m_log.Info((baseheight - 0.1f) + ((float)fluidRandomizer.Next(1, 9) / 10f));
             }
 
-            
             lock (OdeLock)
             {
                 if (!(WaterGeom == (IntPtr)0))
@@ -2183,7 +2112,6 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             lock (OdeLock)
             {
-                
                 foreach (OdePrim prm in _prims)
                 {
                     RemovePrim(prm);

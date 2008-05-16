@@ -104,7 +104,7 @@ namespace OpenSim.Region.Environment.Scenes
                 regionCommsHost.OnAvatarCrossingIntoRegion += AgentCrossing;
                 regionCommsHost.OnCloseAgentConnection += CloseConnection;
                 regionCommsHost.OnRegionUp += newRegionUp;
-                regionCommsHost.OnChildAgentUpdate += ChildAgentUpdate;                
+                regionCommsHost.OnChildAgentUpdate += ChildAgentUpdate;
             }
             else
             {
@@ -130,7 +130,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region CommsManager Event handlers
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agent"></param>
@@ -289,7 +289,7 @@ namespace OpenSim.Region.Environment.Scenes
                     agent.child = true;
 
                     InformClientOfNeighbourDelegate d = InformClientOfNeighbourAsync;
-                    
+
                     try
                     {
                         d.BeginInvoke(avatar, agent, neighbours[i].RegionHandle, neighbours[i].ExternalEndPoint,
@@ -299,20 +299,20 @@ namespace OpenSim.Region.Environment.Scenes
                     catch (Exception e)
                     {
                         m_log.ErrorFormat(
-                            "[REGIONINFO]: Could not resolve external hostname {0} for region {1} ({2}, {3}).  {4}", 
-                            neighbours[i].ExternalHostName, 
-                            neighbours[i].RegionHandle, 
-                            neighbours[i].RegionLocX, 
+                            "[REGIONINFO]: Could not resolve external hostname {0} for region {1} ({2}, {3}).  {4}",
+                            neighbours[i].ExternalHostName,
+                            neighbours[i].RegionHandle,
+                            neighbours[i].RegionLocX,
                             neighbours[i].RegionLocY,
                             e);
-                                                
+
                         // FIXME: Okay, even though we've failed, we're still going to throw the exception on,
                         // since I don't know what will happen if we just let the client continue
-                        
+
                         // XXX: Well, decided to swallow the exception instead for now.  Let us see how that goes.
-                        // throw e;                        
-                        
-                    }                    
+                        // throw e;
+
+                    }
                 }
             }
         }
@@ -362,12 +362,12 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_log.Info("[INTERGRID]: Completed informing neighbors that I'm here");
                 handlerRegionUp = OnRegionUp;
-                
+
                 // yes, we're notifying ourselves.
                 if (handlerRegionUp != null)
                     handlerRegionUp(region);
 
-                
+
             }
             else
             {
@@ -407,9 +407,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// This informs all neighboring regions about the settings of it's child agent.
         /// Calls an asynchronous method to do so..  so it doesn't lag the sim.
-        /// 
+        ///
         /// This contains information, such as, Draw Distance, Camera location, Current Position, Current throttle settings, etc.
-        /// 
+        ///
         /// </summary>
         private void SendChildAgentDataUpdateAsync(ChildAgentDataUpdate cAgentData, ScenePresence presence)
         {
@@ -468,14 +468,14 @@ namespace OpenSim.Region.Environment.Scenes
                 if (regionAccepted)
                 {
                     m_log.Info("[INTERGRID]: Completed sending agent Close agent Request to neighbor");
-                    
+
                 }
                 else
                 {
                     m_log.Info("[INTERGRID]: Failed sending agent Close agent Request to neighbor");
-                    
+
                 }
-                
+
             }
             // We remove the list of known regions from the agent's known region list through an event
             // to scene, because, if an agent logged of, it's likely that there will be no scene presence
@@ -572,25 +572,25 @@ namespace OpenSim.Region.Environment.Scenes
                     if (destRegionUp)
                     {
                         avatar.Close();
-                        
-                        // Compared to ScenePresence.CrossToNewRegion(), there's no obvious code to handle a teleport 
+
+                        // Compared to ScenePresence.CrossToNewRegion(), there's no obvious code to handle a teleport
                         // failure at this point (unlike a border crossing failure).  So perhaps this can never fail
                         // once we reach here...
                         avatar.Scene.RemoveCapsHandler(avatar.UUID);
-                        
+
                         m_commsProvider.InterRegion.InformRegionOfChildAgent(regionHandle, agent);
                         m_commsProvider.InterRegion.ExpectAvatarCrossing(regionHandle, avatar.ControllingClient.AgentId,
                                                                      position, false);
                         AgentCircuitData circuitdata = avatar.ControllingClient.RequestClientInfo();
-                        
+
                         // TODO Should construct this behind a method
-                        string capsPath = 
-                            "http://" + reg.ExternalHostName + ":" + reg.HttpPort 
-                            + "/CAPS/" + circuitdata.CapsPath + "0000/";  
-                        
+                        string capsPath =
+                            "http://" + reg.ExternalHostName + ":" + reg.HttpPort
+                            + "/CAPS/" + circuitdata.CapsPath + "0000/";
+
                         m_log.DebugFormat(
-                            "[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, avatar.UUID);                        
-                        
+                            "[CAPS]: Sending new CAPS seed url {0} to client {1}", capsPath, avatar.UUID);
+
                         avatar.ControllingClient.SendRegionTeleport(regionHandle, 13, reg.ExternalEndPoint, 4, (1 << 4),
                                                                     capsPath);
                         avatar.MakeChildAgent();
@@ -618,7 +618,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="regionhandle"></param>
         /// <param name="agentID"></param>

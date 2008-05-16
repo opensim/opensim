@@ -26,7 +26,7 @@
  */
 
 namespace OpenSim.Framework.Statistics
-{    
+{
     /// <summary>
     /// Implemented by classes which collect up non-viewer statistical information
     /// </summary>
@@ -36,6 +36,6 @@ namespace OpenSim.Framework.Statistics
         /// Report back collected statistical information.
         /// </summary>
         /// <returns></returns>
-        string Report();        
+        string Report();
     }
 }

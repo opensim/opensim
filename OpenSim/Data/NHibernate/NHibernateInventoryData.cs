@@ -62,23 +62,23 @@ namespace OpenSim.Data.NHibernate
                 // TODO: make this a real exception type
                 throw new Exception("Malformed Inventory connection string '" + connect + "'");
             }
-            
+
             // Establish NHibernate Connection
             cfg = new Configuration();
-            cfg.SetProperty(Environment.ConnectionProvider, 
+            cfg.SetProperty(Environment.ConnectionProvider,
                             "NHibernate.Connection.DriverConnectionProvider");
-            cfg.SetProperty(Environment.Dialect, 
+            cfg.SetProperty(Environment.Dialect,
                             "NHibernate.Dialect." + parts[0]);
-            cfg.SetProperty(Environment.ConnectionDriver, 
+            cfg.SetProperty(Environment.ConnectionDriver,
                             "NHibernate.Driver." + parts[1]);
             cfg.SetProperty(Environment.ConnectionString, parts[2]);
             cfg.AddAssembly("OpenSim.Data.NHibernate");
 
             HbmSerializer.Default.Validate = true;
-            using ( MemoryStream stream = 
+            using ( MemoryStream stream =
                     HbmSerializer.Default.Serialize(Assembly.GetExecutingAssembly()))
                 cfg.AddInputStream(stream);
-            
+
             // If uncommented this will auto create tables, but it
             // does drops of the old tables, so we need a smarter way
             // to acturally manage this.
@@ -120,8 +120,8 @@ namespace OpenSim.Data.NHibernate
 
         /*****************************************************************
          *
-         *   Basic CRUD operations on Data 
-         * 
+         *   Basic CRUD operations on Data
+         *
          ****************************************************************/
 
         // READ
@@ -195,7 +195,7 @@ namespace OpenSim.Data.NHibernate
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="item"></param>
         public void deleteInventoryItem(LLUUID itemID)
@@ -279,7 +279,7 @@ namespace OpenSim.Data.NHibernate
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="folder"></param>
         public void deleteInventoryFolder(LLUUID folderID)
@@ -353,7 +353,7 @@ namespace OpenSim.Data.NHibernate
         {
             updateInventoryItem(item);
         }
-        
+
 
 
         /// <summary>
@@ -403,9 +403,9 @@ namespace OpenSim.Data.NHibernate
                 return null;
             }
         }
-        
+
         /// <summary>
-        /// Append a list of all the child folders of a parent folder 
+        /// Append a list of all the child folders of a parent folder
         /// </summary>
         /// <param name="folders">list where folders will be appended</param>
         /// <param name="parentID">ID of parent</param>
@@ -413,7 +413,7 @@ namespace OpenSim.Data.NHibernate
         {
             using (ISession session = factory.OpenSession())
             {
-                
+
                 ICriteria criteria = session.CreateCriteria(typeof(InventoryFolderBase));
                 criteria.Add(Expression.Eq("ParentID", parentID));
                 foreach (InventoryFolderBase item in criteria.List())
@@ -443,7 +443,7 @@ namespace OpenSim.Data.NHibernate
 
             for (int i = 0; i < folders.Count; i++)
                 getInventoryFolders(ref folders, folders[i].ID);
-            
+
             return folders;
         }
     }

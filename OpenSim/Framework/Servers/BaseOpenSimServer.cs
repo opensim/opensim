@@ -44,16 +44,16 @@ namespace OpenSim.Framework.Servers
         {
             get { return m_httpServer; }
         }
-        
+
         /// <summary>
         /// Holds the non-viewer statistics collection object for this service/server
         /// </summary>
         protected IStatsCollector m_stats;
-        
+
         public BaseOpenSimServer()
         {
             m_startuptime = DateTime.Now;
-        }    
+        }
 
         /// <summary>
         /// Should be overriden by descendents if they need to perform extra shutdown processing
@@ -66,7 +66,7 @@ namespace OpenSim.Framework.Servers
             }
             Environment.Exit(0);
         }
-        
+
         /// <summary>
         /// Runs commands issued by the server console from the operator
         /// </summary>
@@ -75,17 +75,17 @@ namespace OpenSim.Framework.Servers
         public virtual void RunCmd(string command, string[] cmdparams)
         {
             switch (command)
-            {      
+            {
                 case "help":
                     Notice("quit - equivalent to shutdown.");
-                
+
                     if (m_stats != null)
                         Notice("show stats - statistical information for this server");
-                
+
                     Notice("show uptime - show server startup and uptime.");
                     Notice("shutdown - shutdown the server.\n");
                     break;
-                    
+
                 case "show":
                     if (cmdparams.Length > 0)
                     {
@@ -96,10 +96,10 @@ namespace OpenSim.Framework.Servers
                 case "quit":
                 case "shutdown":
                     Shutdown();
-                    break;                   
+                    break;
             }
         }
-        
+
         /// <summary>
         /// Outputs to the console information about the region
         /// </summary>
@@ -107,18 +107,18 @@ namespace OpenSim.Framework.Servers
         public virtual void Show(string ShowWhat)
         {
             switch (ShowWhat)
-            {                                    
+            {
                 case "stats":
                     if (m_stats != null)
                     {
                         Notice(m_stats.Report());
                     }
-                    break; 
-                
+                    break;
+
                 case "uptime":
                     Notice("Server has been running since " + m_startuptime.DayOfWeek + ", " + m_startuptime.ToString());
                     Notice("That is an elapsed time of " + (DateTime.Now - m_startuptime).ToString());
-                    break;                    
+                    break;
             }
         }
 

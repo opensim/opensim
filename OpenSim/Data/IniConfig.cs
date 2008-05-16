@@ -28,7 +28,7 @@
 using System.IO;
 using System.Text.RegularExpressions;
 
-/* 
+/*
  Taken from public code listing at by Alex Pinsker
  http://alexpinsker.blogspot.com/2005/12/reading-ini-file-from-c_113432097333021549.html
  */

@@ -31,9 +31,9 @@ namespace OpenSim.Framework.Communications.Limit
     /// Interface for strategies that can limit requests from the client.  Currently only used in the
     /// texture modules to deal with repeated requests for certain textures.  However, limiting strategies
     /// could be used with other requests.
-    /// </summary>    
+    /// </summary>
     public interface IRequestLimitStrategy<TId>
-    {           
+    {
         /// <summary>
         /// Should the request be allowed?  If the id is not monitored, then the request is always allowed.
         /// Otherwise, the strategy criteria will be applied.
@@ -41,21 +41,21 @@ namespace OpenSim.Framework.Communications.Limit
         /// <param name="id"></param>
         /// <returns></returns>
         bool AllowRequest(TId id);
-        
+
         /// <summary>
         /// Has the request been refused just once?
         /// </summary>
         /// <returns>False if the request has not yet been refused, or if the request has been refused more
         /// than once.</returns>
         bool IsFirstRefusal(TId id);
-        
+
         /// <summary>
         /// Start monitoring for future AllowRequest calls.  If the id is already monitored, then monitoring
         /// continues.
         /// </summary>
         /// <param name="id"></param>
         void MonitorRequests(TId id);
-        
+
         /// <summary>
         /// Is the id being monitored?
         /// </summary>

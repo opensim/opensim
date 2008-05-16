@@ -87,7 +87,7 @@ namespace OpenSim.Framework
 
         /// <summary>
         /// Signs a new bit of data with the current hash. Returns a byte array which should be affixed to the message.
-        /// Signing a piece of data will automatically increment the hash - if you sign data and do not send it, the 
+        /// Signing a piece of data will automatically increment the hash - if you sign data and do not send it, the
         /// hashes will get out of sync and throw an exception when validation is attempted.
         /// </summary>
         /// <param name="data">The outgoing data</param>

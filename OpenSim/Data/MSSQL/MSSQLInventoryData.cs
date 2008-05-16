@@ -80,7 +80,7 @@ namespace OpenSim.Data.MSSQL
             if (tableName == null)
             {
                 database.ExecuteResourceSql("CreateFoldersTable.sql");
-                //database.ExecuteResourceSql("UpgradeFoldersTableToVersion2.sql");   
+                //database.ExecuteResourceSql("UpgradeFoldersTableToVersion2.sql");
                 return;
             }
         }
@@ -236,9 +236,9 @@ namespace OpenSim.Data.MSSQL
 
                     // There should only ever be one root folder for a user.  However, if there's more
                     // than one we'll simply use the first one rather than failing.  It would be even
-                    // nicer to print some message to this effect, but this feels like it's too low a 
+                    // nicer to print some message to this effect, but this feels like it's too low a
                     // to put such a message out, and it's too minor right now to spare the time to
-                    // suitably refactor.                    
+                    // suitably refactor.
                     if (items.Count > 0)
                     {
                         rootFolder = items[0];
@@ -326,7 +326,7 @@ namespace OpenSim.Data.MSSQL
                 item.GroupID = new LLUUID(reader["groupID"].ToString());
                 item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
                 item.Flags = (uint) reader["flags"];
-                
+
                 return item;
             }
             catch (SqlException e)
@@ -455,7 +455,7 @@ namespace OpenSim.Data.MSSQL
                     + ", @inventoryNextPermissions, @inventoryCurrentPermissions, @invType, @creatorID"
                     + ", @inventoryBasePermissions, @inventoryEveryOnePermissions, @salePrice, @saleType"
                     + ", @creationDate, @groupID, @groupOwned, @flags);";
-            
+
             try
             {
                 Dictionary<string, string> param = new Dictionary<string, string>();
@@ -472,7 +472,7 @@ namespace OpenSim.Data.MSSQL
                 param["creatorID"] = item.Creator.ToString();
                 param["inventoryBasePermissions"] = Convert.ToString(item.BasePermissions);
                 param["inventoryEveryOnePermissions"] = Convert.ToString(item.EveryOnePermissions);
-                
+
                 param["salePrice"] = Convert.ToString(item.SalePrice);
                 param["saleType"] = Convert.ToString(item.SaleType);
                 param["creationDate"] = Convert.ToString(item.CreationDate);
@@ -550,7 +550,7 @@ namespace OpenSim.Data.MSSQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="item"></param>
         public void deleteInventoryItem(LLUUID itemID)
@@ -667,7 +667,7 @@ namespace OpenSim.Data.MSSQL
         }
 
         /// <summary>
-        /// Append a list of all the child folders of a parent folder 
+        /// Append a list of all the child folders of a parent folder
         /// </summary>
         /// <param name="folders">list where folders will be appended</param>
         /// <param name="parentID">ID of parent</param>

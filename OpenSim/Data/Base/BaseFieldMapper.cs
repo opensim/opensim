@@ -30,7 +30,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 
 namespace OpenSim.Data.Base
-{  
+{
     public delegate TField ObjectGetAccessor<TObj, TField>(TObj obj);
     public delegate void ObjectSetAccessor<TObj, TField>(TObj obj, TField value);
 

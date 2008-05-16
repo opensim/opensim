@@ -135,7 +135,7 @@ namespace OpenSim.Data
 
             rowMapperSchema.AddMapping<byte[]>("ExtraParams",
                                                delegate(PrimitiveBaseShapeRowMapper shape) { return shape.Object.ExtraParams; },
-                                               delegate(PrimitiveBaseShapeRowMapper shape, byte[] value) { shape.Object.ExtraParams = value; });            
+                                               delegate(PrimitiveBaseShapeRowMapper shape, byte[] value) { shape.Object.ExtraParams = value; });
         }
 
         public override PrimitiveBaseShapeRowMapper FromReader(BaseDataReader reader)

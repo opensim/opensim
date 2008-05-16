@@ -69,14 +69,12 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
             fs.Close();
         }
 
-
         /// <summary>
         /// Parse LSO file.
         /// </summary>
         public void Parse()
         {
-            // The LSO Format consist of 6 major blocks: header, statics, functions, states, heap, and stack. 
-
+            // The LSO Format consist of 6 major blocks: header, statics, functions, states, heap, and stack.
 
             // HEADER BLOCK
             Common.SendToDebug("Reading HEADER BLOCK at: 0");
@@ -156,7 +154,6 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
             }
             Common.SendToDebug("Number of Static Blocks read: " + StaticBlockCount);
 
-
             // FUNCTION BLOCK
             // Always right after STATIC BLOCK
             LSO_Struct.FunctionBlock myFunctionBlock = new LSO_Struct.FunctionBlock();
@@ -186,7 +183,6 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
                 }
             }
 
-
             // STATE FRAME BLOCK
             // Always right after FUNCTION BLOCK
             Common.SendToDebug("Reading STATE BLOCK at: " + myHeader.SR);
@@ -213,7 +209,6 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
                 }
             }
 
-
             // STATE BLOCK
             // For each StateFrameBlock there is one StateBlock with multiple event handlers
 
@@ -238,7 +233,6 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
                                        myStateFrameBlock.StatePointer[i].StateBlock.EndPos);
 
                     // We need to count number of bits flagged in EventMask?
-
 
                     // for each bit in myStateFrameBlock.StatePointer[i].EventMask
 
@@ -273,7 +267,6 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
                 }
             }
 
-
             //// READ FUNCTION CODE CHUNKS
             //// Functions + Function start pos (GFR)
             //// TODO: Somehow be able to identify and reference this
@@ -293,7 +286,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
             {
                 for (int i = 0; i < myStateFrameBlock.StateCount; i++)
                 {
-                    // TODO: Somehow organize events and functions so they can be found again, 
+                    // TODO: Somehow organize events and functions so they can be found again,
                     // two level search ain't no good
                     for (int ii = 0; ii < myStateFrameBlock.StatePointer[i].EventMask.Count - 1; ii++)
                     {
@@ -319,7 +312,6 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
                     }
                 }
             }
-
 
             if (Common.IL_CreateFunctionList)
                 IL_INSERT_FUNCTIONLIST();
@@ -371,7 +363,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
 
         //private byte[] br_read_smallendian(int len)
         //{
-        //    byte[] bytes = new byte[len];    
+        //    byte[] bytes = new byte[len];
         //    br.Read(bytes,0, len);
         //    return bytes;
         //}
@@ -459,7 +451,6 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
             Common.SendToDebug("Return type #" + myCodeChunk.ReturnType.ObjectType + ": " +
                                ((LSO_Enums.Variable_Type_Codes) myCodeChunk.ReturnType.ObjectType).ToString());
 
-
             // TODO: How to determine number of codechunks -- does this method work?
             myCodeChunk.CodeChunkArguments = new List<LSO_Struct.CodeChunkArgument>();
             byte reader = br_read(1)[0];
@@ -492,7 +483,6 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
             // End marker is 0x000
             myCodeChunk.EndMarker = reader;
 
-
             //
             // Emit: START OF METHOD (FUNCTION)
             //
@@ -515,10 +505,8 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
             Common.SendToDebug("CLR:" + eventname + ":ILGenerator il = methodBuilder.GetILGenerator();");
             ILGenerator il = methodBuilder.GetILGenerator();
 
-
             if (Common.IL_UseTryCatch)
                 IL_INSERT_TRY(il, eventname);
-
 
             // Push Console.WriteLine command to stack ... Console.WriteLine("Hello World!");
             //Common.SendToDebug("CLR:" + eventname + ":il.Emit(OpCodes.Call...");
@@ -534,7 +522,6 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
                 il.Emit(OpCodes.Ldarg, _ic);
             }
 
-
             //
             // CALLING OPCODE PROCESSOR, one command at the time TO GENERATE IL
             //
@@ -543,7 +530,6 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
             {
                 FoundRet = LSL_PROCESS_OPCODE(il);
             }
-
 
             if (Common.IL_UseTryCatch)
                 IL_INSERT_END_TRY(il, eventname);
@@ -558,16 +544,13 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
         {
             Common.SendToDebug("Creating function list");
 
-
             string eventname = "GetFunctions";
 
             Common.SendToDebug("Creating IL " + eventname);
             // Define a private String field.
             //FieldBuilder myField = myTypeBuilder.DefineField("EventList", typeof(String[]), FieldAttributes.Public);
 
-
             //FieldBuilder mem = typeBuilder.DefineField("mem", typeof(Array), FieldAttributes.Private);
-
 
             MethodBuilder methodBuilder = typeBuilder.DefineMethod(eventname,
                                                                    MethodAttributes.Public,
@@ -578,7 +561,6 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
             //                            typeof(LSL_CLRInterface.LSLScript).GetMethod(eventname));
 
             ILGenerator il = methodBuilder.GetILGenerator();
-
 
             //    IL_INSERT_TRY(il, eventname);
 
@@ -615,16 +597,13 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
                 //il.Emit(OpCodes.Call, typeof(LSL_BaseClass).GetMethod("AddFunction", new Type[] { typeof(string) }));
             }
 
-
             // IL_INSERT_END_TRY(il, eventname);
-
 
             il.Emit(OpCodes.Ldloc_0); // Load local variable 0 onto stack
             //                il.Emit(OpCodes.Call, typeof(LSL_BaseClass).GetMethod("SetFunctionList", new Type[] { typeof(Array) }));
 
             il.Emit(OpCodes.Ret); // Return
         }
-
 
         private void IL_INSERT_TRY(ILGenerator il, string eventname)
         {
@@ -686,7 +665,6 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine.LSO
                 if (StaticBlocks.ContainsKey(position) == true)
                 {
                     Common.SendToDebug("Found cached STATIC BLOCK");
-
 
                     return StaticBlocks[pos];
                 }

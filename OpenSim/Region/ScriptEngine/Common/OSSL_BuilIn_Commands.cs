@@ -268,7 +268,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return 0;
             }
         }
-     
+
         public double osTerrainGetHeight(int x, int y)
         {
             m_host.AddScriptLPS(1);
@@ -448,7 +448,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
         }
 
-        //Texture draw functions 
+        //Texture draw functions
         public string osMovePen(string drawList, int x, int y)
         {
             m_host.AddScriptLPS(1);

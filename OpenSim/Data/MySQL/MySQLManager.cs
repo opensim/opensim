@@ -302,7 +302,7 @@ namespace OpenSim.Data.MySQL
                 // Region Main gotta-have-or-we-return-null parts
                 UInt64 tmp64;
                 if (!UInt64.TryParse(reader["regionHandle"].ToString(), out tmp64))
-                { 
+                {
                     return null;
                 }
                 else
@@ -310,7 +310,7 @@ namespace OpenSim.Data.MySQL
                     retval.regionHandle = tmp64;
                 }
                 LLUUID tmp_uuid;
-                if (!LLUUID.TryParse((string)reader["uuid"], out tmp_uuid)) 
+                if (!LLUUID.TryParse((string)reader["uuid"], out tmp_uuid))
                 {
                     return null;
                 }
@@ -321,7 +321,7 @@ namespace OpenSim.Data.MySQL
 
                 // non-critical parts
                 retval.regionName = (string)reader["regionName"];
-                retval.originUUID = new LLUUID((string) reader["originUUID"]); 
+                retval.originUUID = new LLUUID((string) reader["originUUID"]);
 
                 // Secrets
                 retval.regionRecvKey = (string) reader["regionRecvKey"];
@@ -360,8 +360,8 @@ namespace OpenSim.Data.MySQL
 
                 // World Map Addition
                 LLUUID.TryParse((string)reader["regionMapTexture"], out retval.regionMapTextureID);
-                LLUUID.TryParse((string)reader["owner_uuid"], out retval.owner_uuid);            
-            }        
+                LLUUID.TryParse((string)reader["owner_uuid"], out retval.owner_uuid);
+            }
             else
             {
                 return null;
@@ -418,7 +418,7 @@ namespace OpenSim.Data.MySQL
 
                 LLUUID.TryParse((string) reader["sessionID"], out tmp);
                 retval.SessionID = tmp;
-                
+
                 LLUUID.TryParse((string)reader["secureSessionID"], out tmp);
                 retval.SecureSessionID = tmp;
 
@@ -488,7 +488,7 @@ namespace OpenSim.Data.MySQL
 
                 if (reader.IsDBNull(reader.GetOrdinal("profileAboutText")))
                     retval.AboutText = "";
-                else 
+                else
                     retval.AboutText = (string) reader["profileAboutText"];
 
                 if (reader.IsDBNull(reader.GetOrdinal("profileFirstText")))
@@ -511,7 +511,7 @@ namespace OpenSim.Data.MySQL
                     LLUUID.TryParse((string)reader["profileFirstImage"], out tmp);
                     retval.FirstLifeImage = tmp;
                 }
-                
+
                 if (reader.IsDBNull(reader.GetOrdinal("webLoginKey")))
                 {
                     retval.WebLoginKey = LLUUID.Zero;

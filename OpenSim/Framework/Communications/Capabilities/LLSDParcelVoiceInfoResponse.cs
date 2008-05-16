@@ -23,7 +23,7 @@
 * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-* 
+*
 */
 
 using System.Collections;
@@ -41,7 +41,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         {
         }
 
-        public LLSDParcelVoiceInfoResponse(string region, int localID, Hashtable creds) 
+        public LLSDParcelVoiceInfoResponse(string region, int localID, Hashtable creds)
         {
             region_name = region;
             parcel_local_id = localID;

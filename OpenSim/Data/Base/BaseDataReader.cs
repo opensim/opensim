@@ -126,7 +126,7 @@ namespace OpenSim.Data.Base
         {
             int ordinal = m_source.GetOrdinal(name);
             int int32 = m_source.GetInt32(ordinal);
-            return int32;            
+            return int32;
         }
 
         public Int64 GetInt64(string name)

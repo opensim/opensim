@@ -30,7 +30,7 @@ using System.Xml.Serialization;
 
 namespace OpenSim.Framework
 {
-    /* 
+    /*
      * .Net has some issues, serializing a dictionary, so we cannot reuse the InventoryFolder
      * class defined in Communications.Framework.Communications.Caches. So we serialize/deserialize
      * into this simpler class, and then use that.

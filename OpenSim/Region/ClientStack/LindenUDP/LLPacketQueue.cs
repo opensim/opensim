@@ -79,14 +79,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // private long LastThrottle;
         // private long ThrottleInterval;
         private Timer throttleTimer;
-        
+
         private LLUUID m_agentId;
 
         public LLPacketQueue(LLUUID agentId)
         {
             // While working on this, the BlockingQueue had me fooled for a bit.
-            // The Blocking queue causes the thread to stop until there's something 
-            // in it to process.  it's an on-purpose threadlock though because 
+            // The Blocking queue causes the thread to stop until there's something
+            // in it to process.  it's an on-purpose threadlock though because
             // without it, the clientloop will suck up all sim resources.
 
             SendQueue = new BlockingQueue<LLQueItem>();
@@ -111,7 +111,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AssetThrottle = new LLPacketThrottle(1000, 800000, 1000);
             TextureThrottle = new LLPacketThrottle(1000, 800000, 4000);
             // Total Throttle trumps all
-            // Number of bytes allowed to go out per second. (256kbps per client) 
+            // Number of bytes allowed to go out per second. (256kbps per client)
             TotalThrottle = new LLPacketThrottle(0, 1500000, 28000);
 
             throttleTimer = new Timer((int) (throttletimems/throttleTimeDivisor));
@@ -121,10 +121,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // TIMERS needed for this
             // LastThrottle = DateTime.Now.Ticks;
             // ThrottleInterval = (long)(throttletimems/throttleTimeDivisor);
-            
+
             m_agentId = agentId;
-            
-            if (StatsManager.SimExtraStats != null)            
+
+            if (StatsManager.SimExtraStats != null)
             {
                 StatsManager.SimExtraStats.RegisterPacketQueueStatsProvider(m_agentId, this);
             }
@@ -234,11 +234,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_enabled = false;
             throttleTimer.Stop();
-            
-            if (StatsManager.SimExtraStats != null)            
+
+            if (StatsManager.SimExtraStats != null)
             {
                 StatsManager.SimExtraStats.DeregisterPacketQueueStatsProvider(m_agentId);
-            }            
+            }
         }
 
         private void ResetCounters()
@@ -275,7 +275,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             int MaxThrottleLoops = 4550; // 50*7 packets can be dequeued at once.
             int throttleLoops = 0;
 
-            // We're going to dequeue all of the saved up packets until 
+            // We're going to dequeue all of the saved up packets until
             // we've hit the throttle limit or there's no more packets to send
             lock (this)
             {
@@ -428,8 +428,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //Agent Throttle Block contains 7 single floatingpoint values.
             int j = 0;
 
-            // Some Systems may be big endian...  
-            // it might be smart to do this check more often... 
+            // Some Systems may be big endian...
+            // it might be smart to do this check more often...
             if (!BitConverter.IsLittleEndian)
                 for (int i = 0; i < 7; i++)
                     Array.Reverse(throttle, j + i*singlefloat, singlefloat);
@@ -508,7 +508,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // effectively wiggling the slider causes things reset
             ResetCounters();
         }
-        
+
         // See IPullStatsProvider
         public string GetStats()
         {
@@ -522,7 +522,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                  CloudOutgoingPacketQueue.Count,
                                  TaskOutgoingPacketQueue.Count,
                                  TextureOutgoingPacketQueue.Count,
-                                 AssetOutgoingPacketQueue.Count);                                     
+                                 AssetOutgoingPacketQueue.Count);
         }
 
         public LLQueItem[] GetQueueArray()

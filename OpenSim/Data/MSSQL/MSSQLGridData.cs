@@ -79,7 +79,7 @@ namespace OpenSim.Data.MSSQL
         private void TestTables()
         {
             IDbCommand cmd = database.Query("SELECT TOP 1 * FROM "+m_regionsTableName, new Dictionary<string, string>());
- 
+
             try
             {
                 cmd.ExecuteNonQuery();
@@ -88,7 +88,7 @@ namespace OpenSim.Data.MSSQL
             catch (Exception)
             {
                 m_log.Info("[GRID DB]: MSSQL Database doesn't exist... creating");
-                database.ExecuteResourceSql("Mssql-regions.sql");            
+                database.ExecuteResourceSql("Mssql-regions.sql");
             }
         }
 
@@ -161,7 +161,7 @@ namespace OpenSim.Data.MSSQL
             }
             return null;
         }
-       
+
         /// <summary>
         /// Returns a sim profile from its UUID
         /// </summary>
@@ -255,17 +255,17 @@ namespace OpenSim.Data.MSSQL
         {
             //Insert new region
             string sql =
-                "UPDATE " + m_regionsTableName + @" SET 
-                [regionHandle]=@regionHandle, [regionName]=@regionName, 
+                "UPDATE " + m_regionsTableName + @" SET
+                [regionHandle]=@regionHandle, [regionName]=@regionName,
                 [regionRecvKey]=@regionRecvKey, [regionSecret]=@regionSecret, [regionSendKey]=@regionSendKey,
                 [regionDataURI]=@regionDataURI, [serverIP]=@serverIP, [serverPort]=@serverPort, [serverURI]=@serverURI,
-                [locX]=@locX, [locY]=@locY, [locZ]=@locZ, [eastOverrideHandle]=@eastOverrideHandle, 
-                [westOverrideHandle]=@westOverrideHandle, [southOverrideHandle]=@southOverrideHandle, 
-                [northOverrideHandle]=@northOverrideHandle, [regionAssetURI]=@regionAssetURI, 
+                [locX]=@locX, [locY]=@locY, [locZ]=@locZ, [eastOverrideHandle]=@eastOverrideHandle,
+                [westOverrideHandle]=@westOverrideHandle, [southOverrideHandle]=@southOverrideHandle,
+                [northOverrideHandle]=@northOverrideHandle, [regionAssetURI]=@regionAssetURI,
                 [regionAssetRecvKey]=@regionAssetRecvKey, [regionAssetSendKey]=@regionAssetSendKey,
                 [regionUserURI]=@regionUserURI, [regionUserRecvKey]=@regionUserRecvKey, [regionUserSendKey]=@regionUserSendKey,
                 [regionMapTexture]=@regionMapTexture, [serverHttpPort]=@serverHttpPort,
-                [serverRemotingPort]=@serverRemotingPort, [owner_uuid]=@owner_uuid 
+                [serverRemotingPort]=@serverRemotingPort, [owner_uuid]=@owner_uuid
                 where [uuid]=@uuid";
 
             Dictionary<string, string> parameters = new Dictionary<string, string>();

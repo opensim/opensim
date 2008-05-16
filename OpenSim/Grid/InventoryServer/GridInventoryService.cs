@@ -43,7 +43,7 @@ namespace OpenSim.Grid.InventoryServer
     /// </summary>
     public class GridInventoryService : InventoryServiceBase
     {
-        private static readonly ILog m_log 
+        private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public override void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback)
@@ -56,31 +56,31 @@ namespace OpenSim.Grid.InventoryServer
         /// <param name="rawUserID"></param>
         /// <returns>The user's inventory.  If an inventory cannot be found then an empty collection is returned.</returns>
         public InventoryCollection GetUserInventory(Guid rawUserID)
-        {           
+        {
             LLUUID userID = new LLUUID(rawUserID);
 
             m_log.InfoFormat("[GRID AGENT INVENTORY]: Processing request for inventory of {0}", userID);
-            
+
             // Uncomment me to simulate a slow responding inventory server
             //Thread.Sleep(16000);
 
             InventoryCollection invCollection = new InventoryCollection();
-            
+
             List<InventoryFolderBase> allFolders = GetInventorySkeleton(userID);
-            
+
             if (null == allFolders)
             {
                 m_log.WarnFormat("[GRID AGENT INVENTORY]: No inventory found for user {0}", rawUserID);
-                
+
                 return invCollection;
             }
-            
+
             List<InventoryItemBase> allItems = new List<InventoryItemBase>();
 
             foreach (InventoryFolderBase folder in allFolders)
             {
                 List<InventoryItemBase> items = RequestFolderItems(folder.ID);
-                
+
                 if (items != null)
                 {
                     allItems.InsertRange(0, items);
@@ -88,36 +88,36 @@ namespace OpenSim.Grid.InventoryServer
             }
 
             invCollection.UserID = userID;
-            invCollection.Folders = allFolders;            
-            invCollection.Items = allItems;            
-            
+            invCollection.Folders = allFolders;
+            invCollection.Items = allItems;
+
 //            foreach (InventoryFolderBase folder in invCollection.Folders)
 //            {
 //                m_log.DebugFormat("[GRID AGENT INVENTORY]: Sending back folder {0} {1}", folder.Name, folder.ID);
 //            }
-//            
+//
 //            foreach (InventoryItemBase item in invCollection.Items)
 //            {
 //                m_log.DebugFormat("[GRID AGENT INVENTORY]: Sending back item {0} {1}, folder {2}", item.Name, item.ID, item.Folder);
 //            }
-            
+
             m_log.InfoFormat(
                 "[GRID AGENT INVENTORY]: Sending back inventory response to user {0} containing {1} folders and {2} items",
-                invCollection.UserID, invCollection.Folders.Count, invCollection.Items.Count);            
-                        
+                invCollection.UserID, invCollection.Folders.Count, invCollection.Items.Count);
+
             return invCollection;
         }
-                
+
         /// <summary>
         /// Guid to UUID wrapper for same name IInventoryServices method
         /// </summary>
         /// <param name="rawUserID"></param>
-        /// <returns></returns>        
+        /// <returns></returns>
         public List<InventoryFolderBase> GetInventorySkeleton(Guid rawUserID)
-        {            
+        {
             LLUUID userID = new LLUUID(rawUserID);
             return GetInventorySkeleton(userID);
-        }        
+        }
 
         /// <summary>
         /// Create an inventory for the given user.

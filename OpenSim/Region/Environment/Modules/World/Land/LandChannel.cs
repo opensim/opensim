@@ -41,7 +41,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         #region Constants
 
         //Land types set with flags in ParcelOverlay.
-        //Only one of these can be used. 
+        //Only one of these can be used.
         public const float BAN_LINE_SAFETY_HIEGHT = 100;
         public const byte LAND_FLAG_PROPERTY_BORDER_SOUTH = 128; //Equals 10000000
         public const byte LAND_FLAG_PROPERTY_BORDER_WEST = 64; //Equals 01000000
@@ -584,7 +584,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                         if (byteArrayCount >= LAND_BLOCKS_PER_PACKET)
                         {
                             remote_client.sendLandParcelOverlay(byteArray, sequenceID);
-                            byteArrayCount = 0;                           
+                            byteArrayCount = 0;
                             sequenceID++;
                             byteArray = new byte[LAND_BLOCKS_PER_PACKET];
                         }
@@ -655,7 +655,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public void handleParcelSelectObjectsRequest(int local_id, int request_type, IClientAPI remote_client)
         {
-            
+
             landList[local_id].sendForceObjectSelect(local_id, request_type, remote_client);
         }
 
@@ -870,7 +870,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         }
 
         public void handleAnyClientMovement(ScenePresence avatar)
-            //Like handleSignificantClientMovement, but called with an AgentUpdate regardless of distance. 
+            //Like handleSignificantClientMovement, but called with an AgentUpdate regardless of distance.
         {
             ILandObject over = GetLandObject(avatar.AbsolutePosition.X, avatar.AbsolutePosition.Y);
             if (over != null)

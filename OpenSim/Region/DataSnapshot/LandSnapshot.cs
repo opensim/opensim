@@ -23,7 +23,7 @@
 * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-* 
+*
 */
 
 using System;
@@ -51,9 +51,9 @@ namespace OpenSim.Region.DataSnapshot
 
         /*
          * David, I don't think we need this at all. When we do the snapshot, we can
-         * simply look into the parcels that are marked for ShowDirectory -- see 
+         * simply look into the parcels that are marked for ShowDirectory -- see
          * conditional in RequestSnapshotData
-         * 
+         *
         //Revise this, look for more direct way of checking for change in land
         #region Client hooks
 
@@ -115,7 +115,7 @@ namespace OpenSim.Region.DataSnapshot
         }
 
         public XmlNode RequestSnapshotData(XmlDocument nodeFactory)
-        {   
+        {
             ILandChannel landChannel = (LandChannel)m_scene.LandChannel;
             Dictionary<int, ILandObject> landList = null;
             try

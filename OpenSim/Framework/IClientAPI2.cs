@@ -5,14 +5,14 @@ namespace OpenSim.Framework
     #region Args Classes
     public class ICA2_ConnectionArgs : EventArgs
     {
-        
+
     }
 
     public class ICA2_DisconnectionArgs : EventArgs
     {
         public bool Forced;
 
-        // Static Constructor 
+        // Static Constructor
         // Allows us to recycle these classes later more easily from a pool.
         public static ICA2_DisconnectionArgs Create(bool forced)
         {

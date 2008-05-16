@@ -67,7 +67,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         /// <summary>
         /// Holds in memory prim inventory
-        /// </summary> 
+        /// </summary>
         protected TaskInventoryDictionary m_taskInventory = new TaskInventoryDictionary();
 
         public TaskInventoryDictionary TaskInventory
@@ -84,21 +84,21 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Reset LLUUIDs for all the items in the prim's inventory.  This involves either generating
         /// new ones or setting existing UUIDs to the correct parent UUIDs.
-        /// 
+        ///
         /// If this method is called and there are inventory items, then we regard the inventory as having changed.
         /// </summary>
         /// <param name="linkNum">Link number for the part</param>
         public void ResetInventoryIDs()
         {
             lock (TaskInventory)
-            {                         
+            {
                 if (0 == TaskInventory.Count)
                 {
-                    return;                    
+                    return;
                 }
-                
-                HasInventoryChanged = true;                
-                
+
+                HasInventoryChanged = true;
+
                 IList<TaskInventoryItem> items = new List<TaskInventoryItem>(TaskInventory.Values);
                 TaskInventory.Clear();
 
@@ -127,7 +127,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (ownerId != item.OwnerID)
                     {
                         item.LastOwnerID = item.OwnerID;
-                        item.OwnerID = ownerId; 
+                        item.OwnerID = ownerId;
                     }
                 }
             }
@@ -178,7 +178,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             //            m_log.InfoFormat(
             //                "[PRIM INVENTORY]: " +
-            //                "Starting script {0}, {1} in prim {2}, {3}", 
+            //                "Starting script {0}, {1} in prim {2}, {3}",
             //                item.Name, item.ItemID, Name, UUID);
             AddFlag(LLObject.ObjectFlags.Scripted);
 
@@ -211,7 +211,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="itemId">
         /// A <see cref="LLUUID"/>
-        /// </param>        
+        /// </param>
         public void StartScript(LLUUID itemId)
         {
             lock (m_taskInventory)
@@ -234,7 +234,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Stop a script which is in this prim's inventory.
         /// </summary>
-        /// <param name="itemId"></param>        
+        /// <param name="itemId"></param>
         public void StopScript(LLUUID itemId)
         {
             if (m_taskInventory.ContainsKey(itemId))
@@ -306,9 +306,9 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Restore a whole collection of items to the prim's inventory at once.  
+        /// Restore a whole collection of items to the prim's inventory at once.
         /// We assume that the items already have all their fields correctly filled out.
-        /// The items are not flagged for persistence to the database, since they are being restored 
+        /// The items are not flagged for persistence to the database, since they are being restored
         /// from persistence rather than being newly added.
         /// </summary>
         /// <param name="items"></param>
@@ -338,9 +338,9 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_taskInventory.ContainsKey(itemID))
                 {
 //                    m_log.DebugFormat(
-//                        "[PRIM INVENTORY]: Retrieved task inventory item {0}, {1} from prim {2}, {3}", 
+//                        "[PRIM INVENTORY]: Retrieved task inventory item {0}, {1} from prim {2}, {3}",
 //                        m_taskInventory[itemID].Name, itemID, Name, UUID);
-                    
+
                     return m_taskInventory[itemID];
                 }
                 else
@@ -450,11 +450,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="client"></param>
         /// <param name="localID"></param>
         public bool GetInventoryFileName(IClientAPI client, uint localID)
-        {                        
+        {
 //            m_log.DebugFormat(
 //                 "[PRIM INVENTORY]: Received request from client {0} for inventory file name of {1}, {2}",
 //                 client.AgentId, Name, UUID);
-            
+
             if (m_inventorySerial > 0)
             {
                 client.SendTaskInventory(m_uuid, (short)m_inventorySerial,
@@ -473,9 +473,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="xferManager"></param>
         public void RequestInventoryFile(IXfer xferManager)
-        {            
+        {
             byte[] fileData = new byte[0];
-            
+
             // Confusingly, the folder item has to be the object id, while the 'parent id' has to be zero.  This matches
             // what appears to happen in the Second Life protocol.  If this isn't the case. then various functionality
             // isn't available (such as drag from prim inventory to agent inventory)
@@ -486,39 +486,39 @@ namespace OpenSim.Region.Environment.Scenes
                 foreach (TaskInventoryItem item in m_taskInventory.Values)
                 {
                     invString.AddItemStart();
-                    invString.AddNameValueLine("item_id", item.ItemID.ToString());                    
+                    invString.AddNameValueLine("item_id", item.ItemID.ToString());
                     invString.AddNameValueLine("parent_id", UUID.ToString());
 
                     invString.AddPermissionsStart();
-                    
-					invString.AddNameValueLine("base_mask", Helpers.UIntToHexString(item.BaseMask));
-					invString.AddNameValueLine("owner_mask", Helpers.UIntToHexString(item.OwnerMask));
+
+                    invString.AddNameValueLine("base_mask", Helpers.UIntToHexString(item.BaseMask));
+                    invString.AddNameValueLine("owner_mask", Helpers.UIntToHexString(item.OwnerMask));
                     invString.AddNameValueLine("group_mask", "00000000");
                     invString.AddNameValueLine("everyone_mask", "00000000");
                     invString.AddNameValueLine("next_owner_mask", Helpers.UIntToHexString(item.NextOwnerMask));
-                    
+
                     invString.AddNameValueLine("creator_id", item.CreatorID.ToString());
                     invString.AddNameValueLine("owner_id", item.OwnerID.ToString());
-                    
+
                     invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
 //                    invString.AddNameValueLine("last_owner_id", item.OwnerID.ToString());
-                    
+
                     invString.AddNameValueLine("group_id", item.GroupID.ToString());
                     invString.AddSectionEnd();
-                        
+
                     invString.AddNameValueLine("asset_id", item.AssetID.ToString());
                     invString.AddNameValueLine("type", TaskInventoryItem.Types[item.Type]);
                     invString.AddNameValueLine("inv_type", TaskInventoryItem.InvTypes[item.InvType]);
                     invString.AddNameValueLine("flags", "00000000");
-                                        
+
                     invString.AddSaleStart();
                     invString.AddNameValueLine("sale_type", "not");
                     invString.AddNameValueLine("sale_price", "0");
                     invString.AddSectionEnd();
-                    
+
                     invString.AddNameValueLine("name", item.Name + "|");
                     invString.AddNameValueLine("desc", item.Description + "|");
-                                    
+
                     invString.AddNameValueLine("creation_date", item.CreationDate.ToString());
                     invString.AddSectionEnd();
                 }
@@ -576,13 +576,13 @@ namespace OpenSim.Region.Environment.Scenes
                 BuildString += "\tpermissions 0\n";
                 AddSectionStart();
             }
-            
+
             public void AddSaleStart()
             {
                 BuildString += "\tsale_info\t0\n";
                 AddSectionStart();
-            }            
-            
+            }
+
             protected void AddSectionStart()
             {
                 BuildString += "\t{\n";
@@ -610,64 +610,64 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-		public uint MaskEffectivePermissions()
-		{
-			uint mask=0x7fffffff;
+        public uint MaskEffectivePermissions()
+        {
+            uint mask=0x7fffffff;
 
-			foreach (TaskInventoryItem item in m_taskInventory.Values)
-			{
-				if(item.InvType != 6)
-				{
-					if((item.OwnerMask & item.NextOwnerMask & (uint)PermissionMask.Copy) == 0)
-						mask &= ~((uint)PermissionMask.Copy >> 13);
-					if((item.OwnerMask & item.NextOwnerMask & (uint)PermissionMask.Transfer) == 0)
-						mask &= ~((uint)PermissionMask.Transfer >> 13);
-					if((item.OwnerMask & item.NextOwnerMask & (uint)PermissionMask.Modify) == 0)
-						mask &= ~((uint)PermissionMask.Modify >> 13);
-				}
-				else
-				{
-					if((item.OwnerMask & ((uint)PermissionMask.Copy >> 13)) == 0)
-						mask &= ~((uint)PermissionMask.Copy >> 13);
-					if((item.OwnerMask & ((uint)PermissionMask.Transfer >> 13)) == 0)
-						mask &= ~((uint)PermissionMask.Transfer >> 13);
-					if((item.OwnerMask & ((uint)PermissionMask.Modify >> 13)) == 0)
-						mask &= ~((uint)PermissionMask.Modify >> 13);
-				}
+            foreach (TaskInventoryItem item in m_taskInventory.Values)
+            {
+                if (item.InvType != 6)
+                {
+                    if ((item.OwnerMask & item.NextOwnerMask & (uint)PermissionMask.Copy) == 0)
+                        mask &= ~((uint)PermissionMask.Copy >> 13);
+                    if ((item.OwnerMask & item.NextOwnerMask & (uint)PermissionMask.Transfer) == 0)
+                        mask &= ~((uint)PermissionMask.Transfer >> 13);
+                    if ((item.OwnerMask & item.NextOwnerMask & (uint)PermissionMask.Modify) == 0)
+                        mask &= ~((uint)PermissionMask.Modify >> 13);
+                }
+                else
+                {
+                    if ((item.OwnerMask & ((uint)PermissionMask.Copy >> 13)) == 0)
+                        mask &= ~((uint)PermissionMask.Copy >> 13);
+                    if ((item.OwnerMask & ((uint)PermissionMask.Transfer >> 13)) == 0)
+                        mask &= ~((uint)PermissionMask.Transfer >> 13);
+                    if ((item.OwnerMask & ((uint)PermissionMask.Modify >> 13)) == 0)
+                        mask &= ~((uint)PermissionMask.Modify >> 13);
+                }
 
-				if((item.OwnerMask & (uint)PermissionMask.Copy) == 0)
-					mask &= ~(uint)PermissionMask.Copy;
-				if((item.OwnerMask & (uint)PermissionMask.Transfer) == 0)
-					mask &= ~(uint)PermissionMask.Transfer;
-				if((item.OwnerMask & (uint)PermissionMask.Modify) == 0)
-					mask &= ~(uint)PermissionMask.Modify;
-			}
-			return mask;
-		}
+                if ((item.OwnerMask & (uint)PermissionMask.Copy) == 0)
+                    mask &= ~(uint)PermissionMask.Copy;
+                if ((item.OwnerMask & (uint)PermissionMask.Transfer) == 0)
+                    mask &= ~(uint)PermissionMask.Transfer;
+                if ((item.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                    mask &= ~(uint)PermissionMask.Modify;
+            }
+            return mask;
+        }
 
-		public void ApplyNextOwnerPermissions()
-		{
-			BaseMask &= NextOwnerMask;
-			OwnerMask &= NextOwnerMask;
-			EveryoneMask &= NextOwnerMask;
+        public void ApplyNextOwnerPermissions()
+        {
+            BaseMask &= NextOwnerMask;
+            OwnerMask &= NextOwnerMask;
+            EveryoneMask &= NextOwnerMask;
 
-			foreach (TaskInventoryItem item in m_taskInventory.Values)
-			{
-				if(item.InvType == 6)
-				{
-					if((item.OwnerMask & ((uint)PermissionMask.Copy >> 13)) == 0)
-						item.OwnerMask &= ~(uint)PermissionMask.Copy;
-					if((item.OwnerMask & ((uint)PermissionMask.Transfer >> 13)) == 0)
-						item.OwnerMask &= ~(uint)PermissionMask.Transfer;
-					if((item.OwnerMask & ((uint)PermissionMask.Modify >> 13)) == 0)
-						item.OwnerMask &= ~(uint)PermissionMask.Modify;
-				}
-				item.OwnerMask &= item.NextOwnerMask;
-				item.BaseMask &= item.NextOwnerMask;
-				item.EveryoneMask &= item.NextOwnerMask;
-			}
+            foreach (TaskInventoryItem item in m_taskInventory.Values)
+            {
+                if (item.InvType == 6)
+                {
+                    if ((item.OwnerMask & ((uint)PermissionMask.Copy >> 13)) == 0)
+                        item.OwnerMask &= ~(uint)PermissionMask.Copy;
+                    if ((item.OwnerMask & ((uint)PermissionMask.Transfer >> 13)) == 0)
+                        item.OwnerMask &= ~(uint)PermissionMask.Transfer;
+                    if ((item.OwnerMask & ((uint)PermissionMask.Modify >> 13)) == 0)
+                        item.OwnerMask &= ~(uint)PermissionMask.Modify;
+                }
+                item.OwnerMask &= item.NextOwnerMask;
+                item.BaseMask &= item.NextOwnerMask;
+                item.EveryoneMask &= item.NextOwnerMask;
+            }
 
-			TriggerScriptChangedEvent(Changed.OWNER);
-		}
+            TriggerScriptChangedEvent(Changed.OWNER);
+        }
     }
 }

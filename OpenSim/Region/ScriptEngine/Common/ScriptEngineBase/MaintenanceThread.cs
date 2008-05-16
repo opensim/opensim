@@ -39,7 +39,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     /// </summary>
     public class MaintenanceThread : iScriptEngineFunctionModule
     {
-        
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         //public ScriptEngine m_ScriptEngine;
@@ -238,6 +238,6 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         //    get { return _PleaseShutdown; }
         //    set { _PleaseShutdown = value; }
         //}
-        //private bool _PleaseShutdown = false;    
+        //private bool _PleaseShutdown = false;
     }
 }

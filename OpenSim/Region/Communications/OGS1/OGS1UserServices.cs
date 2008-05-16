@@ -117,8 +117,8 @@ namespace OpenSim.Region.Communications.OGS1
         {
             List<FriendListItem> buddylist = new List<FriendListItem>();
             int buddycount = Convert.ToInt32((string)data["avcount"]);
-            
-            
+
+
             for (int i = 0; i < buddycount; i++)
             {
                 FriendListItem buddylistitem = new FriendListItem();
@@ -130,8 +130,8 @@ namespace OpenSim.Region.Communications.OGS1
 
                 buddylist.Add(buddylistitem);
             }
-            
-            
+
+
             return buddylist;
         }
 
@@ -201,7 +201,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// Get a user profile from the user server
         /// </summary>
         /// <param name="avatarID"></param>
-        /// <returns>null if the request fails</returns>        
+        /// <returns>null if the request fails</returns>
         public UserProfileData GetUserProfile(string name)
         {
             try
@@ -222,7 +222,7 @@ namespace OpenSim.Region.Communications.OGS1
                     "[OGS1 USER SERVICES]: Error when trying to fetch profile data by name from remote user server: {0}",
                     e);
             }
-            
+
             return null;
         }
 
@@ -251,7 +251,7 @@ namespace OpenSim.Region.Communications.OGS1
                     "[OGS1 USER SERVICES]: Error when trying to fetch profile data by uuid from remote user server: {0}",
                     e);
             }
-            
+
             return null;
         }
 
@@ -264,7 +264,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// Retrieve the user information for the given master uuid.
         /// </summary>
         /// <param name="uuid"></param>
-        /// <returns></returns>        
+        /// <returns></returns>
         public UserProfileData SetupMasterUser(string firstName, string lastName)
         {
             return SetupMasterUser(firstName, lastName, String.Empty);
@@ -274,7 +274,7 @@ namespace OpenSim.Region.Communications.OGS1
         /// Retrieve the user information for the given master uuid.
         /// </summary>
         /// <param name="uuid"></param>
-        /// <returns></returns>        
+        /// <returns></returns>
         public UserProfileData SetupMasterUser(string firstName, string lastName, string password)
         {
             UserProfileData profile = GetUserProfile(firstName, lastName);
@@ -289,13 +289,13 @@ namespace OpenSim.Region.Communications.OGS1
         public UserProfileData SetupMasterUser(LLUUID uuid)
         {
             UserProfileData data = GetUserProfile(uuid);
-            
+
             if (data == null)
             {
                 throw new Exception(
                     "Could not retrieve profile for master user " + uuid + ".  User server did not respond to the request.");
             }
-            
+
             return data;
         }
 
@@ -405,9 +405,9 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 m_log.Warn("[GRID]: Error when trying to AddNewUserFriend: " +
                            e.Message);
-                
+
             }
-            
+
         }
 
         /// <summary>
@@ -422,7 +422,7 @@ namespace OpenSim.Region.Communications.OGS1
                 Hashtable param = new Hashtable();
                 param["ownerID"] = friendlistowner.UUID.ToString();
                 param["friendID"] = friend.UUID.ToString();
-                
+
 
                 IList parameters = new ArrayList();
                 parameters.Add(param);
@@ -458,7 +458,7 @@ namespace OpenSim.Region.Communications.OGS1
             {
                 m_log.Warn("[GRID]: Error when trying to RemoveUserFriend: " +
                            e.Message);
-                
+
             }
         }
 
@@ -519,7 +519,7 @@ namespace OpenSim.Region.Communications.OGS1
         public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
         {
             List<FriendListItem> buddylist = new List<FriendListItem>();
-            
+
             try
             {
                 Hashtable param = new Hashtable();
@@ -531,11 +531,11 @@ namespace OpenSim.Region.Communications.OGS1
                 XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 8000);
                 Hashtable respData = (Hashtable) resp.Value;
 
-                if (respData.Contains("avcount")) 
+                if (respData.Contains("avcount"))
                 {
                     buddylist = ConvertXMLRPCDataToFriendListItemList(respData);
                 }
-                
+
             }
             catch (WebException e)
             {
@@ -550,7 +550,7 @@ namespace OpenSim.Region.Communications.OGS1
 
         /// Appearance
         /// TODO: stubs for now to get us to a compiling state gently
-        public AvatarAppearance GetUserAppearance(LLUUID user) 
+        public AvatarAppearance GetUserAppearance(LLUUID user)
         {
             return new AvatarAppearance();
         }
@@ -564,12 +564,12 @@ namespace OpenSim.Region.Communications.OGS1
         {
             return;
         }
-        
+
         public void RemoveAttachment(LLUUID user, LLUUID item)
         {
             return;
         }
-        
+
         public List<LLUUID> GetAttachments(LLUUID user)
         {
             return new List<LLUUID>();

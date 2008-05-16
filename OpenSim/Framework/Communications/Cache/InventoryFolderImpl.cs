@@ -36,7 +36,7 @@ namespace OpenSim.Framework.Communications.Cache
     public class InventoryFolderImpl : InventoryFolderBase
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         // Fields
         public Dictionary<LLUUID, InventoryItemBase> Items = new Dictionary<LLUUID, InventoryItemBase>();
         public Dictionary<LLUUID, InventoryFolderImpl> SubFolders = new Dictionary<LLUUID, InventoryFolderImpl>();
@@ -82,14 +82,14 @@ namespace OpenSim.Framework.Communications.Cache
                     subFold.ParentID = this.ID;
                     subFold.Owner = Owner;
                     SubFolders.Add(subFold.ID, subFold);
-                    
+
                     return subFold;
                 }
             }
-            
+
             return null;
         }
-        
+
         /// <summary>
         /// Delete all the folders and items in this folder.
         /// </summary>
@@ -97,9 +97,9 @@ namespace OpenSim.Framework.Communications.Cache
         {
             foreach (InventoryFolderImpl folder in SubFolders.Values)
             {
-                folder.Purge();                
+                folder.Purge();
             }
-            
+
             SubFolders.Clear();
             Items.Clear();
         }
@@ -118,20 +118,20 @@ namespace OpenSim.Framework.Communications.Cache
                     return Items[itemID];
                 }
             }
-            
+
             lock (SubFolders)
             {
                 foreach (InventoryFolderImpl folder in SubFolders.Values)
                 {
                     InventoryItemBase item = folder.FindItem(itemID);
-                    
+
                     if (item != null)
                     {
                         return item;
                     }
                 }
             }
-            
+
             return null;
         }
 
@@ -143,7 +143,7 @@ namespace OpenSim.Framework.Communications.Cache
         public bool DeleteItem(LLUUID itemID)
         {
             bool found = false;
-            
+
             lock (Items)
             {
                 if (Items.ContainsKey(itemID))
@@ -152,20 +152,20 @@ namespace OpenSim.Framework.Communications.Cache
                     return true;
                 }
             }
-            
+
             lock (SubFolders)
             {
                 foreach (InventoryFolderImpl folder in SubFolders.Values)
                 {
                     found = folder.DeleteItem(itemID);
-                    
+
                     if (found == true)
                     {
                         break;
                     }
                 }
             }
-            
+
             return found;
         }
 
@@ -175,25 +175,25 @@ namespace OpenSim.Framework.Communications.Cache
         /// </summary>
         /// <returns>The requested folder if it exists, null if it does not.</returns>
         public InventoryFolderImpl FindFolder(LLUUID folderID)
-        {            
+        {
             if (folderID == ID)
             {
                 return this;
             }
-            
+
             lock (SubFolders)
             {
                 foreach (InventoryFolderImpl folder in SubFolders.Values)
                 {
                     InventoryFolderImpl returnFolder = folder.FindFolder(folderID);
-                    
+
                     if (returnFolder != null)
                     {
                         return returnFolder;
                     }
                 }
             }
-            
+
             return null;
         }
 
@@ -203,7 +203,7 @@ namespace OpenSim.Framework.Communications.Cache
         public List<InventoryItemBase> RequestListOfItems()
         {
             List<InventoryItemBase> itemList = new List<InventoryItemBase>();
-                
+
             lock (Items)
             {
                 foreach (InventoryItemBase item in Items.Values)
@@ -211,9 +211,9 @@ namespace OpenSim.Framework.Communications.Cache
                     itemList.Add(item);
                 }
             }
-            
+
             //m_log.DebugFormat("[INVENTORY FOLDER IMPL]: Found {0} items", itemList.Count);
-            
+
             return itemList;
         }
 
@@ -221,9 +221,9 @@ namespace OpenSim.Framework.Communications.Cache
         /// Return the list of immediate child folders in this folder.
         /// </summary>
         public List<InventoryFolderBase> RequestListOfFolders()
-        {            
+        {
             List<InventoryFolderBase> folderList = new List<InventoryFolderBase>();
-            
+
             lock (SubFolders)
             {
                 foreach (InventoryFolderBase folder in SubFolders.Values)
@@ -231,7 +231,7 @@ namespace OpenSim.Framework.Communications.Cache
                     folderList.Add(folder);
                 }
             }
-            
+
             return folderList;
         }
     }

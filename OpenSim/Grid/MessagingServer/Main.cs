@@ -45,7 +45,7 @@ namespace OpenSim.Grid.MessagingServer
 
         private MessageServerConfig Cfg;
         private MessageService msgsvc;
-        
+
         private LLUUID m_lastCreatedUser = LLUUID.Random();
 
         [STAThread]
@@ -55,7 +55,7 @@ namespace OpenSim.Grid.MessagingServer
 
             m_log.Info("Launching MessagingServer...");
 
-            
+
 
             OpenMessage_Main messageserver = new OpenMessage_Main();
 
@@ -118,7 +118,7 @@ namespace OpenSim.Grid.MessagingServer
             switch (what)
             {
                 case "user":
-                    
+
                     try
                     {
                         //userID =
@@ -140,12 +140,12 @@ namespace OpenSim.Grid.MessagingServer
                     // m_lastCreatedUser = userID;
                     break;
             }
-        }              
+        }
 
         public override void Shutdown()
         {
             msgsvc.deregisterWithUserServer();
-            
+
             base.Shutdown();
         }
     }

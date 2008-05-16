@@ -28,7 +28,7 @@
 using libsecondlife;
 
 namespace OpenSim.Data
-{  
+{
     public enum DataResponse
     {
         RESPONSE_OK,
@@ -74,7 +74,7 @@ namespace OpenSim.Data
         RegionProfileData[] GetProfilesInRange(uint Xmin, uint Ymin, uint Xmax, uint Ymax);
 
         /// <summary>
-        /// Authenticates a sim by use of its recv key. 
+        /// Authenticates a sim by use of its recv key.
         /// WARNING: Insecure
         /// </summary>
         /// <param name="UUID">The UUID sent by the sim</param>

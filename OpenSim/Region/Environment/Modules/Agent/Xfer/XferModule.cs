@@ -98,7 +98,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.Xfer
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="xferID"></param>

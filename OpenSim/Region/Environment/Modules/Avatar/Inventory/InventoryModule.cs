@@ -107,7 +107,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Inventory
 
                         // First byte of the array is probably the item type
                         // Next 16 bytes are the UUID
-                        //Array.Copy(binaryBucket, 1, rawId, 0, 16); 
+                        //Array.Copy(binaryBucket, 1, rawId, 0, 16);
 
                         //LLUUID itemId = new LLUUID(new Guid(rawId));
                         LLUUID itemId = new LLUUID(binaryBucket, 1);

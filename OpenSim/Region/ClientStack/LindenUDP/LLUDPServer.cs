@@ -171,11 +171,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
                                                     ReceivedData, null);
 
-                            // Ter: For some stupid reason ConnectionReset basically kills our async event structure..  
+                            // Ter: For some stupid reason ConnectionReset basically kills our async event structure..
                             // so therefore..  we've got to tell the server to BeginReceiveFrom again.
-                            // This will happen over and over until we've gone through all packets 
+                            // This will happen over and over until we've gone through all packets
                             // sent to and from this particular user.
-                            // Stupid I know..  
+                            // Stupid I know..
                             // but Flusing the buffer would be even more stupid...  so, we're stuck with this ugly method.
                         }
                         catch (SocketException)
@@ -195,12 +195,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         {
                             m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
                                                     ReceivedData, null);
-  
-                            // Ter: For some stupid reason ConnectionReset basically kills our async event structure..  
+
+                            // Ter: For some stupid reason ConnectionReset basically kills our async event structure..
                             // so therefore..  we've got to tell the server to BeginReceiveFrom again.
-                            // This will happen over and over until we've gone through all packets 
+                            // This will happen over and over until we've gone through all packets
                             // sent to and from this particular user.
-                            // Stupid I know..  
+                            // Stupid I know..
                             // but Flusing the buffer would be even more stupid...  so, we're stuck with this ugly method.
                         }
                         catch (SocketException e2)
@@ -208,7 +208,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             m_log.Error("[UDPSERVER]: " + e2.ToString());
                         }
 
-                        // Here's some reference code!   :D  
+                        // Here's some reference code!   :D
                         // Shutdown and restart the UDP listener!  hehe
                         // Shiny
 
@@ -228,11 +228,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
                                             ReceivedData, null);
 
-                    // Ter: For some stupid reason ConnectionReset basically kills our async event structure..  
+                    // Ter: For some stupid reason ConnectionReset basically kills our async event structure..
                     // so therefore..  we've got to tell the server to BeginReceiveFrom again.
-                    // This will happen over and over until we've gone through all packets 
+                    // This will happen over and over until we've gone through all packets
                     // sent to and from this particular user.
-                    // Stupid I know..  
+                    // Stupid I know..
                     // but Flusing the buffer would be even more stupid...  so, we're stuck with this ugly method.
                 }
 
@@ -283,11 +283,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_socket.BeginReceiveFrom(RecvBuffer, 0, RecvBuffer.Length, SocketFlags.None, ref epSender,
                                             ReceivedData, null);
 
-                    // Ter: For some stupid reason ConnectionReset basically kills our async event structure..  
+                    // Ter: For some stupid reason ConnectionReset basically kills our async event structure..
                     // so therefore..  we've got to tell the server to BeginReceiveFrom again.
-                    // This will happen over and over until we've gone through all packets 
+                    // This will happen over and over until we've gone through all packets
                     // sent to and from this particular user.
-                    // Stupid I know..  
+                    // Stupid I know..
                     // but Flusing the buffer would be even more stupid...  so, we're stuck with this ugly method.
                 }
                 catch (SocketException e5)
@@ -351,7 +351,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                 }
             }
-            
+
         }
 
         private void CloseEndPoint(EndPoint sender)
@@ -468,7 +468,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void RestoreClient(AgentCircuitData circuit, EndPoint userEP, EndPoint proxyEP)
         {
             //MainLog.Instance.Verbose("UDPSERVER", "RestoreClient");
-            
+
             UseCircuitCodePacket useCircuit = new UseCircuitCodePacket();
             useCircuit.CircuitCode.Code = circuit.circuitcode;
             useCircuit.CircuitCode.ID = circuit.AgentID;

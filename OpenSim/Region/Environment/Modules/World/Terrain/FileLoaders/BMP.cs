@@ -31,9 +31,9 @@ using OpenSim.Region.Environment.Interfaces;
 namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 {
     /// <summary>
-    /// A generic windows bitmap loader. 
+    /// A generic windows bitmap loader.
     /// Should be capable of handling 24-bit RGB images.
-    /// 
+    ///
     /// Uses the System.Drawing filesystem loader.
     /// </summary>
     internal class BMP : GenericSystemDrawing

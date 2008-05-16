@@ -23,7 +23,7 @@
 * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-* 
+*
 */
 
 using System;
@@ -32,17 +32,13 @@ using System.Text.RegularExpressions;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
-    
     public class LSL2CSConverter
     {
-
-
         // Uses regex to convert LSL code to C# code.
 
         //private Regex rnw = new Regex(@"[a-zA-Z0-9_\-]", RegexOptions.Compiled);
         private Dictionary<string, string> dataTypes = new Dictionary<string, string>();
         private Dictionary<string, string> quotes = new Dictionary<string, string>();
-        
 
         public LSL2CSConverter()
         {
@@ -72,7 +68,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             Script = Regex.Replace(Script, @"\r\n", "\n");
             Script = Regex.Replace(Script, @"\n", "\r\n");
 
-
             // QUOTE REPLACEMENT
             // temporarily replace quotes so we can work our magic on the script without
             //  always considering if we are inside our outside quotes's
@@ -86,21 +81,16 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             bool last_was_escape = false;
             int quote_replaced_count = 0;
 
-            
-
             string[] blocked = new string[] {"Axiom","Db4objects","libsecondlife","log4net","Microsoft",
                                              "Modified","Mono","MonoXnaCompactMaths","mscorlib","MySql",
                                              "NHibernate","Nini","nunit","Ode","OpenSim","PhysX_Wrapper_Dotnet",
                                              "PumaCode","RAIL","XMLRPC","System"};
-            
 
             for (int p = 0; p < blocked.Length;p++)
             {
-                
                 Match SecurityM = Regex.Match(Script, "[;}][^\"']+" + blocked[p].Replace(".", "\\.") + "\\.[^\"']", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
                 if (SecurityM.Success)
                     throw new Exception("CS0103: 'The name '" + blocked[p] + "' does not exist in the current context'");
-
             }
 
             for (int p = 0; p < Script.Length; p++)
@@ -166,7 +156,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             // END OF QUOTE REPLACEMENT
             //
 
-
             //
             // PROCESS STATES
             // Remove state definitions and add state names to start of each event within state
@@ -194,7 +183,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                     // if level == 0, add to return
                     if (ilevel == 1 && lastlevel == 0)
                     {
-                        // 0 => 1: Get last 
+                        // 0 => 1: Get last
                         Match m =
                           //Regex.Match(cache, @"(?![a-zA-Z_]+)\s*([a-zA-Z_]+)[^a-zA-Z_\(\)]*{",
                             Regex.Match(cache, @"(?![a-zA-Z_]+)\s*(state\s+)?(?<statename>[a-zA-Z_][a-zA-Z_0-9]*)[^a-zA-Z_0-9\(\)]*{",
@@ -253,7 +242,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             Script = ret;
             ret = String.Empty;
 
-
             foreach (string key in dataTypes.Keys)
             {
                 string val;
@@ -291,7 +279,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 Regex.Replace(Script, @"\[([^\]]*)\]", @"new LSL_Types.list($1)",
                               RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
 
-
             // Replace (string) to .ToString() //
             Script =
                 Regex.Replace(Script, @"\(string\)\s*([a-zA-Z0-9_.]+(\s*\([^\)]*\))?)", @"$1.ToString()",
@@ -313,12 +300,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 Script = Script.Replace(key, "\"" + val + "\"");
             }
 
-
-           
             //System.Console.WriteLine(Script);
             Return = String.Empty;// +
                      //"using OpenSim.Region.ScriptEngine.Common; using System.Collections.Generic;";
-  
 
             //Return += String.Empty +
             //          "namespace SecondLife { ";
@@ -328,13 +312,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             //Return += @"public Script() { } ";
             Return += Script;
             //Return += "} }\r\n";
-            
+
             quotes.Clear();
-             
+
             return Return;
         }
-        
     }
-
-    
 }

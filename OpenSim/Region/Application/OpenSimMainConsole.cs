@@ -47,7 +47,7 @@ namespace OpenSim
     public delegate void ConsoleCommand(string[] comParams);
 
     public class OpenSimMainConsole : OpenSimMain, conscmd_callback
-    {        
+    {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected string m_startupCommandsFile;
@@ -83,12 +83,12 @@ namespace OpenSim
             //
             // Called from app startup (OpenSim.Application)
             //
-            
+
             m_log.Info("====================================================================");
             m_log.Info("========================= STARTING OPENSIM =========================");
             m_log.Info("====================================================================");
             m_log.InfoFormat("[OPENSIM MAIN]: Running in {0} mode", (m_sandbox ? "sandbox" : "grid"));
-            
+
             m_console = CreateConsole();
             MainConsole.Instance = m_console;
             InternalStartUp();
@@ -111,7 +111,7 @@ namespace OpenSim
                 m_scriptTimer.Interval = 1200 * 1000;
                 m_scriptTimer.Elapsed += RunAutoTimerScript;
             }
-            
+
             PrintFileToConsole("startuplogo.txt");
         }
 
@@ -131,7 +131,7 @@ namespace OpenSim
         #region Console Commands
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="fileName"></param>
         private void RunCommandScript(string fileName)
@@ -178,7 +178,7 @@ namespace OpenSim
         public override void RunCmd(string command, string[] cmdparams)
         {
             base.RunCmd(command, cmdparams);
-            
+
             switch (command)
             {
                 case "clear-assets":
@@ -252,7 +252,7 @@ namespace OpenSim
                     m_console.Notice("set-time [x] - set the current scene time phase");
                     m_console.Notice("show assets - show state of asset cache.");
                     m_console.Notice("show users - show info about connected users.");
-                    m_console.Notice("show modules - shows info about loaded modules.");                    
+                    m_console.Notice("show modules - shows info about loaded modules.");
                     m_console.Notice("show version - show the running build version.");
                     m_console.Notice("threads - list threads");
                     m_console.Notice("config set section field value - set a config value");
@@ -264,7 +264,7 @@ namespace OpenSim
                 case "threads":
 //                     m_console.Notice("THREAD", Process.GetCurrentProcess().Threads.Count + " threads running:");
 //                     int _tc = 0;
-                    
+
 //                     foreach (ProcessThread pt in Process.GetCurrentProcess().Threads)
 //                     {
 //                         _tc++;
@@ -388,7 +388,7 @@ namespace OpenSim
                     if (m_sceneManager.TryGetScene(regName, out killScene))
                     {
                         // only need to check this if we are not at the
-                        // root level 
+                        // root level
                         if ((m_sceneManager.CurrentScene != null) &&
                             (m_sceneManager.CurrentScene.RegionInfo.RegionID == killScene.RegionInfo.RegionID))
                         {
@@ -520,7 +520,7 @@ namespace OpenSim
                                 {
                                     foreach (Scene s in new ArrayList(m_sceneManager.Scenes))
                                     {
-                                        
+
                                         m_console.Notice("Loading module: " + cmdparams[1]);
                                         m_moduleLoader.LoadRegionModules(cmdparams[1], s);
                                     }
@@ -529,7 +529,7 @@ namespace OpenSim
                         }
                     }
 
-                    break;  
+                    break;
                 default:
                     string[] tmpPluginArgs = new string[cmdparams.Length + 1];
                     cmdparams.CopyTo(tmpPluginArgs, 1);
@@ -570,7 +570,7 @@ namespace OpenSim
         public override void Show(string ShowWhat)
         {
             base.Show(ShowWhat);
-            
+
             switch (ShowWhat)
             {
                 case "assets":

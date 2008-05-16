@@ -235,7 +235,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                                                    {
                                                        TrySendChatMessage(presence, fromPos, regionPos,
                                                                           fromAgentID, fromName, e.Type, message, ChatSourceType.Agent);
-                                                       
+
                                                    }
                                                });
                 }
@@ -572,7 +572,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             string regex = @":(?<nick>\w*)!(?<user>\S*) PRIVMSG (?<channel>\S+) :(?<msg>.*)";
             Regex RE = new Regex(regex, RegexOptions.Multiline);
             MatchCollection matches = RE.Matches(input);
-            // Get some direct matches $1 $4 is a 
+            // Get some direct matches $1 $4 is a
             if ((matches.Count == 1) && (matches[0].Groups.Count == 5))
             {
                 result = new Dictionary<string, string>();
@@ -703,7 +703,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         public void ProcessIRCCommand(string command)
         {
-            //m_log.Info("[IRC]: ProcessIRCCommand:" + command); 
+            //m_log.Info("[IRC]: ProcessIRCCommand:" + command);
 
             string[] commArgs = new string[command.Split(' ').Length];
             string c_server = m_server;

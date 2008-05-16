@@ -282,9 +282,9 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             bool needsCollision;// = base.NeedsCollision(bodyA, bodyB);
             int c1 = 3;
             int c2 = 3;
-            
+
             ////////////////////////////////////////////////////////
-            //BulletX Mesh Collisions 
+            //BulletX Mesh Collisions
             //added by Jed zhu
             //data: May 07,2005
             ////////////////////////////////////////////////////////
@@ -302,9 +302,9 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             else
                 needsCollision = base.NeedsCollision(bodyA, bodyB);
 
-         
+
             #endregion
-            
+
 
             //m_log.DebugFormat("[BulletX]: A collision was detected between {0} and {1} --> {2}", nameA, nameB,
                                    //needsCollision);
@@ -705,7 +705,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
             }
             foreach (BulletXPrim prim in _prims.Values)
             {
-                //_height = HeightValue(prim.RigidBodyPosition); 
+                //_height = HeightValue(prim.RigidBodyPosition);
                 _height = _simFlatPlanet.HeightValue(prim.RigidBodyPosition);
                 prim.ValidateHeight(_height);
                 //if (_simFlatPlanet.heightIsNotValid(prim.RigidBodyPosition, out _height)) prim.ValidateHeight(_height);
@@ -741,8 +741,8 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
         public override bool IsThreaded
         {
-            get 
-            { 
+            get
+            {
                 return (false); // for now we won't be multithreaded
             }
         }
@@ -1380,17 +1380,17 @@ namespace OpenSim.Region.Physics.BulletXPlugin
     /// </summary>
     public class BulletXPrim : BulletXActor
     {
-        //Density it will depends of material. 
+        //Density it will depends of material.
         //For now all prims have the same density, all prims are made of water. Be water my friend! :D
         private const float _density = 1000.0f;
         private BulletXScene _parent_scene;
         private PhysicsVector m_prev_position = new PhysicsVector(0, 0, 0);
         private bool m_lastUpdateSent = false;
-        //added by jed zhu 
+        //added by jed zhu
         private IMesh _mesh;
         public IMesh GetMesh() { return _mesh; }
 
-        
+
 
         public BulletXPrim(String primName, BulletXScene parent_scene, PhysicsVector pos, PhysicsVector size,
                            AxiomQuaternion rotation, IMesh mesh, PrimitiveBaseShape pbs, bool isPhysical)

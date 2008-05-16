@@ -54,13 +54,13 @@ namespace OpenSim.TestSuite
 
         protected Random somthing = new Random(Environment.TickCount);// We do stuff randomly here
 
-        
+
         //New instance of a SecondLife client
         public SecondLife client = new SecondLife();
 
         protected string[] talkarray;
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="bsconfig">nini config for the bot</param>
         public PhysicsBot(IConfig bsconfig)
@@ -70,7 +70,7 @@ namespace OpenSim.TestSuite
             talkarray = readexcuses();
         }
 
-        //We do our actions here.  This is where one would 
+        //We do our actions here.  This is where one would
         //add additional steps and/or things the bot should do
 
         void m_action_Elapsed(object sender, ElapsedEventArgs e)

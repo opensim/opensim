@@ -64,14 +64,14 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// </summary>
         /// <param name="capsName">name of the capability of the cap
         /// handler to be removed</param>
-        public void Remove(string capsName) 
+        public void Remove(string capsName)
         {
             // This line must be here, or caps will break!
             m_httpListener.RemoveStreamHandler("POST", m_capsHandlers[capsName].Path);
             m_capsHandlers.Remove(capsName);
         }
 
-        public bool ContainsCap(string cap) 
+        public bool ContainsCap(string cap)
         {
             return m_capsHandlers.ContainsKey(cap);
         }
@@ -85,14 +85,14 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// retrieve a cap handler for a cap that is not contained in
         /// CapsHandlers.
         /// </Remarks>
-        public IRequestHandler this[string idx] 
+        public IRequestHandler this[string idx]
         {
-            get 
+            get
             {
                 return m_capsHandlers[idx];
             }
 
-            set 
+            set
             {
                 if (m_capsHandlers.ContainsKey(idx))
                 {
@@ -111,9 +111,9 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// Return the list of cap names for which this CapsHandlers
         /// object contains cap handlers.
         /// </summary>
-        public string[] Caps 
+        public string[] Caps
         {
-            get 
+            get
             {
                 string[] __keys = new string[m_capsHandlers.Keys.Count];
                 m_capsHandlers.Keys.CopyTo(__keys, 0);
@@ -125,7 +125,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// Return an LLSD-serializable Hashtable describing the
         /// capabilities and their handler details.
         /// </summary>
-        public Hashtable CapsDetails 
+        public Hashtable CapsDetails
         {
             get
             {

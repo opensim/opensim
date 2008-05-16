@@ -61,19 +61,19 @@ namespace OpenSim.Region.Environment.Scenes
 
             public uint ExternalChecksGenerateClientFlags(LLUUID userID, LLUUID objectID)
             {
-				SceneObjectPart part=m_scene.GetSceneObjectPart(objectID);
+                SceneObjectPart part=m_scene.GetSceneObjectPart(objectID);
 
-				uint perms=part.GetEffectiveObjectFlags() |
-						(uint)LLObject.ObjectFlags.ObjectModify |
-						(uint)LLObject.ObjectFlags.ObjectCopy |
-						(uint)LLObject.ObjectFlags.ObjectMove |
-						(uint)LLObject.ObjectFlags.ObjectTransfer |
-						(uint)LLObject.ObjectFlags.ObjectYouOwner |
-						(uint)LLObject.ObjectFlags.ObjectYouOfficer;
+                uint perms=part.GetEffectiveObjectFlags() |
+                        (uint)LLObject.ObjectFlags.ObjectModify |
+                        (uint)LLObject.ObjectFlags.ObjectCopy |
+                        (uint)LLObject.ObjectFlags.ObjectMove |
+                        (uint)LLObject.ObjectFlags.ObjectTransfer |
+                        (uint)LLObject.ObjectFlags.ObjectYouOwner |
+                        (uint)LLObject.ObjectFlags.ObjectYouOfficer;
 
                 foreach (GenerateClientFlags check in GenerateClientFlagsCheckFunctions)
                 {
-					perms &= check(userID, objectID);
+                    perms &= check(userID, objectID);
                 }
                 return perms;
             }

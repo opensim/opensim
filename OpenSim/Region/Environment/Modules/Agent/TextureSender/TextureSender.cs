@@ -35,7 +35,7 @@ using OpenSim.Region.Environment.Interfaces;
 namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
 {
     /// <summary>
-    /// A TextureSender handles the process of receiving a texture requested by the client from the 
+    /// A TextureSender handles the process of receiving a texture requested by the client from the
     /// AssetCache, and then sending that texture back to the client.
     /// </summary>
     public class TextureSender : ITextureSender
@@ -150,14 +150,14 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
                 {
                     if (NumPackets == 0)
                     {
-                        
+
                         RequestUser.SendImagePart(1, m_asset.FullID, (uint)m_asset.Data.Length, m_asset.Data, 2);
-                        
+
                         PacketCounter++;
                     }
                     else
                     {
-                        
+
                         byte[] ImageData1 = new byte[600];
                         Array.Copy(m_asset.Data, 0, ImageData1, 0, 600);
 
@@ -167,7 +167,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
                 }
                 else
                 {
-                    // Doesn't like to be refactored...    
+                    // Doesn't like to be refactored...
                     ImagePacketPacket im = new ImagePacketPacket();
                     im.Header.Reliable = false;
                     im.ImageID.Packet = (ushort)(PacketCounter);

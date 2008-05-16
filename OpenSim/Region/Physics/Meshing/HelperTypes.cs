@@ -49,7 +49,7 @@ public class Quaternion
     }
     public Quaternion(Vertex axis, float angle)
     {
-        // using (* 0.5) instead of (/2) 
+        // using (* 0.5) instead of (/2)
         w = (float)Math.Cos(angle * 0.5f);
         x = axis.X * (float)Math.Sin(angle * 0.5f);
         y = axis.Y * (float)Math.Sin(angle * 0.5f);
@@ -65,8 +65,8 @@ public class Quaternion
         c.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
         return c;
     }
-    
-    
+
+
     public Matrix4 computeMatrix()
     {
         return new Matrix4(this);
@@ -74,7 +74,7 @@ public class Quaternion
     public void normalize()
     {
         float mag = length();
-       
+
         w /= mag;
         x /= mag;
         y /= mag;
@@ -367,7 +367,7 @@ public class Triangle
         // It is assumed, that the triangles vertices are already set correctly
         double p1x, p2x, p1y, p2y, p3x, p3y;
 
-        // Deviation of this routine: 
+        // Deviation of this routine:
         // A circle has the general equation (M-p)^2=r^2, where M and p are vectors
         // this gives us three equations f(p)=r^2, each for one point p1, p2, p3
         // putting respectively two equations together gives two equations
@@ -378,7 +378,7 @@ public class Triangle
         // Now using the equations that are formed by the components of the vectors
         // and isolate Mx lets you make one equation that only holds My
         // The rest is straight forward and eaasy :-)
-        // 
+        //
 
         /* helping variables for temporary results */
         double c1, c2;
@@ -496,7 +496,7 @@ public class Triangle
         v2 = vt;
     }
 
-    // Dumps a triangle in the "raw faces" format, blender can import. This is for visualisation and 
+    // Dumps a triangle in the "raw faces" format, blender can import. This is for visualisation and
     // debugging purposes
     public String ToStringRaw()
     {

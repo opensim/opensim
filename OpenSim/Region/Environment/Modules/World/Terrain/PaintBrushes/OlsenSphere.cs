@@ -32,8 +32,8 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
 {
     /// <summary>
     /// Speed-Optimised Hybrid Erosion Brush
-    /// 
-    /// As per Jacob Olsen's Paper 
+    ///
+    /// As per Jacob Olsen's Paper
     /// http://www.oddlabs.com/download/terrain_generation.pdf
     /// </summary>
     public class OlsenSphere : ITerrainPaintableEffect
@@ -164,7 +164,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
                 {
                     double z = TerrainUtil.SphericalFactor(x, y, rx, ry, strength);
 
-                    if (z > 0) // add in non-zero amount 
+                    if (z > 0) // add in non-zero amount
                     {
                         const int NEIGHBOUR_ME = 4;
                         const int NEIGHBOUR_MAX = 9;

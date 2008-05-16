@@ -226,7 +226,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
             foreach (string line in lines)
             {
                 string nextLine = line.Trim();
-                //replace with switch, or even better, do some proper parsing 
+                //replace with switch, or even better, do some proper parsing
                 if (nextLine.StartsWith("MoveTo"))
                 {
                     float x = 0;

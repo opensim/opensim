@@ -90,11 +90,11 @@ namespace OpenSim.Data.SQLite
 
             SqliteCommand shapeSelectCmd = new SqliteCommand(shapeSelect, m_conn);
             shapeDa = new SqliteDataAdapter(shapeSelectCmd);
-            // SqliteCommandBuilder shapeCb = new SqliteCommandBuilder(shapeDa);      
+            // SqliteCommandBuilder shapeCb = new SqliteCommandBuilder(shapeDa);
 
             SqliteCommand itemsSelectCmd = new SqliteCommand(itemsSelect, m_conn);
             itemsDa = new SqliteDataAdapter(itemsSelectCmd);
-            
+
             SqliteCommand terrainSelectCmd = new SqliteCommand(terrainSelect, m_conn);
             terrainDa = new SqliteDataAdapter(terrainSelectCmd);
 
@@ -117,7 +117,7 @@ namespace OpenSim.Data.SQLite
 
                 ds.Tables.Add(createShapeTable());
                 setupShapeCommands(shapeDa, m_conn);
-                
+
                 if (persistPrimInventories)
                 {
                     ds.Tables.Add(createItemsTable());
@@ -183,8 +183,8 @@ namespace OpenSim.Data.SQLite
             {
                 foreach (SceneObjectPart prim in obj.Children.Values)
                 {
-                    if ((prim.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Physics) == 0 
-                        && (prim.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Temporary) == 0 
+                    if ((prim.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Physics) == 0
+                        && (prim.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Temporary) == 0
                         && (prim.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.TemporaryOnRez) == 0)
                     {
                         m_log.Info("[REGION DB]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
@@ -210,7 +210,7 @@ namespace OpenSim.Data.SQLite
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
             m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
-            
+
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
 
@@ -234,7 +234,7 @@ namespace OpenSim.Data.SQLite
                     }
 
                     // Remove prim row
-                    row.Delete();                    
+                    row.Delete();
                 }
             }
 
@@ -247,11 +247,11 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         private void RemoveItems(LLUUID uuid)
         {
-            DataTable items = ds.Tables["primitems"];            
+            DataTable items = ds.Tables["primitems"];
 
-            String sql = String.Format("primID = '{0}'", uuid);            
+            String sql = String.Format("primID = '{0}'", uuid);
             DataRow[] itemRows = items.Select(sql);
-    
+
             foreach (DataRow itemRow in itemRows)
             {
                 itemRow.Delete();
@@ -286,7 +286,7 @@ namespace OpenSim.Data.SQLite
                     try
                     {
                         SceneObjectPart prim = null;
-                            
+
                         string uuid = (string) primRow["UUID"];
                         string objID = (string) primRow["SceneGroupID"];
                         if (uuid == objID) //is new SceneObjectGroup ?
@@ -353,25 +353,25 @@ namespace OpenSim.Data.SQLite
         private void LoadItems(SceneObjectPart prim)
         {
             //m_log.DebugFormat("[DATASTORE]: Loading inventory for {0}, {1}", prim.Name, prim.UUID);
-            
+
             DataTable dbItems = ds.Tables["primitems"];
-            
-            String sql = String.Format("primID = '{0}'", prim.UUID.ToString());            
+
+            String sql = String.Format("primID = '{0}'", prim.UUID.ToString());
             DataRow[] dbItemRows = dbItems.Select(sql);
-            
+
             IList<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
-            
+
             foreach (DataRow row in dbItemRows)
             {
                 TaskInventoryItem item = buildItem(row);
                 inventory.Add(item);
-                
-                //m_log.DebugFormat("[DATASTORE]: Restored item {0}, {1}", item.Name, item.ItemID); 
+
+                //m_log.DebugFormat("[DATASTORE]: Restored item {0}, {1}", item.Name, item.ItemID);
             }
-            
+
             prim.RestoreInventoryItems(inventory);
-            
-            // XXX A nasty little hack to recover the folder id for the prim (which is currently stored in 
+
+            // XXX A nasty little hack to recover the folder id for the prim (which is currently stored in
             // every item).  This data should really be stored in the prim table itself.
             if (dbItemRows.Length > 0)
             {
@@ -548,12 +548,12 @@ namespace OpenSim.Data.SQLite
             {
                 primDa.Update(ds, "prims");
                 shapeDa.Update(ds, "primshapes");
-                
+
                 if (persistPrimInventories)
                 {
                     itemsDa.Update(ds, "primitems");
                 }
-                
+
                 terrainDa.Update(ds, "terrain");
                 landDa.Update(ds, "land");
                 landAccessListDa.Update(ds, "landaccesslist");
@@ -569,7 +569,7 @@ namespace OpenSim.Data.SQLite
         /***********************************************************************
          *
          *  Database Definition Functions
-         * 
+         *
          *  This should be db agnostic as we define them in ADO.NET terms
          *
          **********************************************************************/
@@ -705,8 +705,8 @@ namespace OpenSim.Data.SQLite
             createCol(items, "primID", typeof (String));
             createCol(items, "assetID", typeof (String));
             createCol(items, "parentFolderID", typeof (String));
-            
-            createCol(items, "invType", typeof (Int32));            
+
+            createCol(items, "invType", typeof (Int32));
             createCol(items, "assetType", typeof (Int32));
 
             createCol(items, "name", typeof (String));
@@ -784,7 +784,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /***********************************************************************
-         *  
+         *
          *  Convert between ADO.NET <=> OpenSim Objects
          *
          *  These should be database independant
@@ -897,7 +897,7 @@ namespace OpenSim.Data.SQLite
 
             return prim;
         }
-        
+
         /// <summary>
         /// Build a prim inventory item from the persisted data.
         /// </summary>
@@ -906,15 +906,15 @@ namespace OpenSim.Data.SQLite
         private static TaskInventoryItem buildItem(DataRow row)
         {
             TaskInventoryItem taskItem = new TaskInventoryItem();
-            
-            taskItem.ItemID        = new LLUUID((String)row["itemID"]); 
+
+            taskItem.ItemID        = new LLUUID((String)row["itemID"]);
             taskItem.ParentPartID  = new LLUUID((String)row["primID"]);
             taskItem.AssetID       = new LLUUID((String)row["assetID"]);
             taskItem.ParentID      = new LLUUID((String)row["parentFolderID"]);
-            
+
             taskItem.InvType       = Convert.ToInt32(row["invType"]);
             taskItem.Type          = Convert.ToInt32(row["assetType"]);
-            
+
             taskItem.Name          = (String)row["name"];
             taskItem.Description   = (String)row["description"];
             taskItem.CreationDate  = Convert.ToUInt32(row["creationDate"]);
@@ -922,13 +922,13 @@ namespace OpenSim.Data.SQLite
             taskItem.OwnerID       = new LLUUID((String)row["ownerID"]);
             taskItem.LastOwnerID   = new LLUUID((String)row["lastOwnerID"]);
             taskItem.GroupID       = new LLUUID((String)row["groupID"]);
-            
+
             taskItem.NextOwnerMask = Convert.ToUInt32(row["nextPermissions"]);
             taskItem.OwnerMask     = Convert.ToUInt32(row["currentPermissions"]);
             taskItem.BaseMask      = Convert.ToUInt32(row["basePermissions"]);
             taskItem.EveryoneMask  = Convert.ToUInt32(row["everyonePermissions"]);
             taskItem.GroupMask     = Convert.ToUInt32(row["groupPermissions"]);
-            
+
             return taskItem;
         }
 
@@ -990,14 +990,14 @@ namespace OpenSim.Data.SQLite
                     cmd.ExecuteNonQuery();
                     m_conn.Close();
                     m_conn.Dispose();
-                   
+
                     m_log.Error("[REGION DB]: The land table was recently updated.  You need to restart the simulator.  Exiting now.");
 
                     Thread.Sleep(10000);
 
                     // ICK!  but it's better then A thousand red SQLITE error messages!
                     Environment.Exit(0);
-                   
+
                 }
                 catch (Exception)
                 {
@@ -1006,7 +1006,7 @@ namespace OpenSim.Data.SQLite
                     Environment.Exit(0);
                 }
             }
-            
+
             return newData;
         }
 
@@ -1107,17 +1107,17 @@ namespace OpenSim.Data.SQLite
             row["SitTargetOrientY"] = sitTargetOrient.Y;
             row["SitTargetOrientZ"] = sitTargetOrient.Z;
         }
-        
+
         private static void fillItemRow(DataRow row, TaskInventoryItem taskItem)
         {
             row["itemID"] = taskItem.ItemID;
             row["primID"] = taskItem.ParentPartID;
             row["assetID"] = taskItem.AssetID;
             row["parentFolderID"] = taskItem.ParentID;
-            
+
             row["invType"] = taskItem.InvType;
             row["assetType"] = taskItem.Type;
-            
+
             row["name"] = taskItem.Name;
             row["description"] = taskItem.Description;
             row["creationDate"] = taskItem.CreationDate;
@@ -1294,37 +1294,37 @@ namespace OpenSim.Data.SQLite
                 fillShapeRow(shapeRow, prim);
             }
         }
-        
+
         // see IRegionDatastore
         public void StorePrimInventory(LLUUID primID, ICollection<TaskInventoryItem> items)
         {
             if (!persistPrimInventories)
                 return;
-            
+
             m_log.InfoFormat("[REGION DB]: Entered StorePrimInventory with prim ID {0}", primID);
-            
-            DataTable dbItems = ds.Tables["primitems"]; 
-            
-            // For now, we're just going to crudely remove all the previous inventory items 
-            // no matter whether they have changed or not, and replace them with the current set.            
+
+            DataTable dbItems = ds.Tables["primitems"];
+
+            // For now, we're just going to crudely remove all the previous inventory items
+            // no matter whether they have changed or not, and replace them with the current set.
             lock (ds)
             {
                 RemoveItems(primID);
-                
+
                 // repalce with current inventory details
                 foreach (TaskInventoryItem newItem in items)
                 {
 //                    m_log.InfoFormat(
-//                        "[DATASTORE]: ", 
-//                        "Adding item {0}, {1} to prim ID {2}", 
+//                        "[DATASTORE]: ",
+//                        "Adding item {0}, {1} to prim ID {2}",
 //                        newItem.Name, newItem.ItemID, newItem.ParentPartID);
-                    
+
                     DataRow newItemRow = dbItems.NewRow();
                     fillItemRow(newItemRow, newItem);
-                    dbItems.Rows.Add(newItemRow);                
+                    dbItems.Rows.Add(newItemRow);
                 }
             }
-            
+
             Commit();
         }
 
@@ -1436,7 +1436,7 @@ namespace OpenSim.Data.SQLite
         /// This is a convenience function that collapses 5 repetitive
         /// lines for defining SqliteParameters to 2 parameters:
         /// column name and database type.
-        ///        
+        ///
         /// It assumes certain conventions like :param as the param
         /// name to replace in parametrized queries, and that source
         /// version is always current version, both of which are fine
@@ -1451,7 +1451,7 @@ namespace OpenSim.Data.SQLite
             param.SourceColumn = name;
             param.SourceVersion = DataRowVersion.Current;
             return param;
-        }                
+        }
 
         private void setupPrimCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
@@ -1466,7 +1466,7 @@ namespace OpenSim.Data.SQLite
             delete.Connection = conn;
             da.DeleteCommand = delete;
         }
-        
+
         private void setupItemsCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
             da.InsertCommand = createInsertCommand("primitems", ds.Tables["primitems"]);
@@ -1479,7 +1479,7 @@ namespace OpenSim.Data.SQLite
             delete.Parameters.Add(createSqliteParameter("itemID", typeof (String)));
             delete.Connection = conn;
             da.DeleteCommand = delete;
-        }        
+        }
 
         private void setupTerrainCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
@@ -1660,7 +1660,7 @@ namespace OpenSim.Data.SQLite
                     return false;
                 }
             }
-            
+
             // XXX primitems should probably go here eventually
 
             foreach (DataColumn col in createTerrainTable().Columns)

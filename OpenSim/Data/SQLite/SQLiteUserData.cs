@@ -58,7 +58,7 @@ namespace OpenSim.Data.SQLite
 
         private const string AvatarPickerAndSQL = "select * from users where username like :username and surname like :surname";
         private const string AvatarPickerOrSQL = "select * from users where username like :username or surname like :surname";
-        
+
         private DataSet ds;
         private SqliteDataAdapter da;
         private SqliteDataAdapter daf;
@@ -67,16 +67,16 @@ namespace OpenSim.Data.SQLite
         override public void Initialise(string connect)
         {
             // default to something sensible
-            if (connect == "") 
+            if (connect == "")
                 connect = "URI=file:userprofiles.db,version=3";
-            
+
             SqliteConnection conn = new SqliteConnection(connect);
             TestTables(conn);
 
             // This sucks, but It doesn't seem to work with the dataset Syncing :P
             g_conn = conn;
             g_conn.Open();
-            
+
             ds = new DataSet();
             da = new SqliteDataAdapter(new SqliteCommand(userSelect, conn));
             daf = new SqliteDataAdapter(new SqliteCommand(userFriendsSelect, conn));
@@ -159,7 +159,7 @@ namespace OpenSim.Data.SQLite
         override public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
             string InsertFriends = "insert into userfriends(ownerID, friendID, friendPerms) values(:ownerID, :friendID, :perms)";
-            
+
             using (SqliteCommand cmd = new SqliteCommand(InsertFriends, g_conn))
             {
                 cmd.Parameters.Add(new SqliteParameter(":ownerID", friendlistowner.UUID.ToString()));
@@ -228,11 +228,11 @@ namespace OpenSim.Data.SQLite
                     m_log.Error("[USER DB]: Exception getting friends list for user: " + ex.ToString());
                 }
             }
-             
+
             return returnlist;
         }
-       
-        
+
+
 
 
         #endregion
@@ -380,9 +380,9 @@ namespace OpenSim.Data.SQLite
                 else
                 {
                     fillUserRow(row, user);
-                    
+
                 }
-                // This is why we're getting the 'logins never log-off'..    because It isn't clearing the 
+                // This is why we're getting the 'logins never log-off'..    because It isn't clearing the
                 // useragents table once the useragent is null
                 //
                 // A database guy should look at this and figure out the best way to clear the useragents table.
@@ -403,7 +403,7 @@ namespace OpenSim.Data.SQLite
                 }
                 else
                 {
-                    // I just added this to help the standalone login situation.  
+                    // I just added this to help the standalone login situation.
                     //It still needs to be looked at by a Database guy
                     DataTable ua = ds.Tables["useragents"];
                     row = ua.Rows.Find(Util.ToRawUuidString(user.ID));
@@ -480,7 +480,7 @@ namespace OpenSim.Data.SQLite
 
         /// Appearance
         /// TODO: stubs for now to get us to a compiling state gently
-        // override public AvatarAppearance GetUserAppearance(LLUUID user) 
+        // override public AvatarAppearance GetUserAppearance(LLUUID user)
         // {
         //     return new AvatarAppearance();
         // }
@@ -494,17 +494,17 @@ namespace OpenSim.Data.SQLite
         {
             return;
         }
-        
+
         override public void RemoveAttachment(LLUUID user, LLUUID item)
         {
             return;
         }
-        
+
         override public List<LLUUID> GetAttachments(LLUUID user)
         {
             return new List<LLUUID>();
         }
-        
+
         /// <summary>
         /// Returns the name of the storage provider
         /// </summary>
@@ -525,13 +525,13 @@ namespace OpenSim.Data.SQLite
 
         /***********************************************************************
          *
-         *  DataTable creation 
+         *  DataTable creation
          *
          **********************************************************************/
         /***********************************************************************
          *
          *  Database Definition Functions
-         * 
+         *
          *  This should be db agnostic as we define them in ADO.NET terms
          *
          **********************************************************************/
@@ -610,7 +610,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /***********************************************************************
-         *  
+         *
          *  Convert between ADO.NET <=> OpenSim Objects
          *
          *  These should be database independant

@@ -56,7 +56,7 @@ namespace OpenSim.Framework
         public readonly static int SKIRT = 12;
 
         private readonly static int MAX_WEARABLES = 13;
- 
+
         private static LLUUID BODY_ASSET = new LLUUID("66c41e39-38f9-f75a-024e-585989bfab73");
         private static LLUUID BODY_ITEM = new LLUUID("66c41e39-38f9-f75a-024e-585989bfaba9");
         private static LLUUID SKIN_ASSET = new LLUUID("77c41e39-38f9-f75a-024e-585989bbabbb");
@@ -204,7 +204,7 @@ namespace OpenSim.Framework
             set { m_wearables[SKIRT].AssetID = value; }
         }
 
-        public void SetDefaultWearables() 
+        public void SetDefaultWearables()
         {
             m_wearables[BODY].AssetID = BODY_ASSET;
             m_wearables[BODY].ItemID = BODY_ITEM;
@@ -257,7 +257,7 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="texture"></param>
         /// <param name="visualParam"></param>

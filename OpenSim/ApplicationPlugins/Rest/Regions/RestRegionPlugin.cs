@@ -23,7 +23,7 @@
 * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-* 
+*
 */
 
 using System;
@@ -57,12 +57,12 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
     [Extension("/OpenSim/Startup")]
     public class RestRegionPlugin : RestPlugin
     {
-        private static readonly log4net.ILog  _log = 
+        private static readonly log4net.ILog  _log =
             log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         #region overriding properties
-        public override string Name 
-        { 
+        public override string Name
+        {
             get { return "REGION"; }
         }
 
@@ -86,7 +86,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             try
             {
                 base.Initialise(openSim);
-                if (IsEnabled)                     
+                if (IsEnabled)
                     m_log.InfoFormat("{0} Rest Plugins Enabled", MsgID);
                 else
                     m_log.WarnFormat("{0} Rest Plugins are disabled", MsgID);
@@ -122,7 +122,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             StringWriter sw = new StringWriter();
             XmlTextWriter xw = new XmlTextWriter(sw);
             xw.Formatting = Formatting.Indented;
-            
+
             xw.WriteStartElement(String.Empty, "regions", String.Empty);
             foreach (Scene s in App.SceneManager.Scenes)
             {
@@ -132,7 +132,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             }
             xw.WriteEndElement();
             xw.Close();
-            
+
             return sw.ToString();
         }
 
@@ -154,7 +154,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
 
             xs.Serialize(xw, new RegionDetails(scene.RegionInfo));
             xw.Close();
-            
+
             return sw.ToString();
         }
         #endregion methods

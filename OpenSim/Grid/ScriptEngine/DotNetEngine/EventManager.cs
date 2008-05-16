@@ -67,7 +67,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
         public void OnRezScript(uint localID, LLUUID itemID, string script)
         {
             //myScriptEngine.myScriptManager.StartScript(
-            //    Path.Combine("ScriptEngines", "Default.lsl"), 
+            //    Path.Combine("ScriptEngines", "Default.lsl"),
             //    new OpenSim.Region.Environment.Scenes.Scripting.NullScriptHost()
             //);
             Console.WriteLine("OnRezScript localID: " + localID + " LLUID: " + itemID.ToString() + " Size: " +
@@ -78,7 +78,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine
         public void OnRemoveScript(uint localID, LLUUID itemID)
         {
             //myScriptEngine.myScriptManager.StartScript(
-            //    Path.Combine("ScriptEngines", "Default.lsl"), 
+            //    Path.Combine("ScriptEngines", "Default.lsl"),
             //    new OpenSim.Region.Environment.Scenes.Scripting.NullScriptHost()
             //);
             Console.WriteLine("OnRemoveScript localID: " + localID + " LLUID: " + itemID.ToString());

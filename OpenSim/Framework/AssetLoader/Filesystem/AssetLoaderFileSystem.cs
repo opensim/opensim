@@ -38,7 +38,7 @@ using Nini.Config;
 /// Loads assets from the filesystem location.  Not yet a plugin, though it should be.
 /// </summary>
 namespace OpenSim.Framework.AssetLoader.Filesystem
-{ 
+{
     public class AssetLoaderFileSystem : IAssetLoader
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -63,7 +63,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
 
             return asset;
         }
-        
+
         protected static void LoadAsset(AssetBase info, bool image, string path)
         {
             FileInfo fInfo = new FileInfo(path);
@@ -77,7 +77,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
             info.Data = idata;
             //info.loaded=true;
         }
-        
+
         public void ForEachDefaultXmlAsset(Action<AssetBase> action)
         {
             string assetSetFilename = Path.Combine(Util.assetsDir(), "AssetSets.xml");
@@ -91,28 +91,28 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
             if (File.Exists(assetSetFilename))
             {
                 string assetSetPath = "ERROR";
-                
+
                 try
                 {
                     XmlConfigSource source = new XmlConfigSource(assetSetFilename);
-                    
+
                     for (int i = 0; i < source.Configs.Count; i++)
                     {
                         assetSetPath = source.Configs[i].GetString("file", String.Empty);
-                        
+
                         LoadXmlAssetSet(Path.Combine(Util.assetsDir(), assetSetPath), assets);
                     }
                 }
                 catch (XmlException e)
                 {
                     m_log.ErrorFormat("[ASSETS]: Error loading {0} : {1}", assetSetPath, e);
-                }                
+                }
             }
             else
             {
                 m_log.Error("[ASSETS]: Asset set control file assets/AssetSets.xml does not exist!  No assets loaded.");
             }
-                                        
+
             assets.ForEach(action);
         }
 
@@ -124,7 +124,7 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
         protected static void LoadXmlAssetSet(string assetSetPath, List<AssetBase> assets)
         {
             m_log.InfoFormat("[ASSETS]: Loading asset set {0}", assetSetPath);
-            
+
             if (File.Exists(assetSetPath))
             {
                 try
@@ -156,6 +156,6 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
             {
                 m_log.ErrorFormat("[ASSETS]: Asset set file {0} does not exist!", assetSetPath);
             }
-        }        
+        }
     }
 }

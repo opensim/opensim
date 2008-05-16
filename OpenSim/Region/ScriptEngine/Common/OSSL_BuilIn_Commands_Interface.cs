@@ -60,7 +60,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         string osSetPenSize(string drawList, int penSize);
         string osSetPenColour(string drawList, string colour);
         string osDrawImage(string drawList, int width, int height, string imageUrl);
-        void osSetStateEvents(int events);  
+        void osSetStateEvents(int events);
 
     }
 }

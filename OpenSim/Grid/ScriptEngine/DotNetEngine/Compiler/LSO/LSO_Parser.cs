@@ -75,7 +75,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
         /// </summary>
         public void Parse()
         {
-            // The LSO Format consist of 6 major blocks: header, statics, functions, states, heap, and stack. 
+            // The LSO Format consist of 6 major blocks: header, statics, functions, states, heap, and stack.
 
 
             // HEADER BLOCK
@@ -295,7 +295,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
                 myEventCodeChunk = new LSO_Struct.CodeChunk[myStateFrameBlock.StateCount];
                 for (int i = 0; i < myStateFrameBlock.StateCount; i++)
                 {
-                    // TODO: Somehow organize events and functions so they can be found again, 
+                    // TODO: Somehow organize events and functions so they can be found again,
                     // two level search ain't no good
                     for (int ii = 0; ii < myStateFrameBlock.StatePointer[i].EventMask.Count - 1; ii++)
                     {
@@ -373,7 +373,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
 
         //private byte[] br_read_smallendian(int len)
         //{
-        //    byte[] bytes = new byte[len];    
+        //    byte[] bytes = new byte[len];
         //    br.Read(bytes,0, len);
         //    return bytes;
         //}

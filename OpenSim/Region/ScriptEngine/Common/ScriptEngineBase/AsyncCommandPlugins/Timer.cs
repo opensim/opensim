@@ -94,7 +94,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                 }
             }
 
-            // Old method: Create new list       
+            // Old method: Create new list
             //List<TimerClass> NewTimers = new List<TimerClass>();
             //foreach (TimerClass ts in Timers)
             //{

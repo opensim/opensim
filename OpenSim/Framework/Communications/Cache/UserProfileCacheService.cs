@@ -33,7 +33,7 @@ using libsecondlife;
 using log4net;
 
 namespace OpenSim.Framework.Communications.Cache
-{            
+{
     /// <summary>
     /// Holds user profile information and retrieves it from backend services.
     /// </summary>
@@ -45,7 +45,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// The comms manager holds references to services (user, grid, inventory, etc.)
         /// </summary>
         private readonly CommunicationsManager m_commsManager;
-        
+
         /// <summary>
         /// Each user has a cached profile.
         /// </summary>
@@ -84,8 +84,8 @@ namespace OpenSim.Framework.Communications.Cache
                     }
                 }
             }
-        }        
-        
+        }
+
         /// <summary>
         /// Remove this user's profile cache.
         /// </summary>
@@ -103,9 +103,9 @@ namespace OpenSim.Framework.Communications.Cache
                 else
                 {
                     m_log.ErrorFormat("[USER CACHE]: Tried to remove the profile of user {0}, but this was not in the scene", userID);
-                }               
+                }
             }
-            
+
             return false;
         }
 
@@ -118,14 +118,14 @@ namespace OpenSim.Framework.Communications.Cache
         {
             CachedUserInfo userInfo = GetUserDetails(userID);
             if (userInfo != null)
-            {            
+            {
                 m_commsManager.InventoryService.RequestInventoryForUser(userID, userInfo.InventoryReceive);
             }
             else
             {
                 m_log.ErrorFormat("[USER CACHE]: RequestInventoryForUser() - user profile for user {0} not found", userID);
             }
-        }            
+        }
 
         /// <summary>
         /// Get the details of the given user.  A caller should try this method first if it isn't sure that
@@ -151,7 +151,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="parentID"></param>
         public void HandleCreateInventoryFolder(IClientAPI remoteClient, LLUUID folderID, ushort folderType,
                                                 string folderName, LLUUID parentID)
-        {           
+        {
             CachedUserInfo userProfile;
 
             if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
@@ -159,21 +159,21 @@ namespace OpenSim.Framework.Communications.Cache
                 if (!userProfile.CreateFolder(folderName, folderID, folderType, parentID))
                 {
                     m_log.ErrorFormat(
-                         "[AGENT INVENTORY]: Failed to create folder for user {0} {1}", 
+                         "[AGENT INVENTORY]: Failed to create folder for user {0} {1}",
                          remoteClient.Name, remoteClient.AgentId);
                 }
             }
             else
             {
                 m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}", 
+                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
                     remoteClient.Name, remoteClient.AgentId);
             }
         }
 
         /// <summary>
         /// Handle a client request to update the inventory folder
-        /// 
+        ///
         /// FIXME: We call add new inventory folder because in the data layer, we happen to use an SQL REPLACE
         /// so this will work to rename an existing folder.  Needless to say, to rely on this is very confusing,
         /// and needs to be changed.
@@ -188,7 +188,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
 //            m_log.DebugFormat(
 //                "[AGENT INVENTORY]: Updating inventory folder {0} {1} for {2} {3}", folderID, name, remoteClient.Name, remoteClient.AgentId);
-            
+
             CachedUserInfo userProfile;
 
             if (m_userProfiles.TryGetValue(remoteClient.AgentId, out userProfile))
@@ -196,16 +196,16 @@ namespace OpenSim.Framework.Communications.Cache
                 if (!userProfile.UpdateFolder(name, folderID, type, parentID))
                 {
                     m_log.ErrorFormat(
-                         "[AGENT INVENTORY]: Failed to update folder for user {0} {1}", 
+                         "[AGENT INVENTORY]: Failed to update folder for user {0} {1}",
                          remoteClient.Name, remoteClient.AgentId);
                 }
             }
             else
             {
                 m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}", 
+                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
                     remoteClient.Name, remoteClient.AgentId);
-            }            
+            }
         }
 
         /// <summary>
@@ -223,16 +223,16 @@ namespace OpenSim.Framework.Communications.Cache
                 if (!userProfile.MoveFolder(folderID, parentID))
                 {
                     m_log.ErrorFormat(
-                         "[AGENT INVENTORY]: Failed to move folder for user {0} {1}", 
+                         "[AGENT INVENTORY]: Failed to move folder for user {0} {1}",
                          remoteClient.Name, remoteClient.AgentId);
                 }
             }
             else
             {
                 m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}", 
+                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
                     remoteClient.Name, remoteClient.AgentId);
-            }           
+            }
         }
 
         /// <summary>
@@ -267,14 +267,14 @@ namespace OpenSim.Framework.Communications.Cache
             else
             {
                 m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}", 
+                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
                     remoteClient.Name, remoteClient.AgentId);
-            }    
+            }
         }
 
         /// <summary>
         /// Handle the caps inventory descendents fetch.
-        /// 
+        ///
         /// Since the folder structure is sent to the client on login, I believe we only need to handle items.
         /// </summary>
         /// <param name="agentID"></param>
@@ -288,20 +288,20 @@ namespace OpenSim.Framework.Communications.Cache
                                                    bool fetchFolders, bool fetchItems, int sortOrder)
         {
 //            m_log.DebugFormat(
-//                "[INVENTORY CACHE]: Fetching folders ({0}), items ({1}) from {2} for agent {3}", 
+//                "[INVENTORY CACHE]: Fetching folders ({0}), items ({1}) from {2} for agent {3}",
 //                fetchFolders, fetchItems, folderID, agentID);
-            
+
             // FIXME MAYBE: We're not handling sortOrder!
 
             InventoryFolderImpl fold;
             if ((fold = libraryRoot.FindFolder(folderID)) != null)
             {
                 return fold.RequestListOfItems();
-            }         
+            }
 
             CachedUserInfo userProfile;
             if (m_userProfiles.TryGetValue(agentID, out userProfile))
-            {            
+            {
                 // XXX: When a client crosses into a scene, their entire inventory is fetched
                 // asynchronously.  If the client makes a request before the inventory is received, we need
                 // to give the inventory a chance to come in.
@@ -315,18 +315,18 @@ namespace OpenSim.Framework.Communications.Cache
                     while (attempts++ < 30)
                     {
                         m_log.DebugFormat(
-                             "[INVENTORY CACHE]: Poll number {0} for inventory items in folder {1} for user {2}", 
+                             "[INVENTORY CACHE]: Poll number {0} for inventory items in folder {1} for user {2}",
                              attempts, folderID, agentID);
-                        
+
                         Thread.Sleep(2000);
-                        
+
                         if (userProfile.HasInventory)
                         {
                             break;
                         }
                     }
-                }   
-                
+                }
+
                 if (userProfile.HasInventory)
                 {
                     if ((fold = userProfile.RootFolder.FindFolder(folderID)) != null)
@@ -338,9 +338,9 @@ namespace OpenSim.Framework.Communications.Cache
                         m_log.WarnFormat(
                             "[AGENT INVENTORY]: Could not find folder {0} requested by user {1}",
                             folderID, agentID);
-                        
+
                         return null;
-                    }                    
+                    }
                 }
                 else
                 {
@@ -352,7 +352,7 @@ namespace OpenSim.Framework.Communications.Cache
             else
             {
                 m_log.ErrorFormat("[AGENT INVENTORY]: Could not find user profile for {0}", agentID);
-            
+
                 return null;
             }
         }
@@ -371,16 +371,16 @@ namespace OpenSim.Framework.Communications.Cache
                 if (!userProfile.PurgeFolder(folderID))
                 {
                     m_log.ErrorFormat(
-                         "[AGENT INVENTORY]: Failed to purge folder for user {0} {1}", 
+                         "[AGENT INVENTORY]: Failed to purge folder for user {0} {1}",
                          remoteClient.Name, remoteClient.AgentId);
                 }
             }
             else
             {
                 m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}", 
+                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
                     remoteClient.Name, remoteClient.AgentId);
-            }   
+            }
         }
 
         public void HandleFetchInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID ownerID)
@@ -407,9 +407,9 @@ namespace OpenSim.Framework.Communications.Cache
             else
             {
                 m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}", 
+                    "[AGENT INVENTORY]: Could not find user profile for {0} {1}",
                     remoteClient.Name, remoteClient.AgentId);
-            }            
+            }
         }
     }
 }

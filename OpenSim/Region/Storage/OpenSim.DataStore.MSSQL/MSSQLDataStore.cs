@@ -142,7 +142,7 @@ namespace OpenSim.DataStore.MSSQL
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
             m_log.InfoFormat("[DATASTORE]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
-            
+
             DataTable prims = ds.Tables["prims"];
             DataTable shapes = ds.Tables["primshapes"];
 
@@ -332,7 +332,7 @@ namespace OpenSim.DataStore.MSSQL
         /***********************************************************************
          *
          *  Database Definition Functions
-         * 
+         *
          *  This should be db agnostic as we define them in ADO.NET terms
          *
          **********************************************************************/
@@ -460,7 +460,7 @@ namespace OpenSim.DataStore.MSSQL
         }
 
         /***********************************************************************
-         *  
+         *
          *  Convert between ADO.NET <=> OpenSim Objects
          *
          *  These should be database independant
@@ -650,7 +650,7 @@ namespace OpenSim.DataStore.MSSQL
             s.ProfileHollow = Convert.ToUInt16(row["ProfileHollow"]);
 
             // text TODO: this isn't right] = but I'm not sure the right
-            // way to specify this as a blob atm          
+            // way to specify this as a blob atm
             byte[] textureEntry = (byte[]) row["Texture"];
             s.TextureEntry = textureEntry;
 
@@ -695,7 +695,7 @@ namespace OpenSim.DataStore.MSSQL
             // way to specify this as a blob atm
 
             // And I couldn't work out how to save binary data either
-            // seems that the texture colum is being treated as a string in the Datarow 
+            // seems that the texture colum is being treated as a string in the Datarow
             // if you do a .getType() on it, it returns string, while the other columns return correct type
             // MW[10-08-07]
             // Added following xml hack but not really ideal , also ExtraParams isn't currently part of the database
@@ -738,7 +738,7 @@ namespace OpenSim.DataStore.MSSQL
                 fillShapeRow(shapeRow, prim);
             }
         }
-        
+
         // see IRegionDatastore
         public void StorePrimInventory(LLUUID primID, ICollection<TaskInventoryItem> items)
         {
@@ -868,7 +868,7 @@ namespace OpenSim.DataStore.MSSQL
         /// This is a convenience function that collapses 5 repetitive
         /// lines for defining SqlParameters to 2 parameters:
         /// column name and database type.
-        ///        
+        ///
         /// It assumes certain conventions like :param as the param
         /// name to replace in parametrized queries, and that source
         /// version is always current version, both of which are fine

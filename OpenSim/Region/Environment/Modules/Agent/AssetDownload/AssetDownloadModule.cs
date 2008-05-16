@@ -216,7 +216,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetDownload
             public IClientAPI RequestUser;
             public LLUUID TransferRequestID;
             //public bool AssetInCache;
-            //public int TimeRequested; 
+            //public int TimeRequested;
 
             public AssetRequest()
             {

@@ -48,10 +48,10 @@ namespace OpenSim.Grid.UserServer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private UserConfig Cfg;
-        
+
         public UserManager m_userManager;
         public UserLoginService m_loginService;
-        public MessageServersConnector m_messagesService;        
+        public MessageServersConnector m_messagesService;
 
         private LLUUID m_lastCreatedUser = LLUUID.Random();
 
@@ -87,13 +87,13 @@ namespace OpenSim.Grid.UserServer
         public void Startup()
         {
             Cfg = new UserConfig("USER SERVER", (Path.Combine(Util.configDir(), "UserServer_Config.xml")));
-            
+
             m_stats = StatsManager.StartCollectingUserStats();
 
             m_log.Info("[REGION]: Establishing data connection");
-            m_userManager = new UserManager();            
+            m_userManager = new UserManager();
             m_userManager._config = Cfg;
-            m_userManager.AddPlugin(Cfg.DatabaseProvider, Cfg.DatabaseConnect);            
+            m_userManager.AddPlugin(Cfg.DatabaseProvider, Cfg.DatabaseConnect);
 
             m_loginService = new UserLoginService(
                  m_userManager, new LibraryRootFolder(), Cfg, Cfg.DefaultStartupMsg);
@@ -104,7 +104,7 @@ namespace OpenSim.Grid.UserServer
             m_userManager.OnLogOffUser += NotifyMessageServersUserLoggOff;
 
             m_log.Info("[REGION]: Starting HTTP process");
-            
+
             m_httpServer = new BaseHttpServer(Cfg.HttpPort);
             AddHttpHandlers();
             m_httpServer.Start();
@@ -117,7 +117,7 @@ namespace OpenSim.Grid.UserServer
             m_httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
 
             m_httpServer.AddHTTPHandler("login", m_loginService.ProcessHTMLLogin);
-            
+
             m_httpServer.SetLLSDHandler(m_loginService.LLSDLoginMethod);
 
             m_httpServer.AddXmlRPCHandler("get_user_by_name", m_userManager.XmlRPCGetUserMethodName);
@@ -128,7 +128,7 @@ namespace OpenSim.Grid.UserServer
             m_httpServer.AddXmlRPCHandler("update_user_friend_perms", m_userManager.XmlRpcResponseXmlRPCUpdateUserFriendPerms);
             m_httpServer.AddXmlRPCHandler("get_user_friend_list", m_userManager.XmlRpcResponseXmlRPCGetUserFriendList);
             m_httpServer.AddXmlRPCHandler("logout_of_simulator", m_userManager.XmlRPCLogOffUserMethodUUID);
-           
+
             // Message Server ---> User Server
             m_httpServer.AddXmlRPCHandler("register_messageserver", m_messagesService.XmlRPCRegisterMessageServer);
             m_httpServer.AddXmlRPCHandler("agent_change_region", m_messagesService.XmlRPCUserMovedtoRegion);
@@ -163,17 +163,17 @@ namespace OpenSim.Grid.UserServer
                     {
                         m_log.ErrorFormat(
                             "[USERS]: A user with the name {0} {1} already exists!", tempfirstname, templastname);
-                    
+
                         break;
                     }
-                    
+
                     tempMD5Passwd = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + String.Empty);
 
                     LLUUID userID = new LLUUID();
                     try
                     {
                         userID = m_userManager.AddUserProfile(tempfirstname, templastname, tempMD5Passwd, regX, regY);
-                    } 
+                    }
                     catch (Exception ex)
                     {
                         m_log.ErrorFormat("[USERS]: Error creating user: {0}", ex.ToString());
@@ -181,31 +181,31 @@ namespace OpenSim.Grid.UserServer
 
                     try
                     {
-                        bool created 
+                        bool created
                             = SynchronousRestObjectPoster.BeginPostObject<Guid, bool>(
                                 "POST", m_userManager._config.InventoryUrl + "CreateInventory/", userID.UUID);
-                    
+
                         if (!created)
                         {
                             throw new Exception(
                                 String.Format(
                                     "The inventory creation request for user {0} did not succeed."
-                                        + "  Please contact your inventory service provider for more information.", 
+                                        + "  Please contact your inventory service provider for more information.",
                                     userID));
                         }
-                       
+
                     }
                     catch (WebException)
                     {
                         m_log.ErrorFormat(
-                            "[USERS]: Could not contact the inventory service at {0} to create an inventory for {1}", 
+                            "[USERS]: Could not contact the inventory service at {0} to create an inventory for {1}",
                             m_userManager._config.InventoryUrl + "CreateInventory/", userID.UUID);
                     }
                     catch (Exception e)
                     {
                         m_log.ErrorFormat("[USERS]: Error creating inventory for user: {0}", e);
                     }
-                
+
                     m_lastCreatedUser = userID;
                     break;
             }
@@ -214,7 +214,7 @@ namespace OpenSim.Grid.UserServer
         public override void RunCmd(string cmd, string[] cmdparams)
         {
             base.RunCmd(cmd, cmdparams);
-            
+
             switch (cmd)
             {
                 case "help":
@@ -223,7 +223,7 @@ namespace OpenSim.Grid.UserServer
 
                 case "create":
                     do_create(cmdparams[0]);
-                    break;                  
+                    break;
 
                 case "test-inventory":
                     //  RestObjectPosterResponse<List<InventoryFolderBase>> requester = new RestObjectPosterResponse<List<InventoryFolderBase>>();
@@ -242,10 +242,10 @@ namespace OpenSim.Grid.UserServer
         public override void Shutdown()
         {
             m_loginService.OnUserLoggedInAtLocation -= NotifyMessageServersUserLoggedInToLocation;
-            
+
             base.Shutdown();
         }
-        
+
         public void TestResponse(List<InventoryFolderBase> resp)
         {
             m_console.Notice("response got");
@@ -257,10 +257,10 @@ namespace OpenSim.Grid.UserServer
         }
 
         public void NotifyMessageServersUserLoggedInToLocation(LLUUID agentID, LLUUID sessionID, LLUUID RegionID,
-                                                                ulong regionhandle, float positionX, float positionY, 
+                                                                ulong regionhandle, float positionX, float positionY,
                                                                 float positionZ, string firstname, string lastname)
         {
-            
+
             m_messagesService.TellMessageServersAboutUser(agentID, sessionID, RegionID, regionhandle, positionX,
                                                           positionY,  positionZ, firstname, lastname);
         }

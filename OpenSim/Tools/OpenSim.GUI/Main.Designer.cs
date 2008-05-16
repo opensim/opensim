@@ -168,9 +168,9 @@ namespace OpenSim.GUI
             this.tabAssetServer.SuspendLayout();
             this.tabGridServer.SuspendLayout();
             this.SuspendLayout();
-            // 
+            //
             // menuStrip1
-            // 
+            //
             this.menuStrip1.AutoSize = false;
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem});
@@ -179,36 +179,36 @@ namespace OpenSim.GUI
             this.menuStrip1.Size = new System.Drawing.Size(900, 20);
             this.menuStrip1.TabIndex = 7;
             this.menuStrip1.Text = "menuStrip1";
-            // 
+            //
             // fileToolStripMenuItem
-            // 
+            //
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(35, 16);
             this.fileToolStripMenuItem.Text = "File";
-            // 
+            //
             // exitToolStripMenuItem
-            // 
+            //
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
             this.exitToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
             this.exitToolStripMenuItem.Text = "Exit Cleanly";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
-            // 
+            //
             // timer1
-            // 
+            //
             this.timer1.Enabled = true;
-            // 
+            //
             // clientBox1
-            // 
+            //
             this.clientBox1.Location = new System.Drawing.Point(680, 27);
             this.clientBox1.Name = "clientBox1";
             this.clientBox1.Size = new System.Drawing.Size(213, 20);
             this.clientBox1.TabIndex = 8;
             this.clientBox1.Text = "C://Secondlife//";
-            // 
+            //
             // btnStart
-            // 
+            //
             this.btnStart.Location = new System.Drawing.Point(7, 366);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(80, 23);
@@ -216,9 +216,9 @@ namespace OpenSim.GUI
             this.btnStart.Text = "Start";
             this.btnStart.UseVisualStyleBackColor = true;
             this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
-            // 
+            //
             // btnStop
-            // 
+            //
             this.btnStop.Location = new System.Drawing.Point(92, 366);
             this.btnStop.Name = "btnStop";
             this.btnStop.Size = new System.Drawing.Size(80, 23);
@@ -226,9 +226,9 @@ namespace OpenSim.GUI
             this.btnStop.Text = "Stop";
             this.btnStop.UseVisualStyleBackColor = true;
             this.btnStop.Click += new System.EventHandler(this.btnStop_Click);
-            // 
+            //
             // rbGridRegionMode
-            // 
+            //
             this.rbGridRegionMode.AutoSize = true;
             this.rbGridRegionMode.Location = new System.Drawing.Point(96, 27);
             this.rbGridRegionMode.Name = "rbGridRegionMode";
@@ -237,9 +237,9 @@ namespace OpenSim.GUI
             this.rbGridRegionMode.Text = "Grid region";
             this.rbGridRegionMode.UseVisualStyleBackColor = true;
             this.rbGridRegionMode.CheckedChanged += new System.EventHandler(this.rbGridRegionMode_CheckedChanged);
-            // 
+            //
             // rbStandAloneMode
-            // 
+            //
             this.rbStandAloneMode.AutoSize = true;
             this.rbStandAloneMode.Checked = true;
             this.rbStandAloneMode.Location = new System.Drawing.Point(8, 27);
@@ -250,9 +250,9 @@ namespace OpenSim.GUI
             this.rbStandAloneMode.Text = "Stand alone";
             this.rbStandAloneMode.UseVisualStyleBackColor = true;
             this.rbStandAloneMode.CheckedChanged += new System.EventHandler(this.rbStandAloneMode_CheckedChanged);
-            // 
+            //
             // rbGridServer
-            // 
+            //
             this.rbGridServer.AutoSize = true;
             this.rbGridServer.Location = new System.Drawing.Point(178, 27);
             this.rbGridServer.Name = "rbGridServer";
@@ -261,9 +261,9 @@ namespace OpenSim.GUI
             this.rbGridServer.Text = "Grid server";
             this.rbGridServer.UseVisualStyleBackColor = true;
             this.rbGridServer.CheckedChanged += new System.EventHandler(this.rbGridServer_CheckedChanged);
-            // 
+            //
             // Launch1
-            // 
+            //
             this.Launch1.Location = new System.Drawing.Point(264, 366);
             this.Launch1.Name = "Launch1";
             this.Launch1.Size = new System.Drawing.Size(80, 23);
@@ -271,9 +271,9 @@ namespace OpenSim.GUI
             this.Launch1.Text = "Client Launch";
             this.Launch1.UseVisualStyleBackColor = true;
             this.Launch1.Click += new System.EventHandler(this.Launch1_Click);
-            // 
+            //
             // gbLog
-            // 
+            //
             this.gbLog.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -284,9 +284,9 @@ namespace OpenSim.GUI
             this.gbLog.TabIndex = 1;
             this.gbLog.TabStop = false;
             this.gbLog.Text = "Logs";
-            // 
+            //
             // tabLogs
-            // 
+            //
             this.tabLogs.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -300,9 +300,9 @@ namespace OpenSim.GUI
             this.tabLogs.SelectedIndex = 0;
             this.tabLogs.Size = new System.Drawing.Size(333, 285);
             this.tabLogs.TabIndex = 0;
-            // 
+            //
             // tabMainLog
-            // 
+            //
             this.tabMainLog.Controls.Add(this.txtMainLog);
             this.tabMainLog.Location = new System.Drawing.Point(4, 22);
             this.tabMainLog.Name = "tabMainLog";
@@ -310,9 +310,9 @@ namespace OpenSim.GUI
             this.tabMainLog.TabIndex = 4;
             this.tabMainLog.Text = "Main log";
             this.tabMainLog.UseVisualStyleBackColor = true;
-            // 
+            //
             // txtMainLog
-            // 
+            //
             this.txtMainLog.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -322,9 +322,9 @@ namespace OpenSim.GUI
             this.txtMainLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.txtMainLog.Size = new System.Drawing.Size(325, 259);
             this.txtMainLog.TabIndex = 1;
-            // 
+            //
             // tabRegionServer
-            // 
+            //
             this.tabRegionServer.Controls.Add(this.txtInputRegionServer);
             this.tabRegionServer.Controls.Add(this.label1);
             this.tabRegionServer.Controls.Add(this.txtOpenSim);
@@ -335,25 +335,25 @@ namespace OpenSim.GUI
             this.tabRegionServer.TabIndex = 0;
             this.tabRegionServer.Text = "Region server";
             this.tabRegionServer.UseVisualStyleBackColor = true;
-            // 
+            //
             // txtInputRegionServer
-            // 
+            //
             this.txtInputRegionServer.Location = new System.Drawing.Point(53, 239);
             this.txtInputRegionServer.Name = "txtInputRegionServer";
             this.txtInputRegionServer.Size = new System.Drawing.Size(272, 20);
             this.txtInputRegionServer.TabIndex = 5;
-            // 
+            //
             // label1
-            // 
+            //
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(0, 242);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(57, 13);
             this.label1.TabIndex = 4;
             this.label1.Text = "Command:";
-            // 
+            //
             // txtOpenSim
-            // 
+            //
             this.txtOpenSim.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -363,9 +363,9 @@ namespace OpenSim.GUI
             this.txtOpenSim.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.txtOpenSim.Size = new System.Drawing.Size(325, 236);
             this.txtOpenSim.TabIndex = 0;
-            // 
+            //
             // tabUserServer
-            // 
+            //
             this.tabUserServer.Controls.Add(this.txtInputUserServer);
             this.tabUserServer.Controls.Add(this.label2);
             this.tabUserServer.Controls.Add(this.txtUserServer);
@@ -376,25 +376,25 @@ namespace OpenSim.GUI
             this.tabUserServer.TabIndex = 1;
             this.tabUserServer.Text = "User server";
             this.tabUserServer.UseVisualStyleBackColor = true;
-            // 
+            //
             // txtInputUserServer
-            // 
+            //
             this.txtInputUserServer.Location = new System.Drawing.Point(53, 239);
             this.txtInputUserServer.Name = "txtInputUserServer";
             this.txtInputUserServer.Size = new System.Drawing.Size(272, 20);
             this.txtInputUserServer.TabIndex = 7;
-            // 
+            //
             // label2
-            // 
+            //
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(0, 242);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(57, 13);
             this.label2.TabIndex = 6;
             this.label2.Text = "Command:";
-            // 
+            //
             // txtUserServer
-            // 
+            //
             this.txtUserServer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -404,9 +404,9 @@ namespace OpenSim.GUI
             this.txtUserServer.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.txtUserServer.Size = new System.Drawing.Size(325, 236);
             this.txtUserServer.TabIndex = 1;
-            // 
+            //
             // tabAssetServer
-            // 
+            //
             this.tabAssetServer.Controls.Add(this.txtInputAssetServer);
             this.tabAssetServer.Controls.Add(this.label3);
             this.tabAssetServer.Controls.Add(this.txtAssetServer);
@@ -416,25 +416,25 @@ namespace OpenSim.GUI
             this.tabAssetServer.TabIndex = 2;
             this.tabAssetServer.Text = "Asset server";
             this.tabAssetServer.UseVisualStyleBackColor = true;
-            // 
+            //
             // txtInputAssetServer
-            // 
+            //
             this.txtInputAssetServer.Location = new System.Drawing.Point(53, 239);
             this.txtInputAssetServer.Name = "txtInputAssetServer";
             this.txtInputAssetServer.Size = new System.Drawing.Size(272, 20);
             this.txtInputAssetServer.TabIndex = 7;
-            // 
+            //
             // label3
-            // 
+            //
             this.label3.AutoSize = true;
             this.label3.Location = new System.Drawing.Point(0, 242);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(57, 13);
             this.label3.TabIndex = 6;
             this.label3.Text = "Command:";
-            // 
+            //
             // txtAssetServer
-            // 
+            //
             this.txtAssetServer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -444,9 +444,9 @@ namespace OpenSim.GUI
             this.txtAssetServer.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.txtAssetServer.Size = new System.Drawing.Size(325, 236);
             this.txtAssetServer.TabIndex = 1;
-            // 
+            //
             // tabGridServer
-            // 
+            //
             this.tabGridServer.Controls.Add(this.txtInputGridServer);
             this.tabGridServer.Controls.Add(this.label4);
             this.tabGridServer.Controls.Add(this.txtGridServer);
@@ -456,25 +456,25 @@ namespace OpenSim.GUI
             this.tabGridServer.TabIndex = 3;
             this.tabGridServer.Text = "Grid server";
             this.tabGridServer.UseVisualStyleBackColor = true;
-            // 
+            //
             // txtInputGridServer
-            // 
+            //
             this.txtInputGridServer.Location = new System.Drawing.Point(53, 239);
             this.txtInputGridServer.Name = "txtInputGridServer";
             this.txtInputGridServer.Size = new System.Drawing.Size(272, 20);
             this.txtInputGridServer.TabIndex = 7;
-            // 
+            //
             // label4
-            // 
+            //
             this.label4.AutoSize = true;
             this.label4.Location = new System.Drawing.Point(0, 242);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(57, 13);
             this.label4.TabIndex = 6;
             this.label4.Text = "Command:";
-            // 
+            //
             // txtGridServer
-            // 
+            //
             this.txtGridServer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
@@ -484,9 +484,9 @@ namespace OpenSim.GUI
             this.txtGridServer.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.txtGridServer.Size = new System.Drawing.Size(325, 236);
             this.txtGridServer.TabIndex = 1;
-            // 
+            //
             // label5
-            // 
+            //
             this.label5.AutoSize = true;
             this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label5.Location = new System.Drawing.Point(460, 55);
@@ -494,9 +494,9 @@ namespace OpenSim.GUI
             this.label5.Size = new System.Drawing.Size(205, 20);
             this.label5.TabIndex = 11;
             this.label5.Text = "Command Line Switches";
-            // 
+            //
             // noProbe1
-            // 
+            //
             this.noProbe1.AutoSize = true;
             this.noProbe1.Location = new System.Drawing.Point(359, 275);
             this.noProbe1.Name = "noProbe1";
@@ -505,18 +505,18 @@ namespace OpenSim.GUI
             this.noProbe1.Text = "-noprobe";
             this.toolTip1.SetToolTip(this.noProbe1, "disable hardware probe");
             this.noProbe1.UseVisualStyleBackColor = true;
-            // 
+            //
             // label6
-            // 
+            //
             this.label6.AutoSize = true;
             this.label6.Location = new System.Drawing.Point(8, 415);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(0, 13);
             this.label6.TabIndex = 14;
             this.label6.Click += new System.EventHandler(this.label6_Click);
-            // 
+            //
             // multiple1
-            // 
+            //
             this.multiple1.AutoSize = true;
             this.multiple1.Location = new System.Drawing.Point(359, 185);
             this.multiple1.Name = "multiple1";
@@ -525,9 +525,9 @@ namespace OpenSim.GUI
             this.multiple1.Text = "-multiple";
             this.toolTip1.SetToolTip(this.multiple1, "allow multiple viewers");
             this.multiple1.UseVisualStyleBackColor = true;
-            // 
+            //
             // label7
-            // 
+            //
             this.label7.AutoSize = true;
             this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label7.Location = new System.Drawing.Point(8, 396);
@@ -535,9 +535,9 @@ namespace OpenSim.GUI
             this.label7.Size = new System.Drawing.Size(338, 13);
             this.label7.TabIndex = 16;
             this.label7.Text = "Client Command Line String Used and Program Messages :";
-            // 
+            //
             // noMultiple1
-            // 
+            //
             this.noMultiple1.AutoSize = true;
             this.noMultiple1.Location = new System.Drawing.Point(359, 260);
             this.noMultiple1.Name = "noMultiple1";
@@ -546,9 +546,9 @@ namespace OpenSim.GUI
             this.noMultiple1.Text = "-nomultiple";
             this.toolTip1.SetToolTip(this.noMultiple1, "block multiple viewers (secondlife.exe instances)");
             this.noMultiple1.UseVisualStyleBackColor = true;
-            // 
+            //
             // ignorepixeldepth1
-            // 
+            //
             this.ignorepixeldepth1.AutoSize = true;
             this.ignorepixeldepth1.Location = new System.Drawing.Point(359, 125);
             this.ignorepixeldepth1.Name = "ignorepixeldepth1";
@@ -557,9 +557,9 @@ namespace OpenSim.GUI
             this.ignorepixeldepth1.Text = "-ignorepixeldepth";
             this.toolTip1.SetToolTip(this.ignorepixeldepth1, "ignore pixel depth settings");
             this.ignorepixeldepth1.UseVisualStyleBackColor = true;
-            // 
+            //
             // nothread1
-            // 
+            //
             this.nothread1.AutoSize = true;
             this.nothread1.Location = new System.Drawing.Point(359, 305);
             this.nothread1.Name = "nothread1";
@@ -568,9 +568,9 @@ namespace OpenSim.GUI
             this.nothread1.Text = "-nothread";
             this.toolTip1.SetToolTip(this.nothread1, "run VFS (Virtual File System) in single thread");
             this.nothread1.UseVisualStyleBackColor = true;
-            // 
+            //
             // safe1
-            // 
+            //
             this.safe1.AutoSize = true;
             this.safe1.Location = new System.Drawing.Point(359, 365);
             this.safe1.Name = "safe1";
@@ -579,9 +579,9 @@ namespace OpenSim.GUI
             this.safe1.Text = "-safe";
             this.toolTip1.SetToolTip(this.safe1, "reset preferences, run in safe mode");
             this.safe1.UseVisualStyleBackColor = true;
-            // 
+            //
             // noconsole1
-            // 
+            //
             this.noconsole1.AutoSize = true;
             this.noconsole1.Location = new System.Drawing.Point(359, 215);
             this.noconsole1.Name = "noconsole1";
@@ -590,9 +590,9 @@ namespace OpenSim.GUI
             this.noconsole1.Text = "-noconsole";
             this.toolTip1.SetToolTip(this.noconsole1, "hide the console if not already hidden");
             this.noconsole1.UseVisualStyleBackColor = true;
-            // 
+            //
             // log1
-            // 
+            //
             this.log1.AutoSize = true;
             this.log1.Location = new System.Drawing.Point(359, 170);
             this.log1.Name = "log1";
@@ -601,9 +601,9 @@ namespace OpenSim.GUI
             this.log1.Text = "-log";
             this.toolTip1.SetToolTip(this.log1, "--no info avail--");
             this.log1.UseVisualStyleBackColor = true;
-            // 
+            //
             // helperuri1
-            // 
+            //
             this.helperuri1.AutoSize = true;
             this.helperuri1.Location = new System.Drawing.Point(359, 110);
             this.helperuri1.Name = "helperuri1";
@@ -612,9 +612,9 @@ namespace OpenSim.GUI
             this.helperuri1.Text = "-helperuri";
             this.toolTip1.SetToolTip(this.helperuri1, "--no info avail--");
             this.helperuri1.UseVisualStyleBackColor = true;
-            // 
+            //
             // autologin1
-            // 
+            //
             this.autologin1.AutoSize = true;
             this.autologin1.Location = new System.Drawing.Point(359, 65);
             this.autologin1.Name = "autologin1";
@@ -623,9 +623,9 @@ namespace OpenSim.GUI
             this.autologin1.Text = "--autologin";
             this.toolTip1.SetToolTip(this.autologin1, "--no info avail--");
             this.autologin1.UseVisualStyleBackColor = true;
-            // 
+            //
             // dialog1
-            // 
+            //
             this.dialog1.AutoSize = true;
             this.dialog1.Location = new System.Drawing.Point(359, 95);
             this.dialog1.Name = "dialog1";
@@ -634,9 +634,9 @@ namespace OpenSim.GUI
             this.dialog1.Text = "-dialog";
             this.toolTip1.SetToolTip(this.dialog1, "some arcane dialog box that is impossible to raise");
             this.dialog1.UseVisualStyleBackColor = true;
-            // 
+            //
             // previous1
-            // 
+            //
             this.previous1.AutoSize = true;
             this.previous1.Location = new System.Drawing.Point(359, 335);
             this.previous1.Name = "previous1";
@@ -645,9 +645,9 @@ namespace OpenSim.GUI
             this.previous1.Text = "-previous";
             this.toolTip1.SetToolTip(this.previous1, "--no info avail--");
             this.previous1.UseVisualStyleBackColor = true;
-            // 
+            //
             // simple1
-            // 
+            //
             this.simple1.AutoSize = true;
             this.simple1.Location = new System.Drawing.Point(359, 380);
             this.simple1.Name = "simple1";
@@ -656,9 +656,9 @@ namespace OpenSim.GUI
             this.simple1.Text = "-simple";
             this.toolTip1.SetToolTip(this.simple1, "--no info avail--");
             this.simple1.UseVisualStyleBackColor = true;
-            // 
+            //
             // noinvlib1
-            // 
+            //
             this.noinvlib1.AutoSize = true;
             this.noinvlib1.Location = new System.Drawing.Point(359, 245);
             this.noinvlib1.Name = "noinvlib1";
@@ -667,9 +667,9 @@ namespace OpenSim.GUI
             this.noinvlib1.Text = "-noinvlib";
             this.toolTip1.SetToolTip(this.noinvlib1, "do not request inventory library");
             this.noinvlib1.UseVisualStyleBackColor = true;
-            // 
+            //
             // debugst1
-            // 
+            //
             this.debugst1.AutoSize = true;
             this.debugst1.Location = new System.Drawing.Point(359, 80);
             this.debugst1.Name = "debugst1";
@@ -678,9 +678,9 @@ namespace OpenSim.GUI
             this.debugst1.Text = "-debugst";
             this.toolTip1.SetToolTip(this.debugst1, "debug mask");
             this.debugst1.UseVisualStyleBackColor = true;
-            // 
+            //
             // spanish1
-            // 
+            //
             this.spanish1.AutoSize = true;
             this.spanish1.Location = new System.Drawing.Point(359, 395);
             this.spanish1.Name = "spanish1";
@@ -689,9 +689,9 @@ namespace OpenSim.GUI
             this.spanish1.Text = "-spanish";
             this.toolTip1.SetToolTip(this.spanish1, "activate (incomplete) Spanish UI translation");
             this.spanish1.UseVisualStyleBackColor = true;
-            // 
+            //
             // korean1
-            // 
+            //
             this.korean1.AutoSize = true;
             this.korean1.Location = new System.Drawing.Point(359, 140);
             this.korean1.Name = "korean1";
@@ -700,9 +700,9 @@ namespace OpenSim.GUI
             this.korean1.Text = "-korean";
             this.toolTip1.SetToolTip(this.korean1, "activate (incomplete) Korean UI translation");
             this.korean1.UseVisualStyleBackColor = true;
-            // 
+            //
             // local1
-            // 
+            //
             this.local1.AutoSize = true;
             this.local1.Location = new System.Drawing.Point(359, 155);
             this.local1.Name = "local1";
@@ -711,9 +711,9 @@ namespace OpenSim.GUI
             this.local1.Text = "-local";
             this.toolTip1.SetToolTip(this.local1, "run without simulator");
             this.local1.UseVisualStyleBackColor = true;
-            // 
+            //
             // purge1
-            // 
+            //
             this.purge1.AutoSize = true;
             this.purge1.Location = new System.Drawing.Point(359, 350);
             this.purge1.Name = "purge1";
@@ -722,9 +722,9 @@ namespace OpenSim.GUI
             this.purge1.Text = "-purge";
             this.toolTip1.SetToolTip(this.purge1, "delete files in cache");
             this.purge1.UseVisualStyleBackColor = true;
-            // 
+            //
             // nofmod1
-            // 
+            //
             this.nofmod1.AutoSize = true;
             this.nofmod1.Location = new System.Drawing.Point(359, 230);
             this.nofmod1.Name = "nofmod1";
@@ -733,9 +733,9 @@ namespace OpenSim.GUI
             this.nofmod1.Text = "-nofmod";
             this.toolTip1.SetToolTip(this.nofmod1, "FMOD is the API used to distort sound while moving");
             this.nofmod1.UseVisualStyleBackColor = true;
-            // 
+            //
             // noaudio1
-            // 
+            //
             this.noaudio1.AutoSize = true;
             this.noaudio1.Location = new System.Drawing.Point(359, 200);
             this.noaudio1.Name = "noaudio1";
@@ -744,9 +744,9 @@ namespace OpenSim.GUI
             this.noaudio1.Text = "-noaudio";
             this.toolTip1.SetToolTip(this.noaudio1, "no audio, different from -nosound?");
             this.noaudio1.UseVisualStyleBackColor = true;
-            // 
+            //
             // nosound1
-            // 
+            //
             this.nosound1.AutoSize = true;
             this.nosound1.Location = new System.Drawing.Point(359, 290);
             this.nosound1.Name = "nosound1";
@@ -755,9 +755,9 @@ namespace OpenSim.GUI
             this.nosound1.Text = "-nosound";
             this.toolTip1.SetToolTip(this.nosound1, "no sound, different from -noaudio?");
             this.nosound1.UseVisualStyleBackColor = true;
-            // 
+            //
             // url1
-            // 
+            //
             this.url1.AutoSize = true;
             this.url1.Location = new System.Drawing.Point(488, 245);
             this.url1.Name = "url1";
@@ -766,9 +766,9 @@ namespace OpenSim.GUI
             this.url1.Text = "-url";
             this.toolTip1.SetToolTip(this.url1, "handles secondlife://sim/x/y/z URLs");
             this.url1.UseVisualStyleBackColor = true;
-            // 
+            //
             // port1
-            // 
+            //
             this.port1.AutoSize = true;
             this.port1.Location = new System.Drawing.Point(488, 171);
             this.port1.Name = "port1";
@@ -779,27 +779,27 @@ namespace OpenSim.GUI
                     "me local home network. Values that may work: 13000 and 13001 (Valid numbers are " +
                     "13000 to 13050)");
             this.port1.UseVisualStyleBackColor = true;
-            // 
+            //
             // simBox1
-            // 
+            //
             this.simBox1.Location = new System.Drawing.Point(549, 243);
             this.simBox1.Name = "simBox1";
             this.simBox1.Size = new System.Drawing.Size(344, 20);
             this.simBox1.TabIndex = 66;
             this.simBox1.Text = "secondlife://lutra/127/128/60";
             this.toolTip1.SetToolTip(this.simBox1, "type URL here");
-            // 
+            //
             // portBox1
-            // 
+            //
             this.portBox1.Location = new System.Drawing.Point(549, 169);
             this.portBox1.Name = "portBox1";
             this.portBox1.Size = new System.Drawing.Size(58, 20);
             this.portBox1.TabIndex = 67;
             this.portBox1.Text = "13000";
             this.toolTip1.SetToolTip(this.portBox1, "enter port number here");
-            // 
+            //
             // user1
-            // 
+            //
             this.user1.AutoSize = true;
             this.user1.Location = new System.Drawing.Point(488, 191);
             this.user1.Name = "user1";
@@ -809,9 +809,9 @@ namespace OpenSim.GUI
             this.user1.ThreeState = true;
             this.toolTip1.SetToolTip(this.user1, "specify user server in dotted quad");
             this.user1.UseVisualStyleBackColor = true;
-            // 
+            //
             // quitAfter1
-            // 
+            //
             this.quitAfter1.AutoSize = true;
             this.quitAfter1.Location = new System.Drawing.Point(680, 65);
             this.quitAfter1.Name = "quitAfter1";
@@ -820,9 +820,9 @@ namespace OpenSim.GUI
             this.quitAfter1.Text = "-quitafter";
             this.toolTip1.SetToolTip(this.quitAfter1, "SL quits after elapsed time in seconds");
             this.quitAfter1.UseVisualStyleBackColor = true;
-            // 
+            //
             // techTag1
-            // 
+            //
             this.techTag1.AutoSize = true;
             this.techTag1.Location = new System.Drawing.Point(488, 211);
             this.techTag1.Name = "techTag1";
@@ -831,9 +831,9 @@ namespace OpenSim.GUI
             this.techTag1.Text = "-techtag";
             this.toolTip1.SetToolTip(this.techTag1, "unknown (but requires a parameter)");
             this.techTag1.UseVisualStyleBackColor = true;
-            // 
+            //
             // yield1
-            // 
+            //
             this.yield1.AutoSize = true;
             this.yield1.Location = new System.Drawing.Point(488, 91);
             this.yield1.Name = "yield1";
@@ -842,9 +842,9 @@ namespace OpenSim.GUI
             this.yield1.Text = "-yield";
             this.toolTip1.SetToolTip(this.yield1, "yield some idle time to local host (changed from - cooperative)");
             this.yield1.UseVisualStyleBackColor = true;
-            // 
+            //
             // logfile1
-            // 
+            //
             this.logfile1.AutoSize = true;
             this.logfile1.Location = new System.Drawing.Point(680, 125);
             this.logfile1.Name = "logfile1";
@@ -853,9 +853,9 @@ namespace OpenSim.GUI
             this.logfile1.Text = "-logfile";
             this.toolTip1.SetToolTip(this.logfile1, "change the log filename");
             this.logfile1.UseVisualStyleBackColor = true;
-            // 
+            //
             // settings1
-            // 
+            //
             this.settings1.AutoSize = true;
             this.settings1.Location = new System.Drawing.Point(680, 95);
             this.settings1.Name = "settings1";
@@ -864,9 +864,9 @@ namespace OpenSim.GUI
             this.settings1.Text = "-settings";
             this.toolTip1.SetToolTip(this.settings1, "specify configuration filename; default is \"settings.ini\"");
             this.settings1.UseVisualStyleBackColor = true;
-            // 
+            //
             // outbw1
-            // 
+            //
             this.outbw1.AutoSize = true;
             this.outbw1.Location = new System.Drawing.Point(488, 111);
             this.outbw1.Name = "outbw1";
@@ -875,9 +875,9 @@ namespace OpenSim.GUI
             this.outbw1.Text = "-outbw";
             this.toolTip1.SetToolTip(this.outbw1, "set outgoing bandwidth");
             this.outbw1.UseVisualStyleBackColor = true;
-            // 
+            //
             // inbw1
-            // 
+            //
             this.inbw1.AutoSize = true;
             this.inbw1.Location = new System.Drawing.Point(488, 131);
             this.inbw1.Name = "inbw1";
@@ -886,9 +886,9 @@ namespace OpenSim.GUI
             this.inbw1.Text = "-inbw";
             this.toolTip1.SetToolTip(this.inbw1, "set incoming bandwidth");
             this.inbw1.UseVisualStyleBackColor = true;
-            // 
+            //
             // drop1
-            // 
+            //
             this.drop1.AutoSize = true;
             this.drop1.Location = new System.Drawing.Point(488, 151);
             this.drop1.Name = "drop1";
@@ -897,76 +897,76 @@ namespace OpenSim.GUI
             this.drop1.Text = "-drop";
             this.toolTip1.SetToolTip(this.drop1, "drop number% of incoming network packets");
             this.drop1.UseVisualStyleBackColor = true;
-            // 
+            //
             // dropBox1
-            // 
+            //
             this.dropBox1.Location = new System.Drawing.Point(549, 149);
             this.dropBox1.Name = "dropBox1";
             this.dropBox1.Size = new System.Drawing.Size(58, 20);
             this.dropBox1.TabIndex = 68;
             this.dropBox1.Text = "0";
             this.toolTip1.SetToolTip(this.dropBox1, "enter percent of packets to drop");
-            // 
+            //
             // inbwBox1
-            // 
+            //
             this.inbwBox1.Location = new System.Drawing.Point(549, 129);
             this.inbwBox1.Name = "inbwBox1";
             this.inbwBox1.Size = new System.Drawing.Size(57, 20);
             this.inbwBox1.TabIndex = 69;
             this.toolTip1.SetToolTip(this.inbwBox1, "enter incoming cap");
-            // 
+            //
             // outbwBox1
-            // 
+            //
             this.outbwBox1.Location = new System.Drawing.Point(549, 109);
             this.outbwBox1.Name = "outbwBox1";
             this.outbwBox1.Size = new System.Drawing.Size(58, 20);
             this.outbwBox1.TabIndex = 70;
             this.toolTip1.SetToolTip(this.outbwBox1, "enter outgoing cap");
-            // 
+            //
             // settingsBox1
-            // 
+            //
             this.settingsBox1.Location = new System.Drawing.Point(741, 93);
             this.settingsBox1.Name = "settingsBox1";
             this.settingsBox1.Size = new System.Drawing.Size(152, 20);
             this.settingsBox1.TabIndex = 71;
             this.settingsBox1.Text = "settings.ini";
             this.toolTip1.SetToolTip(this.settingsBox1, "enter settings file name");
-            // 
+            //
             // logfileBox1
-            // 
+            //
             this.logfileBox1.Location = new System.Drawing.Point(733, 123);
             this.logfileBox1.Name = "logfileBox1";
             this.logfileBox1.Size = new System.Drawing.Size(160, 20);
             this.logfileBox1.TabIndex = 72;
             this.logfileBox1.Text = "mylogfile.txt";
             this.toolTip1.SetToolTip(this.logfileBox1, "enter log file name here");
-            // 
+            //
             // yieldBox1
-            // 
+            //
             this.yieldBox1.Location = new System.Drawing.Point(549, 89);
             this.yieldBox1.Name = "yieldBox1";
             this.yieldBox1.Size = new System.Drawing.Size(58, 20);
             this.yieldBox1.TabIndex = 73;
             this.toolTip1.SetToolTip(this.yieldBox1, "enter time to yield in <ms>");
-            // 
+            //
             // techtagBox1
-            // 
+            //
             this.techtagBox1.Location = new System.Drawing.Point(549, 209);
             this.techtagBox1.Name = "techtagBox1";
             this.techtagBox1.Size = new System.Drawing.Size(58, 20);
             this.techtagBox1.TabIndex = 74;
             this.toolTip1.SetToolTip(this.techtagBox1, "enter unknown param here");
-            // 
+            //
             // quitafterBox1
-            // 
+            //
             this.quitafterBox1.Location = new System.Drawing.Point(745, 63);
             this.quitafterBox1.Name = "quitafterBox1";
             this.quitafterBox1.Size = new System.Drawing.Size(148, 20);
             this.quitafterBox1.TabIndex = 75;
             this.toolTip1.SetToolTip(this.quitafterBox1, "enter time in seconds");
-            // 
+            //
             // comboBox1
-            // 
+            //
             this.comboBox1.FormattingEnabled = true;
             this.comboBox1.Items.AddRange(new object[] {
             "agni",
@@ -980,9 +980,9 @@ namespace OpenSim.GUI
             this.comboBox1.TabIndex = 76;
             this.comboBox1.Text = "agni";
             this.toolTip1.SetToolTip(this.comboBox1, "select LL user server");
-            // 
+            //
             // loginuri1
-            // 
+            //
             this.loginuri1.AutoSize = true;
             this.loginuri1.Location = new System.Drawing.Point(488, 275);
             this.loginuri1.Name = "loginuri1";
@@ -991,18 +991,18 @@ namespace OpenSim.GUI
             this.loginuri1.Text = "-loginuri";
             this.toolTip1.SetToolTip(this.loginuri1, "login server and CGI script to use");
             this.loginuri1.UseVisualStyleBackColor = true;
-            // 
+            //
             // loginuriBox1
-            // 
+            //
             this.loginuriBox1.Location = new System.Drawing.Point(549, 273);
             this.loginuriBox1.Name = "loginuriBox1";
             this.loginuriBox1.Size = new System.Drawing.Size(344, 20);
             this.loginuriBox1.TabIndex = 78;
             this.loginuriBox1.Text = "localhost:9000";
             this.toolTip1.SetToolTip(this.loginuriBox1, "enter login url here");
-            // 
+            //
             // set1
-            // 
+            //
             this.set1.AutoSize = true;
             this.set1.Location = new System.Drawing.Point(636, 185);
             this.set1.Name = "set1";
@@ -1012,18 +1012,18 @@ namespace OpenSim.GUI
             this.toolTip1.SetToolTip(this.set1, "specify value of a particular configuration variable; can be used multiple times " +
                     "in a single command-line");
             this.set1.UseVisualStyleBackColor = true;
-            // 
+            //
             // setBox1
-            // 
+            //
             this.setBox1.Location = new System.Drawing.Point(680, 183);
             this.setBox1.Name = "setBox1";
             this.setBox1.Size = new System.Drawing.Size(213, 20);
             this.setBox1.TabIndex = 80;
             this.setBox1.Text = "SystemLanguage en-us";
             this.toolTip1.SetToolTip(this.setBox1, "enter params");
-            // 
+            //
             // errmask1
-            // 
+            //
             this.errmask1.AutoSize = true;
             this.errmask1.Location = new System.Drawing.Point(636, 154);
             this.errmask1.Name = "errmask1";
@@ -1032,9 +1032,9 @@ namespace OpenSim.GUI
             this.errmask1.Text = "-errmask";
             this.toolTip1.SetToolTip(this.errmask1, "32-bit bitmask for error type mask");
             this.errmask1.UseVisualStyleBackColor = true;
-            // 
+            //
             // skin1
-            // 
+            //
             this.skin1.AutoSize = true;
             this.skin1.Location = new System.Drawing.Point(635, 215);
             this.skin1.Name = "skin1";
@@ -1043,9 +1043,9 @@ namespace OpenSim.GUI
             this.skin1.Text = "-skin";
             this.toolTip1.SetToolTip(this.skin1, "load skins/<directory>/skin.xml as the default UI appearance (incomplete)");
             this.skin1.UseVisualStyleBackColor = true;
-            // 
+            //
             // login1
-            // 
+            //
             this.login1.AutoSize = true;
             this.login1.Location = new System.Drawing.Point(457, 304);
             this.login1.Name = "login1";
@@ -1054,44 +1054,44 @@ namespace OpenSim.GUI
             this.login1.Text = "-login";
             this.toolTip1.SetToolTip(this.login1, "log in as a user");
             this.login1.UseVisualStyleBackColor = true;
-            // 
+            //
             // errmaskBox1
-            // 
+            //
             this.errmaskBox1.Location = new System.Drawing.Point(704, 153);
             this.errmaskBox1.Name = "errmaskBox1";
             this.errmaskBox1.Size = new System.Drawing.Size(189, 20);
             this.errmaskBox1.TabIndex = 84;
             this.toolTip1.SetToolTip(this.errmaskBox1, "32-bit bitmask for error type mask");
-            // 
+            //
             // skinBox1
-            // 
+            //
             this.skinBox1.Location = new System.Drawing.Point(679, 213);
             this.skinBox1.Name = "skinBox1";
             this.skinBox1.Size = new System.Drawing.Size(214, 20);
             this.skinBox1.TabIndex = 85;
             this.skinBox1.Text = "C://Secondlife//";
             this.toolTip1.SetToolTip(this.skinBox1, "enter directory where skin.xml is");
-            // 
+            //
             // firstBox1
-            // 
+            //
             this.firstBox1.Location = new System.Drawing.Point(549, 303);
             this.firstBox1.Name = "firstBox1";
             this.firstBox1.Size = new System.Drawing.Size(80, 20);
             this.firstBox1.TabIndex = 86;
             this.firstBox1.Text = "Test";
             this.toolTip1.SetToolTip(this.firstBox1, "firstname");
-            // 
+            //
             // lastBox1
-            // 
+            //
             this.lastBox1.Location = new System.Drawing.Point(668, 303);
             this.lastBox1.Name = "lastBox1";
             this.lastBox1.Size = new System.Drawing.Size(80, 20);
             this.lastBox1.TabIndex = 92;
             this.lastBox1.Text = "User";
             this.toolTip1.SetToolTip(this.lastBox1, "lastname");
-            // 
+            //
             // noutc1
-            // 
+            //
             this.noutc1.AutoSize = true;
             this.noutc1.Location = new System.Drawing.Point(359, 320);
             this.noutc1.Name = "noutc1";
@@ -1100,18 +1100,18 @@ namespace OpenSim.GUI
             this.noutc1.Text = "-noutc";
             this.toolTip1.SetToolTip(this.noutc1, "logs in local time, not UTC");
             this.noutc1.UseVisualStyleBackColor = true;
-            // 
+            //
             // passBox1
-            // 
+            //
             this.passBox1.Location = new System.Drawing.Point(790, 303);
             this.passBox1.Name = "passBox1";
             this.passBox1.Size = new System.Drawing.Size(103, 20);
             this.passBox1.TabIndex = 93;
             this.passBox1.Text = "test";
             this.toolTip1.SetToolTip(this.passBox1, "password");
-            // 
+            //
             // raw1
-            // 
+            //
             this.raw1.AutoSize = true;
             this.raw1.Location = new System.Drawing.Point(457, 336);
             this.raw1.Name = "raw1";
@@ -1120,17 +1120,17 @@ namespace OpenSim.GUI
             this.raw1.Text = "Raw CMD :";
             this.toolTip1.SetToolTip(this.raw1, "Raw CMD options, may crash everything");
             this.raw1.UseVisualStyleBackColor = true;
-            // 
+            //
             // rawBox1
-            // 
+            //
             this.rawBox1.Location = new System.Drawing.Point(549, 333);
             this.rawBox1.Name = "rawBox1";
             this.rawBox1.Size = new System.Drawing.Size(344, 20);
             this.rawBox1.TabIndex = 95;
             this.toolTip1.SetToolTip(this.rawBox1, "Raw CMD options, may crash everything");
-            // 
+            //
             // clear1
-            // 
+            //
             this.clear1.Location = new System.Drawing.Point(178, 366);
             this.clear1.Name = "clear1";
             this.clear1.Size = new System.Drawing.Size(80, 23);
@@ -1139,18 +1139,18 @@ namespace OpenSim.GUI
             this.toolTip1.SetToolTip(this.clear1, "clear all switch boxes");
             this.clear1.UseVisualStyleBackColor = true;
             this.clear1.Click += new System.EventHandler(this.clear1_Click);
-            // 
+            //
             // nataddress1
-            // 
+            //
             this.nataddress1.Location = new System.Drawing.Point(457, 389);
             this.nataddress1.Name = "nataddress1";
             this.nataddress1.Size = new System.Drawing.Size(436, 20);
             this.nataddress1.TabIndex = 58;
             this.nataddress1.Text = "UNUSED ATM";
             this.nataddress1.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            // 
+            //
             // label8
-            // 
+            //
             this.label8.AutoSize = true;
             this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label8.Location = new System.Drawing.Point(588, 360);
@@ -1158,9 +1158,9 @@ namespace OpenSim.GUI
             this.label8.Size = new System.Drawing.Size(175, 20);
             this.label8.TabIndex = 59;
             this.label8.Text = "World/NAT Address :";
-            // 
+            //
             // label9
-            // 
+            //
             this.label9.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label9.Location = new System.Drawing.Point(633, 27);
             this.label9.Name = "label9";
@@ -1168,17 +1168,17 @@ namespace OpenSim.GUI
             this.label9.TabIndex = 60;
             this.label9.Text = "Path :";
             this.label9.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
+            //
             // exeBox1
-            // 
+            //
             this.exeBox1.Location = new System.Drawing.Point(530, 27);
             this.exeBox1.Name = "exeBox1";
             this.exeBox1.Size = new System.Drawing.Size(100, 20);
             this.exeBox1.TabIndex = 61;
             this.exeBox1.Text = "Secondlife.exe";
-            // 
+            //
             // label10
-            // 
+            //
             this.label10.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label10.Location = new System.Drawing.Point(392, 27);
             this.label10.Name = "label10";
@@ -1186,36 +1186,36 @@ namespace OpenSim.GUI
             this.label10.TabIndex = 62;
             this.label10.Text = "Executable Name :";
             this.label10.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
+            //
             // label11
-            // 
+            //
             this.label11.AutoSize = true;
             this.label11.Location = new System.Drawing.Point(514, 306);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(32, 13);
             this.label11.TabIndex = 89;
             this.label11.Text = "First :";
-            // 
+            //
             // label12
-            // 
+            //
             this.label12.AutoSize = true;
             this.label12.Location = new System.Drawing.Point(632, 306);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(33, 13);
             this.label12.TabIndex = 90;
             this.label12.Text = "Last :";
-            // 
+            //
             // label13
-            // 
+            //
             this.label13.AutoSize = true;
             this.label13.Location = new System.Drawing.Point(751, 306);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(36, 13);
             this.label13.TabIndex = 91;
             this.label13.Text = "Pass :";
-            // 
+            //
             // Main
-            // 
+            //
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(900, 431);

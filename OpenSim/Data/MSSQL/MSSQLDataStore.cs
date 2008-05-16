@@ -140,7 +140,7 @@ namespace OpenSim.Data.MSSQL
                 m_landAccessListTable = createLandAccessListTable();
                 m_dataSet.Tables.Add(m_landAccessListTable);
                 setupLandAccessCommands(m_landAccessListDataAdapter, m_connection);
-                m_landAccessListDataAdapter.Fill(m_landAccessListTable);                
+                m_landAccessListDataAdapter.Fill(m_landAccessListTable);
             }
         }
 
@@ -172,7 +172,7 @@ namespace OpenSim.Data.MSSQL
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
             // Instance.RemoveObject(obj, regionUUID);
-            
+
             m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
 
             DataTable prims = m_primTable;
@@ -222,7 +222,7 @@ namespace OpenSim.Data.MSSQL
 
         /// <summary>
         /// Load persisted objects from region storage.
-        /// </summary>        
+        /// </summary>
         public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
         {
             // return Instance.LoadObjects(regionUUID);
@@ -328,12 +328,12 @@ namespace OpenSim.Data.MSSQL
                 TaskInventoryItem item = buildItem(row);
                 inventory.Add(item);
 
-                //m_log.DebugFormat("[DATASTORE]: Restored item {0}, {1}", item.Name, item.ItemID); 
+                //m_log.DebugFormat("[DATASTORE]: Restored item {0}, {1}", item.Name, item.ItemID);
             }
 
             prim.RestoreInventoryItems(inventory);
 
-            // XXX A nasty little hack to recover the folder id for the prim (which is currently stored in 
+            // XXX A nasty little hack to recover the folder id for the prim (which is currently stored in
             // every item).  This data should really be stored in the prim table itself.
             if (dbItemRows.Length > 0)
             {
@@ -527,7 +527,7 @@ namespace OpenSim.Data.MSSQL
         /***********************************************************************
          *
          *  Database Definition Functions
-         * 
+         *
          *  This should be db agnostic as we define them in ADO.NET terms
          *
          **********************************************************************/
@@ -742,7 +742,7 @@ namespace OpenSim.Data.MSSQL
         }
 
         /***********************************************************************
-         *  
+         *
          *  Convert between ADO.NET <=> OpenSim Objects
          *
          *  These should be database independant
@@ -1198,7 +1198,7 @@ namespace OpenSim.Data.MSSQL
 
             m_log.InfoFormat("[REGION DB]: Persisting Prim Inventory with prim ID {0}", primID);
 
-            // For now, we're just going to crudely remove all the previous inventory items 
+            // For now, we're just going to crudely remove all the previous inventory items
             // no matter whether they have changed or not, and replace them with the current set.
             lock (m_dataSet)
             {
@@ -1209,7 +1209,7 @@ namespace OpenSim.Data.MSSQL
                 {
                     //                    m_log.InfoFormat(
                     //                        "[REGION DB]: " +
-                    //                        "Adding item {0}, {1} to prim ID {2}", 
+                    //                        "Adding item {0}, {1} to prim ID {2}",
                     //                        newItem.Name, newItem.ItemID, newItem.ParentPartID);
 
                     DataRow newItemRow = m_itemsTable.NewRow();
@@ -1282,7 +1282,7 @@ namespace OpenSim.Data.MSSQL
             sql += subsql;
             sql += " where " + pk;
             SqlCommand cmd = new SqlCommand(sql);
-            
+
             // this provides the binding for all our parameters, so
             // much less code than it used to be
 
@@ -1329,7 +1329,7 @@ namespace OpenSim.Data.MSSQL
         /// This is a convenience function that collapses 5 repetitive
         /// lines for defining SqlParameters to 2 parameters:
         /// column name and database type.
-        ///        
+        ///
         /// It assumes certain conventions like :param as the param
         /// name to replace in parametrized queries, and that source
         /// version is always current version, both of which are fine
@@ -1424,7 +1424,7 @@ namespace OpenSim.Data.MSSQL
             SqlCommand tcmd = new SqlCommand(createTerrain, conn);
             SqlCommand lcmd = new SqlCommand(createLand, conn);
             SqlCommand lalcmd = new SqlCommand(createLandAccessList, conn);
-            
+
             conn.Open();
             try
             {
@@ -1604,6 +1604,6 @@ namespace OpenSim.Data.MSSQL
             {
                 return DbType.String;
             }
-        }           
+        }
     }
 }

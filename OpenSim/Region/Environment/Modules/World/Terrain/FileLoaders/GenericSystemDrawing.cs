@@ -33,7 +33,7 @@ using OpenSim.Region.Environment.Interfaces;
 namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 {
     /// <summary>
-    /// A virtual class designed to have methods overloaded, 
+    /// A virtual class designed to have methods overloaded,
     /// this class provides an interface for a generic image
     /// saving and loading mechanism, but does not specify the
     /// format. It should not be insubstantiated directly.
@@ -99,7 +99,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
         }
 
         /// <summary>
-        /// Protected method, generates a grayscale bitmap 
+        /// Protected method, generates a grayscale bitmap
         /// image from a specified terrain channel.
         /// </summary>
         /// <param name="map">The terrain channel to export to bitmap</param>
@@ -134,7 +134,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
         }
 
         /// <summary>
-        /// Protected method, generates a coloured bitmap 
+        /// Protected method, generates a coloured bitmap
         /// image from a specified terrain channel.
         /// </summary>
         /// <param name="map">The terrain channel to export to bitmap</param>

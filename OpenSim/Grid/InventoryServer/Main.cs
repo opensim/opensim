@@ -41,7 +41,7 @@ namespace OpenSim.Grid.InventoryServer
     public class OpenInventory_Main : BaseOpenSimServer, conscmd_callback
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         private InventoryConfig m_config;
         private GridInventoryService m_inventoryService;
 
@@ -73,7 +73,7 @@ namespace OpenSim.Grid.InventoryServer
             m_inventoryService.AddPlugin(m_config.DatabaseProvider, m_config.DatabaseConnect);
 
             m_log.Info("[" + LogName + "]: Starting HTTP server ...");
-            
+
             m_httpServer = new BaseHttpServer(m_config.HttpPort);
             AddHttpHandlers();
             m_httpServer.Start();
@@ -86,11 +86,11 @@ namespace OpenSim.Grid.InventoryServer
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<Guid, InventoryCollection>(
                     "POST", "/GetInventory/", m_inventoryService.GetUserInventory));
-            
+
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<Guid, bool>(
                     "POST", "/CreateInventory/", m_inventoryService.CreateUsersInventory));
-            
+
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryFolderBase, bool>(
                     "POST", "/NewFolder/", m_inventoryService.AddFolder));
@@ -98,15 +98,15 @@ namespace OpenSim.Grid.InventoryServer
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryFolderBase, bool>(
                     "POST", "/MoveFolder/", m_inventoryService.MoveFolder));
-            
+
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryFolderBase, bool>(
-                    "POST", "/PurgeFolder/", m_inventoryService.PurgeFolder));            
+                    "POST", "/PurgeFolder/", m_inventoryService.PurgeFolder));
 
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryItemBase, bool>(
                     "POST", "/NewItem/", m_inventoryService.AddItem));
-            
+
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryItemBase, bool>(
                     "POST", "/DeleteItem/", m_inventoryService.DeleteItem));
@@ -134,7 +134,7 @@ namespace OpenSim.Grid.InventoryServer
         public override void RunCmd(string cmd, string[] cmdparams)
         {
             base.RunCmd(cmd, cmdparams);
-            
+
             switch (cmd)
             {
                 case "add-user":

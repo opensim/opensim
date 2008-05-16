@@ -63,13 +63,13 @@ namespace OpenSim.Grid.MessagingServer
         {
             m_cfg = cfg;
         }
-        
+
         #region RegionComms Methods
 
         #endregion
 
         #region FriendList Methods
-        
+
         /// <summary>
         /// Process Friendlist subscriptions for a user
         /// The login method calls this for a User
@@ -93,7 +93,7 @@ namespace OpenSim.Grid.MessagingServer
                 {
                     UserPresenceData friendup = (UserPresenceData)m_presences[uFriendList[i].Friend];
                     // Add backreference
-                    
+
                     SubscribeToPresenceUpdates(userpresence, friendup, uFriendList[i],i);
                 }
             }
@@ -101,14 +101,14 @@ namespace OpenSim.Grid.MessagingServer
 
         /// <summary>
         /// Does the necessary work to subscribe one agent to another's presence notifications
-        /// Gets called by ProcessFriendListSubscriptions.  You shouldn't call this directly 
+        /// Gets called by ProcessFriendListSubscriptions.  You shouldn't call this directly
         /// unless you know what you're doing
         /// </summary>
         /// <param name="userpresence">P1</param>
         /// <param name="friendpresence">P2</param>
         /// <param name="uFriendListItem"></param>
         /// <param name="uFriendListIndex"></param>
-        public void SubscribeToPresenceUpdates(UserPresenceData userpresence, UserPresenceData friendpresence, 
+        public void SubscribeToPresenceUpdates(UserPresenceData userpresence, UserPresenceData friendpresence,
                                                 FriendListItem uFriendListItem, int uFriendListIndex)
         {
             if ((uFriendListItem.FriendListOwnerPerms & (uint)FriendRights.CanSeeOnline) != 0)
@@ -117,7 +117,7 @@ namespace OpenSim.Grid.MessagingServer
                 if (!friendpresence.subscriptionData.Contains(friendpresence.agentData.AgentID))
                 {
                     userpresence.subscriptionData.Add(friendpresence.agentData.AgentID);
-                    //Send Region Notice....   
+                    //Send Region Notice....
                 }
                 else
                 {
@@ -149,13 +149,13 @@ namespace OpenSim.Grid.MessagingServer
 
                 WaitCallback cb2 = new WaitCallback(friendlistupdater.go);
                 ThreadPool.QueueUserWorkItem(cb2);
-                
+
                 //SendRegionPresenceUpdate(userpresence, friendpresence);
             }
         }
 
         /// <summary>
-        /// Adds a backreference so presence specific data doesn't have to be 
+        /// Adds a backreference so presence specific data doesn't have to be
         /// enumerated for each logged in user every time someone logs on or off.
         /// </summary>
         /// <param name="agentID"></param>
@@ -194,7 +194,7 @@ namespace OpenSim.Grid.MessagingServer
                     presenseBackReferences.Remove(agentID);
                 }
 
-                // If there are no more backreferences for this agent, 
+                // If there are no more backreferences for this agent,
                 // remove it to free up memory.
                 if (presenseBackReferences.Count == 0)
                 {
@@ -276,7 +276,7 @@ namespace OpenSim.Grid.MessagingServer
                 }
             }
         }
-        
+
         #endregion
 
         #region UserServer Comms
@@ -342,7 +342,7 @@ namespace OpenSim.Grid.MessagingServer
 
         /// <summary>
         /// UserServer sends an expect_user method
-        /// this handles the method and provisions the 
+        /// this handles the method and provisions the
         /// necessary info for presence to work
         /// </summary>
         /// <param name="request">UserServer Data</param>
@@ -398,9 +398,9 @@ namespace OpenSim.Grid.MessagingServer
 
             return new XmlRpcResponse();
         }
-        
+
         /// <summary>
-        /// The UserServer got a Logoff message 
+        /// The UserServer got a Logoff message
         /// Cleanup time for that user.  Send out presence notifications
         /// </summary>
         /// <param name="request"></param>
@@ -408,7 +408,7 @@ namespace OpenSim.Grid.MessagingServer
         public XmlRpcResponse UserLoggedOff(XmlRpcRequest request)
         {
             Hashtable requestData = (Hashtable)request.Params[0];
-            
+
             LLUUID AgentID = new LLUUID((string)requestData["agentid"]);
 
             ProcessLogOff(AgentID);
@@ -433,7 +433,7 @@ namespace OpenSim.Grid.MessagingServer
             {
                 regionInfo = (RegionProfileData)m_regionInfoCache[regionhandle];
             }
-            else 
+            else
             {
                 regionInfo = RequestRegionInfo(regionhandle);
             }
@@ -457,7 +457,7 @@ namespace OpenSim.Grid.MessagingServer
                 SendParams.Add(requestData);
                 XmlRpcRequest GridReq = new XmlRpcRequest("simulator_data_request", SendParams);
                 XmlRpcResponse GridResp = GridReq.Send(m_cfg.GridServerURL, 3000);
-                
+
                 Hashtable responseData = (Hashtable)GridResp.Value;
 
                 if (responseData.ContainsKey("error"))
@@ -479,7 +479,7 @@ namespace OpenSim.Grid.MessagingServer
                 regionProfile.regionHandle = Helpers.UIntsToLong((regX * Constants.RegionSize), (regY * Constants.RegionSize));
                 regionProfile.regionLocX = regX;
                 regionProfile.regionLocY = regY;
-               
+
                 regionProfile.remotingPort = Convert.ToUInt32((string)responseData["remoting_port"]);
                 regionProfile.UUID = new LLUUID((string)responseData["region_UUID"]);
                 regionProfile.regionName = (string)responseData["region_name"];
@@ -498,7 +498,7 @@ namespace OpenSim.Grid.MessagingServer
                             " - Is the GridServer down?");
                 return null;
             }
-           
+
             return regionProfile;
         }
 
@@ -506,19 +506,19 @@ namespace OpenSim.Grid.MessagingServer
         {
             Hashtable UserParams = new Hashtable();
             // Login / Authentication
-            
+
             if (m_cfg.HttpSSL)
             {
                 UserParams["uri"] = "https://" + m_cfg.MessageServerIP + ":" + m_cfg.HttpPort;
             }
-            else 
+            else
             {
                 UserParams["uri"] = "http://" + m_cfg.MessageServerIP + ":" + m_cfg.HttpPort;
             }
 
             UserParams["recvkey"] = m_cfg.UserRecvKey;
             UserParams["sendkey"] = m_cfg.UserRecvKey;
-            
+
             // Package into an XMLRPC Request
             ArrayList SendParams = new ArrayList();
             SendParams.Add(UserParams);

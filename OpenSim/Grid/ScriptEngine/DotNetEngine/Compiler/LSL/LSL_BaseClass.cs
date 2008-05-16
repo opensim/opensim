@@ -98,9 +98,9 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL
                               ads.ConfigurationFile
                 );
 
-            // Display the name of the calling AppDomain and the name 
+            // Display the name of the calling AppDomain and the name
             // of the second domain.
-            // NOTE: The application's thread has transitioned between 
+            // NOTE: The application's thread has transitioned between
             // AppDomains.
             Console.WriteLine("Calling to '{0}'.",
                               Thread.GetDomain().FriendlyName

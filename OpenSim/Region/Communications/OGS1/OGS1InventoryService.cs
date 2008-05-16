@@ -41,11 +41,11 @@ namespace OpenSim.Region.Communications.OGS1
 {
     public class OGS1InventoryService : IInventoryServices
     {
-        private static readonly ILog m_log 
+        private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string _inventoryServerUrl;
-        private Dictionary<LLUUID, InventoryReceiptCallback> m_RequestingInventory 
+        private Dictionary<LLUUID, InventoryReceiptCallback> m_RequestingInventory
             = new Dictionary<LLUUID, InventoryReceiptCallback>();
 
         public OGS1InventoryService(string inventoryServerUrl)
@@ -65,26 +65,26 @@ namespace OpenSim.Region.Communications.OGS1
             if (!m_RequestingInventory.ContainsKey(userID))
             {
                 m_RequestingInventory.Add(userID, callback);
-                
+
                 try
                 {
                     m_log.InfoFormat(
                         "[OGS1 INVENTORY SERVICE]: Requesting inventory from {0}/GetInventory/ for user {1}",
                         _inventoryServerUrl, userID);
-    
+
                     RestObjectPosterResponse<InventoryCollection> requester
                         = new RestObjectPosterResponse<InventoryCollection>();
                     requester.ResponseCallback = InventoryResponse;
-    
+
                     requester.BeginPostObject<Guid>(_inventoryServerUrl + "/GetInventory/", userID.UUID);
                 }
                 catch (WebException e)
                 {
                     if (StatsManager.SimExtraStats != null)
                         StatsManager.SimExtraStats.AddInventoryServiceRetrievalFailure();
-                    
-                    m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Request inventory operation failed, {0} {1}", 
-                        e.Source, e.Message);                        
+
+                    m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Request inventory operation failed, {0} {1}",
+                        e.Source, e.Message);
                 }
             }
             else
@@ -92,11 +92,11 @@ namespace OpenSim.Region.Communications.OGS1
                 m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: RequestInventoryForUser() - could you not find user profile for {0}", userID);
             }
         }
-         
+
         /// <summary>
         /// Callback used by the inventory server GetInventory request
         /// </summary>
-        /// <param name="userID"></param>        
+        /// <param name="userID"></param>
         private void InventoryResponse(InventoryCollection response)
         {
             LLUUID userID = response.UserID;
@@ -108,17 +108,17 @@ namespace OpenSim.Region.Communications.OGS1
 
                 InventoryFolderImpl rootFolder = null;
                 InventoryReceiptCallback callback = m_RequestingInventory[userID];
-                
+
                 ICollection<InventoryFolderImpl> folders = new List<InventoryFolderImpl>();
                 ICollection<InventoryItemBase> items = new List<InventoryItemBase>();
-                
+
                 foreach (InventoryFolderBase folder in response.Folders)
                 {
                     if (folder.ParentID == LLUUID.Zero)
                     {
                         rootFolder = new InventoryFolderImpl(folder);
                         folders.Add(rootFolder);
-                        
+
                         break;
                     }
                 }
@@ -142,9 +142,9 @@ namespace OpenSim.Region.Communications.OGS1
                 {
                     m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Did not get back an inventory containing a root folder for user {0}", userID);
                 }
-                
+
                 callback(folders, items);
-                
+
                 m_RequestingInventory.Remove(userID);
             }
             else
@@ -158,7 +158,7 @@ namespace OpenSim.Region.Communications.OGS1
 
         /// <summary>
         /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
-        /// </summary>      
+        /// </summary>
         public bool AddFolder(InventoryFolderBase folder)
         {
             try
@@ -168,68 +168,68 @@ namespace OpenSim.Region.Communications.OGS1
             }
             catch (WebException e)
             {
-                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Add new inventory folder operation failed, {0} {1}", 
+                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Add new inventory folder operation failed, {0} {1}",
                      e.Source, e.Message);
             }
-            
+
             return false;
         }
 
         /// <summary>
         /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
         /// </summary>
-        /// <param name="folder"></param>        
+        /// <param name="folder"></param>
         public bool MoveFolder(InventoryFolderBase folder)
         {
             try
-            {            
+            {
                 return SynchronousRestObjectPoster.BeginPostObject<InventoryFolderBase, bool>(
                     "POST", _inventoryServerUrl + "/MoveFolder/", folder);
             }
             catch (WebException e)
             {
-                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Move inventory folder operation failed, {0} {1}", 
+                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Move inventory folder operation failed, {0} {1}",
                      e.Source, e.Message);
-            }                
-            
+            }
+
             return false;
         }
-        
+
         /// <summary>
         /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
         /// </summary>
         public bool PurgeFolder(InventoryFolderBase folder)
         {
             try
-            {            
+            {
                 return SynchronousRestObjectPoster.BeginPostObject<InventoryFolderBase, bool>(
                     "POST", _inventoryServerUrl + "/PurgeFolder/", folder);
             }
             catch (WebException e)
             {
-                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Move inventory folder operation failed, {0} {1}", 
+                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Move inventory folder operation failed, {0} {1}",
                      e.Source, e.Message);
-            }    
-            
+            }
+
             return false;
-        }        
+        }
 
         /// <summary>
         /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
-        /// </summary>      
+        /// </summary>
         public bool AddItem(InventoryItemBase item)
         {
             try
-            {                
+            {
                 return SynchronousRestObjectPoster.BeginPostObject<InventoryItemBase, bool>(
                     "POST", _inventoryServerUrl + "/NewItem/", item);
             }
             catch (WebException e)
             {
-                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Add new inventory item operation failed, {0} {1}", 
+                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Add new inventory item operation failed, {0} {1}",
                      e.Source, e.Message);
-            }              
-            
+            }
+
             return false;
         }
 
@@ -246,26 +246,26 @@ namespace OpenSim.Region.Communications.OGS1
                 m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Update new inventory item operation failed, {0} {1}",
                      e.Source, e.Message);
             }
-            
+
             return false;
         }
 
         /// <summary>
         /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
-        /// </summary>       
+        /// </summary>
         public bool DeleteItem(InventoryItemBase item)
         {
             try
-            {                    
+            {
                 return SynchronousRestObjectPoster.BeginPostObject<InventoryItemBase, bool>(
                     "POST", _inventoryServerUrl + "/DeleteItem/", item);
             }
             catch (WebException e)
             {
-                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Delete inventory item operation failed, {0} {1}", 
+                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Delete inventory item operation failed, {0} {1}",
                      e.Source, e.Message);
-            }                
-            
+            }
+
             return false;
         }
 
@@ -283,12 +283,12 @@ namespace OpenSim.Region.Communications.OGS1
         {
             return false;
         }
-        
+
         // See IInventoryServices
         public List<InventoryFolderBase> GetInventorySkeleton(LLUUID userId)
         {
             m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: The GetInventorySkeleton() method here should never be called!");
-            
+
             return new List<InventoryFolderBase>();
         }
 

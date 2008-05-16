@@ -36,7 +36,7 @@ namespace OpenSim.Framework.Communications.Cache
 {
     public abstract class AssetServerBase : IAssetServer
     {
-        private static readonly ILog m_log 
+        private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected IAssetReceiver m_receiver;
@@ -47,12 +47,12 @@ namespace OpenSim.Framework.Communications.Cache
 
         // Temporarily hardcoded - should be a plugin
         protected IAssetLoader assetLoader = new AssetLoaderFileSystem();
-        
+
         protected abstract void StoreAsset(AssetBase asset);
         protected abstract void CommitAssets();
 
         /// <summary>
-        /// This method must be implemented by a subclass to retrieve the asset named in the 
+        /// This method must be implemented by a subclass to retrieve the asset named in the
         /// AssetRequest.  If the asset is not found, null should be returned.
         /// </summary>
         /// <param name="req"></param>
@@ -60,7 +60,7 @@ namespace OpenSim.Framework.Communications.Cache
         protected abstract AssetBase GetAsset(AssetRequest req);
 
         /// <summary>
-        /// Process an asset request.  This method will call GetAsset(AssetRequest req) 
+        /// Process an asset request.  This method will call GetAsset(AssetRequest req)
         /// on the subclass.
         /// </summary>
         /// <param name="req"></param>

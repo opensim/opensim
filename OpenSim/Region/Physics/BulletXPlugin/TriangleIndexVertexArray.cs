@@ -20,8 +20,8 @@
 */
 
 /*
-  This file contains a class TriangleIndexVertexArray. I tried using the class with the same name 
-  from the BulletX implementation and found it unusable for the purpose of using triangle meshes 
+  This file contains a class TriangleIndexVertexArray. I tried using the class with the same name
+  from the BulletX implementation and found it unusable for the purpose of using triangle meshes
   within BulletX as the implementation was painfully incomplete.
   The attempt to derive from the original class failed as viable members were hidden.
   Fiddling around with BulletX itself was not my intention.

@@ -120,7 +120,7 @@ namespace OpenSim.Framework
         void updateInventoryItem(InventoryItemBase item);
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="item"></param>
         void deleteInventoryItem(LLUUID item);

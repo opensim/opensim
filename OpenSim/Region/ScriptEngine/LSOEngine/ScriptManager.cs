@@ -92,7 +92,7 @@ namespace OpenSim.Region.ScriptEngine.LSOEngine
 
                 // Fire the first start-event
                 int eventFlags = m_scriptEngine.m_ScriptManager.GetStateEventFlags(localID, itemID);
-                m_host.SetScriptEvents(itemID, eventFlags); 
+                m_host.SetScriptEvents(itemID, eventFlags);
                 m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "state_entry", EventQueueManager.llDetectNull, new object[] { });
             }
             catch (Exception e) // LEGIT - User Script Compilation

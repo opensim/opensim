@@ -108,7 +108,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void state(string state)
         {
             State = state;
-            
+
         }
 
         public void Start(BuilIn_Commands LSL_Functions)
@@ -125,9 +125,9 @@ namespace OpenSim.Region.ScriptEngine.Common
                               ads.ConfigurationFile
                 );
 
-            // Display the name of the calling AppDomain and the name 
+            // Display the name of the calling AppDomain and the name
             // of the second domain.
-            // NOTE: The application's thread has transitioned between 
+            // NOTE: The application's thread has transitioned between
             // AppDomains.
             Console.WriteLine("Calling to '{0}'.",
                               Thread.GetDomain().FriendlyName

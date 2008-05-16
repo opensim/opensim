@@ -70,7 +70,7 @@ namespace OpenSim.Region.Environment.Scenes
                         obj.ResetIDs();
                     }
                     //if we want this to be a import method then we need new uuids for the object to avoid any clashes
-                    //obj.RegenerateFullIDs(); 
+                    //obj.RegenerateFullIDs();
                     m_innerScene.AddEntity(obj);
 
                     SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
@@ -143,7 +143,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             XmlDocument doc = new XmlDocument();
             XmlNode rootNode;
-           
+
             XmlTextReader reader = new XmlTextReader(new StringReader(xmlString));
             reader.WhitespaceHandling = WhitespaceHandling.None;
             doc.Load(reader);
@@ -153,7 +153,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 CreatePrimFromXml(aPrimNode.OuterXml);
             }
-         
+
         }
 
         public void LoadPrimsFromXml2(string fileName)
@@ -206,7 +206,7 @@ namespace OpenSim.Region.Environment.Scenes
                     rootPart.PhysActor.LocalID = rootPart.LocalId;
                     rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
                 }
-                rootPart.Velocity = receivedVelocity;                 
+                rootPart.Velocity = receivedVelocity;
             }
 
             obj.ScheduleGroupForFullUpdate();

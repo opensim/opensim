@@ -111,7 +111,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private IntPtr _linkJointGroup = (IntPtr)0;
         private PhysicsActor _parent = null;
         private PhysicsActor m_taintparent = null;
-        
+
         private bool iscolliding = false;
         private bool m_isphysical = false;
         private bool m_isSelected = false;
@@ -202,7 +202,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_taintadd = true;
             _parent_scene.AddPhysicsActorTaint(this);
             //  don't do .add() here; old geoms get recycled with the same hash
-            
+
         }
 
         public override int PhysicsActorType
@@ -232,9 +232,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override bool Selected
         {
             set {
-                // This only makes the object not collidable if the object 
+                // This only makes the object not collidable if the object
                 // is physical or the object is modified somehow *IN THE FUTURE*
-                // without this, if an avatar selects prim, they can walk right 
+                // without this, if an avatar selects prim, they can walk right
                 // through it while it's selected
 
                 if ((m_isphysical && !_zeroFlag) || !value)
@@ -262,7 +262,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.GeomSetCollideBits(prim_geom, (int)m_collisionFlags);
             }
             //m_log.Warn("Setting Geom to: " + prim_geom);
-            
+
         }
 
         public void enableBodySoft()
@@ -277,7 +277,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public void disableBodySoft()
         {
             m_disabled = true;
-        
+
             if (m_isphysical)
                 if (Body != (IntPtr)0)
                     d.BodyDisable(Body);
@@ -307,7 +307,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             d.BodySetAutoDisableFlag(Body, true);
             d.BodySetAutoDisableSteps(Body, 20);
-            
+
             m_interpenetrationcount = 0;
             m_collisionscore = 0;
             m_disabled = false;
@@ -327,7 +327,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             float volume = 0;
 
-            // No material is passed to the physics engines yet..  soo..   
+            // No material is passed to the physics engines yet..  soo..
             // we're using the m_density constant in the class definition
 
 
@@ -340,7 +340,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     volume = _size.X*_size.Y*_size.Z;
 
-                    // If the user has 'hollowed out' 
+                    // If the user has 'hollowed out'
                     // ProfileHollow is one of those 0 to 50000 values :P
                     // we like percentages better..   so turning into a percentage
 
@@ -415,7 +415,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         // We don't know what the shape is yet, so use default
                         volume = _size.X * _size.Y * _size.Z;
                     }
-                    // If the user has 'hollowed out' 
+                    // If the user has 'hollowed out'
                     // ProfileHollow is one of those 0 to 50000 values :P
                     // we like percentages better..   so turning into a percentage
 
@@ -427,8 +427,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                         float hollowVolume = 0;
                         switch (_pbs.HollowShape)
                         {
-                           
-                            case HollowShape.Same: 
+
+                            case HollowShape.Same:
                             case HollowShape.Circle:
                                 // Hollow shape is a perfect cyllinder in respect to the cube's scale
                                 // Cyllinder hollow volume calculation
@@ -447,7 +447,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 hollowVolume = hollowsizex * hollowsizey * hollowsizez;
                                 break;
 
-                            
+
 
                             case HollowShape.Triangle:
                                 // Equilateral Triangular Prism volume hollow calculation
@@ -465,7 +465,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         volume = volume - hollowVolume;
                     }
                     break;
-            
+
                 case ProfileShape.HalfCircle:
                     if (_pbs.PathCurve == (byte)Extrusion.Curve1)
                     {
@@ -490,13 +490,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     break;
                 case ProfileShape.EquilateralTriangle:
-                    /* 
+                    /*
                         v = (abs((xB*yA-xA*yB)+(xC*yB-xB*yC)+(xA*yC-xC*yA))/2) * h
-                        
+
                         // seed mesh
                         Vertex MM = new Vertex(-0.25f, -0.45f, 0.0f);
                         Vertex PM = new Vertex(+0.5f, 0f, 0.0f);
-                        Vertex PP = new Vertex(-0.25f, +0.45f, 0.0f); 
+                        Vertex PP = new Vertex(-0.25f, +0.45f, 0.0f);
                      */
                     float xA = -0.25f * _size.X;
                     float yA = -0.45f * _size.Y;
@@ -509,7 +509,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     volume = (float)((Math.Abs((xB * yA - xA * yB) + (xC * yB - xB * yC) + (xA * yC - xC * yA)) / 2) * _size.Z);
 
-                    // If the user has 'hollowed out' 
+                    // If the user has 'hollowed out'
                     // ProfileHollow is one of those 0 to 50000 values :P
                     // we like percentages better..   so turning into a percentage
                     float fhollowFactor = ((float)_pbs.ProfileHollow / 1.9f);
@@ -521,7 +521,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         float hollowVolume = 0;
                         switch (_pbs.HollowShape)
                         {
-                           
+
                             case HollowShape.Same:
                             case HollowShape.Triangle:
                                 // Equilateral Triangular Prism volume hollow calculation
@@ -550,7 +550,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                 hollowVolume = ((float)((Math.PI * Math.Pow(hRadius, 2) * hLength)/2) * hollowAmount);
                                 break;
 
-                            
+
                             default:
                                 hollowVolume = 0;
                                 break;
@@ -560,7 +560,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     break;
 
                 default:
-                    // we don't have all of the volume formulas yet so 
+                    // we don't have all of the volume formulas yet so
                     // use the common volume formula for all
                     volume = _size.X*_size.Y*_size.Z;
                     break;
@@ -568,7 +568,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             // Calculate Path cut effect on volume
             // Not exact, in the triangle hollow example
-            // They should never be zero or less then zero..   
+            // They should never be zero or less then zero..
             // we'll ignore it if it's less then zero
 
             // ProfileEnd and ProfileBegin are values
@@ -672,11 +672,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void setMesh(OdeScene parent_scene, IMesh mesh)
         {
-            // This sleeper is there to moderate how long it takes between 
+            // This sleeper is there to moderate how long it takes between
             // setting up the mesh and pre-processing it when we get rapid fire mesh requests on a single object
-            
+
             Thread.Sleep(10);
-            
+
             //Kill Body so that mesh can re-make the geom
             if (IsPhysical && Body != (IntPtr) 0)
             {
@@ -694,9 +694,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                                          3*sizeof (int));
             d.GeomTriMeshDataPreprocess(_triMeshData);
 
-            
+
             _parent_scene.waitForSpaceUnlock(m_targetSpace);
-            
+
             try
             {
                 if (prim_geom == (IntPtr)0)
@@ -706,7 +706,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             catch (AccessViolationException)
             {
-                
+
                 m_log.Error("[PHYSICS]: MESH LOCKED");
                 return;
             }
@@ -715,7 +715,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // Recreate the body
                 m_interpenetrationcount = 0;
                 m_collisionscore = 0;
-                
+
                 enableBody();
 
             }
@@ -724,7 +724,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public void ProcessTaints(float timestep)
         {
 
-            
+
             if (m_taintadd)
             {
                 changeadd(timestep);
@@ -779,7 +779,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         private void changeAngularLock(float timestep)
-        {   
+        {
             // do we have a Physical object?
             if (Body != IntPtr.Zero)
             {
@@ -809,7 +809,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void changelink(float timestep)
         {
-            
+
             if (_parent == null && m_taintparent != null)
             {
                 if (m_taintparent.PhysicsActorType == (int)ActorTypes.Prim)
@@ -834,14 +834,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_linkJoint = (IntPtr)0;
 
             }
-            
+
 
             _parent = m_taintparent;
         }
 
         private void changeSelectedStatus(float timestep)
         {
-            
+
             if (m_taintselected)
             {
 
@@ -849,9 +849,9 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_collisionCategories = CollisionCategories.Selected;
                 m_collisionFlags = (CollisionCategories.Sensor | CollisionCategories.Space);
 
-                // We do the body disable soft twice because 'in theory' a collision could have happened 
+                // We do the body disable soft twice because 'in theory' a collision could have happened
                 // in between the disabling and the collision properties setting
-                // which would wake the physical body up from a soft disabling and potentially cause it to fall 
+                // which would wake the physical body up from a soft disabling and potentially cause it to fall
                 // through the ground.
 
                 if (m_isphysical)
@@ -873,9 +873,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             else
             {
-                
+
                 m_collisionCategories = CollisionCategories.Geom;
-                
+
                 if (m_isphysical)
                     m_collisionCategories |= CollisionCategories.Body;
 
@@ -898,10 +898,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     enableBodySoft();
                 }
 
-                
+
             }
 
-           
+
             resetCollisionAccounting();
             m_isSelected = m_taintselected;
         }
@@ -918,21 +918,21 @@ namespace OpenSim.Region.Physics.OdePlugin
             m_taintselected = m_isSelected;
 
             m_taintsize = _size;
-            
+
 
             m_taintshape = false;
 
             m_taintforce = false;
-              
+
             m_taintdisable = false;
 
             m_taintVelocity = PhysicsVector.Zero;
         }
         public void changeadd(float timestep)
         {
-            
-            
-            
+
+
+
             int[] iprimspaceArrItem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
             IntPtr targetspace = _parent_scene.calculateSpaceForGeom(_position);
 
@@ -941,7 +941,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             m_targetSpace = targetspace;
 
-           
+
 
             if (_mesh != null)
             {
@@ -1010,7 +1010,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                             {
                                 m_log.Warn("[PHYSICS]: Unable to create physics proxy for object");
                                 ode.dunlock(_parent_scene.world);
-                                return; 
+                                return;
                             }
                         }
                     }
@@ -1060,7 +1060,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
             }
-            
+
             _parent_scene.geom_name_map[prim_geom] = this.m_primName;
             _parent_scene.actor_name_map[prim_geom] = (PhysicsActor)this;
 
@@ -1072,7 +1072,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
         public void changemove(float timestep)
         {
-            
+
 
 
             if (m_isphysical)
@@ -1080,7 +1080,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // This is a fallback..   May no longer be necessary.
                 if (Body == (IntPtr) 0)
                     enableBody();
-                //Prim auto disable after 20 frames, 
+                //Prim auto disable after 20 frames,
                 //if you move it, re-enable the prim manually.
                 if (_parent != null)
                 {
@@ -1102,7 +1102,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
                 d.BodyEnable(Body);
-                
+
             }
             else
             {
@@ -1122,10 +1122,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.SpaceAdd(m_targetSpace, prim_geom);
                 }
             }
-            
+
 
             changeSelectedStatus(timestep);
-            
+
             resetCollisionAccounting();
             m_taintposition = _position;
         }
@@ -1140,42 +1140,42 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 float PID_D = 2200.0f;
                 //float PID_P = 900.0f;
-                
-                
+
+
                 float m_mass = CalculateMass();
-                
+
                 fz = 0f;
                     //m_log.Info(m_collisionFlags.ToString());
 
-               
+
 
 
                 if (m_buoyancy != 0)
                 {
-                    
+
                     if (m_buoyancy > 0)
                     {
                          fz = (((-1 * _parent_scene.gravityz) * m_buoyancy) * m_mass);
-                         
+
                         //d.Vector3 l_velocity = d.BodyGetLinearVel(Body);
                          //m_log.Info("Using Buoyancy: " + buoyancy + " G: " + (_parent_scene.gravityz * m_buoyancy) + "mass:" + m_mass + "  Pos: " + Position.ToString());
                     }
-                    else 
+                    else
                     {
                         fz = (-1 * (((-1 * _parent_scene.gravityz) * (-1 * m_buoyancy)) * m_mass));
                     }
-                    
+
 
                 }
 
                 if (m_usePID)
                 {
-                    // If we're using the PID controller, then we have no gravity             
+                    // If we're using the PID controller, then we have no gravity
                     fz = (-1 * _parent_scene.gravityz) * this.Mass;
 
                     //  no lock; for now it's only called from within Simulate()
 
-                    // If the PID Controller isn't active then we set our force 
+                    // If the PID Controller isn't active then we set our force
                     // calculating base velocity to the current position
                     if (Environment.OSVersion.Platform == PlatformID.Unix)
                     {
@@ -1189,7 +1189,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     PID_D = 35f;
 
-                    
+
                     //PID_P = 1.0f;
                     float PID_G = 25;
 
@@ -1197,7 +1197,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         PID_G = PID_G / m_PIDTau;
                     }
-                        
+
 
                     if ((PID_G - m_PIDTau) <= 0)
                     {
@@ -1205,15 +1205,15 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     //PidStatus = true;
 
-                   
+
 
 
                     PhysicsVector vec = new PhysicsVector();
                     d.Vector3 vel = d.BodyGetLinearVel(Body);
-                    
+
 
                     d.Vector3 pos = d.BodyGetPosition(Body);
-                    _target_velocity = 
+                    _target_velocity =
                         new PhysicsVector(
                             (m_PIDTarget.X - pos.X) * ((PID_G - m_PIDTau) * timestep),
                             (m_PIDTarget.Y - pos.Y) * ((PID_G - m_PIDTau) * timestep),
@@ -1222,18 +1222,18 @@ namespace OpenSim.Region.Physics.OdePlugin
 
 
                     //  if velocity is zero, use position control; otherwise, velocity control
-                    
+
                     if (_target_velocity.IsIdentical(PhysicsVector.Zero,0.1f))
                     {
                         //  keep track of where we stopped.  No more slippin' & slidin'
-                        
-                       
+
+
                         // We only want to deactivate the PID Controller if we think we want to have our surrogate
                         // react to the physics scene by moving it's position.
                         // Avatar to Avatar collisions
                         // Prim to avatar collisions
 
-                        
+
                         //fx = (_target_velocity.X - vel.X) * (PID_D) + (_zeroPosition.X - pos.X) * (PID_P * 2);
                         //fy = (_target_velocity.Y - vel.Y) * (PID_D) + (_zeroPosition.Y - pos.Y) * (PID_P * 2);
                         //fz = fz + (_target_velocity.Z - vel.Z) * (PID_D) + (_zeroPosition.Z - pos.Z) * PID_P;
@@ -1245,27 +1245,27 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     else
                     {
-                       
+
                         _zeroFlag = false;
-                        
+
                         // We're flying and colliding with something
                         fx = ((_target_velocity.X) - vel.X) * (PID_D);
                         fy = ((_target_velocity.Y) - vel.Y) * (PID_D);
-                    
 
-                   
-                        
+
+
+
                        // vec.Z = (_target_velocity.Z - vel.Z) * PID_D + (_zeroPosition.Z - pos.Z) * PID_P;
 
                         fz = fz + ((_target_velocity.Z - vel.Z) * (PID_D) * m_mass);
                     }
 
-                } 
+                }
 
                 fx *= m_mass;
                 fy *= m_mass;
                 //fz *= m_mass;
-                
+
                 //m_log.Info("[OBJPID]: X:" + fx.ToString() + " Y:" + fy.ToString() + " Z:" + fz.ToString());
                 if (fx != 0 || fy != 0 || fz != 0)
                 {
@@ -1285,7 +1285,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void rotate(float timestep)
         {
-            
+
 
             d.Quaternion myrot = new d.Quaternion();
             myrot.W = _orientation.w;
@@ -1299,7 +1299,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (!m_angularlock.IsIdentical(new PhysicsVector(1, 1, 1), 0))
                     createAMotor(m_angularlock);
             }
-            
+
             resetCollisionAccounting();
             m_taintrot = _orientation;
         }
@@ -1313,21 +1313,21 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void changedisable(float timestep)
         {
-           
+
             m_disabled = true;
             if (Body != (IntPtr)0)
             {
                 d.BodyDisable(Body);
                 Body = (IntPtr)0;
             }
-           
+
 
             m_taintdisable = false;
         }
 
         public void changePhysicsStatus(float timestep)
         {
-            
+
 
             if (m_isphysical == true)
             {
@@ -1352,7 +1352,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void changesize(float timestamp)
         {
-           
+
             //if (!_parent_scene.geom_name_map.ContainsKey(prim_geom))
             //{
                // m_taintsize = _size;
@@ -1369,7 +1369,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 // Cleanup meshing here
             }
-            //kill body to rebuild 
+            //kill body to rebuild
             if (IsPhysical && Body != (IntPtr) 0)
             {
                 disableBody();
@@ -1531,7 +1531,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     m_collisionFlags |= CollisionCategories.Water;
                 }
-                else 
+                else
                 {
                     m_collisionFlags &= ~CollisionCategories.Water;
                 }
@@ -1541,7 +1541,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public void changeshape(float timestamp)
         {
-           
+
             string oldname = _parent_scene.geom_name_map[prim_geom];
 
             // Cleanup of old prim geometry and Bodies
@@ -1579,7 +1579,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         // Re creates body on size.
                         // EnableBody also does setMass()
                         enableBody();
-                        
+
                     }
                 }
                 else
@@ -1684,7 +1684,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.BodyEnable(Body);
                 }
             }
-            
+
 
             _parent_scene.geom_name_map[prim_geom] = oldname;
 
@@ -1698,7 +1698,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (!m_isSelected)
             {
-                
+
 
 
                 lock (m_forcelist)
@@ -1728,7 +1728,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             if (!m_isSelected)
             {
-                
+
 
                 Thread.Sleep(20);
                 if (IsPhysical)
@@ -1737,8 +1737,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                     {
                         d.BodySetLinearVel(Body, m_taintVelocity.X, m_taintVelocity.Y, m_taintVelocity.Z);
                     }
-                }    
-               
+                }
+
                 //resetCollisionAccounting();
             }
             m_taintVelocity = PhysicsVector.Zero;
@@ -1794,7 +1794,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get { return _position; }
 
-            set { _position = value; 
+            set { _position = value;
                 //m_log.Info("[PHYSICS]: " + _position.ToString());
             }
         }
@@ -1838,7 +1838,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             get
             {
-                // Averate previous velocity with the new one so 
+                // Averate previous velocity with the new one so
                 // client object interpolation works a 'little' better
                 PhysicsVector returnVelocity = new PhysicsVector();
                 returnVelocity.X = (m_lastVelocity.X + _velocity.X)/2;
@@ -1849,7 +1849,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             set
             {
                 _velocity = value;
-                
+
                 m_taintVelocity = value;
                 _parent_scene.AddPhysicsActorTaint(this);
             }
@@ -1898,11 +1898,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 if (_zeroFlag)
                     return pv;
                 m_lastUpdateSent = false;
-                
+
                 if (m_rotationalVelocity.IsIdentical(pv, 0.2f))
                     return pv;
 
-                return m_rotationalVelocity; 
+                return m_rotationalVelocity;
             }
             set { m_rotationalVelocity = value; }
         }
@@ -1948,7 +1948,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         public void UpdatePositionAndVelocity()
-        { 
+        {
             //  no lock; called from Simulate() -- if you call this from elsewhere, gotta lock or do Monitor.Enter/Exit!
             if (_parent != null)
             {
@@ -1963,7 +1963,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     d.Quaternion ori = d.BodyGetQuaternion(Body);
                     d.Vector3 vel = d.BodyGetLinearVel(Body);
                     d.Vector3 rotvel = d.BodyGetAngularVel(Body);
-                    
+
                     PhysicsVector l_position = new PhysicsVector();
 
                     //  kluge to keep things in bounds.  ODE lets dead avatars drift away (they should be removed!)
@@ -2000,16 +2000,16 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     if (l_position.Z < 0)
                     {
-                        // This is so prim that get lost underground don't fall forever and suck up 
-                        // 
+                        // This is so prim that get lost underground don't fall forever and suck up
+                        //
                         // Sim resources and memory.
-                        // Disables the prim's movement physics....  
+                        // Disables the prim's movement physics....
                         // It's a hack and will generate a console message if it fails.
 
                         //IsPhysical = false;
                         if (_parent == null)
                             base.RaiseOutOfBounds(_position);
-                        
+
                         _acceleration.X = 0;
                         _acceleration.Y = 0;
                         _acceleration.Z = 0;
@@ -2020,10 +2020,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                         m_rotationalVelocity.X = 0;
                         m_rotationalVelocity.Y = 0;
                         m_rotationalVelocity.Z = 0;
-                        
+
                         if (_parent == null)
                             base.RequestPhysicsterseUpdate();
-                        
+
                         m_throttleUpdates = false;
                         throttleCounter = 0;
                         _zeroFlag = true;
@@ -2065,10 +2065,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                             m_throttleUpdates = false;
                             throttleCounter = 0;
                             m_rotationalVelocity = pv;
-                            
+
                             if (_parent == null)
                                 base.RequestPhysicsterseUpdate();
-                            
+
                             m_lastUpdateSent = true;
                         }
                     }
@@ -2087,11 +2087,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                         _velocity.X = vel.X;
                         _velocity.Y = vel.Y;
                         _velocity.Z = vel.Z;
-                        
+
                         _acceleration = ((_velocity - m_lastVelocity) / 0.1f);
                         _acceleration = new PhysicsVector(_velocity.X - m_lastVelocity.X / 0.1f, _velocity.Y - m_lastVelocity.Y / 0.1f, _velocity.Z - m_lastVelocity.Z / 0.1f);
                         //m_log.Info("[PHYSICS]: V1: " + _velocity + " V2: " + m_lastVelocity + " Acceleration: " + _acceleration.ToString());
-                        
+
                         if (_velocity.IsIdentical(pv, 0.5f))
                         {
                             m_rotationalVelocity = pv;
@@ -2173,7 +2173,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 m_tensor = 5f;
             }
-            
+
             float axisnum = 3;
 
             axisnum = (axisnum - (axis.X + axis.Y + axis.Z));
@@ -2222,7 +2222,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             d.JointSetAMotorParam(Amotor, (int)dParam.HiStop, 0.000000000001f);
             d.JointSetAMotorParam(Amotor, (int)dParam.HiStop3, 0.000000000001f);
             d.JointSetAMotorParam(Amotor, (int)dParam.HiStop2, 0.000000000001f);
-           
+
             d.JointSetAMotorParam(Amotor, (int)dParam.FudgeFactor, 0f);
             d.JointSetAMotorParam(Amotor, (int)dParam.FMax, m_tensor);
         }

@@ -34,7 +34,7 @@ namespace OpenSim.Framework.Servers
     {
         private RestMethod m_restMethod;
 
-        public RestMethod Method 
+        public RestMethod Method
         {
             get { return m_restMethod; }
         }

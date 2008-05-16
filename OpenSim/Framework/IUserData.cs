@@ -87,7 +87,7 @@ namespace OpenSim.Framework
         void StoreWebLoginKey(LLUUID agentID, LLUUID webLoginKey);
 
         /// <summary>
-        /// Adds a new User profile to the database 
+        /// Adds a new User profile to the database
         /// </summary>
         /// <param name="user">UserProfile to add</param>
         void AddNewUserProfile(UserProfileData user);
@@ -181,8 +181,8 @@ namespace OpenSim.Framework
         AvatarAppearance GetUserAppearance(LLUUID user);
 
         void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance);
-        
-        
+
+
         void AddAttachment(LLUUID user, LLUUID item);
         void RemoveAttachment(LLUUID user, LLUUID item);
         List<LLUUID> GetAttachments(LLUUID user);

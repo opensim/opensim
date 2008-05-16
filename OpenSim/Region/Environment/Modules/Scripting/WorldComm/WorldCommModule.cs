@@ -37,25 +37,25 @@ using OpenSim.Region.Environment.Scenes;
 /*****************************************************
  *
  * WorldCommModule
- * 
- * 
+ *
+ *
  * Holding place for world comms - basically llListen
  * function implementation.
- * 
+ *
  * lLListen(integer channel, string name, key id, string msg)
- * The name, id, and msg arguments specify the filtering 
- * criteria. You can pass the empty string 
- * (or NULL_KEY for id) for these to set a completely 
- * open filter; this causes the listen() event handler to be 
- * invoked for all chat on the channel. To listen only 
- * for chat spoken by a specific object or avatar, 
- * specify the name and/or id arguments. To listen 
- * only for a specific command, specify the 
- * (case-sensitive) msg argument. If msg is not empty, 
- * listener will only hear strings which are exactly equal 
+ * The name, id, and msg arguments specify the filtering
+ * criteria. You can pass the empty string
+ * (or NULL_KEY for id) for these to set a completely
+ * open filter; this causes the listen() event handler to be
+ * invoked for all chat on the channel. To listen only
+ * for chat spoken by a specific object or avatar,
+ * specify the name and/or id arguments. To listen
+ * only for a specific command, specify the
+ * (case-sensitive) msg argument. If msg is not empty,
+ * listener will only hear strings which are exactly equal
  * to msg. You can also use all the arguments to establish
  * the most restrictive filtering criteria.
- * 
+ *
  * It might be useful for each listener to maintain a message
  * digest, with a list of recent messages by UUID.  This can
  * be used to prevent in-world repeater loops.  However, the
@@ -76,7 +76,7 @@ using OpenSim.Region.Environment.Scenes;
  *    Might be actually easier to map the global handle into
  *    script-local handle in the ScriptEngine. Not sure if its
  *    worth the effort tho.
- * 
+ *
  * **************************************************/
 
 namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
@@ -317,9 +317,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
         }
 
         /********************************************************************
-         * 
+         *
          * Listener Stuff
-         * 
+         *
          * *****************************************************************/
 
         private void DeliverClientMessage(Object sender, ChatFromViewerArgs e)

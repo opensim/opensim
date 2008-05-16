@@ -63,7 +63,7 @@ namespace OpenSim.Framework
         #endregion
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="agent"></param>
         /// <returns></returns>
@@ -171,7 +171,7 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <remarks>TODO: Doesnt take any args??</remarks>
         /// <returns></returns>
@@ -188,7 +188,7 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <remarks>Added to avoid a unused compiler warning on OnNeighboursUpdate, TODO: Check me</remarks>
         /// <param name="neighbours"></param>

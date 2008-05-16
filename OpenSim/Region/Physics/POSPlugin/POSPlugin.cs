@@ -171,12 +171,12 @@ namespace OpenSim.Region.Physics.POSPlugin
             {
                 if (check_collision(c, _prims[i]))
                 {
-                    
+
                     return true;
                 }
 
             }
-            
+
             return false;
         }
 
@@ -234,7 +234,7 @@ namespace OpenSim.Region.Physics.POSPlugin
                     character.Position.Z += character._target_velocity.Z*timeStep;
                 }
 
-                /// this is it -- the magic you've all been waiting for!  Ladies and gentlemen -- 
+                /// this is it -- the magic you've all been waiting for!  Ladies and gentlemen --
                 /// Completely Bogus Collision Detection!!!
                 /// better known as the CBCD algorithm
 

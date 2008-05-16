@@ -40,25 +40,25 @@ using OpenSim.Region.Environment.Scenes;
 /*****************************************************
  *
  * ScriptsHttpRequests
- * 
+ *
  * Implements the llHttpRequest and http_response
  * callback.
- * 
+ *
  * Some stuff was already in LSLLongCmdHandler, and then
  * there was this file with a stub class in it.  So,
  * I am moving some of the objects and functions out of
  * LSLLongCmdHandler, such as the HttpRequestClass, the
- * start and stop methods, and setting up pending and 
- * completed queues.  These are processed in the 
- * LSLLongCmdHandler polling loop.  Similiar to the 
+ * start and stop methods, and setting up pending and
+ * completed queues.  These are processed in the
+ * LSLLongCmdHandler polling loop.  Similiar to the
  * XMLRPCModule, since that seems to work.
- * 
+ *
  * //TODO
- * 
+ *
  * This probably needs some throttling mechanism but
  * its wide open right now.  This applies to both
  * number of requests and data volume.
- * 
+ *
  * Linden puts all kinds of header fields in the requests.
  * Not doing any of that:
  * User-Agent
@@ -71,13 +71,13 @@ using OpenSim.Region.Environment.Scenes;
  * X-SecondLife-Local-Rotation
  * X-SecondLife-Owner-Name
  * X-SecondLife-Owner-Key
- * 
+ *
  * HTTPS support
- * 
+ *
  * Configurable timeout?
  * Configurable max repsonse size?
  * Configurable
- * 
+ *
  * **************************************************/
 
 namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest

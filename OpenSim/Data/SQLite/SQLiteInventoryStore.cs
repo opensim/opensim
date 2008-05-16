@@ -106,22 +106,22 @@ namespace OpenSim.Data.SQLite
             // new fields
             if (!Convert.IsDBNull(row["salePrice"]))
                 item.SalePrice = Convert.ToInt32(row["salePrice"]);
-            
+
             if (!Convert.IsDBNull(row["saleType"]))
                 item.SaleType = Convert.ToByte(row["saleType"]);
-            
+
             if (!Convert.IsDBNull(row["creationDate"]))
                 item.CreationDate = Convert.ToInt32(row["creationDate"]);
-            
+
             if (!Convert.IsDBNull(row["groupID"]))
                 item.GroupID = new LLUUID((string)row["groupID"]);
-            
+
             if (!Convert.IsDBNull(row["groupOwned"]))
                 item.GroupOwned = Convert.ToBoolean(row["groupOwned"]);
-            
+
             if (!Convert.IsDBNull(row["Flags"]))
                 item.Flags = Convert.ToUInt32(row["Flags"]);
-            
+
             return item;
         }
 
@@ -221,7 +221,7 @@ namespace OpenSim.Data.SQLite
                 {
                     if (add)
                         m_log.ErrorFormat("[INVENTORY DB]: Interface Misuse: Attempting to Add inventory item that already exists: {0}", item.ID);
-                    
+
                     fillItemRow(inventoryRow, item);
                 }
                 invItemsDa.Update(ds, "inventoryitems");
@@ -314,9 +314,9 @@ namespace OpenSim.Data.SQLite
 
                 // There should only ever be one root folder for a user.  However, if there's more
                 // than one we'll simply use the first one rather than failing.  It would be even
-                // nicer to print some message to this effect, but this feels like it's too low a 
+                // nicer to print some message to this effect, but this feels like it's too low a
                 // to put such a message out, and it's too minor right now to spare the time to
-                // suitably refactor.            
+                // suitably refactor.
                 if (folders.Count > 0)
                 {
                     return folders[0];
@@ -327,7 +327,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// Append a list of all the child folders of a parent folder 
+        /// Append a list of all the child folders of a parent folder
         /// </summary>
         /// <param name="folders">list where folders will be appended</param>
         /// <param name="parentID">ID of parent</param>
@@ -435,7 +435,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="item"></param>
         public void deleteInventoryItem(LLUUID itemID)
@@ -664,7 +664,7 @@ namespace OpenSim.Data.SQLite
         {
             string createInventoryItems = defineTable(createInventoryItemsTable());
             string createInventoryFolders = defineTable(createInventoryFoldersTable());
-            
+
             SqliteCommand pcmd = new SqliteCommand(createInventoryItems, conn);
             SqliteCommand scmd = new SqliteCommand(createInventoryFolders, conn);
 
@@ -697,7 +697,7 @@ namespace OpenSim.Data.SQLite
             // Very clumsy way of checking whether we need to upgrade the database table version and then updating.  Only
             // putting up with this because this code should be blown away soon by nhibernate...
             conn.Open();
-            
+
             SqliteCommand cmd;
             try
             {
@@ -707,7 +707,7 @@ namespace OpenSim.Data.SQLite
             catch (SqliteSyntaxException)
             {
                 m_log.Info("[INVENTORY DB]: Upgrading sqlite inventory database to version 2");
-                
+
                 cmd = new SqliteCommand("alter table inventoryitems add column salePrice integer default 99;", conn);
                 cmd.ExecuteNonQuery();
                 cmd = new SqliteCommand("alter table inventoryitems add column saleType integer default 0;", conn);
@@ -719,15 +719,15 @@ namespace OpenSim.Data.SQLite
                 cmd = new SqliteCommand("alter table inventoryitems add column groupOwned integer default 0;", conn);
                 cmd.ExecuteNonQuery();
                 cmd = new SqliteCommand("alter table inventoryitems add column flags integer default 0;", conn);
-                cmd.ExecuteNonQuery();  
-                
+                cmd.ExecuteNonQuery();
+
                 pDa.Fill(tmpDS, "inventoryitems");
             }
             finally
             {
                 conn.Close();
             }
-            
+
             foreach (DataColumn col in createInventoryItemsTable().Columns)
             {
                 if (! tmpDS.Tables["inventoryitems"].Columns.Contains(col.ColumnName))

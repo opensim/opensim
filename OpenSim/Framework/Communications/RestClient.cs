@@ -16,14 +16,14 @@ namespace OpenSim.Framework.Communications
     /// <remarks>
     /// This class is a generic implementation of a REST (Representational State Transfer) web service. This
     /// class is designed to execute both synchronously and asynchronously.
-    /// 
+    ///
     /// Internally the implementation works as a two stage asynchronous web-client.
     /// When the request is initiated, RestClient will query asynchronously for for a web-response,
     /// sleeping until the initial response is returned by the server. Once the initial response is retrieved
     /// the second stage of asynchronous requests will be triggered, in an attempt to read of the response
     /// object into a memorystream as a sequence of asynchronous reads.
-    /// 
-    /// The asynchronisity of RestClient is designed to move as much processing into the back-ground, allowing 
+    ///
+    /// The asynchronisity of RestClient is designed to move as much processing into the back-ground, allowing
     /// other threads to execute, while it waits for a response from the web-service. RestClient itself can be
     /// invoked by the caller in either synchronous mode or asynchronous modes.
     /// </remarks>
@@ -36,7 +36,7 @@ namespace OpenSim.Framework.Communications
         #region member variables
 
         /// <summary>
-        /// The base Uri of the web-service e.g. http://www.google.com 
+        /// The base Uri of the web-service e.g. http://www.google.com
         /// </summary>
         private string _url;
 
@@ -92,7 +92,7 @@ namespace OpenSim.Framework.Communications
 
 
         /// <summary>
-        /// if an exception occours during async processing, we need to save it, so it can be 
+        /// if an exception occours during async processing, we need to save it, so it can be
         /// rethrown on the primary thread;
         /// </summary>
         private Exception _asyncException;
@@ -341,7 +341,7 @@ namespace OpenSim.Framework.Communications
         {
             AsyncResult<Stream> ar = (AsyncResult<Stream>) asyncResult;
 
-            // Wait for operation to complete, then return result or 
+            // Wait for operation to complete, then return result or
             // throw exception
             return ar.EndInvoke();
         }

@@ -50,7 +50,7 @@ namespace OpenSim.Framework
         private LLUUID _owner;
 
         /// <summary>
-        /// The folder this folder is contained in 
+        /// The folder this folder is contained in
         /// </summary>
         private LLUUID _parentID;
 

@@ -41,7 +41,7 @@ namespace OpenSim.Grid.UserServer
     public delegate void logOffUser(LLUUID AgentID);
 
     public class UserManager : UserManagerBase
-    {            
+    {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public event logOffUser OnLogOffUser;
@@ -91,7 +91,7 @@ namespace OpenSim.Grid.UserServer
                 responseData["lastname" + i.ToString()] = returnUsers[i].lastName;
             }
             response.Value = responseData;
-            
+
             return response;
         }
 
@@ -182,7 +182,7 @@ namespace OpenSim.Grid.UserServer
             Hashtable responseData = new Hashtable();
             string returnString = "FALSE";
             // Query Result Information
-            
+
             if (requestData.Contains("ownerID") && requestData.Contains("friendID") && requestData.Contains("friendPerms"))
             {
                 // UserManagerBase.AddNewuserFriend
@@ -201,7 +201,7 @@ namespace OpenSim.Grid.UserServer
             Hashtable responseData = new Hashtable();
             string returnString = "FALSE";
             // Query Result Information
-            
+
             if (requestData.Contains("ownerID") && requestData.Contains("friendID"))
             {
                 // UserManagerBase.AddNewuserFriend
@@ -219,7 +219,7 @@ namespace OpenSim.Grid.UserServer
             Hashtable requestData = (Hashtable)request.Params[0];
             Hashtable responseData = new Hashtable();
             string returnString = "FALSE";
-           
+
             if (requestData.Contains("ownerID") && requestData.Contains("friendID") && requestData.Contains("friendPerms"))
             {
                 UpdateUserFriendPerms(new LLUUID((string)requestData["ownerID"]), new LLUUID((string)requestData["friendID"]), (uint)Convert.ToInt32((string)requestData["friendPerms"]));
@@ -243,7 +243,7 @@ namespace OpenSim.Grid.UserServer
             {
                 returndata = this.GetUserFriendList(new LLUUID((string)requestData["ownerID"]));
             }
-            
+
             return FriendListItemListtoXmlRPCResponse(returndata);
         }
 
@@ -350,7 +350,7 @@ namespace OpenSim.Grid.UserServer
             }
             // dont' know how yet
             if (requestData.Contains("MaturePublish"))
-            {                
+            {
             }
             if (requestData.Contains("AboutText"))
             {
@@ -362,7 +362,7 @@ namespace OpenSim.Grid.UserServer
             }
             // not in DB yet.
             if (requestData.Contains("ProfileURL"))
-            {                
+            {
             }
             if (requestData.Contains("home_region"))
             {
@@ -382,7 +382,7 @@ namespace OpenSim.Grid.UserServer
                 {
                     m_log.Error("[PROFILE]:Failed to set home region, Value was too large");
                 }
-                
+
             }
             if (requestData.Contains("home_pos_x"))
             {
@@ -442,7 +442,7 @@ namespace OpenSim.Grid.UserServer
             }
             if (requestData.Contains("home_look_z"))
             {
-                try 
+                try
                 {
                     userProfile.HomeLookAtZ = (float)Convert.ToDecimal((string)requestData["home_look_z"]);
                 }

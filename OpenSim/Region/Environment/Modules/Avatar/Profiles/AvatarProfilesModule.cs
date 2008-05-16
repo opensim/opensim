@@ -86,7 +86,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Profiles
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="avatarID"></param>

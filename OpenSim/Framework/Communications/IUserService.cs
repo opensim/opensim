@@ -37,7 +37,7 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         /// <param name="fname">First name</param>
         /// <param name="lname">Last name</param>
-        /// <returns>A user profile.  Returns null if no profile is found</returns>        
+        /// <returns>A user profile.  Returns null if no profile is found</returns>
         UserProfileData GetUserProfile(string firstName, string lastName);
 
         //UserProfileData GetUserProfile(string name);
@@ -46,7 +46,7 @@ namespace OpenSim.Framework.Communications
         /// Loads a user profile from a database by UUID
         /// </summary>
         /// <param name="uuid">The target UUID</param>
-        /// <returns>A user profile.  Returns null if no user profile is found.</returns>        
+        /// <returns>A user profile.  Returns null if no user profile is found.</returns>
         UserProfileData GetUserProfile(LLUUID userId);
 
         void clearUserAgent(LLUUID avatarID);
@@ -57,7 +57,7 @@ namespace OpenSim.Framework.Communications
         UserProfileData SetupMasterUser(LLUUID userId);
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="user"></param>
         LLUUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY);
@@ -110,7 +110,7 @@ namespace OpenSim.Framework.Communications
         List<FriendListItem> GetUserFriendList(LLUUID friendlistowner);
 
         /// <summary>
-        /// Get's the User Appearance 
+        /// Get's the User Appearance
         AvatarAppearance GetUserAppearance(LLUUID user);
 
         void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance);

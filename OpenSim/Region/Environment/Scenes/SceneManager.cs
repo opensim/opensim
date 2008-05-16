@@ -180,7 +180,7 @@ namespace OpenSim.Region.Environment.Scenes
         [Obsolete("TODO: Remove this warning by 0.7")]
         public bool RunTerrainCmdOnCurrentScene(string[] cmdparams, ref string result)
         {
-            m_log.Warn("DEPRECIATED: The terrain engine has been replaced with a new terrain plugin module. Please type 'plugin terrain help' for new commands.");            
+            m_log.Warn("DEPRECIATED: The terrain engine has been replaced with a new terrain plugin module. Please type 'plugin terrain help' for new commands.");
             return false;
         }
 
@@ -253,7 +253,7 @@ namespace OpenSim.Region.Environment.Scenes
         public bool TrySetCurrentScene(LLUUID regionID)
         {
             Console.WriteLine("Searching for Region: '{0}'", regionID.ToString());
-            
+
             foreach (Scene scene in m_localScenes)
             {
                 if (scene.RegionInfo.RegionID == regionID)
@@ -262,7 +262,7 @@ namespace OpenSim.Region.Environment.Scenes
                     return true;
                 }
             }
-            
+
             return false;
         }
 

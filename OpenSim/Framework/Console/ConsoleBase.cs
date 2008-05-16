@@ -58,7 +58,7 @@ namespace OpenSim.Framework.Console
         }
 
         /// <summary>
-        /// derive an ansi color from a string, ignoring the darker colors.  
+        /// derive an ansi color from a string, ignoring the darker colors.
         /// This is used to help automatically bin component tags with colors
         /// in various print functions.
         /// </summary>
@@ -195,7 +195,7 @@ namespace OpenSim.Framework.Console
                         System.Console.WriteLine(args);
                     }
                 }
-            } 
+            }
             catch (ObjectDisposedException)
             {
             }
@@ -232,7 +232,7 @@ namespace OpenSim.Framework.Console
             {
             }
         }
-         
+
         public string ReadLine()
         {
             try
@@ -245,7 +245,7 @@ namespace OpenSim.Framework.Console
                 return String.Empty;
             }
         }
-         
+
         public int Read()
         {
             return System.Console.Read();

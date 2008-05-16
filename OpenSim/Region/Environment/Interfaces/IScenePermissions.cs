@@ -28,7 +28,7 @@
 using libsecondlife;
 
 namespace OpenSim.Region.Environment.Interfaces
-{ 
+{
     public interface IScenePermissions
     {
     }

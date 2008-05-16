@@ -32,17 +32,17 @@ namespace OpenSim.Framework.Communications.Limit
 {
     /// <summary>
     /// Limit requests by discarding repeat attempts that occur within a given time period
-    /// 
+    ///
     /// XXX Don't use this for limiting texture downloading, at least not until we better handle multiple requests
     /// for the same texture at different resolutions.
-    /// </summary>    
+    /// </summary>
     public class TimeLimitStrategy<TId> : IRequestLimitStrategy<TId>
     {
         /// <summary>
         /// Record the time at which an asset request occurs.
         /// </summary>
-        private readonly Dictionary<TId, Request> requests = new Dictionary<TId, Request>();    
-        
+        private readonly Dictionary<TId, Request> requests = new Dictionary<TId, Request>();
+
         /// <summary>
         /// The minimum time period between which requests for the same data will be serviced.
         /// </summary>
@@ -53,37 +53,37 @@ namespace OpenSim.Framework.Communications.Limit
         }
 
         /// <summary></summary>
-        /// <param name="repeatPeriod"></param>        
+        /// <param name="repeatPeriod"></param>
         public TimeLimitStrategy(TimeSpan repeatPeriod)
         {
             m_repeatPeriod = repeatPeriod;
         }
-        
+
         /// <summary>
         /// <see cref="IRequestLimitStrategy"/>
         /// </summary>
         public bool AllowRequest(TId id)
-        {                 
+        {
             if (IsMonitoringRequests(id))
             {
                 DateTime now = DateTime.Now;
                 TimeSpan elapsed = now - requests[id].Time;
-                
+
                 if (elapsed < RepeatPeriod)
                 {
                     requests[id].Refusals += 1;
                     return false;
                 }
-                
-                requests[id].Time = now; 
+
+                requests[id].Time = now;
             }
-            
+
             return true;
         }
-        
+
         /// <summary>
         /// <see cref="IRequestLimitStrategy"/>
-        /// </summary>        
+        /// </summary>
         public bool IsFirstRefusal(TId id)
         {
             if (IsMonitoringRequests(id))
@@ -92,31 +92,31 @@ namespace OpenSim.Framework.Communications.Limit
                 {
                     return true;
                 }
-            }           
-            
+            }
+
             return false;
         }
-        
+
         /// <summary>
         /// <see cref="IRequestLimitStrategy"/>
-        /// </summary>        
+        /// </summary>
         public void MonitorRequests(TId id)
         {
             if (!IsMonitoringRequests(id))
             {
                 requests.Add(id, new Request(DateTime.Now));
-            }            
-        }  
-        
+            }
+        }
+
         /// <summary>
         /// <see cref="IRequestLimitStrategy"/>
-        /// </summary>         
+        /// </summary>
         public bool IsMonitoringRequests(TId id)
         {
             return requests.ContainsKey(id);
-        }      
+        }
     }
-    
+
     /// <summary>
     /// Private request details.
     /// </summary>
@@ -126,12 +126,12 @@ namespace OpenSim.Framework.Communications.Limit
         /// Time of last request
         /// </summary>
         public DateTime Time;
-        
+
         /// <summary>
         /// Number of refusals associated with this request
         /// </summary>
         public int Refusals;
-        
+
         public Request(DateTime time)
         {
             Time = time;

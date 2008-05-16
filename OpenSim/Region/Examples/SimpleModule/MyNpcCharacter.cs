@@ -292,7 +292,7 @@ namespace OpenSim.Region.Examples.SimpleModule
             return new byte[0];
         }
 
-        
+
         public virtual void SendAnimations(LLUUID[] animations, int[] seqs, LLUUID sourceAgentId)
         {
         }
@@ -311,12 +311,12 @@ namespace OpenSim.Region.Examples.SimpleModule
                                                LLUUID imSessionID, string fromName, byte dialog, uint timeStamp)
         {
         }
-        
+
         public virtual void SendInstantMessage(LLUUID fromAgent, LLUUID fromAgentSession, string message, LLUUID toAgent,
                                                LLUUID imSessionID, string fromName, byte dialog, uint timeStamp,
                                                byte[] binaryBucket)
         {
-        }        
+        }
 
         public virtual void SendLayerData(float[] map)
         {
@@ -396,7 +396,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         }
 
         public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID,
-                                                  PrimitiveBaseShape primShape, LLVector3 pos, LLVector3 vel, 
+                                                  PrimitiveBaseShape primShape, LLVector3 pos, LLVector3 vel,
                                                   LLVector3 acc, LLQuaternion rotation, LLVector3 rvel, uint flags,
                                                   LLUUID objectID, LLUUID ownerID, string text, byte[] color,
                                                   uint parentID,
@@ -404,7 +404,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
         public virtual void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID,
-                                                  PrimitiveBaseShape primShape, LLVector3 pos, LLVector3 vel, 
+                                                  PrimitiveBaseShape primShape, LLVector3 pos, LLVector3 vel,
                                                   LLVector3 acc, LLQuaternion rotation, LLVector3 rvel, uint flags,
                                                   LLUUID objectID, LLUUID ownerID, string text, byte[] color,
                                                   uint parentID,
@@ -443,10 +443,10 @@ namespace OpenSim.Region.Examples.SimpleModule
         public virtual void SendRemoveInventoryItem(LLUUID itemID)
         {
         }
-        
+
         /// <see>IClientAPI.SendBulkUpdateInventory(InventoryItemBase)</see>
-        public virtual void SendBulkUpdateInventory(InventoryItemBase item) 
-        {        
+        public virtual void SendBulkUpdateInventory(InventoryItemBase item)
+        {
         }
 
         public LLUUID GetDefaultAnimation(string name)
@@ -550,7 +550,7 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         public void SendObjectPropertiesFamilyData(uint RequestFlags, LLUUID ObjectUUID, LLUUID OwnerID, LLUUID GroupID,
                                                     uint BaseMask, uint OwnerMask, uint GroupMask, uint EveryoneMask,
-                                                    uint NextOwnerMask, int OwnershipCost, byte SaleType,int SalePrice, uint Category, 
+                                                    uint NextOwnerMask, int OwnershipCost, byte SaleType,int SalePrice, uint Category,
                                                     LLUUID LastOwnerID, string ObjectName, string Description)
         {
         }

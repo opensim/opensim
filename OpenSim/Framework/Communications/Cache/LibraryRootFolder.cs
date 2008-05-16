@@ -45,34 +45,34 @@ namespace OpenSim.Framework.Communications.Cache
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private LLUUID libOwner = new LLUUID("11111111-1111-0000-0000-000100bba000");
-        
+
         /// <summary>
         /// Holds the root library folder and all its descendents.  This is really only used during inventory
         /// setup so that we don't have to repeatedly search the tree of library folders.
         /// </summary>
-        protected Dictionary<LLUUID, InventoryFolderImpl> libraryFolders 
+        protected Dictionary<LLUUID, InventoryFolderImpl> libraryFolders
             = new Dictionary<LLUUID, InventoryFolderImpl>();
 
         public LibraryRootFolder()
         {
             m_log.Info("[LIBRARY INVENTORY]: Loading library inventory");
-            
+
             Owner = libOwner;
             ID = new LLUUID("00000112-000f-0000-0000-000100bba000");
             Name = "OpenSim Library";
             ParentID = LLUUID.Zero;
             Type = (short) 8;
             Version = (ushort) 1;
-            
+
             libraryFolders.Add(ID, this);
-            
+
             LoadLibraries(Path.Combine(Util.inventoryDir(), "Libraries.xml"));
 
             // CreateLibraryItems();
         }
 
         /// <summary>
-        /// Hardcoded item creation.  Please don't add any more items here - future items should be created 
+        /// Hardcoded item creation.  Please don't add any more items here - future items should be created
         /// in the xml in the bin/inventory folder.
         /// </summary>
         ///
@@ -132,7 +132,7 @@ namespace OpenSim.Framework.Communications.Cache
             item.NextPermissions = 0x7FFFFFFF;
             return item;
         }
-        
+
         /// <summary>
         /// Use the asset set information at path to load assets
         /// </summary>
@@ -142,49 +142,49 @@ namespace OpenSim.Framework.Communications.Cache
         {
             m_log.InfoFormat(
                 "[LIBRARY INVENTORY]: Loading libraries control file {0}", librariesControlPath);
-            
+
             LoadFromFile(librariesControlPath, "Libraries control", ReadLibraryFromConfig);
         }
-        
+
         /// <summary>
         /// Read a library set from config
         /// </summary>
         /// <param name="config"></param>
         protected void ReadLibraryFromConfig(IConfig config)
         {
-            string foldersPath 
+            string foldersPath
                 = Path.Combine(
                     Util.inventoryDir(), config.GetString("foldersFile", String.Empty));
-            
+
             LoadFromFile(foldersPath, "Library folders", ReadFolderFromConfig);
-            
-            string itemsPath 
+
+            string itemsPath
                 = Path.Combine(
                     Util.inventoryDir(), config.GetString("itemsFile", String.Empty));
-            
+
             LoadFromFile(itemsPath, "Library items", ReadItemFromConfig);
         }
-        
+
         /// <summary>
         /// Read a library inventory folder from a loaded configuration
         /// </summary>
         /// <param name="source"></param>
         private void ReadFolderFromConfig(IConfig config)
-        {                        
+        {
             InventoryFolderImpl folderInfo = new InventoryFolderImpl();
-            
+
             folderInfo.ID = new LLUUID(config.GetString("folderID", ID.ToString()));
-            folderInfo.Name = config.GetString("name", "unknown");                
+            folderInfo.Name = config.GetString("name", "unknown");
             folderInfo.ParentID = new LLUUID(config.GetString("parentFolderID", ID.ToString()));
             folderInfo.Type = (short)config.GetInt("type", 8);
-            
-            folderInfo.Owner = libOwner;                
-            folderInfo.Version = 1;                
-            
+
+            folderInfo.Owner = libOwner;
+            folderInfo.Version = 1;
+
             if (libraryFolders.ContainsKey(folderInfo.ParentID))
-            {                
+            {
                 InventoryFolderImpl parentFolder = libraryFolders[folderInfo.ParentID];
-                
+
                 libraryFolders.Add(folderInfo.ID, folderInfo);
                 parentFolder.SubFolders.Add(folderInfo.ID, folderInfo);
 
@@ -201,7 +201,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <summary>
         /// Read a library inventory item metadata from a loaded configuration
         /// </summary>
-        /// <param name="source"></param>        
+        /// <param name="source"></param>
         private void ReadItemFromConfig(IConfig config)
         {
             InventoryItemBase item = new InventoryItemBase();
@@ -218,11 +218,11 @@ namespace OpenSim.Framework.Communications.Cache
             item.NextPermissions = (uint)config.GetLong("nextPermissions", 0x7FFFFFFF);
             item.EveryOnePermissions = (uint)config.GetLong("everyonePermissions", 0x7FFFFFFF);
             item.BasePermissions = (uint)config.GetLong("basePermissions", 0x7FFFFFFF);
-            
+
             if (libraryFolders.ContainsKey(item.Folder))
             {
                 InventoryFolderImpl parentFolder = libraryFolders[item.Folder];
-                
+
                 parentFolder.Items.Add(item.ID, item);
             }
             else
@@ -230,11 +230,11 @@ namespace OpenSim.Framework.Communications.Cache
                 m_log.WarnFormat(
                     "[LIBRARY INVENTORY]: Couldn't add item {0} ({1}) since parent folder with ID {2} does not exist!",
                     item.Name, item.ID, item.Folder);
-            }                
+            }
         }
-                
-        private delegate void ConfigAction(IConfig config);        
-        
+
+        private delegate void ConfigAction(IConfig config);
+
         /// <summary>
         /// Load the given configuration at a path and perform an action on each Config contained within it
         /// </summary>
@@ -242,7 +242,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="fileDescription"></param>
         /// <param name="action"></param>
         private static void LoadFromFile(string path, string fileDescription, ConfigAction action)
-        {            
+        {
             if (File.Exists(path))
             {
                 try
@@ -250,21 +250,21 @@ namespace OpenSim.Framework.Communications.Cache
                     XmlConfigSource source = new XmlConfigSource(path);
 
                     for (int i = 0; i < source.Configs.Count; i++)
-                    {    
+                    {
                         action(source.Configs[i]);
                     }
                 }
                 catch (XmlException e)
                 {
                     m_log.ErrorFormat("[LIBRARY INVENTORY]: Error loading {0} : {1}", path, e);
-                }                
+                }
             }
             else
             {
                 m_log.ErrorFormat("[LIBRARY INVENTORY]: {0} file {1} does not exist!", fileDescription, path);
-            }            
+            }
         }
-        
+
         /// <summary>
         /// Looks like a simple getter, but is written like this for some consistency with the other Request
         /// methods in the superclass

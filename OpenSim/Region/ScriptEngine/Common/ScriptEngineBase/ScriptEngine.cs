@@ -38,7 +38,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     /// <summary>
     /// This is the root object for ScriptEngine. Objects access each other trough this class.
     /// </summary>
-    /// 
+    ///
     [Serializable]
     public abstract class ScriptEngine : IRegionModule, ScriptServerInterfaces.ScriptEngine, iScriptEngineFunctionModule
     {
@@ -154,7 +154,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         #region IRegionModule
 
         public abstract void Initialise(Scene scene, IConfigSource config);
-        
+
         public void PostInitialise()
         {
         }

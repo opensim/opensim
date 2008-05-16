@@ -39,7 +39,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
 {
     /// <summary>
     /// This module sets up texture senders in response to client texture requests, and places them on a
-    /// processing queue once those senders have the appropriate data (i.e. a texture retrieved from the 
+    /// processing queue once those senders have the appropriate data (i.e. a texture retrieved from the
     /// asset cache).
     /// </summary>
     public class UserTextureDownloadService
@@ -49,7 +49,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
 
         /// <summary>
         /// We will allow the client to request the same texture n times before dropping further requests
-        /// 
+        ///
         /// This number includes repeated requests for the same texture at different resolutions (which we don't
         /// currently handle properly as far as I know).  However, this situation should be handled in a more
         /// sophisticated way.
@@ -80,7 +80,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         /// We're going to limit requests for the same missing texture.
         /// XXX This is really a temporary solution to deal with the situation where a client continually requests
         /// the same missing textures
-        /// </summary>        
+        /// </summary>
         private readonly IRequestLimitStrategy<LLUUID> missingTextureLimitStrategy
             = new RepeatLimitStrategy<LLUUID>(MAX_ALLOWED_TEXTURE_REQUESTS);
 
@@ -93,7 +93,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         }
 
         /// <summary>
-        /// Handle a texture request.  This involves creating a texture sender and placing it on the 
+        /// Handle a texture request.  This involves creating a texture sender and placing it on the
         /// previously passed in shared queue.
         /// </summary>
         /// <param name="e"></param>
@@ -108,7 +108,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
                 {
                     if (m_textureSenders.TryGetValue(e.RequestedAssetID, out textureSender))
                     {
-                        // If we've received new non UUID information for this request and it hasn't dispatched 
+                        // If we've received new non UUID information for this request and it hasn't dispatched
                         // yet, then update the request accordingly.
                         textureSender.UpdateRequest(e.DiscardLevel, e.PacketNumber);
                     }
@@ -117,7 +117,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
                         if (!foundTextureLimitStrategy.AllowRequest(e.RequestedAssetID))
                         {
 //                            m_log.DebugFormat(
-//                                "[USER TEXTURE DOWNLOAD SERVICE]: Refusing request for {0} from client {1}", 
+//                                "[USER TEXTURE DOWNLOAD SERVICE]: Refusing request for {0} from client {1}",
 //                                e.RequestedAssetID, m_client.AgentId);
 
                             return;
@@ -128,9 +128,9 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
                             {
                                 if (StatsManager.SimExtraStats != null)
                                     StatsManager.SimExtraStats.AddBlockedMissingTextureRequest();
-                                
-                                // Commenting out this message for now as it causes too much noise with other 
-                                // debug messages.  
+
+                                // Commenting out this message for now as it causes too much noise with other
+                                // debug messages.
 //                                m_log.DebugFormat(
 //                                    "[USER TEXTURE DOWNLOAD SERVICE]: Dropping requests for notified missing texture {0} for client {1} since we have received more than {2} requests",
 //                                    e.RequestedAssetID, m_client.AgentId, MAX_ALLOWED_TEXTURE_REQUESTS);

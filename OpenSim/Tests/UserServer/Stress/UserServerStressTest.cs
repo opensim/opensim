@@ -36,7 +36,7 @@ namespace OpenSim.Tests.UserServer.Stress
     public class UserServerStressTest
     {
         public static void Main(string[] args)
-        {     
+        {
             XmlConfigurator.Configure();
 
             Console.WriteLine("Aborting - not yet functional");

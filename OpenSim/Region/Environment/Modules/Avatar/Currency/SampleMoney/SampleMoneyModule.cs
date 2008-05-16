@@ -46,10 +46,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
     /// Demo Economy/Money Module.  This is not a production quality money/economy module!
     /// This is a demo for you to use when making one that works for you.
     ///  // To use the following you need to add:
-    /// -helperuri <ADDRESS TO HERE OR grid MONEY SERVER> 
+    /// -helperuri <ADDRESS TO HERE OR grid MONEY SERVER>
     /// to the command line parameters you use to start up your client
     /// This commonly looks like -helperuri http://127.0.0.1:9000/
-    /// 
+    ///
     /// Centralized grid structure example using OpenSimWi Redux revision 9+
     /// svn co https://opensimwiredux.svn.sourceforge.net/svnroot/opensimwiredux
     /// </summary>
@@ -147,7 +147,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                         XMLRPCHandler = scene;
 
                         // To use the following you need to add:
-                        // -helperuri <ADDRESS TO HERE OR grid MONEY SERVER> 
+                        // -helperuri <ADDRESS TO HERE OR grid MONEY SERVER>
                         // to the command line parameters you use to start up your client
                         // This commonly looks like -helperuri http://127.0.0.1:9000/
 
@@ -276,7 +276,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         private void OnNewClient(IClientAPI client)
         {
             // Here we check if we're in grid mode
-            // I imagine that the 'check balance' 
+            // I imagine that the 'check balance'
             // function for the client should be here or shortly after
 
             if (gridmode)
@@ -367,7 +367,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             {
                 lock (m_KnownClientFunds)
                 {
-                    // If we don't know about the sender, then the sender can't 
+                    // If we don't know about the sender, then the sender can't
                     // actually be here and therefore this is likely fraud or outdated.
                     if (m_MoneyAddress.Length == 0)
                     {
@@ -1394,7 +1394,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
 
 
                         m_rootAgents[avatar.UUID] = avatar.Scene.RegionInfo.originRegionID;
-                        
+
 
                         //m_log.Info("[MONEY]: Claiming " + avatar.Firstname + " " + avatar.Lastname + " in region:" + avatar.RegionHandle + ".");
                         // Claim User! my user!  Mine mine mine!

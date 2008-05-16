@@ -167,7 +167,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
             Common.SendToDebug("IL_CREATE_CONSTRUCTOR()");
             //ConstructorBuilder constructor = typeBuilder.DefineConstructor(
             //            MethodAttributes.Public,
-            //            CallingConventions.Standard, 
+            //            CallingConventions.Standard,
             //            new Type[0]);
             ConstructorBuilder constructor = typeBuilder.DefineConstructor(
                 MethodAttributes.Public |
@@ -191,8 +191,8 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
             //// Create state object
             //FieldName = "State";
             //FieldBuilder State_fb = typeBuilder.DefineField(
-            //    FieldName, 
-            //    typeof(UInt32), 
+            //    FieldName,
+            //    typeof(UInt32),
             //    FieldAttributes.Public);
             //il.Emit(OpCodes.Ldarg_0);
             //il.Emit(OpCodes.Ldc_I4, 0);
@@ -205,8 +205,8 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSO
 
             //FieldName = "LSL_BuiltIns";
             //FieldBuilder LSL_BuiltIns_fb = typeBuilder.DefineField(
-            //    FieldName, 
-            //    objType1, 
+            //    FieldName,
+            //    objType1,
             //    FieldAttributes.Public);
 
             ////LSL_BuiltIn_Commands_TestImplementation _ti = new LSL_BuiltIn_Commands_TestImplementation();

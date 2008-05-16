@@ -59,7 +59,7 @@ namespace OpenSim
             }
 
             Console.WriteLine("Starting...\n");
-          
+
             Culture.SetCurrentCulture();
 
             ArgvConfigSource configSource = new ArgvConfigSource(args);
@@ -110,7 +110,7 @@ namespace OpenSim
             _IsHandlingException = true;
             // TODO: Add config option to allow users to turn off error reporting
             // TODO: Post error report (disabled for now)
-            
+
             string msg = String.Empty;
             msg += "\r\n";
             msg += "APPLICATION EXCEPTION DETECTED: " + e.ToString() + "\r\n";
@@ -122,7 +122,7 @@ namespace OpenSim
                 msg += "InnerException: " + ex.InnerException.ToString() + "\r\n";
 
             msg += "\r\n";
-            msg += "Application is terminating: " + e.IsTerminating.ToString() + "\r\n";            
+            msg += "Application is terminating: " + e.IsTerminating.ToString() + "\r\n";
 
             // Do we not always want to see exception messages?
 //            if (e.IsTerminating)
@@ -132,7 +132,7 @@ namespace OpenSim
             try
             {
                 // DISABLED UNTIL WE CAN DISCUSS IF THIS IS MORALLY RIGHT OR NOT
-                // Note! Needs reference to System.Web 
+                // Note! Needs reference to System.Web
                 //System.Net.WebClient wc = new WebClient();
                 //wc.DownloadData("http://www.opensimulator.org/ErrorReport.php?Msg=" +
                 //                System.Web.HttpUtility.UrlEncode(msg));

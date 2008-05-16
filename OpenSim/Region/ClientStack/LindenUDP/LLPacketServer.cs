@@ -37,7 +37,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 {
     public class LLPacketServer
     {
-        //private static readonly log4net.ILog m_log 
+        //private static readonly log4net.ILog m_log
         //    = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private LLClientStackNetworkHandler m_networkHandler;
@@ -61,7 +61,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="circuitCode"></param>
         /// <param name="packet"></param>
@@ -112,7 +112,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="buffer"></param>
         /// <param name="size"></param>
@@ -124,7 +124,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="circuitcode"></param>
         public virtual void CloseCircuit(uint circuitcode)
@@ -141,9 +141,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public virtual void CloseClient(IClientAPI client)
         {
             //m_log.Info("PacketServer:CloseClient()");
-         
+
             CloseCircuit(client.CircuitCode);
-            m_scene.ClientManager.Remove(client.CircuitCode);                
+            m_scene.ClientManager.Remove(client.CircuitCode);
             client.Close(false);
         }
     }

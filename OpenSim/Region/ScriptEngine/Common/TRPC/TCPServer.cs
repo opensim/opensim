@@ -33,7 +33,7 @@ using System.Net.Sockets;
 
 namespace OpenSim.Region.ScriptEngine.Common.TRPC
 {
-    public class TCPServer: TCPCommon.ServerInterface 
+    public class TCPServer: TCPCommon.ServerInterface
     {
         public readonly int LocalPort;
         public TCPServer(int localPort)

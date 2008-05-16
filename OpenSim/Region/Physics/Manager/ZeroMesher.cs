@@ -31,9 +31,9 @@ using OpenSim.Framework;
 /*
  * This is the zero mesher.
  * Whatever you want him to mesh, he can't, telling you that by responding with a null pointer.
- * Effectivly this is for switching off meshing and for testing as each physics machine should deal 
+ * Effectivly this is for switching off meshing and for testing as each physics machine should deal
  * with the null pointer situation.
- * But it's also a convenience thing, as physics machines can rely on having a mesher in any situation, even 
+ * But it's also a convenience thing, as physics machines can rely on having a mesher in any situation, even
  * if it's a dump one like this.
  * Note, that this mesher is *not* living in a module but in the manager itself, so
  * it's always availabe and thus the default in case of configuration errors

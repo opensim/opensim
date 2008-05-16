@@ -41,7 +41,7 @@ namespace OpenSim.Region.Communications.Local
 
     public class LocalLoginService : LoginService
     {
-        private static readonly ILog m_log 
+        private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private CommunicationsLocal m_Parent;
@@ -55,8 +55,8 @@ namespace OpenSim.Region.Communications.Local
 
         private LoginToRegionEvent handlerLoginToRegion = null; // OnLoginToRegion;
 
-        public LocalLoginService(UserManagerBase userManager, string welcomeMess, 
-                                 CommunicationsLocal parent, NetworkServersInfo serversInfo, 
+        public LocalLoginService(UserManagerBase userManager, string welcomeMess,
+                                 CommunicationsLocal parent, NetworkServersInfo serversInfo,
                                  bool authenticate)
             : base(userManager, parent.UserProfileCacheService.libraryRoot, welcomeMess)
         {
@@ -106,7 +106,7 @@ namespace OpenSim.Region.Communications.Local
             {
                 m_log.Info(
                     "[LOGIN]: Authenticating " + profile.FirstName + " " + profile.SurName);
-               
+
                 if (!password.StartsWith("$1$"))
                     password = "$1$" + Util.Md5Hash(password);
 
@@ -157,7 +157,7 @@ namespace OpenSim.Region.Communications.Local
                     RegionInfo r = m_Parent.GridService.RequestClosestRegion(region);
                     if (null == r)
                     {
-                        m_log.InfoFormat("[LOGIN]: Got Custom Login URL {0}, can't locate region {1}", 
+                        m_log.InfoFormat("[LOGIN]: Got Custom Login URL {0}, can't locate region {1}",
                                          startLocationRequest, region);
                     }
                     else
@@ -176,16 +176,16 @@ namespace OpenSim.Region.Communications.Local
 
             if ((homeReg != null) && (reg != null))
             {
-                response.Home = "{'region_handle':[r" + 
+                response.Home = "{'region_handle':[r" +
                     (homeReg.RegionLocX * Constants.RegionSize).ToString() + ",r" +
                     (homeReg.RegionLocY * Constants.RegionSize).ToString() + "], " +
-                    "'position':[r" + 
-                    theUser.HomeLocation.X.ToString() + ",r" + 
-                    theUser.HomeLocation.Y.ToString() + ",r" + 
+                    "'position':[r" +
+                    theUser.HomeLocation.X.ToString() + ",r" +
+                    theUser.HomeLocation.Y.ToString() + ",r" +
                     theUser.HomeLocation.Z.ToString() + "], " +
-                    "'look_at':[r" + 
-                    theUser.HomeLocation.X.ToString() + ",r" + 
-                    theUser.HomeLocation.Y.ToString() + ",r" + 
+                    "'look_at':[r" +
+                    theUser.HomeLocation.X.ToString() + ",r" +
+                    theUser.HomeLocation.Y.ToString() + ",r" +
                     theUser.HomeLocation.Z.ToString() + "]}";
                 string capsPath = Util.GetRandomCapsPath();
                 response.SimAddress = reg.ExternalEndPoint.Address.ToString();
@@ -201,17 +201,17 @@ namespace OpenSim.Region.Communications.Local
 
                 response.SeedCapability = "http://" + reg.ExternalHostName + ":" +
                                           serversInfo.HttpListenerPort.ToString() + "/CAPS/" + capsPath + "0000/";
-                
+
                 m_log.DebugFormat(
-                    "[CAPS]: Sending new CAPS seed url {0} to client {1}", 
-                    response.SeedCapability, response.AgentID);                
+                    "[CAPS]: Sending new CAPS seed url {0} to client {1}",
+                    response.SeedCapability, response.AgentID);
 
                 theUser.CurrentAgent.Region = reg.RegionID;
                 theUser.CurrentAgent.Handle = reg.RegionHandle;
 
                 LoginResponse.BuddyList buddyList = new LoginResponse.BuddyList();
 
-                response.BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(theUser.ID)); 
+                response.BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(theUser.ID));
 
                 Login _login = new Login();
                 //copy data to login object
@@ -228,9 +228,9 @@ namespace OpenSim.Region.Communications.Local
                 _login.CapsPath = capsPath;
 
                 m_log.InfoFormat(
-                    "[LOGIN]: Telling region {0} @ {1},{2} ({3}:{4}) to expect user connection", 
-                    reg.RegionName, response.RegionX, response.RegionY, response.SimAddress, response.SimPort);                
-                
+                    "[LOGIN]: Telling region {0} @ {1},{2} ({3}:{4}) to expect user connection",
+                    reg.RegionName, response.RegionX, response.RegionY, response.SimAddress, response.SimPort);
+
                 handlerLoginToRegion = OnLoginToRegion;
                 if (handlerLoginToRegion != null)
                 {
@@ -257,7 +257,7 @@ namespace OpenSim.Region.Communications.Local
             return buddylistreturn;
         }
 
-        // See LoginService        
+        // See LoginService
         protected override InventoryData GetInventorySkeleton(LLUUID userID)
         {
             List<InventoryFolderBase> folders = m_Parent.InventoryService.GetInventorySkeleton(userID);
@@ -265,10 +265,10 @@ namespace OpenSim.Region.Communications.Local
             // If we have user auth but no inventory folders for some reason, create a new set of folders.
             if (null == folders || 0 == folders.Count)
             {
-                m_Parent.InventoryService.CreateNewUserInventory(userID);                
+                m_Parent.InventoryService.CreateNewUserInventory(userID);
                 folders = m_Parent.InventoryService.GetInventorySkeleton(userID);
             }
-            
+
             LLUUID rootID = LLUUID.Zero;
             ArrayList AgentInventoryArray = new ArrayList();
             Hashtable TempHash;
@@ -286,7 +286,7 @@ namespace OpenSim.Region.Communications.Local
                 TempHash["folder_id"] = InvFolder.ID.ToString();
                 AgentInventoryArray.Add(TempHash);
             }
-            
+
             return new InventoryData(AgentInventoryArray, rootID);
         }
     }

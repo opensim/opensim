@@ -105,7 +105,7 @@ namespace OpenSim.Data.MSSQL
             {
                 database.ExecuteResourceSql("Mssql-users.sql");
             }
-       
+
             cmd = database.Query("select top 1 * from " + m_agentsTableName, new Dictionary<string, string>());
             try
             {
@@ -747,7 +747,7 @@ namespace OpenSim.Data.MSSQL
 
         /// Appearance
         /// TODO: stubs for now to get us to a compiling state gently
-        // override public AvatarAppearance GetUserAppearance(LLUUID user) 
+        // override public AvatarAppearance GetUserAppearance(LLUUID user)
         // {
         //     return new AvatarAppearance();
         // }
@@ -761,12 +761,12 @@ namespace OpenSim.Data.MSSQL
         {
             return;
         }
-        
+
         override public void RemoveAttachment(LLUUID user, LLUUID item)
         {
             return;
         }
-        
+
         override public List<LLUUID> GetAttachments(LLUUID user)
         {
             return new List<LLUUID>();

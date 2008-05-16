@@ -99,7 +99,7 @@ namespace OpenSim.Region.Environment.Modules
         // Current time in elpased seconds since Jan 1st 1970
         private ulong CurrentTime
         {
-            get { 
+            get {
                 return (ulong)(((System.DateTime.Now.Ticks) - TicksToEpoch + TicksOffset)/10000000);
             }
         }
@@ -118,7 +118,7 @@ namespace OpenSim.Region.Environment.Modules
 
             TimeZone local = TimeZone.CurrentTimeZone;
             TicksOffset = local.GetUtcOffset(local.ToLocalTime(DateTime.Now)).Ticks;
-            
+
             m_log.Debug("[SUN] localtime offset is " + TicksOffset);
 
             // Align ticks with Second Life
@@ -246,7 +246,7 @@ namespace OpenSim.Region.Environment.Modules
                 avatar.ControllingClient.SendSunPos(Position, Velocity, CurrentTime, SecondsPerSunCycle, SecondsPerYear, OrbitalPosition);
             }
 
-            // set estate settings for region access to sun position 
+            // set estate settings for region access to sun position
             m_scene.RegionInfo.EstateSettings.sunPosition = Position;
         }
 
@@ -281,7 +281,7 @@ namespace OpenSim.Region.Environment.Modules
 
             Position   = LLVector3.Rot(Position,Tilt);
 
-            // Finally we shift the axis so that more of the 
+            // Finally we shift the axis so that more of the
             // circle is above the horizon than below. This
             // makes the nights shorter than the days.
 

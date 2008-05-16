@@ -337,7 +337,7 @@ namespace OpenSim.Region.Physics.Meshing
             }
 
 
-            if (baseStartVertex == null) // i.e. no simplex fulfilled the "outside" condition. 
+            if (baseStartVertex == null) // i.e. no simplex fulfilled the "outside" condition.
                 // In otherwords, subtractHull completely embraces baseHull
             {
                 return result;

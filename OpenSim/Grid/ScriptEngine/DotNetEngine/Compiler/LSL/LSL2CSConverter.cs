@@ -165,7 +165,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL
                     // if level == 0, add to return
                     if (ilevel == 1 && lastlevel == 0)
                     {
-                        // 0 => 1: Get last 
+                        // 0 => 1: Get last
                         Match m =
                             Regex.Match(cache, @"(?![a-zA-Z_]+)\s*([a-zA-Z_]+)[^a-zA-Z_\(\)]*{",
                                         RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);

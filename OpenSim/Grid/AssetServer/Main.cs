@@ -48,11 +48,11 @@ namespace OpenSim.Grid.AssetServer
 
         public AssetConfig m_config;
 
-        public static OpenAsset_Main assetserver;   
-        
+        public static OpenAsset_Main assetserver;
+
         // Temporarily hardcoded - should be a plugin
-        protected IAssetLoader assetLoader = new AssetLoaderFileSystem();        
-        
+        protected IAssetLoader assetLoader = new AssetLoaderFileSystem();
+
         private IAssetProvider m_assetProvider;
 
         [STAThread]
@@ -81,7 +81,7 @@ namespace OpenSim.Grid.AssetServer
         public OpenAsset_Main()
         {
             m_console = new ConsoleBase("OpenAsset", this);
-            
+
             MainConsole.Instance = m_console;
         }
 
@@ -166,7 +166,7 @@ namespace OpenSim.Grid.AssetServer
 
         public void LoadDefaultAssets()
         {
-            assetLoader.ForEachDefaultXmlAsset(StoreAsset);            
+            assetLoader.ForEachDefaultXmlAsset(StoreAsset);
         }
 
         protected void StoreAsset(AssetBase asset)
@@ -177,9 +177,9 @@ namespace OpenSim.Grid.AssetServer
         public override void RunCmd(string cmd, string[] cmdparams)
         {
             base.RunCmd(cmd, cmdparams);
-            
+
             switch (cmd)
-            {                                   
+            {
                 case "shutdown":
                     m_console.Close();
                     Environment.Exit(0);

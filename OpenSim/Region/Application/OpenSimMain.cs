@@ -50,14 +50,14 @@ using OpenSim.Region.Physics.Manager;
 namespace OpenSim
 {
     public class OpenSimMain : RegionApplicationBase
-    {        
+    {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Holds a human readable build version for this server.
         /// </summary>
         protected string buildVersion;
-        
+
         protected string proxyUrl;
         protected int proxyOffset = 0;
 
@@ -90,42 +90,42 @@ namespace OpenSim
         private string m_standaloneUserSource;
 
         protected string m_assetStorage = "local";
-        
+
         public ConsoleCommand CreateAccount = null;
         protected bool m_dumpAssetsToFile;
-        
+
         protected List<IApplicationPlugin> m_plugins = new List<IApplicationPlugin>();
 
         protected IConfigSource m_finalConfig = null;
 
         protected IniConfigSource m_config;
-        
+
         public IniConfigSource ConfigSource
         {
             get { return m_config; }
             set { m_config = value; }
         }
-        
+
         public List<IClientNetworkServer> ClientServers
         {
             get { return m_clientServers; }
         }
-        
+
         public List<RegionInfo> RegionData
         {
             get { return m_regionData; }
         }
-        
+
         public new BaseHttpServer HttpServer
         {
             get { return m_httpServer; }
         }
-            
+
         public new uint HttpServerPort
         {
             get { return m_httpServerPort; }
         }
-            
+
         protected ModuleLoader m_moduleLoader;
 
         public ModuleLoader ModuleLoader
@@ -146,10 +146,10 @@ namespace OpenSim
 
             if (Directory.Exists("addin-db-001"))
                 Directory.Delete("addin-db-001", true);
-             
-            
+
+
             m_log.Info("[OPENSIM MAIN]: PLEASE IGNORE THE SCANNING ERRORS BELOW.  These are the result of a temporary problem with our plugins manager.");
-            
+
             AddinManager.Initialize(".");
             AddinManager.Registry.Update(null);
 
@@ -270,13 +270,13 @@ namespace OpenSim
                 m_sandbox = !startupConfig.GetBoolean("gridmode", false);
                 m_physicsEngine = startupConfig.GetString("physics", "basicphysics");
                 m_meshEngineName = startupConfig.GetString("meshing", "ZeroMesher");
-                
+
                 m_physicalPrim = startupConfig.GetBoolean("physical_prim", true);
 
                 m_see_into_region_from_neighbor = startupConfig.GetBoolean("see_into_this_sim_from_neighbor", true);
-                
+
                 m_storageDll = startupConfig.GetString("storage_plugin", "OpenSim.Data.SQLite.dll");
-                if (m_storageDll == "OpenSim.DataStore.MonoSqlite.dll") 
+                if (m_storageDll == "OpenSim.DataStore.MonoSqlite.dll")
                 {
                     m_storageDll = "OpenSim.Data.SQLite.dll";
                     Console.WriteLine("WARNING: OpenSim.DataStore.MonoSqlite.dll is deprecated. Set storage_plugin to OpenSim.Data.SQLite.dll.");
@@ -311,10 +311,10 @@ namespace OpenSim
 
                 m_dumpAssetsToFile = standaloneConfig.GetBoolean("dump_assets_to_file", false);
             }
-            
+
 
             m_networkServersInfo.loadFromConfiguration(m_config);
-            
+
         }
 
         private ManualResetEvent WorldHasComeToAnEnd = new ManualResetEvent(false);
@@ -331,19 +331,19 @@ namespace OpenSim
             m_log.Info("========================= STARTING OPENSIM =========================");
             m_log.Info("====================================================================");
             m_log.InfoFormat("[OPENSIM MAIN]: Running in background {0} mode", m_sandbox ? "sandbox" : "grid");
-            
+
             InternalStartUp();
 
             // We are done with startup
             m_log.InfoFormat("[OPENSIM MAIN]: Startup complete, serving {0} region{1}",
                              m_clientServers.Count.ToString(), m_clientServers.Count > 1 ? "s" : "");
-            
+
             WorldHasComeToAnEnd.WaitOne();
             m_log.Info("[OPENSIM MAIN]: Shutdown complete, goodbye.");
-            
+
             Environment.Exit(0);
         }
-        
+
         /// <summary>
         /// Print the version information available to the library.  This include a subversion number if the root
         /// .svn/entries file is present.
@@ -392,9 +392,9 @@ namespace OpenSim
         protected void InternalStartUp()
         {
             printAvailableVersionInformation();
-            
+
             m_stats = StatsManager.StartCollectingSimExtraStats();
-            
+
             // Do baseclass startup sequence: OpenSim.Region.ClientStack.RegionApplicationBase.StartUp
             // TerrainManager, StorageManager, HTTP Server
             // This base will call abstract Initialize
@@ -425,7 +425,7 @@ namespace OpenSim
 
                 // set up XMLRPC handler for client's initial login request message
                 m_httpServer.AddXmlRPCHandler("login_to_simulator", m_loginService.XmlRpcLoginMethod);
-                
+
                 // provides the web form login
                 m_httpServer.AddHTTPHandler("login", m_loginService.ProcessHTMLLogin);
 
@@ -524,12 +524,12 @@ namespace OpenSim
             regionInfo.originRegionID = regionInfo.RegionID;
 
             // set initial ServerURI
-            regionInfo.ServerURI = "http://" + regionInfo.ExternalHostName 
+            regionInfo.ServerURI = "http://" + regionInfo.ExternalHostName
                 + ":" + regionInfo.InternalEndPoint.Port.ToString();
-            
-            regionInfo.HttpPort = m_httpServerPort;            
 
-            if ((proxyUrl.Length > 0) && (portadd_flag)) 
+            regionInfo.HttpPort = m_httpServerPort;
+
+            if ((proxyUrl.Length > 0) && (portadd_flag))
             {
                 // set proxy url to RegionInfo
                 regionInfo.proxyUrl = proxyUrl;
@@ -574,9 +574,9 @@ namespace OpenSim
             scene.SetModuleInterfaces();
 
             //moved these here as the terrain texture has to be created after the modules are initialized
-            // and has to happen before the region is registered with the grid. 
+            // and has to happen before the region is registered with the grid.
             scene.CreateTerrainTexture(true);
-            
+
             try
             {
                 scene.RegisterRegionWithGrid();
@@ -584,18 +584,18 @@ namespace OpenSim
             catch (Exception e)
             {
                 m_log.ErrorFormat("[STARTUP]: Registration of region with grid failed, aborting startup - {0}", e);
-                
+
                 // Carrying on now causes a lot of confusion down the line - we need to get the user's attention
                 System.Environment.Exit(1);
             }
-            
+
             // We need to do this after we've initialized the scripting engines.
             scene.StartScripts();
 
             scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
             scene.LandChannel.PerformParcelPrimCountUpdate();
 
-            m_sceneManager.Add(scene);                        
+            m_sceneManager.Add(scene);
 
             m_clientServers.Add(clientServer);
             m_regionData.Add(regionInfo);
@@ -625,7 +625,7 @@ namespace OpenSim
                 new Scene(regionInfo, circuitManager, m_commsManager, sceneGridService, m_assetCache,
                           storageManager, m_httpServer,
                           m_moduleLoader, m_dumpAssetsToFile, m_physicalPrim, m_see_into_region_from_neighbor, m_config);
-            
+
         }
 
         public void handleRestartRegion(RegionInfo whichRegion)
@@ -650,7 +650,7 @@ namespace OpenSim
                 m_clientServers.RemoveAt(clientServerElement);
             }
 
-            //Removing the region from the sim's database of regions..   
+            //Removing the region from the sim's database of regions..
             int RegionHandleElement = -1;
             for (int i = 0; i < m_regionData.Count; i++)
             {
@@ -676,7 +676,7 @@ namespace OpenSim
 
         /// <summary>
         /// Handler to supply the current status of this sim
-        /// 
+        ///
         /// Currently this is always OK if the simulator is still listening for connections on its HTTP service
         /// </summary>
         protected class SimStatusHandler : IStreamedRequestHandler
@@ -709,9 +709,9 @@ namespace OpenSim
         /// </summary>
         public override void Shutdown()
         {
-            if (proxyUrl.Length > 0) 
+            if (proxyUrl.Length > 0)
             {
-                Util.XmlRpcCommand(proxyUrl, "Stop"); 
+                Util.XmlRpcCommand(proxyUrl, "Stop");
             }
 
             m_log.Info("[SHUTDOWN]: Closing all threads");
@@ -721,9 +721,9 @@ namespace OpenSim
             m_log.Info("[SHUTDOWN]: Closing console and terminating");
 
             m_sceneManager.Close();
-            
+
             WorldHasComeToAnEnd.Set();
-            
+
             base.Shutdown();
         }
 

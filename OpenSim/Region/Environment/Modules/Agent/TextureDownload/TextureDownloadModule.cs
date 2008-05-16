@@ -38,7 +38,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
 {
     public class TextureDownloadModule : IRegionModule
     {
-        //private static readonly log4net.ILog m_log 
+        //private static readonly log4net.ILog m_log
         //    = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
@@ -212,7 +212,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         private void TextureSent(ITextureSender sender)
         {
             sender.Sending = false;
-            //m_log.DebugFormat("[TEXTURE DOWNLOAD]: Removing download stat for {0}", sender.assetID);            
+            //m_log.DebugFormat("[TEXTURE DOWNLOAD]: Removing download stat for {0}", sender.assetID);
             m_scene.AddPendingDownloads(-1);
         }
     }

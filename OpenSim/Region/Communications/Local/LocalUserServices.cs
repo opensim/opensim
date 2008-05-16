@@ -40,7 +40,7 @@ namespace OpenSim.Region.Communications.Local
         private IInventoryServices m_inventoryService;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="serversInfo"></param>
         /// <param name="defaultHomeLocX"></param>

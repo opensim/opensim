@@ -115,7 +115,7 @@ namespace OpenSim.Region.Physics.Meshing
             for (iCurrentVertex = usedForSeed; iCurrentVertex < iMaxVertex; iCurrentVertex++)
             {
                 // Background: A triangle mesh fulfills the delaunay condition if (iff!)
-                // each circumlocutory circle (i.e. the circle that touches all three corners) 
+                // each circumlocutory circle (i.e. the circle that touches all three corners)
                 // of each triangle is empty of other vertices.
                 // Obviously a single (seeding) triangle fulfills this condition.
                 // If we now add one vertex, we need to reconstruct all triangles, that
@@ -132,7 +132,7 @@ namespace OpenSim.Region.Physics.Meshing
                 // Reconstruction phase. First step, dissolve each triangle into it's simplices,
                 // i.e. it's "border lines"
                 // Goal is to find "inner" borders and delete them, while the hull gets conserved.
-                // Inner borders are special in the way that they always come twice, which is how we detect them 
+                // Inner borders are special in the way that they always come twice, which is how we detect them
                 foreach (Triangle t in influencedTriangles)
                 {
                     List<Simplex> newSimplices = t.GetSimplices();
@@ -142,8 +142,8 @@ namespace OpenSim.Region.Physics.Meshing
                 // Now sort the simplices. That will make identical ones reside side by side in the list
                 simplices.Sort();
 
-                // Look for duplicate simplices here. 
-                // Remember, they are directly side by side in the list right now, 
+                // Look for duplicate simplices here.
+                // Remember, they are directly side by side in the list right now,
                 // So we only check directly neighbours
                 int iSimplex;
                 List<Simplex> innerSimplices = new List<Simplex>();
@@ -162,7 +162,7 @@ namespace OpenSim.Region.Physics.Meshing
                 }
 
                 // each simplex still in the list belongs to the hull of the region in question
-                // The new vertex (yes, we still deal with verices here :-)) forms a triangle 
+                // The new vertex (yes, we still deal with verices here :-)) forms a triangle
                 // with each of these simplices. Build the new triangles and add them to the list
                 foreach (Simplex s in simplices)
                 {
@@ -206,14 +206,14 @@ namespace OpenSim.Region.Physics.Meshing
                     }
                     break;
 
-                
+
                 default:
                     if (hshape == HollowShape.Same)
                         hshape= HollowShape.Square;
                     break;
             }
 
-            
+
             SimpleHull holeHull = null;
 
             if (hshape == HollowShape.Square)
@@ -428,13 +428,13 @@ namespace OpenSim.Region.Physics.Meshing
             UInt16 pathShearY = primShape.PathShearY;
             Int16 twistTop = primShape.PathTwistBegin;
             Int16 twistBot = primShape.PathTwist;
-            
+
 
             //m_log.Error("pathShear:" + primShape.PathShearX.ToString() + "," + primShape.PathShearY.ToString());
             //m_log.Error("pathTaper:" + primShape.PathTaperX.ToString() + "," + primShape.PathTaperY.ToString());
             //m_log.Error("ProfileBegin:" + primShape.ProfileBegin.ToString() + "," + primShape.ProfileBegin.ToString());
             //m_log.Error("PathScale:" + primShape.PathScaleX.ToString() + "," + primShape.PathScaleY.ToString());
-            
+
             // Procedure: This is based on the fact that the upper (plus) and lower (minus) Z-surface
             // of a block are basically the same
             // They may be warped differently but the shape is identical
@@ -469,7 +469,7 @@ namespace OpenSim.Region.Physics.Meshing
                 if (fProfileBeginAngle < fProfileEndAngle)
                     fProfileEndAngle -= 360.0;
 
-                // Note, that we don't want to cut out a triangle, even if this is a 
+                // Note, that we don't want to cut out a triangle, even if this is a
                 // good approximation for small cuts. Indeed we want to cut out an arc
                 // and we approximate this arc by a polygon chain
                 // Also note, that these vectors are of length 1.0 and thus their endpoints lay outside the model space
@@ -559,7 +559,7 @@ namespace OpenSim.Region.Physics.Meshing
                     extr.taperBotFactorX = 1.0f - ((100 - (float)taperX) / 100);
                     //m_log.Warn("taperBotFactorX: " + extr.taperBotFactorX.ToString());
                 }
-                
+
             }
 
             if (taperY != 100)
@@ -575,8 +575,8 @@ namespace OpenSim.Region.Physics.Meshing
                     //m_log.Warn("taperBotFactorY: " + extr.taperBotFactorY.ToString());
                 }
             }
-            
-            
+
+
             if (pathShearX != 0)
             {
                 if (pathShearX > 50)
@@ -585,7 +585,7 @@ namespace OpenSim.Region.Physics.Meshing
                     extr.pushX = (((float)(256 - pathShearX) / 100) * -1f);
                    // m_log.Warn("pushX: " + extr.pushX);
                 }
-                else 
+                else
                 {
                     extr.pushX = (float)pathShearX / 100;
                    // m_log.Warn("pushX: " + extr.pushX);
@@ -600,7 +600,7 @@ namespace OpenSim.Region.Physics.Meshing
                     extr.pushY = (((float)(256 - pathShearY) / 100) * -1f);
                     //m_log.Warn("pushY: " + extr.pushY);
                 }
-                else 
+                else
                 {
                     extr.pushY = (float)pathShearY / 100;
                     //m_log.Warn("pushY: " + extr.pushY);
@@ -615,7 +615,7 @@ namespace OpenSim.Region.Physics.Meshing
                     extr.twistTop = 360 - (-1 * extr.twistTop);
 
                 }
-                
+
 
                 extr.twistTop = (float)(extr.twistTop * DEG_TO_RAD);
             }
@@ -660,7 +660,7 @@ namespace OpenSim.Region.Physics.Meshing
             UInt16 pathShearY = primShape.PathShearY;
             Int16 twistBot = primShape.PathTwist;
             Int16 twistTop = primShape.PathTwistBegin;
-            
+
 
             // Procedure: This is based on the fact that the upper (plus) and lower (minus) Z-surface
             // of a block are basically the same
@@ -715,7 +715,7 @@ namespace OpenSim.Region.Physics.Meshing
             //Vertex Q1Q12 = new Vertex(-0.46f, -0.18f, 0.0f);
             //Vertex Q1Q13 = new Vertex(-0.43f, -0.24f, 0.0f);
             //Vertex Q1Q14 = new Vertex(-0.40f, -0.30f, 0.0f);
-            
+
             SimpleHull outerHull = new SimpleHull();
             //Clockwise around the quadrants
             //outerHull.AddVertex(Q1Q15);
@@ -803,7 +803,7 @@ namespace OpenSim.Region.Physics.Meshing
                 if (fProfileBeginAngle < fProfileEndAngle)
                     fProfileEndAngle -= 360.0;
 
-                // Note, that we don't want to cut out a triangle, even if this is a 
+                // Note, that we don't want to cut out a triangle, even if this is a
                 // good approximation for small cuts. Indeed we want to cut out an arc
                 // and we approximate this arc by a polygon chain
                 // Also note, that these vectors are of length 1.0 and thus their endpoints lay outside the model space
@@ -940,7 +940,7 @@ namespace OpenSim.Region.Physics.Meshing
                     extr.pushY = (float)pathShearY / 100;
                     //m_log.Warn("pushY: " + extr.pushY);
                 }
-                
+
             }
 
             if (twistTop != 0)
@@ -949,9 +949,9 @@ namespace OpenSim.Region.Physics.Meshing
                 if (extr.twistTop > 0)
                 {
                     extr.twistTop = 360 - (-1 * extr.twistTop);
-                    
+
                 }
-                
+
 
                 extr.twistTop = (float)(extr.twistTop * DEG_TO_RAD);
             }
@@ -967,7 +967,7 @@ namespace OpenSim.Region.Physics.Meshing
                 }
                 extr.twistMid = (float)(extr.twistMid * DEG_TO_RAD);
             }
-            
+
             if (twistBot != 0)
             {
                 extr.twistBot = 180 * ((float)twistBot / 100);
@@ -1013,7 +1013,7 @@ namespace OpenSim.Region.Physics.Meshing
             Vertex MM = new Vertex(-0.25f, -0.45f, 0.0f);
             Vertex PM = new Vertex(+0.5f, 0f, 0.0f);
             Vertex PP = new Vertex(-0.25f, +0.45f, 0.0f);
-            
+
 
             SimpleHull outerHull = new SimpleHull();
             //outerHull.AddVertex(MM);
@@ -1022,7 +1022,7 @@ namespace OpenSim.Region.Physics.Meshing
             outerHull.AddVertex(PP);
             outerHull.AddVertex(MM);
             outerHull.AddVertex(PM);
-            
+
             // Deal with cuts now
             if ((profileBegin != 0) || (profileEnd != 0))
             {
@@ -1034,7 +1034,7 @@ namespace OpenSim.Region.Physics.Meshing
                 if (fProfileBeginAngle < fProfileEndAngle)
                     fProfileEndAngle -= 360.0;
 
-                // Note, that we don't want to cut out a triangle, even if this is a 
+                // Note, that we don't want to cut out a triangle, even if this is a
                 // good approximation for small cuts. Indeed we want to cut out an arc
                 // and we approximate this arc by a polygon chain
                 // Also note, that these vectors are of length 1.0 and thus their endpoints lay outside the model space
@@ -1177,7 +1177,7 @@ namespace OpenSim.Region.Physics.Meshing
                     extr.twistTop = 360 - (-1 * extr.twistTop);
 
                 }
-                
+
 
                 extr.twistTop = (float)(extr.twistTop * DEG_TO_RAD);
             }
@@ -1255,7 +1255,7 @@ namespace OpenSim.Region.Physics.Meshing
 
 
             // Base Faces of the Icosahedron (20)
-            SphereLODTriangle(v1, v2, v3, diameter, LOD, m); 
+            SphereLODTriangle(v1, v2, v3, diameter, LOD, m);
             SphereLODTriangle(v4, v3, v2, diameter, LOD, m);
             SphereLODTriangle(v4, v5, v6, diameter, LOD, m);
             SphereLODTriangle(v4, v9, v5, diameter, LOD, m);
@@ -1284,7 +1284,7 @@ namespace OpenSim.Region.Physics.Meshing
                 v.Z *= size.Z;
             }
 
-            // This was built with the normals pointing inside.. 
+            // This was built with the normals pointing inside..
             // therefore we have to invert the normals
             foreach (Triangle t in m.triangles)
             {
@@ -1308,7 +1308,7 @@ namespace OpenSim.Region.Physics.Meshing
                 v.Y *= size.Y;
                 v.Z *= size.Z;
             }
-            // This was built with the normals pointing inside.. 
+            // This was built with the normals pointing inside..
             // therefore we have to invert the normals
             foreach (Triangle t in sm.triangles)
             {
@@ -1462,7 +1462,7 @@ namespace OpenSim.Region.Physics.Meshing
                     default:
                         mesh = CreateBoxMesh(primName, primShape, size);
                         CalcNormals(mesh);
-                        //Set default mesh to cube otherwise it'll return 
+                        //Set default mesh to cube otherwise it'll return
                         // null and crash on the 'setMesh' method in the physics plugins.
                         //mesh = null;
                         break;
@@ -1472,6 +1472,6 @@ namespace OpenSim.Region.Physics.Meshing
             return mesh;
         }
 
-        
+
     }
 }

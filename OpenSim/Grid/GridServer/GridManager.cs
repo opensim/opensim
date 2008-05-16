@@ -243,22 +243,22 @@ namespace OpenSim.Grid.GridServer
 
         /// <summary>
         /// Checks that it's valid to replace the existing region data with new data
-        /// 
-        /// Currently, this means ensure that the keys passed in by the new region 
+        ///
+        /// Currently, this means ensure that the keys passed in by the new region
         /// match those in the original region.  (XXX Is this correct?  Shouldn't we simply check
         /// against the keys in the current configuration?)
         /// </summary>
         /// <param name="sim"></param>
-        /// <returns></returns>        
+        /// <returns></returns>
         protected virtual void ValidateOverwriteKeys(RegionProfileData sim, RegionProfileData existingSim)
-        {            
+        {
             if (!(existingSim.regionRecvKey == sim.regionRecvKey && existingSim.regionSendKey == sim.regionSendKey))
             {
                 throw new LoginException(
                     String.Format(
                         "Authentication failed when trying to login existing region {0} at location {1} {2} currently occupied by {3}"
                             + " with the region's send key {4} (expected {5}) and the region's receive key {6} (expected {7})",
-                            sim.regionName, sim.regionLocX, sim.regionLocY, existingSim.regionName, 
+                            sim.regionName, sim.regionLocX, sim.regionLocY, existingSim.regionName,
                             sim.regionSendKey, existingSim.regionSendKey, sim.regionRecvKey, existingSim.regionRecvKey),
                     "The keys required to login your region did not match the grid server keys.  Please check your grid send and receive keys.");
             }
@@ -266,25 +266,25 @@ namespace OpenSim.Grid.GridServer
 
         /// <summary>
         /// Checks that the new region data is valid.
-        /// 
-        /// Currently, this means checking that the keys passed in by the new region 
+        ///
+        /// Currently, this means checking that the keys passed in by the new region
         /// match those in the grid server's configuration.
         /// </summary>
-        /// 
+        ///
         /// <param name="sim"></param>
         /// <exception cref="LoginException">Thrown if region login failed</exception>
         protected virtual void ValidateNewRegionKeys(RegionProfileData sim)
-        {            
+        {
             if (!(sim.regionRecvKey == Config.SimSendKey && sim.regionSendKey == Config.SimRecvKey))
             {
                 throw new LoginException(
                     String.Format(
                         "Authentication failed when trying to login new region {0} at location {1} {2}"
                             + " with the region's send key {3} (expected {4}) and the region's receive key {5} (expected {6})",
-                            sim.regionName, sim.regionLocX, sim.regionLocY, 
+                            sim.regionName, sim.regionLocX, sim.regionLocY,
                             sim.regionSendKey, Config.SimRecvKey, sim.regionRecvKey, Config.SimSendKey),
                     "The keys required to login your region did not match your existing region keys.  Please check your grid send and receive keys.");
-            }                
+            }
         }
 
         /// <summary>
@@ -295,13 +295,13 @@ namespace OpenSim.Grid.GridServer
         protected virtual void ValidateRegionContactable(RegionProfileData sim)
         {
             string regionStatusUrl = String.Format("{0}{1}", sim.httpServerURI, "simstatus/");
-            string regionStatusResponse;            
-            
+            string regionStatusResponse;
+
             RestClient rc = new RestClient(regionStatusUrl);
-            rc.RequestMethod = "GET";            
-            
+            rc.RequestMethod = "GET";
+
             m_log.DebugFormat("[LOGIN]: Contacting {0} for status of region {1}", regionStatusUrl, sim.regionName);
-            
+
             try
             {
                 Stream rs = rc.Request();
@@ -314,21 +314,21 @@ namespace OpenSim.Grid.GridServer
                 throw new LoginException(
                    String.Format("Region status request to {0} failed", regionStatusUrl),
                    String.Format(
-                       "The grid service could not contact the http url {0} at your region.  Please make sure this url is reachable by the grid service", 
+                       "The grid service could not contact the http url {0} at your region.  Please make sure this url is reachable by the grid service",
                        regionStatusUrl),
                    e);
-            }            
-            
+            }
+
             if (!regionStatusResponse.Equals("OK"))
             {
                 throw new LoginException(
                     String.Format(
-                        "Region {0} at {1} returned status response {2} rather than {3}", 
+                        "Region {0} at {1} returned status response {2} rather than {3}",
                         sim.regionName, regionStatusUrl, regionStatusResponse, "OK"),
                     String.Format(
                         "When the grid service asked for the status of your region, it received the response {0} rather than {1}.  Please check your status",
                         regionStatusResponse, "OK"));
-            }         
+            }
         }
 
         /// <summary>
@@ -373,11 +373,11 @@ namespace OpenSim.Grid.GridServer
                 m_log.Warn("[LOGIN PRELUDE]: Invalid login parameters, sending back error response.");
                 return ErrorResponse("Wrong format in login parameters. Please verify parameters." + e.ToString());
             }
-            
+
             m_log.InfoFormat("[LOGIN BEGIN]: Received login request from simulator: {0}", sim.regionName);
 
             existingSim = GetRegion(sim.regionHandle);
-            
+
             if (existingSim == null || existingSim.UUID == sim.UUID || sim.UUID != sim.originUUID)
             {
                 try
@@ -390,13 +390,13 @@ namespace OpenSim.Grid.GridServer
                     {
                         ValidateOverwriteKeys(sim, existingSim);
                     }
-                    
+
                     ValidateRegionContactable(sim);
                 }
                 catch (LoginException e)
                 {
                     m_log.WarnFormat("[LOGIN END]: {0}", e.Message);
-                    
+
                     return e.XmlRpcErrorResponse;
                 }
 
@@ -489,7 +489,7 @@ namespace OpenSim.Grid.GridServer
             responseData["allow_forceful_banlines"] = Config.AllowForcefulBanlines;
 
             // Instead of sending a multitude of message servers to the registering sim
-            // we should probably be sending a single one and parhaps it's backup 
+            // we should probably be sending a single one and parhaps it's backup
             // that has responsibility over routing it's messages.
 
             // The Sim won't be contacting us again about any of the message server stuff during it's time up.
@@ -583,7 +583,7 @@ namespace OpenSim.Grid.GridServer
 
             sim.regionRecvKey = String.Empty;
             sim.regionSendKey = String.Empty;
-            
+
             if (requestData.ContainsKey("region_secret"))
             {
                 string regionsecret = (string)requestData["region_secret"];
@@ -596,8 +596,8 @@ namespace OpenSim.Grid.GridServer
             else
             {
                 sim.regionSecret = Config.SimRecvKey;
-            }            
-            
+            }
+
             sim.regionDataURI = String.Empty;
             sim.regionAssetURI = Config.DefaultAssetServer;
             sim.regionAssetRecvKey = Config.AssetRecvKey;
@@ -626,7 +626,7 @@ namespace OpenSim.Grid.GridServer
             // not at all. Current strategy is to put the code in place to support the validity of this information
             // and to roll forward debugging any issues from that point
             //
-            // this particular section of the mod attempts to receive a value from the region's xml file by way of 
+            // this particular section of the mod attempts to receive a value from the region's xml file by way of
             // OSG1GridServices for the region's owner
             sim.owner_uuid = (string)requestData["master_avatar_uuid"];
 
@@ -1120,7 +1120,7 @@ namespace OpenSim.Grid.GridServer
             return response;
         }
     }
-    
+
     /// <summary>
     /// Exception generated when a simulator fails to login to the grid
     /// </summary>
@@ -1147,6 +1147,6 @@ namespace OpenSim.Grid.GridServer
         {
             // FIXME: Might be neater to refactor and put the method inside here
             m_xmlRpcErrorResponse = GridManager.ErrorResponse(xmlRpcMessage);
-        }                        
+        }
     }
 }

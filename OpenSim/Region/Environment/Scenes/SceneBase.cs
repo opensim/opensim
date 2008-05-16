@@ -77,11 +77,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_externalChecks; }
         }
-        
+
         protected string m_datastore;
 
         private uint m_nextLocalId = 8880000;
-        
+
         private AssetCache m_assetCache;
 
         public AssetCache AssetCache
@@ -89,8 +89,8 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_assetCache; }
             set { m_assetCache = value; }
         }
-        
-        protected RegionStatus m_regStatus;        
+
+        protected RegionStatus m_regStatus;
 
         public RegionStatus Region_Status
         {
@@ -130,7 +130,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Add/Remove Agent/Avatar
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="agentID"></param>
@@ -138,7 +138,7 @@ namespace OpenSim.Region.Environment.Scenes
         public abstract void AddNewClient(IClientAPI client, bool child);
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="agentID"></param>
         public abstract void RemoveClient(LLUUID agentID);
@@ -148,7 +148,7 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <returns></returns>
         public virtual RegionInfo RegionInfo
@@ -206,7 +206,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #endregion
-        
+
         /// <summary>
         /// XXX These two methods are very temporary
         /// </summary>
@@ -217,7 +217,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 return capsPaths[agentId];
             }
-            
+
             return null;
         }
     }

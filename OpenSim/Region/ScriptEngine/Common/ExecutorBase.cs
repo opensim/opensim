@@ -42,7 +42,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         /// </summary>
         protected bool m_Running = true;
         /// <summary>
-        /// True indicates that the ScriptManager has stopped 
+        /// True indicates that the ScriptManager has stopped
         /// this script. This prevents a script that has been
         /// stopped as part of deactivation from being
         /// resumed by a pending llSetScriptState request.

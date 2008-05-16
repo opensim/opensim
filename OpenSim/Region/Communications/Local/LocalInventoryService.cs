@@ -37,20 +37,20 @@ namespace OpenSim.Region.Communications.Local
 {
     /// <summary>
     /// An implementation of user inventory where the inventory is held locally (e.g. when OpenSim is
-    /// operating in standalone mode. 
+    /// operating in standalone mode.
     /// </summary>
     public class LocalInventoryService : InventoryServiceBase
     {
-        private static readonly ILog m_log 
+        private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         public override void RequestInventoryForUser(LLUUID userID, InventoryReceiptCallback callback)
         {
             m_log.InfoFormat("[LOCAL INVENTORY SERVICE]: Requesting inventory for user {0}", userID);
-            
-            List<InventoryFolderBase> skeletonFolders = GetInventorySkeleton(userID);            
+
+            List<InventoryFolderBase> skeletonFolders = GetInventorySkeleton(userID);
             InventoryFolderImpl rootFolder = null;
-            
+
             List<InventoryFolderImpl> folders = new List<InventoryFolderImpl>();
             List<InventoryItemBase> items = new List<InventoryItemBase>();
 
@@ -76,11 +76,11 @@ namespace OpenSim.Region.Communications.Local
                     }
                 }
             }
-            
+
             m_log.InfoFormat(
-                "[LOCAL INVENTORY SERVICE]: Received inventory response for user {0} containing {1} folders and {2} items",            
+                "[LOCAL INVENTORY SERVICE]: Received inventory response for user {0} containing {1} folders and {2} items",
                 userID, folders.Count, items.Count);
-            
+
             callback(folders, items);
         }
 

@@ -58,7 +58,7 @@ namespace OpenSim.Region.DataSnapshot
             foreach (EntityBase entity in m_scene.Entities.Values)
             {
                 // only objects, not avatars
-                if (entity is SceneObjectGroup) 
+                if (entity is SceneObjectGroup)
                 {
                     SceneObjectGroup obj = (SceneObjectGroup)entity;
 

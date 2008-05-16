@@ -51,7 +51,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             //string requestBody = streamReader.ReadToEnd();
             //streamReader.Close();
 
-            // libsecondlife.StructuredData.LLSDMap hash = (libsecondlife.StructuredData.LLSDMap) 
+            // libsecondlife.StructuredData.LLSDMap hash = (libsecondlife.StructuredData.LLSDMap)
             //    libsecondlife.StructuredData.LLSDParser.DeserializeXml(new XmlTextReader(request));
 
             Hashtable hash = (Hashtable) LLSD.LLSDDeserialize(request);

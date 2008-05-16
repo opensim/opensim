@@ -183,7 +183,7 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void DeregisterCapsEvent(LLUUID agentID, Caps caps);
         public event DeregisterCapsEvent OnDeregisterCaps;
 
-        public class MoneyTransferArgs : EventArgs 
+        public class MoneyTransferArgs : EventArgs
         {
             public LLUUID sender;
             public LLUUID receiver;
@@ -208,7 +208,7 @@ namespace OpenSim.Region.Environment.Scenes
         public class LandBuyArgs : EventArgs
         {
             public LLUUID agentId = LLUUID.Zero;
-            
+
             public LLUUID groupId = LLUUID.Zero;
 
             public LLUUID parcelOwnerID = LLUUID.Zero;
@@ -225,9 +225,9 @@ namespace OpenSim.Region.Environment.Scenes
             public int transactionID = 0;
             public int amountDebited = 0;
 
-            
+
             public LandBuyArgs(LLUUID pagentId, LLUUID pgroupId, bool pfinal, bool pgroupOwned,
-                bool premoveContribution, int pparcelLocalID, int pparcelArea, int pparcelPrice, 
+                bool premoveContribution, int pparcelLocalID, int pparcelArea, int pparcelPrice,
                 bool pauthenticated)
             {
                 agentId = pagentId;
@@ -367,7 +367,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (handlerParcelPrimCountUpdate != null)
             {
                 handlerParcelPrimCountUpdate();
-            }    
+            }
         }
 
         public void TriggerMoneyTransfer(Object sender, MoneyTransferArgs e)
@@ -538,7 +538,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerOnRegisterCaps(LLUUID agentID, Caps caps) 
+        public void TriggerOnRegisterCaps(LLUUID agentID, Caps caps)
         {
             handlerRegisterCaps = OnRegisterCaps;
             if (handlerRegisterCaps != null)
@@ -547,7 +547,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerOnDeregisterCaps(LLUUID agentID, Caps caps) 
+        public void TriggerOnDeregisterCaps(LLUUID agentID, Caps caps)
         {
             handlerDeregisterCaps = OnDeregisterCaps;
             if (handlerDeregisterCaps != null)
@@ -580,7 +580,7 @@ namespace OpenSim.Region.Environment.Scenes
                 handlerValidateLandBuy(sender, e);
             }
         }
-        
+
         public void TriggerAtTargetEvent(uint localID, uint handle, LLVector3 targetpos, LLVector3 currentpos)
         {
             handlerScriptAtTargetEvent = OnScriptAtTargetEvent;

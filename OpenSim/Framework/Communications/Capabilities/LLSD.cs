@@ -37,12 +37,12 @@ using libsecondlife;
 namespace OpenSim.Framework.Communications.Capabilities
 {
     /// <summary>
-    /// Borrowed from (a older version of) libsl for now, as their new llsd code doesn't work we our decoding code. 
+    /// Borrowed from (a older version of) libsl for now, as their new llsd code doesn't work we our decoding code.
     /// </summary>
     public static class LLSD
     {
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public class LLSDParseException : Exception
         {
@@ -52,7 +52,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public class LLSDSerializeException : Exception
         {
@@ -62,7 +62,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="b"></param>
         /// <returns></returns>
@@ -72,7 +72,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="st"></param>
         /// <returns></returns>
@@ -96,7 +96,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
@@ -116,7 +116,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="writer"></param>
         /// <param name="obj"></param>
@@ -217,7 +217,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="reader"></param>
         /// <returns></returns>
@@ -360,7 +360,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="reader"></param>
         /// <returns></returns>
@@ -405,7 +405,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="reader"></param>
         /// <returns></returns>
@@ -441,7 +441,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="count"></param>
         /// <returns></returns>
@@ -453,7 +453,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="indent"></param>
@@ -661,7 +661,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="reader"></param>
         private static void SkipWS(XmlTextReader reader)

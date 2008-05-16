@@ -37,7 +37,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
     /// </summary>
     public class TextureNotFoundSender : ITextureSender
     {
-        //private static readonly log4net.ILog m_log 
+        //private static readonly log4net.ILog m_log
         //    = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_cancel = false;
@@ -80,7 +80,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         public bool SendTexturePacket()
         {
             //m_log.InfoFormat(
-            //    "[TEXTURE NOT FOUND SENDER]: Informing the client that texture {0} cannot be found", 
+            //    "[TEXTURE NOT FOUND SENDER]: Informing the client that texture {0} cannot be found",
             //    m_textureId);
 
             ImageNotInDatabasePacket notFound = new ImageNotInDatabasePacket();

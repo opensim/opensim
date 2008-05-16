@@ -51,7 +51,7 @@ namespace OpenSim.Data.SQLite
         private const string SelectAssetSQL = "select * from assets where UUID=:UUID";
         private const string DeleteAssetSQL = "delete from assets where UUID=:UUID";
         private const string InsertAssetSQL = "insert into assets(UUID, Name, Description, Type, InvType, Local, Temporary, Data) values(:UUID, :Name, :Description, :Type, :InvType, :Local, :Temporary, :Data)";
-        private const string UpdateAssetSQL = "update assets set Name=:Name, Description=:Description, Type=:Type, InvType=:InvType, Local=:Local, Temporary=:Temporary, Data=:Data where UUID=:UUID"; 
+        private const string UpdateAssetSQL = "update assets set Name=:Name, Description=:Description, Type=:Type, InvType=:InvType, Local=:Local, Temporary=:Temporary, Data=:Data where UUID=:UUID";
         private const string assetSelect = "select * from assets";
 
         private SqliteConnection m_conn;
@@ -70,11 +70,11 @@ namespace OpenSim.Data.SQLite
 
         override public AssetBase FetchAsset(LLUUID uuid)
         {
-            
+
             using (SqliteCommand cmd = new SqliteCommand(SelectAssetSQL, m_conn))
             {
                 cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(uuid)));
-                using (IDataReader reader = cmd.ExecuteReader()) 
+                using (IDataReader reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
                     {
@@ -98,7 +98,7 @@ namespace OpenSim.Data.SQLite
             {
                 m_log.Info("[ASSET DB]: Asset exists already, ignoring.");
             }
-            else 
+            else
             {
                 using (SqliteCommand cmd = new SqliteCommand(InsertAssetSQL, m_conn))
                 {
@@ -110,7 +110,7 @@ namespace OpenSim.Data.SQLite
                     cmd.Parameters.Add(new SqliteParameter(":Local", asset.Local));
                     cmd.Parameters.Add(new SqliteParameter(":Temporary", asset.Temporary));
                     cmd.Parameters.Add(new SqliteParameter(":Data", asset.Data));
-                    
+
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -119,7 +119,7 @@ namespace OpenSim.Data.SQLite
         override public void UpdateAsset(AssetBase asset)
         {
             LogAssetLoad(asset);
-            
+
             using (SqliteCommand cmd = new SqliteCommand(UpdateAssetSQL, m_conn))
             {
                 cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(asset.FullID)));
@@ -130,7 +130,7 @@ namespace OpenSim.Data.SQLite
                 cmd.Parameters.Add(new SqliteParameter(":Local", asset.Local));
                 cmd.Parameters.Add(new SqliteParameter(":Temporary", asset.Temporary));
                 cmd.Parameters.Add(new SqliteParameter(":Data", asset.Data));
-                
+
                 cmd.ExecuteNonQuery();
             }
 
@@ -154,14 +154,14 @@ namespace OpenSim.Data.SQLite
             using (SqliteCommand cmd = new SqliteCommand(SelectAssetSQL, m_conn))
             {
                 cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(uuid)));
-                using (IDataReader reader = cmd.ExecuteReader()) 
+                using (IDataReader reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
                     {
                         reader.Close();
                         return true;
                     }
-                    else 
+                    else
                     {
                         reader.Close();
                         return false;
@@ -175,7 +175,7 @@ namespace OpenSim.Data.SQLite
             using (SqliteCommand cmd = new SqliteCommand(DeleteAssetSQL, m_conn))
             {
                 cmd.Parameters.Add(new SqliteParameter(":UUID", Util.ToRawUuidString(uuid)));
-                
+
                 cmd.ExecuteNonQuery();
             }
         }
@@ -193,7 +193,7 @@ namespace OpenSim.Data.SQLite
         /***********************************************************************
          *
          *  Database Definition Functions
-         * 
+         *
          *  This should be db agnostic as we define them in ADO.NET terms
          *
          **********************************************************************/
@@ -216,7 +216,7 @@ namespace OpenSim.Data.SQLite
         }
 
         /***********************************************************************
-         *  
+         *
          *  Convert between ADO.NET <=> OpenSim Objects
          *
          *  These should be database independant

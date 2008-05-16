@@ -43,14 +43,14 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
             double area = strength;
             double step = strength / 4.0;
 
-            // compute delta map 
+            // compute delta map
             for (x = 0; x < map.Width; x++)
             {
                 for (y = 0; y < map.Height; y++)
                 {
                     double z = TerrainUtil.SphericalFactor(x, y, rx, ry, strength);
 
-                    if (z > 0) // add in non-zero amount 
+                    if (z > 0) // add in non-zero amount
                     {
                         double average = 0.0;
                         int avgsteps = 0;
@@ -69,14 +69,14 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
                     }
                 }
             }
-            // blend in map 
+            // blend in map
             for (x = 0; x < map.Width; x++)
             {
                 for (y = 0; y < map.Height; y++)
                 {
                     double z = TerrainUtil.SphericalFactor(x, y, rx, ry, strength);
 
-                    if (z > 0) // add in non-zero amount 
+                    if (z > 0) // add in non-zero amount
                     {
                         double da = z;
                         double a = (map[x, y] - tweak[x, y]) * da;

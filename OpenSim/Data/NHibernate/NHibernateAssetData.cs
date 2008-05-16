@@ -65,20 +65,20 @@ namespace OpenSim.Data.NHibernate
                 // TODO: make this a real exception type
                 throw new Exception("Malformed Inventory connection string '" + connect + "'");
             }
-            
+
             // NHibernate setup
             cfg = new Configuration();
-            cfg.SetProperty(Environment.ConnectionProvider, 
+            cfg.SetProperty(Environment.ConnectionProvider,
                             "NHibernate.Connection.DriverConnectionProvider");
-            cfg.SetProperty(Environment.Dialect, 
+            cfg.SetProperty(Environment.Dialect,
                             "NHibernate.Dialect." + parts[0]);
-            cfg.SetProperty(Environment.ConnectionDriver, 
+            cfg.SetProperty(Environment.ConnectionDriver,
                             "NHibernate.Driver." + parts[1]);
             cfg.SetProperty(Environment.ConnectionString, parts[2]);
             cfg.AddAssembly("OpenSim.Data.NHibernate");
 
             HbmSerializer.Default.Validate = true;
-            using ( MemoryStream stream = 
+            using ( MemoryStream stream =
                     HbmSerializer.Default.Serialize(Assembly.GetExecutingAssembly()))
                 cfg.AddInputStream(stream);
 

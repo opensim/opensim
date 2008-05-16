@@ -34,8 +34,8 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Types
 {
-    [Serializable] 
-    public class UpdateQueue : ISerializable 
+    [Serializable]
+    public class UpdateQueue : ISerializable
     {
         private Queue<SceneObjectPart> m_queue;
 

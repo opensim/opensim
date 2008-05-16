@@ -160,7 +160,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.PaintBrushes
                 {
                     double z = TerrainUtil.SphericalFactor(x, y, rx, ry, strength);
 
-                    if (z > 0) // add in non-zero amount 
+                    if (z > 0) // add in non-zero amount
                     {
                         const int NEIGHBOUR_ME = 4;
                         const int NEIGHBOUR_MAX = 9;

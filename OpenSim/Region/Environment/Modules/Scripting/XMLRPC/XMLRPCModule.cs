@@ -43,12 +43,12 @@ using OpenSim.Region.Environment.Scenes;
 /*****************************************************
  *
  * XMLRPCModule
- * 
+ *
  * Module for accepting incoming communications from
  * external XMLRPC client and calling a remote data
  * procedure for a registered data channel/prim.
- * 
- * 
+ *
+ *
  * 1. On module load, open a listener port
  * 2. Attach an XMLRPC handler
  * 3. When a request is received:
@@ -59,18 +59,18 @@ using OpenSim.Region.Environment.Scenes;
  * 3.5 Return response to client caller
  * 3.6 If no response from llRemoteDataReply within
  *     RemoteReplyScriptTimeout, generate script timeout fault
- * 
+ *
  * Prims in script must:
  * 1. Open a remote data channel
  * 1.1 Generate a channel ID
  * 1.2 Register primid,channelid pair with module
  * 2. Implement the remote data procedure handler
- * 
+ *
  * llOpenRemoteDataChannel
  * llRemoteDataReply
  * remote_data(integer type, key channel, key messageid, string sender, integer ival, string sval)
  * llCloseRemoteDataChannel
- * 
+ *
  * **************************************************/
 
 namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
@@ -157,16 +157,16 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
 
         /**********************************************
          * OpenXMLRPCChannel
-         * 
+         *
          * Generate a LLUUID channel key and add it and
          * the prim id to dictionary <channelUUID, primUUID>
-         * 
+         *
          * First check if there is a channel assigned for
          * this itemID.  If there is, then someone called
          * llOpenRemoteDataChannel twice.  Just return the
          * original channel.  Other option is to delete the
          * current channel and assign a new one.
-         * 
+         *
          * ********************************************/
 
         public LLUUID OpenXMLRPCChannel(uint localID, LLUUID itemID)
@@ -224,9 +224,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
 
         /**********************************************
          * Remote Data Reply
-         * 
+         *
          * Response to RPC message
-         * 
+         *
          *********************************************/
 
         public void RemoteDataReply(string channel, string message_id, string sdata, int idata)
@@ -245,9 +245,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
 
         /**********************************************
          * CloseXMLRPCChannel
-         * 
+         *
          * Remove channel from dictionary
-         * 
+         *
          *********************************************/
 
         public void CloseXMLRPCChannel(LLUUID channelKey)

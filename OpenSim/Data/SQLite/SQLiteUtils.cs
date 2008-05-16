@@ -39,7 +39,7 @@ namespace OpenSim.Data.SQLite
         /***********************************************************************
          *
          *  Database Definition Helper Functions
-         * 
+         *
          *  This should be db agnostic as we define them in ADO.NET terms
          *
          **********************************************************************/
@@ -161,7 +161,7 @@ namespace OpenSim.Data.SQLite
         /// This is a convenience function that collapses 5 repetitive
         /// lines for defining SqliteParameters to 2 parameters:
         /// column name and database type.
-        ///        
+        ///
         /// It assumes certain conventions like :param as the param
         /// name to replace in parametrized queries, and that source
         /// version is always current version, both of which are fine

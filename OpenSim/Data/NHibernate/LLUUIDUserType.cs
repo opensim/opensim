@@ -35,7 +35,7 @@ using NHibernate.UserTypes;
 namespace OpenSim.Data.NHibernate
 {
     [Serializable]
-    public class LLUUIDUserType: IUserType 
+    public class LLUUIDUserType: IUserType
     {
         public object Assemble(object cached, object owner)
         {
@@ -69,7 +69,7 @@ namespace OpenSim.Data.NHibernate
 
         public object NullSafeGet(IDataReader rs, string[] names, object owner)
         {
-            object uuid = null; 
+            object uuid = null;
 
             int ord = rs.GetOrdinal(names[0]);
             if (!rs.IsDBNull(ord))

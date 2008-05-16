@@ -59,7 +59,7 @@ namespace OpenSim.Data.MySQL
         {
             // TODO: actually do something with our connect string
             // instead of loading the second config
-            
+
             IniFile iniFile = new IniFile("mysql_connection.ini");
             string settingHostname = iniFile.ParseFileReadValue("hostname");
             string settingDatabase = iniFile.ParseFileReadValue("database");
@@ -67,7 +67,7 @@ namespace OpenSim.Data.MySQL
             string settingPassword = iniFile.ParseFileReadValue("password");
             string settingPooling = iniFile.ParseFileReadValue("pooling");
             string settingPort = iniFile.ParseFileReadValue("port");
-            
+
             m_usersTableName = iniFile.ParseFileReadValue("userstablename");
             if (m_usersTableName == null)
             {
@@ -206,15 +206,15 @@ namespace OpenSim.Data.MySQL
             param["?friendID"] = friend.UUID.ToString();
             param["?friendPerms"] = perms.ToString();
             param["?datetimestamp"] = dtvalue.ToString();
-            
-            try 
+
+            try
             {
                 lock (database)
                 {
                     IDbCommand adder =
                         database.Query(
                         "INSERT INTO `" + m_userFriendsTableName + "` " +
-                        "(`ownerID`,`friendID`,`friendPerms`,`datetimestamp`) " + 
+                        "(`ownerID`,`friendID`,`friendPerms`,`datetimestamp`) " +
                         "VALUES " +
                         "(?ownerID,?friendID,?friendPerms,?datetimestamp)",
                             param);
@@ -325,7 +325,7 @@ namespace OpenSim.Data.MySQL
 
                         // This is not a real column in the database table, it's a joined column from the opposite record
                         fli.FriendListOwnerPerms = (uint)Convert.ToInt32(reader["ownerperms"]);
-                        
+
                         Lfli.Add(fli);
                     }
                     reader.Close();
@@ -599,7 +599,7 @@ namespace OpenSim.Data.MySQL
                                        user.UserAssetURI, user.CanDoMask, user.WantDoMask, user.AboutText,
                                        user.FirstLifeAboutText, user.Image, user.FirstLifeImage, user.WebLoginKey);
             }
-            
+
             return true;
         }
 
@@ -630,7 +630,7 @@ namespace OpenSim.Data.MySQL
 
         /// Appearance
         /// TODO: stubs for now to get us to a compiling state gently
-        // override public AvatarAppearance GetUserAppearance(LLUUID user) 
+        // override public AvatarAppearance GetUserAppearance(LLUUID user)
         // {
         //     return new AvatarAppearance();
         // }
@@ -644,12 +644,12 @@ namespace OpenSim.Data.MySQL
         {
             return;
         }
-        
+
         override public void RemoveAttachment(LLUUID user, LLUUID item)
         {
             return;
         }
-        
+
         override public List<LLUUID> GetAttachments(LLUUID user)
         {
             return new List<LLUUID>();

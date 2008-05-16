@@ -199,7 +199,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
 
         /// <summary>
         /// Create an inventory item from data that has been received through a transaction.
-        /// 
+        ///
         /// This is called when new clothing or body parts are created.  It may also be called in other
         /// situations.
         /// </summary>
@@ -229,8 +229,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
 
         /// <summary>
         /// Update an inventory item with data that has been received through a transaction.
-        /// 
-        /// This is called when clothing or body parts are updated (for instance, with new textures or 
+        ///
+        /// This is called when clothing or body parts are updated (for instance, with new textures or
         /// colours).  It may also be called in other situations.
         /// </summary>
         /// <param name="remoteClient"></param>

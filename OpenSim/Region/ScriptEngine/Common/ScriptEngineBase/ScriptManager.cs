@@ -41,7 +41,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
     /// Compiles them if necessary
     /// Execute functions for EventQueueManager (Sends them to script on other AppDomain for execution)
     /// </summary>
-    /// 
+    ///
 
     // This class is as close as you get to the script without being inside script class. It handles all the dirty work for other classes.
     // * Keeps track of running scripts
@@ -212,7 +212,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 if (LUQueue.Count > 0)
                 {
                     LUStruct item = LUQueue.Dequeue();
-                    
+
                     if (item.Action == LUType.Unload)
                     {
                         _StopScript(item.localID, item.itemID);
@@ -224,7 +224,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 }
             }
         }
-        
+
         #endregion
 
         #region Helper functions

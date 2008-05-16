@@ -226,7 +226,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.AsterixVoice
         public string ProvisionVoiceAccountRequest(string request, string path, string param,
                                                    LLUUID agentID, Caps caps)
         {
-            // we need to 
+            // we need to
             // - get user data from UserProfileCacheService
             // - generate nonce for user voice account password
             // - issue XmlRpc request to asterisk opensim front end:

@@ -101,7 +101,7 @@ namespace OpenSim.Region.Modules.AvatarFactory
             else
             {
                 // BUG: !? (Reduced from 5000 to 500 by Adam)
-                Thread.Sleep(500); //why is this here? 
+                Thread.Sleep(500); //why is this here?
 
                 //this is the first thread to request this appearance
                 //so let it check the db and if not found then create a default appearance
@@ -279,7 +279,7 @@ namespace OpenSim.Region.Modules.AvatarFactory
             {
                 if (profile.RootFolder != null)
                 {
-                    
+
                     foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
                     {
                         if (wear.Type < 13)
@@ -292,9 +292,9 @@ namespace OpenSim.Region.Modules.AvatarFactory
                             else
                             {
                                 LLUUID assetId;
-                                
+
                                 InventoryItemBase baseItem = profile.RootFolder.FindItem(wear.ItemID);
-                                
+
                                 if (baseItem != null)
                                 {
                                     assetId = baseItem.AssetID;

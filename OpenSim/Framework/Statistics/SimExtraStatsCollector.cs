@@ -32,20 +32,20 @@ using libsecondlife;
 using OpenSim.Framework.Statistics.Interfaces;
 
 namespace OpenSim.Framework.Statistics
-{  
+{
     /// <summary>
     /// Collects sim statistics which aren't already being collected for the linden viewer's statistics pane
     /// </summary>
     public class SimExtraStatsCollector : IStatsCollector
-    {        
+    {
         private long assetsInCache;
-        private long texturesInCache;        
+        private long texturesInCache;
         private long assetCacheMemoryUsage;
         private long textureCacheMemoryUsage;
         private long blockedMissingTextureRequests;
-        
+
         private long inventoryServiceRetrievalFailures;
-        
+
         public long AssetsInCache { get { return assetsInCache; } }
         public long TexturesInCache { get { return texturesInCache; } }
         public long AssetCacheMemoryUsage { get { return assetCacheMemoryUsage; } }
@@ -58,47 +58,47 @@ namespace OpenSim.Framework.Statistics
         /// driver bugs on clients (though this seems less likely).
         /// </summary>
         public long BlockedMissingTextureRequests { get { return blockedMissingTextureRequests; } }
-        
+
         /// <summary>
         /// Number of known failures to retrieve avatar inventory from the inventory service.  This does not
         /// cover situations where the inventory service accepts the request but never returns any data, since
         /// we do not yet timeout this situation.
         /// </summary>
         public long InventoryServiceRetrievalFailures { get { return inventoryServiceRetrievalFailures; } }
-        
+
         /// <summary>
         /// Retain a dictionary of all packet queues stats reporters
         /// </summary>
         private IDictionary<LLUUID, PacketQueueStatsCollector> packetQueueStatsCollectors
             = new Dictionary<LLUUID, PacketQueueStatsCollector>();
-        
+
         public void AddAsset(AssetBase asset)
         {
             assetsInCache++;
             assetCacheMemoryUsage += asset.Data.Length;
         }
-        
+
         public void AddTexture(AssetBase image)
         {
             if (image.Data != null)
             {
                 texturesInCache++;
-                
+
                 // This could have been a pull stat, though there was originally a nebulous idea to measure flow rates
                 textureCacheMemoryUsage += image.Data.Length;
             }
-        }  
-        
+        }
+
         public void AddBlockedMissingTextureRequest()
         {
             blockedMissingTextureRequests++;
         }
-        
+
         public void AddInventoryServiceRetrievalFailure()
         {
             inventoryServiceRetrievalFailures++;
         }
-        
+
         /// <summary>
         /// Register as a packet queue stats provider
         /// </summary>
@@ -111,7 +111,7 @@ namespace OpenSim.Framework.Statistics
                 packetQueueStatsCollectors[uuid] = new PacketQueueStatsCollector(provider);
             }
         }
-        
+
         /// <summary>
         /// Deregister a packet queue stats provider
         /// </summary>
@@ -129,25 +129,25 @@ namespace OpenSim.Framework.Statistics
         /// </summary>
         /// <returns></returns>
         public string Report()
-        {    
+        {
             StringBuilder sb = new StringBuilder(Environment.NewLine);
             sb.Append("ASSET STATISTICS");
-            sb.Append(Environment.NewLine);            
+            sb.Append(Environment.NewLine);
             sb.Append(
                 string.Format(
 @"Asset   cache contains {0,6} assets   using {1,10:0.000}K" + Environment.NewLine,
                     AssetsInCache, AssetCacheMemoryUsage / 1024.0));
-            
+
             sb.Append(Environment.NewLine);
             sb.Append("TEXTURE STATISTICS");
-            sb.Append(Environment.NewLine);            
+            sb.Append(Environment.NewLine);
             sb.Append(
                 string.Format(
 @"Texture cache contains {0,6} textures using {1,10:0.000}K
 Blocked requests for missing textures: {2}" + Environment.NewLine,
                     TexturesInCache, TextureCacheMemoryUsage / 1024.0,
-                    BlockedMissingTextureRequests));            
-            
+                    BlockedMissingTextureRequests));
+
             sb.Append(Environment.NewLine);
             sb.Append("INVENTORY STATISTICS");
             sb.Append(Environment.NewLine);
@@ -155,26 +155,26 @@ Blocked requests for missing textures: {2}" + Environment.NewLine,
                 string.Format(
                     "Initial inventory caching failures: {0}" + Environment.NewLine,
                     InventoryServiceRetrievalFailures));
-                                    
+
             sb.Append(Environment.NewLine);
             sb.Append("PACKET QUEUE STATISTICS");
             sb.Append(Environment.NewLine);
             sb.Append("Agent UUID                          ");
             sb.Append(
                 string.Format(
-                    "  {0,7}  {1,7}  {2,7}  {3,7}  {4,7}  {5,7}  {6,7}  {7,7}  {8,7}  {9,7}", 
+                    "  {0,7}  {1,7}  {2,7}  {3,7}  {4,7}  {5,7}  {6,7}  {7,7}  {8,7}  {9,7}",
                     "Send", "In", "Out", "Resend", "Land", "Wind", "Cloud", "Task", "Texture", "Asset"));
-            sb.Append(Environment.NewLine);            
-                
+            sb.Append(Environment.NewLine);
+
             foreach (LLUUID key in packetQueueStatsCollectors.Keys)
             {
                 sb.Append(string.Format("{0}: ", key));
                 sb.Append(packetQueueStatsCollectors[key].Report());
                 sb.Append(Environment.NewLine);
             }
-            
+
             return sb.ToString();
-        }        
+        }
     }
 
     /// <summary>
@@ -183,16 +183,16 @@ Blocked requests for missing textures: {2}" + Environment.NewLine,
     public class PacketQueueStatsCollector : IStatsCollector
     {
         private IPullStatsProvider m_statsProvider;
-        
+
         public PacketQueueStatsCollector(IPullStatsProvider provider)
         {
-            m_statsProvider = provider;    
+            m_statsProvider = provider;
         }
-        
+
         /// <summary>
         /// Report back collected statistical information.
         /// </summary>
-        /// <returns></returns>        
+        /// <returns></returns>
         public string Report()
         {
             return m_statsProvider.GetStats();

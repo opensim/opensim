@@ -44,7 +44,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public delegate void ReceiveCommandDelegate(int ID, string Command, params object[] p);
         public event ReceiveCommandDelegate ReceiveCommand;
         Dictionary<string, Type> TypeDictionary = new Dictionary<string, Type>();
-        Type[] Types = 
+        Type[] Types =
         {
             typeof(String),
             typeof(Int16),

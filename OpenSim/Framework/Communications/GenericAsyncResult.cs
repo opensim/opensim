@@ -112,7 +112,7 @@ namespace OpenSim.Framework.Communications
 
         public void EndInvoke()
         {
-            // This method assumes that only 1 thread calls EndInvoke 
+            // This method assumes that only 1 thread calls EndInvoke
             if (!IsCompleted)
             {
                 // If the operation isn't done, wait for it
@@ -142,7 +142,7 @@ namespace OpenSim.Framework.Communications
             // Save the asynchronous operation's result
             m_result = result;
 
-            // Tell the base class that the operation completed 
+            // Tell the base class that the operation completed
             // sucessfully (no exception)
             base.SetAsCompleted(completedSynchronously);
         }

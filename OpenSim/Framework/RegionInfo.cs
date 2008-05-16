@@ -37,7 +37,7 @@ namespace OpenSim.Framework
     [Serializable]
     public class SimpleRegionInfo
     {
-        // private static readonly log4net.ILog m_log 
+        // private static readonly log4net.ILog m_log
         //     = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         protected bool Allow_Alternate_Ports;
@@ -114,7 +114,7 @@ namespace OpenSim.Framework
 
         /// <value>
         /// This accessor can throw all the exceptions that Dns.GetHostAddresses can throw.
-        /// 
+        ///
         /// XXX Isn't this really doing too much to be a simple getter, rather than an explict method?
         /// </value>
         public IPEndPoint ExternalEndPoint
@@ -187,7 +187,7 @@ namespace OpenSim.Framework
 
     public class RegionInfo : SimpleRegionInfo
     {
-        // private static readonly log4net.ILog m_log 
+        // private static readonly log4net.ILog m_log
         //     = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public bool commFailTF = false;
@@ -327,7 +327,7 @@ namespace OpenSim.Framework
 
             if (errorMessage != String.Empty)
             {
-                // a error 
+                // a error
             }
         }
 

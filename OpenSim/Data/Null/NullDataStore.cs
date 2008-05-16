@@ -47,11 +47,11 @@ namespace OpenSim.Data.Null
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
         }
-        
+
         // see IRegionDatastore
         public void StorePrimInventory(LLUUID primID, ICollection<TaskInventoryItem> items)
         {
-        }        
+        }
 
         public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
         {

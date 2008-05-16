@@ -57,7 +57,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         internal uint m_localID;
         internal LLUUID m_itemID;
         internal bool throwErrorOnNotImplemented = true;
-        
+
         public LSL_BuiltIn_Commands(ScriptEngineBase.ScriptEngine ScriptEngine, SceneObjectPart host, uint localID, LLUUID itemID)
         {
             m_ScriptEngine = ScriptEngine;
@@ -93,7 +93,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     try
                     {
                         int eventFlags = m_ScriptEngine.m_ScriptManager.GetStateEventFlags(m_localID, m_itemID);
-                        m_host.SetScriptEvents(m_itemID, eventFlags); 
+                        m_host.SetScriptEvents(m_itemID, eventFlags);
                         m_ScriptEngine.m_EventManager.state_entry(m_localID);
                     }
                     catch (AppDomainUnloadedException)
@@ -186,7 +186,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 World.EventManager.TriggerRequestChangeWaterHeight((float)height);
             }
         }
-     
+
         //These are the implementations of the various ll-functions used by the LSL scripts.
         //starting out, we use the System.Math library for trig functions. - ckrinke 8-14-07
         public double llSin(double f)
@@ -331,9 +331,9 @@ namespace OpenSim.Region.ScriptEngine.Common
         // New and improved, now actually works as described. Prim rotates as expected as does llRot2Euler.
 
         /* From wiki:
-        The Euler angle vector (in radians) is converted to a rotation by doing the rotations around the 3 axes 
-        in Z, Y, X order. So llEuler2Rot(<1.0, 2.0, 3.0> * DEG_TO_RAD) generates a rotation by taking the zero rotation, 
-        a vector pointing along the X axis, first rotating it 3 degrees around the global Z axis, then rotating the resulting 
+        The Euler angle vector (in radians) is converted to a rotation by doing the rotations around the 3 axes
+        in Z, Y, X order. So llEuler2Rot(<1.0, 2.0, 3.0> * DEG_TO_RAD) generates a rotation by taking the zero rotation,
+        a vector pointing along the X axis, first rotating it 3 degrees around the global Z axis, then rotating the resulting
         vector 2 degrees around the global Y axis, and finally rotating that 1 degree around the global X axis.
         */
 
@@ -349,24 +349,24 @@ namespace OpenSim.Region.ScriptEngine.Common
             double sinX = Math.Sin(v.x);
             double sinY = Math.Sin(v.y);
             double sinZ = Math.Sin(v.z);
-            
-            s = Math.Sqrt( cosY * cosZ - sinX * sinY * sinZ + cosX * cosZ + cosX * cosY + 1.0f) * 0.5f;
+
+            s = Math.Sqrt(cosY * cosZ - sinX * sinY * sinZ + cosX * cosZ + cosX * cosY + 1.0f) * 0.5f;
             if (Math.Abs(s) < 0.00001) // null rotation
             {
-           		x = 0.0f;
+                   x = 0.0f;
                 y = 1.0f;
-            	z = 0.0f;
+                z = 0.0f;
             }
             else
             {
-            	s_i = 1.0f / (4.0f * s);
-            	x = - ( -sinX * cosY - cosX * sinY * sinZ - sinX * cosZ) * s_i;
-            	y = - ( -cosX * sinY * cosZ + sinX * sinZ - sinY) * s_i;
-            	z = - ( -cosY * sinZ - sinX * sinY * cosZ - cosX * sinZ) * s_i;		
+                s_i = 1.0f / (4.0f * s);
+                x = - (-sinX * cosY - cosX * sinY * sinZ - sinX * cosZ) * s_i;
+                y = - (-cosX * sinY * cosZ + sinX * sinZ - sinY) * s_i;
+                z = - (-cosY * sinZ - sinX * sinY * cosZ - cosX * sinZ) * s_i;
             }
             return new LSL_Types.Quaternion(x, y, z, s);
         }
-               
+
 
         public LSL_Types.Quaternion llAxes2Rot(LSL_Types.Vector3 fwd, LSL_Types.Vector3 left, LSL_Types.Vector3 up)
         {
@@ -477,7 +477,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             LLUUID keyID = LLUUID.Zero;
             LLUUID.TryParse(id, out keyID);
-            
+
             m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.SenseOnce(m_localID, m_itemID, name, keyID, type, range, arc, m_host);
        }
 
@@ -625,7 +625,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
 
             return String.Empty;
-               
+
        }
 
         public LSL_Types.LSLInteger llDetectedType(int number)
@@ -644,7 +644,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 mask |= 0x04; // passive non-moving
             else
                 mask |= 0x02; // active moving
-            if (SensedObject is IScript) mask |= 0x08; // Scripted. It COULD have one hidden ... 
+            if (SensedObject is IScript) mask |= 0x08; // Scripted. It COULD have one hidden ...
             return mask;
 
         }
@@ -655,7 +655,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             EntityBase SensedObject = entityDetectedKey(number);
             if (SensedObject == null)
                 return new LSL_Types.Vector3(0, 0, 0);
-               
+
             return new LSL_Types.Vector3(SensedObject.AbsolutePosition.X,SensedObject.AbsolutePosition.Y,SensedObject.AbsolutePosition.Z);
         }
 
@@ -757,7 +757,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if ((status & BuiltIn_Commands_BaseClass.STATUS_ROTATE_X) == BuiltIn_Commands_BaseClass.STATUS_ROTATE_X)
             {
                 statusrotationaxis |= BuiltIn_Commands_BaseClass.STATUS_ROTATE_X;
-                
+
             }
             if ((status & BuiltIn_Commands_BaseClass.STATUS_ROTATE_Y) == BuiltIn_Commands_BaseClass.STATUS_ROTATE_Y)
             {
@@ -824,9 +824,9 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                     if (m_host.GetDieAtEdge())
                         return 1;
-                    else 
+                    else
                         return 0;
-                
+
                 case BuiltIn_Commands_BaseClass.STATUS_RETURN_AT_EDGE:
                     NotImplemented("llGetStatus - STATUS_RETURN_AT_EDGE");
                     return 0;
@@ -1248,7 +1248,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             return m_host.registerTargetWaypoint(new LLVector3((float)position.x, (float)position.y, (float)position.z), (float)range);
-           
+
         }
 
         public void llTargetRemove(int number)
@@ -1286,21 +1286,21 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             //No energy force yet
-            
+
             if (force.x > 20000)
                     force.x = 20000;
             if (force.y > 20000)
                     force.y = 20000;
             if (force.z > 20000)
                     force.z = 20000;
-            
+
             if (local == 1)
             {
                 m_host.ApplyImpulse(new LLVector3((float)force.x, (float)force.y, (float)force.z), true);
             }
             else
             {
-               
+
                 m_host.ApplyImpulse(new LLVector3((float)force.x,(float)force.y,(float)force.z), false);
             }
         }
@@ -1475,7 +1475,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
                 // If end is positive, then it directly
                 // corresponds to the lengt of the substring
-                // needed (plus one of course). BUT, it 
+                // needed (plus one of course). BUT, it
                 // must be within bounds.
                 if (end >= src.Length)
                 {
@@ -1493,15 +1493,15 @@ namespace OpenSim.Region.ScriptEngine.Common
             // Inverted substring (end < start)
             else
             {
-                // Implies both indices are below the 
-                // lower bound. In the inverted case, that 
+                // Implies both indices are below the
+                // lower bound. In the inverted case, that
                 // means the entire string will be returned
                 // unchanged.
                 if (start < 0)
                 {
                     return src;
                 }
-                // If both indices are greater than the upper 
+                // If both indices are greater than the upper
                 // bound the result may seem initially counter
                 // intuitive.
                 if (end >= src.Length)
@@ -1536,7 +1536,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         /// <summary>
         /// Delete substring removes the specified substring bounded
-        /// by the inclusive indices start and end. Indices may be 
+        /// by the inclusive indices start and end. Indices may be
         /// negative (indicating end-relative) and may be inverted,
         /// i.e. end < start.
         /// </summary>
@@ -1591,7 +1591,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 {
                     return String.Empty;
                 }
-                
+
                 if (end > 0)
                 {
                     if (start < src.Length)
@@ -1616,7 +1616,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
             }
         }
-   
+
         /// <summary>
         /// Insert string inserts the specified string identified by src
         /// at the index indicated by index. Index may be negative, in
@@ -1655,13 +1655,13 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             // The index is in bounds.
             // In this case the index refers to the index that will
-            // be assigned to the first character of the inserted string. 
+            // be assigned to the first character of the inserted string.
             // So unlike the other string operations, we do not add one
             // to get the correct string length.
             return dest.Substring(0,index)+src+dest.Substring(index);
 
         }
-   
+
         public string llToUpper(string src)
         {
             m_host.AddScriptLPS(1);
@@ -1767,12 +1767,12 @@ namespace OpenSim.Region.ScriptEngine.Common
                         return; // wiki says, if it's further away then 10m, silently fail.
 
                     LLVector3 llvel = new LLVector3((float)vel.x, (float)vel.y, (float)vel.z);
-                    
+
                     // need the magnitude later
                     float velmag = (float)Util.GetMagnitude(llvel);
-                    
+
                     SceneObjectGroup new_group = World.RezObject(inv.Value, llpos, new LLQuaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s), llvel, param);
-                    
+
                     // If either of these are null, then there was an unknown error.
                     if (new_group == null)
                         continue;
@@ -1844,7 +1844,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (m_host.TaskInventory[InventorySelf()].PermsGranter != LLUUID.Zero)
             {
                 ScenePresence presence = World.GetScenePresence(m_host.TaskInventory[InventorySelf()].PermsGranter);
-                
+
                 if (presence != null)
                 {
                     if ((m_host.TaskInventory[InventorySelf()].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TAKE_CONTROLS) != 0)
@@ -1871,7 +1871,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (m_host.TaskInventory[InventorySelf()].PermsGranter != LLUUID.Zero)
             {
                 ScenePresence presence = World.GetScenePresence(m_host.TaskInventory[InventorySelf()].PermsGranter);
-                
+
                 if (presence != null)
                 {
                     if ((m_host.TaskInventory[InventorySelf()].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TAKE_CONTROLS) != 0)
@@ -1924,7 +1924,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             // InstantMessageModule.OnInstantMessage searches through a list of scenes for a client matching the toAgent,
             // but I don't think we have a list of scenes available from here.
             // (We also don't want to duplicate the code in OnInstantMessage if we can avoid it.)
-            
+
             // user is a UUID
 
             // TODO: figure out values for client, fromSession, and imSessionID
@@ -1991,7 +1991,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
         }
 
-         
+
 
         public void llSetHoverHeight(double height, int water, double tau)
         {
@@ -2050,7 +2050,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if ((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TRIGGER_ANIMATION) != 0)
             {
                 ScenePresence presence = World.GetScenePresence(m_host.TaskInventory[invItemID].PermsGranter);
-                
+
                 if (presence != null)
                 {
                     // Do NOT try to parse LLUUID, animations cannot be triggered by ID
@@ -2087,7 +2087,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     return;
 
                 ScenePresence presence = World.GetScenePresence(m_host.TaskInventory[invItemID].PermsGranter);
-                
+
                 if (presence != null)
                 {
                     if (animID == LLUUID.Zero)
@@ -2194,7 +2194,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
 
             ScenePresence presence = World.GetScenePresence(agentID);
-            
+
             if (presence != null)
             {
                 string ownerName=resolveName(m_host.ParentGroup.RootPart.OwnerID);
@@ -2467,7 +2467,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             // These functions are supposed to be robust,
             // so get the state one step at a time.
- 
+
             if ((item = ScriptByName(name)) != LLUUID.Zero)
             {
                 if ((sm = m_ScriptEngine.m_ScriptManager) != null)
@@ -2480,14 +2480,14 @@ namespace OpenSim.Region.ScriptEngine.Common
                         }
                     }
                 }
-            }                
+            }
 
             // Required by SL
 
             if (script == null)
                 ShoutError("llSetScriptState: script "+name+" not found");
 
-            // If we didn't find it, then it's safe to 
+            // If we didn't find it, then it's safe to
             // assume it is not running.
         }
 
@@ -2806,23 +2806,23 @@ namespace OpenSim.Region.ScriptEngine.Common
 
 
         /* The new / changed functions were tested with the following LSL script:
-         
+
         default
         {
             state_entry()
             {
                 rotation rot = llEuler2Rot(<0,70,0> * DEG_TO_RAD);
-                
+
                 llOwnerSay("to get here, we rotate over: "+ (string) llRot2Axis(rot));
                 llOwnerSay("and we rotate for: "+ (llRot2Angle(rot) * RAD_TO_DEG));
-    
+
                 // convert back and forth between quaternion <-> vector and angle
-            
+
                 rotation newrot = llAxisAngle2Rot(llRot2Axis(rot),llRot2Angle(rot));
-            
+
                 llOwnerSay("Old rotation was: "+(string) rot);
                 llOwnerSay("re-converted rotation is: "+(string) newrot);
-    
+
                 llSetRot(rot);  // to check the parameters in the prim
             }
         }
@@ -2832,7 +2832,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         // Xantor 29/apr/2008
         // Returns rotation described by rotating angle radians about axis.
-        // q = cos(a/2) + i ( x * sin(a/2)) + j (y * sin(a/2)) + k ( z * sin(a/2))        
+        // q = cos(a/2) + i (x * sin(a/2)) + j (y * sin(a/2)) + k (z * sin(a/2))
         public LSL_Types.Quaternion llAxisAngle2Rot(LSL_Types.Vector3 axis, double angle)
         {
             m_host.AddScriptLPS(1);
@@ -2849,7 +2849,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             // NotImplemented("llAxisAngle2Rot");
         }
 
-        
+
         // Xantor 29/apr/2008
         // converts a Quaternion to X,Y,Z axis rotations
         public LSL_Types.Vector3 llRot2Axis(LSL_Types.Quaternion rot)
@@ -3264,7 +3264,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         /// <summary>
         /// The supplied string is scanned for commas
         /// and converted into a list. Commas are only
-        /// effective if they are encountered outside 
+        /// effective if they are encountered outside
         /// of '<' '>' delimiters. Any whitespace
         /// before or after an element is trimmed.
         /// </summary>
@@ -3314,7 +3314,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         }
 
         ///  <summary>
-        ///  Randomizes the list, be arbitrarily reordering 
+        ///  Randomizes the list, be arbitrarily reordering
         ///  sublists of stride elements. As the stride approaches
         ///  the size of the list, the options become very
         ///  limited.
@@ -3323,7 +3323,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         ///  This could take a while for very large list
         ///  sizes.
         ///  </remarks>
- 
+
         public LSL_Types.list llListRandomize(LSL_Types.list src, int stride)
         {
 
@@ -3344,7 +3344,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             // Stride MUST be a factor of the list length
             // If not, then return the src list. This also
             // traps those cases where stride > length.
- 
+
             if (src.Length != stride && src.Length%stride == 0)
             {
                 chunkk = src.Length/stride;
@@ -3384,7 +3384,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 object[] array = new object[src.Length];
                 Array.Copy(src.Data, 0, array, 0, src.Length);
                 result = new LSL_Types.list(array);
-            }    
+            }
 
             return result;
 
@@ -3394,10 +3394,10 @@ namespace OpenSim.Region.ScriptEngine.Common
         /// Elements in the source list starting with 0 and then
         /// every i+stride. If the stride is negative then the scan
         /// is backwards producing an inverted result.
-        /// Only those elements that are also in the specified 
+        /// Only those elements that are also in the specified
         /// range are included in the result.
         /// </summary>
- 
+
         public LSL_Types.list llList2ListStrided(LSL_Types.list src, int start, int end, int stride)
         {
 
@@ -3415,7 +3415,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (end   < 0)
                 end   = src.Length+end;
 
-            //  Out of bounds indices are OK, just trim them 
+            //  Out of bounds indices are OK, just trim them
             //  accordingly
 
             if (start > src.Length)
@@ -3429,7 +3429,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (start != end)
             {
 
-                if (start <= end) 
+                if (start <= end)
                 {
                    si[0] = start;
                    ei[0] = end;
@@ -3448,8 +3448,8 @@ namespace OpenSim.Region.ScriptEngine.Common
                 //  fall within the specified sub-range. The specified
                 //  range values are inclusive.
                 //  A negative stride reverses the direction of the
-                //  scan producing an inverted list as a result. 
-                
+                //  scan producing an inverted list as a result.
+
                 if (stride == 0)
                     stride = 1;
 
@@ -3492,7 +3492,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.list llListInsertList(LSL_Types.list dest, LSL_Types.list src, int index)
         {
-      
+
             LSL_Types.list pref = null;
             LSL_Types.list suff = null;
 
@@ -3539,7 +3539,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         /// Returns the index of the first occurrence of test
         /// in src.
         /// </summary>
- 
+
         public LSL_Types.LSLInteger llListFindList(LSL_Types.list src, LSL_Types.list test)
         {
 
@@ -3568,7 +3568,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                    }
                 }
             }
- 
+
             return index;
 
         }
@@ -3632,12 +3632,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (LLUUID.TryParse(id,out key))
             {
                 ScenePresence presence = World.GetScenePresence(key);
-                
+
                 if (presence != null)
                 {
                     return presence.Name;
                 }
-                
+
                 if (World.GetSceneObjectPart(key) != null)
                 {
                     return World.GetSceneObjectPart(key).Name;
@@ -3646,18 +3646,18 @@ namespace OpenSim.Region.ScriptEngine.Common
             return String.Empty;
         }
 
-        
+
 
         public void llSetTextureAnim(int mode, int face, int sizex, int sizey, double start, double length, double rate)
         {
             m_host.AddScriptLPS(1);
             Primitive.TextureAnimation pTexAnim = new Primitive.TextureAnimation();
             pTexAnim.Flags =(uint) mode;
-            
+
             //ALL_SIDES
             if (face == -1)
                     face = 255;
-            
+
             pTexAnim.Face = (uint)face;
             pTexAnim.Length = (float)length;
             pTexAnim.Rate = (float)rate;
@@ -3688,7 +3688,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             LSL_Types.list ret = new LSL_Types.list();
             object[] delimiters = new object[separators.Length + spacers.Length];
             separators.Data.CopyTo(delimiters, 0);
-            spacers.Data.CopyTo(delimiters, separators.Length); 
+            spacers.Data.CopyTo(delimiters, separators.Length);
             bool dfound = false;
             do
             {
@@ -3735,7 +3735,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.LSLInteger llOverMyLand(string id)
         {
-            
+
             m_host.AddScriptLPS(1);
             LLUUID key = new LLUUID();
             if (LLUUID.TryParse(id,out key))
@@ -3790,14 +3790,14 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             LLUUID key = new LLUUID();
             if (LLUUID.TryParse(id, out key))
-            {                
+            {
                 ScenePresence av = World.GetScenePresence(key);
-                
+
                 if (av != null)
                 {
                     if (llAvatarOnSitTarget() == id)
                     {
-                        // if the avatar is sitting on this object, then 
+                        // if the avatar is sitting on this object, then
                         // we can unsit them.  We don't want random scripts unsitting random people
                         // Lets avoid the popcorn avatar scenario.
                         av.StandUp();
@@ -3809,12 +3809,12 @@ namespace OpenSim.Region.ScriptEngine.Common
                         // if the land is group owned and the object is group owned by the same group
                         // or
                         // if the object is owned by a person with estate access.
-                        
+
                         ILandObject parcel = World.LandChannel.GetLandObject(av.AbsolutePosition.X, av.AbsolutePosition.Y);
                         if (parcel != null)
                         {
-                            if (m_host.ObjectOwner == parcel.landData.ownerID || 
-                                (m_host.OwnerID == m_host.GroupID && m_host.GroupID == parcel.landData.groupID 
+                            if (m_host.ObjectOwner == parcel.landData.ownerID ||
+                                (m_host.OwnerID == m_host.GroupID && m_host.GroupID == parcel.landData.groupID
                                 && parcel.landData.isGroupOwned) || World.ExternalChecks.ExternalChecksCanBeGodLike(m_host.OwnerID))
                             {
                                 av.StandUp();
@@ -3822,7 +3822,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         }
                     }
                 }
-                
+
             }
 
         }
@@ -3928,7 +3928,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             Primitive.ParticleSystem prules = new Primitive.ParticleSystem();
             LSL_Types.Vector3 tempv = new LSL_Types.Vector3();
-            
+
             float tempf = 0;
 
             for (int i = 0; i < rules.Length; i += 2)
@@ -3954,7 +3954,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     case (int)BuiltIn_Commands_BaseClass.PSYS_PART_END_COLOR:
                         tempv = (LSL_Types.Vector3)rules.Data[i + 1];
                         //prules.PartEndColor = new LLColor(tempv.x,tempv.y,tempv.z,1);
-                        
+
                         prules.PartEndColor.R = (float)tempv.x;
                         prules.PartEndColor.G = (float)tempv.y;
                         prules.PartEndColor.B = (float)tempv.z;
@@ -3996,7 +3996,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                     // Xantor 03-May-2008
                     // Wiki:    PSYS_SRC_TEXTURE      string      inventory item name or key of the particle texture
-                    //          "" = default texture.                   
+                    //          "" = default texture.
                     case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_TEXTURE:
                         LLUUID tkey = LLUUID.Zero;
 
@@ -4007,11 +4007,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                         }
                         // else try to locate the name in inventory of object. found returns key,
                         // not found returns LLUUID.Zero which will translate to the default particle texture
-                        else  
+                        else
                         {
                             prules.Texture =  InventoryKey(rules.Data[i+1].ToString());
                         }
-                        break;                                             
+                        break;
 
                     case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_RATE:
                         tempf = Convert.ToSingle(rules.Data[i + 1].ToString());
@@ -4150,7 +4150,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             return m_host.GetAvatarOnSitTarget().ToString();
             //LLUUID AVID = m_host.GetAvatarOnSitTarget();
-     
+
             //if (AVID != LLUUID.Zero)
             //    return AVID.ToString();
             //else
@@ -4283,7 +4283,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             // These functions are supposed to be robust,
             // so get the state one step at a time.
- 
+
             if ((item = ScriptByName(name)) != LLUUID.Zero)
                 if ((sm = m_ScriptEngine.m_ScriptManager) != null)
                     sm.ResetScript(m_localID, item);
@@ -4293,7 +4293,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (script == null)
                 ShoutError("llResetOtherScript: script "+name+" not found");
 
-            // If we didn't find it, then it's safe to 
+            // If we didn't find it, then it's safe to
             // assume it is not running.
         }
 
@@ -4307,7 +4307,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             // These functions are supposed to be robust,
             // so get the state one step at a time.
- 
+
             if ((item = ScriptByName(name)) != LLUUID.Zero)
             {
                 if ((sm = m_ScriptEngine.m_ScriptManager) != null)
@@ -4324,7 +4324,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (script == null)
                 ShoutError("llGetScriptState: script "+name+" not found");
 
-            // If we didn't find it, then it's safe to 
+            // If we didn't find it, then it's safe to
             // assume it is not running.
 
             return 0;
@@ -4586,7 +4586,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 return;
             }
-        
+
             if (landowner != m_host.ObjectOwner)
             {
                 return;
@@ -4857,7 +4857,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                     case 21: // PRIM_FLEXIBLE
                         PrimitiveBaseShape shape = m_host.Shape;
- 
+
                         if (shape.FlexiEntry)
                             res.Add(new LSL_Types.LSLInteger(1));              // active
                         else
@@ -4885,7 +4885,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                     case 23: // PRIM_POINT_LIGHT:
                         shape = m_host.Shape;
- 
+
                         if (shape.LightEntry)
                             res.Add(new LSL_Types.LSLInteger(1));              // active
                         else
@@ -4932,12 +4932,12 @@ namespace OpenSim.Region.ScriptEngine.Common
         //  </para>
         //  <para>
         //  Each point in a base-64 string represents
-        //  a 6 bit value. A 32-bit integer can be 
+        //  a 6 bit value. A 32-bit integer can be
         //  represented using 6 characters (with some
-        //  redundancy). 
+        //  redundancy).
         //  </para>
         //  <para>
-        //  LSL requires a base64 string to be 8 
+        //  LSL requires a base64 string to be 8
         //  characters in length. LSL also uses '/'
         //  rather than '-' (MIME compliant).
         //  </para>
@@ -4948,7 +4948,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //  <para>
         //  SL do not record any kind of exception for
         //  these functions, so the string to integer
-        //  conversion returns '0' if an invalid 
+        //  conversion returns '0' if an invalid
         //  character is encountered during conversion.
         //  </para>
         //  <para>
@@ -4962,13 +4962,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         //  </list>
         //  </para>
         //  </remarks>
-      
+
         //  <summary>
         //  Table for converting 6-bit integers into
         //  base-64 characters
         //  </summary>
 
-        private static readonly char[] i2ctable = 
+        private static readonly char[] i2ctable =
         {
             'A','B','C','D','E','F','G','H',
             'I','J','K','L','M','N','O','P',
@@ -4992,7 +4992,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             -1,-1,-1,-1,-1,-1,-1,-1,    // 0x
             -1,-1,-1,-1,-1,-1,-1,-1,
-            -1,-1,-1,-1,-1,-1,-1,-1,    // 1x    
+            -1,-1,-1,-1,-1,-1,-1,-1,    // 1x
             -1,-1,-1,-1,-1,-1,-1,-1,
             -1,-1,-1,-1,-1,-1,-1,-1,    // 2x
             -1,-1,-1,63,-1,-1,-1,64,
@@ -5070,25 +5070,25 @@ namespace OpenSim.Region.ScriptEngine.Common
         //  length strings return zero.
         //  </param>
         //  <returns>
-        //  Returns an integer representing the 
-        //  encoded value providedint he 1st 6 
+        //  Returns an integer representing the
+        //  encoded value providedint he 1st 6
         //  characters of the string.
         //  </returns>
         //  <remarks>
         //  This is coded to behave like LSL's
         //  implementation (I think), based upon the
         //  information available at the Wiki.
-        //  If more than 8 characters are supplied, 
+        //  If more than 8 characters are supplied,
         //  zero is returned.
         //  If a NULL string is supplied, zero will
         //  be returned.
         //  If fewer than 6 characters are supplied, then
-        //  the answer will reflect a partial 
+        //  the answer will reflect a partial
         //  accumulation.
         //  <para>
-        //  The 6-bit segments are 
-        //  extracted left-to-right in big-endian mode, 
-        //  which means that segment 6 only contains the 
+        //  The 6-bit segments are
+        //  extracted left-to-right in big-endian mode,
+        //  which means that segment 6 only contains the
         //  two low-order bits of the 32 bit integer as
         //  its high order 2 bits. A short string therefore
         //  means loss of low-order information. E.g.
@@ -5126,39 +5126,39 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return digit<0?(int)0:number;
             }
             number += --digit<<26;
- 
+
             if ((digit=c2itable[str[1]])<=0)
             {
                 return digit<0?(int)0:number;
             }
             number += --digit<<20;
- 
+
             if ((digit=c2itable[str[2]])<=0)
             {
                 return digit<0?(int)0:number;
             }
             number += --digit<<14;
- 
+
             if ((digit=c2itable[str[3]])<=0)
             {
                 return digit<0?(int)0:number;
             }
             number += --digit<<8;
- 
+
             if ((digit=c2itable[str[4]])<=0)
             {
                 return digit<0?(int)0:number;
             }
             number += --digit<<2;
- 
+
             if ((digit=c2itable[str[5]])<=0)
             {
                 return digit<0?(int)0:number;
             }
             number += --digit>>4;
- 
+
             // ignore trailing padding
- 
+
             return number;
         }
 
@@ -5182,8 +5182,8 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         //  <summary>
         //  Scan the string supplied in 'src' and
-        //  tokenize it based upon two sets of 
-        //  tokenizers provided in two lists, 
+        //  tokenize it based upon two sets of
+        //  tokenizers provided in two lists,
         //  separators and spacers.
         //  </summary>
         //
@@ -5196,38 +5196,38 @@ namespace OpenSim.Region.ScriptEngine.Common
         //  Both separators and spacers may be arbitrarily
         //  long strings. i.e. ":::".
         //
-        //  The function returns an ordered list 
+        //  The function returns an ordered list
         //  representing the tokens found in the supplied
         //  sources string. If two successive tokenizers
         //  are encountered, then a NULL entry is added
         //  to the list.
         //
-        //  It is a precondition that the source and 
+        //  It is a precondition that the source and
         //  toekizer lisst are non-null. If they are null,
-        //  then a null pointer exception will be thrown 
+        //  then a null pointer exception will be thrown
         //  while their lengths are being determined.
         //
         //  A small amount of working memoryis required
         //  of approximately 8*#tokenizers.
         //
-        //  There are many ways in which this function 
-        //  can be implemented, this implementation is 
+        //  There are many ways in which this function
+        //  can be implemented, this implementation is
         //  fairly naive and assumes that when the
         //  function is invooked with a short source
         //  string and/or short lists of tokenizers, then
         //  performance will not be an issue.
         //
-        //  In order to minimize the perofrmance 
+        //  In order to minimize the perofrmance
         //  effects of long strings, or large numbers
         //  of tokeizers, the function skips as far as
-        //  possible whenever a toekenizer is found, 
+        //  possible whenever a toekenizer is found,
         //  and eliminates redundant tokenizers as soon
         //  as is possible.
         //
         //  The implementation tries to avoid any copying
         //  of arrays or other objects.
         //  </remarks>
-    
+
         public LSL_Types.list llParseStringKeepNulls(string src, LSL_Types.list separators, LSL_Types.list spacers)
         {
             int         beginning = 0;
@@ -5256,7 +5256,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 active[i] = true;
 
             offset[mlen] = srclen;
-            
+
             while (beginning < srclen)
             {
 
@@ -5270,7 +5270,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     {
                         // scan all of the markers
                         if ((offset[j] = src.IndexOf((string)separray[j],beginning)) == -1)
-                        { 
+                        {
                             // not present at all
                             active[j] = false;
                         }
@@ -5278,7 +5278,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         {
                             // present and correct
                             if (offset[j] < offset[best])
-                            {    
+                            {
                                 // closest so far
                                 best = j;
                                 if (offset[best] == beginning)
@@ -5293,19 +5293,19 @@ namespace OpenSim.Region.ScriptEngine.Common
                 if (offset[best] != beginning)
                 {
                     for (j = seplen; (j < mlen) && (offset[best] > beginning); j++)
-                    {    
+                    {
                         if (active[j])
                         {
                             // scan all of the markers
                             if ((offset[j] = src.IndexOf((string)spcarray[j-seplen],beginning)) == -1)
-                            { 
+                            {
                                 // not present at all
                                 active[j] = false;
                             } else
                             {
                                 // present and correct
                                 if (offset[j] < offset[best])
-                                {    
+                                {
                                     // closest so far
                                     best = j;
                                 }
@@ -5317,7 +5317,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 //    This is the normal exit from the scanning loop
 
                 if (best == mlen)
-                {    
+                {
                     // no markers were found on this pass
                     // so we're pretty much done
                     tokens.Add(src.Substring(beginning, srclen-beginning));
@@ -5478,7 +5478,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             //should be similar to : llInstantMessage(llGetOwner(),msg)
             // llGetOwner ==> m_host.ObjectOwner.ToString()
             llInstantMessage(m_host.ObjectOwner.ToString(),msg);
-            
+
             //World.SimChat(Helpers.StringToField(msg), ChatTypeEnum.Owner, 0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
             //IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             //wComm.DeliverMessage(ChatTypeEnum.Owner, 0, m_host.Name, m_host.UUID, msg);
@@ -5509,19 +5509,19 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         /// <summary>
         /// illListReplaceList removes the sub-list defined by the inclusive indices
-        /// start and end and inserts the src list in its place. The inclusive 
+        /// start and end and inserts the src list in its place. The inclusive
         /// nature of the indices means that at least one element must be deleted
         /// if the indices are within the bounds of the existing list. I.e. 2,2
         /// will remove the element at index 2 and replace it with the source
         /// list. Both indices may be negative, with the usual interpretation. An
-        /// interesting case is where end is lower than start. As these indices 
+        /// interesting case is where end is lower than start. As these indices
         /// bound the list to be removed, then 0->end, and start->lim are removed
         /// and the source list is added as a suffix.
         /// </summary>
 
         public LSL_Types.list llListReplaceList(LSL_Types.list dest, LSL_Types.list src, int start, int end)
         {
-      
+
             LSL_Types.list pref = null;
 
             m_host.AddScriptLPS(1);
@@ -5542,9 +5542,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             // list.
             if (start <= end)
             {
-                // If greater than zero, then there is going to be a 
-                // surviving prefix. Otherwise the inclusive nature 
-                // of the indices mean that we're going to add the 
+                // If greater than zero, then there is going to be a
+                // surviving prefix. Otherwise the inclusive nature
+                // of the indices mean that we're going to add the
                 // source list as a prefix.
                 if (start > 0)
                 {
@@ -5580,7 +5580,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
             // Finally, if start > end, we strip away a prefix and
             // a suffix, to leave the list that sits <between> ens
-            // and start, and then tag on the src list. AT least 
+            // and start, and then tag on the src list. AT least
             // that's my interpretation. We can get sublist to do
             // this for us. Note that one, or both of the indices
             // might have been negative.
@@ -6084,7 +6084,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (LLUUID.TryParse(id, out key))
             {
                 ScenePresence av = World.GetScenePresence(key);
-                
+
                 if (av != null)
                 {
                     foreach (object o in args.Data)
@@ -6103,7 +6103,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                             case "4":
                                 ret.Add(new LSL_Types.Quaternion((double)av.Rotation.x, (double)av.Rotation.y, (double)av.Rotation.z, (double)av.Rotation.w));
                                 break;
-                            case "5": 
+                            case "5":
                                 ret.Add(new LSL_Types.Vector3(av.Velocity.X,av.Velocity.Y,av.Velocity.Z));
                                 break;
                             case "6":

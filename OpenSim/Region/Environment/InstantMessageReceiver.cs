@@ -32,11 +32,11 @@ namespace OpenSim.Region.Environment
     /// <summary>
     /// Bit Vector for Which Modules to send an instant message to from the Scene or an Associated Module
     /// </summary>
-    
+
     // This prevents the Modules from sending Instant messages to other modules through the scene
     // and then receiving the same messages
 
-    // This is mostly here because on LLSL and the SecondLife Client, IMs,Groups and friends are linked 
+    // This is mostly here because on LLSL and the SecondLife Client, IMs,Groups and friends are linked
     // inseparably
 
     [Flags]

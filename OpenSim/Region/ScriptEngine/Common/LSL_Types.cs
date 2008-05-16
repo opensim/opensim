@@ -493,7 +493,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                 // now, this makes the math easier
                 int remove=end+1-start;
-                
+
                 ret=new Object[m_data.Length-remove];
                 if (ret.Length == 0)
                     return new list(ret);
@@ -519,7 +519,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 // NOTE that either index may still be negative after
                 // adding the length, so we must take additional
                 // measures to protect against this. Note also that
-                // after normalisation the negative indices are no 
+                // after normalisation the negative indices are no
                 // longer relative to the end of the list.
 
                 if (start < 0)
@@ -533,7 +533,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
 
                 // The conventional case is start <= end
-                // NOTE that the case of an empty list is 
+                // NOTE that the case of an empty list is
                 // dealt with by the initial test. Start
                 // less than end is taken to be the most
                 // common case.
@@ -553,7 +553,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     {
                         end = m_data.Length - 1;
                     }
-                   
+
                     // Sublist still starts before the beginning of the list
                     if (start < 0)
                     {
@@ -561,7 +561,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     }
 
                     ret = new object[end - start + 1];
-  
+
                     Array.Copy(m_data, start, ret, 0, end - start + 1);
 
                     return new list(ret);
@@ -580,7 +580,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     {
                         result = new list();
                         // If start is still negative, then the whole of
-                        // the existing list is returned. This case is 
+                        // the existing list is returned. This case is
                         // only admitted if end is also still negative.
                         if (start < 0)
                         {
@@ -593,7 +593,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         result = GetSublist(0,end);
                     }
 
-                    // If start is outside of list, then just return 
+                    // If start is outside of list, then just return
                     // the prefix, whatever it is.
                     if (start >= m_data.Length)
                     {
@@ -896,7 +896,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
             }
 
-            #endregion 
+            #endregion
 
             public string ToPrettyString()
             {
@@ -962,7 +962,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         }
 
         //
-        // BELOW IS WORK IN PROGRESS... IT WILL CHANGE, SO DON'T USE YET! :) 
+        // BELOW IS WORK IN PROGRESS... IT WILL CHANGE, SO DON'T USE YET! :)
         //
 
         public struct StringTest
@@ -1103,7 +1103,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 }
             }
 
-            
+
 
             static public implicit operator String(LSLString s)
             {
@@ -1267,7 +1267,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 i.value++;
                 return i;
             }
-           
+
 
             public static LSLInteger operator --(LSLInteger i)
             {

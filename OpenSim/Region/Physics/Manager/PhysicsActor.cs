@@ -140,7 +140,7 @@ namespace OpenSim.Region.Physics.Manager
             // a race condition if the last subscriber unsubscribes
             // immediately after the null check and before the event is raised.
             RequestTerseUpdate handler = OnRequestTerseUpdate;
-            
+
             if (handler != null)
             {
                 handler();
@@ -163,9 +163,9 @@ namespace OpenSim.Region.Physics.Manager
         public virtual void SendCollisionUpdate(EventArgs e)
         {
             CollisionUpdate handler = OnCollisionUpdate;
-      
+
             if (handler != null)
-            { 
+            {
                 handler(e);
             }
         }
@@ -205,9 +205,9 @@ namespace OpenSim.Region.Physics.Manager
 
     public class NullPhysicsActor : PhysicsActor
     {
-        public override bool Stopped 
-        { 
-            get{ return false; } 
+        public override bool Stopped
+        {
+            get{ return false; }
         }
 
         public override PhysicsVector Position
@@ -222,7 +222,7 @@ namespace OpenSim.Region.Physics.Manager
             set { return; }
         }
 
-        public override uint LocalID 
+        public override uint LocalID
         {
             set { return; }
         }
@@ -240,14 +240,14 @@ namespace OpenSim.Region.Physics.Manager
         public override float Buoyancy
         {
             get { return 0f; }
-            set { return; } 
+            set { return; }
         }
 
         public override bool  FloatOnWater
         {
             set { return; }
         }
-      
+
         public override bool CollidingGround
         {
             get { return false; }
@@ -297,7 +297,7 @@ namespace OpenSim.Region.Physics.Manager
             set { return; }
         }
 
-        public override float CollisionScore 
+        public override float CollisionScore
         {
             get { return 0f; }
         }
@@ -385,7 +385,7 @@ namespace OpenSim.Region.Physics.Manager
 
         public override void SubscribeEvents(int ms)
         {
-           
+
         }
         public override void UnSubscribeEvents()
         {

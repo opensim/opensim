@@ -95,6 +95,6 @@ namespace OpenSim.Data
             }
 
             return value;
-        }      
+        }
     }
 }

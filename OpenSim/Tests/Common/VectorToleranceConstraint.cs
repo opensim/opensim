@@ -42,7 +42,7 @@ namespace OpenSim.Tests.Common
         }
 
         ///<summary>
-        ///Test whether the constraint is satisfied by a given value            
+        ///Test whether the constraint is satisfied by a given value
         ///</summary>
         ///<param name="valueToBeTested">The value to be tested</param>
         ///<returns>

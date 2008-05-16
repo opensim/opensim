@@ -156,7 +156,7 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public IScene Scene
         {
@@ -181,7 +181,7 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public uint PacketNumber
         {
@@ -190,7 +190,7 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public sbyte DiscardLevel
         {
@@ -199,7 +199,7 @@ namespace OpenSim.Framework
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public LLUUID RequestedAssetID
         {
@@ -213,7 +213,7 @@ namespace OpenSim.Framework
         private List<Wearable> m_nowWearing = new List<Wearable>();
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public List<Wearable> NowWearing
         {
@@ -381,7 +381,7 @@ namespace OpenSim.Framework
     public delegate void ImprovedInstantMessage(IClientAPI remoteclient,
                                                 LLUUID fromAgentID, LLUUID fromAgentSession, LLUUID toAgentID, LLUUID imSessionID, uint timestamp,
                                                 string fromAgentName, string message, byte dialog, bool fromGroup, byte offline, uint ParentEstateID,
-                                                LLVector3 Position, LLUUID RegionID, byte[] binaryBucket); // This shouldn't be cut down...  
+                                                LLVector3 Position, LLUUID RegionID, byte[] binaryBucket); // This shouldn't be cut down...
     // especially if we're ever going to implement groups, presence, estate message dialogs...
 
     public delegate void RezObject(IClientAPI remoteClient, LLUUID itemID, LLVector3 RayEnd, LLVector3 RayStart,
@@ -607,7 +607,7 @@ namespace OpenSim.Framework
     public delegate void RequestPayPrice(IClientAPI remoteClient, LLUUID objectID);
 
     public delegate void ForceReleaseControls(IClientAPI remoteClient, LLUUID agentID);
-    
+
     //Estate Requests
     public delegate void DetailedEstateDataRequest(IClientAPI remoteClient, LLUUID invoice);
     public delegate void SetEstateFlagsRequest(bool blockTerraform, bool noFly, bool allowDamage, bool blockLandResell, int maxAgents, float objectBonusFactor, int matureLevel, bool restrictPushObject, bool allowParcelChanges);
@@ -764,7 +764,7 @@ namespace OpenSim.Framework
         event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
         event ParcelSelectObjects OnParcelSelectObjects;
         event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
-        event ParcelAbandonRequest OnParcelAbandonRequest;  
+        event ParcelAbandonRequest OnParcelAbandonRequest;
         event RegionInfoRequest OnRegionInfoRequest;
         event EstateCovenantRequest OnEstateCovenantRequest;
 
@@ -808,7 +808,7 @@ namespace OpenSim.Framework
         event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
 
 
-        
+
         [Obsolete("IClientAPI.OutPacket SHOULD NOT EXIST outside of LLClientView please refactor appropriately.")]
         void OutPacket(Packet newPack, ThrottleOutPacketType packType);
         void SendWearables(AvatarWearable[] wearables, int serial);
@@ -858,16 +858,16 @@ namespace OpenSim.Framework
         void AttachObject(uint localID, LLQuaternion rotation, byte attachPoint);
         void SetChildAgentThrottle(byte[] throttle);
 
-        void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, 
+        void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
                                    LLVector3 pos, LLVector3 vel, LLVector3 acc, LLQuaternion rotation, LLVector3 rvel,
                                    uint flags,
                                    LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem,
                                    byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, LLUUID AssetId);
-                                   
 
-        void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape, 
+
+        void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,
                                           LLVector3 pos, LLVector3 vel, LLVector3 acc, LLQuaternion rotation, LLVector3 rvel,
-                                          uint flags, LLUUID objectID, LLUUID ownerID, string text, byte[] color, 
+                                          uint flags, LLUUID objectID, LLUUID ownerID, string text, byte[] color,
                                    uint parentID, byte[] particleSystem, byte clickAction);
 
         void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
@@ -889,7 +889,7 @@ namespace OpenSim.Framework
         void SendInventoryItemCreateUpdate(InventoryItemBase Item);
 
         void SendRemoveInventoryItem(LLUUID itemID);
-        
+
         void SendTakeControls(int controls, bool passToAgent, bool TakeControls);
 
         void SendTaskInventory(LLUUID taskID, short serial, byte[] fileName);
@@ -950,7 +950,7 @@ namespace OpenSim.Framework
         void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, LLUUID AssetFullID);
         void SendConfirmXfer(ulong xferID, uint PacketID);
         void SendXferRequest(ulong XferID, short AssetType, LLUUID vFileID, byte FilePath, byte[] FileName);
-        
+
         void SendImagePart(ushort numParts, LLUUID ImageUUID, uint ImageSize, byte[] ImageData, byte imageCodec);
 
         void SendShutdownConnectionNotice();
@@ -973,9 +973,9 @@ namespace OpenSim.Framework
                                         LLVector3 CameraAtOffset, LLVector3 CameraEyeOffset, bool ForceMouseLook);
 
         void SendAdminResponse(LLUUID Token, uint AdminLevel);
-       
+
         void SendGroupMembership(GroupData[] GroupMembership);
-        
+
 
         byte[] GetThrottlesPacked(float multiplier);
 

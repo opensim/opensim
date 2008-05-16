@@ -40,7 +40,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
     /// </summary>
     public class AgentAssetTransactions
     {
-        //private static readonly log4net.ILog m_log 
+        //private static readonly log4net.ILog m_log
         //   = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         // Fields
@@ -192,7 +192,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                     }
 
                     ourClient.SendConfirmXfer(xferID, packetID);
-                    
+
                     if ((packetID & 0x80000000) != 0)
                     {
                         SendCompleteMessage();
@@ -209,7 +209,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
             /// <param name="xferID"></param>
             /// <param name="packetID"></param>
             /// <param name="data"></param>
-            /// <returns>True if the transfer is complete, false otherwise</returns>            
+            /// <returns>True if the transfer is complete, false otherwise</returns>
             public bool Initialise(IClientAPI remoteClient, LLUUID assetID, LLUUID transaction, sbyte type, byte[] data,
                                    bool storeLocal, bool tempFile)
             {
@@ -363,7 +363,7 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
 
             private void DoCreateItem()
             {
-                //really need to fix this call, if lbsa71 saw this he would die. 
+                //really need to fix this call, if lbsa71 saw this he would die.
                 m_userTransactions.Manager.MyScene.CommsManager.AssetCache.AddAsset(Asset);
                 CachedUserInfo userInfo =
                     m_userTransactions.Manager.MyScene.CommsManager.UserProfileCacheService.GetUserDetails(ourClient.AgentId);

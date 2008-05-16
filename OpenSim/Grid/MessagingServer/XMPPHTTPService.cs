@@ -48,9 +48,9 @@ namespace OpenSim.Grid.MessagingServer
             : base("GET", "/presence")
         {
             m_log.Info("[REST]: In Get Request");
-            
+
         }
-        
+
         public override byte[] Handle(string path, Stream request)
         {
             string param = GetParam(path);
@@ -61,8 +61,8 @@ namespace OpenSim.Grid.MessagingServer
 
                 if (p.Length > 0)
                 {
-                    LLUUID assetID = null;    
-                    
+                    LLUUID assetID = null;
+
                     if (!LLUUID.TryParse(p[0], out assetID))
                     {
                         m_log.InfoFormat(
@@ -101,7 +101,7 @@ namespace OpenSim.Grid.MessagingServer
         public PostXMPPStreamHandler()
             : base("POST", "/presence")
         {
-            
+
         }
 
     }

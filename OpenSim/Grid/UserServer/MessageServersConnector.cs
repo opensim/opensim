@@ -41,12 +41,12 @@ namespace OpenSim.Grid.UserServer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public Dictionary<string, MessageServerInfo> MessageServers;
-        
+
         public MessageServersConnector()
         {
             MessageServers = new Dictionary<string, MessageServerInfo>();
         }
-        
+
         public void RegisterMessageServer(string URI, MessageServerInfo serverData)
         {
             lock (MessageServers)
@@ -55,7 +55,7 @@ namespace OpenSim.Grid.UserServer
                     MessageServers.Add(URI, serverData);
             }
         }
-        
+
         public void DeRegisterMessageServer(string URI)
         {
             lock (MessageServers)
@@ -64,7 +64,7 @@ namespace OpenSim.Grid.UserServer
                     MessageServers.Remove(URI);
             }
         }
-        
+
         public void AddResponsibleRegion(string URI, ulong regionhandle)
         {
             if (!MessageServers.ContainsKey(URI))
@@ -76,7 +76,7 @@ namespace OpenSim.Grid.UserServer
                 MessageServerInfo msginfo = MessageServers["URI"];
                 msginfo.responsibleForRegions.Add(regionhandle);
                 MessageServers["URI"] = msginfo;
-            }   
+            }
         }
         public void RemoveResponsibleRegion(string URI, ulong regionhandle)
         {
@@ -92,7 +92,7 @@ namespace OpenSim.Grid.UserServer
                     msginfo.responsibleForRegions.Remove(regionhandle);
                     MessageServers["URI"] = msginfo;
                 }
-            }   
+            }
 
         }
         public XmlRpcResponse XmlRPCRegisterMessageServer(XmlRpcRequest request)
@@ -148,7 +148,7 @@ namespace OpenSim.Grid.UserServer
                 string scurrentpos = (string)requestData["currentpos"];
                 //LLVector3.TryParse((string)reader["currentPos"], out retval.currentPos);
                 // TODO: Okay now raise event so the user server can pass this data to the Usermanager
-                
+
                 responseData["responsestring"] = "TRUE";
                 response.Value = responseData;
             }
@@ -156,7 +156,7 @@ namespace OpenSim.Grid.UserServer
         }
 
         public void TellMessageServersAboutUser(LLUUID agentID, LLUUID sessionID, LLUUID RegionID,
-                                                ulong regionhandle, float positionX, float positionY, 
+                                                ulong regionhandle, float positionX, float positionY,
                                                 float positionZ, string firstname, string lastname)
         {
             // Loop over registered Message Servers (AND THERE WILL BE MORE THEN ONE :D)
@@ -218,9 +218,9 @@ namespace OpenSim.Grid.UserServer
             m_log.Info("[LOGOUT]: Notified : " + serv.URI + " about user logout");
         }
 
-        private void NotifyMessageServerAboutUser(MessageServerInfo serv, 
+        private void NotifyMessageServerAboutUser(MessageServerInfo serv,
                                                     LLUUID agentID, LLUUID sessionID, LLUUID RegionID,
-                                                    ulong regionhandle, float positionX, float positionY, float positionZ, 
+                                                    ulong regionhandle, float positionX, float positionY, float positionZ,
                                                     string firstname, string lastname)
         {
             Hashtable reqparams = new Hashtable();
@@ -250,7 +250,7 @@ namespace OpenSim.Grid.UserServer
             {
                 m_log.Warn("[MSGCONNECTOR]: Unable to notify Message Server about login.  Presence might be borked for this user");
             }
-            
+
         }
     }
 }

@@ -43,12 +43,12 @@ namespace OpenSim.Framework.Communications
     /// </summary>
     public abstract class UserManagerBase : IUserService
     {
-        private static readonly ILog m_log 
+        private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public UserConfig _config;
         private Dictionary<string, IUserData> _plugins = new Dictionary<string, IUserData>();
-        
+
         /// <summary>
         /// Adds a new user server plugin - user servers will be requested in the order they were loaded.
         /// </summary>
@@ -85,7 +85,7 @@ namespace OpenSim.Framework.Communications
             m_log.Info("[USERSTORAGE]: Added IUserData Interface");
         }
 
-        #region Get UserProfile 
+        #region Get UserProfile
 
         // see IUserService
         public UserProfileData GetUserProfile(string fname, string lname)
@@ -103,8 +103,8 @@ namespace OpenSim.Framework.Communications
 
             return null;
         }
-        
-        // see IUserService        
+
+        // see IUserService
         public UserProfileData GetUserProfile(LLUUID uuid)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
@@ -408,7 +408,7 @@ namespace OpenSim.Framework.Communications
 
             profile.CurrentAgent = agent;
         }
-        
+
         /// <summary>
         /// Process a user logoff from OpenSim.
         /// </summary>
@@ -422,7 +422,7 @@ namespace OpenSim.Framework.Communications
         {
             if (StatsManager.UserStats != null)
                 StatsManager.UserStats.AddLogout();
-            
+
             UserProfileData userProfile;
             UserAgentData userAgent;
             LLVector3 currentPos = new LLVector3(posx, posy, posz);
@@ -433,7 +433,7 @@ namespace OpenSim.Framework.Communications
             {
                 // This line needs to be in side the above if statement or the UserServer will crash on some logouts.
                 m_log.Info("[LOGOUT]: " + userProfile.FirstName + " " + userProfile.SurName + " from " + regionhandle + "(" + posx + "," + posy + "," + posz + ")");
-                
+
                 userAgent = userProfile.CurrentAgent;
                 if (userAgent != null)
                 {
@@ -462,7 +462,7 @@ namespace OpenSim.Framework.Communications
                 m_log.Warn("[LOGOUT]: Unknown User logged out");
             }
         }
-        
+
         public void CreateAgent(UserProfileData profile, LLSD request)
         {
             UserAgentData agent = new UserAgentData();
@@ -516,7 +516,7 @@ namespace OpenSim.Framework.Communications
         #endregion
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="user"></param>
         public LLUUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY)
@@ -598,7 +598,7 @@ namespace OpenSim.Framework.Communications
 
         /// Appearance
         /// TODO: stubs for now to get us to a compiling state gently
-        public AvatarAppearance GetUserAppearance(LLUUID user) 
+        public AvatarAppearance GetUserAppearance(LLUUID user)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
             {
@@ -643,7 +643,7 @@ namespace OpenSim.Framework.Communications
                 }
             }
         }
-        
+
         public void RemoveAttachment(LLUUID user, LLUUID item)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
@@ -658,7 +658,7 @@ namespace OpenSim.Framework.Communications
                 }
             }
         }
-        
+
         public List<LLUUID> GetAttachments(LLUUID user)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)

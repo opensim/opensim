@@ -79,7 +79,7 @@ namespace OpenSim.Data.MySQL
                         _dbConnection.Connection);
                 MySqlParameter p = cmd.Parameters.Add("?id", MySqlDbType.Binary, 16);
                 p.Value = assetID.GetBytes();
-                
+
                 try
                 {
                     using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
@@ -111,7 +111,7 @@ namespace OpenSim.Data.MySQL
         }
 
         override public void CreateAsset(AssetBase asset)
-        {            
+        {
             lock (_dbConnection)
             {
                 MySqlCommand cmd =
@@ -119,10 +119,10 @@ namespace OpenSim.Data.MySQL
                         "REPLACE INTO assets(id, name, description, assetType, invType, local, temporary, data)" +
                         "VALUES(?id, ?name, ?description, ?assetType, ?invType, ?local, ?temporary, ?data)",
                         _dbConnection.Connection);
-            
+
                 // need to ensure we dispose
                 try
-                {            
+                {
                     using (cmd)
                     {
                         MySqlParameter p = cmd.Parameters.Add("?id", MySqlDbType.Binary, 16);
@@ -145,7 +145,7 @@ namespace OpenSim.Data.MySQL
                         "MySql failure creating asset {0} with name {1}" + Environment.NewLine + e.ToString()
                         + Environment.NewLine + "Attempting reconnection", asset.FullID, asset.Name);
                     _dbConnection.Reconnect();
-                }   
+                }
             }
         }
 

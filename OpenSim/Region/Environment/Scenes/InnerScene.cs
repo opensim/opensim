@@ -93,7 +93,7 @@ namespace OpenSim.Region.Environment.Scenes
             set
             {
                 // If we're not doing the initial set
-                // Then we've got to remove the previous 
+                // Then we've got to remove the previous
                 // event handler
                 try
                 {
@@ -104,7 +104,7 @@ namespace OpenSim.Region.Environment.Scenes
                     // This occurs when storing to _PhyScene the first time.
                     // Is there a better way to check the event handler before
                     // getting here
-                    // This can be safely ignored.  We're setting the first inital 
+                    // This can be safely ignored.  We're setting the first inital
                     // there are no event handler's registered.
                 }
 
@@ -120,7 +120,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 ScenePresences.Clear();
             }
-            
+
             //SceneObjects.Clear();
             Entities.Clear();
         }
@@ -235,7 +235,7 @@ namespace OpenSim.Region.Environment.Scenes
                 for (int i = 0; i < m_updateList.Count; i++)
                 {
                     EntityBase entity = m_updateList[i];
-                    
+
                     // Don't abort the whole update if one entity happens to give us an exception.
                     try
                     {
@@ -327,7 +327,7 @@ namespace OpenSim.Region.Environment.Scenes
                     part.Undo();
 
             }
-                
+
 
         }
 
@@ -341,7 +341,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, LLQuaternion rot)
         {
             // Calls attach with a Zero position
-            
+
             AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, LLVector3.Zero);
         }
         public void RezSingleAttachment(IClientAPI remoteClient, LLUUID itemID, uint AttachmentPt,uint ItemFlags, uint NextOwnerMask)
@@ -364,8 +364,8 @@ namespace OpenSim.Region.Environment.Scenes
         // To LocalId or LLUUID, *THAT* is the question. How now Brown LLUUID??
         public void DetachSingleAttachmentToInv(LLUUID itemID, IClientAPI remoteClient)
         {
-            
-            if (itemID == LLUUID.Zero) // If this happened, someone made a mistake....  
+
+            if (itemID == LLUUID.Zero) // If this happened, someone made a mistake....
                 return;
 
             List<EntityBase> EntityList = GetEntities();
@@ -443,14 +443,14 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             remoteClient.SendAgentAlertMessage("You don't have sufficient permissions to attach this object", false);
                         }
-                        
+
                     }
 
                 }
             }
 
         }
-       
+
         public ScenePresence CreateAndAddScenePresence(IClientAPI client, bool child, AvatarAppearance appearance)
         {
             ScenePresence newAvatar = null;
@@ -627,13 +627,13 @@ namespace OpenSim.Region.Environment.Scenes
 
             return result;
         }
-        
+
         /// <summary>
         /// Get the controlling client for the given avatar, if there is one.
-        /// 
-        /// FIXME: The only user of the method right now is Caps.cs, in order to resolve a client API since it can't 
+        ///
+        /// FIXME: The only user of the method right now is Caps.cs, in order to resolve a client API since it can't
         /// use the ScenePresence.  This could be better solved in a number of ways - we could establish an
-        /// OpenSim.Framework.IScenePresence, or move the caps code into a region package (which might be the more 
+        /// OpenSim.Framework.IScenePresence, or move the caps code into a region package (which might be the more
         /// suitable solution).
         /// </summary>
         /// <param name="agentId"></param>
@@ -641,12 +641,12 @@ namespace OpenSim.Region.Environment.Scenes
         public IClientAPI GetControllingClient(LLUUID agentId)
         {
             ScenePresence presence = GetScenePresence(agentId);
-            
+
             if (presence != null)
             {
                 return presence.ControllingClient;
             }
-            
+
             return null;
         }
 
@@ -657,7 +657,7 @@ namespace OpenSim.Region.Environment.Scenes
         public List<ScenePresence> GetScenePresences(FilterAvatarList filter)
         {
             // No locking of scene presences here since we're passing back a list...
-            
+
             List<ScenePresence> result = new List<ScenePresence>();
             List<ScenePresence> ScenePresencesList = GetScenePresences();
 
@@ -681,7 +681,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             ScenePresence sp;
             ScenePresences.TryGetValue(agentID, out sp);
-            
+
             return sp;
         }
 
@@ -764,13 +764,13 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (!presence.IsChildAgent)
                 {
-                    avatar = presence;                   
+                    avatar = presence;
                     return true;
                 }
                 else
                 {
                     m_log.WarnFormat(
-                        "[INNER SCENE]: Requested avatar {0} could not be found in scene {1} since it is only registered as a child agent!", 
+                        "[INNER SCENE]: Requested avatar {0} could not be found in scene {1} since it is only registered as a child agent!",
                         avatarId, m_parentScene.RegionInfo.RegionName);
                 }
             }
@@ -846,8 +846,8 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     // Only send child agents stuff in their draw distance.
                     // This will need to be done for every agent once we figure out
-                    // what we're going to use to store prim that agents already got 
-                    // the initial update for and what we'll use to limit the 
+                    // what we're going to use to store prim that agents already got
+                    // the initial update for and what we'll use to limit the
                     // space we check for new objects on movement.
 
                     if (presence.IsChildAgent && m_parentScene.m_seeIntoRegionFromNeighbor)
@@ -889,7 +889,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Client Event handlers
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="scale"></param>
@@ -918,7 +918,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// This handles the nifty little tool tip that you get when you drag your mouse over an object 
+        /// This handles the nifty little tool tip that you get when you drag your mouse over an object
         /// Send to the Object Group to process.  We don't know enough to service the request
         /// </summary>
         /// <param name="remoteClient"></param>
@@ -936,7 +936,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="rot"></param>
@@ -954,7 +954,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="rot"></param>
@@ -972,7 +972,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="pos"></param>
@@ -1009,7 +1009,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="pos"></param>
@@ -1019,13 +1019,13 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
-                
+
                 LLVector3 oldPos = group.AbsolutePosition;
                 if (group.RootPart.m_IsAttachment)
                 {
                     group.UpdateGroupPosition(pos);
                 }
-                else 
+                else
                 {
                     if (!m_parentScene.ExternalChecks.ExternalChecksCanObjectEntry(group.UUID,pos) && !group.RootPart.m_IsAttachment)
                     {
@@ -1041,7 +1041,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="texture"></param>
@@ -1059,7 +1059,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="packet"></param>
@@ -1094,7 +1094,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="primLocalID"></param>
         /// <param name="description"></param>
@@ -1111,7 +1111,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="primLocalID"></param>
         /// <param name="description"></param>
@@ -1141,7 +1141,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="primLocalID"></param>
         /// <param name="shapeBlock"></param>
@@ -1223,7 +1223,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 parenPrim.LinkToGroup(sceneObj);
             }
-            
+
             // We need to explicitly resend the newly link prim's object properties since no other actions
             // occur on link to invoke this elsewhere (such as object selection)
             parenPrim.GetProperties(client);
@@ -1232,7 +1232,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Delink a linkset
         /// </summary>
-        /// <param name="prims"></param>    
+        /// <param name="prims"></param>
         public void DelinkObjects(List<uint> primIds)
         {
             SceneObjectGroup parenPrim = null;
@@ -1278,7 +1278,7 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 // If the first scan failed, we need to do a /deep/ scan of the linkages.  This is /really/ slow
-                // We know that this is not the root prim now essentially, so we don't have to worry about remapping 
+                // We know that this is not the root prim now essentially, so we don't have to worry about remapping
                 // which one is the root prim
                 bool delinkedSomething = false;
                 for (int i = 0; i < primIds.Count; i++)
@@ -1324,7 +1324,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
-            
+
             //Protip: In my day, we didn't call them searchable objects, we called them limited point-to-point joints
             //aka ObjectFlags.JointWheel = IncludeInSearch
 
@@ -1356,7 +1356,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void DuplicateObject(uint originalPrim, LLVector3 offset, uint flags, LLUUID AgentID, LLUUID GroupID)
         {
             m_log.DebugFormat("[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}", originalPrim, offset, AgentID);
-            
+
             List<EntityBase> EntityList = GetEntities();
 
             SceneObjectGroup originPrim = null;
@@ -1405,7 +1405,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public float Vector3Distance(Vector3 v1, Vector3 v2)
         {
-            // We don't really need the double floating point precision...   
+            // We don't really need the double floating point precision...
             // so casting it to a single
 
             return

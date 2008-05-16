@@ -97,12 +97,12 @@ namespace OpenSim.Region.Environment.Scenes
         private int m_scriptLinesPerSecond = 0;
 
         private int objectCapacity = 45000;
-       
+
 
         SimStatsPacket.StatBlock[] sb = new SimStatsPacket.StatBlock[21];
         SimStatsPacket.RegionBlock rb = new SimStatsPacket.RegionBlock();
         SimStatsPacket statpack = (SimStatsPacket)PacketPool.Instance.GetPacket(PacketType.SimStats);
-        
+
 
         private RegionInfo ReportingRegion;
 
@@ -138,8 +138,8 @@ namespace OpenSim.Region.Environment.Scenes
             lock (m_report)
             {
                 // Packet is already initialized and ready for data insert
-                
-                
+
+
                 statpack.Region = rb;
                 statpack.Region.RegionX = ReportingRegion.RegionLocX;
                 statpack.Region.RegionY = ReportingRegion.RegionLocY;
@@ -152,99 +152,99 @@ namespace OpenSim.Region.Environment.Scenes
                     statpack.Region.RegionFlags = (uint) 0;
                 }
                 statpack.Region.ObjectCapacity = (uint) objectCapacity;
-                
+
 #region various statistic googly moogly
-                
+
                 // Our FPS is actually 10fps, so multiplying by 5 to get the amount that people expect there
                 // 0-50 is pretty close to 0-45
                 float simfps = (int) ((m_fps * 5));
-                
+
                 //if (simfps > 45)
                 //simfps = simfps - (simfps - 45);
                 //if (simfps < 0)
                 //simfps = 0;
-                
+
                 //
                 float physfps = ((m_pfps / 1000));
-                
+
                 //if (physfps > 600)
                 //physfps = physfps - (physfps - 600);
-                
+
                 if (physfps < 0)
                     physfps = 0;
-                
+
 #endregion
-                
-                //Our time dilation is 0.91 when we're running a full speed, 
-                // therefore to make sure we get an appropriate range, 
-                // we have to factor in our error.   (0.10f * statsUpdateFactor) 
+
+                //Our time dilation is 0.91 when we're running a full speed,
+                // therefore to make sure we get an appropriate range,
+                // we have to factor in our error.   (0.10f * statsUpdateFactor)
                 // multiplies the fix for the error times the amount of times it'll occur a second
                 // / 10 divides the value by the number of times the sim heartbeat runs (10fps)
                 // Then we divide the whole amount by the amount of seconds pass in between stats updates.
-                
+
                 sb[0].StatID = (uint) Stats.TimeDilation;
                 sb[0].StatValue = m_timeDilation ; //((((m_timeDilation + (0.10f * statsUpdateFactor)) /10)  / statsUpdateFactor));
-                
+
                 sb[1].StatID = (uint) Stats.SimFPS;
                 sb[1].StatValue = simfps/statsUpdateFactor;
-                
+
                 sb[2].StatID = (uint) Stats.PhysicsFPS;
                 sb[2].StatValue = physfps / statsUpdateFactor;
-                
+
                 sb[3].StatID = (uint) Stats.AgentUpdates;
                 sb[3].StatValue = (m_agentUpdates / statsUpdateFactor);
-                
+
                 sb[4].StatID = (uint) Stats.Agents;
                 sb[4].StatValue = m_rootAgents;
-                
+
                 sb[5].StatID = (uint) Stats.ChildAgents;
                 sb[5].StatValue = m_childAgents;
-                
+
                 sb[6].StatID = (uint) Stats.TotalPrim;
                 sb[6].StatValue = m_numPrim;
-                
+
                 sb[7].StatID = (uint) Stats.ActivePrim;
                 sb[7].StatValue = m_activePrim;
-                
+
                 sb[8].StatID = (uint)Stats.FrameMS;
                 sb[8].StatValue = m_frameMS / statsUpdateFactor;
-                
+
                 sb[9].StatID = (uint)Stats.NetMS;
                 sb[9].StatValue = m_netMS / statsUpdateFactor;
-                
+
                 sb[10].StatID = (uint)Stats.PhysicsMS;
                 sb[10].StatValue = m_physicsMS / statsUpdateFactor;
-                
+
                 sb[11].StatID = (uint)Stats.ImageMS ;
                 sb[11].StatValue = m_imageMS / statsUpdateFactor;
-                
+
                 sb[12].StatID = (uint)Stats.OtherMS;
                 sb[12].StatValue = m_otherMS / statsUpdateFactor;
-                
+
                 sb[13].StatID = (uint)Stats.InPacketsPerSecond;
                 sb[13].StatValue = (m_inPacketsPerSecond);
-                
+
                 sb[14].StatID = (uint)Stats.OutPacketsPerSecond;
                 sb[14].StatValue = (m_outPacketsPerSecond / statsUpdateFactor);
-                
+
                 sb[15].StatID = (uint)Stats.UnAckedBytes;
                 sb[15].StatValue = m_unAckedBytes;
-                
+
                 sb[16].StatID = (uint)Stats.AgentMS;
                 sb[16].StatValue = m_agentMS / statsUpdateFactor;
-                
+
                 sb[17].StatID = (uint)Stats.PendingDownloads;
                 sb[17].StatValue = m_pendingDownloads;
-                
+
                 sb[18].StatID = (uint)Stats.PendingUploads;
                 sb[18].StatValue = m_pendingUploads;
-                
+
                 sb[19].StatID = (uint)Stats.ActiveScripts;
                 sb[19].StatValue = m_activeScripts;
-                
+
                 sb[20].StatID = (uint)Stats.ScriptLinesPerSecond;
                 sb[20].StatValue = m_scriptLinesPerSecond / statsUpdateFactor;
-                
+
                 statpack.Stat = sb;
 
                 handlerSendStatResult = OnSendStatsResult;
@@ -255,7 +255,7 @@ namespace OpenSim.Region.Environment.Scenes
                 resetvalues();
             }
         }
-        
+
         private void resetvalues()
         {
             m_timeDilation = 0;
@@ -274,13 +274,13 @@ namespace OpenSim.Region.Environment.Scenes
             m_imageMS = 0;
             m_otherMS = 0;
 
-//Ckrinke This variable is not used, so comment to remove compiler warning until it is used.            
+//Ckrinke This variable is not used, so comment to remove compiler warning until it is used.
 //Ckrinke            m_scriptMS = 0;
         }
 
         # region methods called from Scene
         // The majority of these functions are additive
-        // so that you can easily change the amount of 
+        // so that you can easily change the amount of
         // seconds in between sim stats updates
 
         public void AddTimeDilation(float td)
@@ -368,14 +368,14 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_otherMS += ms;
         }
-        
-//        private static readonly log4net.ILog m_log 
+
+//        private static readonly log4net.ILog m_log
 //            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         public void addPendingDownload(int count)
         {
             m_pendingDownloads += count;
-            //m_log.InfoFormat("[stats]: Adding {0} to pending downloads to make {1}", count, m_pendingDownloads);            
+            //m_log.InfoFormat("[stats]: Adding {0} to pending downloads to make {1}", count, m_pendingDownloads);
         }
 
         public void addScriptLines(int count)

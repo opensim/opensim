@@ -39,7 +39,7 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
     /// <summary>
     /// This is the root object for RemoteServer. Objects access each other trough this class.
     /// </summary>
-    /// 
+    ///
     [Serializable]
     public class ScriptEngine : IRegionModule
     {

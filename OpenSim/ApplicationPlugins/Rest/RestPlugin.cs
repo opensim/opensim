@@ -23,7 +23,7 @@
 * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-* 
+*
 */
 
 using System;
@@ -54,7 +54,7 @@ namespace OpenSim.ApplicationPlugins.Rest
     {
         #region properties
 
-        protected static readonly log4net.ILog  m_log = 
+        protected static readonly log4net.ILog  m_log =
             log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IConfig        _config;       // Configuration source: Rest Plugins
@@ -100,8 +100,8 @@ namespace OpenSim.ApplicationPlugins.Rest
         /// </summary>
         public bool IsEnabled
         {
-            get 
-            { 
+            get
+            {
                 return (null != _pluginConfig) && _pluginConfig.GetBoolean("enabled", false);
             }
         }
@@ -109,7 +109,7 @@ namespace OpenSim.ApplicationPlugins.Rest
         /// <summary>
         /// OpenSimMain application
         /// </summary>
-        public OpenSimMain App 
+        public OpenSimMain App
         {
             get { return _app; }
         }
@@ -117,7 +117,7 @@ namespace OpenSim.ApplicationPlugins.Rest
         /// <summary>
         /// RPC server
         /// </summary>
-        public BaseHttpServer HttpServer 
+        public BaseHttpServer HttpServer
         {
             get { return _httpd; }
         }
@@ -171,7 +171,7 @@ namespace OpenSim.ApplicationPlugins.Rest
                     return;
                 }
 
-                if (!_config.GetBoolean("enabled", false)) 
+                if (!_config.GetBoolean("enabled", false))
                 {
                     m_log.WarnFormat("{0} Rest Plugins are disabled", MsgID);
                     return;
@@ -184,10 +184,10 @@ namespace OpenSim.ApplicationPlugins.Rest
                 _godkey = _config.GetString("god_key", String.Empty);
                 // Retrive prefix if any.
                 _prefix = _config.GetString("prefix", "/admin");
-                
+
                 // Get plugin specific config
                 _pluginConfig = openSim.ConfigSource.Configs[ConfigName];
-                
+
                 m_log.InfoFormat("{0} Rest Plugins Enabled", MsgID);
             }
             catch (Exception e)
@@ -200,7 +200,7 @@ namespace OpenSim.ApplicationPlugins.Rest
                 // not possible for the openSim pointer to be null. However
                 // were the implementation to be changed, this could
                 // result in a silent initialization failure. Harmless
-                // except for lack of function and lack of any 
+                // except for lack of function and lack of any
                 // diagnostic indication as to why. The same is true if
                 // the HTTP server reference is bad.
                 // We should at least issue a message...
@@ -214,7 +214,7 @@ namespace OpenSim.ApplicationPlugins.Rest
 
         public void AddRestStreamHandler(string httpMethod, string path, RestMethod method)
         {
-            if (!path.StartsWith(_prefix)) 
+            if (!path.StartsWith(_prefix))
             {
                 path = String.Format("{0}{1}", _prefix, path);
             }
@@ -226,7 +226,7 @@ namespace OpenSim.ApplicationPlugins.Rest
             m_log.DebugFormat("{0} Added REST handler {1} {2}", MsgID, httpMethod, path);
         }
 
-        
+
         public bool VerifyGod(string key)
         {
             if (String.IsNullOrEmpty(key)) return false;

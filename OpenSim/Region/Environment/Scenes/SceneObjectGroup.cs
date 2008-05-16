@@ -86,11 +86,11 @@ namespace OpenSim.Region.Environment.Scenes
         private PrimCountTaintedDelegate handlerPrimCountTainted = null;
 
         /// <summary>
-        /// Signal whether the non-inventory attributes of any prims in the group have changed 
+        /// Signal whether the non-inventory attributes of any prims in the group have changed
         /// since the group's last persistent backup
         /// </summary>
         public bool HasGroupChanged = false;
-        
+
 
 
         private LLVector3 lastPhysGroupPos;
@@ -119,7 +119,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// but not sure a object should have this
         /// as what does it tell us? that some avatar has selected it (but not what Avatar/user)
         /// think really there should be a list (or whatever) in each scenepresence
-        /// saying what prim(s) that user has selected. 
+        /// saying what prim(s) that user has selected.
         /// </summary>
         protected bool m_isSelected = false;
 
@@ -134,7 +134,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public int PrimCount
         {
@@ -153,7 +153,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public LLVector3 GroupCentrePoint
         {
@@ -215,7 +215,7 @@ namespace OpenSim.Region.Environment.Scenes
                         part.GroupPosition = val;
                     }
                 }
-                
+
                 //if (m_rootPart.PhysActor != null)
                 //{
                 //m_rootPart.PhysActor.Position =
@@ -225,7 +225,7 @@ namespace OpenSim.Region.Environment.Scenes
                 //}
             }
         }
-        
+
         public override uint LocalId
         {
             get
@@ -316,17 +316,17 @@ namespace OpenSim.Region.Environment.Scenes
         #region Constructors
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public SceneObjectGroup()
         {
         }
 
         /// <summary>
-        /// This constructor creates a SceneObjectGroup using a pre-existing SceneObjectPart. 
-        /// The original SceneObjectPart will be used rather than a copy, preserving 
+        /// This constructor creates a SceneObjectGroup using a pre-existing SceneObjectPart.
+        /// The original SceneObjectPart will be used rather than a copy, preserving
         /// its existing localID and UUID.
-        /// </summary>        
+        /// </summary>
         public SceneObjectGroup(Scene scene, ulong regionHandle, SceneObjectPart part)
         {
             m_scene = scene;
@@ -416,7 +416,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public SceneObjectGroup(string xmlData)
         {
@@ -464,7 +464,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public SceneObjectGroup(Scene scene, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos,
                                 LLQuaternion rot, PrimitiveBaseShape shape)
@@ -486,7 +486,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public SceneObjectGroup(Scene scene, ulong regionHandle, LLUUID ownerID, uint localID, LLVector3 pos,
                                 PrimitiveBaseShape shape)
@@ -576,7 +576,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     EntityIntersection inter = part.TestIntersectionOBB(hRay, parentrotation,frontFacesOnly, faceCenters);
 
-                    // This may need to be updated to the maximum draw distance possible..  
+                    // This may need to be updated to the maximum draw distance possible..
                     // We might (and probably will) be checking for prim creation from other sims
                     // when the camera crosses the border.
                     float idist = Constants.RegionSize;
@@ -676,7 +676,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="part"></param>
         private void SetPartAsRoot(SceneObjectPart part)
@@ -693,7 +693,7 @@ namespace OpenSim.Region.Environment.Scenes
                 DetachFromBackup(this);
                 m_rootPart.m_attachedAvatar = agentID;
 
-               
+
                 if (m_rootPart.PhysActor != null)
                 {
                     m_scene.PhysicsScene.RemovePrim(m_rootPart.PhysActor);
@@ -753,7 +753,7 @@ namespace OpenSim.Region.Environment.Scenes
             AttachToBackup();
             m_rootPart.ScheduleFullUpdate();
             m_rootPart.ClearUndoState();
-           
+
         }
         public void DetachToInventoryPrep()
         {
@@ -764,7 +764,7 @@ namespace OpenSim.Region.Environment.Scenes
                 //detachedpos = avatar.AbsolutePosition;
                 avatar.RemoveAttachment(this);
             }
-            
+
             m_rootPart.m_attachedAvatar = LLUUID.Zero;
             m_rootPart.SetParentLocalId(0);
             //m_rootPart.SetAttachmentPoint((byte)0);
@@ -773,10 +773,10 @@ namespace OpenSim.Region.Environment.Scenes
             //m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_scene.m_physicalPrim);
             //AttachToBackup();
             //m_rootPart.ScheduleFullUpdate();
-            
+
         }
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="part"></param>
         private void SetPartAsNonRoot(SceneObjectPart part)
@@ -802,7 +802,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Added as a way for the storage provider to reset the scene, 
+        /// Added as a way for the storage provider to reset the scene,
         /// most likely a better way to do this sort of thing but for now...
         /// </summary>
         /// <param name="scene"></param>
@@ -813,7 +813,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="part"></param>
         public void AddPart(SceneObjectPart part)
@@ -826,7 +826,7 @@ namespace OpenSim.Region.Environment.Scenes
                 try
                 {
                     m_parts.Add(part.UUID, part);
-                    
+
                 }
                 catch (Exception e)
                 {
@@ -836,7 +836,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public void UpdateParentIDs()
         {
@@ -847,7 +847,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (part.UUID != m_rootPart.UUID)
                     {
                         part.ParentID = m_rootPart.LocalId;
-                        
+
                     }
                 }
             }
@@ -860,7 +860,7 @@ namespace OpenSim.Region.Environment.Scenes
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
                     part.UUID = LLUUID.Random();
-                    
+
                 }
             }
         }
@@ -897,7 +897,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 SceneObjectPart part = GetChildPart(localId);
                 OnGrabPart(part, offsetPos, remoteClient);
-                
+
             }
         }
 
@@ -905,7 +905,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             part.StoreUndoState();
             part.OnGrab(offsetPos, remoteClient);
-            
+
         }
 
         public virtual void OnGrabGroup(LLVector3 offsetPos, IClientAPI remoteClient)
@@ -1068,7 +1068,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Events
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public void TriggerTainted()
         {
@@ -1198,7 +1198,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 dupe.RootPart.DoPhysicsPropertyUpdate(dupe.RootPart.PhysActor.IsPhysical, true);
             }
-            // Now we've made a copy that replaces this one, we need to 
+            // Now we've made a copy that replaces this one, we need to
             // switch the owner to the person who did the copying
             // Second Life copies an object and duplicates the first one in it's place
             // So, we have to make a copy of this one, set it in it's place then set the owner on this one
@@ -1227,7 +1227,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="part"></param>
         /// <param name="cAgentID"></param>
@@ -1359,7 +1359,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="part"></param>
         /// <param name="cAgentID"></param>
@@ -1373,14 +1373,14 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_parts.Add(newPart.UUID, newPart);
             }
-            
+
             SetPartAsNonRoot(newPart);
-            
+
         }
 
         /// <summary>
         /// Reset the LLUUIDs for all the prims that make up this group.
-        /// 
+        ///
         /// This is called by methods which want to add a new group to an existing scene, in order
         /// to ensure that there are no clashes with groups already present.
         /// </summary>
@@ -1398,7 +1398,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="part"></param>
         public void ServiceObjectPropertiesFamilyRequest(IClientAPI remoteClient, LLUUID AgentID, uint RequestFlags)
@@ -1425,7 +1425,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public override void Update()
         {
-            
+
             lock (m_parts)
             {
                 //if (m_rootPart.m_IsAttachment)
@@ -1436,7 +1436,7 @@ namespace OpenSim.Region.Environment.Scenes
                     //}
                     //return;
                 //}
-            
+
                 if (Util.GetDistanceTo(lastPhysGroupPos, AbsolutePosition) > 0.02)
                 {
                     m_rootPart.UpdateFlag = 1;
@@ -1447,10 +1447,10 @@ namespace OpenSim.Region.Environment.Scenes
                         //if (part.UpdateFlag == 0) part.UpdateFlag = 1;
                     //}
 
-                    
-                    
+
+
                     checkAtTargets();
-                
+
 
                 if ((Math.Abs(lastPhysGroupRot.W - GroupRotation.W) > 0.1)
                     || (Math.Abs(lastPhysGroupRot.X - GroupRotation.X) > 0.1)
@@ -1508,7 +1508,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public void ScheduleGroupForTerseUpdate()
         {
@@ -1524,7 +1524,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public void SendGroupFullUpdate()
         {
@@ -1545,7 +1545,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public void SendGroupTerseUpdate()
         {
@@ -1669,7 +1669,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (objectGroup.RootPart.UpdateFlag > 0)
             {
-                // I've never actually seen this happen, though I think it's theoretically possible                
+                // I've never actually seen this happen, though I think it's theoretically possible
                 m_log.WarnFormat(
                     "[SCENE OBJECT GROUP]: Aborted linking {0}, {1} to {2}, {3} as it has yet to finish delinking",
                     objectGroup.RootPart.Name, objectGroup.RootPart.UUID, RootPart.Name, RootPart.UUID);
@@ -1678,7 +1678,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
 //            m_log.DebugFormat(
-//                "[SCENE OBJECT GROUP]: Linking group with root part {0}, {1} to group with root part {2}, {3}", 
+//                "[SCENE OBJECT GROUP]: Linking group with root part {0}, {1} to group with root part {2}, {3}",
 //                objectGroup.RootPart.Name, objectGroup.RootPart.UUID, RootPart.Name, RootPart.UUID);
 
             SceneObjectPart linkPart = objectGroup.m_rootPart;
@@ -1747,19 +1747,19 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Delink the given prim from this group.  The delinked prim is established as 
+        /// Delink the given prim from this group.  The delinked prim is established as
         /// an independent SceneObjectGroup.
         /// </summary>
         /// <param name="partID"></param>
         public void DelinkFromGroup(uint partID)
         {
             SceneObjectPart linkPart = GetChildPart(partID);
-            
+
             if (null != linkPart)
             {
                 linkPart.ClearUndoState();
 //                m_log.DebugFormat(
-//                    "[SCENE OBJECT GROUP]: Delinking part {0}, {1} from group with root part {2}, {3}", 
+//                    "[SCENE OBJECT GROUP]: Delinking part {0}, {1} from group with root part {2}, {3}",
 //                    linkPart.Name, linkPart.UUID, RootPart.Name, RootPart.UUID);
 
                 LLQuaternion worldRot = linkPart.GetWorldRotation();
@@ -1777,8 +1777,8 @@ namespace OpenSim.Region.Environment.Scenes
                     m_scene.PhysicsScene.RemovePrim(linkPart.PhysActor);
                 }
 
-                // We need to reset the child part's position 
-                // ready for life as a separate object after being a part of another object                                                
+                // We need to reset the child part's position
+                // ready for life as a separate object after being a part of another object
                 Quaternion parentRot
                     = new Quaternion(
                         m_rootPart.RotationOffset.W,
@@ -1933,7 +1933,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                m_rootPart.TouchName, new byte[0], m_rootPart.SitName, m_rootPart.Name, m_rootPart.Description,
                                                m_rootPart.OwnerMask, m_rootPart.NextOwnerMask, m_rootPart.GroupMask, m_rootPart.EveryoneMask,
                                                m_rootPart.BaseMask);
-            
+
         }
 
         /// <summary>
@@ -1998,13 +1998,13 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="type"></param>
         /// <param name="inUse"></param>
         /// <param name="data"></param>
-        /// 
+        ///
         public void UpdatePrimFlags(uint localID, ushort type, bool inUse, byte[] data)
         {
             SceneObjectPart part = GetChildPart(localID);
@@ -2046,7 +2046,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="textureEntry"></param>
@@ -2071,7 +2071,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Shape
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="shapeBlock"></param>
         public void UpdateShape(ObjectShapePacket.ObjectDataBlock shapeBlock, uint localID)
@@ -2091,7 +2091,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Resize
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="scale"></param>
         /// <param name="localID"></param>
@@ -2169,7 +2169,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Position
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="pos"></param>
         public void UpdateGroupPosition(LLVector3 pos)
@@ -2189,7 +2189,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="pos"></param>
         /// <param name="localID"></param>
@@ -2210,7 +2210,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="pos"></param>
         private void UpdateRootPosition(LLVector3 pos)
@@ -2255,7 +2255,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Rotation
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="rot"></param>
         public void UpdateGroupRotation(LLQuaternion rot)
@@ -2272,7 +2272,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="pos"></param>
         /// <param name="rot"></param>
@@ -2291,7 +2291,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="rot"></param>
         /// <param name="localID"></param>
@@ -2312,7 +2312,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="rot"></param>
         private void UpdateRootRotation(LLQuaternion rot)
@@ -2463,7 +2463,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 // Reusing att.tolerance to hold the index of the target in the targets dictionary
                                 // to avoid deadlocking the sim.
                                 m_scene.TriggerAtTargetEvent(localids[ctr], (uint)att.tolerance, att.targetPos, m_rootPart.GroupPosition);
-                                
+
 
                             }
                         }

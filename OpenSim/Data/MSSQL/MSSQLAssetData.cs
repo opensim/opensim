@@ -216,7 +216,7 @@ namespace OpenSim.Data.MSSQL
 
         override public string Version
         {
-//            get { return database.getVersion(); } 
+//            get { return database.getVersion(); }
             get { return database.getVersion(); }
         }
 

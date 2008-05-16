@@ -38,12 +38,12 @@ namespace OpenSim.Framework.Servers
 
     /// <summary>
     /// Makes an asynchronous REST request with a callback to invoke with the response.
-    /// </summary>    
+    /// </summary>
     public class RestObjectPosterResponse<TResponse>
     {
-//        private static readonly log4net.ILog m_log 
+//        private static readonly log4net.ILog m_log
 //            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         public ReturnResponse<TResponse> ResponseCallback;
 
         public void BeginPostObject<TRequest>(string requestUrl, TRequest obj)
@@ -87,11 +87,11 @@ namespace OpenSim.Framework.Servers
                 TResponse deserial;
                 XmlSerializer deserializer = new XmlSerializer(typeof (TResponse));
                 Stream stream = resp.GetResponseStream();
-                
+
                 // This is currently a bad debug stanza since it gobbles us the response...
 //                StreamReader reader = new StreamReader(stream);
 //                m_log.DebugFormat("[REST OBJECT POSTER RESPONSE]: Received {0}", reader.ReadToEnd());
-                
+
                 deserial = (TResponse) deserializer.Deserialize(stream);
 
                 if (deserial != null && ResponseCallback != null)

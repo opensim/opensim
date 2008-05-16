@@ -23,7 +23,7 @@
 * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-* 
+*
 */
 
 using System;
@@ -70,14 +70,14 @@ namespace OpenSim.Region.DataSnapshot
         #region IRegionModule
         public void Close()
         {
-             
+
         }
-        
+
         public void Initialise(Scene scene, IConfigSource config)
         {
             if (!m_scenes.Contains(scene))
                 m_scenes.Add(scene);
-            
+
             if (!m_configLoaded)
             {
                 m_configLoaded = true;
@@ -317,7 +317,7 @@ namespace OpenSim.Region.DataSnapshot
 
         private String GetRegionCategory(Scene scene)
         {
-           
+
             //Boolean choice between:
             //  "PG" - Mormontown
             //  "Mature" - Sodom and Gomorrah
@@ -396,7 +396,7 @@ namespace OpenSim.Region.DataSnapshot
         }
 
         /**
-         * Reply to the http request 
+         * Reply to the http request
          */
         public XmlDocument GetSnapshot(string regionName)
         {

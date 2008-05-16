@@ -40,12 +40,12 @@ namespace OpenSim.Framework.Communications.Cache
 
     /// <summary>
     /// Manages local cache of assets and their sending to viewers.
-    /// 
+    ///
     /// This class actually encapsulates two largely separate mechanisms.  One mechanism fetches assets either
     /// synchronously or async and passes the data back to the requester.  The second mechanism fetches assets and
     /// sends packetised data directly back to the client.  The only point where they meet is AssetReceived() and
     /// AssetNotFound(), which means they do share the same asset and texture caches.
-    /// 
+    ///
     /// TODO  Assets in this cache are effectively immortal (they are never disposed off through old age).
     /// This is not a huge problem at the moment since other memory use usually dwarfs that used by assets
     /// but it's something to bear in mind.
@@ -281,8 +281,8 @@ namespace OpenSim.Framework.Communications.Cache
 
         /// <summary>
         /// Synchronously retreive an asset.  If the asset isn't in the cache, a request will be made to the persistent store to
-        /// load it into the cache.  
-        /// 
+        /// load it into the cache.
+        ///
         /// XXX We'll keep polling the cache until we get the asset or we exceed
         /// the allowed number of polls.  This isn't a very good way of doing things since a single thread
         /// is processing inbound packets, so if the asset server is slow, we could block this for up to
@@ -431,11 +431,11 @@ namespace OpenSim.Framework.Communications.Cache
                         //making a copy of the list is not ideal
                         //but the old method of locking around this whole block of code was causing a multi-thread lock
                         //between this and the TextureDownloadModule
-                        //while the localAsset thread running this and trying to send a texture to the callback in the 
+                        //while the localAsset thread running this and trying to send a texture to the callback in the
                         //texturedownloadmodule , and hitting a lock in there. While the texturedownload thread (which was holding
-                        // the lock in the texturedownload module) was trying to 
+                        // the lock in the texturedownload module) was trying to
                         //request a new asset and hitting a lock in here on the RequestLists.
-                        
+
                         List<NewAssetRequest> theseRequests = new List<NewAssetRequest>(reqList.Requests);
                         reqList.Requests.Clear();
 
@@ -460,7 +460,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             // m_log.WarnFormat("[ASSET CACHE]: AssetNotFound for {0}", assetID);
 
-            // Notify requesters for this asset 
+            // Notify requesters for this asset
             AssetRequestsList reqList = null;
             lock (RequestLists)
             {
@@ -552,7 +552,7 @@ namespace OpenSim.Framework.Communications.Cache
                 }
                 return;
             }
-            //it is in our cache 
+            //it is in our cache
             AssetInfo asset = Assets[requestID];
 
             // add to the AssetRequests list
@@ -679,14 +679,14 @@ namespace OpenSim.Framework.Communications.Cache
             public byte AssetRequestSource = 2;
             public byte[] Params = null;
             //public bool AssetInCache;
-            //public int TimeRequested; 
+            //public int TimeRequested;
             public int DiscardLevel = -1;
 
             public AssetRequest()
             {
             }
         }
-        
+
         public class AssetInfo : AssetBase
         {
             public AssetInfo()

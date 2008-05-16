@@ -64,20 +64,20 @@ namespace OpenSim.Data.NHibernate
 
             // This is stubbing for now, it will become dynamic later and support different db backends
             cfg = new Configuration();
-            cfg.SetProperty(Environment.ConnectionProvider, 
+            cfg.SetProperty(Environment.ConnectionProvider,
                             "NHibernate.Connection.DriverConnectionProvider");
-            cfg.SetProperty(Environment.Dialect, 
+            cfg.SetProperty(Environment.Dialect,
                             "NHibernate.Dialect." + parts[0]);
-            cfg.SetProperty(Environment.ConnectionDriver, 
+            cfg.SetProperty(Environment.ConnectionDriver,
                             "NHibernate.Driver." + parts[1]);
             cfg.SetProperty(Environment.ConnectionString, parts[2]);
             cfg.AddAssembly("OpenSim.Data.NHibernate");
 
             HbmSerializer.Default.Validate = true;
-            using ( MemoryStream stream = 
+            using ( MemoryStream stream =
                     HbmSerializer.Default.Serialize(Assembly.GetExecutingAssembly()))
                 cfg.AddInputStream(stream);
-            
+
             // new SchemaExport(cfg).Create(true, true);
 
             factory  = cfg.BuildSessionFactory();
@@ -122,7 +122,7 @@ namespace OpenSim.Data.NHibernate
                 // BUG: CATCHALL IS BAD.
             }
             catch (Exception) {}
-            
+
             return (user != null);
         }
 
@@ -151,7 +151,7 @@ namespace OpenSim.Data.NHibernate
                         // TODO: save agent
                         transaction.Commit();
                     }
-                } 
+                }
             }
             else
             {
@@ -162,7 +162,7 @@ namespace OpenSim.Data.NHibernate
 
         private static void SetAgentData(LLUUID uuid, UserAgentData agent, ISession session)
         {
-            if (agent == null) 
+            if (agent == null)
             {
                 // TODO: got to figure out how to do a delete right
             }
@@ -178,7 +178,7 @@ namespace OpenSim.Data.NHibernate
                     session.Update(agent);
                 }
             }
-            
+
         }
         override public bool UpdateUserProfile(UserProfileData profile)
         {
@@ -193,7 +193,7 @@ namespace OpenSim.Data.NHibernate
                         transaction.Commit();
                         return true;
                     }
-                } 
+                }
             }
             else
             {
@@ -202,7 +202,7 @@ namespace OpenSim.Data.NHibernate
                 return true;
             }
         }
-        
+
         override public void AddNewUserAgent(UserAgentData agent)
         {
             using (ISession session = factory.OpenSession())
@@ -212,9 +212,9 @@ namespace OpenSim.Data.NHibernate
                     session.Save(agent);
                     transaction.Commit();
                 }
-            } 
+            }
         }
-        
+
         public void UpdateUserAgent(UserAgentData agent)
         {
             using (ISession session = factory.OpenSession())
@@ -224,7 +224,7 @@ namespace OpenSim.Data.NHibernate
                     session.Update(agent);
                     transaction.Commit();
                 }
-            } 
+            }
         }
 
         override public UserAgentData GetAgentByUUID(LLUUID uuid)
@@ -262,7 +262,7 @@ namespace OpenSim.Data.NHibernate
         {
             return GetUserByName(fname, lname).CurrentAgent;
         }
-        
+
         override public UserAgentData GetAgentByName(string name)
         {
             return GetAgentByName(name.Split(' ')[0], name.Split(' ')[1]);
@@ -273,7 +273,7 @@ namespace OpenSim.Data.NHibernate
             List<AvatarPickerAvatar> results = new List<AvatarPickerAvatar>();
             string[] querysplit;
             querysplit = query.Split(' ');
-            
+
             if (querysplit.Length == 2)
             {
                 using (ISession session = factory.OpenSession())
@@ -293,7 +293,7 @@ namespace OpenSim.Data.NHibernate
             }
             return results;
         }
-        
+
         // TODO: actually implement these
         public override void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid) {return;}
         public override void StoreWebLoginKey(LLUUID agentID, LLUUID webLoginKey) {return;}
@@ -306,7 +306,7 @@ namespace OpenSim.Data.NHibernate
 
         /// Appearance
         /// TODO: stubs for now to get us to a compiling state gently
-        public AvatarAppearance GetUserAppearance(LLUUID user) 
+        public AvatarAppearance GetUserAppearance(LLUUID user)
         {
             AvatarAppearance appearance;
             // TODO: I'm sure I'll have to do something silly here
@@ -345,19 +345,19 @@ namespace OpenSim.Data.NHibernate
                     }
                     transaction.Commit();
                 }
-            } 
+            }
         }
 
         override public void AddAttachment(LLUUID user, LLUUID item)
         {
             return;
         }
-        
+
         override public void RemoveAttachment(LLUUID user, LLUUID item)
         {
             return;
         }
-        
+
         override public List<LLUUID> GetAttachments(LLUUID user)
         {
             return new List<LLUUID>();

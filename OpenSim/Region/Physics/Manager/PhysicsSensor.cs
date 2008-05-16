@@ -35,7 +35,7 @@ namespace OpenSim.Region.Physics.Manager
     {
         NONE = 0,
         AGENT = 1,
-        ACTIVE = 2, 
+        ACTIVE = 2,
         PASSIVE = 3,
         SCRIPTED = 4
     }

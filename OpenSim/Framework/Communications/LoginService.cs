@@ -48,8 +48,8 @@ namespace OpenSim.Framework.Communications
 
         protected string m_welcomeMessage = "Welcome to OpenSim";
         protected UserManagerBase m_userManager = null;
-        protected Mutex m_loginMutex = new Mutex(false);     
-        
+        protected Mutex m_loginMutex = new Mutex(false);
+
         /// <summary>
         /// Used during login to send the skeleton of the OpenSim Library to the client.
         /// </summary>
@@ -61,12 +61,12 @@ namespace OpenSim.Framework.Communications
         /// <param name="userManager"></param>
         /// <param name="libraryRootFolder"></param>
         /// <param name="welcomeMess"></param>
-        public LoginService(UserManagerBase userManager, LibraryRootFolder libraryRootFolder, 
+        public LoginService(UserManagerBase userManager, LibraryRootFolder libraryRootFolder,
                             string welcomeMess)
         {
             m_userManager = userManager;
             m_libraryRootFolder = libraryRootFolder;
-            
+
             if (welcomeMess != String.Empty)
             {
                 m_welcomeMessage = welcomeMess;
@@ -79,15 +79,15 @@ namespace OpenSim.Framework.Communications
         /// <param name="response">The existing response</param>
         /// <param name="theUser">The user profile</param>
         public abstract void CustomiseResponse(LoginResponse response, UserProfileData theUser, string startLocationRequest);
-        
+
         /// <summary>
         /// Get the initial login inventory skeleton (in other words, the folder structure) for the given user.
         /// </summary>
         /// <param name="userID"></param>
         /// <returns></returns>
         /// <exception cref='System.Exception'>This will be thrown if there is a problem with the inventory service</exception>
-        protected abstract InventoryData GetInventorySkeleton(LLUUID userID);     
-        
+        protected abstract InventoryData GetInventorySkeleton(LLUUID userID);
+
         /// <summary>
         /// Called when we receive the client's initial XMLRPC login_to_simulator request message
         /// </summary>
@@ -112,7 +112,7 @@ namespace OpenSim.Framework.Communications
 
                 UserProfileData userProfile;
                 LoginResponse logResponse = new LoginResponse();
-                
+
                 string firstname = String.Empty;
                 string lastname = String.Empty;
 
@@ -120,23 +120,23 @@ namespace OpenSim.Framework.Communications
                 {
                     firstname = (string) requestData["first"];
                     lastname = (string) requestData["last"];
-                    
+
                     m_log.InfoFormat(
-                        "[LOGIN BEGIN]: Received login request message from user {0} {1}", 
+                        "[LOGIN BEGIN]: Received login request message from user {0} {1}",
                         firstname, lastname);
 
                     string clientVersion = "Unknown";
-                    
+
                     if (requestData.Contains("version"))
                     {
-                        clientVersion = (string)requestData["version"];                        
+                        clientVersion = (string)requestData["version"];
                     }
-                     
+
                     if (requestData.Contains("start"))
                     {
                         startLocationRequest = (string)requestData["start"];
-                    }                    
-                    
+                    }
+
                     m_log.DebugFormat(
                         "[LOGIN]: Client is {0}, start location is {1}", clientVersion, startLocationRequest);
 
@@ -163,9 +163,9 @@ namespace OpenSim.Framework.Communications
                         catch (Exception e)
                         {
                             m_log.InfoFormat(
-                                "[LOGIN END]: Bad web_login_key: {0} for user {1} {2}, exception {3}", 
+                                "[LOGIN END]: Bad web_login_key: {0} for user {1} {2}, exception {3}",
                                 requestData["web_login_key"], firstname, lastname, e);
-                            
+
                             return logResponse.CreateFailedResponse();
                         }
                         GoodLogin = AuthenticateUser(userProfile, webloginkey);
@@ -176,14 +176,14 @@ namespace OpenSim.Framework.Communications
                 {
                     m_log.Info(
                         "[LOGIN END]: login_to_simulator login message did not contain all the required data");
-                    
+
                     return logResponse.CreateGridErrorResponse();
                 }
 
                 if (!GoodLogin)
                 {
                     m_log.InfoFormat("[LOGIN END]: User {0} {1} failed authentication", firstname, lastname);
-                    
+
                     return logResponse.CreateLoginFailedResponse();
                 }
                 else
@@ -199,11 +199,11 @@ namespace OpenSim.Framework.Communications
                         m_userManager.CommitAgent(ref userProfile);
 
                         // Reject the login
-                        
+
                         m_log.InfoFormat(
-                            "[LOGIN END]: Notifying user {0} {1} that they are already logged in", 
+                            "[LOGIN END]: Notifying user {0} {1} that they are already logged in",
                             firstname, lastname);
-                        
+
                         return logResponse.CreateAlreadyLoggedInResponse();
                     }
                     // Otherwise...
@@ -214,9 +214,9 @@ namespace OpenSim.Framework.Communications
                     {
                         LLUUID agentID = userProfile.ID;
                         InventoryData inventData = null;
-                        
+
                         try
-                        {                                               
+                        {
                             inventData = GetInventorySkeleton(agentID);
                         }
                         catch (Exception e)
@@ -224,10 +224,10 @@ namespace OpenSim.Framework.Communications
                             m_log.ErrorFormat(
                                 "[LOGIN END]: Error retrieving inventory skeleton of agent {0}, {1} - {2}",
                                 agentID, e.GetType(), e.Message);
-                                                        
-                            return logResponse.CreateLoginInventoryFailedResponse();                                                                                                        
-                        }                        
-                        
+
+                            return logResponse.CreateLoginInventoryFailedResponse();
+                        }
+
                         ArrayList AgentInventoryArray = inventData.InventoryArray;
 
                         Hashtable InventoryRootHash = new Hashtable();
@@ -235,7 +235,7 @@ namespace OpenSim.Framework.Communications
                         ArrayList InventoryRoot = new ArrayList();
                         InventoryRoot.Add(InventoryRootHash);
                         userProfile.RootInventoryFolderID = inventData.RootFolderID;
-                        
+
                         // Inventory Library Section
                         Hashtable InventoryLibRootHash = new Hashtable();
                         InventoryLibRootHash["folder_id"] = "00000112-000f-0000-0000-000100bba000";
@@ -244,10 +244,10 @@ namespace OpenSim.Framework.Communications
                         logResponse.InventoryLibRoot = InventoryLibRoot;
 
                         logResponse.InventoryLibraryOwner = GetLibraryOwner();
-                        
+
                         logResponse.InventoryRoot = InventoryRoot;
                         logResponse.InventorySkeleton = AgentInventoryArray;
-                        logResponse.InventoryLibrary = GetInventoryLibrary(); 
+                        logResponse.InventoryLibrary = GetInventoryLibrary();
 
                         // Circuit Code
                         uint circode = (uint) (Util.RandomClass.Next());
@@ -280,15 +280,15 @@ namespace OpenSim.Framework.Communications
                             //return logResponse.ToXmlRpcResponse();
                         }
                         CommitAgent(ref userProfile);
-                        
+
                         // If we reach this point, then the login has successfully logged onto the grid
                         if (StatsManager.UserStats != null)
                             StatsManager.UserStats.AddSuccessfulLogin();
-                        
+
                         m_log.DebugFormat(
                             "[LOGIN END]: Authentication of user {0} {1} successful.  Sending response to client.",
                             firstname, lastname);
-                        
+
                         return logResponse.ToXmlRpcResponse();
                     }
                     catch (Exception e)
@@ -422,10 +422,10 @@ namespace OpenSim.Framework.Communications
                         }
 
                         CommitAgent(ref userProfile);
-                        
+
                         // If we reach this point, then the login has successfully logged onto the grid
                         if (StatsManager.UserStats != null)
-                            StatsManager.UserStats.AddSuccessfulLogin();                        
+                            StatsManager.UserStats.AddSuccessfulLogin();
 
                         return logResponse.ToLLSDResponse();
                     }
@@ -449,7 +449,7 @@ namespace OpenSim.Framework.Communications
             //    period, space, parens, and dash.
 
             Regex wfcut = new Regex("[^a-zA-Z0-9_\\.\\$ \\(\\)\\-]");
-            
+
             Hashtable returnactions = new Hashtable();
             int statuscode = 200;
 
@@ -467,7 +467,7 @@ namespace OpenSim.Framework.Communications
             // the client requires the HTML form field be named 'username'
             // however, the data it sends when it loads the first time is 'firstname'
             // another one of those little nuances.
-            
+
             if (keysvals.Contains("firstname"))
                 firstname = wfcut.Replace((string)keysvals["firstname"], String.Empty, 99999);
 
@@ -494,7 +494,7 @@ namespace OpenSim.Framework.Communications
 
             if (keysvals.Contains("lang"))
                 lang = wfcut.Replace((string)keysvals["lang"], String.Empty, 99999);
-           
+
             if (keysvals.Contains("password"))
                 password = wfcut.Replace((string)keysvals["password"],  String.Empty, 99999);
 
@@ -541,8 +541,8 @@ namespace OpenSim.Framework.Communications
             return returnactions;
         }
 
-        public string GetLoginForm(string firstname, string lastname, string location, string region, 
-                                   string grid, string channel, string version, string lang, 
+        public string GetLoginForm(string firstname, string lastname, string location, string region,
+                                   string grid, string channel, string version, string lang,
                                    string password, string errormessages)
         {
             // inject our values in the form at the markers
@@ -559,7 +559,7 @@ namespace OpenSim.Framework.Communications
                 loginform = sr.ReadToEnd();
                 sr.Close();
             }
-            
+
             loginform = loginform.Replace("[$firstname]", firstname);
             loginform = loginform.Replace("[$lastname]", lastname);
             loginform = loginform.Replace("[$location]", location);
@@ -586,7 +586,7 @@ namespace OpenSim.Framework.Communications
             responseString += "<title>OpenSim Login</title>";
             responseString += "<body><br />";
             responseString += "<div id=\"login_box\">";
-                
+
             responseString += "<form action=\"/go.cgi\" method=\"GET\" id=\"login-form\">";
 
             responseString += "<div id=\"message\">[$errors]</div>";
@@ -670,13 +670,13 @@ namespace OpenSim.Framework.Communications
                 password = "$1$" + Util.Md5Hash(password);
 
             password = password.Remove(0, 3); //remove $1$
-            
+
             string s = Util.Md5Hash(password + ":" + profile.PasswordSalt);
-            // Testing...    
+            // Testing...
             //m_log.Info("[LOGIN]: SubHash:" + s + " userprofile:" + profile.passwordHash);
             //m_log.Info("[LOGIN]: userprofile:" + profile.passwordHash + " SubCT:" + password);
 
-            passwordSuccess = (profile.PasswordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase) 
+            passwordSuccess = (profile.PasswordHash.Equals(s.ToString(), StringComparison.InvariantCultureIgnoreCase)
                                || profile.PasswordHash.Equals(password, StringComparison.InvariantCultureIgnoreCase));
 
             return passwordSuccess;
@@ -694,7 +694,7 @@ namespace OpenSim.Framework.Communications
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="profile"></param>
         /// <param name="request"></param>
@@ -709,7 +709,7 @@ namespace OpenSim.Framework.Communications
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="firstname"></param>
         /// <param name="lastname"></param>
@@ -720,7 +720,7 @@ namespace OpenSim.Framework.Communications
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <returns></returns>
         public virtual string GetMessage()
@@ -741,17 +741,17 @@ namespace OpenSim.Framework.Communications
             }
             return buddylistreturn;
         }
-        
+
         /// <summary>
         /// Converts the inventory library skeleton into the form required by the rpc request.
         /// </summary>
         /// <returns></returns>
         protected virtual ArrayList GetInventoryLibrary()
         {
-            Dictionary<LLUUID, InventoryFolderImpl> rootFolders 
+            Dictionary<LLUUID, InventoryFolderImpl> rootFolders
                 = m_libraryRootFolder.RequestSelfAndDescendentFolders();
             ArrayList folderHashes = new ArrayList();
-            
+
             foreach (InventoryFolderBase folder in rootFolders.Values)
             {
                 Hashtable TempHash = new Hashtable();
@@ -762,12 +762,12 @@ namespace OpenSim.Framework.Communications
                 TempHash["folder_id"] = folder.ID.ToString();
                 folderHashes.Add(TempHash);
             }
-            
+
             return folderHashes;
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <returns></returns>
         protected virtual ArrayList GetLibraryOwner()

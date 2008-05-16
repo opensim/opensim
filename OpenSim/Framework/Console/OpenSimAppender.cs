@@ -40,32 +40,32 @@ namespace OpenSim.Framework.Console
                 string loggingMessage = RenderLoggingEvent(le);
 
                 string regex = @"^(?<Front>.*?)\[(?<Category>[^\]]+)\]:?(?<End>.*)";
-                
+
                 Regex RE = new Regex(regex, RegexOptions.Multiline);
                 MatchCollection matches = RE.Matches(loggingMessage);
-                // Get some direct matches $1 $4 is a 
+                // Get some direct matches $1 $4 is a
                 if (matches.Count == 1)
                 {
                     System.Console.Write(matches[0].Groups["Front"].Value);
                     System.Console.Write("[");
-                    
+
                     WriteColorText(DeriveColor(matches[0].Groups["Category"].Value), matches[0].Groups["Category"].Value);
                     System.Console.Write("]:");
-                    
-                    if (le.Level == Level.Error) 
+
+                    if (le.Level == Level.Error)
                     {
                         WriteColorText(ConsoleColor.Red, matches[0].Groups["End"].Value);
                     }
-                    else if (le.Level == Level.Warn) 
+                    else if (le.Level == Level.Warn)
                     {
                         WriteColorText(ConsoleColor.Yellow, matches[0].Groups["End"].Value);
                     }
-                    else 
+                    else
                     {
                         System.Console.Write(matches[0].Groups["End"].Value);
                     }
                     System.Console.WriteLine();
-                } 
+                }
                 else
                 {
                     System.Console.Write(loggingMessage);

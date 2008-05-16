@@ -218,7 +218,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                         objtype |= 0x04; // passive non-moving
                     else
                         objtype |= 0x02; // active moving
-                    if (ent is IScript) objtype |= 0x08; // Scripted. It COULD have one hidden ... 
+                    if (ent is IScript) objtype |= 0x08; // Scripted. It COULD have one hidden ...
 
                     if (((ts.type & objtype) != 0) || ((ts.type & objtype) == ts.type))
                     {

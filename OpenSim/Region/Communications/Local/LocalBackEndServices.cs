@@ -165,7 +165,7 @@ namespace OpenSim.Region.Communications.Local
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <returns></returns>
@@ -188,7 +188,7 @@ namespace OpenSim.Region.Communications.Local
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="minX"></param>
         /// <param name="minY"></param>
@@ -305,7 +305,7 @@ namespace OpenSim.Region.Communications.Local
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agentData"></param>
@@ -338,7 +338,7 @@ namespace OpenSim.Region.Communications.Local
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agentID"></param>

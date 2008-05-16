@@ -75,7 +75,7 @@ namespace OpenSim.Framework.Servers
             using (WebResponse resp = request.GetResponse())
             {
                 XmlSerializer deserializer = new XmlSerializer(typeof (TResponse));
-                deserial = (TResponse) deserializer.Deserialize(resp.GetResponseStream());                
+                deserial = (TResponse) deserializer.Deserialize(resp.GetResponseStream());
             }
             return deserial;
         }

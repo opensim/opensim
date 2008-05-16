@@ -120,7 +120,7 @@ namespace OpenSim.Data
         public LLUUID regionMapTextureID = new LLUUID("00000000-0000-1111-9999-000000000006");
 
         /// <summary>
-        /// this particular mod to the file provides support within the spec for RegionProfileData for the 
+        /// this particular mod to the file provides support within the spec for RegionProfileData for the
         /// owner_uuid for the region
         /// </summary>
         public LLUUID owner_uuid = LLUUID.Zero;
@@ -128,7 +128,7 @@ namespace OpenSim.Data
         /// <summary>
         /// OGS/OpenSim Specific original ID for a region after move/split
         /// </summary>
-        public LLUUID originUUID; 
+        public LLUUID originUUID;
 
         /// <summary>
         /// Get Sim profile data from grid server when in grid mode
@@ -163,7 +163,7 @@ namespace OpenSim.Data
             simData.serverPort = Convert.ToUInt32((string) responseData["sim_port"]);
             simData.httpPort = Convert.ToUInt32((string) responseData["http_port"]);
             simData.remotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
-            simData.serverURI = (string)responseData["server_uri"]; 
+            simData.serverURI = (string)responseData["server_uri"];
             simData.httpServerURI = "http://" + simData.serverIP + ":" + simData.httpPort.ToString() + "/";
             simData.UUID = new LLUUID((string) responseData["region_UUID"]);
             simData.regionName = (string) responseData["region_name"];
@@ -206,7 +206,7 @@ namespace OpenSim.Data
             simData.httpPort = Convert.ToUInt32((string) responseData["http_port"]);
             simData.remotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
             simData.httpServerURI = "http://" + simData.serverIP + ":" + simData.httpPort.ToString() + "/";
-            simData.serverURI = (string)responseData["server_uri"]; 
+            simData.serverURI = (string)responseData["server_uri"];
             simData.UUID = new LLUUID((string) responseData["region_UUID"]);
             simData.regionName = (string) responseData["region_name"];
 

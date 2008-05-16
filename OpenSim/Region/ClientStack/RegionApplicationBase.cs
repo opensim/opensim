@@ -44,7 +44,7 @@ namespace OpenSim.Region.ClientStack
 {
     public abstract class RegionApplicationBase : BaseOpenSimServer
     {
-        private static readonly ILog m_log 
+        private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected AssetCache m_assetCache;
@@ -63,7 +63,7 @@ namespace OpenSim.Region.ClientStack
 
         protected StorageManager m_storageManager;
         protected string m_storageConnectionString;
-        
+
         // An attribute to indicate whether prim inventories should be persisted.
         // Probably will be temporary until this stops being experimental.
         protected bool m_storagePersistPrimInventories;
@@ -159,9 +159,9 @@ namespace OpenSim.Region.ClientStack
                 scene.RegionInfo.MasterAvatarAssignedUUID = LLUUID.Zero;
             }
 
-            scene.LoadPrimsFromStorage(regionInfo.originRegionID);            
+            scene.LoadPrimsFromStorage(regionInfo.originRegionID);
             scene.StartTimer();
-            
+
             return scene;
         }
 

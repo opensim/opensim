@@ -23,7 +23,7 @@
 * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-* 
+*
 */
 
 using libsecondlife;
@@ -65,7 +65,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             region_external_hostname = regInfo.ExternalHostName;
 
             if (!String.IsNullOrEmpty(regInfo.MasterAvatarFirstName))
-                region_owner = String.Format("{0} {1}", regInfo.MasterAvatarFirstName, 
+                region_owner = String.Format("{0} {1}", regInfo.MasterAvatarFirstName,
                                              regInfo.MasterAvatarLastName);
         }
     }

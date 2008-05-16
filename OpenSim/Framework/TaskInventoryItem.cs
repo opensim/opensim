@@ -38,7 +38,7 @@ namespace OpenSim.Framework
 {
     /// <summary>
     /// A dictionary for task inventory.
-    /// 
+    ///
     /// This class is not thread safe.  Callers must synchronize on Dictionary methods.
     /// </summary>
     public class TaskInventoryDictionary : Dictionary<LLUUID, TaskInventoryItem>,
@@ -72,10 +72,10 @@ namespace OpenSim.Framework
         //
         // System.TypeInitializationException: An exception was thrown by the type initializer for OpenSim.Framework.TaskInventoryDictionary ---> System.ArgumentOutOfRangeException: < 0
         // Parameter name: length
-        //   at System.String.Substring (Int32 startIndex, Int32 length) [0x00088] in /build/buildd/mono-1.2.4/mcs/class/corlib/System/String.cs:381 
-        //   at System.Xml.Serialization.TypeTranslator.GetTypeData (System.Type runtimeType, System.String xmlDataType) [0x001f6] in /build/buildd/mono-1.2.4/mcs/class/System.XML/System.Xml.Serialization/TypeTranslator.cs:217        
+        //   at System.String.Substring (Int32 startIndex, Int32 length) [0x00088] in /build/buildd/mono-1.2.4/mcs/class/corlib/System/String.cs:381
+        //   at System.Xml.Serialization.TypeTranslator.GetTypeData (System.Type runtimeType, System.String xmlDataType) [0x001f6] in /build/buildd/mono-1.2.4/mcs/class/System.XML/System.Xml.Serialization/TypeTranslator.cs:217
         // ...
-//        private static XmlSerializer tiiSerializer 
+//        private static XmlSerializer tiiSerializer
 //            = new XmlSerializer(typeof(Dictionary<LLUUID, TaskInventoryItem>.ValueCollection));
 
         // see IXmlSerializable
@@ -110,7 +110,7 @@ namespace OpenSim.Framework
                 m_log.DebugFormat("[TASK INVENTORY]: Skipping empty element {0}", reader.Name);
             }
 
-            // For some .net implementations, this last read is necessary so that we advance beyond the end tag 
+            // For some .net implementations, this last read is necessary so that we advance beyond the end tag
             // of the element wrapping this object so that the rest of the serialization can complete normally.
             reader.Read();
 
@@ -221,7 +221,7 @@ namespace OpenSim.Framework
         public uint NextOwnerMask = FULL_MASK_PERMISSIONS_GENERAL;
         public LLUUID OwnerID = LLUUID.Zero;
         public uint OwnerMask = FULL_MASK_PERMISSIONS_GENERAL;
-        public LLUUID ParentID = LLUUID.Zero; //parent folder id 
+        public LLUUID ParentID = LLUUID.Zero; //parent folder id
         public LLUUID ParentPartID = LLUUID.Zero;
         public LLUUID PermsGranter;
         public int PermsMask;

@@ -442,7 +442,7 @@ namespace OpenSim.Data.MSSQL
 
             return returnval;
         }
-       
+
         /// <summary>
         /// Execute a SQL statement stored in a resource, as a string
         /// </summary>
@@ -509,7 +509,7 @@ namespace OpenSim.Data.MSSQL
             throw new Exception(string.Format("Resource '{0}' was not found", name));
         }
 
-        /// <summary> 
+        /// <summary>
         /// Returns the version of this DB provider
         /// </summary>
         /// <returns>A string containing the DB provider</returns>

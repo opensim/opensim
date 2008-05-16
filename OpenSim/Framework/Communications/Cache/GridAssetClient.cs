@@ -95,9 +95,9 @@ namespace OpenSim.Framework.Communications.Cache
                 // XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
                 //   xs.Serialize(s, asset);
                 //  RestClient rc = new RestClient(_assetServerUrl);
-                
-                string assetUrl = _assetServerUrl + "/assets/";                
-                
+
+                string assetUrl = _assetServerUrl + "/assets/";
+
                 //rc.AddResourcePath("assets");
 
                 // rc.RequestMethod = "POST";
@@ -105,7 +105,7 @@ namespace OpenSim.Framework.Communications.Cache
                 //m_log.InfoFormat("[ASSET]: Stored {0}", rc);
 
                 m_log.InfoFormat("[GRID ASSET CLIENT]: Sending store request for asset {0}", asset.FullID);
-                
+
                 RestObjectPoster.BeginPostObject<AssetBase>(assetUrl, asset);
             }
             catch (Exception e)

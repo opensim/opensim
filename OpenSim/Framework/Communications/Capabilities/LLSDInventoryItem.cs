@@ -91,7 +91,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         public int descendents;
         public LLUUID folder___id; //as LL can't decide if they are going to use "_" or "-" to separate words in the field names
         public LLSDArray items = new LLSDArray();
-        public LLUUID owner___id; // and of course we can't have field names with "-" in 
+        public LLUUID owner___id; // and of course we can't have field names with "-" in
         public int version;
     }
 }

@@ -40,7 +40,7 @@ namespace OpenSim.Data.MySQL
     /// </summary>
     public class MySQLInventoryData : IInventoryData
     {
-        private static readonly ILog m_log 
+        private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
@@ -249,7 +249,7 @@ namespace OpenSim.Data.MySQL
 
                     // There should only ever be one root folder for a user.  However, if there's more
                     // than one we'll simply use the first one rather than failing.  It would be even
-                    // nicer to print some message to this effect, but this feels like it's too low a 
+                    // nicer to print some message to this effect, but this feels like it's too low a
                     // to put such a message out, and it's too minor right now to spare the time to
                     // suitably refactor.
                     if (items.Count > 0)
@@ -332,13 +332,13 @@ namespace OpenSim.Data.MySQL
                 item.InvType = (int) reader["invType"];
                 item.Creator = new LLUUID((string) reader["creatorID"]);
                 item.BasePermissions = (uint) reader["inventoryBasePermissions"];
-                item.EveryOnePermissions = (uint) reader["inventoryEveryOnePermissions"];                
+                item.EveryOnePermissions = (uint) reader["inventoryEveryOnePermissions"];
                 item.SalePrice = (int) reader["salePrice"];
                 item.SaleType = Convert.ToByte(reader["saleType"]);
                 item.CreationDate = (int) reader["creationDate"];
                 item.GroupID = new LLUUID(reader["groupID"].ToString());
                 item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
-                item.Flags = (uint) reader["flags"];         
+                item.Flags = (uint) reader["flags"];
 
                 return item;
             }
@@ -483,12 +483,12 @@ namespace OpenSim.Data.MySQL
                 result.Parameters.AddWithValue("?groupID", item.GroupID);
                 result.Parameters.AddWithValue("?groupOwned", item.GroupOwned);
                 result.Parameters.AddWithValue("?flags", item.Flags);
-                
+
                 lock (database)
                 {
                     result.ExecuteNonQuery();
                 }
-                
+
                 result.Dispose();
             }
             catch (MySqlException e)
@@ -507,7 +507,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="item"></param>
         public void deleteInventoryItem(LLUUID itemID)
@@ -517,7 +517,7 @@ namespace OpenSim.Data.MySQL
                 MySqlCommand cmd =
                     new MySqlCommand("DELETE FROM inventoryitems WHERE inventoryID=?uuid", database.Connection);
                 cmd.Parameters.AddWithValue("?uuid", itemID.ToString());
-                
+
                 lock (database)
                 {
                     cmd.ExecuteNonQuery();
@@ -596,7 +596,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// Append a list of all the child folders of a parent folder 
+        /// Append a list of all the child folders of a parent folder
         /// </summary>
         /// <param name="folders">list where folders will be appended</param>
         /// <param name="parentID">ID of parent</param>
@@ -623,11 +623,11 @@ namespace OpenSim.Data.MySQL
         protected void deleteOneFolder(LLUUID folderID)
         {
             try
-            {                
+            {
                 MySqlCommand cmd =
                     new MySqlCommand("DELETE FROM inventoryfolders WHERE folderID=?uuid", database.Connection);
                 cmd.Parameters.AddWithValue("?uuid", folderID.ToString());
-                
+
                 lock (database)
                 {
                     cmd.ExecuteNonQuery();
@@ -647,7 +647,7 @@ namespace OpenSim.Data.MySQL
                 MySqlCommand cmd =
                     new MySqlCommand("DELETE FROM inventoryitems WHERE parentFolderID=?uuid", database.Connection);
                 cmd.Parameters.AddWithValue("?uuid", folderID.ToString());
-                
+
                 lock (database)
                 {
                     cmd.ExecuteNonQuery();

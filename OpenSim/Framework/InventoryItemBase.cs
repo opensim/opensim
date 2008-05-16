@@ -45,7 +45,7 @@ namespace OpenSim.Framework
         private int _assetType;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         private uint _basePermissions;
 
@@ -69,12 +69,12 @@ namespace OpenSim.Framework
         private string _description;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         private uint _everyOnePermissions;
 
         /// <summary>
-        /// The folder this item is contained in 
+        /// The folder this item is contained in
         /// </summary>
         private LLUUID _folder;
 
@@ -93,34 +93,34 @@ namespace OpenSim.Framework
         /// </summary>
         private string _name;
 
-        
+
         /// <summary>
-        /// 
+        ///
         /// </summary>
         private LLUUID _groupID;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         private bool _groupOwned;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         private int _salePrice;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         private byte _saleType;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         private uint _flags;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public int _creationDate;
 

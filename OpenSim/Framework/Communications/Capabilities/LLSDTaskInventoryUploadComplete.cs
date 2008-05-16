@@ -34,7 +34,7 @@ namespace OpenSim.Framework.Communications.Capabilities
     {
         /// <summary>
         /// The task inventory item that was updated
-        /// </summary> 
+        /// </summary>
         public LLUUID item_id;
 
         /// <summary>

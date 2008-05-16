@@ -31,17 +31,17 @@ namespace OpenSim.Region.Environment.Interfaces
     /// Interface for an object which can send texture information to a client
     /// </summary>
     public interface ITextureSender
-    {        
+    {
         /// <summary>
         /// Are we in the process of sending the texture?
         /// </summary>
         bool Sending { get; set; }
-        
+
         /// <summary>
         /// Has the texture send been cancelled?
         /// </summary>
         bool Cancel { get; set; }
-        
+
         /// <summary>
         /// Update the non data properties of a texture request
         /// </summary>
@@ -53,6 +53,6 @@ namespace OpenSim.Region.Environment.Interfaces
         /// Send a texture packet to the client.
         /// </summary>
         /// <returns>True if the last packet has been sent, false otherwise.</returns>
-        bool SendTexturePacket();     
+        bool SendTexturePacket();
     }
 }

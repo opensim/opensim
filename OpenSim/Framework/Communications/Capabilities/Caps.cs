@@ -64,16 +64,16 @@ namespace OpenSim.Framework.Communications.Capabilities
 
     public class Caps
     {
-        private static readonly ILog m_log = 
+        private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         private string m_httpListenerHostName;
         private uint m_httpListenPort;
-        
+
         /// <summary>
         /// This is the uuid portion of every CAPS path.  It is used to make capability urls private to the requester.
         /// </summary>
-        private string m_capsObjectPath;        
+        private string m_capsObjectPath;
         public string CapsObjectPath { get { return m_capsObjectPath; } }
 
         private CapsHandlers m_capsHandlers;
@@ -88,7 +88,7 @@ namespace OpenSim.Framework.Communications.Capabilities
 
         // The following two entries are in a module, however, there also here so that we don't re-assign
         // the path to another cap by mistake.
-        private static readonly string m_parcelVoiceInfoRequestPath = "0007/"; // This is in a module. 
+        private static readonly string m_parcelVoiceInfoRequestPath = "0007/"; // This is in a module.
         private static readonly string m_provisionVoiceAccountRequestPath = "0008/";// This is in a module.
 
         //private string eventQueue = "0100/";
@@ -100,7 +100,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         private bool m_dumpAssetsToFile;
         private string m_regionName;
 
-        // These are callbacks which will be setup by the scene so that we can update scene data when we 
+        // These are callbacks which will be setup by the scene so that we can update scene data when we
         // receive capability calls
         public NewInventoryItem AddNewInventoryItem = null;
         public ItemUpdatedCallback ItemUpdatedCall = null;
@@ -128,46 +128,46 @@ namespace OpenSim.Framework.Communications.Capabilities
         public void RegisterHandlers()
         {
             DeregisterHandlers();
-            
-            string capsBase = "/CAPS/" + m_capsObjectPath;                        
-            
+
+            string capsBase = "/CAPS/" + m_capsObjectPath;
+
             try
             {
                 // the root of all evil
                 m_capsHandlers["SEED"] = new RestStreamHandler("POST", capsBase + m_requestPath, CapsRequest);
-                m_capsHandlers["MapLayer"] = 
-                    new LLSDStreamhandler<LLSDMapRequest, LLSDMapLayerResponse>("POST", 
-                                                                                capsBase + m_mapLayerPath, 
+                m_capsHandlers["MapLayer"] =
+                    new LLSDStreamhandler<LLSDMapRequest, LLSDMapLayerResponse>("POST",
+                                                                                capsBase + m_mapLayerPath,
                                                                                 GetMapLayer);
-                m_capsHandlers["NewFileAgentInventory"] =  
+                m_capsHandlers["NewFileAgentInventory"] =
                     new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDAssetUploadResponse>("POST",
                                                                                            capsBase + m_newInventory,
                                                                                            NewAgentInventoryRequest);
-                m_capsHandlers["UpdateNotecardAgentInventory"] = 
+                m_capsHandlers["UpdateNotecardAgentInventory"] =
                     new RestStreamHandler("POST", capsBase + m_notecardUpdatePath, NoteCardAgentInventory);
                 m_capsHandlers["UpdateScriptAgentInventory"] = m_capsHandlers["UpdateNotecardAgentInventory"];
-                m_capsHandlers["UpdateScriptTaskInventory"] = 
+                m_capsHandlers["UpdateScriptTaskInventory"] =
                     new RestStreamHandler("POST", capsBase + m_notecardTaskUpdatePath, ScriptTaskInventory);
-                
-                // justincc: I've disabled the CAPS service for now to fix problems with selecting textures, and 
-                // subsequent inventory breakage, in the edit object pane (such as mantis 1085).  This requires 
-                // enhancements (probably filling out the folder part of the LLSD reply) to our CAPS service, 
-                // but when I went on the Linden grid, the 
+
+                // justincc: I've disabled the CAPS service for now to fix problems with selecting textures, and
+                // subsequent inventory breakage, in the edit object pane (such as mantis 1085).  This requires
+                // enhancements (probably filling out the folder part of the LLSD reply) to our CAPS service,
+                // but when I went on the Linden grid, the
                 // simulators I visited (version 1.21) were, surprisingly, no longer supplying this capability.  Instead,
                 // the 1.19.1.4 client appeared to be happily flowing inventory data over UDP
                 //
-                // This is very probably just a temporary measure - once the CAPS service appears again on the Linden grid 
-                // we will be 
+                // This is very probably just a temporary measure - once the CAPS service appears again on the Linden grid
+                // we will be
                 // able to get the data we need to implement the necessary part of the protocol to fix the issue above.
-//                m_capsHandlers["FetchInventoryDescendents"] = 
+//                m_capsHandlers["FetchInventoryDescendents"] =
 //                    new RestStreamHandler("POST", capsBase + m_fetchInventoryPath, FetchInventoryRequest);
-                
-                // m_capsHandlers["FetchInventoryDescendents"] = 
+
+                // m_capsHandlers["FetchInventoryDescendents"] =
                 //     new LLSDStreamhandler<LLSDFetchInventoryDescendents, LLSDInventoryDescendents>("POST",
                 //                                                                                    capsBase + m_fetchInventory,
                 //                                                                                    FetchInventory));
                 // m_capsHandlers["RequestTextureDownload"] = new RestStreamHandler("POST",
-                //                                                                  capsBase + m_requestTexture, 
+                //                                                                  capsBase + m_requestTexture,
                 //                                                                  RequestTexture);
             }
             catch (Exception e)
@@ -181,7 +181,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// </summary>
         /// <param name="capName"></param>
         /// <param name="handler"></param>
-        public void RegisterHandler(string capName, IRequestHandler handler) 
+        public void RegisterHandler(string capName, IRequestHandler handler)
         {
             m_capsHandlers[capName] = handler;
             m_log.DebugFormat("[CAPS]: Registering handler for \"{0}\": path {1}", capName, handler.Path);
@@ -189,14 +189,14 @@ namespace OpenSim.Framework.Communications.Capabilities
 
         /// <summary>
         /// Remove all CAPS service handlers.
-        /// 
+        ///
         /// </summary>
         /// <param name="httpListener"></param>
         /// <param name="path"></param>
         /// <param name="restMethod"></param>
         public void DeregisterHandlers()
         {
-            foreach (string capsName in m_capsHandlers.Caps) 
+            foreach (string capsName in m_capsHandlers.Caps)
             {
                 m_capsHandlers.Remove(capsName);
             }
@@ -220,7 +220,7 @@ namespace OpenSim.Framework.Communications.Capabilities
 
         // FIXME: these all should probably go into the respective region
         // modules
-        
+
         /// <summary>
         /// Processes a fetch inventory request and sends the reply
 
@@ -229,7 +229,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// <param name="path"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        // Request is like: 
+        // Request is like:
         //<llsd>
         //   <map><key>folders</key>
         //       <array>
@@ -240,14 +240,14 @@ namespace OpenSim.Framework.Communications.Capabilities
         //   </map>
         //</llsd>
         //
-        // multiple fetch-folder maps are allowed within the larger folders map. 
+        // multiple fetch-folder maps are allowed within the larger folders map.
         public string FetchInventoryRequest(string request, string path, string param)
         {
             string unmodifiedRequest = request.ToString();
-            
+
             //m_log.DebugFormat("[AGENT INVENTORY]: Received CAPS fetch inventory request {0}", unmodifiedRequest);
             m_log.Debug("[CAPS]: Inventory Request in region: " + m_regionName);
-           
+
             Hashtable hash = new Hashtable();
             try
             {
@@ -258,7 +258,7 @@ namespace OpenSim.Framework.Communications.Capabilities
                 m_log.Error("[AGENT INVENTORY]: Fetch error: " + pe.Message);
                 m_log.Error("Request: " + request.ToString());
             }
-            
+
             ArrayList foldersrequested = (ArrayList)hash["folders"];
 
             string response = "";
@@ -275,15 +275,15 @@ namespace OpenSim.Framework.Communications.Capabilities
                 inventoryitemstr = LLSDHelpers.SerialiseLLSDReply(reply);
                 inventoryitemstr = inventoryitemstr.Replace("<llsd><map><key>folders</key><array>", "");
                 inventoryitemstr = inventoryitemstr.Replace("</array></map></llsd>", "");
-                
+
                 response += inventoryitemstr;
             }
-            
+
             if (response.Length == 0)
             {
                 // Ter-guess: If requests fail a lot, the client seems to stop requesting descendants.
                 // Therefore, I'm concluding that the client only has so many threads available to do requests
-                // and when a thread stalls..   is stays stalled.  
+                // and when a thread stalls..   is stays stalled.
                 // Therefore we need to return something valid
                 response = "<llsd><map><key>folders</key><array /></map></llsd>";
             }
@@ -291,7 +291,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             {
                 response = "<llsd><map><key>folders</key><array>" + response + "</array></map></llsd>";
             }
-            
+
             //m_log.DebugFormat("[AGENT INVENTORY]: Replying to CAPS fetch inventory request with following xml");
             //m_log.Debug(Util.GetFormattedXml(response));
 
@@ -310,7 +310,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             contents.agent___id = m_agentID;
             contents.owner___id =  invFetch.owner_id;
             contents.folder___id = invFetch.folder_id;
-            
+
             // The version number being sent back was originally 1.
             // Unfortunately, on 1.19.1.4, this means that we see a problem where on subsequent logins
             // without clearing client cache, objects in the root folder disappear until the cache is cleared,
@@ -318,8 +318,8 @@ namespace OpenSim.Framework.Communications.Capabilities
             //
             // Seeing the version to something other than 0 may be the right thing to do, but there is
             // a greater subtlety of the second life protocol that needs to be understood first.
-            contents.version = 0;            
-            
+            contents.version = 0;
+
             contents.descendents = 0;
             reply.folders.Array.Add(contents);
             List<InventoryItemBase> itemList = null;
@@ -327,7 +327,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             {
                 itemList = CAPSFetchInventoryDescendents(m_agentID, invFetch.folder_id, invFetch.owner_id, invFetch.fetch_folders, invFetch.fetch_items, invFetch.sort_order);
             }
-            
+
             if (itemList != null)
             {
                 foreach (InventoryItemBase invItem in itemList)
@@ -336,12 +336,12 @@ namespace OpenSim.Framework.Communications.Capabilities
                 }
             }
             else
-            {                
+            {
                 IClientAPI client = GetClient(m_agentID);
-                    
-                // We're going to both notify the client of inventory service failure and send back a 'no folder contents' response.  
+
+                // We're going to both notify the client of inventory service failure and send back a 'no folder contents' response.
                 // If we don't send back the response,
-                // the client becomes unhappy (see Teravus' comment in FetchInventoryRequest())                
+                // the client becomes unhappy (see Teravus' comment in FetchInventoryRequest())
                 if (client != null)
                 {
                     client.SendAgentAlertMessage(
@@ -351,11 +351,11 @@ namespace OpenSim.Framework.Communications.Capabilities
                 else
                 {
                     m_log.ErrorFormat(
-                        "[AGENT INVENTORY]: Could not lookup controlling client for {0} in order to notify them of the inventory service failure", 
+                        "[AGENT INVENTORY]: Could not lookup controlling client for {0} in order to notify them of the inventory service failure",
                         m_agentID);
                 }
             }
-            
+
             contents.descendents = contents.items.Array.Count;
             return reply;
         }
@@ -375,7 +375,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             llsdItem.item_id = invItem.ID;
             llsdItem.name = invItem.Name;
             llsdItem.parent_id = invItem.Folder;
-            llsdItem.type = Enum.GetName(typeof(AssetType), invItem.AssetType).ToLower();                                
+            llsdItem.type = Enum.GetName(typeof(AssetType), invItem.AssetType).ToLower();
             llsdItem.inv_type = Enum.GetName(typeof(InventoryType), invItem.InvType).ToLower();
             llsdItem.permissions = new LLSDPermissions();
             llsdItem.permissions.creator_id = invItem.Creator;
@@ -395,7 +395,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="mapReq"></param>
         /// <returns></returns>
@@ -408,7 +408,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <returns></returns>
         protected static LLSDMapLayer GetLLSDMapLayerResponse()
@@ -421,7 +421,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="request"></param>
         /// <param name="path"></param>
@@ -437,7 +437,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         #region EventQueue (Currently not enabled)
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="request"></param>
         /// <param name="path"></param>
@@ -463,7 +463,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="caps"></param>
         /// <param name="ipAddressPort"></param>
@@ -482,7 +482,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <returns></returns>
         public string CreateEmptyEventResponse()
@@ -590,7 +590,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="llsdRequest"></param>
         /// <returns></returns>
@@ -622,7 +622,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="assetID"></param>
         /// <param name="inventoryItem"></param>
@@ -708,7 +708,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// <param name="itemID">Item to update</param>
         /// <param name="primID">Prim containing item to update</param>
         /// <param name="isScriptRunning">Signals whether the script to update is currently running</param>
-        /// <param name="data">New asset data</param>        
+        /// <param name="data">New asset data</param>
         public void TaskScriptUpdated(LLUUID itemID, LLUUID primID, bool isScriptRunning, byte[] data)
         {
             if (TaskScriptUpdatedCall != null)
@@ -751,7 +751,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             }
 
             /// <summary>
-            /// 
+            ///
             /// </summary>
             /// <param name="data"></param>
             /// <param name="path"></param>
@@ -807,7 +807,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         }
 
         /// <summary>
-        /// This class is a callback invoked when a client sends asset data to 
+        /// This class is a callback invoked when a client sends asset data to
         /// an agent inventory notecard update url
         /// </summary>
         public class ItemUpdater
@@ -831,7 +831,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             }
 
             /// <summary>
-            /// 
+            ///
             /// </summary>
             /// <param name="data"></param>
             /// <param name="path"></param>
@@ -889,7 +889,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         }
 
         /// <summary>
-        /// This class is a callback invoked when a client sends asset data to 
+        /// This class is a callback invoked when a client sends asset data to
         /// a task inventory script update url
         /// </summary>
         public class TaskInventoryScriptUpdater
@@ -921,7 +921,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             }
 
             /// <summary>
-            /// 
+            ///
             /// </summary>
             /// <param name="data"></param>
             /// <param name="path"></param>
@@ -931,7 +931,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             {
                 try
                 {
-//                    m_log.InfoFormat("[CAPS]: " + 
+//                    m_log.InfoFormat("[CAPS]: " +
 //                                     "TaskInventoryScriptUpdater received data: {0}, path: {1}, param: {2}",
 //                                     data, path, param));
 

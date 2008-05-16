@@ -39,9 +39,9 @@ namespace OpenSim.Tests.Common
         {
             _baseValue = baseValue;
         }
-        
+
         ///<summary>
-        ///Test whether the constraint is satisfied by a given value            
+        ///Test whether the constraint is satisfied by a given value
         ///</summary>
         ///<param name="valueToBeTested">The value to be tested</param>
         ///<returns>
@@ -70,7 +70,7 @@ namespace OpenSim.Tests.Common
 
         public override void WriteActualValueTo(MessageWriter writer)
         {
-            writer.WriteActualValue(_valueToBeTested);        
+            writer.WriteActualValue(_valueToBeTested);
         }
     }
 }

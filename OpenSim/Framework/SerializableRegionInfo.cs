@@ -40,8 +40,8 @@ namespace OpenSim.Framework
 
         /// <value>
         /// The port by which http communication occurs with the region (most noticeably, CAPS communication)
-        /// 
-        /// FIXME: Defaulting to 9000 temporarily (on the basis that this is the http port most region 
+        ///
+        /// FIXME: Defaulting to 9000 temporarily (on the basis that this is the http port most region
         /// servers are running) until the revision in which this change is made propogates around grids.
         /// </value>
         protected uint m_httpPort = 9000;
