@@ -60,7 +60,7 @@ namespace OpenSim.Grid.GridServer
 
         public GridServerBase()
         {
-            m_console = new ConsoleBase("GRID", this);
+            m_console = new ConsoleBase("Grid", this);
             MainConsole.Instance = m_console;
         }
 

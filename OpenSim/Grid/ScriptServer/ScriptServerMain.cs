@@ -99,7 +99,7 @@ namespace OpenSim.Grid.ScriptServer
 
         protected ConsoleBase CreateConsole()
         {
-            return new ConsoleBase("ScriptServer", this);
+            return new ConsoleBase("Script", this);
         }
     }
 }

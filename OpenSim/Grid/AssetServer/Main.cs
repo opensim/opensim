@@ -80,7 +80,7 @@ namespace OpenSim.Grid.AssetServer
 
         public OpenAsset_Main()
         {
-            m_console = new ConsoleBase("OpenAsset", this);
+            m_console = new ConsoleBase("Asset", this);
 
             MainConsole.Instance = m_console;
         }

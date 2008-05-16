@@ -70,7 +70,7 @@ namespace OpenSim.Grid.UserServer
 
         private OpenUser_Main()
         {
-            m_console = new ConsoleBase("OpenUser", this);
+            m_console = new ConsoleBase("User", this);
             MainConsole.Instance = m_console;
         }
 

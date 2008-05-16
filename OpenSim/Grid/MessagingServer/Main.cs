@@ -65,7 +65,7 @@ namespace OpenSim.Grid.MessagingServer
 
         private OpenMessage_Main()
         {
-            m_console = new ConsoleBase("OpenMessage", this);
+            m_console = new ConsoleBase("Messaging", this);
             MainConsole.Instance = m_console;
         }
 
