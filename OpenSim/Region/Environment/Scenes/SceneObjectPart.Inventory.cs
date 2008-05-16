@@ -509,7 +509,7 @@ namespace OpenSim.Region.Environment.Scenes
                     invString.AddNameValueLine("asset_id", item.AssetID.ToString());
                     invString.AddNameValueLine("type", TaskInventoryItem.Types[item.Type]);
                     invString.AddNameValueLine("inv_type", TaskInventoryItem.InvTypes[item.InvType]);
-                    invString.AddNameValueLine("flags", "00000000");
+                    invString.AddNameValueLine("flags", Helpers.UIntToHexString(item.Flags));
 
                     invString.AddSaleStart();
                     invString.AddNameValueLine("sale_type", "not");
