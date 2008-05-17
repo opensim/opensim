@@ -381,30 +381,30 @@ namespace OpenSim.Framework
 
             BodyItem = new LLUUID((string)h["body_item"]);
             BodyAsset = new LLUUID((string)h["body_asset"]);
-            SkinItem = new LLUUID((string)h["skin_item"]);  
-            SkinAsset = new LLUUID((string)h["skin_asset"]);  
-            HairItem = new LLUUID((string)h["hair_item"]);  
-            HairAsset = new LLUUID((string)h["hair_asset"]);  
-            EyesItem = new LLUUID((string)h["eyes_item"]);  
-            EyesAsset = new LLUUID((string)h["eyes_asset"]);  
-            ShirtItem = new LLUUID((string)h["shirt_item"]);  
-            ShirtAsset = new LLUUID((string)h["shirt_asset"]);  
-            PantsItem = new LLUUID((string)h["pants_item"]);  
-            PantsAsset = new LLUUID((string)h["pants_asset"]);  
-            ShoesItem = new LLUUID((string)h["shoes_item"]);  
-            ShoesAsset = new LLUUID((string)h["shoes_asset"]);  
-            SocksItem = new LLUUID((string)h["socks_item"]);  
-            SocksAsset = new LLUUID((string)h["socks_asset"]);  
-            JacketItem = new LLUUID((string)h["jacket_item"]);  
-            JacketAsset = new LLUUID((string)h["jacket_asset"]);  
-            GlovesItem = new LLUUID((string)h["gloves_item"]);  
-            GlovesAsset = new LLUUID((string)h["gloves_asset"]);  
-            UnderShirtItem = new LLUUID((string)h["undershirt_item"]);  
-            UnderShirtAsset = new LLUUID((string)h["undershirt_asset"]);  
-            UnderPantsItem = new LLUUID((string)h["underpants_item"]);  
-            UnderPantsAsset = new LLUUID((string)h["underpants_asset"]);  
-            SkirtItem = new LLUUID((string)h["skirt_item"]);  
-            SkirtAsset = new LLUUID((string)h["skirt_asset"]);  
+            SkinItem = new LLUUID((string)h["skin_item"]);
+            SkinAsset = new LLUUID((string)h["skin_asset"]);
+            HairItem = new LLUUID((string)h["hair_item"]);
+            HairAsset = new LLUUID((string)h["hair_asset"]);
+            EyesItem = new LLUUID((string)h["eyes_item"]);
+            EyesAsset = new LLUUID((string)h["eyes_asset"]);
+            ShirtItem = new LLUUID((string)h["shirt_item"]);
+            ShirtAsset = new LLUUID((string)h["shirt_asset"]);
+            PantsItem = new LLUUID((string)h["pants_item"]);
+            PantsAsset = new LLUUID((string)h["pants_asset"]);
+            ShoesItem = new LLUUID((string)h["shoes_item"]);
+            ShoesAsset = new LLUUID((string)h["shoes_asset"]);
+            SocksItem = new LLUUID((string)h["socks_item"]);
+            SocksAsset = new LLUUID((string)h["socks_asset"]);
+            JacketItem = new LLUUID((string)h["jacket_item"]);
+            JacketAsset = new LLUUID((string)h["jacket_asset"]);
+            GlovesItem = new LLUUID((string)h["gloves_item"]);
+            GlovesAsset = new LLUUID((string)h["gloves_asset"]);
+            UnderShirtItem = new LLUUID((string)h["undershirt_item"]);
+            UnderShirtAsset = new LLUUID((string)h["undershirt_asset"]);
+            UnderPantsItem = new LLUUID((string)h["underpants_item"]);
+            UnderPantsAsset = new LLUUID((string)h["underpants_asset"]);
+            SkirtItem = new LLUUID((string)h["skirt_item"]);
+            SkirtAsset = new LLUUID((string)h["skirt_asset"]);
         }
 
         [SecurityPermission(SecurityAction.LinkDemand,

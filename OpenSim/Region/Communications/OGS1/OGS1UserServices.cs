@@ -89,7 +89,7 @@ namespace OpenSim.Region.Communications.OGS1
 
         public AvatarAppearance ConvertXMLRPCDataToAvatarAppearance(Hashtable data)
         {
-            if (data != null) 
+            if (data != null)
             {
                 if (data.Contains("error_type"))
                 {
@@ -587,7 +587,7 @@ namespace OpenSim.Region.Communications.OGS1
                 XmlRpcRequest req = new XmlRpcRequest("get_avatar_appearance", parameters);
                 XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 8000);
                 Hashtable respData = (Hashtable) resp.Value;
-                
+
                 return ConvertXMLRPCDataToAvatarAppearance(respData);
             }
             catch (WebException e)
@@ -611,7 +611,7 @@ namespace OpenSim.Region.Communications.OGS1
                 XmlRpcRequest req = new XmlRpcRequest("update_avatar_appearance", parameters);
                 XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 8000);
                 Hashtable respData = (Hashtable) resp.Value;
-                
+
                 if (respData != null)
                 {
                     if (respData.Contains("returnString"))

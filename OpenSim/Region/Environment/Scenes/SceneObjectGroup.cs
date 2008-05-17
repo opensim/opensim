@@ -1927,7 +1927,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="client"></param>
         public void GetProperties(IClientAPI client)
         {
-			m_rootPart.GetProperties(client);
+            m_rootPart.GetProperties(client);
         }
 
         /// <summary>

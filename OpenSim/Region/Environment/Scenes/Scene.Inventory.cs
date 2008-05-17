@@ -951,7 +951,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public void RezScript(IClientAPI remoteClient, InventoryItemBase itemBase, LLUUID transactionID, uint localID)
         {
-			LLUUID itemID=itemBase.ID;
+            LLUUID itemID=itemBase.ID;
             LLUUID copyID = LLUUID.Random();
 
             if (itemID != LLUUID.Zero)
@@ -1001,38 +1001,38 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else  // If the itemID is zero then the script has been rezzed directly in an object's inventory
             {
-				SceneObjectPart part=GetSceneObjectPart(itemBase.Folder);
-				if(part == null)
-					return;
+                SceneObjectPart part=GetSceneObjectPart(itemBase.Folder);
+                if (part == null)
+                    return;
 
                 AssetBase asset = CreateAsset(itemBase.Name, itemBase.Description, (sbyte)itemBase.InvType, (sbyte)itemBase.AssetType, Encoding.ASCII.GetBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}"));
                 AssetCache.AddAsset(asset);
 
-				TaskInventoryItem taskItem=new TaskInventoryItem();
+                TaskInventoryItem taskItem=new TaskInventoryItem();
 
-				taskItem.ResetIDs(itemBase.Folder);
-				taskItem.ParentID = itemBase.Folder;
-				taskItem.CreationDate = (uint)itemBase.CreationDate;
-				taskItem.Name = itemBase.Name;
-				taskItem.Description = itemBase.Description;
-				taskItem.Type = itemBase.AssetType;
-				taskItem.InvType = itemBase.InvType;
-				taskItem.OwnerID = itemBase.Owner;
-				taskItem.CreatorID = itemBase.Creator;
-				taskItem.BaseMask = itemBase.BasePermissions;
-				taskItem.OwnerMask = itemBase.CurrentPermissions;
-				taskItem.EveryoneMask = itemBase.EveryOnePermissions;
-				taskItem.NextOwnerMask = itemBase.NextPermissions;
-				taskItem.GroupID = itemBase.GroupID;
-				taskItem.GroupMask = 0;
-				taskItem.Flags = itemBase.Flags;
-				taskItem.PermsGranter = LLUUID.Zero;
-				taskItem.PermsMask = 0;
-				taskItem.AssetID = asset.ID;
+                taskItem.ResetIDs(itemBase.Folder);
+                taskItem.ParentID = itemBase.Folder;
+                taskItem.CreationDate = (uint)itemBase.CreationDate;
+                taskItem.Name = itemBase.Name;
+                taskItem.Description = itemBase.Description;
+                taskItem.Type = itemBase.AssetType;
+                taskItem.InvType = itemBase.InvType;
+                taskItem.OwnerID = itemBase.Owner;
+                taskItem.CreatorID = itemBase.Creator;
+                taskItem.BaseMask = itemBase.BasePermissions;
+                taskItem.OwnerMask = itemBase.CurrentPermissions;
+                taskItem.EveryoneMask = itemBase.EveryOnePermissions;
+                taskItem.NextOwnerMask = itemBase.NextPermissions;
+                taskItem.GroupID = itemBase.GroupID;
+                taskItem.GroupMask = 0;
+                taskItem.Flags = itemBase.Flags;
+                taskItem.PermsGranter = LLUUID.Zero;
+                taskItem.PermsMask = 0;
+                taskItem.AssetID = asset.ID;
 
-				part.AddInventoryItem(taskItem);
-				part.GetProperties(remoteClient);
-				part.StartScript(taskItem);
+                part.AddInventoryItem(taskItem);
+                part.GetProperties(remoteClient);
+                part.StartScript(taskItem);
             }
         }
 

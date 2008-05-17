@@ -1451,15 +1451,15 @@ namespace OpenSim.Region.Environment.Scenes
         ///
         /// </summary>
         public void SendInitialData()
-        {  
+        {
             // justincc - very temporary fix for the fact that m_apperance appears to be null at this point in grid mode
             LLObject.TextureEntry texture = AvatarAppearance.GetDefaultTexture();
             if (null != m_appearance)
                 texture = m_appearance.Texture;
-            
+
             m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid, LocalId,
                                                m_pos, texture.ToBytes(), m_parentID);
-            
+
             if (!m_isChildAgent)
             {
                 m_scene.InformClientOfNeighbours(this);

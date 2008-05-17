@@ -205,11 +205,11 @@ namespace OpenSim.Region.Environment.Scenes
                 // FIXME: ignoring group permissions for now as they aren't stored in item
                 taskItem.EveryoneMask = item.EveryOnePermissions;
                 taskItem.NextOwnerMask = item.NextPermissions;
-				taskItem.Flags = item.Flags;
-				// TODO: These are pending addition of those fields to TaskInventoryItem
-//				taskItem.SalePrice = item.SalePrice;
-//				taskItem.SaleType = item.SaleType;
-				taskItem.CreationDate = (uint)item.CreationDate;
+                taskItem.Flags = item.Flags;
+                // TODO: These are pending addition of those fields to TaskInventoryItem
+//                taskItem.SalePrice = item.SalePrice;
+//                taskItem.SaleType = item.SaleType;
+                taskItem.CreationDate = (uint)item.CreationDate;
                     
                 part.AddInventoryItem(taskItem);
 

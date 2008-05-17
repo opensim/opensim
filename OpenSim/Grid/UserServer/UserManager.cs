@@ -257,7 +257,7 @@ namespace OpenSim.Grid.UserServer
             {
                 appearance = GetUserAppearance(new LLUUID((string)requestData["owner"]));
                 responseData = appearance.ToHashTable();
-            } 
+            }
             else
             {
                 responseData = new Hashtable();
@@ -280,7 +280,7 @@ namespace OpenSim.Grid.UserServer
                 UpdateUserAppearance(new LLUUID((string)requestData["owner"]), appearance);
                 responseData = new Hashtable();
                 responseData["returnString"] = "TRUE";
-            } 
+            }
             else
             {
                 responseData = new Hashtable();

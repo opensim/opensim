@@ -75,7 +75,7 @@ namespace OpenSim.Data.MySQL
                 string settingPassword = iniFile.ParseFileReadValue("password");
                 string settingPooling = iniFile.ParseFileReadValue("pooling");
                 string settingPort = iniFile.ParseFileReadValue("port");
-                
+
                 m_usersTableName = iniFile.ParseFileReadValue("userstablename");
                 if (m_usersTableName == null)
                 {
@@ -87,7 +87,7 @@ namespace OpenSim.Data.MySQL
                 {
                     m_userFriendsTableName = "userfriends";
                 }
-                
+
                 m_agentsTableName = iniFile.ParseFileReadValue("agentstablename");
                 if (m_agentsTableName == null)
                 {
@@ -96,7 +96,7 @@ namespace OpenSim.Data.MySQL
 
                 m_connectString = "Server=" + settingHostname + ";Port=" + settingPort + ";Database=" + settingDatabase + ";User ID=" +
                     settingUsername + ";Password=" + settingPassword + ";Pooling=" + settingPooling + ";";
-                
+
                 database = new MySQLManager(m_connectString);
             } else {
                 m_connectString = connect;
@@ -105,14 +105,14 @@ namespace OpenSim.Data.MySQL
                 m_userFriendsTableName = "userfriends";
                 database = new MySQLManager(m_connectString);
             }
-            
+
             string mapperTypeStr = "MySQL";
             DataMapperFactory.MAPPER_TYPE mapperType =
                 (DataMapperFactory.MAPPER_TYPE)
                 Enum.Parse(typeof (DataMapperFactory.MAPPER_TYPE), mapperTypeStr);
-            
+
             m_databaseMapper = DataMapperFactory.GetDataBaseMapper(mapperType, m_connectString);
-            
+
             m_appearanceMapper = new AppearanceTableMapper(m_databaseMapper, "AvatarAppearance");
 
             TestTables();
@@ -655,7 +655,7 @@ namespace OpenSim.Data.MySQL
 
         /// Appearance
         /// TODO: stubs for now to get us to a compiling state gently
-        // override 
+        // override
         public AvatarAppearance GetUserAppearance(LLUUID user)
         {
             AvatarAppearance appearance = null;
@@ -668,7 +668,7 @@ namespace OpenSim.Data.MySQL
             return appearance;
         }
 
-        // override 
+        // override
         public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
         {
             m_appearanceMapper.Update(user.UUID, appearance);
