@@ -1779,29 +1779,28 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected virtual ScenePresence CreateAndAddScenePresence(IClientAPI client, bool child)
         {
-            AvatarAppearance appearance;
-            GetAvatarAppearance(client, out appearance);
+            AvatarAppearance appearance = CommsManager.UserService.GetUserAppearance(client.AgentId);
 
             ScenePresence avatar = m_innerScene.CreateAndAddScenePresence(client, child, appearance);
 
             return avatar;
         }
 
-        protected void GetAvatarAppearance(IClientAPI client, out AvatarAppearance appearance)
-        {
-            appearance = CommsManager.UserService.GetUserAppearance(client.AgentId);
+        // protected void GetAvatarAppearance(IClientAPI client, out AvatarAppearance appearance)
+        // {
+        //     appearance = CommsManager.UserService.GetUserAppearance(client.AgentId);
 
-            // if (m_AvatarFactory == null ||
-            //     !m_AvatarFactory.TryGetAvatarAppearance(client.AgentId, out appearance))
-            // {
-            //     //not found Appearance
-            //     m_log.Warn("[AVATAR DEBUGGING]: Couldn't fetch avatar appearance from factory, please report this to the opensim mantis");
-            //     byte[] visualParams;
-            //     AvatarWearable[] wearables;
-            //     GetDefaultAvatarAppearance(out wearables, out visualParams);
-            //     appearance = new AvatarAppearance(client.AgentId, wearables, visualParams);
-            // }
-        }
+        //     // if (m_AvatarFactory == null ||
+        //     //     !m_AvatarFactory.TryGetAvatarAppearance(client.AgentId, out appearance))
+        //     // {
+        //     //     //not found Appearance
+        //     //     m_log.Warn("[AVATAR DEBUGGING]: Couldn't fetch avatar appearance from factory, please report this to the opensim mantis");
+        //     //     byte[] visualParams;
+        //     //     AvatarWearable[] wearables;
+        //     //     GetDefaultAvatarAppearance(out wearables, out visualParams);
+        //     //     appearance = new AvatarAppearance(client.AgentId, wearables, visualParams);
+        //     // }
+        // }
 
         /// <summary>
         /// Remove the given client from the scene.

@@ -866,6 +866,7 @@
       <Reference name="System.Xml"/>
       <Reference name="System.Data"/>
       <Reference name="libsecondlife.dll"/>
+      <Reference name="log4net.dll"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Communications"/>
       <Reference name="OpenSim.Data.Base" />

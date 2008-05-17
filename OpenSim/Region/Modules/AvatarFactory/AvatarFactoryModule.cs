@@ -27,8 +27,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+
 using System.Threading;
 using libsecondlife;
+using log4net;
 using Nini.Config;
 using OpenSim.Data.Base;
 using OpenSim.Data.MapperFactory;
@@ -41,6 +44,7 @@ namespace OpenSim.Region.Modules.AvatarFactory
 {
     public class AvatarFactoryModule : IAvatarFactory, IRegionModule
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private Scene m_scene = null;
         private readonly Dictionary<LLUUID, AvatarAppearance> m_avatarsAppearance = new Dictionary<LLUUID, AvatarAppearance>();
 
@@ -215,31 +219,31 @@ namespace OpenSim.Region.Modules.AvatarFactory
                 m_scene = scene;
             }
 
-            if (!m_configured)
-            {
-                m_configured = true;
-                try
-                {
-                    m_enablePersist = source.Configs["Startup"].GetBoolean("appearance_persist", false);
-                }
-                catch (Exception)
-                {
-                }
-                if (m_enablePersist)
-                {
-                    m_connectionString = source.Configs["Startup"].GetString("appearance_connection_string", "");
+            // if (!m_configured)
+            // {
+            //     m_configured = true;
+            //     try
+            //     {
+            //         m_enablePersist = source.Configs["Startup"].GetBoolean("appearance_persist", false);
+            //     }
+            //     catch (Exception)
+            //     {
+            //     }
+            //     if (m_enablePersist)
+            //     {
+            //         m_connectionString = source.Configs["Startup"].GetString("appearance_connection_string", "");
 
-                    string mapperTypeStr = source.Configs["Startup"].GetString("appearance_database", "MySQL");
+            //         string mapperTypeStr = source.Configs["Startup"].GetString("appearance_database", "MySQL");
 
-                    DataMapperFactory.MAPPER_TYPE mapperType =
-                        (DataMapperFactory.MAPPER_TYPE)
-                        Enum.Parse(typeof (DataMapperFactory.MAPPER_TYPE), mapperTypeStr);
+            //         DataMapperFactory.MAPPER_TYPE mapperType =
+            //             (DataMapperFactory.MAPPER_TYPE)
+            //             Enum.Parse(typeof (DataMapperFactory.MAPPER_TYPE), mapperTypeStr);
 
-                    m_databaseMapper = DataMapperFactory.GetDataBaseMapper(mapperType, m_connectionString);
+            //         m_databaseMapper = DataMapperFactory.GetDataBaseMapper(mapperType, m_connectionString);
 
-                    m_appearanceMapper = new AppearanceTableMapper(m_databaseMapper, "AvatarAppearance");
-                }
-            }
+            //         m_appearanceMapper = new AppearanceTableMapper(m_databaseMapper, "AvatarAppearance");
+            //     }
+            // }
         }
 
         public void PostInitialise()
@@ -273,13 +277,14 @@ namespace OpenSim.Region.Modules.AvatarFactory
         public void AvatarIsWearing(Object sender, AvatarWearingArgs e)
         {
             IClientAPI clientView = (IClientAPI)sender;
+            ScenePresence avatar = m_scene.GetScenePresence(clientView.AgentId);
             CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(clientView.AgentId);
-            AvatarAppearance avatAppearance = m_scene.CommsManager.UserService.GetUserAppearance(clientView.AgentId);
+            AvatarAppearance avatAppearance = avatar.Appearance;
+            m_log.Info("Calling Avatar is Wearing");
             if (profile != null)
             {
                 if (profile.RootFolder != null)
                 {
-
                     foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
                     {
                         if (wear.Type < 13)
@@ -292,7 +297,7 @@ namespace OpenSim.Region.Modules.AvatarFactory
                             else
                             {
                                 LLUUID assetId;
-
+                                
                                 InventoryItemBase baseItem = profile.RootFolder.FindItem(wear.ItemID);
 
                                 if (baseItem != null)
@@ -301,10 +306,18 @@ namespace OpenSim.Region.Modules.AvatarFactory
                                     avatAppearance.Wearables[wear.Type].AssetID = assetId;
                                     avatAppearance.Wearables[wear.Type].ItemID = wear.ItemID;
                                 }
+                                else 
+                                {
+                                    m_log.ErrorFormat("[APPEARANCE] Can't find inventory item {0}, not wearing", wear.ItemID);
+                                }
                             }
                         }
                     }
                     m_scene.CommsManager.UserService.UpdateUserAppearance(clientView.AgentId, avatAppearance);
+                } 
+                else 
+                {
+                    m_log.Error("Root Profile is null, we can't set the appearance");
                 }
             }
         }

@@ -1452,13 +1452,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendInitialData()
         {
-            // justincc - very temporary fix for the fact that m_apperance appears to be null at this point in grid mode
-            LLObject.TextureEntry texture = AvatarAppearance.GetDefaultTexture();
-            if (null != m_appearance)
-                texture = m_appearance.Texture;
-
             m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid, LocalId,
-                                               m_pos, texture.ToBytes(), m_parentID);
+                                               m_pos, m_appearance.Texture.ToBytes(), m_parentID);
 
             if (!m_isChildAgent)
             {
@@ -1467,11 +1462,14 @@ namespace OpenSim.Region.Environment.Scenes
 
             SendFullUpdateToAllClients();
             SendAppearanceToAllOtherAgents();
+            // This is probably egregious
+            m_controllingClient.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
         }
 
 
         public void SetWearable(IClientAPI client, int wearableId, AvatarWearable wearable)
         {
+            m_log.Info("[APPEARANCE] Setting wearable with client, wearableid, wearable"); 
             m_appearance.SetWearable(wearableId, wearable);
             m_scene.CommsManager.UserService.UpdateUserAppearance(client.AgentId, m_appearance);
             client.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
@@ -1483,6 +1481,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="client"></param>
         public void SendOwnAppearance()
         {
+            m_log.Info("[APPEARANCE] Sending Own Appearace");
             ControllingClient.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
         }
 
@@ -1514,17 +1513,28 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetAppearance(byte[] texture, List<byte> visualParam)
         {
+            m_log.Warn("[APPEARANCE] Setting Appearance");
             m_appearance.SetAppearance(texture, visualParam);
             SetHeight(m_appearance.AvatarHeight);
             m_scene.CommsManager.UserService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
 
             SendAppearanceToAllOtherAgents();
+            SendOwnAppearance();
         }
 
         public void SetWearable(int wearableId, AvatarWearable wearable)
         {
+            m_log.Warn("[APPEARANCE] Setting Wearable"); 
             m_appearance.SetWearable(wearableId, wearable);
             m_scene.CommsManager.UserService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
+        }
+
+        // Because appearance setting is in a module, we actually need
+        // to give it access to our appearance directly, otherwise we
+        // get a synchronization issue.
+        public AvatarAppearance Appearance {
+            get { return m_appearance; }
+            set { m_appearance = value; }
         }
 
         /// <summary>
