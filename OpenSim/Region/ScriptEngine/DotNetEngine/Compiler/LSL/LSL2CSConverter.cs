@@ -103,7 +103,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             {
                 if (localscript[p].Length >= 1)
                 {
-                    if (localscript[p].Substring(localscript[p].Length - 1, 1) != "/")
+                    if (localscript[p].Substring(localscript[p].Length - 1, 1) != @"\")
                     {
                         flip = !flip;
                     }
