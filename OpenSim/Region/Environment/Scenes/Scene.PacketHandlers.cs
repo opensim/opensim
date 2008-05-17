@@ -84,11 +84,11 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (((SceneObjectGroup) ent).LocalId == primLocalID)
                     {
+                        ((SceneObjectGroup) ent).GetProperties(remoteClient);
+                        ((SceneObjectGroup) ent).IsSelected = true;
                         // A prim is only tainted if it's allowed to be edited by the person clicking it.
                         if (ExternalChecks.ExternalChecksCanEditObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId) || ExternalChecks.ExternalChecksCanMoveObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId))
                         {
-                            ((SceneObjectGroup) ent).GetProperties(remoteClient);
-                            ((SceneObjectGroup) ent).IsSelected = true;
                             LandChannel.SetPrimsTainted();
                         }
                         break;
@@ -112,9 +112,9 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (((SceneObjectGroup) ent).LocalId == primLocalID)
                     {
+                        ((SceneObjectGroup) ent).IsSelected = false;
                         if (ExternalChecks.ExternalChecksCanEditObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId) || ExternalChecks.ExternalChecksCanMoveObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId))
                         {
-                            ((SceneObjectGroup) ent).IsSelected = false;
                             LandChannel.SetPrimsTainted();
                             ((SceneObjectGroup)ent).ScheduleGroupForTerseUpdate();
                             break;
