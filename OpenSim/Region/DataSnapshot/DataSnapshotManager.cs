@@ -37,49 +37,62 @@ using System.Xml;
 using libsecondlife;
 using log4net;
 using Nini.Config;
+using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.DataSnapshot.Interfaces;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using libsecondlife.Packets;
 
 namespace OpenSim.Region.DataSnapshot
 {
-    public class DataSnapshotManager : IRegionModule
+    public class DataSnapshotManager : IRegionModule, IDataSnapshot
     {
         #region Class members
-        private List<Scene> m_scenes = new List<Scene>();
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //Information from config
         private bool m_enabled = false;
         private bool m_configLoaded = false;
-        internal object m_syncInit = new object();
-        private DataRequestHandler m_requests = null;
-        private Dictionary<Scene, List<IDataSnapshotProvider>> m_dataproviders = new Dictionary<Scene, List<IDataSnapshotProvider>>();
+        private List<String> m_disabledModules = new List<String>();
         private Dictionary<string, string> m_gridinfo = new Dictionary<string, string>();
-        //private int m_oldestSnapshot = 0;
-        private int m_maxSnapshots = 500;
-        private int m_lastSnapshot = 0;
         private string m_snapsDir = "DataSnapshot";
+
+        //Lists of stuff we need
+        private List<Scene> m_scenes = new List<Scene>();
+        private List<IDataSnapshotProvider> m_dataproviders = new List<IDataSnapshotProvider>();
+
+        //Various internal objects
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        internal object m_syncInit = new object();
+
+        //DataServices and networking
         private string m_dataServices = "noservices";
-        private string m_listener_port = "9000"; //TODO: Set default port over 9000
-        private string m_hostname = "127.0.0.1";
+        public string m_listener_port = "9000"; //TODO: Set default port over 9000
+        public string m_hostname = "127.0.0.1";
+
+        //Update timers
         private Timer m_periodic = null;
-        private int m_period = 60; // in seconds
-        private List<string> m_disabledModules = new List<string>();
+        private int m_period = 20; // in seconds
+        private int m_maxStales = 500;
+        private int m_stales = 0;
+        private Timer m_passedCheck = null;
+        private bool m_periodPassed = false;
+
+        //Program objects
+        private SnapshotStore m_snapStore = null;
+        private DataRequestHandler m_requests = null;
+
         #endregion
 
         #region IRegionModule
+
         public void Close()
         {
-
+            m_log.Info("[DATASNAPSHOT]: Close called");
         }
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-            if (!m_scenes.Contains(scene))
-                m_scenes.Add(scene);
-
-            if (!m_configLoaded)
-            {
+            if (!m_configLoaded) {
                 m_configLoaded = true;
                 m_log.Info("[DATASNAPSHOT]: Loading configuration");
                 //Read from the config for options
@@ -99,49 +112,59 @@ namespace OpenSim.Region.DataSnapshot
                              //Non gridmode stuff
                          }
 
-                         m_gridinfo.Add("Name", config.Configs["DataSnapshot"].GetString("gridname", "harbl"));
-                         m_maxSnapshots = config.Configs["DataSnapshot"].GetInt("max_snapshots", m_maxSnapshots);
-                         m_period = config.Configs["DataSnapshot"].GetInt("default_snapshot_period", m_period);
-                         m_snapsDir = config.Configs["DataSnapshot"].GetString("snapshot_cache_directory", m_snapsDir);
-                         m_dataServices = config.Configs["DataSnapshot"].GetString("data_services", m_dataServices);
-                         m_listener_port = config.Configs["Network"].GetString("http_listener_port", m_listener_port);
-                         //BUG: Naming a search data module "DESUDESUDESU" will cause it to not get loaded by default.
-                         //RESOLUTION: Wontfix, there are no Suiseiseki-loving developers
-                         String[] annoying_string_array = config.Configs["DataSnapshot"].GetString("disable_modules", "DESUDESUDESU").Split(".".ToCharArray());
-                         foreach (String bloody_wanker in annoying_string_array)
-                         {
-                             m_disabledModules.Add(bloody_wanker);
-                         }
-                     }
-                     catch (Exception)
-                     {
+                        m_gridinfo.Add("Name", config.Configs["DataSnapshot"].GetString("gridname", "harbl"));
+                        m_period = config.Configs["DataSnapshot"].GetInt("default_snapshot_period", m_period);
+                        m_maxStales = config.Configs["DataSnapshot"].GetInt("max_changes_before_update", m_maxStales);
+                        m_snapsDir = config.Configs["DataSnapshot"].GetString("snapshot_cache_directory", m_snapsDir);
+                        m_dataServices = config.Configs["DataSnapshot"].GetString("data_services", m_dataServices);
+                        m_listener_port = config.Configs["Network"].GetString("http_listener_port", m_listener_port);
+
+                        String[] annoying_string_array = config.Configs["DataSnapshot"].GetString("disable_modules", "").Split(".".ToCharArray());
+                        foreach (String bloody_wanker in annoying_string_array) {
+                            m_disabledModules.Add(bloody_wanker);
+                        }
+                    } catch (Exception) {
                         m_log.Info("[DATASNAPSHOT]: Could not load configuration. DataSnapshot will be disabled.");
                         m_enabled = false;
                         return;
                     }
                 }
-            }
-            if (Directory.Exists(m_snapsDir))
-            {
-                m_log.Info("[DATASNAPSHOT] DataSnapshot directory already exists.");
-            }
-            else
-            {
-                // Try to create the directory.
-                m_log.Info("[DATASNAPSHOT] Creating " + m_snapsDir + " directory.");
-                try
-                {
-                    Directory.CreateDirectory(m_snapsDir);
-                }
-                catch (Exception)
-                {
-                    m_log.Error("[DATASNAPSHOT] Failed to create " + m_snapsDir + " directory.");
-                }
+
+                m_snapStore = new SnapshotStore(m_snapsDir, m_gridinfo, m_listener_port, m_hostname);
             }
 
             if (m_enabled)
             {
                 m_log.Info("[DATASNAPSHOT]: Scene added to module.");
+
+                m_snapStore.AddScene(scene);
+                m_scenes.Add(scene);
+
+                Assembly currentasm = Assembly.GetExecutingAssembly();
+
+                foreach (Type pluginType in currentasm.GetTypes())
+                {
+                    if (pluginType.IsPublic)
+                    {
+                        if (!pluginType.IsAbstract)
+                        {
+                            if (pluginType.GetInterface("IDataSnapshotProvider") != null)
+                            {
+                                IDataSnapshotProvider module = (IDataSnapshotProvider)Activator.CreateInstance(pluginType);
+                                module.Initialize(scene, this);
+                                module.OnStale += MarkDataStale;
+
+                                m_dataproviders.Add(module);
+                                m_snapStore.AddProvider(module);
+
+                                m_log.Info("[DATASNAPSHOT]: Added new data provider type: " + pluginType.Name);
+                            }
+                        }
+                    }
+                }
+
+                //scene.OnRestart += OnSimRestart;
+                scene.EventManager.OnShutdown += delegate() { OnSimRestart(scene.RegionInfo); };
             }
             else
             {
@@ -163,68 +186,35 @@ namespace OpenSim.Region.DataSnapshot
         {
             if (m_enabled)
             {
-                //Right now, only load ISearchData objects in the current assembly.
-                //Eventually allow it to load ISearchData objects from all assemblies.
-                Assembly currentasm = Assembly.GetExecutingAssembly();
-
-                //Stolen from ModuleLoader.cs
-                foreach (Type pluginType in currentasm.GetTypes())
-                {
-                    if (pluginType.IsPublic)
-                    {
-                        if (!pluginType.IsAbstract)
-                        {
-                            if (pluginType.GetInterface("IDataSnapshotProvider") != null)
-                            {
-                                foreach (Scene scene in m_scenes)
-                                {
-                                    IDataSnapshotProvider module = (IDataSnapshotProvider)Activator.CreateInstance(pluginType);
-                                    module.Initialize(scene, this);
-                                    //module.PrepareData();
-                                    List<IDataSnapshotProvider> providerlist = null;
-                                    m_dataproviders.TryGetValue(scene, out providerlist);
-                                    if (providerlist == null)
-                                    {
-                                        providerlist = new List<IDataSnapshotProvider>();
-                                        m_dataproviders.Add(scene, providerlist);
-                                    }
-                                    providerlist.Add(module);
-
-                                }
-                                m_log.Info("[DATASNAPSHOT]: Added new data provider type: " + pluginType.Name);
-                            }
-                        }
-                    }
-                }
-
                 //Hand it the first scene, assuming that all scenes have the same BaseHTTPServer
                 m_requests = new DataRequestHandler(m_scenes[0], this);
 
-                //Create timer
+                //Create update timer
                 m_periodic = new Timer();
                 m_periodic.Interval = m_period * 1000;
                 m_periodic.Elapsed += SnapshotTimerCallback;
-                m_periodic.Enabled = true;
+
+                //Create update eligibility timer
+                m_passedCheck = new Timer();
+                m_passedCheck.Interval = m_period * 1000;
+                m_passedCheck.Elapsed += UpdateEligibilityCallback;
+                m_passedCheck.Start();
 
                 m_hostname = m_scenes[0].RegionInfo.ExternalHostName;
 
-                MakeNewSnapshot();  //Make the initial snapshot
+                //m_snapStore = new SnapshotStore(m_snapsDir, m_dataproviders, m_gridinfo, m_listener_port, m_hostname);
+                MakeEverythingStale();
 
                 if (m_dataServices != "noservices")
-                   NotifyDataServices(m_dataServices);
+                    NotifyDataServices(m_dataServices);
             }
         }
+
         #endregion
 
         #region Associated helper functions
 
-        string DataFileName(Scene scene)
-        {
-            return Path.Combine(m_snapsDir, Path.ChangeExtension(scene.RegionInfo.RegionName, "xml"));
-            //return (m_snapsDir + Path.DirectorySeparatorChar + scene.RegionInfo.RegionName + ".xml");
-        }
-
-        Scene SceneForName(string name)
+        public Scene SceneForName(string name)
         {
             foreach (Scene scene in m_scenes)
                 if (scene.RegionInfo.RegionName == name)
@@ -233,167 +223,18 @@ namespace OpenSim.Region.DataSnapshot
             return null;
         }
 
-        #endregion
-
-        #region [Private] XML snapshot generator
-
-        private XmlDocument Snapshot(Scene scene)
+        public Scene SceneForUUID(LLUUID id)
         {
-            XmlDocument basedoc = new XmlDocument();
-            XmlNode regionElement = MakeRegionNode(scene, basedoc);
+            foreach (Scene scene in m_scenes)
+                if (scene.RegionInfo.RegionID == id)
+                    return scene;
 
-            regionElement.AppendChild(GetGridSnapshotData(basedoc));
-            XmlNode regionData = basedoc.CreateNode(XmlNodeType.Element, "data", "");
-
-            foreach (KeyValuePair<Scene, List<IDataSnapshotProvider>> dataprovider in m_dataproviders)
-            {
-                if (dataprovider.Key == scene)
-                {
-                    foreach (IDataSnapshotProvider provider in dataprovider.Value)
-                    {
-                        XmlNode data = provider.RequestSnapshotData(basedoc);
-                        regionData.AppendChild(data);
-                    }
-                }
-            }
-
-            regionElement.AppendChild(regionData);
-
-            basedoc.AppendChild(regionElement);
-
-            return basedoc;
+            return null;
         }
-
-        private XmlNode MakeRegionNode(Scene scene, XmlDocument basedoc)
-        {
-            XmlNode docElement = basedoc.CreateNode(XmlNodeType.Element, "region", "");
-
-            XmlAttribute attr = basedoc.CreateAttribute("category");
-            attr.Value = GetRegionCategory(scene);
-            docElement.Attributes.Append(attr);
-
-            attr = basedoc.CreateAttribute("entities");
-            attr.Value = scene.Entities.Count.ToString();
-            docElement.Attributes.Append(attr);
-
-            //attr = basedoc.CreateAttribute("parcels");
-            //attr.Value = scene.LandManager.landList.Count.ToString();
-            //docElement.Attributes.Append(attr);
-
-
-            XmlNode infoblock = basedoc.CreateNode(XmlNodeType.Element, "info", "");
-
-            XmlNode infopiece = basedoc.CreateNode(XmlNodeType.Element, "uuid", "");
-            infopiece.InnerText = scene.RegionInfo.RegionID.ToString();
-            infoblock.AppendChild(infopiece);
-
-            infopiece = basedoc.CreateNode(XmlNodeType.Element, "url", "");
-            infopiece.InnerText = "http://" + m_hostname + ":" + m_listener_port;
-            infoblock.AppendChild(infopiece);
-
-            infopiece = basedoc.CreateNode(XmlNodeType.Element, "name", "");
-            infopiece.InnerText = scene.RegionInfo.RegionName;
-            infoblock.AppendChild(infopiece);
-
-            docElement.AppendChild(infoblock);
-
-            return docElement;
-        }
-
-        private XmlNode GetGridSnapshotData(XmlDocument factory)
-        {
-            XmlNode griddata = factory.CreateNode(XmlNodeType.Element, "grid", "");
-
-            foreach (KeyValuePair<String, String> GridData in m_gridinfo)
-            {
-                //TODO: make it lowercase tag names for diva
-                XmlNode childnode = factory.CreateNode(XmlNodeType.Element, GridData.Key, "");
-                childnode.InnerText = GridData.Value;
-                griddata.AppendChild(childnode);
-            }
-
-            return griddata;
-        }
-
-        private String GetRegionCategory(Scene scene)
-        {
-
-            //Boolean choice between:
-            //  "PG" - Mormontown
-            //  "Mature" - Sodom and Gomorrah
-            //  (Depreciated) "Patriotic Nigra Testing Sandbox" - Abandon Hope All Ye Who Enter Here
-            if ((scene.RegionInfo.EstateSettings.simAccess & Simulator.SimAccess.Mature) == Simulator.SimAccess.Mature)
-            {
-                return "Mature";
-            }
-            else if ((scene.RegionInfo.EstateSettings.simAccess & Simulator.SimAccess.PG) == Simulator.SimAccess.PG)
-            {
-                return "PG";
-            }
-            else
-            {
-                return "Unknown";
-            }
-        }
-
-        /* Code's closed due to AIDS, See EstateSnapshot.cs for CURE
-        private XmlNode GetEstateSnapshotData(Scene scene, XmlDocument factory)
-        {
-            //Estate data section - contains who owns a set of sims and the name of the set.
-            //In Opensim all the estate names are the same as the Master Avatar (owner of the sim)
-            XmlNode estatedata = factory.CreateNode(XmlNodeType.Element, "estate", "");
-
-            LLUUID ownerid = scene.RegionInfo.MasterAvatarAssignedUUID;
-            String firstname = scene.RegionInfo.MasterAvatarFirstName;
-            String lastname = scene.RegionInfo.MasterAvatarLastName;
-            String hostname = scene.RegionInfo.ExternalHostName;
-
-            XmlNode user = factory.CreateNode(XmlNodeType.Element, "owner", "");
-
-            XmlNode username = factory.CreateNode(XmlNodeType.Element, "name", "");
-            username.InnerText = firstname + " " + lastname;
-            user.AppendChild(username);
-
-            XmlNode useruuid = factory.CreateNode(XmlNodeType.Element, "uuid", "");
-            useruuid.InnerText = ownerid.ToString();
-            user.AppendChild(useruuid);
-
-            estatedata.AppendChild(user);
-
-            return estatedata;
-        } */
 
         #endregion
 
         #region [Public] Snapshot storage functions
-
-        public void MakeNewSnapshot()
-        {
-            foreach (Scene scene in m_scenes)
-            {
-                XmlDocument snapshot = Snapshot(scene);
-
-                string path = DataFileName(scene);
-
-                try
-                {
-                    using (XmlTextWriter snapXWriter = new XmlTextWriter(path, Encoding.Default))
-                    {
-                        snapXWriter.Formatting = Formatting.Indented;
-                        snapXWriter.WriteStartDocument();
-                        snapshot.WriteTo(snapXWriter);
-                        snapXWriter.WriteEndDocument();
-
-                        m_lastSnapshot++;
-                    }
-                }
-                catch (Exception e)
-                {
-                    m_log.Warn("[DATASNAPSHOT]: Caught unknown exception while trying to save snapshot: " + path + "\n" + e.ToString());
-                }
-                m_log.Info("[DATASNAPSHOT]: Made external data snapshot " + path);
-            }
-        }
 
         /**
          * Reply to the http request
@@ -410,30 +251,16 @@ namespace OpenSim.Region.DataSnapshot
                 {
                     foreach (Scene scene in m_scenes)
                     {
-                        string path = DataFileName(scene);
-                        XmlDocument regionSnap = new XmlDocument();
-                        regionSnap.PreserveWhitespace = true;
-
-                        regionSnap.Load(path);
-                        XmlNode nodeOrig = regionSnap["region"];
-                        XmlNode nodeDest = requestedSnap.ImportNode(nodeOrig, true);
-                        //requestedSnap.AppendChild(nodeDest);
-
-                        regiondata.AppendChild(requestedSnap.CreateWhitespace("\r\n"));
-                        regiondata.AppendChild(nodeDest);
+                        regiondata.AppendChild(m_snapStore.GetScene(scene, requestedSnap));
                     }
                 }
                 else
                 {
                     Scene scene = SceneForName(regionName);
-                    requestedSnap.Load(DataFileName(scene));
+                    regiondata.AppendChild(m_snapStore.GetScene(scene, requestedSnap));
                 }
-                //                requestedSnap.InsertBefore(requestedSnap.CreateXmlDeclaration("1.0", null, null),
-//                                           requestedSnap.DocumentElement);
                 requestedSnap.AppendChild(regiondata);
                 regiondata.AppendChild(requestedSnap.CreateWhitespace("\r\n"));
-
-
             }
             catch (XmlException e)
             {
@@ -465,16 +292,6 @@ namespace OpenSim.Region.DataSnapshot
             errorMessage.AppendChild(error);
 
             return errorMessage;
-        }
-
-        #endregion
-
-        #region Event callbacks
-
-        private void SnapshotTimerCallback(object timer, ElapsedEventArgs args)
-        {
-            MakeNewSnapshot();
-            //Add extra calls here
         }
 
         #endregion
@@ -524,5 +341,85 @@ namespace OpenSim.Region.DataSnapshot
 
         }
         #endregion
+
+        #region Latency-based update functions
+
+        public void MarkDataStale(IDataSnapshotProvider provider)
+        {
+            //Behavior here: Wait m_period seconds, then update if there has not been a request in m_period seconds
+            //or m_maxStales has been exceeded
+            m_stales++;
+
+            if ((m_stales >= m_maxStales) && m_periodPassed)
+                SnapshotTimerCallback(m_periodic, null);
+            else if (m_periodic.Enabled == false)
+                m_periodic.Start();
+            else
+            {
+                m_periodic.Stop();
+                m_periodic.Start();
+            }
+        }
+
+        private void SnapshotTimerCallback(object timer, ElapsedEventArgs args)
+        {
+            m_log.Debug("[DATASNAPSHOT]: Marking scenes for snapshot updates.");
+
+            //Finally generate those snapshot updates
+            MakeEverythingStale();
+
+            //Stop the update delay timer
+            m_periodic.Stop();
+
+            //Reset the eligibility flag and timer
+            m_periodPassed = false;
+            m_passedCheck.Stop();
+            m_passedCheck.Start();
+        }
+
+        private void UpdateEligibilityCallback(object timer, ElapsedEventArgs args)
+        {
+            //Set eligibility, so we can start making updates
+            m_periodPassed = true;
+        }
+
+        public void MakeEverythingStale()
+        {
+            m_log.Debug("[DATASNAPSHOT]: Marking all scenes as stale.");
+            foreach (Scene scene in m_scenes)
+            {
+                m_snapStore.ForceSceneStale(scene);
+            }
+        }
+
+        #endregion
+
+        public void OnSimRestart(RegionInfo thisRegion)
+        {
+            m_log.Info("[DATASNAPSHOT]: Region " + thisRegion.RegionName + " is restarting, removing from indexing");
+            Scene restartedScene = SceneForUUID(thisRegion.RegionID);
+
+            m_scenes.Remove(restartedScene);
+            m_snapStore.RemoveScene(restartedScene);
+
+            //Getting around the fact that we can't remove objects from a collection we are enumerating over
+            List<IDataSnapshotProvider> providersToRemove = new List<IDataSnapshotProvider>();
+
+            foreach (IDataSnapshotProvider provider in m_dataproviders)
+            {
+                if (provider.GetParentScene == restartedScene)
+                {
+                    providersToRemove.Add(provider);
+                }
+            }
+
+            foreach (IDataSnapshotProvider provider in providersToRemove)
+            {
+                m_dataproviders.Remove(provider);
+                m_snapStore.RemoveProvider(provider);
+            }
+
+            m_snapStore.RemoveScene(restartedScene);
+        }
     }
 }

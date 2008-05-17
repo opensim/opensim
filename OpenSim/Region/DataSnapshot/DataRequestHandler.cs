@@ -26,11 +26,16 @@
 *
 */
 
+using System;
 using System.Collections;
 using System.Reflection;
 using System.Xml;
 using log4net;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Framework.Communications.Capabilities;
+using Caps = OpenSim.Framework.Communications.Capabilities.Caps;
+using libsecondlife;
+using OpenSim.Framework.Servers;
 
 namespace OpenSim.Region.DataSnapshot
 {
@@ -40,16 +45,48 @@ namespace OpenSim.Region.DataSnapshot
         private DataSnapshotManager m_externalData = null;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private readonly string m_discoveryPath = "DS0001/";
+
         public DataRequestHandler(Scene scene, DataSnapshotManager externalData)
         {
             m_scene = scene;
             m_externalData = externalData;
 
+            //Register HTTP handler
             if (m_scene.AddHTTPHandler("collector", OnGetSnapshot))
             {
                 m_log.Info("[DATASNAPSHOT]: Set up snapshot service");
             }
+
+            //Register CAPS handler event
+            m_scene.EventManager.OnRegisterCaps += OnRegisterCaps;
+            
             //harbl
+        }
+
+        public void OnRegisterCaps(LLUUID agentID, Caps caps)
+        {
+            m_log.Info("[DATASNAPSHOT]: Registering service discovery capability for " + agentID);
+            string capsBase = "/CAPS/" + caps.CapsObjectPath;
+            caps.RegisterHandler("PublicSnapshotDataInfo",
+                new RestStreamHandler("POST", capsBase + m_discoveryPath, OnDiscoveryAttempt));
+        }
+
+        public string OnDiscoveryAttempt(string request, string path, string param)
+        {
+            //Very static for now, flexible enough to add new formats
+            LLSDDiscoveryResponse llsd_response = new LLSDDiscoveryResponse();
+            llsd_response.snapshot_resources = new LLSDArray();
+
+            LLSDDiscoveryDataURL llsd_dataurl = new LLSDDiscoveryDataURL();
+            llsd_dataurl.snapshot_format = "os-datasnapshot-v1";
+            llsd_dataurl.snapshot_url = "http://" + m_externalData.m_hostname + ":" + m_externalData.m_listener_port + "/?method=collector";
+                      
+            llsd_response.snapshot_resources.Array.Add(llsd_dataurl);
+
+            string response = LLSDHelpers.SerialiseLLSDReply(llsd_response);
+
+            return response;
         }
 
         public Hashtable OnGetSnapshot(Hashtable keysvals)

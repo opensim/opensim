@@ -26,19 +26,21 @@
 *
 */
 
+using System;
 using System.Xml;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.DataSnapshot.Interfaces
 {
+    public delegate void ProviderStale(IDataSnapshotProvider provider);
+
     public interface IDataSnapshotProvider
     {
         XmlNode RequestSnapshotData(XmlDocument document);
-
-        //void PrepareData();
-
         void Initialize(Scene scene, DataSnapshotManager parent);
-
         Scene GetParentScene { get; }
+        String Name { get; }
+        bool Stale { get; set; }
+        event ProviderStale OnStale;
     }
 }

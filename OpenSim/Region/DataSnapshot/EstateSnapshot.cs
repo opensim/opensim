@@ -31,12 +31,19 @@ using libsecondlife;
 using OpenSim.Region.DataSnapshot.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
-namespace OpenSim.Region.DataSnapshot
+namespace OpenSim.Region.DataSnapshot.Providers
 {
     public class EstateSnapshot : IDataSnapshotProvider
     {
+        /* This module doesn't check for changes, since it's *assumed* there are none.
+         * Nevertheless, it's possible to have changes, since all the fields are public.
+         * There's no event to subscribe to. :/
+         * 
+         * I don't think anything changes the fields beyond RegionModule PostInit, however.
+         */
         private Scene m_scene = null;
         private DataSnapshotManager m_parent = null;
+        private bool m_stale = true;
 
         #region IDataSnapshotProvider Members
 
@@ -70,6 +77,7 @@ namespace OpenSim.Region.DataSnapshot
 
             estatedata.AppendChild(user);
 
+            this.Stale = false;
             return estatedata;
         }
 
@@ -83,6 +91,25 @@ namespace OpenSim.Region.DataSnapshot
         {
             get { return m_scene; }
         }
+
+        public String Name {
+            get { return "EstateSnapshot"; }
+        }
+
+        public bool Stale
+        {
+            get {
+                return m_stale;
+            }
+            set {
+                m_stale = value;
+
+                if (m_stale)
+                    OnStale(this);
+            }
+        }
+
+        public event ProviderStale OnStale;
 
         #endregion
     }

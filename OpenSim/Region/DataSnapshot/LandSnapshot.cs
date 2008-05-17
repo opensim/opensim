@@ -23,7 +23,7 @@
 * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*
+* 
 */
 
 using System;
@@ -37,8 +37,9 @@ using OpenSim.Region.DataSnapshot.Interfaces;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.World.Land;
 using OpenSim.Region.Environment.Scenes;
+using libsecondlife.Packets;
 
-namespace OpenSim.Region.DataSnapshot
+namespace OpenSim.Region.DataSnapshot.Providers
 {
     public class LandSnapshot : IDataSnapshotProvider
     {
@@ -46,14 +47,15 @@ namespace OpenSim.Region.DataSnapshot
         private DataSnapshotManager m_parent = null;
         //private Dictionary<int, Land> m_landIndexed = new Dictionary<int, Land>();
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private bool m_stale = true;
 
         #region Dead code
 
         /*
          * David, I don't think we need this at all. When we do the snapshot, we can
-         * simply look into the parcels that are marked for ShowDirectory -- see
+         * simply look into the parcels that are marked for ShowDirectory -- see 
          * conditional in RequestSnapshotData
-         *
+         * 
         //Revise this, look for more direct way of checking for change in land
         #region Client hooks
 
@@ -106,7 +108,9 @@ namespace OpenSim.Region.DataSnapshot
         {
             m_scene = scene;
             m_parent = parent;
-            //m_scene.EventManager.OnNewClient += OnNewClient;
+
+            //Brought back from the dead for staleness checks.
+            m_scene.EventManager.OnNewClient += OnNewClient;
         }
 
         public Scene GetParentScene
@@ -115,7 +119,7 @@ namespace OpenSim.Region.DataSnapshot
         }
 
         public XmlNode RequestSnapshotData(XmlDocument nodeFactory)
-        {
+        {   
             ILandChannel landChannel = (LandChannel)m_scene.LandChannel;
             Dictionary<int, ILandObject> landList = null;
             try
@@ -129,7 +133,7 @@ namespace OpenSim.Region.DataSnapshot
             }
             catch (Exception e)
             {
-                Console.WriteLine("[DATASNAPSHOT] couldn't access field reflectively\n" + e.ToString());
+                m_log.Error("[DATASNAPSHOT] couldn't access field reflectively\n" + e.ToString());
             }
             XmlNode parent = nodeFactory.CreateNode(XmlNodeType.Element, "parceldata", "");
             if (landList != null)
@@ -243,8 +247,31 @@ namespace OpenSim.Region.DataSnapshot
                 //snap.AppendChild(parent);
             }
 
+            this.Stale = false;
             return parent;
         }
+
+        public String Name
+        {
+            get { return "LandSnapshot"; }
+        }
+
+        public bool Stale
+        {
+            get
+            {
+                return m_stale;
+            }
+            set
+            {
+                m_stale = value;
+
+                if (m_stale)
+                    OnStale(this);
+            }
+        }
+
+        public event ProviderStale OnStale;
 
         #endregion
 
@@ -257,6 +284,34 @@ namespace OpenSim.Region.DataSnapshot
             else
                 return "no";
 
+        }
+
+        #endregion
+
+        #region Change detection hooks
+
+        public void OnNewClient(IClientAPI client)
+        {
+            //Land hooks
+            client.OnParcelDivideRequest += delegate (int west, int south, int east, int north,
+                IClientAPI remote_client) { this.Stale = true; };
+            client.OnParcelJoinRequest += delegate (int west, int south, int east, int north,
+                IClientAPI remote_client) { this.Stale = true; };
+            client.OnParcelPropertiesUpdateRequest += delegate(LandUpdateArgs args, int local_id,
+                IClientAPI remote_client) { this.Stale = true; };
+            client.OnParcelBuy += delegate (LLUUID agentId, LLUUID groupId, bool final, bool groupOwned,
+                bool removeContribution, int parcelLocalID, int parcelArea, int parcelPrice, bool authenticated)
+                { this.Stale = true; };
+        }
+
+        public void ParcelSplitHook(int west, int south, int east, int north, IClientAPI remote_client)
+        {
+            this.Stale = true;
+        }
+
+        public void ParcelPropsHook(LandUpdateArgs args, int local_id, IClientAPI remote_client)
+        {
+            this.Stale = true;
         }
 
         #endregion
