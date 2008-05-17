@@ -130,7 +130,30 @@ namespace OpenSim.Region.DataSnapshot
                     }
                 }
 
-                m_snapStore = new SnapshotStore(m_snapsDir, m_gridinfo, m_listener_port, m_hostname);
+                if (m_enabled)
+                {
+                    //Create update timer
+                    m_periodic = new Timer();
+                    m_periodic.Interval = m_period * 1000;
+                    m_periodic.Elapsed += SnapshotTimerCallback;
+
+                    //Create update eligibility timer
+                    m_passedCheck = new Timer();
+                    m_passedCheck.Interval = m_period * 1000;
+                    m_passedCheck.Elapsed += UpdateEligibilityCallback;
+                    m_passedCheck.Start();
+
+                    //Hand it the first scene, assuming that all scenes have the same BaseHTTPServer
+                    m_requests = new DataRequestHandler(scene, this);
+
+                    m_hostname = scene.RegionInfo.ExternalHostName;
+                    m_snapStore = new SnapshotStore(m_snapsDir, m_gridinfo, m_listener_port, m_hostname);
+
+                    MakeEverythingStale();
+
+                    if (m_dataServices != "noservices")
+                        NotifyDataServices(m_dataServices);
+                }
             }
 
             if (m_enabled)
@@ -184,30 +207,7 @@ namespace OpenSim.Region.DataSnapshot
 
         public void PostInitialise()
         {
-            if (m_enabled)
-            {
-                //Hand it the first scene, assuming that all scenes have the same BaseHTTPServer
-                m_requests = new DataRequestHandler(m_scenes[0], this);
 
-                //Create update timer
-                m_periodic = new Timer();
-                m_periodic.Interval = m_period * 1000;
-                m_periodic.Elapsed += SnapshotTimerCallback;
-
-                //Create update eligibility timer
-                m_passedCheck = new Timer();
-                m_passedCheck.Interval = m_period * 1000;
-                m_passedCheck.Elapsed += UpdateEligibilityCallback;
-                m_passedCheck.Start();
-
-                m_hostname = m_scenes[0].RegionInfo.ExternalHostName;
-
-                //m_snapStore = new SnapshotStore(m_snapsDir, m_dataproviders, m_gridinfo, m_listener_port, m_hostname);
-                MakeEverythingStale();
-
-                if (m_dataServices != "noservices")
-                    NotifyDataServices(m_dataServices);
-            }
         }
 
         #endregion
