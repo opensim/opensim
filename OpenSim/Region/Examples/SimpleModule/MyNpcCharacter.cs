@@ -246,6 +246,21 @@ namespace OpenSim.Region.Examples.SimpleModule
             set { }
         }
 
+        public LLUUID ActiveGroupId
+        {
+            get { return LLUUID.Zero; }
+        }
+
+        public string ActiveGroupName
+        {
+            get { return String.Empty; }
+        }
+
+        public ulong ActiveGroupPowers
+        {
+            get { return 0; }
+        }
+
         public virtual int NextAnimationSequenceNumber
         {
             get { return 1; }

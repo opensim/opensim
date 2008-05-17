@@ -769,7 +769,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (XferManager != null)
                     {
-                        group.RequestInventoryFile(primLocalID, XferManager);
+                        group.RequestInventoryFile(remoteClient, primLocalID, XferManager);
                     }
                 }
             }

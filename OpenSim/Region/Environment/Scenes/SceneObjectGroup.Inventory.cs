@@ -157,12 +157,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="xferManager"></param>
-        public void RequestInventoryFile(uint localID, IXfer xferManager)
+        public void RequestInventoryFile(IClientAPI client, uint localID, IXfer xferManager)
         {
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
-                part.RequestInventoryFile(xferManager);
+                part.RequestInventoryFile(client, xferManager);
             }
             else
             {

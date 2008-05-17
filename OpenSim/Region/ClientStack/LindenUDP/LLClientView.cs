@@ -129,6 +129,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected LLVector3 m_startpos;
         protected EndPoint m_userEndPoint;
         protected EndPoint m_proxyEndPoint;
+        protected LLUUID m_activeGroupID = LLUUID.Zero;
+        protected string m_activeGroupName = String.Empty;
+        protected ulong m_activeGroupPowers = 0;
 
         /* Instantiated Designated Event Delegates */
         //- used so we don't create new objects for each incoming packet and then toss it out later */
@@ -272,6 +275,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public LLUUID AgentId
         {
             get { return m_agentId; }
+        }
+
+        public LLUUID ActiveGroupId
+        {
+            get { return m_activeGroupID; }
+        }
+
+        public string ActiveGroupName
+        {
+            get { return m_activeGroupName; }
+        }
+
+        public ulong ActiveGroupPowers
+        {
+            get { return m_activeGroupPowers; }
         }
 
         /// <summary>
@@ -1691,6 +1709,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAgentDataUpdate(LLUUID agentid, LLUUID activegroupid, string firstname, string lastname, ulong grouppowers, string groupname, string grouptitle)
         {
+
+            m_activeGroupID = activegroupid;
+            m_activeGroupName = groupname;
+            m_activeGroupPowers = grouppowers;
+
             AgentDataUpdatePacket sendAgentDataUpdate = (AgentDataUpdatePacket)PacketPool.Instance.GetPacket(PacketType.AgentDataUpdate);
             sendAgentDataUpdate.AgentData.ActiveGroupID = activegroupid;
             sendAgentDataUpdate.AgentData.AgentID = agentid;

@@ -484,7 +484,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Serialize all the metadata for the items in this prim's inventory ready for sending to the client
         /// </summary>
         /// <param name="xferManager"></param>
-        public void RequestInventoryFile(IXfer xferManager)
+        public void RequestInventoryFile(IClientAPI client, IXfer xferManager)
         {
             byte[] fileData = new byte[0];
 
@@ -497,23 +497,45 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 foreach (TaskInventoryItem item in m_taskInventory.Values)
                 {
+                    LLUUID ownerID=item.OwnerID;
+                    uint everyoneMask=0;
+                    uint baseMask=item.BaseMask;
+                    uint ownerMask=item.OwnerMask;
+
+                    if(item.InvType == 10) // Script
+                    {
+                        if((item.OwnerID != client.AgentId) && m_parentGroup.Scene.ExternalChecks.ExternalChecksCanViewScript(item.ItemID, UUID, client.AgentId))
+                        {
+                            ownerID=client.AgentId;
+                            baseMask=0x7fffffff;
+                            ownerMask=0x7fffffff;
+                            everyoneMask=(uint)(PermissionMask.Move | PermissionMask.Transfer);
+                        }
+                        if((item.OwnerID != client.AgentId) && m_parentGroup.Scene.ExternalChecks.ExternalChecksCanEditScript(item.ItemID, UUID, client.AgentId))
+                        {
+                            ownerID=client.AgentId;
+                            baseMask=0x7fffffff;
+                            ownerMask=0x7fffffff;
+                            everyoneMask=(uint)(PermissionMask.Move | PermissionMask.Transfer | PermissionMask.Modify);
+                        }
+                    }
+
                     invString.AddItemStart();
                     invString.AddNameValueLine("item_id", item.ItemID.ToString());
                     invString.AddNameValueLine("parent_id", UUID.ToString());
 
                     invString.AddPermissionsStart();
 
-                    invString.AddNameValueLine("base_mask", Helpers.UIntToHexString(item.BaseMask));
-                    invString.AddNameValueLine("owner_mask", Helpers.UIntToHexString(item.OwnerMask));
-                    invString.AddNameValueLine("group_mask", "00000000");
-                    invString.AddNameValueLine("everyone_mask", "00000000");
+                    invString.AddNameValueLine("base_mask", Helpers.UIntToHexString(baseMask));
+                    invString.AddNameValueLine("owner_mask", Helpers.UIntToHexString(ownerMask));
+                    invString.AddNameValueLine("group_mask", Helpers.UIntToHexString(0));
+                    invString.AddNameValueLine("everyone_mask", Helpers.UIntToHexString(everyoneMask));
                     invString.AddNameValueLine("next_owner_mask", Helpers.UIntToHexString(item.NextOwnerMask));
 
                     invString.AddNameValueLine("creator_id", item.CreatorID.ToString());
-                    invString.AddNameValueLine("owner_id", item.OwnerID.ToString());
+                    invString.AddNameValueLine("owner_id", ownerID.ToString());
 
                     invString.AddNameValueLine("last_owner_id", item.LastOwnerID.ToString());
-//                    invString.AddNameValueLine("last_owner_id", item.OwnerID.ToString());
 
                     invString.AddNameValueLine("group_id", item.GroupID.ToString());
                     invString.AddSectionEnd();
@@ -538,6 +560,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             fileData = Helpers.StringToField(invString.BuildString);
 
+            //Console.WriteLine(Helpers.FieldToUTF8String(fileData));
             //m_log.Debug("[PRIM INVENTORY]: RequestInventoryFile fileData: " + Helpers.FieldToUTF8String(fileData));
 
             if (fileData.Length > 2)

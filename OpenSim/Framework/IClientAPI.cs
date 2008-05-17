@@ -634,9 +634,14 @@ namespace OpenSim.Framework
 
         LLUUID SecureSessionId { get; }
 
-        [Obsolete("LLClientView Specific - Use .Name instead. Do not assume an av has two names.  Adam, this is impossible to completely refactor out.  Nor would I suggest it. All applications that i've ever dealt with have firstname and lastname.  However the firstname and lastname are not always the username.")]
+        LLUUID ActiveGroupId { get; }
+
+        string ActiveGroupName { get; }
+
+        ulong ActiveGroupPowers { get; }
+        
         string FirstName { get; }
-        [Obsolete("LLClientView Specific - Use .Name instead. Do not assume an av has two names.  Adam, this is impossible to completely refactor out.  Nor would I suggest it. All applications that i've ever dealt with have firstname and lastname.  However the firstname and lastname are not always the username.")]
+        
         string LastName { get; }
 
         [Obsolete("LLClientView Specific - Replace with ???")]
@@ -654,6 +659,8 @@ namespace OpenSim.Framework
             get;
             set;
         }
+
+
 
         [Obsolete("LLClientView Specific - Circuits are unique to LLClientView")]
         uint CircuitCode { get; }
