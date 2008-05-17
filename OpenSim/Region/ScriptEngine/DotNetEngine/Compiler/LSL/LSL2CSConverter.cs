@@ -39,7 +39,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         //private Regex rnw = new Regex(@"[a-zA-Z0-9_\-]", RegexOptions.Compiled);
         private Dictionary<string, string> dataTypes = new Dictionary<string, string>();
         private Dictionary<string, string> quotes = new Dictionary<string, string>();
+        // c Style 
+        private Regex cstylecomments = new Regex(@"/\*(.|[\r\n])*?\*/", RegexOptions.Compiled | RegexOptions.Multiline);
+        // c# one liners 
+        private Regex conelinecomments = new Regex(@".?([\/]{2}[^\n]*)|([\n]{1,}[\/]{2}[^\n]*)", RegexOptions.Compiled | RegexOptions.Multiline);
+        // ([^\"])((?:[a-zA-Z])\.[a-zA-Z].?)([^\"])
+        
 
+
+        // value we're looking for: (?:[a-zA-Z])\.[a-zA-Z]
         public LSL2CSConverter()
         {
             // Only the types we need to convert
@@ -81,17 +89,51 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             bool last_was_escape = false;
             int quote_replaced_count = 0;
 
-            string[] blocked = new string[] {"Axiom","Db4objects","libsecondlife","log4net","Microsoft",
-                                             "Modified","Mono","MonoXnaCompactMaths","mscorlib","MySql",
-                                             "NHibernate","Nini","nunit","Ode","OpenSim","PhysX_Wrapper_Dotnet",
-                                             "PumaCode","RAIL","XMLRPC","System"};
+            
 
-            for (int p = 0; p < blocked.Length;p++)
+            string removecomments = conelinecomments.Replace(Script, "");
+            removecomments = cstylecomments.Replace(removecomments, "");
+            string[] localscript = removecomments.Split('"');
+            string checkscript = String.Empty;
+            bool flip = true;
+
+
+            
+            for (int p = 0; p < localscript.Length; p++)
             {
-                Match SecurityM = Regex.Match(Script, "[;}][^\"']+" + blocked[p].Replace(".", "\\.") + "\\.[^\"']", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
-                if (SecurityM.Success)
-                    throw new Exception("CS0103: 'The name '" + blocked[p] + "' does not exist in the current context'");
+                if (localscript[p].Length >= 1)
+                {
+                    if (localscript[p].Substring(localscript[p].Length - 1, 1) != "/")
+                    {
+                        flip = !flip;
+                    }
+                }
+                else
+                {
+                    flip = !flip;
+                }
+                if (!flip)
+                    checkscript += "\"" + localscript[p];
             }
+            
+            //System.Console.WriteLine("SCRIPT:" + checkscript);
+
+            // checks for alpha.alpha way of referring to objects in C#
+            // ignores alpha.x alpha.y, alpha.z for refering to vector components
+            Match SecurityM = Regex.Match(checkscript, @"(?:[a-zA-Z])\.(?:[a-wA-Z]|[a-zA-Z][a-zA-Z])", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            if (SecurityM.Success)
+                throw new Exception("CS0103: 'The . symbol cannot be used in LSL except in float values or vector components'");
+
+            SecurityM = Regex.Match(checkscript, @"typeof\s", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            if (SecurityM.Success)
+                throw new Exception("CS0103: 'The object.typeof method isn't allowed in LSL'");
+
+            SecurityM = Regex.Match(checkscript, @"GetType\(", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            if (SecurityM.Success)
+                throw new Exception("CS0103: 'The object.GetType method isn't allowed in LSL'");
+
+            
+            
 
             for (int p = 0; p < Script.Length; p++)
             {
