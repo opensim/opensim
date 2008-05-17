@@ -133,13 +133,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             IConfig startupConfig = m_gConfig.Configs["Startup"];
             IConfig economyConfig = m_gConfig.Configs["Economy"];
 
-            scene.RegisterModuleInterface<IMoneyModule>(this);
 
             ReadConfigAndPopulate(scene, startupConfig, "Startup");
             ReadConfigAndPopulate(scene, economyConfig, "Economy");
 
             if (m_enabled)
             {
+                scene.RegisterModuleInterface<IMoneyModule>(this);
+
                 lock (m_scenel)
                 {
                     if (m_scenel.Count == 0)
