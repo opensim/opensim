@@ -30,6 +30,7 @@ using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 {

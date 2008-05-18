@@ -53,15 +53,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
     /// Centralized grid structure example using OpenSimWi Redux revision 9+
     /// svn co https://opensimwiredux.svn.sourceforge.net/svnroot/opensimwiredux
     /// </summary>
-    public delegate void ObjectPaid(LLUUID objectID, LLUUID agentID, int amount);
-
-    public interface IMoneyModule : IRegionModule
-    {
-        bool ObjectGiveMoney(LLUUID objectID, LLUUID fromID, LLUUID toID, int amount);
-
-        event ObjectPaid OnObjectPaid;
-    }
-
     public class SampleMoneyModule : IMoneyModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
