@@ -261,10 +261,7 @@ namespace OpenSim.Framework.Communications.Cache
                 lock (RequestLists)
                 {
                   //  m_log.Info("AssetCache: Lock taken on requestLists (GetAsset)");
-                    if (RequestLists.TryGetValue(assetId, out requestList))
-                    {
-                    }
-                    else
+                    if (!RequestLists.TryGetValue(assetId, out requestList))
                     {
                         requestList = new AssetRequestsList(assetId);
                         RequestLists.Add(assetId, requestList);
