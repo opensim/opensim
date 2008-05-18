@@ -22,7 +22,7 @@
     <touch file="../${projectdir}/bin/startup_commands.txt" />
 
     <mkdir dir="../test-results" />
-    
+
     <zip zipfile="../${projectdir}.zip">
       <fileset basedir="${projectdir}/">
         <include name="**" />
@@ -33,8 +33,19 @@
         <include name="**" />
       </fileset>
     </tar>
-    
+
     <copy file="../${projectdir}.zip" tofile="/home/buildsystem/public_html/${projectdir}-TRUNK.zip" overwrite="true" />
     <copy file="../${projectdir}.tar.gz" tofile="/home/buildsystem/public_html/${projectdir}-TRUNK.tar.gz" overwrite="true" />
+ 
+    <echo message="Generating Doxygen documentation" />
+    <exec program="doxygen" workingdir="../doc" commandline="doxygen.conf" />
+
+    <tar destfile="../${projectdir}-doc-html.tar.gz" compression="GZip">
+      <fileset basedir="..">
+        <include name="doc/html/**" />
+      </fileset>
+    </tar>
+
+    <copy file="../${projectdir}-doc-html.tar.gz" tofile="/home/buildsystem/public_html/${projectdir}-TRUNK-doc-html.tar.gz" overwrite="true" />
   </target>
 </project>
