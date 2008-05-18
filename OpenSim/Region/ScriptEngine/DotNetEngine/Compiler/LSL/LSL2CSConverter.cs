@@ -39,13 +39,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         //private Regex rnw = new Regex(@"[a-zA-Z0-9_\-]", RegexOptions.Compiled);
         private Dictionary<string, string> dataTypes = new Dictionary<string, string>();
         private Dictionary<string, string> quotes = new Dictionary<string, string>();
-        // c Style 
+        // c Style
         private Regex cstylecomments = new Regex(@"/\*(.|[\r\n])*?\*/", RegexOptions.Compiled | RegexOptions.Multiline);
-        // c# one liners 
+        // c# one liners
         private Regex conelinecomments = new Regex(@".?([\/]{2}[^\n]*)|([\n]{1,}[\/]{2}[^\n]*)", RegexOptions.Compiled | RegexOptions.Multiline);
         // ([^\"])((?:[a-zA-Z])\.[a-zA-Z].?)([^\"])
-        
-
 
         // value we're looking for: (?:[a-zA-Z])\.[a-zA-Z]
         public LSL2CSConverter()
@@ -89,16 +87,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             bool last_was_escape = false;
             int quote_replaced_count = 0;
 
-            
-
             string removecomments = conelinecomments.Replace(Script, "");
             removecomments = cstylecomments.Replace(removecomments, "");
             string[] localscript = removecomments.Split('"');
             string checkscript = String.Empty;
             bool flip = true;
 
-
-            
             for (int p = 0; p < localscript.Length; p++)
             {
                 if (localscript[p].Length >= 1)
@@ -115,7 +109,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 if (!flip)
                     checkscript += "\"" + localscript[p];
             }
-            
+
             //System.Console.WriteLine("SCRIPT:" + checkscript);
 
             // checks for alpha.alpha way of referring to objects in C#
@@ -131,9 +125,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             SecurityM = Regex.Match(checkscript, @"GetType\(", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
             if (SecurityM.Success)
                 throw new Exception("CS0103: 'The object.GetType method isn't allowed in LSL'");
-
-            
-            
 
             for (int p = 0; p < Script.Length; p++)
             {

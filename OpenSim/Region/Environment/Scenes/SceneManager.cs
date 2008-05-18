@@ -140,7 +140,7 @@ namespace OpenSim.Region.Environment.Scenes
                     Result = m_localScenes[i].RegionInfo;
                 }
             }
-            if (!(Result.Equals(null)))
+            if (Result != null)
             {
                 for (int i = 0; i < m_localScenes.Count; i++)
                 {

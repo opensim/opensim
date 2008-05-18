@@ -144,9 +144,9 @@ namespace OpenSim.Region.Physics.OdePlugin
         //private int m_returncollisions = 10;
 
         private IntPtr contactgroup;
-        private IntPtr LandGeom = (IntPtr) 0;
+        private IntPtr LandGeom;
 
-        private IntPtr WaterGeom = (IntPtr)0;
+        private IntPtr WaterGeom;
 
         private float nmTerrainContactFriction = 255.0f;
         private float nmTerrainContactBounce = 0.1f;
@@ -430,7 +430,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         internal void waitForSpaceUnlock(IntPtr space)
         {
-            //if (space != (IntPtr)0)
+            //if (space != IntPtr.Zero)
                 //while (d.SpaceLockQuery(space)) { } // Wait and do nothing
         }
 
@@ -461,7 +461,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             if (d.GeomIsSpace(g1) || d.GeomIsSpace(g2))
             {
-                if (g1 == (IntPtr)0 || g2 == (IntPtr)0)
+                if (g1 == IntPtr.Zero || g2 == IntPtr.Zero)
                     return;
                 // Separating static prim geometry spaces.
                 // We'll be calling near recursivly if one
@@ -484,7 +484,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 return;
             }
 
-            if (g1 == (IntPtr)0 || g2 == (IntPtr)0)
+            if (g1 == IntPtr.Zero || g2 == IntPtr.Zero)
                 return;
 
             IntPtr b1 = d.GeomGetBody(g1);
@@ -1037,10 +1037,14 @@ namespace OpenSim.Region.Physics.OdePlugin
                         {
                             lock (chr)
                             {
-                                if (space != (IntPtr)0 && chr.prim_geom != (IntPtr)0 && chr.m_taintremove == false)
+                                if (space != IntPtr.Zero && chr.prim_geom != IntPtr.Zero && chr.m_taintremove == false)
+                                {
                                     d.SpaceCollide2(space, chr.prim_geom, IntPtr.Zero, nearCallback);
+                                }
                                 else
+                                {
                                     m_log.Debug("[PHYSICS]: unable to collide test active prim against space.  The space was zero, the geom was zero or it was in the process of being removed");
+                                }
                             }
                         }
                         catch (AccessViolationException)
@@ -1204,7 +1208,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 remCollisionEventReporting(prim);
                 lock (ode)
                 {
-                    if (prim.prim_geom != (IntPtr)0)
+                    if (prim.prim_geom != IntPtr.Zero)
                     {
                         prim.ResetTaints();
 
@@ -1217,7 +1221,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         // If the geometry is in the targetspace, remove it from the target space
                         //m_log.Warn(prim.m_targetSpace);
 
-                        //if (prim.m_targetSpace != (IntPtr)0)
+                        //if (prim.m_targetSpace != IntPtr.Zero)
                         //{
                         //if (d.SpaceQuery(prim.m_targetSpace, prim.prim_geom))
                         //{
@@ -1226,7 +1230,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         //{
                         //waitForSpaceUnlock(prim.m_targetSpace);
                         //d.SpaceRemove(prim.m_targetSpace, prim.prim_geom);
-                        prim.m_targetSpace = (IntPtr)0;
+                        prim.m_targetSpace = IntPtr.Zero;
                         //}
                         //else
                         //{
@@ -1239,10 +1243,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                         //m_log.Warn(prim.prim_geom);
                         try
                         {
-                            if (prim.prim_geom != (IntPtr)0)
+                            if (prim.prim_geom != IntPtr.Zero)
                             {
                                 d.GeomDestroy(prim.prim_geom);
-                                prim.prim_geom = (IntPtr)0;
+                                prim.prim_geom = IntPtr.Zero;
                             }
                             else
                             {
@@ -1258,7 +1262,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         //If there are no more geometries in the sub-space, we don't need it in the main space anymore
                         //if (d.SpaceGetNumGeoms(prim.m_targetSpace) == 0)
                         //{
-                        //if (!(prim.m_targetSpace.Equals(null)))
+                        //if (prim.m_targetSpace != null)
                         //{
                         //if (d.GeomIsSpace(prim.m_targetSpace))
                         //{
@@ -1327,11 +1331,11 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (currentspace != space)
             {
                 //m_log.Info("[SPACE]: C:" + currentspace.ToString() + " g:" + geom.ToString());
-                //if (currentspace == (IntPtr) 0)
+                //if (currentspace == IntPtr.Zero)
                //{
                     //int adfadf = 0;
                 //}
-                if (d.SpaceQuery(currentspace, geom) && currentspace != (IntPtr) 0)
+                if (d.SpaceQuery(currentspace, geom) && currentspace != IntPtr.Zero)
                 {
                     if (d.GeomIsSpace(currentspace))
                     {
@@ -1347,20 +1351,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                 else
                 {
                     IntPtr sGeomIsIn = d.GeomGetSpace(geom);
-                    if (!(sGeomIsIn.Equals(null)))
+                    if (sGeomIsIn != IntPtr.Zero)
                     {
-                        if (sGeomIsIn != (IntPtr) 0)
+                        if (d.GeomIsSpace(currentspace))
                         {
-                            if (d.GeomIsSpace(currentspace))
-                            {
-                                waitForSpaceUnlock(sGeomIsIn);
-                                d.SpaceRemove(sGeomIsIn, geom);
-                            }
-                            else
-                            {
-                                m_log.Info("[Physics]: Invalid Scene passed to 'recalculatespace':" +
-                                           sGeomIsIn.ToString() + " Geom:" + geom.ToString());
-                            }
+                            waitForSpaceUnlock(sGeomIsIn);
+                            d.SpaceRemove(sGeomIsIn, geom);
+                        }
+                        else
+                        {
+                            m_log.Info("[Physics]: Invalid Scene passed to 'recalculatespace':" +
+                                       sGeomIsIn.ToString() + " Geom:" + geom.ToString());
                         }
                     }
                 }
@@ -1368,7 +1369,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 //If there are no more geometries in the sub-space, we don't need it in the main space anymore
                 if (d.SpaceGetNumGeoms(currentspace) == 0)
                 {
-                    if (currentspace != (IntPtr) 0)
+                    if (currentspace != IntPtr.Zero)
                     {
                         if (d.GeomIsSpace(currentspace))
                         {
@@ -1391,7 +1392,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             else
             {
                 // this is a physical object that got disabled. ;.;
-                if (currentspace != (IntPtr)0 && geom != (IntPtr)0)
+                if (currentspace != IntPtr.Zero && geom != IntPtr.Zero)
                 {
                     if (d.SpaceQuery(currentspace, geom))
                     {
@@ -1409,20 +1410,17 @@ namespace OpenSim.Region.Physics.OdePlugin
                     else
                     {
                         IntPtr sGeomIsIn = d.GeomGetSpace(geom);
-                        if (!(sGeomIsIn.Equals(null)))
+                        if (sGeomIsIn != IntPtr.Zero)
                         {
-                            if (sGeomIsIn != (IntPtr)0)
+                            if (d.GeomIsSpace(sGeomIsIn))
                             {
-                                if (d.GeomIsSpace(sGeomIsIn))
-                                {
-                                    waitForSpaceUnlock(sGeomIsIn);
-                                    d.SpaceRemove(sGeomIsIn, geom);
-                                }
-                                else
-                                {
-                                    m_log.Info("[Physics]: Invalid Scene passed to 'recalculatespace':" +
-                                               sGeomIsIn.ToString() + " Geom:" + geom.ToString());
-                                }
+                                waitForSpaceUnlock(sGeomIsIn);
+                                d.SpaceRemove(sGeomIsIn, geom);
+                            }
+                            else
+                            {
+                                m_log.Info("[Physics]: Invalid Scene passed to 'recalculatespace':" +
+                                           sGeomIsIn.ToString() + " Geom:" + geom.ToString());
                             }
                         }
                     }
@@ -1461,20 +1459,15 @@ namespace OpenSim.Region.Physics.OdePlugin
         }
 
         /// <summary>
-        /// Calculates the space the prim should be in by it's position
+        /// Calculates the space the prim should be in by its position
         /// </summary>
         /// <param name="pos"></param>
         /// <returns>a pointer to the space. This could be a new space or reused space.</returns>
         public IntPtr calculateSpaceForGeom(PhysicsVector pos)
         {
-            IntPtr locationbasedspace =IntPtr.Zero;
-
-                int[] xyspace = calculateSpaceArrayItemFromPos(pos);
-                //m_log.Info("[Physics]: Attempting to use arrayItem: " + xyspace[0].ToString() + "," + xyspace[1].ToString());
-                locationbasedspace = staticPrimspace[xyspace[0], xyspace[1]];
-
-            //locationbasedspace = space;
-            return locationbasedspace;
+            int[] xyspace = calculateSpaceArrayItemFromPos(pos);
+            //m_log.Info("[Physics]: Attempting to use arrayItem: " + xyspace[0].ToString() + "," + xyspace[1].ToString());
+            return staticPrimspace[xyspace[0], xyspace[1]];
         }
 
         /// <summary>
@@ -2050,7 +2043,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             lock (OdeLock)
             {
-                if (!(LandGeom == (IntPtr) 0))
+                if (LandGeom != IntPtr.Zero)
                 {
                     d.SpaceRemove(space, LandGeom);
                 }
@@ -2060,7 +2053,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                                  offset, thickness, wrap);
                 d.GeomHeightfieldDataSetBounds(HeightmapData, m_regionWidth, m_regionHeight);
                 LandGeom = d.CreateHeightfield(space, HeightmapData, 1);
-                if (LandGeom != (IntPtr)0)
+                if (LandGeom != IntPtr.Zero)
                 {
                     d.GeomSetCategoryBits(LandGeom, (int)(CollisionCategories.Land));
                     d.GeomSetCollideBits(LandGeom, (int)(CollisionCategories.Space));
@@ -2115,7 +2108,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
             lock (OdeLock)
             {
-                if (!(WaterGeom == (IntPtr)0))
+                if (WaterGeom != IntPtr.Zero)
                 {
                     d.SpaceRemove(space, WaterGeom);
                 }
@@ -2125,7 +2118,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                                                  offset, thickness, wrap);
                 d.GeomHeightfieldDataSetBounds(HeightmapData, m_regionWidth, m_regionHeight);
                 WaterGeom = d.CreateHeightfield(space, HeightmapData, 1);
-                if (WaterGeom != (IntPtr)0)
+                if (WaterGeom != IntPtr.Zero)
                 {
                     d.GeomSetCategoryBits(WaterGeom, (int)(CollisionCategories.Water));
                     d.GeomSetCollideBits(WaterGeom, (int)(CollisionCategories.Space));

@@ -2658,7 +2658,7 @@ namespace OpenSim.Region.Environment.Scenes
                             ClientManager.ForEachClient(delegate(IClientAPI controller)
                                                         {
                                                             ScenePresence p = GetScenePresence(controller.AgentId);
-                                                            bool childagent = !p.Equals(null) && p.IsChildAgent;
+                                                            bool childagent = p != null && p.IsChildAgent;
                                                             if (controller.AgentId != godID && !childagent)
                                                                 // Do we really want to kick the initiator of this madness?
                                                             {
@@ -2669,14 +2669,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                         else
                         {
-                            if (m_scenePresences[agentID].IsChildAgent)
-                            {
-                                m_innerScene.removeUserCount(false);
-                            }
-                            else
-                            {
-                                m_innerScene.removeUserCount(true);
-                            }
+                            m_innerScene.removeUserCount(!m_scenePresences[agentID].IsChildAgent);
 
                             m_scenePresences[agentID].ControllingClient.Kick(Helpers.FieldToUTF8String(reason));
                             m_scenePresences[agentID].ControllingClient.Close(true);
@@ -2696,7 +2689,6 @@ namespace OpenSim.Region.Environment.Scenes
             // Check for spoofing..  since this is permissions we're talking about here!
             if ((controller.SessionId == sessionID) && (controller.AgentId == agentID))
             {
-
                 // Tell the object to do permission update
                 if (localId != 0)
                 {
@@ -2706,7 +2698,6 @@ namespace OpenSim.Region.Environment.Scenes
                         chObjectGroup.UpdatePermissions(agentID, field, localId, mask, set);
                     }
                 }
-
             }
         }
 
@@ -3126,8 +3117,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="action"></param>
         public void ForEachScenePresence(Action<ScenePresence> action)
         {
-            // We don't want to try to send messages if there are no avatar.
-            if (!(m_scenePresences.Equals(null)))
+            // We don't want to try to send messages if there are no avatars.
+            if (m_scenePresences != null)
             {
                 try
                 {

@@ -45,26 +45,24 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
             ChannelServices.RegisterChannel(chan, true);
         }
 
+        /// <summary>
+        /// Create a channel for communicating w/ the remote object
+        /// Notice no port is specified on the client
+        /// </summary>
         public ScriptServerInterfaces.ServerRemotingObject Connect(string hostname, int port)
         {
-            // Create a channel for communicating w/ the remote object
-            // Notice no port is specified on the client
-                        
+            ScriptServerInterfaces.ServerRemotingObject obj = null;
+
             try
             {
                 // Create an instance of the remote object
-                ScriptServerInterfaces.ServerRemotingObject obj = (ScriptServerInterfaces.ServerRemotingObject)Activator.GetObject(
+                obj = (ScriptServerInterfaces.ServerRemotingObject)Activator.GetObject(
                     typeof(ScriptServerInterfaces.ServerRemotingObject),
                     "tcp://" + hostname + ":" + port + "/DotNetEngine");
 
-                // Use the object
-                if (obj.Equals(null))
+                if (obj == null)
                 {
                     Console.WriteLine("Error: unable to locate server");
-                }
-                else
-                {
-                    return obj;
                 }
             }
             catch (SocketException)
@@ -75,7 +73,8 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
             {
                 Console.WriteLine("Error: unable to connect to server");
             }
-            return null;
+
+            return obj;
         }
     }
 }

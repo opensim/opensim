@@ -79,7 +79,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
             client.OnObjectPermissions += delegate(IClientAPI controller, LLUUID agentID, LLUUID sessionID,
                 byte field, uint localId, uint mask, byte set) { this.Stale = true; };
             client.OnRezObject += delegate(IClientAPI remoteClient, LLUUID itemID, LLVector3 RayEnd,
-                LLVector3 RayStart, LLUUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection, 
+                LLVector3 RayStart, LLUUID RayTargetID, byte BypassRayCast, bool RayEndIsIntersection,
                 uint EveryoneMask, uint GroupMask, uint NextOwnerMask, uint ItemFlags, bool RezSelected,
                 bool RemoveItem, LLUUID fromTaskID) { this.Stale = true; };
         }
@@ -99,7 +99,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
             foreach (EntityBase entity in m_scene.Entities.Values)
             {
                 // only objects, not avatars
-                if (entity is SceneObjectGroup) 
+                if (entity is SceneObjectGroup)
                 {
                     SceneObjectGroup obj = (SceneObjectGroup)entity;
 
@@ -135,7 +135,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                             node = nodeFactory.CreateNode(XmlNodeType.Element, "description", "");
                             node.InnerText = m_rootPart.Description;
                             xmlobject.AppendChild(node);
-                            
+
                             node = nodeFactory.CreateNode(XmlNodeType.Element, "flags", "");
                             node.InnerText = String.Format("{0:x}", m_rootPart.ObjectFlags);
                             xmlobject.AppendChild(node);

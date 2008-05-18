@@ -1469,7 +1469,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetWearable(IClientAPI client, int wearableId, AvatarWearable wearable)
         {
-            m_log.Info("[APPEARANCE] Setting wearable with client, wearableid, wearable"); 
+            m_log.Info("[APPEARANCE] Setting wearable with client, wearableid, wearable");
             m_appearance.SetWearable(wearableId, wearable);
             m_scene.CommsManager.UserService.UpdateUserAppearance(client.AgentId, m_appearance);
             client.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
@@ -1524,7 +1524,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetWearable(int wearableId, AvatarWearable wearable)
         {
-            m_log.Warn("[APPEARANCE] Setting Wearable"); 
+            m_log.Warn("[APPEARANCE] Setting Wearable");
             m_appearance.SetWearable(wearableId, wearable);
             m_scene.CommsManager.UserService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
         }

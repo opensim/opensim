@@ -33,7 +33,7 @@ namespace OpenSim.Region.Environment.Interfaces
 {
     public delegate void ObjectPaid(LLUUID objectID, LLUUID agentID, int amount);
     public interface IMoneyModule : IRegionModule
-    { 
+    {
         bool ObjectGiveMoney(LLUUID objectID, LLUUID fromID, LLUUID toID,
                 int amount);
 

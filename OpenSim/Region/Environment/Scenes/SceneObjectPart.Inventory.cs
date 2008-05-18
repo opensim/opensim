@@ -497,26 +497,26 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 foreach (TaskInventoryItem item in m_taskInventory.Values)
                 {
-                    LLUUID ownerID=item.OwnerID;
-                    uint everyoneMask=0;
-                    uint baseMask=item.BaseMask;
-                    uint ownerMask=item.OwnerMask;
+                    LLUUID ownerID = item.OwnerID;
+                    uint everyoneMask = 0;
+                    uint baseMask = item.BaseMask;
+                    uint ownerMask = item.OwnerMask;
 
-                    if(item.InvType == 10) // Script
+                    if (item.InvType == 10) // Script
                     {
-                        if((item.OwnerID != client.AgentId) && m_parentGroup.Scene.ExternalChecks.ExternalChecksCanViewScript(item.ItemID, UUID, client.AgentId))
+                        if ((item.OwnerID != client.AgentId) && m_parentGroup.Scene.ExternalChecks.ExternalChecksCanViewScript(item.ItemID, UUID, client.AgentId))
                         {
-                            ownerID=client.AgentId;
-                            baseMask=0x7fffffff;
-                            ownerMask=0x7fffffff;
-                            everyoneMask=(uint)(PermissionMask.Move | PermissionMask.Transfer);
+                            ownerID = client.AgentId;
+                            baseMask = 0x7fffffff;
+                            ownerMask = 0x7fffffff;
+                            everyoneMask = (uint)(PermissionMask.Move | PermissionMask.Transfer);
                         }
-                        if((item.OwnerID != client.AgentId) && m_parentGroup.Scene.ExternalChecks.ExternalChecksCanEditScript(item.ItemID, UUID, client.AgentId))
+                        if ((item.OwnerID != client.AgentId) && m_parentGroup.Scene.ExternalChecks.ExternalChecksCanEditScript(item.ItemID, UUID, client.AgentId))
                         {
-                            ownerID=client.AgentId;
-                            baseMask=0x7fffffff;
-                            ownerMask=0x7fffffff;
-                            everyoneMask=(uint)(PermissionMask.Move | PermissionMask.Transfer | PermissionMask.Modify);
+                            ownerID = client.AgentId;
+                            baseMask = 0x7fffffff;
+                            ownerMask = 0x7fffffff;
+                            everyoneMask = (uint)(PermissionMask.Move | PermissionMask.Transfer | PermissionMask.Modify);
                         }
                     }
 

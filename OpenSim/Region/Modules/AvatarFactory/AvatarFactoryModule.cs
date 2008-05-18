@@ -297,7 +297,7 @@ namespace OpenSim.Region.Modules.AvatarFactory
                             else
                             {
                                 LLUUID assetId;
-                                
+
                                 InventoryItemBase baseItem = profile.RootFolder.FindItem(wear.ItemID);
 
                                 if (baseItem != null)
@@ -306,7 +306,7 @@ namespace OpenSim.Region.Modules.AvatarFactory
                                     avatAppearance.Wearables[wear.Type].AssetID = assetId;
                                     avatAppearance.Wearables[wear.Type].ItemID = wear.ItemID;
                                 }
-                                else 
+                                else
                                 {
                                     m_log.ErrorFormat("[APPEARANCE] Can't find inventory item {0}, not wearing", wear.ItemID);
                                 }
@@ -314,8 +314,8 @@ namespace OpenSim.Region.Modules.AvatarFactory
                         }
                     }
                     m_scene.CommsManager.UserService.UpdateUserAppearance(clientView.AgentId, avatAppearance);
-                } 
-                else 
+                }
+                else
                 {
                     m_log.Error("Root Profile is null, we can't set the appearance");
                 }

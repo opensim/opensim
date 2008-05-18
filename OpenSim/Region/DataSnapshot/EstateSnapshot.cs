@@ -38,7 +38,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
         /* This module doesn't check for changes, since it's *assumed* there are none.
          * Nevertheless, it's possible to have changes, since all the fields are public.
          * There's no event to subscribe to. :/
-         * 
+         *
          * I don't think anything changes the fields beyond RegionModule PostInit, however.
          */
         private Scene m_scene = null;
