@@ -5133,13 +5133,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             if (lma == null)
                             {
                                 // Failed to find landmark
-
                                 TeleportCancelPacket tpCancel = (TeleportCancelPacket)PacketPool.Instance.GetPacket(PacketType.TeleportCancel);
                                 tpCancel.Info.SessionID = tpReq.Info.SessionID;
                                 tpCancel.Info.AgentID = tpReq.Info.AgentID;
                                 OutPacket(tpCancel, ThrottleOutPacketType.Task);
                             }
-
 
                             try
                             {
@@ -5157,7 +5155,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                         else
                         {
-
                             // Teleport home request
                             handlerTeleportHomeRequest = OnTeleportHomeRequest;
                             if (handlerTeleportHomeRequest != null)

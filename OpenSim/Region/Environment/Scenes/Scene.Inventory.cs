@@ -1481,9 +1481,7 @@ namespace OpenSim.Region.Environment.Scenes
                                 group.ApplyPhysics(m_physicalPrim);
                             }
 
-
                             group.StartScripts();
-
 
                             if (!attachment)
                                 rootPart.ScheduleFullUpdate();
@@ -1493,6 +1491,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
+            
             return null;
         }
 
@@ -1502,7 +1501,6 @@ namespace OpenSim.Region.Environment.Scenes
             if (item != null)
             {
                 LLUUID ownerID = item.OwnerID;
-
 
                 AssetBase rezAsset = AssetCache.GetAsset(item.AssetID, false);
 

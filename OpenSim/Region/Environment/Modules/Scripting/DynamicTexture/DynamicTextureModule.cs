@@ -57,6 +57,11 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
             }
         }
 
+        /// <summary>
+        /// Called by code which actually renders the dynamic texture to supply texture data.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="data"></param>
         public void ReturnData(LLUUID id, byte[] data)
         {
             if (Updaters.ContainsKey(id))
@@ -69,7 +74,6 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
                 }
             }
         }
-
 
         public LLUUID AddDynamicTextureURL(LLUUID simID, LLUUID primID, string contentType, string url,
                                            string extraParams, int updateTimer)
@@ -196,11 +200,15 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
                 BodyData = null;
             }
 
+            /// <summary>
+            /// Called once new texture data has been received for this updater.
+            /// </summary>
             public void DataReceived(byte[] data, Scene scene)
             {
                 SceneObjectPart part = scene.GetSceneObjectPart(PrimID);
                 byte[] assetData;
                 AssetBase oldAsset = null;
+                
                 if (BlendWithOldTexture)
                 {
                     LLUUID lastTextureID = part.Shape.Textures.DefaultTexture.TextureID;
@@ -233,7 +241,6 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
                 scene.AssetCache.AddAsset(asset);
 
                 LastAssetID = asset.FullID;
-
 
                 part.Shape.Textures = new LLObject.TextureEntry(asset.FullID);
                 part.ScheduleFullUpdate();
