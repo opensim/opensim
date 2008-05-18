@@ -472,7 +472,7 @@ namespace OpenSim.Framework
             {
                 SculptEntry = true;
                 SculptTextureUUID = new byte[16];
-                SculptTypel = data[16];
+                SculptTypel = data[16 + pos];
                 Array.Copy(data, pos, SculptTextureUUID,0, 16);
                 SculptUUID = new LLUUID(SculptTextureUUID, 0);
             }
@@ -483,7 +483,11 @@ namespace OpenSim.Framework
                 SculptTypel = 0x00;
             }
 
-
+            if (SculptEntry)
+            {
+                if (SculptType != (byte)1 && SculptType != (byte)2 && SculptType != (byte)3 && SculptType != (byte)4)
+                    SculptType = 4;
+            }
             SculptTexture = SculptUUID;
             SculptType = SculptTypel;
             //m_log.Info("[SCULPT]:" + SculptUUID.ToString());
