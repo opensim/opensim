@@ -1651,6 +1651,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             client.OnSetStartLocationRequest += SetHomeRezPoint;
             client.OnUndo += m_innerScene.HandleUndo;
+            client.OnObjectGroupRequest += m_innerScene.HandleObjectGroupUpdate;
 
             EventManager.TriggerOnNewClient(client);
         }

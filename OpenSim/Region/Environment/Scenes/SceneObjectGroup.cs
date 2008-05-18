@@ -2510,5 +2510,16 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+        public void SetGroup(LLUUID GroupID, IClientAPI client)
+        {
+            lock (m_parts)
+            {
+                foreach (SceneObjectPart part in m_parts.Values)
+                {
+                    part.SetGroup(GroupID, client);
+                }
+            }
+            ScheduleGroupForFullUpdate();
+        }
     }
 }

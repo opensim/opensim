@@ -236,6 +236,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event RequestAsset OnRequestAsset;
 
         public event UUIDNameRequest OnNameFromUUIDRequest;
+        public event UUIDNameRequest OnUUIDGroupNameRequest;
 
         public event ParcelPropertiesRequest OnParcelPropertiesRequest;
         public event ParcelDivideRequest OnParcelDivideRequest;
@@ -269,6 +270,8 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event AgentSit OnUndo;
 
         public event ForceReleaseControls OnForceReleaseControls;
+
+        public event RequestObjectPropertiesFamily OnObjectGroupRequest;
 
         public event DetailedEstateDataRequest OnDetailedEstateDataRequest;
         public event SetEstateFlagsRequest OnSetEstateFlagsRequest;
@@ -754,6 +757,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
         public void sendLandParcelOverlay(byte[] data, int sequence_id)
+        {
+        }
+
+        public void SendGroupNameReply(LLUUID groupLLUID, string GroupName)
         {
         }
         #endregion

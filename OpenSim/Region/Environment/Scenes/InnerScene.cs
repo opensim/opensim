@@ -330,7 +330,30 @@ namespace OpenSim.Region.Environment.Scenes
 
 
         }
+        public void HandleObjectGroupUpdate(
+        IClientAPI remoteClient, LLUUID GroupID, uint objectLocalID, LLUUID Garbage)
+        {
+            List<EntityBase> EntityList = GetEntities();
 
+            foreach (EntityBase obj in EntityList)
+            {
+                if (obj is SceneObjectGroup)
+                {
+                    if (((SceneObjectGroup)obj).LocalId == objectLocalID)
+                    {
+                        SceneObjectGroup group = (SceneObjectGroup)obj;
+
+                        if (m_parentScene.ExternalChecks.ExternalChecksCanEditObject(group.UUID, remoteClient.AgentId))
+                            group.SetGroup(GroupID, remoteClient);
+                        else
+                            remoteClient.SendAgentAlertMessage("You don't have permission to set the group", false);
+                        
+                    }
+                }
+            }
+
+
+        }
         /// <summary>
         /// Event Handling routine for Attach Object
         /// </summary>

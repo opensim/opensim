@@ -813,8 +813,9 @@ namespace OpenSim.Framework
         event EstateBlueBoxMessageRequest OnEstateBlueBoxMessageRequest;
         event EstateDebugRegionRequest OnEstateDebugRegionRequest;
         event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
+        event UUIDNameRequest OnUUIDGroupNameRequest;
 
-
+        event RequestObjectPropertiesFamily OnObjectGroupRequest;
 
         [Obsolete("IClientAPI.OutPacket SHOULD NOT EXIST outside of LLClientView please refactor appropriately.")]
         void OutPacket(Packet newPack, ThrottleOutPacketType packType);
@@ -983,6 +984,7 @@ namespace OpenSim.Framework
 
         void SendGroupMembership(GroupData[] GroupMembership);
 
+        void SendGroupNameReply(LLUUID groupLLUID, string GroupName);
 
         byte[] GetThrottlesPacked(float multiplier);
 

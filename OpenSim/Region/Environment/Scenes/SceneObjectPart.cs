@@ -2760,12 +2760,18 @@ namespace OpenSim.Region.Environment.Scenes
         public void GetProperties(IClientAPI client)
         {
 
-            client.SendObjectPropertiesReply(LLUUID.Zero, (ulong)CreationDate, CreatorID, LLUUID.Zero, LLUUID.Zero,
+            client.SendObjectPropertiesReply(LLUUID.Zero, (ulong)CreationDate, CreatorID, LLUUID.Zero, GroupID,
                                                LLUUID.Zero, (short)InventorySerial, LastOwnerID, UUID, OwnerID,
                                                ParentGroup.RootPart.TouchName, new byte[0], ParentGroup.RootPart.SitName, Name, Description,
                                                ParentGroup.RootPart.OwnerMask, ParentGroup.RootPart.NextOwnerMask, ParentGroup.RootPart.GroupMask, ParentGroup.RootPart.EveryoneMask,
                                                ParentGroup.RootPart.BaseMask);
 
+        }
+        public void SetGroup(LLUUID groupID, IClientAPI client)
+        {
+            GroupID = groupID;
+            GetProperties(client);
+            m_updateFlag = 2;
         }
 
     }

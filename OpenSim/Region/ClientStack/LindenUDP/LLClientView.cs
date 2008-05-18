@@ -249,6 +249,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private ForceReleaseControls handlerForceReleaseControls = null;
 
+        private UUIDNameRequest handlerUUIDGroupNameRequest = null;
+
+        private RequestObjectPropertiesFamily handlerObjectGroupRequest = null;
+
         /* Properties */
 
         public LLUUID SecureSessionId
@@ -828,11 +832,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public event UUIDNameRequest OnTeleportHomeRequest;
 
+        public event UUIDNameRequest OnUUIDGroupNameRequest;
+
         public event ScriptAnswer OnScriptAnswer;
         public event RequestPayPrice OnRequestPayPrice;
         public event AgentSit OnUndo;
 
         public event ForceReleaseControls OnForceReleaseControls;
+
+        public event RequestObjectPropertiesFamily OnObjectGroupRequest;
 
         public event DetailedEstateDataRequest OnDetailedEstateDataRequest;
         public event SetEstateFlagsRequest OnSetEstateFlagsRequest;
@@ -3044,6 +3052,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             AddLocalPacketHandler(PacketType.MultipleObjectUpdate, MultipleObjUpdate);
             AddLocalPacketHandler(PacketType.MoneyTransferRequest, HandleMoneyTransferRequest);
             AddLocalPacketHandler(PacketType.ParcelBuy, HandleParcelBuyRequest);
+            AddLocalPacketHandler(PacketType.UUIDGroupNameRequest, HandleUUIDGroupNameRequest);
+            AddLocalPacketHandler(PacketType.ObjectGroup, HandleObjectGroupRequest);
         }
 
         private bool HandleMoneyTransferRequest(IClientAPI sender, Packet Pack)
@@ -3089,6 +3099,39 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
         }
+
+        private bool HandleUUIDGroupNameRequest(IClientAPI sender, Packet Pack)
+        {
+            UUIDGroupNameRequestPacket upack = (UUIDGroupNameRequestPacket) Pack;
+
+            for (int i=0;i< upack.UUIDNameBlock.Length; i++)
+            {
+                handlerUUIDGroupNameRequest = OnUUIDGroupNameRequest;
+                if (handlerUUIDGroupNameRequest != null)
+                {
+                    handlerUUIDGroupNameRequest(upack.UUIDNameBlock[i].ID,this);
+                }
+            }
+
+            return true;
+        }
+
+        public bool HandleObjectGroupRequest(IClientAPI sender, Packet Pack)
+        {
+            
+            ObjectGroupPacket ogpack = (ObjectGroupPacket)Pack;
+            handlerObjectGroupRequest = OnObjectGroupRequest;
+            if (handlerObjectGroupRequest != null)
+            {
+                for (int i = 0; i < ogpack.ObjectData.Length; i++)
+                {
+                    handlerObjectGroupRequest(this, ogpack.AgentData.GroupID, ogpack.ObjectData[i].ObjectLocalID, LLUUID.Zero);
+                }
+            }
+            return true;
+        }
+
+        
 
         private bool HandleViewerEffect(IClientAPI sender, Packet Pack)
         {
@@ -5838,7 +5881,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(Groupupdate, ThrottleOutPacketType.Task);
 
         }
-
+        public void SendGroupNameReply(LLUUID groupLLUID, string GroupName)
+        {
+            UUIDGroupNameReplyPacket pack = new UUIDGroupNameReplyPacket();
+            UUIDGroupNameReplyPacket.UUIDNameBlockBlock[] uidnameblock = new UUIDGroupNameReplyPacket.UUIDNameBlockBlock[1];
+            UUIDGroupNameReplyPacket.UUIDNameBlockBlock uidnamebloc = new UUIDGroupNameReplyPacket.UUIDNameBlockBlock();
+            uidnamebloc.ID = groupLLUID;
+            uidnamebloc.GroupName = Helpers.StringToField(GroupName);
+            uidnameblock[0] = uidnamebloc;
+            pack.UUIDNameBlock = uidnameblock;
+            OutPacket(pack, ThrottleOutPacketType.Task);
+        }
         public ClientInfo GetClientInfo()
         {
             //MainLog.Instance.Verbose("CLIENT", "GetClientInfo BGN");

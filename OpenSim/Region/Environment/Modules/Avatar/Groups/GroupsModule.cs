@@ -44,6 +44,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
         private Dictionary<LLUUID, GroupList> m_grouplistmap = new Dictionary<LLUUID, GroupList>();
         private Dictionary<LLUUID, GroupData> m_groupmap = new Dictionary<LLUUID, GroupData>();
         private Dictionary<LLUUID, IClientAPI> m_iclientmap = new Dictionary<LLUUID, IClientAPI>();
+        private Dictionary<LLUUID, GroupData> m_groupUUIDGroup = new Dictionary<LLUUID, GroupData>();
+        private LLUUID opensimulatorGroupID = new LLUUID("00000000-68f9-1111-024e-222222111123");
+
         private List<Scene> m_scene = new List<Scene>();
 
         #region IRegionModule Members
@@ -57,6 +60,18 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
             scene.EventManager.OnNewClient += OnNewClient;
             scene.EventManager.OnClientClosed += OnClientClosed;
             scene.EventManager.OnGridInstantMessageToGroupsModule += OnGridInstantMessage;
+            lock (m_groupUUIDGroup)
+            {
+                
+                GroupData OpenSimulatorGroup = new GroupData();
+                OpenSimulatorGroup.ActiveGroupTitle = "OpenSimulator Tester";
+                OpenSimulatorGroup.GroupID = opensimulatorGroupID;
+                OpenSimulatorGroup.groupName = "OpenSimulator Testing";
+                OpenSimulatorGroup.ActiveGroupPowers = GroupPowers.LandAllowSetHome;
+                OpenSimulatorGroup.GroupTitles.Add("OpenSimulator Tester");
+                if (!m_groupUUIDGroup.ContainsKey(opensimulatorGroupID))
+                    m_groupUUIDGroup.Add(opensimulatorGroupID, OpenSimulatorGroup);
+            }
             //scene.EventManager.
         }
 
@@ -102,6 +117,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
             // Subscribe to instant messages
             client.OnInstantMessage += OnInstantMessage;
             client.OnAgentDataUpdateRequest += OnAgentDataUpdateRequest;
+            client.OnUUIDGroupNameRequest += HandleUUIDGroupNameRequest;
             lock (m_iclientmap)
             {
                 if (!m_iclientmap.ContainsKey(client.AgentId))
@@ -109,13 +125,18 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
                     m_iclientmap.Add(client.AgentId, client);
                 }
             }
-            GroupData OpenSimulatorGroup = new GroupData();
-            OpenSimulatorGroup.ActiveGroupTitle = "OpenSimulator Tester";
-            OpenSimulatorGroup.GroupID = new LLUUID("00000000-68f9-1111-024e-222222111120");
-            OpenSimulatorGroup.GroupMembers.Add(client.AgentId);
-            OpenSimulatorGroup.groupName = "OpenSimulator Testing";
-            OpenSimulatorGroup.ActiveGroupPowers = GroupPowers.LandAllowSetHome;
-            OpenSimulatorGroup.GroupTitles.Add("OpenSimulator Tester");
+            GroupData OpenSimulatorGroup = null;
+            lock (m_groupUUIDGroup)
+            {
+                OpenSimulatorGroup = m_groupUUIDGroup[opensimulatorGroupID];
+                if (!OpenSimulatorGroup.GroupMembers.Contains(client.AgentId))
+                {
+                    OpenSimulatorGroup.GroupMembers.Add(client.AgentId);
+                    m_groupUUIDGroup[opensimulatorGroupID] = OpenSimulatorGroup;
+                }
+
+            }
+            
             lock (m_groupmap)
             {
                 if (!m_groupmap.ContainsKey(client.AgentId))
@@ -124,7 +145,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
                 }
             }
             GroupList testGroupList = new GroupList();
-            testGroupList.m_GroupList.Add(new LLUUID("00000000-68f9-1111-024e-222222111120"));
+            testGroupList.m_GroupList.Add(OpenSimulatorGroup.GroupID);
 
             lock (m_grouplistmap)
             {
@@ -133,7 +154,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
                     m_grouplistmap.Add(client.AgentId, testGroupList);
                 }
             }
-            m_log.Info("[GROUP]: Adding " + client.Name + " to OpenSimulator Tester group");
+            m_log.Info("[GROUP]: Adding " + client.Name + " to " + OpenSimulatorGroup.groupName + " ");
             GroupData[] updateGroups = new GroupData[1];
             updateGroups[0] = OpenSimulatorGroup;
 
@@ -201,7 +222,22 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Groups
                              new LLVector3(msg.Position.x, msg.Position.y, msg.Position.z), new LLUUID(msg.RegionID),
                              msg.binaryBucket);
         }
+        private void HandleUUIDGroupNameRequest(LLUUID id,IClientAPI remote_client)
+        {
+            string groupnamereply = "Unknown";
+            LLUUID groupUUID = LLUUID.Zero;
 
+            lock (m_groupUUIDGroup)
+            {
+                if (m_groupUUIDGroup.ContainsKey(id))
+                {
+                    GroupData grp = m_groupUUIDGroup[id];
+                    groupnamereply = grp.groupName;
+                    groupUUID = grp.GroupID;
+                }
+            }
+            remote_client.SendGroupNameReply(groupUUID, groupnamereply);
+        }
         private void OnClientClosed(LLUUID agentID)
         {
             lock (m_iclientmap)

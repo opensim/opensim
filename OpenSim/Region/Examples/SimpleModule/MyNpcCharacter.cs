@@ -140,6 +140,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event RequestAsset OnRequestAsset;
 
         public event UUIDNameRequest OnNameFromUUIDRequest;
+        public event UUIDNameRequest OnUUIDGroupNameRequest;
 
         public event ParcelPropertiesRequest OnParcelPropertiesRequest;
         public event ParcelDivideRequest OnParcelDivideRequest;
@@ -173,6 +174,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event AgentSit OnUndo;
 
         public event ForceReleaseControls OnForceReleaseControls;
+        public event RequestObjectPropertiesFamily OnObjectGroupRequest;
 
         public event DetailedEstateDataRequest OnDetailedEstateDataRequest;
         public event SetEstateFlagsRequest OnSetEstateFlagsRequest;
@@ -752,6 +754,10 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
         public void sendLandParcelOverlay(byte[] data, int sequence_id)
+        {
+        }
+
+        public void SendGroupNameReply(LLUUID groupLLUID, string GroupName)
         {
         }
     }
