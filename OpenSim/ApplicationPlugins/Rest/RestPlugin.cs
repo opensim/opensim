@@ -23,16 +23,18 @@
 * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*
+* 
 */
 
 using System;
 using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Timers;
+using System.Xml;
 using libsecondlife;
 using Mono.Addins;
 using Nwc.XmlRpc;
@@ -54,14 +56,18 @@ namespace OpenSim.ApplicationPlugins.Rest
     {
         #region properties
 
-        protected static readonly log4net.ILog  m_log =
+        protected static readonly log4net.ILog  m_log = 
             log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private IConfig        _config;       // Configuration source: Rest Plugins
         private IConfig        _pluginConfig; // Configuration source: Plugin specific
         private OpenSimMain    _app;          // The 'server'
         private BaseHttpServer _httpd;        // The server's RPC interface
-        private string         _prefix;       // URL prefix below which all REST URLs are living
+        private string         _prefix;       // URL prefix below
+                                              // which all REST URLs
+                                              // are living
+        private StringWriter _sw = null;
+        private XmlTextWriter _xw = null;
 
         private string _godkey;
         private int    _reqk;
@@ -100,8 +106,8 @@ namespace OpenSim.ApplicationPlugins.Rest
         /// </summary>
         public bool IsEnabled
         {
-            get
-            {
+            get 
+            { 
                 return (null != _pluginConfig) && _pluginConfig.GetBoolean("enabled", false);
             }
         }
@@ -109,7 +115,7 @@ namespace OpenSim.ApplicationPlugins.Rest
         /// <summary>
         /// OpenSimMain application
         /// </summary>
-        public OpenSimMain App
+        public OpenSimMain App 
         {
             get { return _app; }
         }
@@ -117,7 +123,7 @@ namespace OpenSim.ApplicationPlugins.Rest
         /// <summary>
         /// RPC server
         /// </summary>
-        public BaseHttpServer HttpServer
+        public BaseHttpServer HttpServer 
         {
             get { return _httpd; }
         }
@@ -147,6 +153,29 @@ namespace OpenSim.ApplicationPlugins.Rest
         /// Return the config section name
         /// </summary>
         public abstract string ConfigName { get; }
+
+        public XmlTextWriter XmlWriter
+        {
+            get { 
+                if (null == _xw)
+                {
+                    _sw = new StringWriter();
+                    _xw = new XmlTextWriter(_sw);
+                    _xw.Formatting = Formatting.Indented;
+                }
+                return _xw; }
+        }
+
+        public string XmlWriterResult
+        {
+            get
+            {
+                _xw.Flush();
+                _xw = null;
+
+                return _sw.ToString();
+            }
+        }
         #endregion properties
 
 
@@ -171,7 +200,7 @@ namespace OpenSim.ApplicationPlugins.Rest
                     return;
                 }
 
-                if (!_config.GetBoolean("enabled", false))
+                if (!_config.GetBoolean("enabled", false)) 
                 {
                     m_log.WarnFormat("{0} Rest Plugins are disabled", MsgID);
                     return;
@@ -184,10 +213,11 @@ namespace OpenSim.ApplicationPlugins.Rest
                 _godkey = _config.GetString("god_key", String.Empty);
                 // Retrive prefix if any.
                 _prefix = _config.GetString("prefix", "/admin");
-
+                
                 // Get plugin specific config
                 _pluginConfig = openSim.ConfigSource.Configs[ConfigName];
 
+                
                 m_log.InfoFormat("{0} Rest Plugins Enabled", MsgID);
             }
             catch (Exception e)
@@ -200,7 +230,7 @@ namespace OpenSim.ApplicationPlugins.Rest
                 // not possible for the openSim pointer to be null. However
                 // were the implementation to be changed, this could
                 // result in a silent initialization failure. Harmless
-                // except for lack of function and lack of any
+                // except for lack of function and lack of any 
                 // diagnostic indication as to why. The same is true if
                 // the HTTP server reference is bad.
                 // We should at least issue a message...
@@ -214,7 +244,9 @@ namespace OpenSim.ApplicationPlugins.Rest
 
         public void AddRestStreamHandler(string httpMethod, string path, RestMethod method)
         {
-            if (!path.StartsWith(_prefix))
+            if (!IsEnabled) return;
+
+            if (!path.StartsWith(_prefix)) 
             {
                 path = String.Format("{0}{1}", _prefix, path);
             }
@@ -226,10 +258,12 @@ namespace OpenSim.ApplicationPlugins.Rest
             m_log.DebugFormat("{0} Added REST handler {1} {2}", MsgID, httpMethod, path);
         }
 
-
-        public bool VerifyGod(string key)
+        
+        protected bool VerifyGod(string key)
         {
             if (String.IsNullOrEmpty(key)) return false;
+            if (!IsEnabled) return false;
+
             return key == _godkey;
         }
 
@@ -240,6 +274,20 @@ namespace OpenSim.ApplicationPlugins.Rest
                 _httpd.RemoveStreamHandler(h.HttpMethod, h.Path);
             }
             _handlers = null;
+        }
+
+        protected string Failure(string method, string message)
+        {
+            m_log.ErrorFormat("{0} {1} failed: {2}", MsgID, method, message);
+            return String.Format("<error>{0}</error>", message);
+        }
+
+        public string Failure(string method, Exception e)
+        {
+            m_log.DebugFormat("{0} {1} failed: {2}", MsgID, method, e.ToString());
+            m_log.ErrorFormat("{0} {1} failed: {2}", MsgID, method, e.Message);
+
+            return String.Format("<error>{0}</error>", e.Message);
         }
         #endregion methods
     }

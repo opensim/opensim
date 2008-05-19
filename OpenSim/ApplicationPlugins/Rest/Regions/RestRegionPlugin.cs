@@ -23,7 +23,7 @@
 * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*
+* 
 */
 
 using System;
@@ -55,14 +55,11 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
 {
 
     [Extension("/OpenSim/Startup")]
-    public class RestRegionPlugin : RestPlugin
+    public partial class RestRegionPlugin : RestPlugin
     {
-        private static readonly log4net.ILog  _log =
-            log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
         #region overriding properties
-        public override string Name
-        {
+        public override string Name 
+        { 
             get { return "REGION"; }
         }
 
@@ -86,18 +83,20 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             try
             {
                 base.Initialise(openSim);
-                if (IsEnabled)
-                    m_log.InfoFormat("{0} Rest Plugins Enabled", MsgID);
-                else
+                if (!IsEnabled)                     
+                {
                     m_log.WarnFormat("{0} Rest Plugins are disabled", MsgID);
+                    return;
+                }
+                m_log.InfoFormat("{0} REST region plugin enabled", MsgID);
 
                 // add REST method handlers
                 AddRestStreamHandler("GET", "/regions/", GetHandler);
             }
             catch (Exception e)
             {
-                _log.WarnFormat("{0} Initialization failed: {1}", MsgID, e.Message);
-                _log.DebugFormat("{0} Initialization failed: {1}", MsgID, e.ToString());
+                m_log.WarnFormat("{0} Initialization failed: {1}", MsgID, e.Message);
+                m_log.DebugFormat("{0} Initialization failed: {1}", MsgID, e.ToString());
             }
         }
 
@@ -105,58 +104,5 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
         {
         }
         #endregion overriding methods
-
-        #region methods
-        public string GetHandler(string request, string path, string param)
-        {
-            m_log.DebugFormat("{0} GET path {1} param {2}", MsgID, path, param);
-
-            // param empty: regions list
-            if (String.IsNullOrEmpty(param)) return GetHandlerRegions();
-
-            return GetHandlerRegion(param);
-        }
-
-        public string GetHandlerRegions()
-        {
-            StringWriter sw = new StringWriter();
-            XmlTextWriter xw = new XmlTextWriter(sw);
-            xw.Formatting = Formatting.Indented;
-
-            xw.WriteStartElement(String.Empty, "regions", String.Empty);
-            foreach (Scene s in App.SceneManager.Scenes)
-            {
-                xw.WriteStartElement(String.Empty, "uuid", String.Empty);
-                xw.WriteString(s.RegionInfo.RegionID.ToString());
-                xw.WriteEndElement();
-            }
-            xw.WriteEndElement();
-            xw.Close();
-
-            return sw.ToString();
-        }
-
-        public string GetHandlerRegion(string param)
-        {
-            string[] comps = param.Split('/');
-            LLUUID regionID = (LLUUID)comps[0];
-            _log.DebugFormat("{0} region UUID {1}", MsgID, regionID.ToString());
-
-            if (LLUUID.Zero == regionID) throw new Exception("missing region ID");
-
-            Scene scene = null;
-            App.SceneManager.TryGetScene(regionID, out scene);
-
-            XmlSerializer xs = new XmlSerializer(typeof(RegionDetails));
-            StringWriter sw = new StringWriter();
-            XmlTextWriter xw = new XmlTextWriter(sw);
-            xw.Formatting = Formatting.Indented;
-
-            xs.Serialize(xw, new RegionDetails(scene.RegionInfo));
-            xw.Close();
-
-            return sw.ToString();
-        }
-        #endregion methods
     }
 }

@@ -23,7 +23,7 @@
 * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*
+* 
 */
 
 using libsecondlife;
@@ -65,8 +65,38 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             region_external_hostname = regInfo.ExternalHostName;
 
             if (!String.IsNullOrEmpty(regInfo.MasterAvatarFirstName))
-                region_owner = String.Format("{0} {1}", regInfo.MasterAvatarFirstName,
+                region_owner = String.Format("{0} {1}", regInfo.MasterAvatarFirstName, 
                                              regInfo.MasterAvatarLastName);
+        }
+
+        public string this[string idx]
+        {
+            get 
+            {
+                switch(idx.ToLower())
+                {
+                case "name": 
+                    return region_name;
+                case "id": 
+                    return region_id;
+                case "location": 
+                    return String.Format("<x>{0}</x><y>{1}</y>", region_x, region_y);
+                case "owner": 
+                    return region_owner;
+                case "owner_id": 
+                    return region_owner_id;
+                case "http_port": 
+                    return region_http_port.ToString();
+                case "server_uri": 
+                    return region_server_uri;
+                case "external_hostname":
+                case "hostname": 
+                    return region_external_hostname;
+
+                default: 
+                    return null;
+                }
+            }
         }
     }
 }
