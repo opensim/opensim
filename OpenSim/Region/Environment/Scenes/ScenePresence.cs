@@ -873,25 +873,19 @@ namespace OpenSim.Region.Environment.Scenes
                 // Cause the avatar to stop flying if it's colliding
                 // with something with the down arrow pressed.
 
-                // Skip if there's no physicsactor
-                if (m_physicsActor != null)
+                // Only do this if we're flying
+                if (m_physicsActor != null && m_physicsActor.Flying)
                 {
-                    // Only do this if we're flying
-                    if (m_physicsActor.Flying)
+                    // Are the landing controls requirements filled?
+                    bool controlland = (((flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) ||
+                                        ((flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
+
+                    // Are the collision requirements fulfilled?
+                    bool colliding = (m_physicsActor.IsColliding == true);
+
+                    if (m_physicsActor.Flying && colliding && controlland)
                     {
-                        // Are the landing controls requirements filled?
-                        bool controlland = (((flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) ||
-                                            ((flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_NUDGE_UP_NEG) != 0));
-
-                        // Are the collision requirements fulfilled?
-                        bool colliding = (m_physicsActor.IsColliding == true);
-
-
-
-                        if (m_physicsActor.Flying && colliding && controlland)
-                        {
-                            StopFlying();
-                        }
+                        StopFlying();
                     }
                 }
 
@@ -949,10 +943,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         private void SendSitResponse(IClientAPI remoteClient, LLUUID targetID, LLVector3 offset)
         {
-
-
-
-
             bool autopilot = true;
             LLVector3 pos = new LLVector3();
             LLQuaternion sitOrientation = new LLQuaternion(0, 0, 0, 1);
@@ -1181,21 +1171,20 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_movementflag != 0)
             {
                 // We are moving
-                if (m_physicsActor.Flying)
+                if (PhysicsActor != null && PhysicsActor.Flying)
                 {
                     return "FLY";
                 }
-                else if (((m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) &&
+                else if (PhysicsActor != null && (m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0 &&
                          PhysicsActor.IsColliding)
                 {
                     return "CROUCHWALK";
                 }
-                else if (!PhysicsActor.IsColliding && m_physicsActor.Velocity.Z < -6)
+                else if (PhysicsActor != null && !PhysicsActor.IsColliding && PhysicsActor.Velocity.Z < -6)
                 {
-                    // Client is moving and falling at a velocity greater then 6 meters per unit
                     return "FALLDOWN";
                 }
-                else if (!PhysicsActor.IsColliding && Velocity.Z > 0 &&
+                else if (PhysicsActor != null && !PhysicsActor.IsColliding && Velocity.Z > 0 &&
                          (m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
                 {
                     return "JUMP";
@@ -1212,23 +1201,20 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 // Not moving
-
-                if (((m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0) &&
-                    PhysicsActor.IsColliding)
+                if (PhysicsActor != null && PhysicsActor.IsColliding)
                 {
                     return "CROUCH";
                 }
-                else if (!PhysicsActor.IsColliding && m_physicsActor.Velocity.Z < -6 && !m_physicsActor.Flying)
+                else if (PhysicsActor != null && !PhysicsActor.IsColliding && PhysicsActor.Velocity.Z < -6 && !PhysicsActor.Flying)
                 {
                     return "FALLDOWN";
                 }
-                else if (!PhysicsActor.IsColliding && Velocity.Z > 0 && !m_physicsActor.Flying &&
-                         (m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
+                else if (PhysicsActor != null && !PhysicsActor.IsColliding && Velocity.Z > 0 && !PhysicsActor.Flying)
                 {
                     // This is the standing jump
                     return "JUMP";
                 }
-                else if (m_physicsActor.Flying)
+                else if (PhysicsActor != null && PhysicsActor.Flying)
                 {
                     return "HOVER";
                 }
@@ -1962,6 +1948,7 @@ namespace OpenSim.Region.Environment.Scenes
             Health = health;
             ControllingClient.SendHealth(Health);
         }
+
         internal void Close()
         {
             lock (m_attachments)
@@ -2009,6 +1996,7 @@ namespace OpenSim.Region.Environment.Scenes
                 DefaultTexture = textu.ToBytes();
             }
         }
+
         public void AddAttachment(SceneObjectGroup gobj)
         {
             lock (m_attachments)
@@ -2016,6 +2004,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_attachments.Add(gobj);
             }
         }
+
         public void RemoveAttachment(SceneObjectGroup gobj)
         {
             lock (m_attachments)
@@ -2026,6 +2015,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+
         public void CrossAttachmentsIntoNewRegion(ulong regionHandle)
         {
             lock (m_attachments)
@@ -2045,8 +2035,8 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 m_attachments.Clear();
             }
-
         }
+
         public void initializeScenePresence(IClientAPI client, RegionInfo region, Scene scene)
         {
             m_controllingClient = client;
@@ -2390,7 +2380,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void RegisterControlEventsToScript(int controls, int accept, int pass_on, uint Obj_localID, LLUUID Script_item_LLUUID)
         {
-
             ScriptControllers obj = new ScriptControllers();
             obj.ignoreControls = ScriptControlled.CONTROL_ZERO;
             obj.eventControls = ScriptControlled.CONTROL_ZERO;
@@ -2439,9 +2428,8 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
             ControllingClient.SendTakeControls(controls, pass_on == 1 ? true : false, true);
-
-
         }
+
         public void HandleForceReleaseControls(IClientAPI remoteClient, LLUUID agentID)
         {
             IgnoredControls = ScriptControlled.CONTROL_ZERO;
@@ -2537,7 +2525,6 @@ namespace OpenSim.Region.Environment.Scenes
                     change |= DCF;
                     continue;
                 }
-
             }
 
             lock (scriptedcontrols)
@@ -2555,8 +2542,8 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
             LastCommands = allflags;
-
         }
+
         internal uint RemoveIgnoredControls(uint flags, ScriptControlled Ignored)
         {
             if (Ignored == ScriptControlled.CONTROL_ZERO)
