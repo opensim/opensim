@@ -1178,13 +1178,21 @@ namespace OpenSim.Region.Environment.Scenes
                 else if (PhysicsActor != null && (m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_NEG) != 0 &&
                          PhysicsActor.IsColliding)
                 {
-                    return "CROUCHWALK";
+                    if ((m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0 ||
+                        (m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG) != 0)
+                    {
+                        return "CROUCHWALK";
+                    }
+                    else
+                    {
+                        return "CROUCH";
+                    }
                 }
                 else if (PhysicsActor != null && !PhysicsActor.IsColliding && PhysicsActor.Velocity.Z < -6)
                 {
                     return "FALLDOWN";
                 }
-                else if (PhysicsActor != null && !PhysicsActor.IsColliding && Velocity.Z > 0 &&
+                else if (PhysicsActor != null && !PhysicsActor.IsColliding && Velocity.Z > 1e-6 &&
                          (m_movementflag & (uint) AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0)
                 {
                     return "JUMP";
@@ -1200,17 +1208,16 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                // Not moving
-                if (PhysicsActor != null && PhysicsActor.IsColliding)
-                {
-                    return "CROUCH";
-                }
-                else if (PhysicsActor != null && !PhysicsActor.IsColliding && PhysicsActor.Velocity.Z < -6 && !PhysicsActor.Flying)
+                // We are not moving
+                if (PhysicsActor != null && !PhysicsActor.IsColliding && PhysicsActor.Velocity.Z < -6 && !PhysicsActor.Flying)
                 {
                     return "FALLDOWN";
                 }
-                else if (PhysicsActor != null && !PhysicsActor.IsColliding && Velocity.Z > 0 && !PhysicsActor.Flying)
+                else if (PhysicsActor != null && !PhysicsActor.IsColliding && Velocity.Z > 6 && !PhysicsActor.Flying)
                 {
+                    // HACK: We check if Velocity.Z > 6 for this animation in order to avoid false positives during normal movement.
+                    // TODO: set this animation only when on the ground and UP_POS is received?
+
                     // This is the standing jump
                     return "JUMP";
                 }
