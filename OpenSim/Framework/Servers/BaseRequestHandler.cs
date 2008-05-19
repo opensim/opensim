@@ -25,6 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+
 namespace OpenSim.Framework.Servers
 {
     public class BaseRequestHandler
@@ -56,7 +58,14 @@ namespace OpenSim.Framework.Servers
 
         protected string GetParam(string path)
         {
-            return path.Substring(m_path.Length);
+            try
+            {
+                return path.Substring(m_path.Length);
+            }
+            catch (Exception)
+            {
+                return String.Empty;
+            }
         }
     }
 }
