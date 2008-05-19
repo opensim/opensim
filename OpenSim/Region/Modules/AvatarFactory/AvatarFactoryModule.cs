@@ -60,7 +60,10 @@ namespace OpenSim.Region.Modules.AvatarFactory
         public bool TryGetAvatarAppearance(LLUUID avatarId, out AvatarAppearance appearance)
         {
             appearance = m_scene.CommsManager.UserService.GetUserAppearance(avatarId);
-            return true;
+            if (appearance != null) 
+                return true;
+            else
+                return false;
 
             // //should only let one thread at a time do this part
             // EventWaitHandle waitHandle = null;

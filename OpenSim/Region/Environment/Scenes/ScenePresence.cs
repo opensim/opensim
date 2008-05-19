@@ -405,8 +405,6 @@ namespace OpenSim.Region.Environment.Scenes
             RegisterToEvents();
             SetDirectionVectors();
 
-            m_appearance = m_scene.CommsManager.UserService.GetUserAppearance(client.AgentId);
-
             try
             {
                 m_scene.LandChannel.SendLandUpdate(this, true);
@@ -1445,6 +1443,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendInitialData()
         {
+            // Needed for standalone
+            m_scene.GetAvatarAppearance(m_controllingClient, out m_appearance);
+
             m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid, LocalId,
                                                m_pos, m_appearance.Texture.ToBytes(), m_parentID);
 
@@ -2049,7 +2050,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_controllingClient = client;
             m_regionInfo = region;
             m_scene = scene;
-            m_appearance = m_scene.CommsManager.UserService.GetUserAppearance(client.AgentId);
 
             RegisterToEvents();
 

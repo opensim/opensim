@@ -1549,6 +1549,14 @@ namespace OpenSim.Region.Environment.Scenes
                 presence = m_restorePresences[client.AgentId];
                 m_restorePresences.Remove(client.AgentId);
 
+                // This is one of two paths to create avatars that are
+                // used.  This tends to get called more in standalone
+                // than grid, not really sure why, but as such needs
+                // an explicity appearance lookup here.
+                AvatarAppearance appearance = null;
+                GetAvatarAppearance(client, out appearance);
+                presence.Appearance = appearance;
+
                 presence.initializeScenePresence(client, RegionInfo, this);
 
                 m_innerScene.AddScenePresence(presence);
@@ -1789,10 +1797,8 @@ namespace OpenSim.Region.Environment.Scenes
             return avatar;
         }
 
-        protected void GetAvatarAppearance(IClientAPI client, out AvatarAppearance appearance)
+        public void GetAvatarAppearance(IClientAPI client, out AvatarAppearance appearance)
         {
-            appearance = CommsManager.UserService.GetUserAppearance(client.AgentId);
-
             if (m_AvatarFactory == null ||
                 !m_AvatarFactory.TryGetAvatarAppearance(client.AgentId, out appearance))
             {
