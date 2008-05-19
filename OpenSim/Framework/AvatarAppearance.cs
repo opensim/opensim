@@ -145,8 +145,8 @@ namespace OpenSim.Framework
             set { m_wearables[PANTS].ItemID = value; }
         }
         public LLUUID PantsAsset {
-            get { return m_wearables[BODY].AssetID; }
-            set { m_wearables[BODY].AssetID = value; }
+            get { return m_wearables[PANTS].AssetID; }
+            set { m_wearables[PANTS].AssetID = value; }
         }
         public LLUUID ShoesItem {
             get { return m_wearables[SHOES].ItemID; }
