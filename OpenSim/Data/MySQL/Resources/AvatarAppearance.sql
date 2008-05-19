@@ -2,9 +2,6 @@
 -- Create schema avatar_appearance
 --
 
-CREATE DATABASE IF NOT EXISTS avatar_appearance;
-USE avatar_appearance;
-
 DROP TABLE IF EXISTS `avatarappearance`;
 CREATE TABLE `avatarappearance` (
   `UUID` char(36) NOT NULL,
@@ -38,5 +35,5 @@ CREATE TABLE `avatarappearance` (
 
 
   PRIMARY KEY  (`UUID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev.1';
 
