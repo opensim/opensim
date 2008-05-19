@@ -59,7 +59,7 @@ namespace OpenSim.Data
         public abstract string Name {get;}
         public abstract void Initialise(string connect);
         public abstract List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query);
-        public AvatarAppearance GetUserAppearance(LLUUID user) {
+        public virtual AvatarAppearance GetUserAppearance(LLUUID user) {
             AvatarAppearance aa = null;
             try {
                 aa = aplist[user];
@@ -69,7 +69,7 @@ namespace OpenSim.Data
             }
             return aa;
         }
-        public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance) {
+        public virtual void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance) {
             aplist[user] = appearance;
             m_log.Info("[APPEARANCE] Setting appearance for " + user.ToString() + appearance.ToString());
         }

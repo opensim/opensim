@@ -656,7 +656,7 @@ namespace OpenSim.Data.MySQL
         /// Appearance
         /// TODO: stubs for now to get us to a compiling state gently
         // override
-        public AvatarAppearance GetUserAppearance(LLUUID user)
+        override public AvatarAppearance GetUserAppearance(LLUUID user)
         {
             AvatarAppearance appearance = null;
             if (!m_appearanceMapper.TryGetValue(user.UUID, out appearance))
@@ -667,7 +667,7 @@ namespace OpenSim.Data.MySQL
         }
 
         // override
-        public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
+        override public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
         {
             m_appearanceMapper.Update(user.UUID, appearance);
         }
