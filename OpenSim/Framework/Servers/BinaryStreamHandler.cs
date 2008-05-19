@@ -27,6 +27,7 @@
 
 using System.IO;
 using System.Text;
+using System.Net;
 
 namespace OpenSim.Framework.Servers
 {
@@ -36,7 +37,7 @@ namespace OpenSim.Framework.Servers
     {
         private BinaryMethod m_method;
 
-        public override byte[] Handle(string path, Stream request)
+        public override byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             byte[] data = ReadFully(request);
             string param = GetParam(path);

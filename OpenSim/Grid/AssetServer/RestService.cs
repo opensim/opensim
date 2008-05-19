@@ -27,6 +27,7 @@
 
 using System;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Xml;
@@ -59,7 +60,8 @@ namespace OpenSim.Grid.AssetServer
             m_assetProvider = assetProvider;
         }
 
-        public override byte[] Handle(string path, Stream request)
+        public override byte[] Handle(string path, Stream request, 
+                                      OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             string param = GetParam(path);
             byte[] result = new byte[] {};
@@ -121,7 +123,8 @@ namespace OpenSim.Grid.AssetServer
         private OpenAsset_Main m_assetManager;
         private IAssetProvider m_assetProvider;
 
-        public override byte[] Handle(string path, Stream request)
+        public override byte[] Handle(string path, Stream request, 
+                                      OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             string param = GetParam(path);
 

@@ -27,6 +27,7 @@
 
 using System.Collections;
 using System.IO;
+using System.Net;
 
 namespace OpenSim.Framework.Servers
 {
@@ -45,13 +46,13 @@ namespace OpenSim.Framework.Servers
     public interface IStreamedRequestHandler : IRequestHandler
     {
         // Handle request stream, return byte array
-        byte[] Handle(string path, Stream request);
+        byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse);
     }
 
     public interface IStreamHandler : IRequestHandler
     {
         // Handle request stream, return byte array
-        void Handle(string path, Stream request, Stream response);
+        void Handle(string path, Stream request, Stream response, OSHttpRequest httpReqbuest, OSHttpResponse httpResponse);
     }
     public interface IGenericHTTPHandler : IRequestHandler
     {

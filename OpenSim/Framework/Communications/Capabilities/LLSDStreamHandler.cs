@@ -27,6 +27,7 @@
 
 using System.Collections;
 using System.IO;
+using System.Net;
 using System.Text;
 using OpenSim.Framework.Servers;
 
@@ -43,7 +44,8 @@ namespace OpenSim.Framework.Communications.Capabilities
             m_method = method;
         }
 
-        public override byte[] Handle(string path, Stream request)
+        public override byte[] Handle(string path, Stream request, 
+                                      OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             //Encoding encoding = Encoding.UTF8;
             //StreamReader streamReader = new StreamReader(request, false);

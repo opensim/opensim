@@ -136,8 +136,8 @@ namespace OpenSim.Framework.Servers
             {
                 HttpListenerContext context = (HttpListenerContext) stateinfo;
 
-                HttpListenerRequest request = context.Request;
-                HttpListenerResponse response = context.Response;
+                OSHttpRequest request = new OSHttpRequest(context.Request);
+                OSHttpResponse response = new OSHttpResponse(context.Response);
 
                 response.KeepAlive = false;
                 response.SendChunked = false;
@@ -157,7 +157,7 @@ namespace OpenSim.Framework.Servers
                     {
                         IStreamedRequestHandler streamedRequestHandler = requestHandler as IStreamedRequestHandler;
 
-                        buffer = streamedRequestHandler.Handle(path, request.InputStream);
+                        buffer = streamedRequestHandler.Handle(path, request.InputStream, request, response);
                     }
                     else
                     {
@@ -165,14 +165,14 @@ namespace OpenSim.Framework.Servers
 
                         using (MemoryStream memoryStream = new MemoryStream())
                         {
-                            streamHandler.Handle(path, request.InputStream, memoryStream);
+                            streamHandler.Handle(path, request.InputStream, memoryStream, request, response);
                             memoryStream.Flush();
                             buffer = memoryStream.ToArray();
                         }
                     }
 
                     request.InputStream.Close();
-                    response.ContentType = requestHandler.ContentType;
+                    if (!response.IsContentTypeSet) response.ContentType = requestHandler.ContentType;
                     response.ContentLength64 = buffer.LongLength;
 
                     try
@@ -280,7 +280,7 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         /// <param name="request"></param>
         /// <param name="response"></param>
-        private void HandleXmlRpcRequests(HttpListenerRequest request, HttpListenerResponse response)
+        private void HandleXmlRpcRequests(OSHttpRequest request, OSHttpResponse response)
         {
             Stream requestStream = request.InputStream;
 
@@ -358,7 +358,7 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        private void HandleLLSDRequests(HttpListenerRequest request, HttpListenerResponse response)
+        private void HandleLLSDRequests(OSHttpRequest request, OSHttpResponse response)
         {
             Stream requestStream = request.InputStream;
 
@@ -416,7 +416,7 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        public void HandleHTTPRequest(HttpListenerRequest request, HttpListenerResponse response)
+        public void HandleHTTPRequest(OSHttpRequest request, OSHttpResponse response)
         {
             switch (request.HttpMethod)
             {
@@ -430,7 +430,7 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        private void HandleContentVerbs(HttpListenerRequest request, HttpListenerResponse response)
+        private void HandleContentVerbs(OSHttpRequest request, OSHttpResponse response)
         {
             // This is a test.  There's a workable alternative..  as this way sucks.
             // We'd like to put this into a text file parhaps that's easily editable.
@@ -505,7 +505,7 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        private static void DoHTTPGruntWork(Hashtable responsedata, HttpListenerResponse response)
+        private static void DoHTTPGruntWork(Hashtable responsedata, OSHttpResponse response)
         {
             int responsecode = (int)responsedata["int_response_code"];
             string responseString = (string)responsedata["str_response_string"];
@@ -552,7 +552,7 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        public void SendHTML404(HttpListenerResponse response, string host)
+        public void SendHTML404(OSHttpResponse response, string host)
         {
             // I know this statuscode is dumb, but the client doesn't respond to 404s and 500s
             response.StatusCode = 200;
@@ -579,7 +579,7 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        public void SendHTML500(HttpListenerResponse response)
+        public void SendHTML500(OSHttpResponse response)
         {
             // I know this statuscode is dumb, but the client doesn't respond to 404s and 500s
             response.StatusCode = 200;

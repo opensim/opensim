@@ -27,6 +27,7 @@
 
 using System.IO;
 using System.Text;
+using System.Net;
 
 namespace OpenSim.Framework.Servers
 {
@@ -39,7 +40,7 @@ namespace OpenSim.Framework.Servers
             get { return m_restMethod; }
         }
 
-        public override byte[] Handle(string path, Stream request)
+        public override byte[] Handle(string path, Stream request, OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             Encoding encoding = Encoding.UTF8;
             StreamReader streamReader = new StreamReader(request, encoding);

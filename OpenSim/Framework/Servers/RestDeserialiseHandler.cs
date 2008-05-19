@@ -26,6 +26,7 @@
  */
 
 using System.IO;
+using System.Net;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -44,7 +45,8 @@ namespace OpenSim.Framework.Servers
             m_method = method;
         }
 
-        public void Handle(string path, Stream request, Stream responseStream)
+        public void Handle(string path, Stream request, Stream responseStream, 
+                           OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             TRequest deserial;
             using (XmlTextReader xmlReader = new XmlTextReader(request))

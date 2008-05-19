@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -681,7 +682,8 @@ namespace OpenSim
         /// </summary>
         protected class SimStatusHandler : IStreamedRequestHandler
         {
-            public byte[] Handle(string path, Stream request)
+            public byte[] Handle(string path, Stream request, 
+                                 OSHttpRequest httpRequest, OSHttpResponse httpResponse)
             {
                 return Encoding.UTF8.GetBytes("OK");
             }

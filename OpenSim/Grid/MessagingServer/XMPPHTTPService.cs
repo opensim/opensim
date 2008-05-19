@@ -27,6 +27,7 @@
 
 using System;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using libsecondlife;
 using log4net;
@@ -51,7 +52,8 @@ namespace OpenSim.Grid.MessagingServer
 
         }
 
-        public override byte[] Handle(string path, Stream request)
+        public override byte[] Handle(string path, Stream request, 
+                                      OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             string param = GetParam(path);
             byte[] result = new byte[] {};
@@ -84,7 +86,8 @@ namespace OpenSim.Grid.MessagingServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public override byte[] Handle(string path, Stream request)
+        public override byte[] Handle(string path, Stream request, 
+                                      OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             string param = GetParam(path);
 
