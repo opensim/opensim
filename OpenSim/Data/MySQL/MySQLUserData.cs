@@ -54,6 +54,7 @@ namespace OpenSim.Data.MySQL
         private string m_agentsTableName;
         private string m_usersTableName;
         private string m_userFriendsTableName;
+        private string m_appearanceTableName = "avatarappearance";
         private string m_connectString;
         private BaseDatabaseConnector m_databaseMapper;
         private AppearanceTableMapper m_appearanceMapper;
@@ -130,11 +131,13 @@ namespace OpenSim.Data.MySQL
             tableList[m_agentsTableName] = null;
             tableList[m_usersTableName] = null;
             tableList[m_userFriendsTableName] = null;
+            tableList[m_appearanceTableName] = null;
             database.GetTableVersion(tableList);
 
             UpgradeAgentsTable(tableList[m_agentsTableName]);
             UpgradeUsersTable(tableList[m_usersTableName]);
             UpgradeFriendsTable(tableList[m_userFriendsTableName]);
+            UpgradeAppearanceTable(tableList[m_appearanceTableName]);
         }
 
         /// <summary>
@@ -184,6 +187,21 @@ namespace OpenSim.Data.MySQL
             if (oldVersion == null)
             {
                 database.ExecuteResourceSql("CreateUserFriendsTable.sql");
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Create or upgrade the table if necessary
+        /// </summary>
+        /// <param name="oldVersion">A null indicates that the table does not
+        /// currently exist</param>
+        private void UpgradeAppearanceTable(string oldVersion)
+        {
+            // null as the version, indicates that the table didn't exist
+            if (oldVersion == null)
+            {
+                database.ExecuteResourceSql("CreateAvatarAppearance.sql");
                 return;
             }
         }
