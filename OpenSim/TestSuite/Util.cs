@@ -31,7 +31,8 @@ namespace OpenSim.TestSuite
 {
     public class Utils
     {
-        enum Result {
+        enum Result
+        {
             Fail = 0,
             Pass = 1,
             Skip = 3

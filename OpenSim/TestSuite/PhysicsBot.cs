@@ -54,7 +54,6 @@ namespace OpenSim.TestSuite
 
         protected Random somthing = new Random(Environment.TickCount);// We do stuff randomly here
 
-
         //New instance of a SecondLife client
         public SecondLife client = new SecondLife();
 
@@ -104,7 +103,6 @@ namespace OpenSim.TestSuite
                 client.Self.Chat(randomf, 0, ChatType.Normal);
 
             //Thread.Sleep(somthing.Next(1, 10)); // Apparently its better without it right now.
-
         }
 
         /// <summary>
@@ -116,9 +114,6 @@ namespace OpenSim.TestSuite
             lastname = startupConfig.GetString("lastname", "random");
             password = startupConfig.GetString("password", "12345");
             loginURI = startupConfig.GetString("loginuri");
-
-
-
         }
 
         /// <summary>
@@ -148,7 +143,6 @@ namespace OpenSim.TestSuite
                     m_action.Start();
                     OnConnected(this, EventType.CONNECTED);
                     client.Self.Jump();
-
                 }
             }
             else

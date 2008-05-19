@@ -103,7 +103,6 @@ namespace pCampBot
                 client.Self.Chat(randomf, 0, ChatType.Normal);
 
             //Thread.Sleep(somthing.Next(1, 10)); // Apparently its better without it right now.
-
         }
 
         /// <summary>
@@ -115,9 +114,6 @@ namespace pCampBot
             lastname = startupConfig.GetString("lastname", "random");
             password = startupConfig.GetString("password", "12345");
             loginURI = startupConfig.GetString("loginuri");
-
-
-
         }
 
         /// <summary>
@@ -139,7 +135,6 @@ namespace pCampBot
             client.Network.OnDisconnected += new NetworkManager.DisconnectedCallback(this.Network_OnDisconnected);
             if (client.Network.Login(firstname, lastname, password, "pCampBot", "Your name"))
             {
-
                 if (OnConnected != null)
                 {
                     m_action = new Timer(somthing.Next(1000, 10000));
@@ -147,7 +142,6 @@ namespace pCampBot
                     m_action.Start();
                     OnConnected(this, EventType.CONNECTED);
                     client.Self.Jump();
-
                 }
             }
             else

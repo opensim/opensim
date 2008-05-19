@@ -153,7 +153,7 @@ namespace OpenSim.TestSuite
                     m_log.Info("[ " + callbot.firstname + " " + callbot.lastname + "]: Disconnected");
                     m_td[m_lBot.IndexOf(callbot)].Abort();
                     numbots--;
-                    if (numbots >1)
+                    if (numbots > 1)
                         Environment.Exit(0);
                     break;
             }

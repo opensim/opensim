@@ -33,7 +33,7 @@ namespace OpenSim.TestSuite
     /// <summary>
     /// Event Types from the BOT.  Add new events here
     /// </summary>
-    public enum EventType:int
+    public enum EventType : int
     {
         NONE = 0,
         CONNECTED = 1,
@@ -84,15 +84,15 @@ namespace OpenSim.TestSuite
         private static void Help()
         {
             Console.WriteLine(
-                                     "usage: pCampBot <-loginuri loginuri> [OPTIONS]\n" +
-                                     "Spawns a set of bots to test an OpenSim region\n\n" +
-                                     "  -l, -loginuri      loginuri for sim to log into (required)\n" +
-                                     // TODO: unused: "  -n, -botcount      number of bots to start (default: 1)\n" +
-                                     "  -firstname         first name for the bot(s) (default: random string)\n" +
-                                     "  -lastname          lastname for the bot(s) (default: random string)\n" +
-                                     "  -password          password for the bots(s) (default: random string)\n" +
-                                     "  -h, -help          show this message"
-                                     );
+                "usage: pCampBot <-loginuri loginuri> [OPTIONS]\n" +
+                "Spawns a set of bots to test an OpenSim region\n\n" +
+                "  -l, -loginuri      loginuri for sim to log into (required)\n" +
+                // TODO: unused: "  -n, -botcount      number of bots to start (default: 1)\n" +
+                "  -firstname         first name for the bot(s) (default: random string)\n" +
+                "  -lastname          lastname for the bot(s) (default: random string)\n" +
+                "  -password          password for the bots(s) (default: random string)\n" +
+                "  -h, -help          show this message"
+                );
         }
     }
 }
