@@ -211,6 +211,7 @@ namespace OpenSim.ApplicationPlugins.Rest
 
                 // Retrieve GOD key value, if any.
                 _godkey = _config.GetString("god_key", String.Empty);
+                
                 // Retrive prefix if any.
                 _prefix = _config.GetString("prefix", "/admin");
                 
@@ -242,7 +243,7 @@ namespace OpenSim.ApplicationPlugins.Rest
 
         private List<RestStreamHandler> _handlers = new List<RestStreamHandler>();
 
-        public void AddRestStreamHandler(string httpMethod, string path, RestMethod method)
+        public virtual void AddRestStreamHandler(string httpMethod, string path, RestMethod method)
         {
             if (!IsEnabled) return;
 
@@ -258,13 +259,18 @@ namespace OpenSim.ApplicationPlugins.Rest
             m_log.DebugFormat("{0} Added REST handler {1} {2}", MsgID, httpMethod, path);
         }
 
-        
-        protected bool VerifyGod(string key)
+        public bool AddAgentHandler(string agentname, IHttpAgentHandler handler)
         {
-            if (String.IsNullOrEmpty(key)) return false;
             if (!IsEnabled) return false;
+            return _httpd.AddAgentHandler(agentname, handler);
+        }
 
-            return key == _godkey;
+        protected bool IsGod(OSHttpRequest request)
+        {
+            string[] keys = request.Headers.GetValues("x-opensim-godkey");
+            if (null == keys) return false;
+            // we take the last key supplied
+            return keys[keys.Length-1] == _godkey;
         }
 
         public virtual void Close()
