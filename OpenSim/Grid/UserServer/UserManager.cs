@@ -256,7 +256,13 @@ namespace OpenSim.Grid.UserServer
             if (requestData.Contains("owner"))
             {
                 appearance = GetUserAppearance(new LLUUID((string)requestData["owner"]));
-                responseData = appearance.ToHashTable();
+                if (appearance == null) {
+                    responseData = new Hashtable();
+                    responseData["error_type"] = "no appearance";
+                    responseData["error_desc"] = "There was no appearance found for this avatar";
+                } else {
+                    responseData = appearance.ToHashTable();
+                }
             }
             else
             {

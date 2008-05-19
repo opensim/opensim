@@ -60,15 +60,12 @@ namespace OpenSim.Data
         public abstract void Initialise(string connect);
         public abstract List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query);
         public AvatarAppearance GetUserAppearance(LLUUID user) {
-            AvatarAppearance aa;
+            AvatarAppearance aa = null;
             try {
                 aa = aplist[user];
                 m_log.Info("[APPEARANCE] Found appearance for " + user.ToString() + aa.ToString());
             } catch (System.Collections.Generic.KeyNotFoundException e) {
-                aplist[user] = new AvatarAppearance();
-                aplist[user].Owner = user;
-                aa = aplist[user];
-                m_log.Info("[APPEARANCE] Setting up default appearance for " + user.ToString() + aa.ToString());
+                m_log.Info("[APPEARANCE] No appearance found for " + user.ToString());
             }
             return aa;
         }

@@ -661,9 +661,7 @@ namespace OpenSim.Data.MySQL
             AvatarAppearance appearance = null;
             if (!m_appearanceMapper.TryGetValue(user.UUID, out appearance))
             {
-                appearance = new AvatarAppearance();
-                appearance.Owner = user;
-                UpdateUserAppearance(user, appearance);
+                appearance = null;
             }
             return appearance;
         }

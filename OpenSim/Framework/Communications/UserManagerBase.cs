@@ -611,7 +611,7 @@ namespace OpenSim.Framework.Communications
                     m_log.InfoFormat("[USERSTORAGE]: Unable to find user appearance {0} via {1} ({2})", user.ToString(), plugin.Key, e.ToString());
                 }
             }
-            return new AvatarAppearance();
+            return null;
         }
 
         public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
