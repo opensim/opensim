@@ -371,7 +371,7 @@ namespace OpenSim.Region.Environment.Scenes
                         itemCopy.Name = item.Name;
                         itemCopy.AssetType = item.AssetType;
                         itemCopy.InvType = item.InvType;
-                        itemCopy.Folder = recipientUserInfo.RootFolder.ID;
+                        itemCopy.Folder = LLUUID.Zero;
                         if (ExternalChecks.ExternalChecksPropagatePermissions())
                         {
                             if (item.InvType == 6)

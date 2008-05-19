@@ -485,6 +485,14 @@ namespace OpenSim.Framework.Communications.Cache
         {
             if (HasInventory)
             {
+                if(item.Folder == LLUUID.Zero)
+                {
+                    InventoryFolderImpl f=FindFolderForType(item.AssetType);
+                    if(f != null)
+                        item.Folder=f.ID;
+                    else
+                        item.Folder=RootFolder.ID;
+                }
                 ItemReceive(item);
                 m_commsManager.InventoryService.AddItem(item);
             }
@@ -605,6 +613,22 @@ namespace OpenSim.Framework.Communications.Cache
 
                 return true;
             }
+        }
+
+        private InventoryFolderImpl FindFolderForType(int type)
+        {
+            if(RootFolder == null)
+                return null;
+            
+            lock(RootFolder.SubFolders)
+            {
+                foreach (InventoryFolderImpl f in RootFolder.SubFolders.Values)
+                {
+                    if(f.Type == type)
+                        return f;
+                }
+            }
+            return null;
         }
     }
 
