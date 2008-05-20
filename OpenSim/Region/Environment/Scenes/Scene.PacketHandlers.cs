@@ -76,9 +76,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void SelectPrim(uint primLocalID, IClientAPI remoteClient)
         {
-            List<EntityBase> EntitieList = GetEntities();
+            List<EntityBase> EntityList = GetEntities();
 
-            foreach (EntityBase ent in EntitieList)
+            foreach (EntityBase ent in EntityList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -104,9 +104,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteClient"></param>
         public void DeselectPrim(uint primLocalID, IClientAPI remoteClient)
         {
-            List<EntityBase> EntitieList = GetEntities();
+            List<EntityBase> EntityList = GetEntities();
 
-            foreach (EntityBase ent in EntitieList)
+            foreach (EntityBase ent in EntityList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -148,9 +148,9 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void ProcessObjectGrab(uint localID, LLVector3 offsetPos, IClientAPI remoteClient)
         {
 
-            List<EntityBase> EntitieList = GetEntities();
+            List<EntityBase> EntityList = GetEntities();
 
-            foreach (EntityBase ent in EntitieList)
+            foreach (EntityBase ent in EntityList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -183,9 +183,9 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void ProcessObjectDeGrab(uint localID, IClientAPI remoteClient)
         {
 
-            List<EntityBase> EntitieList = GetEntities();
+            List<EntityBase> EntityList = GetEntities();
 
-            foreach (EntityBase ent in EntitieList)
+            foreach (EntityBase ent in EntityList)
             {
                 if (ent is SceneObjectGroup)
                 {

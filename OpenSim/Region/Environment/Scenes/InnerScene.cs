@@ -1267,8 +1267,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             Dictionary<uint, SceneObjectGroup> sceneObjects = new Dictionary<uint, SceneObjectGroup>();
 
-            List<EntityBase> EntitieList = GetEntities();
-            foreach (EntityBase ent in EntitieList)
+            List<EntityBase> EntityList = GetEntities();
+            foreach (EntityBase ent in EntityList)
             {
                 if (ent is SceneObjectGroup)
                 {

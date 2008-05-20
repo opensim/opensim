@@ -741,9 +741,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         private SceneObjectGroup GetGroupByPrim(uint localID)
         {
-            List<EntityBase> EntitieList = GetEntities();
+            List<EntityBase> EntityList = GetEntities();
 
-            foreach (EntityBase ent in EntitieList)
+            foreach (EntityBase ent in EntityList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -1060,9 +1060,9 @@ namespace OpenSim.Region.Environment.Scenes
                     EntityBase selectedEnt = null;
                     //m_log.Info("[CLIENT]: LocalID:" + Data.ObjectLocalID.ToString());
 
-                    List<EntityBase> EntitieList = GetEntities();
+                    List<EntityBase> EntityList = GetEntities();
 
-                    foreach (EntityBase ent in EntitieList)
+                    foreach (EntityBase ent in EntityList)
                     {
                         if (ent.LocalId == Data.ObjectLocalID)
                         {

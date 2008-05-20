@@ -2762,9 +2762,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void ForceClientUpdate()
         {
-            List<EntityBase> EntitieList = GetEntities();
+            List<EntityBase> EntityList = GetEntities();
 
-            foreach (EntityBase ent in EntitieList)
+            foreach (EntityBase ent in EntityList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -2782,9 +2782,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             Console.WriteLine("Searching for Primitive: '" + cmdparams[0] + "'");
 
-            List<EntityBase> EntitieList = GetEntities();
+            List<EntityBase> EntityList = GetEntities();
 
-            foreach (EntityBase ent in EntitieList)
+            foreach (EntityBase ent in EntityList)
             {
                 if (ent is SceneObjectGroup)
                 {
