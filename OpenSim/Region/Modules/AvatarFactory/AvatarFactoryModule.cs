@@ -284,7 +284,12 @@ namespace OpenSim.Region.Modules.AvatarFactory
             IClientAPI clientView = (IClientAPI)sender;
             ScenePresence avatar = m_scene.GetScenePresence(clientView.AgentId);
             CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(clientView.AgentId);
-            AvatarAppearance avatAppearance = avatar.Appearance;
+
+            AvatarAppearance avatAppearance = null;
+            if(!TryGetAvatarAppearance(clientView.AgentId, out avatAppearance)) {
+                m_log.Info("We didn't seem to find the appearance");
+                avatAppearance = avatar.Appearance;
+            }
             m_log.Info("Calling Avatar is Wearing");
             if (profile != null)
             {
@@ -319,6 +324,7 @@ namespace OpenSim.Region.Modules.AvatarFactory
                         }
                     }
                     m_scene.CommsManager.UserService.UpdateUserAppearance(clientView.AgentId, avatAppearance);
+                    avatar.Appearance = avatAppearance;                    
                 }
                 else
                 {
