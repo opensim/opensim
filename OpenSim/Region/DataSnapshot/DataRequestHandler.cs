@@ -72,7 +72,8 @@ namespace OpenSim.Region.DataSnapshot
                 new RestStreamHandler("POST", capsBase + m_discoveryPath, OnDiscoveryAttempt));
         }
 
-        public string OnDiscoveryAttempt(string request, string path, string param)
+        public string OnDiscoveryAttempt(string request, string path, string param, 
+                                         OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             //Very static for now, flexible enough to add new formats
             LLSDDiscoveryResponse llsd_response = new LLSDDiscoveryResponse();

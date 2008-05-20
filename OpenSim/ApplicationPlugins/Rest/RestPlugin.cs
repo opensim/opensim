@@ -240,9 +240,15 @@ namespace OpenSim.ApplicationPlugins.Rest
             }
         }
 
-
         private List<RestStreamHandler> _handlers = new List<RestStreamHandler>();
 
+        /// <summary>
+        /// Add a REST stream handler to the underlying HTTP server.
+        /// </summary>
+        /// <param name="httpMethod">GET/PUT/POST/DELETE or
+        /// similar</param>
+        /// <param name="path">URL prefix</param>
+        /// <param name="method">RestMethod handler doing the actual work</param>
         public virtual void AddRestStreamHandler(string httpMethod, string path, RestMethod method)
         {
             if (!IsEnabled) return;
@@ -259,20 +265,50 @@ namespace OpenSim.ApplicationPlugins.Rest
             m_log.DebugFormat("{0} Added REST handler {1} {2}", MsgID, httpMethod, path);
         }
 
-        public bool AddAgentHandler(string agentname, IHttpAgentHandler handler)
+        /// <summary>
+        /// Add a powerful Agent handler to the underlying HTTP
+        /// server.
+        /// </summary>
+        /// <param name="agentName">name of agent handler</param>
+        /// <param name="handler">agent handler method</param>
+        /// <returns>true when the plugin is disabled or the agent
+        /// handler could not be added..</returns>
+        public bool AddAgentHandler(string agentName, IHttpAgentHandler handler)
         {
             if (!IsEnabled) return false;
-            return _httpd.AddAgentHandler(agentname, handler);
+            return _httpd.AddAgentHandler(agentName, handler);
         }
 
+        /// <summary>
+        /// Check whether the HTTP request came from god; that is, is
+        /// the god_key as configured in the config section supplied
+        /// via X-OpenSim-Godkey?
+        /// </summary>
+        /// <param name="request">HTTP request header</param>
+        /// <returns>true when the HTTP request came from god.</returns>
         protected bool IsGod(OSHttpRequest request)
         {
-            string[] keys = request.Headers.GetValues("x-opensim-godkey");
+            string[] keys = request.Headers.GetValues("X-OpenSim-Godkey");
             if (null == keys) return false;
+
             // we take the last key supplied
             return keys[keys.Length-1] == _godkey;
         }
 
+        /// <summary>
+        /// Checks wether the X-OpenSim-Password value provided in the
+        /// HTTP header is indeed the password on file for the avatar
+        /// specified by the UUID
+        /// </summary>
+        protected bool IsVerifiedUser(OSHttpRequest request, LLUUID uuid)
+        {
+            // XXX under construction
+            return false;
+        }
+
+        /// <summary>
+        /// Clean up and remove all handlers that were added earlier.
+        /// </summary>
         public virtual void Close()
         {
             foreach (RestStreamHandler h in _handlers)
@@ -282,12 +318,26 @@ namespace OpenSim.ApplicationPlugins.Rest
             _handlers = null;
         }
 
+        /// <summary>
+        /// Return a failure message.
+        /// </summary>
+        /// <param name="method">origin of the failure message</param>
+        /// <param name="message>failure message</param>
+        /// <remarks>This should probably set a return code as
+        /// well. (?)</remarks> 
         protected string Failure(string method, string message)
         {
             m_log.ErrorFormat("{0} {1} failed: {2}", MsgID, method, message);
             return String.Format("<error>{0}</error>", message);
         }
 
+        /// <summary>
+        /// Return a failure message.
+        /// </summary>
+        /// <param name="method">origin of the failure message</param>
+        /// <param name="e">exception causing the failure message</param>
+        /// <remarks>This should probably set a return code as
+        /// well. (?)</remarks> 
         public string Failure(string method, Exception e)
         {
             m_log.DebugFormat("{0} {1} failed: {2}", MsgID, method, e.ToString());

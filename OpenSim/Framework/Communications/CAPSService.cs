@@ -45,7 +45,8 @@ namespace OpenSim.Framework.Communications
             m_server.AddStreamHandler(new RestStreamHandler("POST", path, restMethod));
         }
 
-        public string CapsRequest(string request, string path, string param)
+        public string CapsRequest(string request, string path, string param, 
+                                  OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             System.Console.WriteLine("new caps request " + request + " from path " + path);
             return String.Empty;

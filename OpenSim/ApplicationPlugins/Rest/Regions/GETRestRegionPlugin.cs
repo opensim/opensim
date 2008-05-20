@@ -54,10 +54,16 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
     public partial class RestRegionPlugin : RestPlugin
     {
         #region GET methods
-        public string GetHandler(string request, string path, string param)
+        public string GetHandler(string request, string path, string param, 
+                                 OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
+            // foreach (string h in httpRequest.Headers.AllKeys) 
+            //     foreach (string v in httpRequest.Headers.GetValues(h))
+            //         m_log.DebugFormat("{0} IsGod: {1} -> {2}", MsgID, h, v);
+
+            MsgID = RequestID;
             m_log.DebugFormat("{0} GET path {1} param {2}", MsgID, path, param);
-            
+
             try
             {
                 // param empty: regions list

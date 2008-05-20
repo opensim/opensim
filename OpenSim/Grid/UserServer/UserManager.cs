@@ -35,6 +35,7 @@ using log4net;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
+using OpenSim.Framework.Servers;
 
 namespace OpenSim.Grid.UserServer
 {
@@ -53,8 +54,11 @@ namespace OpenSim.Grid.UserServer
         /// <param name="request">The request</param>
         /// <param name="path">The path (eg /bork/narf/test)</param>
         /// <param name="param">Parameters sent</param>
+        /// <param name="httpRequest">HTTP request header object</param>
+        /// <param name="httpResponse">HTTP response header object</param>
         /// <returns>Success "OK" else error</returns>
-        public string RestDeleteUserSessionMethod(string request, string path, string param)
+        public string RestDeleteUserSessionMethod(string request, string path, string param, 
+                                                  OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             // TODO! Important!
 

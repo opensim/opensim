@@ -104,14 +104,16 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Voice.SIPVoice
             string capsBase = "/CAPS/" + caps.CapsObjectPath;
             caps.RegisterHandler("ParcelVoiceInfoRequest",
                                  new RestStreamHandler("POST", capsBase + m_parcelVoiceInfoRequestPath,
-                                                       delegate(string request, string path, string param)
+                                                       delegate(string request, string path, string param, 
+                                                                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
                                                            {
                                                                return ParcelVoiceInfoRequest(request, path, param,
                                                                                              agentID, caps);
                                                            }));
             caps.RegisterHandler("ProvisionVoiceAccountRequest",
                                  new RestStreamHandler("POST", capsBase + m_provisionVoiceAccountRequestPath,
-                                                       delegate(string request, string path, string param)
+                                                       delegate(string request, string path, string param, 
+                                                                OSHttpRequest httpRequest, OSHttpResponse httpResponse)
                                                            {
                                                                return ProvisionVoiceAccountRequest(request, path, param,
                                                                                                    agentID, caps);

@@ -27,5 +27,6 @@
 
 namespace OpenSim.Framework.Servers
 {
-    public delegate string RestMethod(string request, string path, string param);
+    public delegate string RestMethod(string request, string path, string param, 
+                                      OSHttpRequest httpRequest, OSHttpResponse httpResponse);
 }

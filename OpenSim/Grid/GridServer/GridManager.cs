@@ -877,10 +877,13 @@ namespace OpenSim.Grid.GridServer
         /// <param name="request"></param>
         /// <param name="path"></param>
         /// <param name="param"></param>
+        /// <param name="httpRequest">HTTP request header object</param>
+        /// <param name="httpResponse">HTTP response header object</param>
         /// <returns></returns>
-        public string RestGetRegionMethod(string request, string path, string param)
+        public string RestGetRegionMethod(string request, string path, string param, 
+                                          OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            return RestGetSimMethod(String.Empty, "/sims/", param);
+            return RestGetSimMethod(String.Empty, "/sims/", param, httpRequest, httpResponse);
         }
 
         /// <summary>
@@ -889,10 +892,13 @@ namespace OpenSim.Grid.GridServer
         /// <param name="request"></param>
         /// <param name="path"></param>
         /// <param name="param"></param>
+        /// <param name="httpRequest">HTTP request header object</param>
+        /// <param name="httpResponse">HTTP response header object</param>
         /// <returns></returns>
-        public string RestSetRegionMethod(string request, string path, string param)
+        public string RestSetRegionMethod(string request, string path, string param, 
+                                          OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            return RestSetSimMethod(String.Empty, "/sims/", param);
+            return RestSetSimMethod(String.Empty, "/sims/", param, httpRequest, httpResponse);
         }
 
         /// <summary>
@@ -901,8 +907,11 @@ namespace OpenSim.Grid.GridServer
         /// <param name="request"></param>
         /// <param name="path"></param>
         /// <param name="param">A string representing the sim's UUID</param>
+        /// <param name="httpRequest">HTTP request header object</param>
+        /// <param name="httpResponse">HTTP response header object</param>
         /// <returns>Information about the sim in XML</returns>
-        public string RestGetSimMethod(string request, string path, string param)
+        public string RestGetSimMethod(string request, string path, string param, 
+                                       OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             string respstring = String.Empty;
 
@@ -946,8 +955,11 @@ namespace OpenSim.Grid.GridServer
         /// <param name="request"></param>
         /// <param name="path"></param>
         /// <param name="param"></param>
+        /// <param name="httpRequest">HTTP request header object</param>
+        /// <param name="httpResponse">HTTP response header object</param>
         /// <returns>"OK" or an error</returns>
-        public string RestSetSimMethod(string request, string path, string param)
+        public string RestSetSimMethod(string request, string path, string param, 
+                                       OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             Console.WriteLine("Processing region update via REST method");
             RegionProfileData theSim;

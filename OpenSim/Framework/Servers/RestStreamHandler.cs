@@ -49,7 +49,7 @@ namespace OpenSim.Framework.Servers
             streamReader.Close();
 
             string param = GetParam(path);
-            string responseString = m_restMethod(requestBody, path, param);
+            string responseString = m_restMethod(requestBody, path, param, httpRequest, httpResponse);
 
             return Encoding.UTF8.GetBytes(responseString);
         }
