@@ -1475,7 +1475,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="client"></param>
         public void SendOwnAppearance()
         {
-            m_log.Info("[APPEARANCE] Sending Own Appearace");
+            m_log.Info("[APPEARANCE] Sending Own Appearance");
             ControllingClient.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
         }
 
