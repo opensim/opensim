@@ -161,8 +161,8 @@ namespace OpenSim.Framework.Servers
                     {
                         m_log.DebugFormat("[HTTP-AGENT] Handler located for {0}", request.UserAgent);
                         HandleAgentRequest(agentHandler, request, response);
+                        return;
                     }
-                    return;
                 }
 
                 IRequestHandler requestHandler;
