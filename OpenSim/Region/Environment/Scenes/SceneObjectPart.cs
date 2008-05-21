@@ -1933,7 +1933,10 @@ namespace OpenSim.Region.Environment.Scenes
                     m_shape.SculptData = texture.Data;
                     if (PhysActor != null)
                     {
-                        PhysActor.Shape = m_shape;
+                        // Tricks physics engine into thinking we've changed the part shape.
+                        PrimitiveBaseShape m_newshape = m_shape.Copy();
+                        PhysActor.Shape = m_newshape;
+                        m_shape = m_newshape;
                     }
                 }
             }
