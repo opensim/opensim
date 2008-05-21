@@ -355,16 +355,10 @@ namespace OpenSim.Region.Environment.Scenes
         public void TriggerOnBackup(IRegionDataStore dstore)
         {
             handlerBackup = OnBackup;
-            Delegate[] items = OnBackup.GetInvocationList();
-            foreach (OnBackupDelegate del in items)
+            if (handlerBackup != null)
             {
-                if (del != null)
-                    del(dstore);
+                handlerBackup(dstore);
             }
-            //if (handlerBackup != null)
-            //{
-            //    handlerBackup(dstore);
-            //}
         }
 
         public void TriggerParcelPrimCountUpdate()
