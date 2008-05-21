@@ -59,6 +59,7 @@ namespace OpenSim.Data.SQLite
         private const string AvatarPickerAndSQL = "select * from users where username like :username and surname like :surname";
         private const string AvatarPickerOrSQL = "select * from users where username like :username or surname like :surname";
 
+        private Dictionary<LLUUID, AvatarAppearance> aplist = new Dictionary<LLUUID, AvatarAppearance>();
         private DataSet ds;
         private SqliteDataAdapter da;
         private SqliteDataAdapter daf;
@@ -479,15 +480,23 @@ namespace OpenSim.Data.SQLite
         }
 
         /// Appearance
-        /// TODO: stubs for now to get us to a compiling state gently
+        /// TODO: stubs for now to do in memory appearance.
         override public AvatarAppearance GetUserAppearance(LLUUID user)
         {
-            return new AvatarAppearance();
+            AvatarAppearance aa = null;
+            try {
+                aa = aplist[user];
+                m_log.Info("[APPEARANCE] Found appearance for " + user.ToString() + aa.ToString());
+            } catch (System.Collections.Generic.KeyNotFoundException e) {
+                m_log.Info("[APPEARANCE] No appearance found for " + user.ToString());
+            }
+            return aa;
         }
         
         override public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
         {
-            return;
+            appearance.Owner = user;
+            aplist[user] = appearance;
         }
 
         override public void AddAttachment(LLUUID user, LLUUID item)
