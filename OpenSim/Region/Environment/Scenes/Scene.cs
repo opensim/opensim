@@ -84,7 +84,7 @@ namespace OpenSim.Region.Environment.Scenes
         private int m_RestartTimerCounter;
         private readonly Timer m_restartTimer = new Timer(15000); // Wait before firing
         private int m_incrementsof15seconds = 0;
-        private bool m_backingup = false;
+        private volatile bool m_backingup = false;
 
         public string m_simulatorVersion = "OpenSimulator 0.5";
 
