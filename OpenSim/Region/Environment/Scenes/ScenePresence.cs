@@ -1456,17 +1456,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             SendFullUpdateToAllClients();
             SendAppearanceToAllOtherAgents();
-            SendOwnAppearance();
-        }
-
-
-        public void SetWearable(IClientAPI client, int wearableId, AvatarWearable wearable)
-        {
-            m_log.Info("[APPEARANCE] Setting wearable with client, wearableid, wearable");
-            m_appearance.SetWearable(wearableId, wearable);
-            m_scene.CommsManager.UserService.UpdateUserAppearance(client.AgentId, m_appearance);
-            client.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
-        }
+         }
 
         /// <summary>
         ///
@@ -1476,6 +1466,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_log.Info("[APPEARANCE] Sending Own Appearance");
             ControllingClient.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
+            ControllingClient.SendAppearance(
+                                            m_appearance.Owner,
+                                            m_appearance.VisualParams,
+                                            m_appearance.Texture.ToBytes()
+                                            );
         }
 
         /// <summary>
@@ -1483,6 +1478,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendAppearanceToAllOtherAgents()
         {
+            m_log.Info("[APPEARANCE] Sending Appearance to All Other Agents");
             m_perfMonMS=System.Environment.TickCount;
 
             m_scene.ForEachScenePresence(delegate(ScenePresence scenePresence)
@@ -1506,7 +1502,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetAppearance(byte[] texture, List<byte> visualParam)
         {
-            m_log.Warn("[APPEARANCE] Setting Appearance");
+            m_log.Info("[APPEARANCE] Setting Appearance");
             m_appearance.SetAppearance(texture, visualParam);
             SetHeight(m_appearance.AvatarHeight);
             m_scene.CommsManager.UserService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
@@ -1517,9 +1513,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetWearable(int wearableId, AvatarWearable wearable)
         {
-            m_log.Warn("[APPEARANCE] Setting Wearable");
+            m_log.Info("[APPEARANCE] Setting Wearable");
             m_appearance.SetWearable(wearableId, wearable);
             m_scene.CommsManager.UserService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
+            m_controllingClient.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
         }
 
         // Because appearance setting is in a module, we actually need

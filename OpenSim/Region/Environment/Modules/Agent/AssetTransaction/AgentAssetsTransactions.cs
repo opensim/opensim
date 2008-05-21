@@ -347,6 +347,8 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
 
                         if (asset != null && asset.FullID == assetID)
                         {
+                            // Assets never get updated, new ones get created
+                            asset.FullID = LLUUID.Random();
                             asset.Name = item.Name;
                             asset.Description = item.Description;
                             asset.InvType = (sbyte) item.InvType;
