@@ -58,6 +58,7 @@ namespace OpenSim.Region.Environment.Scenes
         public SynchronizeSceneHandler SynchronizeScene = null;
         public int splitID = 0;
 
+
         #region Fields
 
         protected Timer m_heartbeatTimer = new Timer();
@@ -83,6 +84,7 @@ namespace OpenSim.Region.Environment.Scenes
         private int m_RestartTimerCounter;
         private readonly Timer m_restartTimer = new Timer(15000); // Wait before firing
         private int m_incrementsof15seconds = 0;
+        private bool m_backingup = false;
 
         public string m_simulatorVersion = "OpenSimulator 0.5";
 
@@ -842,7 +844,14 @@ namespace OpenSim.Region.Environment.Scenes
 
         private void UpdateStorageBackup()
         {
-            Backup();
+            if (!m_backingup)
+            {
+                m_backingup = true;
+                Thread backupthread = new Thread(Backup);
+                backupthread.Name = "BackupWriter";
+                backupthread.IsBackground = true;
+                backupthread.Start();
+            }
         }
 
         private void UpdateEvents()
@@ -863,10 +872,11 @@ namespace OpenSim.Region.Environment.Scenes
         ///
         /// </summary>
         /// <returns></returns>
-        public bool Backup()
+        public void Backup()
         {
             EventManager.TriggerOnBackup(m_storageManager.DataStore);
-            return true;
+            m_backingup = false;
+            //return true;
         }
 
         #endregion

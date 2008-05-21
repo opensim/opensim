@@ -1523,12 +1523,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// Duplicates this part.
         /// </summary>
         /// <returns></returns>
-        public SceneObjectPart Copy(uint localID, LLUUID AgentID, LLUUID GroupID, int linkNum)
+        public SceneObjectPart Copy(uint localID, LLUUID AgentID, LLUUID GroupID, int linkNum, bool userExposed)
         {
             SceneObjectPart dupe = (SceneObjectPart) MemberwiseClone();
             dupe.m_shape = m_shape.Copy();
             dupe.m_regionHandle = m_regionHandle;
-            dupe.UUID = LLUUID.Random();
+            if (userExposed)
+                dupe.UUID = LLUUID.Random();
+            
             dupe.LocalId = localID;
             dupe.OwnerID = AgentID;
             dupe.GroupID = GroupID;
@@ -1548,7 +1550,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             dupe.TaskInventory = (TaskInventoryDictionary)dupe.TaskInventory.Clone();
 
-            dupe.ResetIDs(linkNum);
+            if (userExposed)
+                dupe.ResetIDs(linkNum);
 
             // This may be wrong...    it might have to be applied in SceneObjectGroup to the object that's being duplicated.
             dupe.LastOwnerID = ObjectOwner;
@@ -1556,13 +1559,16 @@ namespace OpenSim.Region.Environment.Scenes
             byte[] extraP = new byte[Shape.ExtraParams.Length];
             Array.Copy(Shape.ExtraParams, extraP, extraP.Length);
             dupe.Shape.ExtraParams = extraP;
-            if (dupe.m_shape.SculptEntry && dupe.m_shape.SculptTexture != LLUUID.Zero)
-            {
-                m_parentGroup.Scene.AssetCache.GetAsset(dupe.m_shape.SculptTexture, dupe.SculptTextureCallback, true);
-            }
-            bool UsePhysics = ((dupe.ObjectFlags & (uint) LLObject.ObjectFlags.Physics) != 0);
-            dupe.DoPhysicsPropertyUpdate(UsePhysics, true);
 
+            if (userExposed)
+            {
+                if (dupe.m_shape.SculptEntry && dupe.m_shape.SculptTexture != LLUUID.Zero)
+                {
+                    m_parentGroup.Scene.AssetCache.GetAsset(dupe.m_shape.SculptTexture, dupe.SculptTextureCallback, true);
+                }
+                bool UsePhysics = ((dupe.ObjectFlags & (uint)LLObject.ObjectFlags.Physics) != 0);
+                dupe.DoPhysicsPropertyUpdate(UsePhysics, true);
+            }
             return dupe;
         }
 

@@ -1085,13 +1085,24 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="datastore"></param>
         public void ProcessBackup(IRegionDataStore datastore)
         {
-            if (HasGroupChanged)
+            // don't backup while it's selected or you're asking for changes mid stream.
+            if (HasGroupChanged && !IsSelected)
             {
-                datastore.StoreObject(this, m_scene.RegionInfo.RegionID);
+                m_log.Info("STORING");
+                SceneObjectGroup backup_group = Copy(OwnerID, GroupID, false);
+                
+                datastore.StoreObject(backup_group, m_scene.RegionInfo.RegionID);
                 HasGroupChanged = false;
-            }
 
-            ForEachPart(delegate(SceneObjectPart part) { part.ProcessInventoryBackup(datastore); });
+                backup_group.ForEachPart(delegate(SceneObjectPart part) { part.ProcessInventoryBackup(datastore); });
+                
+                backup_group = null;
+            }
+            
+            // Why is storing the inventory outside of HasGroupChanged?
+
+            
+            //ForEachPart(delegate(SceneObjectPart part) { part.ProcessInventoryBackup(datastore); });
         }
 
         #endregion
@@ -1165,7 +1176,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Duplicates this object, including operations such as physics set up and attaching to the backup event.
         /// </summary>
         /// <returns></returns>
-        public SceneObjectGroup Copy(LLUUID cAgentID, LLUUID cGroupID)
+        public SceneObjectGroup Copy(LLUUID cAgentID, LLUUID cGroupID, bool userExposed)
         {
             SceneObjectGroup dupe = (SceneObjectGroup) MemberwiseClone();
             dupe.m_parts = new Dictionary<LLUUID, SceneObjectPart>();
@@ -1176,11 +1187,13 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.m_scene = m_scene;
             dupe.m_regionHandle = m_regionHandle;
 
-            dupe.CopyRootPart(m_rootPart, OwnerID, GroupID);
-            dupe.m_rootPart.TrimPermissions();
+            dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);
+            
+            if (userExposed)
+                dupe.m_rootPart.TrimPermissions();
 
             /// may need to create a new Physics actor.
-            if (dupe.RootPart.PhysActor != null)
+            if (dupe.RootPart.PhysActor != null && userExposed)
             {
                 PrimitiveBaseShape pbs = dupe.RootPart.Shape;
 
@@ -1202,26 +1215,36 @@ namespace OpenSim.Region.Environment.Scenes
             // switch the owner to the person who did the copying
             // Second Life copies an object and duplicates the first one in it's place
             // So, we have to make a copy of this one, set it in it's place then set the owner on this one
+            if (userExposed)
+            {
+                SetRootPartOwner(m_rootPart, cAgentID, cGroupID);
+                m_rootPart.ScheduleFullUpdate();
+            }
 
-            SetRootPartOwner(m_rootPart, cAgentID, cGroupID);
-
-
-            m_rootPart.ScheduleFullUpdate();
+            
 
             List<SceneObjectPart> partList = new List<SceneObjectPart>(m_parts.Values);
             foreach (SceneObjectPart part in partList)
             {
                 if (part.UUID != m_rootPart.UUID)
                 {
-                    dupe.CopyPart(part, OwnerID, GroupID);
-                    SetPartOwner(part, cAgentID, cGroupID);
-                    part.ScheduleFullUpdate();
+                    dupe.CopyPart(part, OwnerID, GroupID, userExposed);
+                    
+                    if (userExposed)
+                    {
+                        SetPartOwner(part, cAgentID, cGroupID);
+                        part.ScheduleFullUpdate();
+                    }
                 }
             }
-            dupe.UpdateParentIDs();
 
-            dupe.AttachToBackup();
-            ScheduleGroupForFullUpdate();
+            if (userExposed)
+            {
+                dupe.UpdateParentIDs();
+
+                dupe.AttachToBackup();
+                ScheduleGroupForFullUpdate();
+            }
 
             return dupe;
         }
@@ -1232,9 +1255,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="part"></param>
         /// <param name="cAgentID"></param>
         /// <param name="cGroupID"></param>
-        public void CopyRootPart(SceneObjectPart part, LLUUID cAgentID, LLUUID cGroupID)
+        public void CopyRootPart(SceneObjectPart part, LLUUID cAgentID, LLUUID cGroupID, bool userExposed)
         {
-            SceneObjectPart newPart = part.Copy(m_scene.PrimIDAllocate(), OwnerID, GroupID, m_parts.Count);
+            SceneObjectPart newPart = part.Copy(m_scene.PrimIDAllocate(), OwnerID, GroupID, m_parts.Count, userExposed);
             newPart.SetParent(this);
 
             lock (m_parts)
@@ -1364,9 +1387,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="part"></param>
         /// <param name="cAgentID"></param>
         /// <param name="cGroupID"></param>
-        public void CopyPart(SceneObjectPart part, LLUUID cAgentID, LLUUID cGroupID)
+        public void CopyPart(SceneObjectPart part, LLUUID cAgentID, LLUUID cGroupID, bool userExposed)
         {
-            SceneObjectPart newPart = part.Copy(m_scene.PrimIDAllocate(), OwnerID, GroupID, m_parts.Count);
+            SceneObjectPart newPart = part.Copy(m_scene.PrimIDAllocate(), OwnerID, GroupID, m_parts.Count, userExposed);
             newPart.SetParent(this);
 
             lock (m_parts)

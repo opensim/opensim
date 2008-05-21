@@ -99,7 +99,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
                 HasInventoryChanged = true;
-
+                ParentGroup.HasGroupChanged = true;
                 IList<TaskInventoryItem> items = new List<TaskInventoryItem>(TaskInventory.Values);
                 TaskInventory.Clear();
 
@@ -121,7 +121,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
                 HasInventoryChanged = true;
-
+                ParentGroup.HasGroupChanged = true;
                 IList<TaskInventoryItem> items = new List<TaskInventoryItem>(TaskInventory.Values);
                 foreach (TaskInventoryItem item in items)
                 {
@@ -304,6 +304,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_inventorySerial++;
             //m_inventorySerial += 2;
             HasInventoryChanged = true;
+            ParentGroup.HasGroupChanged = true;
         }
 
         /// <summary>
@@ -373,6 +374,7 @@ namespace OpenSim.Region.Environment.Scenes
                     TriggerScriptChangedEvent(Changed.INVENTORY);
 
                     HasInventoryChanged = true;
+                    ParentGroup.HasGroupChanged = true;
 
                     return true;
                 }
@@ -411,6 +413,7 @@ namespace OpenSim.Region.Environment.Scenes
                     TriggerScriptChangedEvent(Changed.INVENTORY);
 
                     HasInventoryChanged = true;
+                    ParentGroup.HasGroupChanged = true;
 
                     int scriptcount = 0;
                     lock (m_taskInventory)

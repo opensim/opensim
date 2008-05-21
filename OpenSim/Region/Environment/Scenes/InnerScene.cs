@@ -1399,7 +1399,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_parentScene.ExternalChecks.ExternalChecksCanDuplicateObject(originPrim.Children.Count, originPrim.UUID, AgentID, originPrim.AbsolutePosition))
                 {
-                    SceneObjectGroup copy = originPrim.Copy(AgentID, GroupID);
+                    SceneObjectGroup copy = originPrim.Copy(AgentID, GroupID, true);
                     copy.AbsolutePosition = copy.AbsolutePosition + offset;
                     copy.ResetIDs();
 
