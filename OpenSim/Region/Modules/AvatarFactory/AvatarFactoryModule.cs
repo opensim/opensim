@@ -61,9 +61,14 @@ namespace OpenSim.Region.Modules.AvatarFactory
         {
             appearance = m_scene.CommsManager.UserService.GetUserAppearance(avatarId);
             if (appearance != null) 
+            {
                 return true;
+            }
             else
+            {
+                m_log.InfoFormat("[APPEARANCE] appearance not found for {0}", avatarId.ToString());
                 return false;
+            }
 
             // //should only let one thread at a time do this part
             // EventWaitHandle waitHandle = null;

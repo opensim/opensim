@@ -480,15 +480,15 @@ namespace OpenSim.Data.SQLite
 
         /// Appearance
         /// TODO: stubs for now to get us to a compiling state gently
-        // override public AvatarAppearance GetUserAppearance(LLUUID user)
-        // {
-        //     return new AvatarAppearance();
-        // }
-
-        // override public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
-        // {
-        //     return;
-        // }
+        override public AvatarAppearance GetUserAppearance(LLUUID user)
+        {
+            return new AvatarAppearance();
+        }
+        
+        override public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
+        {
+            return;
+        }
 
         override public void AddAttachment(LLUUID user, LLUUID item)
         {

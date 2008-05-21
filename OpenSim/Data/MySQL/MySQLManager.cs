@@ -191,6 +191,12 @@ namespace OpenSim.Data.MySQL
             cmd.ExecuteNonQuery();
         }
 
+        public void ExecuteSql(string sql)
+        {
+            MySqlCommand cmd = new MySqlCommand(sql, dbcon);
+            cmd.ExecuteNonQuery();
+        }
+
         /// <summary>
         /// Given a list of tables, return the version of the tables, as seen in the database
         /// </summary>
@@ -532,38 +538,42 @@ namespace OpenSim.Data.MySQL
 
         public AvatarAppearance readAppearanceRow(IDataReader reader)
         {
-            AvatarAppearance appearance = new AvatarAppearance();
-            appearance.Owner = new LLUUID((string)reader["owner"]);
-            appearance.Serial = Convert.ToInt32(reader["serial"]);
-            appearance.VisualParams = (byte[])reader["visual_params"];
-            appearance.Texture = new LLObject.TextureEntry((byte[])reader["texture"], 0, ((byte[])reader["texture"]).Length);
-            appearance.AvatarHeight = (float)Convert.ToDouble(reader["avatar_height"]);
-            appearance.BodyItem = new LLUUID((string)reader["body_item"]);
-            appearance.BodyAsset = new LLUUID((string)reader["body_asset"]);
-            appearance.SkinItem = new LLUUID((string)reader["skin_item"]);
-            appearance.SkinAsset = new LLUUID((string)reader["skin_asset"]);
-            appearance.HairItem = new LLUUID((string)reader["hair_item"]);
-            appearance.HairAsset = new LLUUID((string)reader["hair_asset"]);
-            appearance.EyesItem = new LLUUID((string)reader["eyes_item"]);
-            appearance.EyesAsset = new LLUUID((string)reader["eyes_asset"]);
-            appearance.ShirtItem = new LLUUID((string)reader["shirt_item"]);
-            appearance.ShirtAsset = new LLUUID((string)reader["shirt_asset"]);
-            appearance.PantsItem = new LLUUID((string)reader["pants_item"]);
-            appearance.PantsAsset = new LLUUID((string)reader["pants_asset"]);
-            appearance.ShoesItem = new LLUUID((string)reader["shoes_item"]);
-            appearance.ShoesAsset = new LLUUID((string)reader["shoes_asset"]);
-            appearance.SocksItem = new LLUUID((string)reader["socks_item"]);
-            appearance.SocksAsset = new LLUUID((string)reader["socks_asset"]);
-            appearance.JacketItem = new LLUUID((string)reader["jacket_item"]);
-            appearance.JacketAsset = new LLUUID((string)reader["jacket_asset"]);
-            appearance.GlovesItem = new LLUUID((string)reader["gloves_item"]);
-            appearance.GlovesAsset = new LLUUID((string)reader["gloves_asset"]);
-            appearance.UnderShirtItem = new LLUUID((string)reader["undershirt_item"]);
-            appearance.UnderShirtAsset = new LLUUID((string)reader["undershirt_asset"]);
-            appearance.UnderPantsItem = new LLUUID((string)reader["underpants_item"]);
-            appearance.UnderPantsAsset = new LLUUID((string)reader["underpants_asset"]);
-            appearance.SkirtItem = new LLUUID((string)reader["skirt_item"]);
-            appearance.SkirtAsset = new LLUUID((string)reader["skirt_asset"]);
+            AvatarAppearance appearance = null;
+            if (reader.Read())
+            {
+                appearance = new AvatarAppearance();
+                appearance.Owner = new LLUUID((string)reader["owner"]);
+                appearance.Serial = Convert.ToInt32(reader["serial"]);
+                appearance.VisualParams = (byte[])reader["visual_params"];
+                appearance.Texture = new LLObject.TextureEntry((byte[])reader["texture"], 0, ((byte[])reader["texture"]).Length);
+                appearance.AvatarHeight = (float)Convert.ToDouble(reader["avatar_height"]);
+                appearance.BodyItem = new LLUUID((string)reader["body_item"]);
+                appearance.BodyAsset = new LLUUID((string)reader["body_asset"]);
+                appearance.SkinItem = new LLUUID((string)reader["skin_item"]);
+                appearance.SkinAsset = new LLUUID((string)reader["skin_asset"]);
+                appearance.HairItem = new LLUUID((string)reader["hair_item"]);
+                appearance.HairAsset = new LLUUID((string)reader["hair_asset"]);
+                appearance.EyesItem = new LLUUID((string)reader["eyes_item"]);
+                appearance.EyesAsset = new LLUUID((string)reader["eyes_asset"]);
+                appearance.ShirtItem = new LLUUID((string)reader["shirt_item"]);
+                appearance.ShirtAsset = new LLUUID((string)reader["shirt_asset"]);
+                appearance.PantsItem = new LLUUID((string)reader["pants_item"]);
+                appearance.PantsAsset = new LLUUID((string)reader["pants_asset"]);
+                appearance.ShoesItem = new LLUUID((string)reader["shoes_item"]);
+                appearance.ShoesAsset = new LLUUID((string)reader["shoes_asset"]);
+                appearance.SocksItem = new LLUUID((string)reader["socks_item"]);
+                appearance.SocksAsset = new LLUUID((string)reader["socks_asset"]);
+                appearance.JacketItem = new LLUUID((string)reader["jacket_item"]);
+                appearance.JacketAsset = new LLUUID((string)reader["jacket_asset"]);
+                appearance.GlovesItem = new LLUUID((string)reader["gloves_item"]);
+                appearance.GlovesAsset = new LLUUID((string)reader["gloves_asset"]);
+                appearance.UnderShirtItem = new LLUUID((string)reader["undershirt_item"]);
+                appearance.UnderShirtAsset = new LLUUID((string)reader["undershirt_asset"]);
+                appearance.UnderPantsItem = new LLUUID((string)reader["underpants_item"]);
+                appearance.UnderPantsAsset = new LLUUID((string)reader["underpants_asset"]);
+                appearance.SkirtItem = new LLUUID((string)reader["skirt_item"]);
+                appearance.SkirtAsset = new LLUUID((string)reader["skirt_asset"]);
+            }
             return appearance;
         }
 
@@ -1007,10 +1017,10 @@ namespace OpenSim.Data.MySQL
                 MySqlCommand cmd = (MySqlCommand) dbcon.CreateCommand();
                 cmd.CommandText = sql;
                 cmd.Parameters.AddWithValue("?owner", appearance.Owner.ToString());
-                cmd.Parameters.AddWithValue("?serial", appearance.Serial.ToString());
+                cmd.Parameters.AddWithValue("?serial", appearance.Serial);
                 cmd.Parameters.AddWithValue("?visual_params", appearance.VisualParams);
                 cmd.Parameters.AddWithValue("?texture", appearance.Texture.ToBytes());
-                cmd.Parameters.AddWithValue("?avatar_height", appearance.AvatarHeight.ToString());
+                cmd.Parameters.AddWithValue("?avatar_height", appearance.AvatarHeight);
                 cmd.Parameters.AddWithValue("?body_item", appearance.BodyItem.ToString());
                 cmd.Parameters.AddWithValue("?body_asset", appearance.BodyAsset.ToString());
                 cmd.Parameters.AddWithValue("?skin_item", appearance.SkinItem.ToString());
@@ -1037,12 +1047,10 @@ namespace OpenSim.Data.MySQL
                 cmd.Parameters.AddWithValue("?underpants_asset", appearance.UnderPantsAsset.ToString());
                 cmd.Parameters.AddWithValue("?skirt_item", appearance.SkirtItem.ToString());
                 cmd.Parameters.AddWithValue("?skirt_asset", appearance.SkirtAsset.ToString());
-            
-                int x;
-                if ((x = cmd.ExecuteNonQuery()) > 0)
-                {
+                
+                if (cmd.ExecuteNonQuery() > 0)
                     returnval = true;
-                }
+
                 cmd.Dispose();
             }
             catch (Exception e)

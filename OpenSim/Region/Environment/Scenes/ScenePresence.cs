@@ -1456,8 +1456,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             SendFullUpdateToAllClients();
             SendAppearanceToAllOtherAgents();
-            // This is probably egregious
-            m_controllingClient.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
+            SendOwnAppearance();
         }
 
 

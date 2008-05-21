@@ -59,20 +59,22 @@ namespace OpenSim.Data
         public abstract string Name {get;}
         public abstract void Initialise(string connect);
         public abstract List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query);
-        public virtual AvatarAppearance GetUserAppearance(LLUUID user) {
-            AvatarAppearance aa = null;
-            try {
-                aa = aplist[user];
-                m_log.Info("[APPEARANCE] Found appearance for " + user.ToString() + aa.ToString());
-            } catch (System.Collections.Generic.KeyNotFoundException e) {
-                m_log.Info("[APPEARANCE] No appearance found for " + user.ToString());
-            }
-            return aa;
-        }
-        public virtual void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance) {
-            aplist[user] = appearance;
-            m_log.Info("[APPEARANCE] Setting appearance for " + user.ToString() + appearance.ToString());
-        }
+        public abstract AvatarAppearance GetUserAppearance(LLUUID user);
+        public abstract void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance);
+        // public virtual AvatarAppearance GetUserAppearance(LLUUID user) {
+        //     AvatarAppearance aa = null;
+        //     try {
+        //         aa = aplist[user];
+        //         m_log.Info("[APPEARANCE] Found appearance for " + user.ToString() + aa.ToString());
+        //     } catch (System.Collections.Generic.KeyNotFoundException e) {
+        //         m_log.Info("[APPEARANCE] No appearance found for " + user.ToString());
+        //     }
+        //     return aa;
+        // }
+        // public virtual void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance) {
+        //     aplist[user] = appearance;
+        //     m_log.Info("[APPEARANCE] Setting appearance for " + user.ToString() + appearance.ToString());
+        // }
         public abstract void AddAttachment(LLUUID user, LLUUID item);
         public abstract void RemoveAttachment(LLUUID user, LLUUID item);
         public abstract List<LLUUID> GetAttachments(LLUUID user);

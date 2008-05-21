@@ -34,8 +34,6 @@ using libsecondlife;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Data.Base;
-using OpenSim.Data.MapperFactory;
-using OpenSim.Data.MySQLMapper;
 
 namespace OpenSim.Data.MySQL
 {
@@ -56,8 +54,6 @@ namespace OpenSim.Data.MySQL
         private string m_userFriendsTableName;
         private string m_appearanceTableName = "avatarappearance";
         private string m_connectString;
-        private BaseDatabaseConnector m_databaseMapper;
-        private AppearanceTableMapper m_appearanceMapper;
 
         /// <summary>
         /// Loads and initialises the MySQL storage plugin
@@ -106,15 +102,6 @@ namespace OpenSim.Data.MySQL
                 m_userFriendsTableName = "userfriends";
                 database = new MySQLManager(m_connectString);
             }
-
-            string mapperTypeStr = "MySQL";
-            DataMapperFactory.MAPPER_TYPE mapperType =
-                (DataMapperFactory.MAPPER_TYPE)
-                Enum.Parse(typeof (DataMapperFactory.MAPPER_TYPE), mapperTypeStr);
-
-            m_databaseMapper = DataMapperFactory.GetDataBaseMapper(mapperType, m_connectString);
-
-            m_appearanceMapper = new AppearanceTableMapper(m_databaseMapper, "AvatarAppearance");
 
             TestTables();
         }
@@ -201,6 +188,12 @@ namespace OpenSim.Data.MySQL
             // null as the version, indicates that the table didn't exist
             if (oldVersion == null)
             {
+                database.ExecuteResourceSql("CreateAvatarAppearance.sql");
+                return;
+            } 
+            else if (oldVersion.Contains("Rev.1"))
+            {
+                database.ExecuteSql("drop table avatarappearance");
                 database.ExecuteResourceSql("CreateAvatarAppearance.sql");
                 return;
             }
@@ -676,18 +669,35 @@ namespace OpenSim.Data.MySQL
         // override
         override public AvatarAppearance GetUserAppearance(LLUUID user)
         {
-            AvatarAppearance appearance = null;
-            if (!m_appearanceMapper.TryGetValue(user.UUID, out appearance))
-            {
-                appearance = null;
+            try {
+                lock (database)
+                {
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    param["?owner"] = user.ToString();
+                    
+                    IDbCommand result = database.Query("SELECT * FROM " + m_appearanceTableName + " WHERE owner = ?owner", param);
+                    IDataReader reader = result.ExecuteReader();
+                    
+                    AvatarAppearance appearance = database.readAppearanceRow(reader);
+                    
+                    reader.Close();
+                    result.Dispose();
+                    
+                    return appearance;
+                }
             }
-            return appearance;
+            catch (Exception e)
+            {
+                database.Reconnect();
+                m_log.Error(e.ToString());
+                return null;
+            }
         }
-
         // override
         override public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
         {
-            m_appearanceMapper.Update(user.UUID, appearance);
+            appearance.Owner = user;
+            database.insertAppearanceRow(appearance);
         }
 
         override public void AddAttachment(LLUUID user, LLUUID item)
