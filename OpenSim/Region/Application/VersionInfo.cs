@@ -28,9 +28,10 @@
 namespace OpenSim
 {
     /// <summary>
+    /// Exists purely to hold version information.
     /// </summary>
     public class VersionInfo
     {
-        public static string Version = "trunk (0.5.6 and additional code)";
+        public static string Version = "trunk (post 0.5.6)";
     }
 }

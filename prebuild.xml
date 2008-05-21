@@ -763,6 +763,7 @@
 	    <Reference name="System.Runtime.Remoting"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="Axiom.MathLib.dll"/>
+      <Reference name="OpenSim"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Data" />
       <Reference name="OpenSim.Framework.Console"/>

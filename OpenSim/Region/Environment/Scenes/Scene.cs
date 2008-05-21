@@ -35,6 +35,7 @@ using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenJPEGNet;
+using OpenSim;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
@@ -86,7 +87,7 @@ namespace OpenSim.Region.Environment.Scenes
         private int m_incrementsof15seconds = 0;
         private volatile bool m_backingup = false;
 
-        public string m_simulatorVersion = "OpenSimulator 0.5";
+        protected string m_simulatorVersion = VersionInfo.Version;
 
         protected ModuleLoader m_moduleLoader;
         protected StorageManager m_storageManager;
@@ -307,7 +308,9 @@ namespace OpenSim.Region.Environment.Scenes
                 OSString = OSString.Substring(0, 45);
             }
 
-            m_simulatorVersion = "OpenSimulator v0.5-SVN on " + OSString + " ChilTasks:" + m_seeIntoRegionFromNeighbor.ToString() + " PhysPrim:" + m_physicalPrim.ToString();
+//            m_simulatorVersion += " on " + OSString 
+//                + " ChilTasks:" + m_seeIntoRegionFromNeighbor.ToString() 
+//                + " PhysPrim:" + m_physicalPrim.ToString();
         }
 
         #endregion

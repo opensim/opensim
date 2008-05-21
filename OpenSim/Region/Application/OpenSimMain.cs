@@ -346,10 +346,10 @@ namespace OpenSim
         }
 
         /// <summary>
-        /// Print the version information available to the library.  This include a subversion number if the root
-        /// .svn/entries file is present.
+        /// Update the version string with extra information if it's available.  
+        /// This currently means adding a subversion number if the root .svn/entries file is present.
         /// </summary>
-        protected void printAvailableVersionInformation()
+        protected void updateAvailableVersionInformation()
         {
             // Set BuildVersion String for Show version command
             string svnFileName = "../.svn/entries";
@@ -379,11 +379,7 @@ namespace OpenSim
 
             if (!string.IsNullOrEmpty(buildVersion))
             {
-                m_log.Info("[STARTUP]: OpenSim version: " + VersionInfo.Version + ", SVN build r" + buildVersion + "\n");
-            }
-            else
-            {
-                m_log.Info("[STARTUP]: OpenSim version: " + VersionInfo.Version + "\n");
+                VersionInfo.Version += ", SVN build r" + buildVersion;
             }
         }
 
@@ -392,7 +388,8 @@ namespace OpenSim
         /// </summary>
         protected void InternalStartUp()
         {
-            printAvailableVersionInformation();
+            updateAvailableVersionInformation();
+            m_log.Info("[STARTUP]: OpenSim version: " + VersionInfo.Version + "\n");
 
             m_stats = StatsManager.StartCollectingSimExtraStats();
 
