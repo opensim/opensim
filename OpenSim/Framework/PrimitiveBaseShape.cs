@@ -26,8 +26,10 @@
  */
 
 using System;
+using System.Reflection;
 using System.Xml.Serialization;
 using libsecondlife;
+using log4net;
 
 namespace OpenSim.Framework
 {
@@ -70,6 +72,8 @@ namespace OpenSim.Framework
     [Serializable]
     public class PrimitiveBaseShape
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private static readonly LLObject.TextureEntry m_defaultTexture;
         
         private byte[] m_textureEntry;
@@ -89,14 +93,53 @@ namespace OpenSim.Framework
         public sbyte PathTwist;
         public sbyte PathTwistBegin;
         public byte PCode;
-        public ushort ProfileBegin;
-
-        public byte ProfileCurve;
+        public ushort ProfileBegin;       
+        
+        public byte ProfileCurve
+        {
+            get { return (byte)((byte)HollowShape | (byte)ProfileShape); }
+            
+            set 
+            {
+                // Handle hollow shape component
+                byte hollowShapeByte = (byte)(value & 0xf0);
+                
+                if (!Enum.IsDefined(typeof(HollowShape), hollowShapeByte))
+                {
+                    m_log.WarnFormat(
+                        "[SHAPE]: Attempt to set a ProfileCurve with a hollow shape value of {0}, which isn't a valid enum.  Replacing with default shape.",
+                        hollowShapeByte);
+                    
+                    this.HollowShape = HollowShape.Same;
+                }
+                else
+                {
+                    this.HollowShape = (HollowShape)hollowShapeByte;
+                }
+                                
+                // Handle profile shape component
+                byte profileShapeByte = (byte)(value & 0xf);
+                
+                if (!Enum.IsDefined(typeof(ProfileShape), profileShapeByte))
+                {
+                    m_log.WarnFormat(
+                        "[SHAPE]: Attempt to set a ProfileCurve with a profile shape value of {0}, which isn't a valid enum.  Replacing with square.",
+                        profileShapeByte);
+                    
+                    this.ProfileShape = ProfileShape.Square;
+                }
+                else
+                {
+                    this.ProfileShape = (ProfileShape)profileShapeByte;
+                }
+            }
+        }          
 
         public ushort ProfileEnd;
         public ushort ProfileHollow;
         public LLVector3 Scale;
         public byte State;
+        
         // Sculpted
         [XmlIgnore] public LLUUID SculptTexture = LLUUID.Zero;
         [XmlIgnore] public byte SculptType = (byte)0;
@@ -154,25 +197,9 @@ namespace OpenSim.Framework
             set { m_textureEntry = value; }
         }
 
-        public ProfileShape ProfileShape
-        {
-            get { return (ProfileShape) (ProfileCurve & 0xf); }
-            set
-            {
-                byte oldValueMasked = (byte) (ProfileCurve & 0xf0);
-                ProfileCurve = (byte) (oldValueMasked | (byte) value);
-            }
-        }
-
-        public HollowShape HollowShape
-        {
-            get { return (HollowShape) (ProfileCurve & 0xf0); }
-            set
-            {
-                byte oldValueMasked = (byte) (ProfileCurve & 0x0f);
-                ProfileCurve = (byte) (oldValueMasked | (byte) value);
-            }
-        }
+        public ProfileShape ProfileShape;
+        
+        public HollowShape HollowShape;    
 
         public static PrimitiveBaseShape Default
         {
@@ -185,7 +212,6 @@ namespace OpenSim.Framework
                 return boxShape;
             }
         }
-
 
         public static PrimitiveBaseShape Create()
         {
