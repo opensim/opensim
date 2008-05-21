@@ -289,6 +289,8 @@ namespace OpenSim
 
                     break;
                 case "save-xml":
+                    m_log.Error("[CONSOLE]: PLEASE NOTE, save-xml is DEPRECATED and may be REMOVED soon.  If you are using this and there is some reason you can't use save-xml2, please file a mantis detailing the reason.");
+                
                     if (cmdparams.Length > 0)
                     {
                         m_sceneManager.SaveCurrentSceneToXml(cmdparams[0]);
@@ -300,6 +302,8 @@ namespace OpenSim
                     break;
 
                 case "load-xml":
+                    m_log.Error("[CONSOLE]: PLEASE NOTE, load-xml is DEPRECATED and may be REMOVED soon.  If you are using this and there is some reason you can't use load-xml2, please file a mantis detailing the reason.");
+                
                     LLVector3 loadOffset = new LLVector3(0, 0, 0);
                     if (cmdparams.Length > 0)
                     {
