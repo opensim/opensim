@@ -35,7 +35,6 @@ using Axiom.Math;
 using libsecondlife;
 using libsecondlife.Packets;
 using OpenJPEGNet;
-using OpenSim;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
@@ -87,7 +86,7 @@ namespace OpenSim.Region.Environment.Scenes
         private int m_incrementsof15seconds = 0;
         private volatile bool m_backingup = false;
 
-        protected string m_simulatorVersion = VersionInfo.Version;
+        protected string m_simulatorVersion = "unknown"; 
 
         protected ModuleLoader m_moduleLoader;
         protected StorageManager m_storageManager;
@@ -220,7 +219,8 @@ namespace OpenSim.Region.Environment.Scenes
         public Scene(RegionInfo regInfo, AgentCircuitManager authen,
                      CommunicationsManager commsMan, SceneCommunicationService sceneGridService,
                      AssetCache assetCach, StorageManager storeManager, BaseHttpServer httpServer,
-                     ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim, bool SeeIntoRegionFromNeighbor, IConfigSource config)
+                     ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim, 
+                     bool SeeIntoRegionFromNeighbor, IConfigSource config, string simulatorVersion)
         {
             m_config = config;
             updateLock = new Mutex(false);
@@ -308,9 +308,9 @@ namespace OpenSim.Region.Environment.Scenes
                 OSString = OSString.Substring(0, 45);
             }
 
-//            m_simulatorVersion += " on " + OSString 
-//                + " ChilTasks:" + m_seeIntoRegionFromNeighbor.ToString() 
-//                + " PhysPrim:" + m_physicalPrim.ToString();
+            m_simulatorVersion = simulatorVersion + " on " + OSString 
+                + " ChilTasks:" + m_seeIntoRegionFromNeighbor.ToString() 
+                + " PhysPrim:" + m_physicalPrim.ToString();
         }
 
         #endregion

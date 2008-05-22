@@ -622,7 +622,8 @@ namespace OpenSim
             return
                 new Scene(regionInfo, circuitManager, m_commsManager, sceneGridService, m_assetCache,
                           storageManager, m_httpServer,
-                          m_moduleLoader, m_dumpAssetsToFile, m_physicalPrim, m_see_into_region_from_neighbor, m_config);
+                          m_moduleLoader, m_dumpAssetsToFile, m_physicalPrim, m_see_into_region_from_neighbor, m_config,
+                          VersionInfo.Version);
 
         }
 

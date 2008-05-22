@@ -43,7 +43,7 @@ namespace OpenSim.Grid.ScriptServer
                          ModuleLoader moduleLoader, bool dumpAssetsToFile, bool physicalPrim, bool sendTasksToChild, IConfigSource config)
             : base(
                 regInfo, authen, commsMan, sceneGridService, assetCach, storeManager, httpServer,
-                moduleLoader, dumpAssetsToFile, physicalPrim, sendTasksToChild, config)
+                moduleLoader, dumpAssetsToFile, physicalPrim, sendTasksToChild, config, "")
         {
             
         }
