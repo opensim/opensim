@@ -581,6 +581,42 @@ namespace OpenSim
                     m_assetCache.ShowState();
                     break;
 
+                case "users":
+                    IList agents = m_sceneManager.GetCurrentSceneAvatars();
+                
+                    m_console.Notice(String.Format("\nAgents connected: {0}\n", agents.Count));
+                                 
+                    m_console.Notice(
+                        String.Format("{0,-16}{1,-16}{2,-37}{3,-16}", "Firstname", "Lastname",
+                                      "Agent ID","Region"));
+
+                    foreach (ScenePresence presence in agents)
+                    {
+                        RegionInfo regionInfo = m_sceneManager.GetRegionInfo(presence.RegionHandle);
+                        string regionName;
+                        System.Net.EndPoint ep = null;
+
+                        if (regionInfo == null)
+                        {
+                            regionName = "Unresolvable";
+                        }
+                        else
+                        {
+                            regionName = regionInfo.RegionName;
+                        }
+
+                        m_console.Notice(
+                            String.Format(
+                                 "{0,-16}{1,-16}{2,-37}{3,-16}",
+                                 presence.Firstname,
+                                 presence.Lastname,
+                                 presence.UUID,
+                                 regionName));
+                    }
+                
+                    m_console.Notice("");
+                    break;
+
                 case "modules":
                     m_console.Notice("The currently loaded shared modules are:");
                     foreach (IRegionModule module in m_moduleLoader.GetLoadedSharedModules)
