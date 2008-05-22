@@ -561,7 +561,7 @@ namespace OpenSim.Framework.Communications.Cache
             // FIXME: We never tell the client about assets which do not exist when requested by this transfer mechanism, which can't be right.
             if (null == asset)
             {
-                m_log.DebugFormat("[ASSET CACHE]: Asset transfer request for asset which is {0} already known to be missing", requestID);
+                //m_log.DebugFormat("[ASSET CACHE]: Asset transfer request for asset which is {0} already known to be missing.  Dropping", requestID);
                 return;
             }
                 

@@ -348,7 +348,7 @@ namespace OpenSim
         /// <summary>
         /// Enhance the version string with extra information if it's available.  
         /// </summary>
-        protected void enhanceVersionInformation()
+        protected void EnhanceVersionInformation()
         {
             // Add subversion revision information if available
             string svnFileName = "../.svn/entries";
@@ -405,7 +405,7 @@ namespace OpenSim
         /// </summary>
         protected void InternalStartUp()
         {
-            enhanceVersionInformation();
+            EnhanceVersionInformation();
                     
             m_log.Info("[STARTUP]: OpenSim version: " + VersionInfo.Version + "\n");
 

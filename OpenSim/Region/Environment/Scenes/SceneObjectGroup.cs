@@ -1088,7 +1088,8 @@ namespace OpenSim.Region.Environment.Scenes
             // don't backup while it's selected or you're asking for changes mid stream.
             if (HasGroupChanged && !IsSelected)
             {
-                m_log.Info("STORING");
+                m_log.InfoFormat("[SCENE]: STORING OBJECT {0}", UUID);
+                
                 SceneObjectGroup backup_group = Copy(OwnerID, GroupID, false);
                 
                 datastore.StoreObject(backup_group, m_scene.RegionInfo.RegionID);
