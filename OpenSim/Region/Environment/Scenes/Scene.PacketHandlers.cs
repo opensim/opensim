@@ -113,10 +113,10 @@ namespace OpenSim.Region.Environment.Scenes
                     if (((SceneObjectGroup) ent).LocalId == primLocalID)
                     {
                         ((SceneObjectGroup) ent).IsSelected = false;
+                        ((SceneObjectGroup)ent).ScheduleGroupForFullUpdate();
                         if (ExternalChecks.ExternalChecksCanEditObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId) || ExternalChecks.ExternalChecksCanMoveObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId))
                         {
                             LandChannel.SetPrimsTainted();
-                            ((SceneObjectGroup)ent).ScheduleGroupForTerseUpdate();
                             break;
                         }
                     }
