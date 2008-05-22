@@ -1002,30 +1002,66 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="map">heightmap</param>
         public virtual void SendLayerData(float[] map)
         {
+            ThreadPool.QueueUserWorkItem(new WaitCallback(DoSendLayerData), (object)map);
+            //try
+            //{
+            //    int[] patches = new int[4];
+
+            //    for (int y = 0; y < 16; y++)
+            //    {
+            //        for (int x = 0; x < 16; x += 4)
+            //        {
+            //            patches[0] = x + 0 + y * 16;
+            //            patches[1] = x + 1 + y * 16;
+            //            patches[2] = x + 2 + y * 16;
+            //            patches[3] = x + 3 + y * 16;
+
+            //            Packet layerpack = LLClientView.TerrainManager.CreateLandPacket(map, patches);
+            //            OutPacket(layerpack, ThrottleOutPacketType.Land);
+            //        }
+            //    }
+            //}
+            //catch (Exception e)
+            //{
+            //    m_log.Warn("[client]: " +
+            //               "ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
+            //}
+        }
+
+
+        private void DoSendLayerData(object o)
+        {
+            float[] map = (float[])o;
             try
             {
-                int[] patches = new int[4];
-
                 for (int y = 0; y < 16; y++)
                 {
                     for (int x = 0; x < 16; x += 4)
                     {
-                        patches[0] = x + 0 + y * 16;
-                        patches[1] = x + 1 + y * 16;
-                        patches[2] = x + 2 + y * 16;
-                        patches[3] = x + 3 + y * 16;
-
-                        Packet layerpack = LLClientView.TerrainManager.CreateLandPacket(map, patches);
-                        OutPacket(layerpack, ThrottleOutPacketType.Land);
+                        SendLayerPacket(map, y, x);
+                        Thread.Sleep(150);
                     }
                 }
             }
             catch (Exception e)
             {
                 m_log.Warn("[client]: " +
-                           "ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
+                                      "ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
             }
         }
+
+        private void SendLayerPacket(float[] map, int y, int x)
+        {
+            int[] patches = new int[4];
+            patches[0] = x + 0 + y * 16;
+            patches[1] = x + 1 + y * 16;
+            patches[2] = x + 2 + y * 16;
+            patches[3] = x + 3 + y * 16;
+
+            Packet layerpack = LLClientView.TerrainManager.CreateLandPacket(map, patches);
+            OutPacket(layerpack, ThrottleOutPacketType.Land);
+        }
+
 
         /// <summary>
         /// Sends a specified patch to a client
