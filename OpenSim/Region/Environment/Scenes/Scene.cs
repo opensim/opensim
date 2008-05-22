@@ -293,22 +293,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_statsReporter.SetObjectCapacity(objectCapacity);
 
-            string OSString = "";
-
-            if (System.Environment.OSVersion.Platform != PlatformID.Unix)
-            {
-                OSString = System.Environment.OSVersion.ToString();
-            }
-            else
-            {
-                OSString = Util.ReadEtcIssue();
-            }
-            if (OSString.Length > 45)
-            {
-                OSString = OSString.Substring(0, 45);
-            }
-
-            m_simulatorVersion = simulatorVersion + " on " + OSString 
+            m_simulatorVersion = simulatorVersion
                 + " ChilTasks:" + m_seeIntoRegionFromNeighbor.ToString() 
                 + " PhysPrim:" + m_physicalPrim.ToString();
         }

@@ -346,12 +346,11 @@ namespace OpenSim
         }
 
         /// <summary>
-        /// Update the version string with extra information if it's available.  
-        /// This currently means adding a subversion number if the root .svn/entries file is present.
+        /// Enhance the version string with extra information if it's available.  
         /// </summary>
-        protected void updateAvailableVersionInformation()
+        protected void enhanceVersionInformation()
         {
-            // Set BuildVersion String for Show version command
+            // Add subversion revision information if available
             string svnFileName = "../.svn/entries";
             string inputLine;
             int strcmp;
@@ -380,7 +379,25 @@ namespace OpenSim
             if (!string.IsNullOrEmpty(buildVersion))
             {
                 VersionInfo.Version += ", SVN build r" + buildVersion;
+            }            
+
+            // Add operating system information if available
+            string OSString = "";
+
+            if (System.Environment.OSVersion.Platform != PlatformID.Unix)
+            {
+                OSString = System.Environment.OSVersion.ToString();
             }
+            else
+            {
+                OSString = Util.ReadEtcIssue();
+            }
+            if (OSString.Length > 45)
+            {
+                OSString = OSString.Substring(0, 45);
+            }   
+            
+            VersionInfo.Version += " on " + OSString;          
         }
 
         /// <summary>
@@ -388,7 +405,8 @@ namespace OpenSim
         /// </summary>
         protected void InternalStartUp()
         {
-            updateAvailableVersionInformation();
+            enhanceVersionInformation();
+                    
             m_log.Info("[STARTUP]: OpenSim version: " + VersionInfo.Version + "\n");
 
             m_stats = StatsManager.StartCollectingSimExtraStats();

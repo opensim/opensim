@@ -350,10 +350,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             m_moneyBalance = 1000;
 
-            m_channelVersion = Helpers.StringToField(scene.GetSimulatorVersion());
+            m_channelVersion = Helpers.StringToField("OpenSimulator Server " + scene.GetSimulatorVersion());
 
             InitDefaultAnimations();
-
 
             m_scene = scene;
             m_assetCache = assetCache;
