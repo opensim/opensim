@@ -52,8 +52,18 @@ namespace OpenSim.Region.Physics.Meshing
         {
             if (_lod == 2f || _lod == 4f || _lod == 8f || _lod == 16f || _lod == 32f || _lod == 64f)
                 lod = (int)_lod;
-
-            idata = OpenJPEG.DecodeToImage(jpegData);
+            
+            try
+            {
+                idata = OpenJPEG.DecodeToImage(jpegData);
+                //int i = 0;
+                //i = i / i;
+            }
+            catch (Exception)
+            {
+                System.Console.WriteLine("[PHYSICS]: Unable to generate a Sculpty physics proxy.  Sculpty texture decode failed!");
+                return;
+            }
             if (idata != null)
             {
                 bBitmap = new Bitmap(idata);
