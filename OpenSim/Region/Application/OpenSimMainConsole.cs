@@ -359,6 +359,17 @@ namespace OpenSim
                         m_sceneManager.LoadCurrentSceneFromXml2(DEFAULT_PRIM_BACKUP_FILENAME);
                     }
                     break;
+                
+                case "save-oar":
+                    if (cmdparams.Length > 0)
+                    {
+                        m_sceneManager.SaveCurrentSceneToOar(cmdparams[0]);
+                    }
+                    else
+                    {
+                        m_sceneManager.SaveCurrentSceneToOar(DEFAULT_OAR_BACKUP_FILENAME);
+                    }
+                    break;   
 
                 case "plugin":
                     m_sceneManager.SendCommandToPluginModules(cmdparams);

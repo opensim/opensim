@@ -157,24 +157,61 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Save the prims in the current scene to an xml file in OpenSimulator's original 'xml' format
+        /// </summary>
+        /// <param name="filename"></param>
         public void SaveCurrentSceneToXml(string filename)
         {
             CurrentOrFirstScene.SavePrimsToXml(filename);
         }
 
+        /// <summary>
+        /// Load an xml file of prims in OpenSimulator's original 'xml' file format to the current scene
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="generateNewIDs"></param>
+        /// <param name="loadOffset"></param>
         public void LoadCurrentSceneFromXml(string filename, bool generateNewIDs, LLVector3 loadOffset)
         {
             CurrentOrFirstScene.LoadPrimsFromXml(filename, generateNewIDs, loadOffset);
         }
-
+                
+        /// <summary>
+        /// Save the prims in the current scene to an xml file in OpenSimulator's current 'xml2' format
+        /// </summary>
+        /// <param name="filename"></param>
         public void SaveCurrentSceneToXml2(string filename)
         {
             CurrentOrFirstScene.SavePrimsToXml2(filename);
         }
 
+        /// <summary>
+        /// Load an xml file of prims in OpenSimulator's current 'xml2' file format to the current scene
+        /// </summary>        
         public void LoadCurrentSceneFromXml2(string filename)
         {
             CurrentOrFirstScene.LoadPrimsFromXml2(filename);
+        }
+        
+        /// <summary>
+        /// Save the current scene to an OpenSimulator archive.  This archive will eventually include the prim's assets
+        /// as well as the details of the prims themselves.
+        /// </summary>
+        /// <param name="filename"></param>
+        public void SaveCurrentSceneToOar(string filename)
+        {
+            // TODO Nothing yet
+        }
+        
+        /// <summary>
+        /// Load an OpenSim archive into the current scene.  This will load both the shapes of the prims and upload
+        /// their assets to the asset service.
+        /// </summary>
+        /// <param name="filename"></param>
+        public void LoadCurrentSceneFromOar(string filename)
+        {
+            // TODO Nothing yet
         }
 
         [Obsolete("TODO: Remove this warning by 0.7")]
