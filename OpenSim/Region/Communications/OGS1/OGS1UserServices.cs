@@ -97,7 +97,7 @@ namespace OpenSim.Region.Communications.OGS1
                                "Error sent by user server when trying to get user appearance: (" +
                                data["error_type"] +
                                "): " + data["error_desc"]);
-                    return new AvatarAppearance();
+                    return null;
                 }
                 else
                 {
@@ -107,7 +107,7 @@ namespace OpenSim.Region.Communications.OGS1
             else
             {
                 m_log.Error("[GRID]: The avatar appearance is null, something bad happenend");
-                return new AvatarAppearance();
+                return null;
             }
         }
 
