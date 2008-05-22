@@ -117,11 +117,16 @@ namespace OpenSim.Region.Modules.AvatarFactory
         {
             IClientAPI clientView = (IClientAPI)sender;
             ScenePresence avatar = m_scene.GetScenePresence(clientView.AgentId);
+            if(avatar == null) {
+                m_log.Info("Avatar is child agent, ignoring AvatarIsWearing event");
+                return;
+            }
+
             CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(clientView.AgentId);
 
             AvatarAppearance avatAppearance = null;
             if(!TryGetAvatarAppearance(clientView.AgentId, out avatAppearance)) {
-                m_log.Info("We didn't seem to find the appearance");
+                m_log.Info("We didn't seem to find the appearance, falling back to ScenePresense");
                 avatAppearance = avatar.Appearance;
             }
             m_log.Info("Calling Avatar is Wearing");
