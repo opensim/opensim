@@ -104,22 +104,28 @@ namespace OpenSim.Framework.Communications.Cache
 
             foreach (TextureImage texture in Textures.Values)
             {
-                if (texture.Temporary)
+                if (texture != null)
                 {
-                    temporaryImages++;
-                }
+                    if (texture.Temporary)
+                    {
+                        temporaryImages++;
+                    }
 
-                imageBytes += texture.Data.GetLongLength(0);
+                    imageBytes += texture.Data.GetLongLength(0);
+                }
             }
 
             foreach (AssetInfo asset in Assets.Values)
             {
-                if (asset.Temporary)
+                if (asset != null)
                 {
-                    temporaryAssets++;
-                }
+                    if (asset.Temporary)
+                    {
+                        temporaryAssets++;
+                    }
 
-                assetBytes += asset.Data.GetLongLength(0);
+                    assetBytes += asset.Data.GetLongLength(0);
+                }
             }
 
             m_log.InfoFormat("Temporary Images: {0}  Temporary Assets: {1}",
