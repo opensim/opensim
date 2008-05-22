@@ -242,11 +242,11 @@ namespace OpenSim
                     m_console.Notice("edit-scale [prim name] [x] [y] [z] - resize given prim");
                     m_console.Notice("export-map [filename] - save image of world map");
                     m_console.Notice("force-update - force an update of prims in the scene");
-                    m_console.Notice("load-xml [filename] - load prims from XML");
+                    m_console.Notice("load-xml [filename] - load prims from XML (DEPRECATED)");
                     m_console.Notice("load-xml2 [filename] - load prims from XML using version 2 format");
                     m_console.Notice("restart - disconnects all clients and restarts the sims in the instance.");
                     m_console.Notice("remove-region [name] - remove a region");
-                    m_console.Notice("save-xml [filename] - save prims to XML");
+                    m_console.Notice("save-xml [filename] - save prims to XML (DEPRECATED)");
                     m_console.Notice("save-xml2 [filename] - save prims to XML using version 2 format");
                     m_console.Notice("script - manually trigger scripts? or script commands?");
                     m_console.Notice("set-time [x] - set the current scene time phase");
