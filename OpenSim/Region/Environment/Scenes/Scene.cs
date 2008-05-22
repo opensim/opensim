@@ -1797,10 +1797,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void GetAvatarAppearance(IClientAPI client, out AvatarAppearance appearance)
         {
+            appearance = null;  // VS needs this line, mono doesn't
             if (m_AvatarFactory == null ||
                 !m_AvatarFactory.TryGetAvatarAppearance(client.AgentId, out appearance))
             {
-                // not found Appearance
                 m_log.Warn("[APPEARANCE]: Appearance not found, creating default");
             }
         }
