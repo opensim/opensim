@@ -92,7 +92,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected StorageManager m_storageManager;
         protected AgentCircuitManager m_authenticateHandler;
         public CommunicationsManager CommsManager;
-        // protected XferManager xferManager;
+
         protected SceneCommunicationService m_sceneGridService;
         protected SceneXmlLoader m_sceneXmlLoader;
 
@@ -997,14 +997,14 @@ namespace OpenSim.Region.Environment.Scenes
                 Bitmap mapbmp = new Bitmap(256, 256);
                 double[,] hm = Heightmap.GetDoubles();
 
-                Color prim = Color.FromArgb(120, 120, 120);
-                LLVector3 RayEnd = new LLVector3(0, 0, 0);
-                LLVector3 RayStart = new LLVector3(0, 0, 0);
-                LLVector3 direction = new LLVector3(0, 0, -1);
+                //Color prim = Color.FromArgb(120, 120, 120);
+                //LLVector3 RayEnd = new LLVector3(0, 0, 0);
+                //LLVector3 RayStart = new LLVector3(0, 0, 0);
+                //LLVector3 direction = new LLVector3(0, 0, -1);
                 //Vector3 AXOrigin = new Vector3();
                 //Vector3 AXdirection = new Vector3();
-                Ray testRay = new Ray();
-                EntityIntersection rt = new EntityIntersection();
+                //Ray testRay = new Ray();
+                //EntityIntersection rt = new EntityIntersection();
 
                 float low = 255;
                 float high = 0;
