@@ -254,6 +254,7 @@ namespace OpenSim
                     m_console.Notice("show users - show info about connected users.");
                     m_console.Notice("show modules - shows info about loaded modules.");
                     m_console.Notice("show version - show the running build version.");
+                    m_console.Notice("show regions - show running region information.");
                     m_console.Notice("threads - list threads");
                     m_console.Notice("config set section field value - set a config value");
                     m_console.Notice("config get section field - get a config value");
