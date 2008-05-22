@@ -1801,8 +1801,7 @@ namespace OpenSim.Region.Environment.Scenes
                 !m_AvatarFactory.TryGetAvatarAppearance(client.AgentId, out appearance))
             {
                 // not found Appearance
-                m_log.Warn("[AVATAR DEBUGGING]: Couldn't fetch avatar appearance from factory, please report this to the opensim mantis");
-                appearance = new AvatarAppearance();
+                m_log.Warn("[APPEARANCE]: Appearance not found, creating default");
             }
         }
 

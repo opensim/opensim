@@ -1466,11 +1466,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_log.Info("[APPEARANCE] Sending Own Appearance");
             ControllingClient.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
-            ControllingClient.SendAppearance(
-                                            m_appearance.Owner,
-                                            m_appearance.VisualParams,
-                                            m_appearance.Texture.ToBytes()
-                                            );
+            // ControllingClient.SendAppearance(
+            //                                 m_appearance.Owner,
+            //                                 m_appearance.VisualParams,
+            //                                 m_appearance.Texture.ToBytes()
+            // );
         }
 
         /// <summary>
