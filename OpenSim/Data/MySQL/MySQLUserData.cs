@@ -696,8 +696,19 @@ namespace OpenSim.Data.MySQL
         // override
         override public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
         {
-            appearance.Owner = user;
-            database.insertAppearanceRow(appearance);
+            try
+            {
+                lock (database)
+                {
+                    appearance.Owner = user;
+                    database.insertAppearanceRow(appearance);
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                m_log.Error(e.ToString());
+            }
         }
 
         override public void AddAttachment(LLUUID user, LLUUID item)
