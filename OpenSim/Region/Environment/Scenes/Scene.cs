@@ -40,6 +40,7 @@ using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Modules.World.Archiver;
 using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
@@ -57,7 +58,6 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void SynchronizeSceneHandler(Scene scene);
         public SynchronizeSceneHandler SynchronizeScene = null;
         public int splitID = 0;
-
 
         #region Fields
 
@@ -137,7 +137,6 @@ namespace OpenSim.Region.Environment.Scenes
         private int m_update_backup = 200;
         private int m_update_terrain = 50;
         private int m_update_land = 1;
-
 
         private int frameMS = 0;
         private int physicsMS2 = 0;
@@ -631,7 +630,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Sets up references to loaded modules required by thie scene
+        /// Sets up references to modules required by the scene
         /// </summary>
         public void SetModuleInterfaces()
         {
@@ -1043,7 +1042,7 @@ namespace OpenSim.Region.Environment.Scenes
                         //}
                         //else
                         //{
-                        float tmpval = (float)hm[x, y];
+                        //float tmpval = (float)hm[x, y];
                         float heightvalue = (float)hm[x, y];
 
                         if ((float)heightvalue > m_regInfo.EstateSettings.waterHeight)
@@ -1379,6 +1378,26 @@ namespace OpenSim.Region.Environment.Scenes
         public void SavePrimsToXml2(string fileName)
         {
             m_sceneXmlLoader.SavePrimsToXml2(fileName);
+        }
+        
+        /// <summary>
+        /// Load a prim archive into the scene.  This loads both prims and their assets.
+        /// </summary>
+        /// <param name="filePath"></param>
+        public void LoadPrimsFromArchive(string filePath)
+        {
+            IRegionArchiver archiver = RequestModuleInterface<IRegionArchiver>();
+            archiver.DearchiveRegion(this, filePath);
+        }
+        
+        /// <summary>
+        /// Save the prims in the scene to an archive.  This saves both prims and their assets.
+        /// </summary>
+        /// <param name="filePath"></param>
+        public void SavePrimsToArchive(string filePath)
+        {
+            IRegionArchiver archiver = RequestModuleInterface<IRegionArchiver>();
+            archiver.ArchiveRegion(this, filePath);
         }
 
         /// <summary>

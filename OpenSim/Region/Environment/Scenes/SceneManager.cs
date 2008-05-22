@@ -199,9 +199,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// as well as the details of the prims themselves.
         /// </summary>
         /// <param name="filename"></param>
-        public void SaveCurrentSceneToOar(string filename)
+        public void SaveCurrentSceneToArchive(string filename)
         {
-            // TODO Nothing yet
+            CurrentOrFirstScene.LoadPrimsFromArchive(filename);
         }
         
         /// <summary>
@@ -209,9 +209,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// their assets to the asset service.
         /// </summary>
         /// <param name="filename"></param>
-        public void LoadCurrentSceneFromOar(string filename)
+        public void LoadCurrentSceneFromArchive(string filename)
         {
-            // TODO Nothing yet
+            CurrentOrFirstScene.SavePrimsToArchive(filename);
         }
 
         [Obsolete("TODO: Remove this warning by 0.7")]

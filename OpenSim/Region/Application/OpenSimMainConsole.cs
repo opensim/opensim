@@ -361,13 +361,15 @@ namespace OpenSim
                     break;
                 
                 case "save-oar":
+                    m_log.Error("[CONSOLE]: Don't use me - I haven't yet been sufficiently implemented!");
+                
                     if (cmdparams.Length > 0)
                     {
-                        m_sceneManager.SaveCurrentSceneToOar(cmdparams[0]);
+                        m_sceneManager.SaveCurrentSceneToArchive(cmdparams[0]);
                     }
                     else
                     {
-                        m_sceneManager.SaveCurrentSceneToOar(DEFAULT_OAR_BACKUP_FILENAME);
+                        m_sceneManager.SaveCurrentSceneToArchive(DEFAULT_OAR_BACKUP_FILENAME);
                     }
                     break;   
 

@@ -815,8 +815,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         public void eventIrcMode(string[] commArgs)
         {
-            string IrcChannel = commArgs[2];
-            string IrcUser = commArgs[0].Split('!')[0];
+            //string IrcChannel = commArgs[2];
+            //string IrcUser = commArgs[0].Split('!')[0];
             string UserMode = "";
             for (int i = 3; i < commArgs.Length; i++)
             {
