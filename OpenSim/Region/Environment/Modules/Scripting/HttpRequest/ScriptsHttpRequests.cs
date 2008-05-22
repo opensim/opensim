@@ -34,6 +34,7 @@ using System.Threading;
 using libsecondlife;
 using Nini.Config;
 using OpenSim.Framework;
+using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
 
@@ -340,13 +341,13 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
             }
             catch (Exception e)
             {
-                status = 499;
+                status = (int)OSHttpStatusCode.ClientErrorJoker;
                 response_body = e.Message;
                 finished = true;
                 return;
             }
 
-            status = 200;
+            status = (int)OSHttpStatusCode.SuccessOk;
             finished = true;
         }
 

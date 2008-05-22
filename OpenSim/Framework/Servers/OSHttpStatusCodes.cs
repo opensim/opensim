@@ -138,6 +138,8 @@ namespace OpenSim.Framework.Servers
         // expressed in one or more Expect header fields cannot be met
         // by the server, the server is awfully sorry about this.
         ClientErrorExpectationFailed          = 417,
+        // 499 Client error: Wildcard error.
+        ClientErrorJoker                      = 499,
 
         // 5xx Server errors (rare)
         // 500 Server error: something really strange and unexpected
