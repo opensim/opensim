@@ -2056,7 +2056,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendAvatarTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
                                           LLVector3 velocity, LLQuaternion rotation)
         {
-            if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == rotation.X)
+            if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == 0)
                 rotation = LLQuaternion.Identity;
 
             ImprovedTerseObjectUpdatePacket.ObjectDataBlock terseBlock =
@@ -2147,7 +2147,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem,
             byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, LLUUID AssetId)
         {
-            if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == rotation.X)
+            if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == 0)
                 rotation = LLQuaternion.Identity;
 
             ObjectUpdatePacket outPacket = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
@@ -2225,7 +2225,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
                                         LLQuaternion rotation, LLVector3 velocity, LLVector3 rotationalvelocity, byte state, LLUUID AssetId)
         {
-            if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == rotation.X)
+            if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == 0)
                 rotation = LLQuaternion.Identity;
             ImprovedTerseObjectUpdatePacket terse = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
             // TODO: don't create new blocks if recycling an old packet
@@ -2241,7 +2241,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID, LLVector3 position,
                                         LLQuaternion rotation, LLVector3 velocity, LLVector3 rotationalvelocity)
         {
-            if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == rotation.X)
+            if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == 0)
                 rotation = LLQuaternion.Identity;
             ImprovedTerseObjectUpdatePacket terse = (ImprovedTerseObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ImprovedTerseObjectUpdate);
             // TODO: don't create new blocks if recycling an old packet
