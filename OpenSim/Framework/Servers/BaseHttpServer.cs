@@ -120,6 +120,10 @@ namespace OpenSim.Framework.Servers
             return false;
         }
 
+        // Note that the agent string is provided simply to differentiate
+        // the handlers - it is NOT required to be an actual agent header
+        // value.
+
         public bool AddAgentHandler(string agent, IHttpAgentHandler handler)
         {
             if (!m_agentHandlers.ContainsKey(agent))
@@ -149,7 +153,7 @@ namespace OpenSim.Framework.Servers
             {
                 HttpListenerContext context = (HttpListenerContext) stateinfo;
 
-                OSHttpRequest request = new OSHttpRequest(context.Request);
+                OSHttpRequest  request  = new OSHttpRequest(context.Request);
                 OSHttpResponse response = new OSHttpResponse(context.Response);
 
                 if (request.UserAgent != null)
@@ -157,11 +161,11 @@ namespace OpenSim.Framework.Servers
 
                     IHttpAgentHandler agentHandler;
 
-                    if (TryGetAgentHandler(request.UserAgent, out agentHandler))
+                    if (TryGetAgentHandler(request, response, out agentHandler))
                     {
-                        m_log.DebugFormat("[HTTP-AGENT] Handler located for {0}", request.UserAgent);
-                        HandleAgentRequest(agentHandler, request, response);
-                        return;
+                        // m_log.DebugFormat("[HTTP-AGENT] Handler located for {0}", request.UserAgent);
+                        if(HandleAgentRequest(agentHandler, request, response))
+							return;
                     }
                 }
 
@@ -301,14 +305,14 @@ namespace OpenSim.Framework.Servers
             }
         }
 
-        private bool TryGetAgentHandler(string agent, out IHttpAgentHandler agentHandler)
+        private bool TryGetAgentHandler(OSHttpRequest request, OSHttpResponse response, out IHttpAgentHandler agentHandler)
         {
             agentHandler = null;
             try
             {
                 foreach(IHttpAgentHandler handler in m_agentHandlers.Values)
                 {
-                    if(handler.Match(agent))
+                    if(handler.Match(request, response))
                     {
                         agentHandler = handler;
                         return true;
@@ -472,7 +476,7 @@ namespace OpenSim.Framework.Servers
         /// <param name="request"></param>
         /// <param name="response"></param>
 
-        private void HandleAgentRequest(IHttpAgentHandler handler, OSHttpRequest request, OSHttpResponse response)
+        private bool HandleAgentRequest(IHttpAgentHandler handler, OSHttpRequest request, OSHttpResponse response)
         {
 
             // In the case of REST, then handler is responsible for ALL aspects of 
@@ -480,16 +484,26 @@ namespace OpenSim.Framework.Servers
 
             try
             {
-                handler.Handle(request, response);
+                return handler.Handle(request, response);
             }
             catch (Exception e)
             {
-                m_log.Warn("[HTTP-AGENT]: Error - " + e.Message);
-                response.SendChunked   = false;
-                response.KeepAlive     = false;
-                response.StatusCode    = 500;
-                response.OutputStream.Close();
+                // If the handler did in fact close the stream, then this will blow
+                // chunks, so that that doesn;t disturb anybody we throw away any
+                // and all exceptions raised. We've done our best to release the
+                // client.
+                try
+                {
+                    m_log.Warn("[HTTP-AGENT]: Error - " + e.Message);
+                    response.SendChunked   = false;
+                    response.KeepAlive     = false;
+                    response.StatusCode    = (int)OSHttpStatusCode.ServerErrorInternalError;
+                    response.OutputStream.Close();
+                }
+                catch(Exception){}
             }
+
+            return true;
 
         }
 
@@ -498,7 +512,7 @@ namespace OpenSim.Framework.Servers
             switch (request.HttpMethod)
             {
                 case "OPTIONS":
-                    response.StatusCode = 200;
+                    response.StatusCode = (int)OSHttpStatusCode.SuccessOk;
                     return;
 
                 default:
@@ -599,9 +613,9 @@ namespace OpenSim.Framework.Servers
             // We're forgoing the usual error status codes here because the client
             // ignores anything but 200 and 301
 
-            response.StatusCode = 200;
+            response.StatusCode = (int)OSHttpStatusCode.SuccessOk;
 
-            if (responsecode == 301)
+            if (responsecode == (int)OSHttpStatusCode.RedirectMovedPermanently)
             {
                 response.RedirectLocation = (string)responsedata["str_redirect_location"];
                 response.StatusCode = responsecode;
@@ -632,7 +646,7 @@ namespace OpenSim.Framework.Servers
         public void SendHTML404(OSHttpResponse response, string host)
         {
             // I know this statuscode is dumb, but the client doesn't respond to 404s and 500s
-            response.StatusCode = 200;
+            response.StatusCode = (int)OSHttpStatusCode.SuccessOk;
             response.AddHeader("Content-type", "text/html");
 
             string responseString = GetHTTP404(host);
@@ -659,7 +673,7 @@ namespace OpenSim.Framework.Servers
         public void SendHTML500(OSHttpResponse response)
         {
             // I know this statuscode is dumb, but the client doesn't respond to 404s and 500s
-            response.StatusCode = 200;
+            response.StatusCode = (int)OSHttpStatusCode.SuccessOk;
             response.AddHeader("Content-type", "text/html");
 
             string responseString = GetHTTP500();
@@ -736,6 +750,23 @@ namespace OpenSim.Framework.Servers
         public void RemoveHTTPHandler(string httpMethod, string path)
         {
             m_HTTPHandlers.Remove(GetHandlerKey(httpMethod, path));
+        }
+
+        // Remove the agent IF it is registered. Intercept the possible
+        // exception.
+
+        public bool RemoveAgentHandler(string agent, IHttpAgentHandler handler)
+        {
+            try
+            {
+                if(handler == m_agentHandlers[agent])
+                {
+                    m_agentHandlers.Remove(agent);
+                    return true;
+                }
+            }
+            catch(KeyNotFoundException) {}
+            return false;
         }
 
         public string GetHTTP404(string host)

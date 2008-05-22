@@ -33,7 +33,7 @@ namespace OpenSim.Framework.Servers
 {
     public interface IHttpAgentHandler
     {
-        void Handle(OSHttpRequest req, OSHttpResponse resp);
-        bool Match(string agent);
+        bool Handle(OSHttpRequest req, OSHttpResponse resp);
+        bool Match(OSHttpRequest req, OSHttpResponse resp);
     }
 }

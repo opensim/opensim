@@ -66,7 +66,7 @@ namespace OpenSim.ApplicationPlugins.Rest
         private string         _prefix;       // URL prefix below
                                               // which all REST URLs
                                               // are living
-        private StringWriter _sw = null;
+        private StringWriter  _sw = null;
         private XmlTextWriter _xw = null;
 
         private string _godkey;
@@ -240,7 +240,8 @@ namespace OpenSim.ApplicationPlugins.Rest
             }
         }
 
-        private List<RestStreamHandler> _handlers = new List<RestStreamHandler>();
+        private List<RestStreamHandler> _handlers               = new List<RestStreamHandler>();
+        private Dictionary<string, IHttpAgentHandler> _agents   = new Dictionary<string, IHttpAgentHandler>();
 
         /// <summary>
         /// Add a REST stream handler to the underlying HTTP server.
@@ -271,12 +272,36 @@ namespace OpenSim.ApplicationPlugins.Rest
         /// </summary>
         /// <param name="agentName">name of agent handler</param>
         /// <param name="handler">agent handler method</param>
-        /// <returns>true when the plugin is disabled or the agent
-        /// handler could not be added..</returns>
+        /// <returns>false when the plugin is disabled or the agent
+        /// handler could not be added. Any generated exceptions are
+        /// allowed to drop through to the caller, i.e. ArgumentException.
+        /// </returns>
         public bool AddAgentHandler(string agentName, IHttpAgentHandler handler)
         {
             if (!IsEnabled) return false;
+            _agents.Add(agentName, handler);
             return _httpd.AddAgentHandler(agentName, handler);
+        }
+
+        /// <summary>
+        /// Remove a powerful Agent handler from the underlying HTTP
+        /// server.
+        /// </summary>
+        /// <param name="agentName">name of agent handler</param>
+        /// <param name="handler">agent handler method</param>
+        /// <returns>false when the plugin is disabled or the agent
+        /// handler could not be removed. Any generated exceptions are
+        /// allowed to drop through to the caller, i.e. KeyNotFound.
+        /// </returns>
+        public bool RemoveAgentHandler(string agentName, IHttpAgentHandler handler)
+        {
+            if (!IsEnabled) return false;
+            if(_agents[agentName] == handler)
+            {
+                _agents.Remove(agentName);
+                return _httpd.RemoveAgentHandler(agentName, handler);
+            }
+            return false;
         }
 
         /// <summary>
@@ -316,19 +341,30 @@ namespace OpenSim.ApplicationPlugins.Rest
                 _httpd.RemoveStreamHandler(h.HttpMethod, h.Path);
             }
             _handlers = null;
+            foreach (KeyValuePair<string,IHttpAgentHandler> h in _agents)
+            {
+                _httpd.RemoveAgentHandler(h.Key,h.Value);
+            }
+            _agents   = null;
         }
 
         /// <summary>
         /// Return a failure message.
         /// </summary>
         /// <param name="method">origin of the failure message</param>
-        /// <param name="message>failure message</param>
+        /// <param name="message">failure message</param>
         /// <remarks>This should probably set a return code as
         /// well. (?)</remarks> 
-        protected string Failure(string method, string message)
+        protected string Failure(OSHttpResponse response, OSHttpStatusCode status,
+                                 string method, string format, params string[] msg)
         {
-            m_log.ErrorFormat("{0} {1} failed: {2}", MsgID, method, message);
-            return String.Format("<error>{0}</error>", message);
+            string m = String.Format(format, msg);
+
+            response.StatusCode = (int)status;
+            response.StatusDescription = m;
+
+            m_log.ErrorFormat("{0} {1} failed: {2}", MsgID, method, m);
+            return String.Format("<error>{0}</error>", m);
         }
 
         /// <summary>
@@ -338,8 +374,14 @@ namespace OpenSim.ApplicationPlugins.Rest
         /// <param name="e">exception causing the failure message</param>
         /// <remarks>This should probably set a return code as
         /// well. (?)</remarks> 
-        public string Failure(string method, Exception e)
+        public string Failure(OSHttpResponse response, OSHttpStatusCode status, 
+                              string method, Exception e)
         {
+            string m = String.Format("exception occurred: {0}", e.Message);
+
+            response.StatusCode = (int)status;
+            response.StatusDescription = m;
+
             m_log.DebugFormat("{0} {1} failed: {2}", MsgID, method, e.ToString());
             m_log.ErrorFormat("{0} {1} failed: {2}", MsgID, method, e.Message);
 

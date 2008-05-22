@@ -48,62 +48,54 @@ using OpenSim.Framework.Communications;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.ApplicationPlugins.Rest;
 
-[assembly : Addin]
-[assembly : AddinDependency("OpenSim", "0.5")]
-
 namespace OpenSim.ApplicationPlugins.Rest.Regions
 {
 
-    [Extension("/OpenSim/Startup")]
     public partial class RestRegionPlugin : RestPlugin
     {
-        #region overriding properties
-        public override string Name 
-        { 
-            get { return "REGION"; }
-        }
-
-        public override string ConfigName
+        #region POST methods
+        public string PostHandler(string request, string path, string param, 
+                                  OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
-            get { return "RestRegionPlugin"; }
-        }
-        #endregion overriding properties
+            // foreach (string h in httpRequest.Headers.AllKeys) 
+            //     foreach (string v in httpRequest.Headers.GetValues(h))
+            //         m_log.DebugFormat("{0} IsGod: {1} -> {2}", MsgID, h, v);
 
-        #region overriding methods
-        /// <summary>
-        /// This method is called by OpenSimMain immediately after loading the
-        /// plugin and after basic server setup,  but before running any server commands.
-        /// </summary>
-        /// <remarks>
-        /// Note that entries MUST be added to the active configuration files before
-        /// the plugin can be enabled.
-        /// </remarks>
-        public override void Initialise(OpenSimMain openSim)
-        {
+            MsgID = RequestID;
+            m_log.DebugFormat("{0} POST path {1} param {2}", MsgID, path, param);
+
             try
             {
-                base.Initialise(openSim);
-                if (!IsEnabled)                     
-                {
-                    m_log.WarnFormat("{0} Rest Plugins are disabled", MsgID);
-                    return;
-                }
-                m_log.InfoFormat("{0} REST region plugin enabled", MsgID);
+                // param empty: new region post
+                if (!IsGod(httpRequest)) 
+                    // XXX: this needs to be turned into a FailureUnauthorized(...)
+                    return Failure(httpResponse, OSHttpStatusCode.ClientErrorUnauthorized,
+                                   "GET", "you are not god");
 
-                // add REST method handlers
-                AddRestStreamHandler("GET", "/regions/", GetHandler);
-                AddRestStreamHandler("POST", "/regions/", PostHandler);
+                if (String.IsNullOrEmpty(param)) return CreateRegion(httpRequest, httpResponse);
+
+                return Failure(httpResponse, OSHttpStatusCode.ClientErrorNotFound, 
+                               "POST", "url {0} not supported", param);
             }
-            catch (Exception e)
+            catch (Exception e) 
             {
-                m_log.WarnFormat("{0} Initialization failed: {1}", MsgID, e.Message);
-                m_log.DebugFormat("{0} Initialization failed: {1}", MsgID, e.ToString());
+                return Failure(httpResponse, OSHttpStatusCode.ServerErrorInternalError, "POST", e);
             }
         }
 
-        public override void Close()
+        public string CreateRegion(OSHttpRequest request, OSHttpResponse response)
         {
+            XmlWriter.WriteStartElement(String.Empty, "regions", String.Empty);
+            foreach (Scene s in App.SceneManager.Scenes)
+            {
+                XmlWriter.WriteStartElement(String.Empty, "uuid", String.Empty);
+                XmlWriter.WriteString(s.RegionInfo.RegionID.ToString());
+                XmlWriter.WriteEndElement();
+            }
+            XmlWriter.WriteEndElement();
+            
+            return XmlWriterResult;
         }
-        #endregion overriding methods
+        #endregion POST methods
     }
 }

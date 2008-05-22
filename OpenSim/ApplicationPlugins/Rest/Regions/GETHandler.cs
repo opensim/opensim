@@ -67,18 +67,18 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             try
             {
                 // param empty: regions list
-                if (String.IsNullOrEmpty(param)) return GetHandlerRegions();
+                if (String.IsNullOrEmpty(param)) return GetHandlerRegions(httpResponse);
 
                 // param not empty: specific region
-                return GetHandlerRegion(param);
+                return GetHandlerRegion(httpResponse, param);
             }
             catch (Exception e) 
             {
-                return Failure("GET", e);
+                return Failure(httpResponse, OSHttpStatusCode.ServerErrorInternalError, "GET", e);
             }
         }
 
-        public string GetHandlerRegions()
+        public string GetHandlerRegions(OSHttpResponse httpResponse)
         {
             XmlWriter.WriteStartElement(String.Empty, "regions", String.Empty);
             foreach (Scene s in App.SceneManager.Scenes)
@@ -105,7 +105,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             return XmlWriterResult;
         }
 
-        public string GetHandlerRegion(string param)
+        public string GetHandlerRegion(OSHttpResponse httpResponse, string param)
         {
             // be resilient and don't get confused by a terminating '/'
             param = param.TrimEnd(new char[]{'/'});
@@ -118,7 +118,8 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
 
             Scene scene = null;
             App.SceneManager.TryGetScene(regionID, out scene);
-            if (null == scene) return Failure("GET", "cannot find region");
+            if (null == scene) return Failure(httpResponse, OSHttpStatusCode.ClientErrorNotFound,
+                                              "GET", "cannot find region {0}", regionID.ToString());
 
             RegionDetails details = new RegionDetails(scene.RegionInfo);
 
@@ -143,25 +144,27 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
                 switch (comps[1].ToLower()) 
                 {
                 case "terrain":
-                    return RegionTerrain(scene);
+                    return RegionTerrain(httpResponse, scene);
 
                 case "stats":
-                    return RegionStats(scene);
+                    return RegionStats(httpResponse, scene);
 
                 case "prims":
-                    return RegionPrims(scene);
+                    return RegionPrims(httpResponse, scene);
                 }
             }
-            return Failure("GET", "too many parameters");
+            return Failure(httpResponse, OSHttpStatusCode.ClientErrorBadRequest,
+                           "GET", "too many parameters {0}", param);
         }
         #endregion GET methods
 
-        protected string RegionTerrain(Scene scene)
+        protected string RegionTerrain(OSHttpResponse httpResponse, Scene scene)
         {
-            return Failure("GET", "terrain not implemented");
+            return Failure(httpResponse, OSHttpStatusCode.ServerErrorNotImplemented,
+                           "GET", "terrain not implemented");
         }
 
-        protected string RegionStats(Scene scene)
+        protected string RegionStats(OSHttpResponse httpResponse, Scene scene)
         {
             int users = scene.GetAvatars().Count;
             int objects = scene.Entities.Count - users;
@@ -182,9 +185,10 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             return XmlWriterResult;
         }
 
-        protected string RegionPrims(Scene scene)
+        protected string RegionPrims(OSHttpResponse httpResponse, Scene scene)
         {
-            return Failure("GET", "prims not implemented");
+            return Failure(httpResponse, OSHttpStatusCode.ServerErrorNotImplemented,
+                           "GET", "prims not implemented");
         }
     }
 }
