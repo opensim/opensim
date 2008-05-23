@@ -30,6 +30,7 @@ using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using Caps=OpenSim.Framework.Communications.Capabilities.Caps;
+using System.Collections.Generic;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -169,6 +170,26 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event AvatarKillData OnAvatarKilled;
 
+
+
+        public delegate void ObjectBeingRemovedFromScene(SceneObjectGroup obj);
+        public event ObjectBeingRemovedFromScene OnObjectBeingRemovedFromScene;
+
+        public delegate void NoticeNoLandDataFromStorage();
+        public event NoticeNoLandDataFromStorage OnNoticeNoLandDataFromStorage;
+
+        public delegate void IncomingLandDataFromStorage(List<LandData> data);
+        public event IncomingLandDataFromStorage OnIncomingLandDataFromStorage;
+
+        public delegate void SetAllowForcefulBan(bool allow);
+        public event SetAllowForcefulBan OnSetAllowForcefulBan;
+
+        public delegate void RequestParcelPrimCountUpdate();
+        public event RequestParcelPrimCountUpdate OnRequestParcelPrimCountUpdate;
+
+        public delegate void ParcelPrimCountTainted();
+        public event ParcelPrimCountTainted OnParcelPrimCountTainted;
+
         /// <summary>
         /// RegisterCapsEvent is called by Scene after the Caps object
         /// has been instantiated and before it is return to the
@@ -299,6 +320,13 @@ namespace OpenSim.Region.Environment.Scenes
         private LandBuy handlerLandBuy = null;
         private LandBuy handlerValidateLandBuy = null;
         private AvatarKillData handlerAvatarKill = null;
+
+        private NoticeNoLandDataFromStorage handlerNoticeNoLandDataFromStorage = null;
+        private IncomingLandDataFromStorage handlerIncomingLandDataFromStorage = null;
+        private SetAllowForcefulBan handlerSetAllowForcefulBan = null;
+        private RequestParcelPrimCountUpdate handlerRequestParcelPrimCountUpdate = null;
+        private ParcelPrimCountTainted handlerParcelPrimCountTainted = null;
+        private ObjectBeingRemovedFromScene handlerObjectBeingRemovedFromScene = null;
 
         public void TriggerOnScriptChangedEvent(uint localID, uint change)
         {
@@ -649,6 +677,67 @@ namespace OpenSim.Region.Environment.Scenes
             if (handlerScriptControlEvent != null)
             {
                 handlerScriptControlEvent(p, scriptUUID,  avatarID, held, _changed);
+            }
+        }
+
+
+        public void TriggerNoticeNoLandDataFromStorage()
+        {
+            handlerNoticeNoLandDataFromStorage = OnNoticeNoLandDataFromStorage;
+            if (handlerNoticeNoLandDataFromStorage != null)
+            {
+                handlerNoticeNoLandDataFromStorage();
+
+            }
+        }
+
+        public void TriggerIncomingLandDataFromStorage(List<LandData> landData)
+        {
+            handlerIncomingLandDataFromStorage = OnIncomingLandDataFromStorage;
+            if (handlerIncomingLandDataFromStorage != null)
+            {
+                handlerIncomingLandDataFromStorage(landData);
+
+            }
+        }
+
+        public void TriggerSetAllowForcefulBan(bool allow)
+        {
+            handlerSetAllowForcefulBan = OnSetAllowForcefulBan;
+            if (handlerSetAllowForcefulBan != null)
+            {
+                handlerSetAllowForcefulBan(allow);
+
+            }
+        }
+
+        public void TriggerObjectBeingRemovedFromScene(SceneObjectGroup obj)
+        {
+            handlerObjectBeingRemovedFromScene = OnObjectBeingRemovedFromScene;
+            if (handlerObjectBeingRemovedFromScene != null)
+            {
+                handlerObjectBeingRemovedFromScene(obj);
+
+            }
+        }
+
+
+        public void TriggerRequestParcelPrimCountUpdate()
+        {
+            handlerRequestParcelPrimCountUpdate = OnRequestParcelPrimCountUpdate;
+            if (handlerRequestParcelPrimCountUpdate != null)
+            {
+                handlerRequestParcelPrimCountUpdate();
+
+            }
+        }
+        public void TriggerParcelPrimCountTainted()
+        {
+            handlerParcelPrimCountTainted = OnParcelPrimCountTainted;
+            if (handlerParcelPrimCountTainted != null)
+            {
+                handlerParcelPrimCountTainted();
+
             }
         }
     }

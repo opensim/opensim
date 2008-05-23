@@ -819,7 +819,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (LandChannel.IsLandPrimCountTainted())
                 {
-                    LandChannel.PerformParcelPrimCountUpdate();
+                    EventManager.TriggerParcelPrimCountUpdate();
                 }
             }
         }
@@ -970,12 +970,12 @@ namespace OpenSim.Region.Environment.Scenes
                 if (dGridSettings["allow_forceful_banlines"] != "TRUE")
                 {
                     m_log.Info("[GRID]: Grid is disabling forceful parcel banlists");
-                    LandChannel.AllowedForcefulBans = false;
+                    EventManager.TriggerSetAllowForcefulBan(false);
                 }
                 else
                 {
                     m_log.Info("[GRID]: Grid is allowing forceful parcel banlists");
-                    LandChannel.AllowedForcefulBans = true;
+                    EventManager.TriggerSetAllowForcefulBan(true);
                 }
             }
         }
@@ -1142,11 +1142,11 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (landData.Count == 0)
                 {
-                    LandChannel.NoLandDataFromStorage();
+                    EventManager.TriggerNoticeNoLandDataFromStorage();
                 }
                 else
                 {
-                    LandChannel.IncomingLandObjectsFromStorage(landData);
+                    EventManager.TriggerIncomingLandDataFromStorage(landData);
                 }
             }
             else
@@ -1344,20 +1344,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (Entities.ContainsKey(sceneObject.UUID))
             {
-                LandChannel.RemovePrimFromLandPrimCounts(sceneObject);
+                EventManager.TriggerObjectBeingRemovedFromScene(sceneObject);
                 Entities.Remove(sceneObject.UUID);
-                LandChannel.SetPrimsTainted();
+                EventManager.TriggerParcelPrimCountTainted();
                 m_innerScene.RemoveAPrimCount();
             }
-        }
-
-        /// <summary>
-        /// Called by a prim when it has been created/cloned, so that its events can be subscribed to
-        /// </summary>
-        /// <param name="prim"></param>
-        public void AcknowledgeNewPrim(SceneObjectGroup prim)
-        {
-            prim.OnPrimCountTainted += LandChannel.SetPrimsTainted;
         }
 
         public void LoadPrimsFromXml(string fileName, bool newIdsFlag, LLVector3 loadOffset)
@@ -1588,15 +1579,6 @@ namespace OpenSim.Region.Environment.Scenes
                 m_log.Info("[REGION]: Add New Scene Presence");
 
                 CreateAndAddScenePresence(client, child);
-
-                try
-                {
-                    LandChannel.SendParcelOverlay(client);
-                } //BUG: Mike - please fix this.
-                catch (KeyNotFoundException)
-                {
-                    m_log.Warn("[LAND]: Bug #2 triggered with NPC. LandModule needs a refactor to fix this.");
-                }
 
                 CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
             }
@@ -3174,8 +3156,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             lock (Entities)
             {
-                Entities.Remove(group.UUID);
-                m_innerScene.RemoveAPrimCount();
+                RemoveEntity(group);
             }
             group.DeleteParts();
 

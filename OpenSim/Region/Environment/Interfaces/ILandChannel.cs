@@ -34,31 +34,12 @@ namespace OpenSim.Region.Environment.Interfaces
 {
     public interface ILandChannel
     {
-        bool AllowedForcefulBans { get; set; }
-        void IncomingLandObjectsFromStorage(List<LandData> data);
-        void IncomingLandObjectFromStorage(LandData data);
 
-        void NoLandDataFromStorage();
+        List<ILandObject> ParcelsNearPoint(LLVector3 position);
         ILandObject GetLandObject(int x, int y);
         ILandObject GetLandObject(float x, float y);
-        void SetPrimsTainted();
         bool IsLandPrimCountTainted();
-        void SendLandUpdate(ScenePresence avatar, bool force);
-        void SendLandUpdate(ScenePresence avatar);
-        void ResetAllLandPrimCounts();
-        void AddPrimToLandPrimCounts(SceneObjectGroup obj);
-        void RemovePrimFromLandPrimCounts(SceneObjectGroup obj);
-        void FinalizeLandPrimCountUpdate();
-        void UpdateLandPrimCounts();
-        void PerformParcelPrimCountUpdate();
-        void UpdateLandObject(int local_id, LandData newData);
-
-        void SendParcelOverlay(IClientAPI remote_client);
-
-        void ResetSimLandObjects();
-        List<ILandObject> ParcelsNearPoint(LLVector3 position);
-        void SendYouAreBannedNotice(ScenePresence avatar);
-        void handleAvatarChangingParcel(ScenePresence avatar, int localLandID, LLUUID regionID);
-        void SendOutNearestBanLine(IClientAPI avatar);
+        bool IsForcefulBansAllowed();
+        void UpdateLandObject(int localID, LandData data);
     }
 }

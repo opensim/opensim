@@ -405,14 +405,7 @@ namespace OpenSim.Region.Environment.Scenes
             RegisterToEvents();
             SetDirectionVectors();
 
-            try
-            {
-                m_scene.LandChannel.SendLandUpdate(this, true);
-            } //BUG: Mike - please fix this.
-            catch (KeyNotFoundException)
-            {
-                m_log.Warn("[LAND]: Bug triggered with NPC. LandModule needs a refactor to fix this.");
-            }
+            
         }
 
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, byte[] visualParams,
@@ -596,7 +589,6 @@ namespace OpenSim.Region.Environment.Scenes
             //if (!m_gotAllObjectsInScene)
             //{
             m_scene.SendAllSceneObjectsToClient(this);
-            m_scene.LandChannel.SendLandUpdate(this, true);
 
             //m_gotAllObjectsInScene = true;
             //}

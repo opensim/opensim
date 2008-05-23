@@ -601,7 +601,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
-        public event PrimCountTaintedDelegate OnPrimCountTainted;
 
         public string ToXmlString()
         {
@@ -1066,18 +1065,6 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #region Events
-
-        /// <summary>
-        ///
-        /// </summary>
-        public void TriggerTainted()
-        {
-            handlerPrimCountTainted = OnPrimCountTainted;
-            if (handlerPrimCountTainted != null)
-            {
-                handlerPrimCountTainted();
-            }
-        }
 
         /// <summary>
         /// Processes backup

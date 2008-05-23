@@ -86,7 +86,7 @@ namespace OpenSim.Region.Environment.Scenes
                         // A prim is only tainted if it's allowed to be edited by the person clicking it.
                         if (ExternalChecks.ExternalChecksCanEditObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId) || ExternalChecks.ExternalChecksCanMoveObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId))
                         {
-                            LandChannel.SetPrimsTainted();
+                            EventManager.TriggerParcelPrimCountTainted();
                         }
                         break;
                     }
@@ -113,7 +113,7 @@ namespace OpenSim.Region.Environment.Scenes
                         ((SceneObjectGroup)ent).ScheduleGroupForFullUpdate();
                         if (ExternalChecks.ExternalChecksCanEditObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId) || ExternalChecks.ExternalChecksCanMoveObject(((SceneObjectGroup)ent).UUID, remoteClient.AgentId))
                         {
-                            LandChannel.SetPrimsTainted();
+                            EventManager.TriggerParcelPrimCountTainted();
                             break;
                         }
                     }
