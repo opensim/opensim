@@ -182,6 +182,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public delegate void DeregisterCapsEvent(LLUUID agentID, Caps caps);
         public event DeregisterCapsEvent OnDeregisterCaps;
+        /// <summary>
+        /// ChatFromWorldEvent is called via Scene when a chat message
+        /// from world comes in (chat from viewer is available via
+        /// client.OnChatFromViewer).
+        /// </summary>
+        public delegate void ChatFromWorldEvent(Object sender, ChatFromViewerArgs chat);
+        public event ChatFromWorldEvent OnChatFromWorld;
 
         public class MoneyTransferArgs : EventArgs
         {
@@ -283,6 +290,7 @@ namespace OpenSim.Region.Environment.Scenes
         private OnTerrainTickDelegate handlerTerrainTick = null; // OnTerainTick;
         private RegisterCapsEvent handlerRegisterCaps = null; // OnRegisterCaps;
         private DeregisterCapsEvent handlerDeregisterCaps = null; // OnDeregisterCaps;
+        private ChatFromWorldEvent handlerChatFromWorld = null; // OnChatFromWorld;
         private NewInventoryItemUploadComplete handlerNewInventoryItemUpdateComplete = null;
         private RequestChangeWaterHeight handlerRequestChangeWaterHeight = null; //OnRequestChangeWaterHeight
         private ScriptControlEvent handlerScriptControlEvent = null;
@@ -625,6 +633,16 @@ namespace OpenSim.Region.Environment.Scenes
 
             }
         }
+
+        public void TriggerOnChatFromWorld(Object sender, ChatFromViewerArgs chat)
+        {
+            handlerChatFromWorld = OnChatFromWorld;
+            if (handlerChatFromWorld != null)
+            {
+                handlerChatFromWorld(sender, chat);
+            }
+        }
+
         internal void TriggerControlEvent(uint p, LLUUID scriptUUID, LLUUID avatarID, uint held, uint _changed)
         {
             handlerScriptControlEvent = OnScriptControlEvent;

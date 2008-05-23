@@ -45,28 +45,25 @@ namespace OpenSim.Region.Environment.Scenes
         public void SimChat(byte[] message, ChatTypeEnum type, int channel, LLVector3 fromPos, string fromName,
                             LLUUID fromAgentID)
         {
-            if (m_simChatModule != null)
-            {
-                ChatFromViewerArgs args = new ChatFromViewerArgs();
+            ChatFromViewerArgs args = new ChatFromViewerArgs();
 
-                args.Message = Helpers.FieldToUTF8String(message);
-                args.Channel = channel;
-                args.Type = type;
-                args.Position = fromPos;
-                args.SenderUUID = fromAgentID;
+            args.Message = Helpers.FieldToUTF8String(message);
+            args.Channel = channel;
+            args.Type = type;
+            args.Position = fromPos;
+            args.SenderUUID = fromAgentID;
+            args.Scene = this;
 
+            ScenePresence user = GetScenePresence(fromAgentID);
+            if (user != null)
+                args.Sender = user.ControllingClient;
+            else
+                args.Sender = null;
 
-                ScenePresence user = GetScenePresence(fromAgentID);
-                if (user != null)
-                    args.Sender = user.ControllingClient;
-                else
-                    args.Sender = null;
+            args.From = fromName;
+            //args.
 
-                args.From = fromName;
-                //args.
-
-                m_simChatModule.SimChat(this, args);
-            }
+            EventManager.TriggerOnChatFromWorld(this, args);
         }
 
         /// <summary>
