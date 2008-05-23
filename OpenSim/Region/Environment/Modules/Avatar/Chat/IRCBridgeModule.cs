@@ -311,38 +311,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 Thread.Sleep(15000);
             }
         }
-
-        public string FindClientRegion(string firstName, string lastName, bool ignoreChilds)
-        {
-            string sourceRegion = null;
-            foreach (Scene s in m_scenes)
-            {
-                s.ForEachScenePresence(delegate(ScenePresence presence)
-                                       {
-                                           if (ignoreChilds
-                                               && (presence.Firstname == firstName)
-                                               && (presence.Lastname == lastName))
-                                           {
-                                               sourceRegion = presence.Scene.RegionInfo.RegionName;
-                                               return;
-                                           }
-
-                                           if (!ignoreChilds && !presence.IsChildAgent 
-                                               && (presence.Firstname == firstName)
-                                               && (presence.Lastname == lastName))
-                                           {
-                                               sourceRegion = presence.Scene.RegionInfo.RegionName;
-                                               return;
-                                           }
-                                       });
-                if (sourceRegion != null) return sourceRegion;
-            }
-            if (m_defaultzone == null)
-            {
-                m_defaultzone = "Sim";
-            }
-            return m_defaultzone;
-        }
     }
 
     internal class IRCChatModule
