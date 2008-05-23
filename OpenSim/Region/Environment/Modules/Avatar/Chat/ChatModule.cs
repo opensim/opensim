@@ -65,7 +65,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                     m_scenes.Add(scene);
                     scene.EventManager.OnNewClient += NewClient;
                     scene.EventManager.OnChatFromWorld += SimChat;
-                    // scene.RegisterModuleInterface<ISimChat>(this);
                 }
 
                 // wrap this in a try block so that defaults will work if
@@ -108,8 +107,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         public void SimChat(Object sender, ChatFromViewerArgs e)
         {
             ScenePresence avatar = null;
-
-            //TODO: Move ForEachScenePresence and others into IScene.
             Scene scene = (Scene) e.Scene;
 
             //TODO: Remove the need for this check

@@ -590,6 +590,8 @@ namespace OpenSim.Region.Environment.Scenes
             //{
             m_scene.SendAllSceneObjectsToClient(this);
 
+            m_scene.EventManager.TriggerOnMakeRootAgent(this);
+
             //m_gotAllObjectsInScene = true;
             //}
         }

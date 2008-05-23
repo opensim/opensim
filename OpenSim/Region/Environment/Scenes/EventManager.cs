@@ -156,7 +156,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event ScriptNotAtTargetEvent OnScriptNotAtTargetEvent;
 
-        public event OnNewPresenceDelegate OnMakeChildAgent;
+        public delegate void OnMakeChildAgentDelegate(ScenePresence presence);
+        public event OnMakeChildAgentDelegate OnMakeChildAgent;
+
+        public delegate void OnMakeRootAgentDelegate(ScenePresence presence);
+        public event OnMakeRootAgentDelegate OnMakeRootAgent;
 
         public delegate void NewInventoryItemUploadComplete(LLUUID avatarID, LLUUID assetID, string name, int userlevel);
 
@@ -307,7 +311,8 @@ namespace OpenSim.Region.Environment.Scenes
         private NewGridInstantMessage handlerGridInstantMessageToIM = null; //OnGridInstantMessageToIMModule;
         private NewGridInstantMessage handlerGridInstantMessageToFriends = null; //OnGridInstantMessageToFriendsModule;
         private ClientClosed handlerClientClosed = null; //OnClientClosed;
-        private OnNewPresenceDelegate handlerMakeChildAgent = null; //OnMakeChildAgent;
+        private OnMakeChildAgentDelegate handlerMakeChildAgent = null; //OnMakeChildAgent;
+        private OnMakeRootAgentDelegate handlerMakeRootAgent = null; //OnMakeRootAgent;
         private OnTerrainTickDelegate handlerTerrainTick = null; // OnTerainTick;
         private RegisterCapsEvent handlerRegisterCaps = null; // OnRegisterCaps;
         private DeregisterCapsEvent handlerDeregisterCaps = null; // OnDeregisterCaps;
@@ -571,6 +576,15 @@ namespace OpenSim.Region.Environment.Scenes
             if (handlerMakeChildAgent != null)
             {
                 handlerMakeChildAgent(presence);
+            }
+        }
+
+        public void TriggerOnMakeRootAgent(ScenePresence presence)
+        {
+            handlerMakeRootAgent = OnMakeRootAgent;
+            if (handlerMakeRootAgent != null)
+            {
+                handlerMakeRootAgent(presence);
             }
         }
 

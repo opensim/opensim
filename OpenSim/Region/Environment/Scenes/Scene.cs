@@ -1582,6 +1582,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
             }
+            EventManager.TriggerOnNewClient(client);
         }
 
         protected virtual void SubscribeToClientEvents(IClientAPI client)
@@ -1660,7 +1661,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnUndo += m_innerScene.HandleUndo;
             client.OnObjectGroupRequest += m_innerScene.HandleObjectGroupUpdate;
 
-            EventManager.TriggerOnNewClient(client);
+            // EventManager.TriggerOnNewClient(client);
         }
 
         public virtual void TeleportClientHome(LLUUID AgentId, IClientAPI client)
