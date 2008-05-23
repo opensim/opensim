@@ -286,7 +286,6 @@ namespace OpenSim.Region.Environment.Scenes
         public void AddInventoryItem(TaskInventoryItem item)
         {
             item.ParentID = UUID;
-            item.CreationDate = 1000;
             item.ParentPartID = UUID;
 
             string name=FindAvailableInventoryName(item.Name);
@@ -369,6 +368,10 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (m_taskInventory.ContainsKey(item.ItemID))
                 {
+                    item.ParentID = UUID;
+                    item.ParentPartID = UUID;
+                    item.Flags=m_taskInventory[item.ItemID].Flags;
+
                     m_taskInventory[item.ItemID] = item;
                     m_inventorySerial++;
                     TriggerScriptChangedEvent(Changed.INVENTORY);

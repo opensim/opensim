@@ -69,6 +69,7 @@ namespace OpenSim.Region.Environment.Scenes
                         (uint)LLObject.ObjectFlags.ObjectMove |
                         (uint)LLObject.ObjectFlags.ObjectTransfer |
                         (uint)LLObject.ObjectFlags.ObjectYouOwner |
+                        (uint)LLObject.ObjectFlags.ObjectOwnerModify |
                         (uint)LLObject.ObjectFlags.ObjectYouOfficer;
 
                 foreach (GenerateClientFlags check in GenerateClientFlagsCheckFunctions)

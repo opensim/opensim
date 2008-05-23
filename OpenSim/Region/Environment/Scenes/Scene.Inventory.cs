@@ -897,52 +897,65 @@ namespace OpenSim.Region.Environment.Scenes
         /// This method does not handle scripts, <see>RezScript(IClientAPI, LLUUID, unit)</see>
         /// </summary>
         /// <param name="remoteClient"></param>
-        /// <param name="itemID"></param>
-        /// <param name="folderID"></param>
+        /// <param name="transactionID"></param>
+        /// <param name="itemInfo"></param>
         /// <param name="primLocalID"></param>
-        public void UpdateTaskInventory(IClientAPI remoteClient, LLUUID itemID, LLUUID folderID,
+        public void UpdateTaskInventory(IClientAPI remoteClient, LLUUID transactionID, TaskInventoryItem itemInfo,
                                         uint primLocalID)
         {
+            LLUUID itemID=itemInfo.ItemID;
+            LLUUID folderID=itemInfo.ParentID;
+
+            // Find the prim we're dealing with
             SceneObjectPart part = GetSceneObjectPart(primLocalID);
 
             if (part != null)
             {
-                LLUUID copyID = LLUUID.Random();
-                if (itemID != LLUUID.Zero)
+                TaskInventoryItem currentItem=part.GetInventoryItem(itemID);
+                if(currentItem == null)
                 {
-                    CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-
-                    if (userInfo != null && userInfo.RootFolder != null)
+                    LLUUID copyID = LLUUID.Random();
+                    if (itemID != LLUUID.Zero)
                     {
-                        InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
+                        CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
 
-                        // Try library
-                        // XXX clumsy, possibly should be one call
-                        if (null == item)
+                        if (userInfo != null && userInfo.RootFolder != null)
                         {
-                            item = CommsManager.UserProfileCacheService.libraryRoot.FindItem(itemID);
-                        }
+                            InventoryItemBase item = userInfo.RootFolder.FindItem(itemID);
 
-                        if (item != null)
-                        {
-                            part.ParentGroup.AddInventoryItem(remoteClient, primLocalID, item, copyID);
-                            m_log.InfoFormat(
-                                "[PRIM INVENTORY]: Update with item {0} requested of prim {1} for {2}",
-                                item.Name, primLocalID, remoteClient.Name);
-                            part.GetProperties(remoteClient);
-                            if (!ExternalChecks.ExternalChecksBypassPermissions())
+                            // Try library
+                            // XXX clumsy, possibly should be one call
+                            if (null == item)
                             {
-                                if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
-                                    RemoveInventoryItem(remoteClient, itemID);
+                                item = CommsManager.UserProfileCacheService.libraryRoot.FindItem(itemID);
+                            }
+
+                            if (item != null)
+                            {
+                                part.ParentGroup.AddInventoryItem(remoteClient, primLocalID, item, copyID);
+                                m_log.InfoFormat(
+                                    "[PRIM INVENTORY]: Update with item {0} requested of prim {1} for {2}",
+                                    item.Name, primLocalID, remoteClient.Name);
+                                part.GetProperties(remoteClient);
+                                if (!ExternalChecks.ExternalChecksBypassPermissions())
+                                {
+                                    if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+                                        RemoveInventoryItem(remoteClient, itemID);
+                                }
+                            }
+                            else
+                            {
+                                m_log.ErrorFormat(
+                                    "[PRIM INVENTORY]: Could not find inventory item {0} to update for {1}!",
+                                    itemID, remoteClient.Name);
                             }
                         }
-                        else
-                        {
-                            m_log.ErrorFormat(
-                                "[PRIM INVENTORY]: Could not find inventory item {0} to update for {1}!",
-                                itemID, remoteClient.Name);
-                        }
                     }
+                }
+                else // Updating existing item with new perms etc
+                {
+                    if(part.UpdateInventoryItem(itemInfo))
+                        part.GetProperties(remoteClient);
                 }
             }
             else

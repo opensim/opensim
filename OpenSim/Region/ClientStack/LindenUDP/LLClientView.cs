@@ -5075,8 +5075,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 handlerUpdateTaskInventory = OnUpdateTaskInventory;
                                 if (handlerUpdateTaskInventory != null)
                                 {
-                                    handlerUpdateTaskInventory(this, updatetask.InventoryData.ItemID,
-                                                               updatetask.InventoryData.FolderID, updatetask.UpdateData.LocalID);
+                                    TaskInventoryItem newTaskItem=new TaskInventoryItem();
+                                    newTaskItem.ItemID=updatetask.InventoryData.ItemID;
+                                    newTaskItem.ParentID=updatetask.InventoryData.FolderID;
+                                    newTaskItem.CreatorID=updatetask.InventoryData.CreatorID;
+                                    newTaskItem.OwnerID=updatetask.InventoryData.OwnerID;
+                                    newTaskItem.GroupID=updatetask.InventoryData.GroupID;
+                                    newTaskItem.BaseMask=updatetask.InventoryData.BaseMask;
+                                    newTaskItem.OwnerMask=updatetask.InventoryData.OwnerMask;
+                                    newTaskItem.GroupMask=updatetask.InventoryData.GroupMask;
+                                    newTaskItem.EveryoneMask=updatetask.InventoryData.EveryoneMask;
+                                    newTaskItem.NextOwnerMask=updatetask.InventoryData.NextOwnerMask;
+                                    //newTaskItem.GroupOwned=updatetask.InventoryData.GroupOwned;
+                                    newTaskItem.Type=updatetask.InventoryData.Type;
+                                    newTaskItem.InvType=updatetask.InventoryData.InvType;
+                                    newTaskItem.Flags=updatetask.InventoryData.Flags;
+                                    //newTaskItem.SaleType=updatetask.InventoryData.SaleType;
+                                    //newTaskItem.SalePrice=updatetask.InventoryData.SalePrice;;
+                                    newTaskItem.Name=Util.FieldToString(updatetask.InventoryData.Name);
+                                    newTaskItem.Description=Util.FieldToString(updatetask.InventoryData.Description);
+                                    newTaskItem.CreationDate=(uint)updatetask.InventoryData.CreationDate;
+                                    handlerUpdateTaskInventory(this, updatetask.InventoryData.TransactionID,
+                                                               newTaskItem, updatetask.UpdateData.LocalID);
                                 }
                             }
                         }
