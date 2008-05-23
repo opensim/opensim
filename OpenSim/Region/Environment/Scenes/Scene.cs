@@ -2092,7 +2092,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             EventManager.TriggerOnRegisterCaps(agentId, cap);
 
-            cap.AddNewInventoryItem = AddInventoryItem;
+            cap.AddNewInventoryItem = AddUploadedInventoryItem;
             cap.ItemUpdatedCall = CapsUpdateInventoryItemAsset;
             cap.TaskScriptUpdatedCall = CapsUpdateTaskInventoryScriptAsset;
             cap.CAPSFetchInventoryDescendents = CommsManager.UserProfileCacheService.HandleFetchInventoryDescendentsCAPS;

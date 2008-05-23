@@ -59,6 +59,17 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void AddUploadedInventoryItem(LLUUID agentID, InventoryItemBase item)
+        {
+            IMoneyModule money=RequestModuleInterface<IMoneyModule>();
+            if(money != null)
+            {
+                money.ApplyUploadCharge(agentID);
+            }
+
+            AddInventoryItem(agentID, item);
+        }
+
         /// <summary>
         /// Add an inventory item to an avatar's inventory.
         /// </summary>

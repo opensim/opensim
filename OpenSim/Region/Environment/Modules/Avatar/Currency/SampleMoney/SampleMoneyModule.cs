@@ -182,6 +182,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
             }
         }
 
+        public void ApplyUploadCharge(LLUUID agentID)
+        {
+        }
+
         public bool ObjectGiveMoney(LLUUID objectID, LLUUID fromID, LLUUID toID, int amount)
         {
             string description = String.Format("Object {0} pays {1}", resolveObjectName(objectID), resolveAgentName(toID));

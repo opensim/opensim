@@ -36,6 +36,7 @@ namespace OpenSim.Region.Environment.Interfaces
     {
         bool ObjectGiveMoney(LLUUID objectID, LLUUID fromID, LLUUID toID,
                 int amount);
+        void ApplyUploadCharge(LLUUID agentID);
 
         event ObjectPaid OnObjectPaid;
     }
