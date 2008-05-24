@@ -1378,7 +1378,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void LoadPrimsFromArchive(string filePath)
         {
             IRegionArchiver archiver = RequestModuleInterface<IRegionArchiver>();
-            archiver.DearchiveRegion(this, filePath);
+            archiver.DearchiveRegion(filePath);
         }
         
         /// <summary>
@@ -1388,7 +1388,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void SavePrimsToArchive(string filePath)
         {
             IRegionArchiver archiver = RequestModuleInterface<IRegionArchiver>();
-            archiver.ArchiveRegion(this, filePath);
+            archiver.ArchiveRegion(filePath);
         }
 
         /// <summary>

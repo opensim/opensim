@@ -152,18 +152,19 @@ namespace OpenSim.Region.Environment.Modules.Grid.Interregion
 
         public void PostInitialise()
         {
-            if (m_enabled)
-            {
-                try
-                {
-                    m_tcpPort = m_config.Configs["Comms"].GetInt("remoting_port", m_tcpPort);
-                }
-                catch
-                {
-                }
-
-                internal_CreateRemotingObjects();
-            }
+            // Commenting out to remove 'unreachable code' warning since m_enabled is never true
+//            if (m_enabled)
+//            {
+//                try
+//                {
+//                    m_tcpPort = m_config.Configs["Comms"].GetInt("remoting_port", m_tcpPort);
+//                }
+//                catch
+//                {
+//                }
+//
+//                internal_CreateRemotingObjects();
+//            }
         }
 
         public void Close()

@@ -201,7 +201,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="filename"></param>
         public void SaveCurrentSceneToArchive(string filename)
         {
-            CurrentOrFirstScene.LoadPrimsFromArchive(filename);
+            CurrentOrFirstScene.SavePrimsToArchive(filename);
         }
         
         /// <summary>
@@ -217,7 +217,7 @@ namespace OpenSim.Region.Environment.Scenes
         [Obsolete("TODO: Remove this warning by 0.7")]
         public bool RunTerrainCmdOnCurrentScene(string[] cmdparams, ref string result)
         {
-            m_log.Warn("DEPRECIATED: The terrain engine has been replaced with a new terrain plugin module. Please type 'plugin terrain help' for new commands.");
+            m_log.Warn("DEPRECATED: The terrain engine has been replaced with a new terrain plugin module. Please type 'plugin terrain help' for new commands.");
             return false;
         }
 

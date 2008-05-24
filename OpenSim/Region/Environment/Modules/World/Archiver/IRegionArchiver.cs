@@ -35,17 +35,15 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     public interface IRegionArchiver
     {
         /// <summary>
-        /// Archive a region to the given path
+        /// Archive the region to the given path
         /// </summary>
-        /// <param name="scene"></param>
         /// <param name="savePath"></param>
-        void ArchiveRegion(Scene scene, string savePath);
+        void ArchiveRegion(string savePath);
         
         /// <summary>
         /// Dearchive the given region archive into the scene
         /// </summary>
-        /// <param name="scene"></param>
         /// <param name="loadPath"></param>
-        void DearchiveRegion(Scene scene, string loadPath);
+        void DearchiveRegion(string loadPath);
     }
 }

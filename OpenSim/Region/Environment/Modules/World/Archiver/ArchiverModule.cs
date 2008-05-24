@@ -26,7 +26,9 @@
  */
 
 using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Modules.World.Serialiser;
 using OpenSim.Region.Environment.Scenes;
+using System.Collections.Generic;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -39,32 +41,76 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     public class ArchiverModule : IRegionModule, IRegionArchiver
     {   
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        /// <summary>
+        /// Scene to which this module belongs
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="source"></param>
+        private Scene m_scene;        
         
         public string Name { get { return "ArchiverModule"; } }
         
-        public bool IsSharedModule { get { return true; } }
+        public bool IsSharedModule { get { return false; } }
         
         public void Initialise(Scene scene, IConfigSource source)
         {
-            scene.RegisterModuleInterface<IRegionArchiver>(this);
+            m_scene = scene;
+            
+            m_scene.RegisterModuleInterface<IRegionArchiver>(this);
         }
         
         public void PostInitialise()
-        {
+        {           
         }
         
         public void Close()
         {
         }
         
-        public void ArchiveRegion(Scene scene, string savePath)
+        public void ArchiveRegion(string savePath)
         {
             m_log.Warn("[ARCHIVER]: Archive region not yet implemented");
+            
+            List<EntityBase> entities = m_scene.GetEntities();
+            string serEntities = SerializeObjects(entities);  
+            
+            if (serEntities != null && serEntities.Length > 0)
+            {
+                m_log.DebugFormat("[ARCHIVER]: Successfully got serialization for {0} entities", entities.Count);
+            }
         }
         
-        public void DearchiveRegion(Scene scene, string loadPath)
+        public void DearchiveRegion(string loadPath)
         {
             m_log.Warn("[ARCHIVER]: Dearchive region not yet implemented");
         }
+        
+        /// <summary>
+        /// Get an xml representation of the given scene objects.
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <returns></returns>
+        private static string SerializeObjects(List<EntityBase> entities)
+        {
+            string serialization = "<scene>";
+
+            List<string> serObjects = new List<string>();
+
+            foreach (EntityBase ent in entities)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    serObjects.Add(((SceneObjectGroup) ent).ToXmlString2());
+                }
+            }
+
+            foreach (string serObject in serObjects)
+                serialization += serObject;
+
+            serialization += "</scene>";
+            
+            return serialization;
+        }        
     }
 }
