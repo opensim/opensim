@@ -387,7 +387,11 @@ namespace OpenSim
             if (!string.IsNullOrEmpty(buildVersion))
             {
                 VersionInfo.Version += ", SVN build r" + buildVersion;
-            }            
+            }    
+            else
+            {
+                VersionInfo.Version += ", SVN build revision not available";
+            }
 
             // Add operating system information if available
             string OSString = "";
@@ -405,7 +409,7 @@ namespace OpenSim
                 OSString = OSString.Substring(0, 45);
             }   
             
-            VersionInfo.Version += " on " + OSString;          
+            VersionInfo.Version += ", OS " + OSString;          
         }
 
         /// <summary>
