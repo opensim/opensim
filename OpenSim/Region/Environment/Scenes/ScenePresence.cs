@@ -93,6 +93,8 @@ namespace OpenSim.Region.Environment.Scenes
         private float m_sitAvatarHeight = 2.0f;
         private float m_godlevel = 0;
 
+        private bool m_attachmentsTransported = false;
+
         private bool m_invulnerable = true;
 
         private LLVector3 m_LastChildAgentUpdatePosition = new LLVector3();
@@ -1951,12 +1953,23 @@ namespace OpenSim.Region.Environment.Scenes
         {
             lock (m_attachments)
             {
-                foreach (SceneObjectGroup grp in m_attachments)
+                if (!m_attachmentsTransported)
                 {
-                    // ControllingClient may be null at this point!
-                    m_scene.m_innerScene.DetachSingleAttachmentToInv(grp.GetFromAssetID(), ControllingClient);
+                    try
+                    {
+                        foreach (SceneObjectGroup grp in m_attachments)
+                        {
+                            // ControllingClient may be null at this point!
+                            m_scene.m_innerScene.DetachSingleAttachmentToInv(grp.GetFromAssetID(), ControllingClient);
+                        }
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        m_log.Info("[CLIENT]: Couldn't save attachments. :(");
+                    }
+                    m_attachments.Clear();
+                    
                 }
-                m_attachments.Clear();
             }
             lock (m_knownPrimUUID)
             {
@@ -2016,8 +2029,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void CrossAttachmentsIntoNewRegion(ulong regionHandle)
         {
+            m_attachmentsTransported = true;
             lock (m_attachments)
             {
+                
                 foreach (SceneObjectGroup gobj in m_attachments)
                 {
                     // If the prim group is null then something must have happened to it!
