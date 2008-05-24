@@ -142,6 +142,13 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 m_landManagementModule.UpdateLandObject(localID, data);
             }
         }
+        public void ReturnObjectsInParcel(int localID, uint returnType, LLUUID[] agentIDs, LLUUID[] taskIDs, IClientAPI remoteClient)
+        {
+            if (m_landManagementModule != null)
+            {
+                m_landManagementModule.ReturnObjectsInParcel(localID, returnType, agentIDs, taskIDs, remoteClient);
+            }
+        }
         #endregion
 
     }

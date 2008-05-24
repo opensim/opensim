@@ -1690,31 +1690,32 @@ namespace OpenSim.Region.Environment.Scenes
             //returnstring += "</scene>\n";
             
 
-            CachedUserInfo userInfo =
-                CommsManager.UserProfileCacheService.GetUserDetails(AgentId);
-            if (userInfo != null)
-            {
-                LLUUID folderID = LLUUID.Zero;
-                
-                List<InventoryFolderBase> subrootfolders = userInfo.RootFolder.RequestListOfFolders();
-                foreach (InventoryFolderBase flder in subrootfolders)
-                {
-                    if (flder.Name == "Lost And Found")
-                    {
-                        folderID = flder.ID;
-                        break;
-                    }
-                }
-
-                if (folderID == LLUUID.Zero)
-                {
-                    folderID = userInfo.RootFolder.ID;
-                }
+            
 
                 bool permissionToDelete = false;
 
                 for (int i = 0; i < returnobjects.Length; i++)
                 {
+                    CachedUserInfo userInfo =
+                        CommsManager.UserProfileCacheService.GetUserDetails(returnobjects[i].OwnerID);
+                    if (userInfo != null)
+                    {
+                        LLUUID folderID = LLUUID.Zero;
+
+                        List<InventoryFolderBase> subrootfolders = userInfo.RootFolder.RequestListOfFolders();
+                        foreach (InventoryFolderBase flder in subrootfolders)
+                        {
+                            if (flder.Name == "Lost And Found")
+                            {
+                                folderID = flder.ID;
+                                break;
+                            }
+                        }
+
+                        if (folderID == LLUUID.Zero)
+                        {
+                            folderID = userInfo.RootFolder.ID;
+                        }
                     permissionToDelete = ExternalChecks.ExternalChecksCanDeleteObject(returnobjects[i].UUID, AgentId);
 
                     // If the user doesn't have permission, go on to the next one.
@@ -1732,7 +1733,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     InventoryItemBase item = new InventoryItemBase();
                     item.Creator = returnobjects[i].RootPart.CreatorID;
-                    item.Owner = AgentId;
+                    item.Owner = returnobjects[i].OwnerID;
                     item.ID = LLUUID.Random();
                     item.AssetID = asset.FullID;
                     item.Description = asset.Description;
@@ -1768,7 +1769,13 @@ namespace OpenSim.Region.Environment.Scenes
                     // TODO: add the new fields (Flags, Sale info, etc)
 
                     userInfo.AddItem(item);
-                    
+
+                    ScenePresence notifyUser = GetScenePresence(item.Owner);
+                    if (notifyUser != null)
+                    {
+                        notifyUser.ControllingClient.SendInventoryItemCreateUpdate(item);
+                    }
+
                     SceneObjectGroup ObjectDeleting = returnobjects[i];
                     
                     returnobjects[i] = null;

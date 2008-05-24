@@ -683,13 +683,25 @@ namespace OpenSim.Region.Environment.Modules.World.Land
         public Dictionary<LLUUID, int> getLandObjectOwners()
         {
             Dictionary<LLUUID, int> ownersAndCount = new Dictionary<LLUUID, int>();
-            foreach (SceneObjectGroup obj in primsOverMe)
+            lock (primsOverMe)
             {
-                if (!ownersAndCount.ContainsKey(obj.OwnerID))
+                try
                 {
-                    ownersAndCount.Add(obj.OwnerID, 0);
+
+                    foreach (SceneObjectGroup obj in primsOverMe)
+                    {
+                        if (!ownersAndCount.ContainsKey(obj.OwnerID))
+                        {
+                            ownersAndCount.Add(obj.OwnerID, 0);
+                        }
+                        ownersAndCount[obj.OwnerID] += obj.PrimCount;
+                    }
                 }
-                ownersAndCount[obj.OwnerID] += obj.PrimCount;
+                catch (InvalidOperationException)
+                {
+                    m_log.Error("[LAND]: Unable to enumerate land owners. arr.");
+                }
+
             }
             return ownersAndCount;
         }
@@ -700,10 +712,33 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public void returnObject(SceneObjectGroup obj)
         {
+            SceneObjectGroup[] objs = new SceneObjectGroup[1];
+            objs[0] = obj;
+            m_scene.returnObjects(objs, obj.OwnerID);
         }
 
-        public void returnLandObjects(int type, LLUUID owner)
+        public void returnLandObjects(uint type, LLUUID[] owners, IClientAPI remote_client)
         {
+            List<SceneObjectGroup> objlist = new List<SceneObjectGroup>();
+            for (int i = 0; i < owners.Length; i++)
+            {
+                lock (primsOverMe)
+                {
+                    try
+                    {
+                        foreach (SceneObjectGroup obj in primsOverMe)
+                        {
+                            if (obj.OwnerID == owners[i])
+                                objlist.Add(obj);
+                        }
+                    } 
+                    catch (InvalidOperationException)
+                    {
+                        m_log.Info("[PARCEL]: Unable to figure out all the objects owned by " + owners[i].ToString() + " arr.");
+                    }
+                }
+            }
+            m_scene.returnObjects(objlist.ToArray(), remote_client.AgentId);
         }
 
         #endregion
@@ -716,7 +751,8 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             landData.ownerPrims = 0;
             landData.otherPrims = 0;
             landData.selectedPrims = 0;
-            primsOverMe.Clear();
+            lock (primsOverMe)
+                primsOverMe.Clear();
         }
 
         public void addPrimToCount(SceneObjectGroup obj)
@@ -740,30 +776,34 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 }
             }
 
-            primsOverMe.Add(obj);
+            lock (primsOverMe)
+                primsOverMe.Add(obj);
         }
 
         public void removePrimFromCount(SceneObjectGroup obj)
         {
-            if (primsOverMe.Contains(obj))
+            lock (primsOverMe)
             {
-                LLUUID prim_owner = obj.OwnerID;
-                int prim_count = obj.PrimCount;
+                if (primsOverMe.Contains(obj))
+                {
+                    LLUUID prim_owner = obj.OwnerID;
+                    int prim_count = obj.PrimCount;
 
-                if (prim_owner == landData.ownerID)
-                {
-                    landData.ownerPrims -= prim_count;
-                }
-                else if (prim_owner == landData.groupID)
-                {
-                    landData.groupPrims -= prim_count;
-                }
-                else
-                {
-                    landData.otherPrims -= prim_count;
-                }
+                    if (prim_owner == landData.ownerID)
+                    {
+                        landData.ownerPrims -= prim_count;
+                    }
+                    else if (prim_owner == landData.groupID)
+                    {
+                        landData.groupPrims -= prim_count;
+                    }
+                    else
+                    {
+                        landData.otherPrims -= prim_count;
+                    }
 
-                primsOverMe.Remove(obj);
+                    primsOverMe.Remove(obj);
+                }
             }
         }
 

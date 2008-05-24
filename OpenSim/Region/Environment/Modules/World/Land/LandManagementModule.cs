@@ -902,7 +902,17 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public void handleParcelObjectOwnersRequest(int local_id, IClientAPI remote_client)
         {
-            landList[local_id].sendLandObjectOwners(remote_client);
+            lock (landList)
+            {
+                if (landList.ContainsKey(local_id))
+                {
+                    landList[local_id].sendLandObjectOwners(remote_client);
+                }
+                else
+                {
+                    System.Console.WriteLine("[PARCEL]: Invalid land object passed for parcel object owner request");
+                }
+            }
         }
 
         public void handleParcelAbandonRequest(int local_id, IClientAPI remote_client)
@@ -1002,6 +1012,24 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             new_land.landData = data.Copy();
             new_land.setLandBitmapFromByteArray();
             AddLandObject(new_land);
+        }
+
+        public void ReturnObjectsInParcel(int localID, uint returnType, LLUUID[] agentIDs, LLUUID[] taskIDs, IClientAPI remoteClient)
+        {
+            ILandObject selectedParcel = null;
+            lock (landList)
+            {
+                if (landList.ContainsKey(localID))
+                    selectedParcel = landList[localID];
+            }
+            if (selectedParcel == null)
+                return;
+
+            if (returnType == 16) // parcel return
+            {
+                selectedParcel.returnLandObjects(returnType, agentIDs, remoteClient);
+            }
+
         }
 
         public void NoLandDataFromStorage()

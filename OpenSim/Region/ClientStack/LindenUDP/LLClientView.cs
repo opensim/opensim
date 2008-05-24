@@ -221,6 +221,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private ParcelSelectObjects handlerParcelSelectObjects = null; //OnParcelSelectObjects;
         private ParcelObjectOwnerRequest handlerParcelObjectOwnerRequest = null; //OnParcelObjectOwnerRequest;
         private ParcelAbandonRequest handlerParcelAbandonRequest = null;
+        private ParcelReturnObjectsRequest handlerParcelReturnObjectsRequest = null;
         private RegionInfoRequest handlerRegionInfoRequest = null; //OnRegionInfoRequest;
         private EstateCovenantRequest handlerEstateCovenantRequest = null; //OnEstateCovenantRequest;
         private RequestGodlikePowers handlerReqGodlikePowers = null; //OnRequestGodlikePowers;
@@ -814,6 +815,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ParcelSelectObjects OnParcelSelectObjects;
         public event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
         public event ParcelAbandonRequest OnParcelAbandonRequest;
+        public event ParcelReturnObjectsRequest OnParcelReturnObjectsRequest;
+
         public event RegionInfoRequest OnRegionInfoRequest;
         public event EstateCovenantRequest OnEstateCovenantRequest;
 
@@ -5419,6 +5422,28 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             handlerParcelAbandonRequest(releasePacket.Data.LocalID, this);
                         }
                         break;
+                    case PacketType.ParcelReturnObjects:
+                        
+
+                        ParcelReturnObjectsPacket parcelReturnObjects = (ParcelReturnObjectsPacket)Pack;
+                        
+                        LLUUID[] puserselectedOwnerIDs = new LLUUID[parcelReturnObjects.OwnerIDs.Length];
+                        for (int parceliterator = 0; parceliterator < parcelReturnObjects.OwnerIDs.Length; parceliterator++)
+                            puserselectedOwnerIDs[parceliterator] = parcelReturnObjects.OwnerIDs[parceliterator].OwnerID;
+
+                        LLUUID[] puserselectedTaskIDs = new LLUUID[parcelReturnObjects.TaskIDs.Length];
+
+                        for (int parceliterator = 0; parceliterator < parcelReturnObjects.TaskIDs.Length; parceliterator++)
+                            puserselectedTaskIDs[parceliterator] = parcelReturnObjects.TaskIDs[parceliterator].TaskID;
+
+                        handlerParcelReturnObjectsRequest = OnParcelReturnObjectsRequest;
+                        if (handlerParcelReturnObjectsRequest != null)
+                        {
+                            handlerParcelReturnObjectsRequest(parcelReturnObjects.ParcelData.LocalID,parcelReturnObjects.ParcelData.ReturnType,puserselectedOwnerIDs,puserselectedTaskIDs, this);
+                            
+                        }
+                        break;
+                        
                         #endregion
 
                         #region Estate Packets

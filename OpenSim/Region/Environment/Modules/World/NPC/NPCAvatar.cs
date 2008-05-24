@@ -243,6 +243,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event ParcelJoinRequest OnParcelJoinRequest;
         public event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
         public event ParcelAbandonRequest OnParcelAbandonRequest;
+        public event ParcelReturnObjectsRequest OnParcelReturnObjectsRequest;
         public event ParcelAccessListRequest OnParcelAccessListRequest;
         public event ParcelAccessListUpdateRequest OnParcelAccessListUpdateRequest;
         public event ParcelSelectObjects OnParcelSelectObjects;
