@@ -204,17 +204,44 @@ namespace OpenSim.Region.Environment.Scenes
         /// Add an object to the scene.
         /// </summary>
         /// <param name="sceneObject"></param>
-        public void AddSceneObject(SceneObjectGroup sceneObject)
+        /// <returns>true if the object was added, false if an object with the same uuid was already in the scene
+        /// </returns>
+        public bool AddSceneObject(SceneObjectGroup sceneObject)
         {
-            if (!Entities.ContainsKey(sceneObject.UUID))
+            lock (Entities)
             {
-                //  QuadTree.AddSceneObject(sceneObject);
-                lock (Entities)
+                if (!Entities.ContainsKey(sceneObject.UUID))
                 {
+                    //  QuadTree.AddSceneObject(sceneObject);
                     Entities.Add(sceneObject.UUID, sceneObject);
+                    m_numPrim++;
+                    
+                    return true;
                 }
-                m_numPrim++;
+                
+                return false;
             }
+        }
+        
+        /// <summary>
+        /// Delete an object from the scene
+        /// </summary>
+        /// <param name="sceneObject"></param>
+        /// <returns>true if the object was deleted, false if there was no object to delete</returns>
+        public bool DeleteSceneObject(LLUUID uuid)
+        {
+            lock (Entities)
+            {
+                if (Entities.ContainsKey(uuid))
+                {
+                    Entities.Remove(uuid);
+                    m_numPrim--;
+                    
+                    return true;
+                }
+            }
+            
+            return false;
         }
 
         /// <summary>
@@ -376,7 +403,6 @@ namespace OpenSim.Region.Environment.Scenes
         // To LocalId or LLUUID, *THAT* is the question. How now Brown LLUUID??
         public void DetachSingleAttachmentToInv(LLUUID itemID, IClientAPI remoteClient)
         {
-
             if (itemID == LLUUID.Zero) // If this happened, someone made a mistake....
                 return;
 
@@ -392,11 +418,10 @@ namespace OpenSim.Region.Environment.Scenes
                         group.DetachToInventoryPrep();
                         m_log.Debug("[DETACH]: Saving attachpoint: " + ((uint)group.GetAttachmentPoint()).ToString());
                         m_parentScene.updateKnownAsset(remoteClient, group, group.GetFromAssetID(),group.OwnerID);
-                        m_parentScene.DeleteSceneObjectGroup(group);
+                        m_parentScene.DeleteSceneObject(group);
                     }
                 }
             }
-
         }
 
         public void AttachObject(IClientAPI remoteClient, uint objectLocalID, uint AttachmentPt, LLQuaternion rot, LLVector3 attachPos)

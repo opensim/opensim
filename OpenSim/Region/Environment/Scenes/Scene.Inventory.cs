@@ -1251,14 +1251,12 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                     }
 
-
                     if (permissionToDelete)
                     {
-                        DeleteSceneObjectGroup(objectGroup);
+                        DeleteSceneObject(objectGroup);
                     }
                 }
-            }
-            
+            }           
         }
 
         public void updateKnownAsset(IClientAPI remoteClient, SceneObjectGroup grp, LLUUID assetID, LLUUID agentID)
@@ -1790,7 +1788,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                         returnobjects[i] = null;
 
-                        DeleteSceneObjectGroup(ObjectDeleting);
+                        DeleteSceneObject(ObjectDeleting);
                         ObjectDeleting = null;
                     }
                     else

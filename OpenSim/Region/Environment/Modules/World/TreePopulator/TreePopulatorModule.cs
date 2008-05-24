@@ -179,7 +179,7 @@ namespace OpenSim.Region.Environment.Modules.World.TreePopulator
 
                     if (Util.RandomClass.NextDouble() < killLikelyhood)
                     {
-                        m_scene.RemoveSceneObject(selectedTree.ParentGroup);
+                        m_scene.DeleteSceneObject(selectedTree.ParentGroup);
                         m_trees.Remove(selectedTree.ParentGroup.UUID);
 
                         m_scene.ForEachClient(delegate(IClientAPI controller)

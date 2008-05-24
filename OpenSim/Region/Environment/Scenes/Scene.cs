@@ -1335,22 +1335,40 @@ namespace OpenSim.Region.Environment.Scenes
         public void AddSceneObject(SceneObjectGroup sceneObject)
         {
             m_innerScene.AddSceneObject(sceneObject);
-        }
+        }        
 
         /// <summary>
-        /// Remove an object from the scene
+        /// Delete this object from the scene.
         /// </summary>
-        /// <param name="sceneObject"></param>
-        public void RemoveSceneObject(SceneObjectGroup sceneObject)
+        /// <param name="group"></param>
+        public void DeleteSceneObject(SceneObjectGroup group)
         {
-            if (Entities.ContainsKey(sceneObject.UUID))
+            SceneObjectPart rootPart = (group).GetChildPart(group.UUID);
+            if (rootPart.PhysActor != null)
             {
-                EventManager.TriggerObjectBeingRemovedFromScene(sceneObject);
-                Entities.Remove(sceneObject.UUID);
-                EventManager.TriggerParcelPrimCountTainted();
-                m_innerScene.RemoveAPrimCount();
+                PhysicsScene.RemovePrim(rootPart.PhysActor);
+                rootPart.PhysActor = null;
             }
-        }
+
+            m_storageManager.DataStore.RemoveObject(group.UUID, m_regInfo.RegionID);
+            group.DeleteGroup();
+
+            if (m_innerScene.DeleteSceneObject(group.UUID))
+            {
+                EventManager.TriggerObjectBeingRemovedFromScene(group);
+                EventManager.TriggerParcelPrimCountTainted();
+            }
+            
+            group.DeleteParts();
+
+            // In case anybody else retains a reference to this group, signal deletion by changing the name
+            // to null.  We can't zero out the UUID because this is taken from the root part, which has already
+            // been removed.
+            // FIXME: This is a really poor temporary solution, since it still leaves plenty of scope for race
+            // conditions where a user deletes an entity while it is being stored.  Really, the update
+            // code needs a redesign.
+            group.Name = null;
+        }        
 
         public void LoadPrimsFromXml(string fileName, bool newIdsFlag, LLVector3 loadOffset)
         {
@@ -1411,7 +1429,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // We remove the object here
                 try
                 {
-                    DeleteSceneObjectGroup(grp);
+                    DeleteSceneObject(grp);
                 }
                 catch (Exception)
                 {
@@ -1473,7 +1491,7 @@ namespace OpenSim.Region.Environment.Scenes
                     // We remove the object here
                     try
                     {
-                        DeleteSceneObjectGroup(grp);
+                        DeleteSceneObject(grp);
                     }
                     catch (Exception)
                     {
@@ -3139,37 +3157,6 @@ namespace OpenSim.Region.Environment.Scenes
                     m_log.Info("[BUG]: " + e.ToString());
                 }
             }
-        }
-
-        /// <summary>
-        /// Delete this object from the scene.
-        /// </summary>
-        /// <param name="group"></param>
-        public void DeleteSceneObjectGroup(SceneObjectGroup group)
-        {
-            SceneObjectPart rootPart = (group).GetChildPart(group.UUID);
-            if (rootPart.PhysActor != null)
-            {
-                PhysicsScene.RemovePrim(rootPart.PhysActor);
-                rootPart.PhysActor = null;
-            }
-
-            m_storageManager.DataStore.RemoveObject(group.UUID, m_regInfo.RegionID);
-            group.DeleteGroup();
-
-            lock (Entities)
-            {
-                RemoveSceneObject(group);
-            }
-            group.DeleteParts();
-
-            // In case anybody else retains a reference to this group, signal deletion by changing the name
-            // to null.  We can't zero out the UUID because this is taken from the root part, which has already
-            // been removed.
-            // FIXME: This is a really poor temporary solution, since it still leaves plenty of scope for race
-            // conditions where a user deletes an entity while it is being stored.  Really, the update
-            // code needs a redesign.
-            group.Name = null;
         }
 
         /// <summary>

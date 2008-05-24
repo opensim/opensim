@@ -704,7 +704,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llDie()
         {
             m_host.AddScriptLPS(1);
-            World.DeleteSceneObjectGroup(m_host.ParentGroup);
+            World.DeleteSceneObject(m_host.ParentGroup);
         }
 
         public double llGround(LSL_Types.Vector3 offset)
