@@ -751,12 +751,15 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             landData.ownerPrims = 0;
             landData.otherPrims = 0;
             landData.selectedPrims = 0;
+            
+
             lock (primsOverMe)
                 primsOverMe.Clear();
         }
 
         public void addPrimToCount(SceneObjectGroup obj)
         {
+            
             LLUUID prim_owner = obj.OwnerID;
             int prim_count = obj.PrimCount;
 

@@ -438,6 +438,16 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void TriggerObjectBeingRemovedFromScene(SceneObjectGroup obj)
+        {
+            handlerObjectBeingRemovedFromScene = OnObjectBeingRemovedFromScene;
+            if (handlerObjectBeingRemovedFromScene != null)
+            {
+                handlerObjectBeingRemovedFromScene(obj);
+
+            }
+        }
+
         public void TriggerShutdown()
         {
             handlerShutdown = OnShutdown;
@@ -725,16 +735,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerObjectBeingRemovedFromScene(SceneObjectGroup obj)
-        {
-            handlerObjectBeingRemovedFromScene = OnObjectBeingRemovedFromScene;
-            if (handlerObjectBeingRemovedFromScene != null)
-            {
-                handlerObjectBeingRemovedFromScene(obj);
-
-            }
-        }
-
+ 
 
         public void TriggerRequestParcelPrimCountUpdate()
         {

@@ -1675,6 +1675,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
         public virtual bool returnObjects(SceneObjectGroup[] returnobjects, LLUUID AgentId)
         {
+            string message = "";
             if (returnobjects.Length <= 0)
                 return false;
 
@@ -1692,13 +1693,20 @@ namespace OpenSim.Region.Environment.Scenes
 
             
 
-                bool permissionToDelete = false;
+            bool permissionToDelete = false;
 
-                for (int i = 0; i < returnobjects.Length; i++)
+            for (int i = 0; i < returnobjects.Length; i++)
+            {
+                CachedUserInfo userInfo =
+                    CommsManager.UserProfileCacheService.GetUserDetails(returnobjects[i].OwnerID);
+                if (userInfo == null)
                 {
-                    CachedUserInfo userInfo =
-                        CommsManager.UserProfileCacheService.GetUserDetails(returnobjects[i].OwnerID);
-                    if (userInfo != null)
+                    CommsManager.UserProfileCacheService.AddNewUser(returnobjects[i].OwnerID);
+                    
+                }
+                if (userInfo != null)
+                {
+                    if (userInfo.HasInventory)
                     {
                         LLUUID folderID = LLUUID.Zero;
 
@@ -1716,76 +1724,96 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             folderID = userInfo.RootFolder.ID;
                         }
-                    permissionToDelete = ExternalChecks.ExternalChecksCanDeleteObject(returnobjects[i].UUID, AgentId);
+                        permissionToDelete = ExternalChecks.ExternalChecksCanDeleteObject(returnobjects[i].UUID, AgentId);
 
-                    // If the user doesn't have permission, go on to the next one.
-                    if (!permissionToDelete)
-                        continue;
+                        // If the user doesn't have permission, go on to the next one.
+                        if (!permissionToDelete)
+                            continue;
 
-                    string sceneObjectXml = returnobjects[i].ToXmlString2();
-                    AssetBase asset = CreateAsset(
-                        returnobjects[i].GetPartName(returnobjects[i].LocalId),
-                        returnobjects[i].GetPartDescription(returnobjects[i].LocalId),
-                        (sbyte)InventoryType.Object,
-                        (sbyte)AssetType.Object,
-                        Helpers.StringToField(sceneObjectXml));
-                    AssetCache.AddAsset(asset);
+                        string sceneObjectXml = returnobjects[i].ToXmlString2();
+                        AssetBase asset = CreateAsset(
+                            returnobjects[i].GetPartName(returnobjects[i].LocalId),
+                            returnobjects[i].GetPartDescription(returnobjects[i].LocalId),
+                            (sbyte)InventoryType.Object,
+                            (sbyte)AssetType.Object,
+                            Helpers.StringToField(sceneObjectXml));
+                        AssetCache.AddAsset(asset);
 
-                    InventoryItemBase item = new InventoryItemBase();
-                    item.Creator = returnobjects[i].RootPart.CreatorID;
-                    item.Owner = returnobjects[i].OwnerID;
-                    item.ID = LLUUID.Random();
-                    item.AssetID = asset.FullID;
-                    item.Description = asset.Description;
-                    item.Name = asset.Name;
-                    item.AssetType = asset.Type;
-                    item.InvType = asset.InvType;
-                    item.Folder = folderID;
-                    if ((AgentId != returnobjects[i].RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
-                    {
-                        uint perms = returnobjects[i].GetEffectivePermissions();
-                        uint nextPerms = (perms & 7) << 13;
-                        if ((nextPerms & (uint)PermissionMask.Copy) == 0)
-                            perms &= ~(uint)PermissionMask.Copy;
-                        if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
-                            perms &= ~(uint)PermissionMask.Transfer;
-                        if ((nextPerms & (uint)PermissionMask.Modify) == 0)
-                            perms &= ~(uint)PermissionMask.Modify;
+                        InventoryItemBase item = new InventoryItemBase();
+                        item.Creator = returnobjects[i].RootPart.CreatorID;
+                        item.Owner = returnobjects[i].OwnerID;
+                        item.ID = LLUUID.Random();
+                        item.AssetID = asset.FullID;
+                        item.Description = asset.Description;
+                        item.Name = asset.Name;
+                        item.AssetType = asset.Type;
+                        item.InvType = asset.InvType;
+                        item.Folder = folderID;
+                        if ((AgentId != returnobjects[i].RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
+                        {
+                            uint perms = returnobjects[i].GetEffectivePermissions();
+                            uint nextPerms = (perms & 7) << 13;
+                            if ((nextPerms & (uint)PermissionMask.Copy) == 0)
+                                perms &= ~(uint)PermissionMask.Copy;
+                            if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
+                                perms &= ~(uint)PermissionMask.Transfer;
+                            if ((nextPerms & (uint)PermissionMask.Modify) == 0)
+                                perms &= ~(uint)PermissionMask.Modify;
 
-                        item.BasePermissions = perms & returnobjects[i].RootPart.NextOwnerMask;
-                        item.CurrentPermissions = item.BasePermissions;
-                        item.NextPermissions = returnobjects[i].RootPart.NextOwnerMask;
-                        item.EveryOnePermissions = returnobjects[i].RootPart.EveryoneMask & returnobjects[i].RootPart.NextOwnerMask;
-                        item.CurrentPermissions |= 8; // Slam!
+                            item.BasePermissions = perms & returnobjects[i].RootPart.NextOwnerMask;
+                            item.CurrentPermissions = item.BasePermissions;
+                            item.NextPermissions = returnobjects[i].RootPart.NextOwnerMask;
+                            item.EveryOnePermissions = returnobjects[i].RootPart.EveryoneMask & returnobjects[i].RootPart.NextOwnerMask;
+                            item.CurrentPermissions |= 8; // Slam!
+                        }
+                        else
+                        {
+                            item.BasePermissions = returnobjects[i].GetEffectivePermissions();
+                            item.CurrentPermissions = returnobjects[i].GetEffectivePermissions();
+                            item.NextPermissions = returnobjects[i].RootPart.NextOwnerMask;
+                            item.EveryOnePermissions = returnobjects[i].RootPart.EveryoneMask;
+                        }
+
+                        // TODO: add the new fields (Flags, Sale info, etc)
+
+                        userInfo.AddItem(item);
+
+                        ScenePresence notifyUser = GetScenePresence(item.Owner);
+                        if (notifyUser != null)
+                        {
+                            notifyUser.ControllingClient.SendInventoryItemCreateUpdate(item);
+                        }
+
+                        SceneObjectGroup ObjectDeleting = returnobjects[i];
+
+                        returnobjects[i] = null;
+
+                        DeleteSceneObjectGroup(ObjectDeleting);
+                        ObjectDeleting = null;
                     }
                     else
                     {
-                        item.BasePermissions = returnobjects[i].GetEffectivePermissions();
-                        item.CurrentPermissions = returnobjects[i].GetEffectivePermissions();
-                        item.NextPermissions = returnobjects[i].RootPart.NextOwnerMask;
-                        item.EveryOnePermissions = returnobjects[i].RootPart.EveryoneMask;
+                        CommsManager.UserProfileCacheService.RequestInventoryForUser(returnobjects[i].OwnerID);
+                        message = "Still waiting on the inventory service, some of the items won't be returned until the inventory services completes it's task.  Try again shortly.";
                     }
-
-                    // TODO: add the new fields (Flags, Sale info, etc)
-
-                    userInfo.AddItem(item);
-
-                    ScenePresence notifyUser = GetScenePresence(item.Owner);
-                    if (notifyUser != null)
-                    {
-                        notifyUser.ControllingClient.SendInventoryItemCreateUpdate(item);
-                    }
-
-                    SceneObjectGroup ObjectDeleting = returnobjects[i];
-                    
-                    returnobjects[i] = null;
-
-                    DeleteSceneObjectGroup(ObjectDeleting);
-                    ObjectDeleting = null;
                 }
-                return true;
+                else
+                {
+                    message = "Still waiting on the inventory service, some of the items won't be returned until the inventory services completes it's task.  Try again shortly.";
+                }
+                //return true;
             }
-            return false;
+
+            if (message.Length != 0)
+            {
+                ScenePresence returningavatar = GetScenePresence(AgentId);
+                if (returningavatar != null)
+                {
+                    returningavatar.ControllingClient.SendAlertMessage(message);
+                }
+                return false;
+            }   
+            return true;
 
         }
 
