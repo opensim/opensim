@@ -286,27 +286,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_activeScripts += number;
         }
-
-        public void RemovePrim(uint localID, LLUUID avatar_deleter)
-        {
-            List<EntityBase> EntityList = GetEntities();
-
-            foreach (EntityBase obj in EntityList)
-            {
-                if (obj is SceneObjectGroup)
-                {
-                    if (((SceneObjectGroup)obj).LocalId == localID)
-                    {
-                        if (m_parentScene.ExternalChecks.ExternalChecksCanDeleteObject(((SceneObjectGroup)obj).UUID, avatar_deleter))
-                        {
-                            m_parentScene.RemoveSceneObject((SceneObjectGroup)obj);
-                            m_numPrim--;
-                        }
-                        return;
-                    }
-                }
-            }
-        }
         
         public void DetachObject(uint objectLocalID, IClientAPI remoteClient)
         {

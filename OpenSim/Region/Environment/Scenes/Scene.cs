@@ -1319,11 +1319,6 @@ namespace OpenSim.Region.Environment.Scenes
             return AddNewPrim(uuid, position, rotation, treeShape);
         }
 
-        public void RemovePrim(uint localID, LLUUID avatar_deleter)
-        {
-            m_innerScene.RemovePrim(localID, avatar_deleter);
-        }
-
         /// <summary>
         /// Add an object into the scene that has come from storage
         /// </summary>
