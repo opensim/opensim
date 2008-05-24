@@ -3868,6 +3868,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             else
             {
+                
                 switch (Pack.Type)
                 {
                         #region  Scene/Avatar

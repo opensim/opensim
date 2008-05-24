@@ -596,23 +596,32 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             if (m_scene.ExternalChecks.ExternalChecksCanEditParcel(remote_client.AgentId, this))
             {
                 List<uint> resultLocalIDs = new List<uint>();
-                foreach (SceneObjectGroup obj in primsOverMe)
+                try
                 {
-                    if (obj.LocalId > 0)
+                    lock (primsOverMe)
                     {
-                        if (request_type == LandChannel.LAND_SELECT_OBJECTS_OWNER && obj.OwnerID == landData.ownerID)
+                        foreach (SceneObjectGroup obj in primsOverMe)
                         {
-                            resultLocalIDs.Add(obj.LocalId);
-                        }
-                        // else if (request_type == LandManager.LAND_SELECT_OBJECTS_GROUP && ...) // TODO: group support
-                        // {
-                        // }
-                        else if (request_type == LandChannel.LAND_SELECT_OBJECTS_OTHER &&
-                                 obj.OwnerID != remote_client.AgentId)
-                        {
-                            resultLocalIDs.Add(obj.LocalId);
+                            if (obj.LocalId > 0)
+                            {
+                                if (request_type == LandChannel.LAND_SELECT_OBJECTS_OWNER && obj.OwnerID == landData.ownerID)
+                                {
+                                    resultLocalIDs.Add(obj.LocalId);
+                                }
+                                // else if (request_type == LandManager.LAND_SELECT_OBJECTS_GROUP && ...) // TODO: group support
+                                // {
+                                // }
+                                else if (request_type == LandChannel.LAND_SELECT_OBJECTS_OTHER &&
+                                         obj.OwnerID != remote_client.AgentId)
+                                {
+                                    resultLocalIDs.Add(obj.LocalId);
+                                }
+                            }
                         }
                     }
+                } catch (InvalidOperationException)
+                {
+                    m_log.Error("[LAND]: Unable to force select the parcel objects. Arr.");
                 }
 
                 remote_client.sendForceClientSelectObjects(resultLocalIDs);
@@ -633,26 +642,37 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             {
                 Dictionary<LLUUID, int> primCount = new Dictionary<LLUUID, int>();
 
-                foreach (SceneObjectGroup obj in primsOverMe)
+                lock (primsOverMe)
                 {
                     try
                     {
-                        if (!primCount.ContainsKey(obj.OwnerID))
+
+                        foreach (SceneObjectGroup obj in primsOverMe)
                         {
-                            primCount.Add(obj.OwnerID, 0);
+                            try
+                            {
+                                if (!primCount.ContainsKey(obj.OwnerID))
+                                {
+                                    primCount.Add(obj.OwnerID, 0);
+                                }
+                            }
+                            catch (NullReferenceException)
+                            {
+                                m_log.Info("[LAND]: " + "Got Null Reference when searching land owners from the parcel panel");
+                            }
+                            try
+                            {
+                                primCount[obj.OwnerID] += obj.PrimCount;
+                            }
+                            catch (KeyNotFoundException)
+                            {
+                                m_log.Error("[LAND]: Unable to match a prim with it's owner.");
+                            }
                         }
                     }
-                    catch (NullReferenceException)
+                    catch (InvalidOperationException)
                     {
-                        m_log.Info("[LAND]: " + "Got Null Reference when searching land owners from the parcel panel");
-                    }
-                    try
-                    {
-                        primCount[obj.OwnerID] += obj.PrimCount;
-                    }
-                    catch (KeyNotFoundException)
-                    {
-                        m_log.Error("[LAND]: Unable to match a prim with it's owner.");
+                        m_log.Error("[LAND]: Unable to Enumerate Land object arr.");
                     }
                 }
 

@@ -70,6 +70,24 @@ namespace OpenSim.Region.Environment.Scenes
             AddInventoryItem(agentID, item);
         }
 
+        public bool AddInventoryItemReturned(LLUUID AgentId, InventoryItemBase item)
+        {
+            CachedUserInfo userInfo
+                = CommsManager.UserProfileCacheService.GetUserDetails(AgentId);
+            if (userInfo != null)
+            {
+                userInfo.AddItem(item);
+                return true;
+            }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[AGENT INVENTORY]: Agent was not found for add of item {1} {2}", item.Name, item.ID);
+
+                return false;
+            }
+        }
+
         /// <summary>
         /// Add an inventory item to an avatar's inventory.
         /// </summary>
@@ -1060,6 +1078,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        
         /// <summary>
         /// Called when an object is removed from the environment into inventory.
         /// </summary>
@@ -1068,123 +1087,178 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void DeRezObject(Packet packet, IClientAPI remoteClient)
         {
             DeRezObjectPacket DeRezPacket = (DeRezObjectPacket) packet;
+            
+            LLUUID folderID = LLUUID.Zero;
 
-            if (DeRezPacket.AgentBlock.DestinationID == LLUUID.Zero)
+
+            
+            
+            
+            foreach (DeRezObjectPacket.ObjectDataBlock Data in DeRezPacket.ObjectData)
             {
-                //currently following code not used (or don't know of any case of destination being zero
-            }
-            else
-            {
-                foreach (DeRezObjectPacket.ObjectDataBlock Data in DeRezPacket.ObjectData)
-                {
 //                    m_log.DebugFormat(
 //                        "[AGENT INVENTORY]: Received request to derez {0} into folder {1}",
 //                        Data.ObjectLocalID, DeRezPacket.AgentBlock.DestinationID);
 
-                    EntityBase selectedEnt = null;
-                    //m_log.Info("[CLIENT]: LocalID:" + Data.ObjectLocalID.ToString());
+                EntityBase selectedEnt = null;
+                //m_log.Info("[CLIENT]: LocalID:" + Data.ObjectLocalID.ToString());
 
-                    List<EntityBase> EntityList = GetEntities();
+                List<EntityBase> EntityList = GetEntities();
 
-                    foreach (EntityBase ent in EntityList)
+                foreach (EntityBase ent in EntityList)
+                {
+                    if (ent.LocalId == Data.ObjectLocalID)
                     {
-                        if (ent.LocalId == Data.ObjectLocalID)
-                        {
-                            selectedEnt = ent;
-                            break;
-                        }
+                        selectedEnt = ent;
+                        break;
                     }
-                    if (selectedEnt != null)
+                }
+                if (selectedEnt != null)
+                {
+                    bool permissionToTake = false;
+                    bool permissionToDelete = false;
+                    if (DeRezPacket.AgentBlock.Destination == 1)// Take Copy
                     {
-                        bool permissionToTake = false;
-                        bool permissionToDelete = false;
-                        if (DeRezPacket.AgentBlock.Destination == 1)// Take Copy
+                        permissionToTake = ExternalChecks.ExternalChecksCanTakeCopyObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
+                        permissionToDelete = false; //Just taking copy!
+
+                    }
+                    else if (DeRezPacket.AgentBlock.Destination == 4) //Take
+                    {
+                        // Take
+                        permissionToTake = ExternalChecks.ExternalChecksCanTakeObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
+                        permissionToDelete = permissionToTake; //If they can take, they can delete!
+                    }
+
+                    else if (DeRezPacket.AgentBlock.Destination == 6) //Delete
+                    {
+                        permissionToTake = ExternalChecks.ExternalChecksCanDeleteObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId); 
+                        permissionToDelete = ExternalChecks.ExternalChecksCanDeleteObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
+                    }
+                    else if (DeRezPacket.AgentBlock.Destination == 9) //Return
+                    {
+                        permissionToTake = ExternalChecks.ExternalChecksCanDeleteObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
+                        permissionToDelete = ExternalChecks.ExternalChecksCanDeleteObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
+                    }
+
+                    SceneObjectGroup objectGroup = (SceneObjectGroup)selectedEnt;
+
+                    if (permissionToTake)
+                    {
+
+                        string sceneObjectXml = objectGroup.ToXmlString();
+
+                        CachedUserInfo userInfo =
+                            CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+                        if (userInfo != null)
                         {
-                            permissionToTake = ExternalChecks.ExternalChecksCanTakeCopyObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
-                            permissionToDelete = false; //Just taking copy!
+                            string searchFolder = "";
 
-                        }
-                        else if (DeRezPacket.AgentBlock.Destination == 4) //Take
-                        {
-                            // Take
-                            permissionToTake = ExternalChecks.ExternalChecksCanTakeObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
-                            permissionToDelete = permissionToTake; //If they can take, they can delete!
-                        }
+                            if (DeRezPacket.AgentBlock.Destination == 6)
+                                searchFolder = "Trash";
+                            else if (DeRezPacket.AgentBlock.Destination == 9)
+                                searchFolder = "Lost And Found";
 
-                        else if (DeRezPacket.AgentBlock.Destination == 6) //Delete
-                        {
-                            permissionToTake = false;
-                            permissionToDelete = ExternalChecks.ExternalChecksCanDeleteObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
-                        }
+                            // If we're deleting someone else's item, it goes back to their deleted items folder
+                            // If we're returning someone's item, it goes back to the owner's Lost And Found folder.
 
-                        SceneObjectGroup objectGroup = (SceneObjectGroup)selectedEnt;
-
-                        if (permissionToTake)
-                        {
-                            string sceneObjectXml = objectGroup.ToXmlString();
-
-                            CachedUserInfo userInfo =
-                                CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-                            if (userInfo != null)
+                            if (DeRezPacket.AgentBlock.DestinationID == LLUUID.Zero || (DeRezPacket.AgentBlock.Destination == 6 && objectGroup.OwnerID != remoteClient.AgentId))
                             {
-                                AssetBase asset = CreateAsset(
-                                    ((SceneObjectGroup) selectedEnt).GetPartName(selectedEnt.LocalId),
-                                    ((SceneObjectGroup) selectedEnt).GetPartDescription(selectedEnt.LocalId),
-                                    (sbyte) InventoryType.Object,
-                                    (sbyte) AssetType.Object,
-                                    Helpers.StringToField(sceneObjectXml));
-                                AssetCache.AddAsset(asset);
+                                List<InventoryFolderBase> subrootfolders = userInfo.RootFolder.RequestListOfFolders();
+                                foreach (InventoryFolderBase flder in subrootfolders)
+                                {
+                                    if (flder.Name == "Lost And Found")
+                                    {
+                                        folderID = flder.ID;
+                                        break;
+                                    }
+                                }
 
-                                InventoryItemBase item = new InventoryItemBase();
-                                item.Creator = objectGroup.RootPart.CreatorID;
+                                if (folderID == LLUUID.Zero)
+                                {
+                                    folderID = userInfo.RootFolder.ID;
+                                }
+                                //currently following code not used (or don't know of any case of destination being zero
+                            }
+                            else
+                            {
+                                folderID = DeRezPacket.AgentBlock.DestinationID;
+                            }
+
+                            AssetBase asset = CreateAsset(
+                                ((SceneObjectGroup) selectedEnt).GetPartName(selectedEnt.LocalId),
+                                ((SceneObjectGroup) selectedEnt).GetPartDescription(selectedEnt.LocalId),
+                                (sbyte) InventoryType.Object,
+                                (sbyte) AssetType.Object,
+                                Helpers.StringToField(sceneObjectXml));
+                            AssetCache.AddAsset(asset);
+
+                            InventoryItemBase item = new InventoryItemBase();
+                            item.Creator = objectGroup.RootPart.CreatorID;
+
+                            if (DeRezPacket.AgentBlock.Destination == 1 || DeRezPacket.AgentBlock.Destination == 4)// Take / Copy
                                 item.Owner = remoteClient.AgentId;
-                                item.ID = LLUUID.Random();
-                                item.AssetID = asset.FullID;
-                                item.Description = asset.Description;
-                                item.Name = asset.Name;
-                                item.AssetType = asset.Type;
-                                item.InvType = asset.InvType;
-                                item.Folder = DeRezPacket.AgentBlock.DestinationID;
-                                if ((remoteClient.AgentId != objectGroup.RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
-                                {
-                                    uint perms=objectGroup.GetEffectivePermissions();
-                                    uint nextPerms=(perms & 7) << 13;
-                                    if ((nextPerms & (uint)PermissionMask.Copy) == 0)
-                                        perms &= ~(uint)PermissionMask.Copy;
-                                    if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
-                                        perms &= ~(uint)PermissionMask.Transfer;
-                                    if ((nextPerms & (uint)PermissionMask.Modify) == 0)
-                                        perms &= ~(uint)PermissionMask.Modify;
+                            else // Delete / Return
+                                item.Owner = objectGroup.OwnerID;
 
-                                    item.BasePermissions = perms & objectGroup.RootPart.NextOwnerMask;
-                                    item.CurrentPermissions = item.BasePermissions;
-                                    item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
-                                    item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask & objectGroup.RootPart.NextOwnerMask;
-                                    item.CurrentPermissions |= 8; // Slam!
-                                }
-                                else
-                                {
-                                    item.BasePermissions = objectGroup.GetEffectivePermissions();
-                                    item.CurrentPermissions = objectGroup.GetEffectivePermissions();
-                                    item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
-                                    item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
-                                }
+                            item.ID = LLUUID.Random();
+                            item.AssetID = asset.FullID;
+                            item.Description = asset.Description;
+                            item.Name = asset.Name;
+                            item.AssetType = asset.Type;
+                            item.InvType = asset.InvType;
+                            item.Folder = folderID;
+                            if ((remoteClient.AgentId != objectGroup.RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
+                            {
+                                uint perms=objectGroup.GetEffectivePermissions();
+                                uint nextPerms=(perms & 7) << 13;
+                                if ((nextPerms & (uint)PermissionMask.Copy) == 0)
+                                    perms &= ~(uint)PermissionMask.Copy;
+                                if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
+                                    perms &= ~(uint)PermissionMask.Transfer;
+                                if ((nextPerms & (uint)PermissionMask.Modify) == 0)
+                                    perms &= ~(uint)PermissionMask.Modify;
 
-                                // TODO: add the new fields (Flags, Sale info, etc)
+                                item.BasePermissions = perms & objectGroup.RootPart.NextOwnerMask;
+                                item.CurrentPermissions = item.BasePermissions;
+                                item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
+                                item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask & objectGroup.RootPart.NextOwnerMask;
+                                item.CurrentPermissions |= 8; // Slam!
+                            }
+                            else
+                            {
+                                item.BasePermissions = objectGroup.GetEffectivePermissions();
+                                item.CurrentPermissions = objectGroup.GetEffectivePermissions();
+                                item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
+                                item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
+                            }
 
-                                userInfo.AddItem(item);
+                            // TODO: add the new fields (Flags, Sale info, etc)
+
+                            userInfo.AddItem(item);
+                            if (item.Owner == remoteClient.AgentId)
+                            {
                                 remoteClient.SendInventoryItemCreateUpdate(item);
                             }
+                            else
+                            {
+                                ScenePresence notifyUser = GetScenePresence(item.Owner);
+                                if (notifyUser != null)
+                                {
+                                    notifyUser.ControllingClient.SendInventoryItemCreateUpdate(item);
+                                }
+                            }
                         }
+                    }
 
 
-                        if (permissionToDelete)
-                        {
-                            DeleteSceneObjectGroup(objectGroup);
-                        }
+                    if (permissionToDelete)
+                    {
+                        DeleteSceneObjectGroup(objectGroup);
                     }
                 }
             }
+            
         }
 
         public void updateKnownAsset(IClientAPI remoteClient, SceneObjectGroup grp, LLUUID assetID, LLUUID agentID)
@@ -1598,6 +1672,114 @@ namespace OpenSim.Region.Environment.Scenes
 
             }
             return null;
+        }
+        public virtual bool returnObjects(SceneObjectGroup[] returnobjects, LLUUID AgentId)
+        {
+            if (returnobjects.Length <= 0)
+                return false;
+
+            // for the moment we're going to store them individually..   however, in the future, the rezObject 
+            // will be able to have more items.
+
+            //string returnstring = "";
+            //returnstring += "<scene>\n";
+            //for (int i = 0; i < returnobjects.Length; i++)
+            //{
+            //    returnstring += grp.ToXmlString2();
+            //}
+            //returnstring += "</scene>\n";
+            
+
+            CachedUserInfo userInfo =
+                CommsManager.UserProfileCacheService.GetUserDetails(AgentId);
+            if (userInfo != null)
+            {
+                LLUUID folderID = LLUUID.Zero;
+                
+                List<InventoryFolderBase> subrootfolders = userInfo.RootFolder.RequestListOfFolders();
+                foreach (InventoryFolderBase flder in subrootfolders)
+                {
+                    if (flder.Name == "Lost And Found")
+                    {
+                        folderID = flder.ID;
+                        break;
+                    }
+                }
+
+                if (folderID == LLUUID.Zero)
+                {
+                    folderID = userInfo.RootFolder.ID;
+                }
+
+                bool permissionToDelete = false;
+
+                for (int i = 0; i < returnobjects.Length; i++)
+                {
+                    permissionToDelete = ExternalChecks.ExternalChecksCanDeleteObject(returnobjects[i].UUID, AgentId);
+
+                    // If the user doesn't have permission, go on to the next one.
+                    if (!permissionToDelete)
+                        continue;
+
+                    string sceneObjectXml = returnobjects[i].ToXmlString2();
+                    AssetBase asset = CreateAsset(
+                        returnobjects[i].GetPartName(returnobjects[i].LocalId),
+                        returnobjects[i].GetPartDescription(returnobjects[i].LocalId),
+                        (sbyte)InventoryType.Object,
+                        (sbyte)AssetType.Object,
+                        Helpers.StringToField(sceneObjectXml));
+                    AssetCache.AddAsset(asset);
+
+                    InventoryItemBase item = new InventoryItemBase();
+                    item.Creator = returnobjects[i].RootPart.CreatorID;
+                    item.Owner = AgentId;
+                    item.ID = LLUUID.Random();
+                    item.AssetID = asset.FullID;
+                    item.Description = asset.Description;
+                    item.Name = asset.Name;
+                    item.AssetType = asset.Type;
+                    item.InvType = asset.InvType;
+                    item.Folder = folderID;
+                    if ((AgentId != returnobjects[i].RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
+                    {
+                        uint perms = returnobjects[i].GetEffectivePermissions();
+                        uint nextPerms = (perms & 7) << 13;
+                        if ((nextPerms & (uint)PermissionMask.Copy) == 0)
+                            perms &= ~(uint)PermissionMask.Copy;
+                        if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
+                            perms &= ~(uint)PermissionMask.Transfer;
+                        if ((nextPerms & (uint)PermissionMask.Modify) == 0)
+                            perms &= ~(uint)PermissionMask.Modify;
+
+                        item.BasePermissions = perms & returnobjects[i].RootPart.NextOwnerMask;
+                        item.CurrentPermissions = item.BasePermissions;
+                        item.NextPermissions = returnobjects[i].RootPart.NextOwnerMask;
+                        item.EveryOnePermissions = returnobjects[i].RootPart.EveryoneMask & returnobjects[i].RootPart.NextOwnerMask;
+                        item.CurrentPermissions |= 8; // Slam!
+                    }
+                    else
+                    {
+                        item.BasePermissions = returnobjects[i].GetEffectivePermissions();
+                        item.CurrentPermissions = returnobjects[i].GetEffectivePermissions();
+                        item.NextPermissions = returnobjects[i].RootPart.NextOwnerMask;
+                        item.EveryOnePermissions = returnobjects[i].RootPart.EveryoneMask;
+                    }
+
+                    // TODO: add the new fields (Flags, Sale info, etc)
+
+                    userInfo.AddItem(item);
+                    
+                    SceneObjectGroup ObjectDeleting = returnobjects[i];
+                    
+                    returnobjects[i] = null;
+
+                    DeleteSceneObjectGroup(ObjectDeleting);
+                    ObjectDeleting = null;
+                }
+                return true;
+            }
+            return false;
+
         }
 
     }
