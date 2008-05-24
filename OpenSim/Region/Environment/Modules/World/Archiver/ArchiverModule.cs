@@ -73,6 +73,12 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             m_log.Warn("[ARCHIVER]: Archive region not yet implemented");
             
             List<EntityBase> entities = m_scene.GetEntities();
+            
+            foreach (EntityBase entity in entities)
+            {
+                
+            }
+            
             string serEntities = SerializeObjects(entities);  
             
             if (serEntities != null && serEntities.Length > 0)

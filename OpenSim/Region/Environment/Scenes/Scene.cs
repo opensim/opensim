@@ -1163,7 +1163,7 @@ namespace OpenSim.Region.Environment.Scenes
             List<SceneObjectGroup> PrimsFromDB = m_storageManager.DataStore.LoadObjects(regionID);
             foreach (SceneObjectGroup group in PrimsFromDB)
             {
-                AddObjectFromStorage(group);
+                AddSceneObjectFromStorage(group);
                 SceneObjectPart rootPart = group.GetChildPart(group.UUID);
                 rootPart.ObjectFlags &= ~(uint)LLObject.ObjectFlags.Scripted;
                 rootPart.TrimPermissions();
@@ -1290,7 +1290,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SceneObjectGroup sceneOb =
                 new SceneObjectGroup(this, m_regionHandle, ownerID, PrimIDAllocate(), pos, rot, shape);
-            AddObject(sceneOb);
+            AddSceneObject(sceneOb);
             SceneObjectPart rootPart = sceneOb.GetChildPart(sceneOb.UUID);
             // if grass or tree, make phantom
             //rootPart.TrimPermissions();
@@ -1328,25 +1328,25 @@ namespace OpenSim.Region.Environment.Scenes
         /// Add an object into the scene that has come from storage
         /// </summary>
         /// <param name="sceneObject"></param>        
-        public void AddObjectFromStorage(SceneObjectGroup sceneObject)
+        public void AddSceneObjectFromStorage(SceneObjectGroup sceneObject)
         {
-            m_innerScene.AddObjectFromStorage(sceneObject);
+            m_innerScene.AddSceneObjectFromStorage(sceneObject);
         }
 
         /// <summary>
         /// Add an object to the scene
         /// </summary>
         /// <param name="sceneObject"></param>
-        public void AddObject(SceneObjectGroup sceneObject)
+        public void AddSceneObject(SceneObjectGroup sceneObject)
         {
-            m_innerScene.AddObject(sceneObject);
+            m_innerScene.AddSceneObject(sceneObject);
         }
 
         /// <summary>
         /// Remove an object from the scene
         /// </summary>
         /// <param name="sceneObject"></param>
-        public void RemoveObject(SceneObjectGroup sceneObject)
+        public void RemoveSceneObject(SceneObjectGroup sceneObject)
         {
             if (Entities.ContainsKey(sceneObject.UUID))
             {
@@ -3164,7 +3164,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             lock (Entities)
             {
-                RemoveObject(group);
+                RemoveSceneObject(group);
             }
             group.DeleteParts();
 

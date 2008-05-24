@@ -186,7 +186,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Add an object into the scene that has come from storage
         /// </summary>
         /// <param name="sceneObject"></param>
-        public void AddObjectFromStorage(SceneObjectGroup sceneObject)
+        public void AddSceneObjectFromStorage(SceneObjectGroup sceneObject)
         {
             sceneObject.RegionHandle = m_regInfo.RegionHandle;
             sceneObject.SetScene(m_parentScene);
@@ -197,18 +197,18 @@ namespace OpenSim.Region.Environment.Scenes
             }
             sceneObject.UpdateParentIDs();
             
-            AddObject(sceneObject);
+            AddSceneObject(sceneObject);
         }
 
         /// <summary>
         /// Add an object to the scene.
         /// </summary>
         /// <param name="sceneObject"></param>
-        public void AddObject(SceneObjectGroup sceneObject)
+        public void AddSceneObject(SceneObjectGroup sceneObject)
         {
             if (!Entities.ContainsKey(sceneObject.UUID))
             {
-                //  QuadTree.AddObject(sceneObject);
+                //  QuadTree.AddSceneObject(sceneObject);
                 lock (Entities)
                 {
                     Entities.Add(sceneObject.UUID, sceneObject);
@@ -299,7 +299,7 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         if (m_parentScene.ExternalChecks.ExternalChecksCanDeleteObject(((SceneObjectGroup)obj).UUID, avatar_deleter))
                         {
-                            m_parentScene.RemoveObject((SceneObjectGroup)obj);
+                            m_parentScene.RemoveSceneObject((SceneObjectGroup)obj);
                             m_numPrim--;
                         }
                         return;
@@ -307,6 +307,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+        
         public void DetachObject(uint objectLocalID, IClientAPI remoteClient)
         {
             List<EntityBase> EntityList = GetEntities();

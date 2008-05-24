@@ -72,7 +72,7 @@ namespace OpenSim.Region.Environment.Scenes
                     //if we want this to be a import method then we need new uuids for the object to avoid any clashes
                     //obj.RegenerateFullIDs();
                     
-                    m_innerScene.AddObject(obj);
+                    m_innerScene.AddSceneObject(obj);
 
                     SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
                     // Apply loadOffsets for load/import and move combinations
@@ -184,7 +184,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup obj = new SceneObjectGroup(xmlData);
             LLVector3 receivedVelocity = obj.RootPart.Velocity;
             //System.Console.WriteLine(obj.RootPart.Velocity.ToString());
-            m_innerScene.AddObjectFromStorage(obj);
+            m_innerScene.AddSceneObjectFromStorage(obj);
 
             SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
             bool UsePhysics = (((rootPart.GetEffectiveObjectFlags() & (uint) LLObject.ObjectFlags.Physics) > 0) &&

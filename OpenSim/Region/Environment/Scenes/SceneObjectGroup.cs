@@ -1841,7 +1841,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 SceneObjectGroup objectGroup = new SceneObjectGroup(m_scene, m_regionHandle, linkPart);
 
-                m_scene.AddObject(objectGroup);
+                m_scene.AddSceneObject(objectGroup);
 
                 ScheduleGroupForFullUpdate();
             }
