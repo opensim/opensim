@@ -261,12 +261,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             RegisterDefaultSceneEvents();
 
-            m_log.Info("[SCENE]: Creating new entitities instance");
-            Entities = new Dictionary<LLUUID, EntityBase>();
-            m_scenePresences = new Dictionary<LLUUID, ScenePresence>();
-            //m_sceneObjects = new Dictionary<LLUUID, SceneObjectGroup>();
-            m_restorePresences = new Dictionary<LLUUID, ScenePresence>();
-
             m_httpListener = httpServer;
             m_dumpAssetsToFile = dumpAssetsToFile;
 
@@ -3225,6 +3219,11 @@ namespace OpenSim.Region.Environment.Scenes
             m_innerScene.ForEachClient(action);
         }
 
+        /// <summary>
+        /// Returns a list of the entities in the scene.  This is a new list so operations perform on the list itself
+        /// will not affect the original list of objects in the scene.
+        /// </summary>
+        /// <returns></returns>
         public List<EntityBase> GetEntities()
         {
             return m_innerScene.GetEntities();

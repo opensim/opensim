@@ -53,11 +53,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region Fields
 
-        internal Dictionary<LLUUID, ScenePresence> ScenePresences;
+        internal Dictionary<LLUUID, ScenePresence> ScenePresences = new Dictionary<LLUUID, ScenePresence>();
         // SceneObjects is not currently populated or used.
         //public Dictionary<LLUUID, SceneObjectGroup> SceneObjects;
-        internal Dictionary<LLUUID, EntityBase> Entities;
-        internal Dictionary<LLUUID, ScenePresence> RestorePresences;
+        internal Dictionary<LLUUID, EntityBase> Entities = new Dictionary<LLUUID, EntityBase>();
+        internal Dictionary<LLUUID, ScenePresence> RestorePresences = new Dictionary<LLUUID, ScenePresence>();
 
         public BasicQuadTreeNode QuadTree;
 
@@ -825,6 +825,11 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
+        /// <summary>
+        /// Returns a list of the entities in the scene.  This is a new list so operations perform on the list itself
+        /// will not affect the original list of objects in the scene.
+        /// </summary>
+        /// <returns></returns>
         public List<EntityBase> GetEntities()
         {
             List<EntityBase> result;
@@ -1378,7 +1383,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="flags"></param>
         public void DuplicateObject(uint originalPrim, LLVector3 offset, uint flags, LLUUID AgentID, LLUUID GroupID)
         {
-            m_log.DebugFormat("[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}", originalPrim, offset, AgentID);
+            //m_log.DebugFormat("[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}", originalPrim, offset, AgentID);
 
             List<EntityBase> EntityList = GetEntities();
 
