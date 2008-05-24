@@ -56,8 +56,8 @@ namespace OpenSim.Region.Environment.Scenes
         internal Dictionary<LLUUID, ScenePresence> ScenePresences;
         // SceneObjects is not currently populated or used.
         //public Dictionary<LLUUID, SceneObjectGroup> SceneObjects;
-        public Dictionary<LLUUID, EntityBase> Entities;
-        public Dictionary<LLUUID, ScenePresence> RestorePresences;
+        internal Dictionary<LLUUID, EntityBase> Entities;
+        internal Dictionary<LLUUID, ScenePresence> RestorePresences;
 
         public BasicQuadTreeNode QuadTree;
 
