@@ -37,7 +37,8 @@ namespace OpenSim.Region.Physics.Meshing
     {
         public List<Vertex> vertices;
         public List<Triangle> triangles;
-
+        GCHandle pinnedVirtexes;
+        GCHandle pinnedIndex;
         public float[] normals;
 
         public Mesh()
@@ -164,7 +165,7 @@ namespace OpenSim.Region.Physics.Meshing
                 result[3*i + 1] = v.Y;
                 result[3*i + 2] = v.Z;
             }
-            GCHandle.Alloc(result, GCHandleType.Pinned);
+            pinnedVirtexes = GCHandle.Alloc(result, GCHandleType.Pinned);
             return result;
         }
 
@@ -184,8 +185,15 @@ namespace OpenSim.Region.Physics.Meshing
         public int[] getIndexListAsIntLocked()
         {
             int[] result = getIndexListAsInt();
-            GCHandle.Alloc(result, GCHandleType.Pinned);
+            pinnedIndex = GCHandle.Alloc(result, GCHandleType.Pinned);
             return result;
+        }
+
+        public void releasePinned()
+        {
+            pinnedVirtexes.Free();
+            pinnedIndex.Free();
+
         }
 
 

@@ -69,6 +69,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private float PID_G = 25f;
         private float m_tensor = 5f;
         private int body_autodisable_frames = 20;
+        private IMesh primMesh = null;
 
         private bool m_usePID = false;
 
@@ -674,8 +675,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 disableBody();
             }
 
-            float[] vertexList = mesh.getVertexListAsFloatLocked(); // Note, that vertextList is pinned in memory
-            int[] indexList = mesh.getIndexListAsIntLocked(); // Also pinned, needs release after usage
+            IMesh oldMesh = primMesh;
+
+            primMesh = mesh;
+
+            float[] vertexList = primMesh.getVertexListAsFloatLocked(); // Note, that vertextList is pinned in memory
+            int[] indexList = primMesh.getIndexListAsIntLocked(); // Also pinned, needs release after usage
+
             int VertexCount = vertexList.GetLength(0)/3;
             int IndexCount = indexList.GetLength(0);
 
@@ -699,6 +705,13 @@ namespace OpenSim.Region.Physics.OdePlugin
                 m_log.Error("[PHYSICS]: MESH LOCKED");
                 return;
             }
+
+            if (oldMesh != null)
+            {
+                oldMesh.releasePinned();
+                oldMesh = null;
+            }
+
             if (IsPhysical && Body == (IntPtr) 0)
             {
                 // Recreate the body
