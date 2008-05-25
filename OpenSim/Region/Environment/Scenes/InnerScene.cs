@@ -590,16 +590,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void RemoveAPrimCount()
-        {
-            m_numPrim--;
-        }
-
-        public void AddAPrimCount()
-        {
-            m_numPrim++;
-        }
-
         public int GetChildAgentCount()
         {
             // some network situations come in where child agents get closed twice.

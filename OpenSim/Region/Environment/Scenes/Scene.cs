@@ -1335,7 +1335,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void AddSceneObject(SceneObjectGroup sceneObject)
         {
             m_innerScene.AddSceneObject(sceneObject);
-        }        
+        }   
 
         /// <summary>
         /// Delete this object from the scene.
@@ -1344,21 +1344,20 @@ namespace OpenSim.Region.Environment.Scenes
         public void DeleteSceneObject(SceneObjectGroup group)
         {
             SceneObjectPart rootPart = (group).GetChildPart(group.UUID);
+            
             if (rootPart.PhysActor != null)
             {
                 PhysicsScene.RemovePrim(rootPart.PhysActor);
                 rootPart.PhysActor = null;
-            }
+            }           
 
-            m_storageManager.DataStore.RemoveObject(group.UUID, m_regInfo.RegionID);
-            group.DeleteGroup();
-
-            if (m_innerScene.DeleteSceneObject(group.UUID))
+            if (UnlinkSceneObject(group.UUID))
             {
                 EventManager.TriggerObjectBeingRemovedFromScene(group);
                 EventManager.TriggerParcelPrimCountTainted();
-            }
-            
+            }        
+
+            group.DeleteGroup();            
             group.DeleteParts();
 
             // In case anybody else retains a reference to this group, signal deletion by changing the name
@@ -1368,7 +1367,25 @@ namespace OpenSim.Region.Environment.Scenes
             // conditions where a user deletes an entity while it is being stored.  Really, the update
             // code needs a redesign.
             group.Name = null;
-        }        
+        }   
+        
+        /// <summary>
+        /// Unlink the given object from the scene.  Unlike delete, this just removes the record of the object - the
+        /// object itself is not destroyed.
+        /// </summary>
+        /// <param name="uuid"></param>
+        /// <returns>true if the object was in the scene, false if it was not</returns>
+        public bool UnlinkSceneObject(LLUUID uuid)
+        {                        
+            if (m_innerScene.DeleteSceneObject(uuid))
+            {
+                m_storageManager.DataStore.RemoveObject(uuid, m_regInfo.RegionID);
+                
+                return true;
+            }
+            
+            return false;
+        }
 
         public void LoadPrimsFromXml(string fileName, bool newIdsFlag, LLVector3 loadOffset)
         {
@@ -1970,23 +1987,6 @@ namespace OpenSim.Region.Environment.Scenes
         #endregion
 
         #region Entities
-
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="entID"></param>
-        /// <returns></returns>
-        public bool DeleteEntity(LLUUID entID)
-        {
-            if (Entities.ContainsKey(entID))
-            {
-                Entities.Remove(entID);
-                m_storageManager.DataStore.RemoveObject(entID, m_regInfo.RegionID);
-                m_innerScene.RemoveAPrimCount();
-                return true;
-            }
-            return false;
-        }
 
         public void SendKillObject(uint localID)
         {

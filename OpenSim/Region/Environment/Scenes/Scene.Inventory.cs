@@ -1145,7 +1145,6 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (permissionToTake)
                     {
-
                         string sceneObjectXml = objectGroup.ToXmlString();
 
                         CachedUserInfo userInfo =
