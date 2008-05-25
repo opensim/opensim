@@ -1786,6 +1786,16 @@ namespace OpenSim.Region.Environment.Scenes
                 if (!wasUsingPhysics)
                 {
                     DoPhysicsPropertyUpdate(usePhysics, false);
+                    if (m_parentGroup != null)
+                    {
+                        if (m_parentGroup.RootPart != null)
+                        {
+                            if (LocalId == m_parentGroup.RootPart.LocalId)
+                            {
+                                m_parentGroup.CheckSculptAndLoad();
+                            }
+                        }
+                    }
                 }
             }
             else
@@ -1826,12 +1836,32 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         PhysActor.LocalID = LocalId;
                         DoPhysicsPropertyUpdate(usePhysics, true);
+                        if (m_parentGroup != null)
+                        {
+                            if (m_parentGroup.RootPart != null)
+                            {
+                                if (LocalId == m_parentGroup.RootPart.LocalId)
+                                {
+                                    m_parentGroup.CheckSculptAndLoad();
+                                }
+                            }
+                        }
                     }
                 }
                 else
                 {
                     PhysActor.IsPhysical = usePhysics;
                     DoPhysicsPropertyUpdate(usePhysics, false);
+                    if (m_parentGroup != null)
+                    {
+                        if (m_parentGroup.RootPart != null)
+                        {
+                            if (LocalId == m_parentGroup.RootPart.LocalId)
+                            {
+                                m_parentGroup.CheckSculptAndLoad();
+                            }
+                        }
+                    }
                 }
             }
 
