@@ -1090,10 +1090,6 @@ namespace OpenSim.Region.Environment.Scenes
             
             LLUUID folderID = LLUUID.Zero;
 
-
-            
-            
-            
             foreach (DeRezObjectPacket.ObjectDataBlock Data in DeRezPacket.ObjectData)
             {
 //                    m_log.DebugFormat(
