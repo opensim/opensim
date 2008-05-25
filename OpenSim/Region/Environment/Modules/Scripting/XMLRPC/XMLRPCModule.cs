@@ -231,15 +231,32 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
 
         public void RemoteDataReply(string channel, string message_id, string sdata, int idata)
         {
-            RPCRequestInfo rpcInfo;
             LLUUID message_key = new LLUUID(message_id);
+            LLUUID channel_key = new LLUUID(channel);
 
-            if (m_rpcPendingResponses.TryGetValue(message_key, out rpcInfo))
+            RPCRequestInfo rpcInfo = null;
+
+            if (message_key == LLUUID.Zero)
+            {
+                foreach (RPCRequestInfo oneRpcInfo in m_rpcPendingResponses.Values)
+                    if (oneRpcInfo.GetChannelKey() == channel_key)
+                        rpcInfo = oneRpcInfo;
+            }
+            else
+            {
+                m_rpcPendingResponses.TryGetValue(message_key, out rpcInfo);
+            }
+
+            if (rpcInfo != null)
             {
                 rpcInfo.SetStrRetval(sdata);
                 rpcInfo.SetIntRetval(idata);
                 rpcInfo.SetProcessed(true);
                 m_rpcPendingResponses.Remove(message_key);
+            }
+            else
+            {
+                m_log.Warn("[RemoteDataReply]: Channel or message_id not found");
             }
         }
 
@@ -378,7 +395,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
                 RPCChannelInfo rpcChanInfo;
                 if (m_openChannels.TryGetValue(channel, out rpcChanInfo))
                 {
-                    string intVal = (string) requestData["IntValue"];
+                    string intVal = Convert.ToInt32(requestData["IntValue"]).ToString();
                     string strVal = (string) requestData["StringValue"];
 
                     RPCRequestInfo rpcInfo;
@@ -402,7 +419,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
                     {
                         Hashtable param = new Hashtable();
                         param["StringValue"] = rpcInfo.GetStrRetval();
-                        param["IntValue"] = Convert.ToString(rpcInfo.GetIntRetval());
+                        param["IntValue"] = rpcInfo.GetIntRetval();
 
                         ArrayList parameters = new ArrayList();
                         parameters.Add(param);
