@@ -1078,11 +1078,8 @@ namespace OpenSim.Region.Environment.Scenes
             // don't backup while it's selected or you're asking for changes mid stream.
             if (HasGroupChanged)
             {
-                // FIXME: Disabling this check temporarily since it seems that in some (as yet unidentified)
-                // circumstances with shift copy, we never register that some prims have been deselected, even though
-                // they are no longer selected in the client.
-//                if (!IsSelected)
-//                {
+                if ((!IsSelected) && (RootPart != null))
+                {
                     m_log.InfoFormat("[SCENE OBJECT GROUP]: Storing object {0}", UUID);
                     
                     SceneObjectGroup backup_group = Copy(OwnerID, GroupID, false);
@@ -1093,7 +1090,7 @@ namespace OpenSim.Region.Environment.Scenes
                     backup_group.ForEachPart(delegate(SceneObjectPart part) { part.ProcessInventoryBackup(datastore); });
                     
                     backup_group = null;
-//                }
+                }
 //                else
 //                {
 //                    m_log.DebugFormat(

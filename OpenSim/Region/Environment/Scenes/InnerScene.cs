@@ -1417,6 +1417,13 @@ namespace OpenSim.Region.Environment.Scenes
                         Entities.Add(copy.UUID, copy);
                     }
 
+					// Since we copy from a source group that is in selected
+					// state, but the copy is shown deselected in the viewer,
+					// We need to clear the selection flag here, else that
+					// prim never gets persisted at all. The client doesn't
+					// think it's selected, so it will never send a deselect...
+					copy.IsSelected=false;
+
                     m_numPrim++;
 
                     copy.StartScripts();
