@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Collections.Generic;
 using System.Reflection;
 using Axiom.Math;
 using log4net;
@@ -85,6 +86,8 @@ namespace OpenSim.Region.Physics.Manager
         public abstract void DeleteTerrain();
 
         public abstract void Dispose();
+
+        public abstract Dictionary<uint, float> GetTopColliders();
 
         public abstract bool IsThreaded { get; }
 
@@ -169,6 +172,12 @@ namespace OpenSim.Region.Physics.Manager
 
             public override void Dispose()
             {
+            }
+
+            public override Dictionary<uint,float> GetTopColliders()
+            {
+                Dictionary<uint, float> returncolliders = new Dictionary<uint, float>();
+                return returncolliders;
             }
         }
     }

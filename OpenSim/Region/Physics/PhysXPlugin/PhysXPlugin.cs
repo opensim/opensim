@@ -200,6 +200,12 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         {
             scene.DeleteTerrain();
         }
+
+        public override Dictionary<uint, float> GetTopColliders()
+        {
+            Dictionary<uint, float> returncolliders = new Dictionary<uint, float>();
+            return returncolliders;
+        }
     }
 
     public class PhysXCharacter : PhysicsActor
@@ -355,6 +361,7 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         public override float CollisionScore
         {
             get { return 0f; }
+            set { }
         }
 
         public override bool Kinematic
@@ -593,6 +600,7 @@ namespace OpenSim.Region.Physics.PhysXPlugin
         public override float CollisionScore
         {
             get { return 0f; }
+            set { }
         }
 
         public override bool Kinematic

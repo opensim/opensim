@@ -555,6 +555,13 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
 
             float max_collision_depth = 0f;
+            if (p1.CollisionScore + count >= float.MaxValue)
+                p1.CollisionScore = 0;
+            p1.CollisionScore += count;
+
+            if (p2.CollisionScore + count >= float.MaxValue)
+                p2.CollisionScore = 0;
+            p2.CollisionScore += count;
 
             for (int i = 0; i < count; i++)
             {
@@ -585,6 +592,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                         p2.CollidingGround = true;
                         break;
                 }
+                
 
                 // we don't want prim or avatar to explode
 
@@ -2161,6 +2169,28 @@ namespace OpenSim.Region.Physics.OdePlugin
                 d.WorldDestroy(world);
                 //d.CloseODE();
             }
+        }
+        public override Dictionary<uint, float> GetTopColliders()
+        {
+            Dictionary<uint, float> returncolliders = new Dictionary<uint, float>();
+            int cnt = 0;
+            lock (_prims)
+            {
+                foreach (OdePrim prm in _prims)
+                {
+                    if (prm.CollisionScore > 0)
+                    {
+                        returncolliders.Add(prm.m_localID, prm.CollisionScore);
+                        cnt++;
+                        prm.CollisionScore = 0f;
+                        if (cnt > 25)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            return returncolliders;
         }
     }
 }

@@ -124,7 +124,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private bool m_throttleUpdates = false;
         private int throttleCounter = 0;
         public int m_interpenetrationcount = 0;
-        public int m_collisionscore = 0;
+        public float m_collisionscore = 0;
         public int m_roundsUnderMotionThreshold = 0;
         private int m_crossingfailures = 0;
 
@@ -243,7 +243,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 // is physical or the object is modified somehow *IN THE FUTURE*
                 // without this, if an avatar selects prim, they can walk right
                 // through it while it's selected
-
+                m_collisionscore = 0;
                 if ((m_isphysical && !_zeroFlag) || !value)
                 {
                     m_taintselected = value;
@@ -1783,6 +1783,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         public override float CollisionScore
         {
             get { return m_collisionscore; }
+            set { m_collisionscore = value; }
         }
 
         public override bool Kinematic

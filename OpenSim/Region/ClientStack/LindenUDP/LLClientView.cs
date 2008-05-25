@@ -250,6 +250,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private ForceReleaseControls handlerForceReleaseControls = null;
 
+        private GodLandStatRequest handlerLandStatRequest = null;
+
         private UUIDNameRequest handlerUUIDGroupNameRequest = null;
 
         private RequestObjectPropertiesFamily handlerObjectGroupRequest = null;
@@ -841,6 +843,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event AgentSit OnUndo;
 
         public event ForceReleaseControls OnForceReleaseControls;
+
+        public event GodLandStatRequest OnLandStatRequest;
 
         public event RequestObjectPropertiesFamily OnObjectGroupRequest;
 
@@ -5641,11 +5645,35 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     OnEstateTeleportOneUserHomeRequest(this,invoice,SenderID,Prey);
                                 }
                                 break;
+                            case "colliders":
+                                handlerLandStatRequest = OnLandStatRequest;
+                                if (handlerLandStatRequest != null)
+                                {
+                                    handlerLandStatRequest(0, 1, 0, "", this);
+                                }
+                                break;
                             default:
                                 m_log.Error("EstateOwnerMessage: Unknown method requested\n" + messagePacket.ToString());
                                 break;
                         }
                         break;
+                    case PacketType.LandStatRequest:
+                        LandStatRequestPacket lsrp = (LandStatRequestPacket)Pack;
+                        
+                        handlerLandStatRequest = OnLandStatRequest;
+                        if (handlerLandStatRequest != null)
+                        {
+                            handlerLandStatRequest(lsrp.RequestData.ParcelLocalID,lsrp.RequestData.ReportType,lsrp.RequestData.RequestFlags,Helpers.FieldToUTF8String(lsrp.RequestData.Filter),this);
+                        }
+                        //int parcelID, uint reportType, uint requestflags, string filter
+
+                        //lsrp.RequestData.ParcelLocalID;
+                        //lsrp.RequestData.ReportType; // 1 = colliders, 0 = scripts
+                        //lsrp.RequestData.RequestFlags;
+                        //lsrp.RequestData.Filter;
+                        
+                        break;
+
                     case PacketType.RequestRegionInfo:
                         RequestRegionInfoPacket.AgentDataBlock mPacket = ((RequestRegionInfoPacket)Pack).AgentData;
 
@@ -5982,6 +6010,34 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             pack.UUIDNameBlock = uidnameblock;
             OutPacket(pack, ThrottleOutPacketType.Task);
         }
+
+        public void SendLandStatReply(uint reportType, uint requestFlags, uint resultCount, LandStatReportItem[] lsrpia)
+        {
+            LandStatReplyPacket lsrp = new LandStatReplyPacket();
+            LandStatReplyPacket.RequestDataBlock lsreqdpb = new LandStatReplyPacket.RequestDataBlock();
+            LandStatReplyPacket.ReportDataBlock[] lsrepdba = new LandStatReplyPacket.ReportDataBlock[lsrpia.Length];
+            //LandStatReplyPacket.ReportDataBlock lsrepdb = new LandStatReplyPacket.ReportDataBlock();
+            // lsrepdb.
+            lsrp.RequestData.ReportType = reportType;
+            lsrp.RequestData.RequestFlags = requestFlags;
+            lsrp.RequestData.TotalObjectCount = resultCount;
+            for (int i = 0; i < lsrpia.Length; i++)
+            {
+                LandStatReplyPacket.ReportDataBlock lsrepdb = new LandStatReplyPacket.ReportDataBlock();
+                lsrepdb.LocationX = lsrpia[i].LocationX;
+                lsrepdb.LocationY = lsrpia[i].LocationY;
+                lsrepdb.LocationZ = lsrpia[i].LocationZ;
+                lsrepdb.Score = lsrpia[i].Score;
+                lsrepdb.TaskID = lsrpia[i].TaskID;
+                lsrepdb.TaskLocalID = lsrpia[i].TaskLocalID;
+                lsrepdb.TaskName = Helpers.StringToField(lsrpia[i].TaskName);
+                lsrepdb.OwnerName = Helpers.StringToField(lsrpia[i].OwnerName);
+                lsrepdba[i] = lsrepdb;
+            }
+            lsrp.ReportData = lsrepdba;
+            OutPacket(lsrp, ThrottleOutPacketType.Task);
+        }
+
         public ClientInfo GetClientInfo()
         {
             //MainLog.Instance.Verbose("CLIENT", "GetClientInfo BGN");

@@ -176,7 +176,7 @@ namespace OpenSim.Region.Physics.Manager
         public abstract PhysicsVector GeometricCenter { get; }
         public abstract PhysicsVector CenterOfMass { get; }
         public abstract PhysicsVector Velocity { get; set; }
-        public abstract float CollisionScore { get;}
+        public abstract float CollisionScore { get; set;}
         public abstract PhysicsVector Acceleration { get; }
         public abstract Quaternion Orientation { get; set; }
         public abstract int PhysicsActorType { get; set; }
@@ -208,7 +208,9 @@ namespace OpenSim.Region.Physics.Manager
         public override bool Stopped
         {
             get{ return false; }
+            
         }
+
 
         public override PhysicsVector Position
         {
@@ -300,6 +302,7 @@ namespace OpenSim.Region.Physics.Manager
         public override float CollisionScore
         {
             get { return 0f; }
+            set { }
         }
 
         public override void CrossingFailure()

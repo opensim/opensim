@@ -610,6 +610,8 @@ namespace OpenSim.Framework
 
     public delegate void ForceReleaseControls(IClientAPI remoteClient, LLUUID agentID);
 
+    public delegate void GodLandStatRequest(int parcelID, uint reportType, uint requestflags, string filter, IClientAPI remoteClient);
+
     //Estate Requests
     public delegate void DetailedEstateDataRequest(IClientAPI remoteClient, LLUUID invoice);
     public delegate void SetEstateFlagsRequest(bool blockTerraform, bool noFly, bool allowDamage, bool blockLandResell, int maxAgents, float objectBonusFactor, int matureLevel, bool restrictPushObject, bool allowParcelChanges);
@@ -625,6 +627,7 @@ namespace OpenSim.Framework
     public delegate void EstateBlueBoxMessageRequest(IClientAPI remoteClient, LLUUID invoice, LLUUID senderID, LLUUID sessionID, string senderName, string message);
     public delegate void EstateDebugRegionRequest(IClientAPI remoteClient, LLUUID invoice, LLUUID senderID, bool scripted, bool collisionEvents, bool physics);
     public delegate void EstateTeleportOneUserHomeRequest(IClientAPI remoteClient, LLUUID invoice, LLUUID senderID, LLUUID prey);
+
 
     public interface IClientAPI
     {
@@ -801,6 +804,7 @@ namespace OpenSim.Framework
         event AgentSit OnUndo;
 
         event ForceReleaseControls OnForceReleaseControls;
+        event GodLandStatRequest OnLandStatRequest;
 
         event DetailedEstateDataRequest OnDetailedEstateDataRequest;
         event SetEstateFlagsRequest OnSetEstateFlagsRequest;
@@ -988,6 +992,8 @@ namespace OpenSim.Framework
         void SendGroupMembership(GroupData[] GroupMembership);
 
         void SendGroupNameReply(LLUUID groupLLUID, string GroupName);
+
+        void SendLandStatReply(uint reportType, uint requestFlags, uint resultCount, LandStatReportItem[] lsrpia);
 
         byte[] GetThrottlesPacked(float multiplier);
 

@@ -175,6 +175,8 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event AgentSit OnUndo;
 
         public event ForceReleaseControls OnForceReleaseControls;
+
+        public event GodLandStatRequest OnLandStatRequest;
         public event RequestObjectPropertiesFamily OnObjectGroupRequest;
 
         public event DetailedEstateDataRequest OnDetailedEstateDataRequest;
@@ -760,6 +762,11 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         public void SendGroupNameReply(LLUUID groupLLUID, string GroupName)
         {
+        }
+
+        public void SendLandStatReply(uint reportType, uint requestFlags, uint resultCount, LandStatReportItem[] lsrpia)
+        {
+
         }
     }
 }

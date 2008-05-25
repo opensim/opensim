@@ -549,6 +549,12 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 
         }
 
+        public override Dictionary<uint, float> GetTopColliders()
+        {
+            Dictionary<uint, float> returncolliders = new Dictionary<uint, float>();
+            return returncolliders;
+        }
+
         public override void SetWaterLevel(float baseheight)
         {
 
@@ -917,6 +923,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         public override float CollisionScore
         {
             get { return 0f; }
+            set { }
         }
         public override PhysicsVector Size
         {

@@ -311,6 +311,44 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         {
             remote_client.sendEstateCovenantInformation();
         }
+        private void HandleLandStatRequest(int parcelID, uint reportType, uint requestFlags, string filter, IClientAPI remoteClient)
+        {
+            Dictionary<uint, float> colliders = m_scene.PhysicsScene.GetTopColliders();
+            
+            List<LandStatReportItem> collidera = new List<LandStatReportItem>();
+            lock (colliders)
+            {
+                foreach (uint obj in colliders.Keys)
+                {
+                    SceneObjectPart prt = m_scene.GetSceneObjectPart(obj);
+                    if (prt != null)
+                    {
+                        if (prt.ParentGroup != null)
+                        {
+                            SceneObjectGroup sog = prt.ParentGroup;
+                            if (sog != null)
+                            {
+                                LandStatReportItem lsri = new LandStatReportItem();
+                                lsri.LocationX = sog.AbsolutePosition.X;
+                                lsri.LocationY = sog.AbsolutePosition.Y;
+                                lsri.LocationZ = sog.AbsolutePosition.Z;
+                                lsri.Score = colliders[obj];
+                                lsri.TaskID = sog.UUID;
+                                lsri.TaskLocalID = sog.LocalId;
+                                lsri.TaskName = sog.GetPartName(obj);
+                                lsri.OwnerName = m_scene.CommsManager.UUIDNameRequestString(sog.OwnerID);
+
+                                
+                                collidera.Add(lsri);
+                            }
+                        }
+                    }
+
+                }
+            }
+            remoteClient.SendLandStatReply(reportType, requestFlags, (uint)collidera.Count,collidera.ToArray());
+
+        }
 
         #endregion
 
@@ -435,6 +473,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
             client.OnRegionInfoRequest += HandleRegionInfoRequest;
             client.OnEstateCovenantRequest += HandleEstateCovenantRequest;
+            client.OnLandStatRequest += HandleLandStatRequest;
             sendRegionHandshake(client);
         }
     }
