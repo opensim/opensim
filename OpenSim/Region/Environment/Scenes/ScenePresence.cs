@@ -1403,6 +1403,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="remoteAvatar"></param>
         public void SendFullUpdateToOtherClient(ScenePresence remoteAvatar)
         {
+            if(remoteAvatar == null) 
+                return;
+            IClientAPI rc=remoteAvatar.ControllingClient;
+            if(rc == null)
+                return;
+
             remoteAvatar.m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid,
                                                             LocalId, m_pos, m_appearance.Texture.ToBytes(),
                                                             m_parentID);
