@@ -213,7 +213,7 @@ namespace OpenSim.Region.Physics.Meshing
             int COLUMNS = x_max + 1;
 
             Vertex[] sVertices = new Vertex[COLUMNS * y_max];
-            float[] indices = new float[COLUMNS * (y_max - 1) * 6];
+            //float[] indices = new float[COLUMNS * (y_max - 1) * 6];
 
             for (int y = 0; y < y_max; y++)
             {
