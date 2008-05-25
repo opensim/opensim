@@ -26,6 +26,8 @@
  */
 
 using System;
+using System.Reflection;
+using log4net;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
@@ -42,6 +44,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             base.m_scriptEngine = scriptEngine;
         }
         private Compiler.LSL.Compiler LSLCompiler;
+
+        private static readonly ILog m_log
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 
         public override void Initialize()
@@ -70,10 +75,31 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
             SceneObjectPart m_host = World.GetSceneObjectPart(localID);
 
+            // Xantor 20080525: I need assetID here to see if we already compiled this one previously
+            LLUUID assetID = LLUUID.Zero;
+            TaskInventoryItem taskInventoryItem = new TaskInventoryItem();
+            if(m_host.TaskInventory.TryGetValue(itemID,out taskInventoryItem))
+                assetID = taskInventoryItem.AssetID;
+            
+
             try
             {
-                // Compile (We assume LSL)
-                CompiledScriptFile = LSLCompiler.PerformScriptCompile(Script);
+                // Xantor 20080525 see if we already compiled this script this session, stop incessant recompiling on 
+                // scriptreset, spawning of objects with embedded scripts etc.
+
+                if (scriptList.TryGetValue(assetID, out CompiledScriptFile))
+                {
+                    m_log.InfoFormat("[SCRIPT]: Found existing compile of assetID {0}: {1}", assetID, CompiledScriptFile);
+                }
+                else
+                {
+                    // Compile (We assume LSL)
+                    CompiledScriptFile = LSLCompiler.PerformScriptCompile(Script);
+
+                    // Xantor 20080525 Save compiled scriptfile for later use
+                    m_log.InfoFormat("[SCRIPT]: Compiled assetID {0}: {1}", assetID, CompiledScriptFile);
+                    scriptList.Add(assetID, CompiledScriptFile);
+                }
 
 //#if DEBUG
                 //long before;

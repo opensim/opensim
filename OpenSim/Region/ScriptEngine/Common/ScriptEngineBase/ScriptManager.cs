@@ -81,11 +81,15 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             Unload = 2
         }
 
+        // Xantor 20080525: Keep a list of compiled scripts this session for reuse
+        public Dictionary<LLUUID, String> scriptList = new Dictionary<LLUUID, string>();
+
         // Object<string, Script<string, script>>
         // IMPORTANT: Types and MemberInfo-derived objects require a LOT of memory.
         // Instead use RuntimeTypeHandle, RuntimeFieldHandle and RunTimeHandle (IntPtr) instead!
         public Dictionary<uint, Dictionary<LLUUID, IScript>> Scripts =
             new Dictionary<uint, Dictionary<LLUUID, IScript>>();
+
 
         public Scene World
         {
