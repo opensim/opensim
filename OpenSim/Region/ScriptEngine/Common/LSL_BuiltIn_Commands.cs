@@ -474,7 +474,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSensor(string name, string id, int type, double range, double arc)
         {
-            m_host.AddScriptLPS(1);
+            m_host.AddScriptLPS(300);
             LLUUID keyID = LLUUID.Zero;
             LLUUID.TryParse(id, out keyID);
 
@@ -1818,7 +1818,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llSleep(double sec)
         {
-            m_host.AddScriptLPS(1);
+            m_host.AddScriptLPS((int)(sec * 100));
             Thread.Sleep((int)(sec * 1000));
         }
 
@@ -2582,7 +2582,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llResetScript()
         {
-            m_host.AddScriptLPS(1);
+            m_host.AddScriptLPS(800);
             m_ScriptEngine.m_ScriptManager.ResetScript(m_localID, m_itemID);
         }
 
@@ -4279,7 +4279,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             ScriptManager sm;
             IScript script = null;
 
-            m_host.AddScriptLPS(1);
+            m_host.AddScriptLPS(8000);
 
             // These functions are supposed to be robust,
             // so get the state one step at a time.

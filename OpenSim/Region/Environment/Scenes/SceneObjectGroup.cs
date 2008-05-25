@@ -90,6 +90,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// since the group's last persistent backup
         /// </summary>
         public bool HasGroupChanged = false;
+        public float scriptScore = 0f;
 
 
 
@@ -959,6 +960,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AddScriptLPS(int count)
         {
+            if (scriptScore + count >= float.MaxValue - count)
+                scriptScore = 0;
+
+            scriptScore += (float)count;
             InnerScene d = m_scene.m_innerScene;
             d.AddToScriptLPS(count);
         }

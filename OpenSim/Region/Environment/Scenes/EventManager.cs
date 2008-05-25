@@ -174,6 +174,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event AvatarKillData OnAvatarKilled;
 
+        public delegate void ScriptTimerEvent(uint localID, double timerinterval);
+
+        public event ScriptTimerEvent OnScriptTimerEvent;
 
 
         public delegate void ObjectBeingRemovedFromScene(SceneObjectGroup obj);
@@ -332,6 +335,7 @@ namespace OpenSim.Region.Environment.Scenes
         private RequestParcelPrimCountUpdate handlerRequestParcelPrimCountUpdate = null;
         private ParcelPrimCountTainted handlerParcelPrimCountTainted = null;
         private ObjectBeingRemovedFromScene handlerObjectBeingRemovedFromScene = null;
+        private ScriptTimerEvent handlerScriptTimerEvent = null;
 
         public void TriggerOnScriptChangedEvent(uint localID, uint change)
         {
@@ -754,6 +758,17 @@ namespace OpenSim.Region.Environment.Scenes
                 handlerParcelPrimCountTainted();
 
             }
+        }
+        // this lets us keep track of nasty script events like timer, etc.
+        public void TriggerTimerEvent(uint objLocalID, double Interval)
+        {
+            handlerScriptTimerEvent = OnScriptTimerEvent;
+            if (handlerScriptTimerEvent != null)
+            {
+                handlerScriptTimerEvent(objLocalID, Interval);
+
+            }
+            
         }
     }
 }

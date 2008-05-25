@@ -2752,6 +2752,14 @@ namespace OpenSim.Region.Environment.Scenes
                     PhysActor.OnCollisionUpdate -= PhysicsCollision;
                 }
             }
+            if ((GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Scripted) != 0)
+            {
+                m_parentGroup.Scene.EventManager.OnScriptTimerEvent += handleTimerAccounting;
+            }
+            else
+            {
+                m_parentGroup.Scene.EventManager.OnScriptTimerEvent -= handleTimerAccounting;
+            }
 
             LocalFlags=(LLObject.ObjectFlags)objectflagupdate;
 
@@ -2811,6 +2819,30 @@ namespace OpenSim.Region.Environment.Scenes
             GroupID = groupID;
             GetProperties(client);
             m_updateFlag = 2;
+        }
+        private void handleTimerAccounting(uint localID, double interval)
+        {
+            if (localID == LocalId)
+            {
+
+                float sec = (float)interval;
+                if (m_parentGroup != null)
+                {
+                    if (sec == 0)
+                    {
+                        if (m_parentGroup.scriptScore + 0.001f >= float.MaxValue - 0.001)
+                            m_parentGroup.scriptScore = 0;
+
+                        m_parentGroup.scriptScore += 0.001f;
+                        return;
+                    }
+
+                    if (m_parentGroup.scriptScore + (0.001f / sec) >= float.MaxValue - (0.001f / sec))
+                        m_parentGroup.scriptScore = 0;
+                    m_parentGroup.scriptScore += (0.001f / sec);
+                }
+
+            }
         }
 
     }

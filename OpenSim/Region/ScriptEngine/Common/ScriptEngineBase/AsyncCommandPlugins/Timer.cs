@@ -126,6 +126,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                         // Add it to queue
                         m_CmdManager.m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(ts.localID, ts.itemID, "timer", EventQueueManager.llDetectNull,
                                                                             null);
+                        m_CmdManager.m_ScriptEngine.World.EventManager.TriggerTimerEvent(ts.localID, ((double)ts.interval / 10000000));
                         // set next interval
 
                         //ts.next = DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);

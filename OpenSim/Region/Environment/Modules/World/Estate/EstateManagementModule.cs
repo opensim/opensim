@@ -313,12 +313,21 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         }
         private void HandleLandStatRequest(int parcelID, uint reportType, uint requestFlags, string filter, IClientAPI remoteClient)
         {
-            Dictionary<uint, float> colliders = m_scene.PhysicsScene.GetTopColliders();
-            
-            List<LandStatReportItem> collidera = new List<LandStatReportItem>();
-            lock (colliders)
+            Dictionary<uint, float> SceneData = new Dictionary<uint,float>();
+
+            if (reportType == 1)
             {
-                foreach (uint obj in colliders.Keys)
+                SceneData = m_scene.PhysicsScene.GetTopColliders();
+            }
+            else if (reportType == 0)
+            {
+                SceneData = m_scene.m_innerScene.GetTopScripts();
+            }
+
+            List<LandStatReportItem> SceneReport = new List<LandStatReportItem>();
+            lock (SceneData)
+            {
+                foreach (uint obj in SceneData.Keys)
                 {
                     SceneObjectPart prt = m_scene.GetSceneObjectPart(obj);
                     if (prt != null)
@@ -332,21 +341,30 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                                 lsri.LocationX = sog.AbsolutePosition.X;
                                 lsri.LocationY = sog.AbsolutePosition.Y;
                                 lsri.LocationZ = sog.AbsolutePosition.Z;
-                                lsri.Score = colliders[obj];
+                                lsri.Score = SceneData[obj];
                                 lsri.TaskID = sog.UUID;
                                 lsri.TaskLocalID = sog.LocalId;
                                 lsri.TaskName = sog.GetPartName(obj);
                                 lsri.OwnerName = m_scene.CommsManager.UUIDNameRequestString(sog.OwnerID);
-
+                                if (filter.Length != 0)
+                                {
+                                    if ((lsri.OwnerName.Contains(filter) || lsri.TaskName.Contains(filter)))
+                                    {
+                                    }
+                                    else
+                                    {
+                                        continue;
+                                    }
+                                }
                                 
-                                collidera.Add(lsri);
+                                SceneReport.Add(lsri);
                             }
                         }
                     }
 
                 }
             }
-            remoteClient.SendLandStatReply(reportType, requestFlags, (uint)collidera.Count,collidera.ToArray());
+            remoteClient.SendLandStatReply(reportType, requestFlags, (uint)SceneReport.Count,SceneReport.ToArray());
 
         }
 

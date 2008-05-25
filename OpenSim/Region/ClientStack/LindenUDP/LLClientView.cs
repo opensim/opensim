@@ -5652,6 +5652,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     handlerLandStatRequest(0, 1, 0, "", this);
                                 }
                                 break;
+                            case "scripts":
+                                handlerLandStatRequest = OnLandStatRequest;
+                                if (handlerLandStatRequest != null)
+                                {
+                                    handlerLandStatRequest(0, 0, 0, "", this);
+                                }
+                                break;
                             default:
                                 m_log.Error("EstateOwnerMessage: Unknown method requested\n" + messagePacket.ToString());
                                 break;

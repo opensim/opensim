@@ -846,6 +846,37 @@ namespace OpenSim.Region.Environment.Scenes
             return result;
         }
 
+        public Dictionary<uint, float> GetTopScripts()
+        {
+            Dictionary<uint, float> topScripts = new Dictionary<uint, float>();
+
+            List<EntityBase> EntityList = GetEntities();
+            int limit = 0;
+            foreach (EntityBase ent in EntityList)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    SceneObjectGroup grp = (SceneObjectGroup)ent;
+                    if ((grp.RootPart.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Scripted) != 0)
+                    {
+                        if (grp.scriptScore >= 0.01)
+                        {
+                            topScripts.Add(grp.LocalId, grp.scriptScore);
+                            limit++;
+                            if (limit >= 100)
+                            {
+                                break;
+                            }
+                            
+                        }
+                        grp.scriptScore = 0;
+                    }
+                }
+            }
+
+            return topScripts;
+        }
+
         #endregion
 
         #region Other Methods
