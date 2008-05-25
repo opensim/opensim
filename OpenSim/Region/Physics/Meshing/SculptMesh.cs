@@ -251,7 +251,7 @@ namespace OpenSim.Region.Physics.Meshing
             }
 
             // Create the Triangles
-            int i = 0;
+            //int i = 0;
 
             for (int y = 0; y < y_max - 1; y++)
             {
@@ -293,42 +293,42 @@ namespace OpenSim.Region.Physics.Meshing
                     }
                     
                 }
-                Vertex vt31 = sVertices[(y * x_max + x)];
-                Vertex vt32 = sVertices[(y * x_max + 0)];
-                Vertex vt33 = sVertices[((y + 1) * x_max + 0)];
-                if (vt31 != null && vt32 != null && vt33 != null)
-                {
-                    if (vt31.Equals(vt32, 0.022f) || vt31.Equals(vt33, 0.022f) || vt32.Equals(vt33, 0.022f))
-                    {
-                    }
-                    else
-                    {
+                //Vertex vt31 = sVertices[(y * x_max + x)];
+                //Vertex vt32 = sVertices[(y * x_max + 0)];
+                //Vertex vt33 = sVertices[((y + 1) * x_max + 0)];
+                //if (vt31 != null && vt32 != null && vt33 != null)
+                //{
+                    //if (vt31.Equals(vt32, 0.022f) || vt31.Equals(vt33, 0.022f) || vt32.Equals(vt33, 0.022f))
+                    //{
+                    //}
+                    //else
+                    //{
                         //Triangle tri3 = new Triangle(vt31, vt32, vt33);
                         // Wrap the last cell in the row around
                         //indices[i++] = (ushort)(y * x_max + x); //a
                         //indices[i++] = (ushort)(y * x_max + 0); //b
                         //indices[i++] = (ushort)((y + 1) * x_max + 0); //c
                         //Add(tri3);
-                    }
-                }
+                   // }
+                //}
                 
-                Vertex vt41 = sVertices[(y * x_max + x)];
-                Vertex vt42 = sVertices[((y + 1) * x_max + 0)];
-                Vertex vt43 = sVertices[((y + 1) * x_max + x)];
-                if (vt41 != null && vt42 != null && vt43 != null)
-                {
-                    if (vt41.Equals(vt42, 0.022f) || vt31.Equals(vt43, 0.022f) || vt32.Equals(vt43, 0.022f))
-                    {
-                    }
-                    else
-                    {
+                //Vertex vt41 = sVertices[(y * x_max + x)];
+                //Vertex vt42 = sVertices[((y + 1) * x_max + 0)];
+                //Vertex vt43 = sVertices[((y + 1) * x_max + x)];
+                //if (vt41 != null && vt42 != null && vt43 != null)
+                //{
+                    //if (vt41.Equals(vt42, 0.022f) || vt31.Equals(vt43, 0.022f) || vt32.Equals(vt43, 0.022f))
+                    //{
+                    //}
+                   // else
+                   // {
                         //Triangle tri4 = new Triangle(vt41, vt42, vt43);
                         //indices[i++] = (ushort)(y * x_max + x); //a
                         //indices[i++] = (ushort)((y + 1) * x_max + 0); //b
                         //indices[i++] = (ushort)((y + 1) * x_max + x); //c
                         //Add(tri4);
-                    }
-                }
+                    //}
+                //}
                 
             }
         }
