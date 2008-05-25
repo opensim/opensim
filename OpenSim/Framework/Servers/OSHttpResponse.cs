@@ -36,36 +36,36 @@ namespace OpenSim.Framework.Servers
     {
         private string _contentType;
         private bool _contentTypeSet;
-        public string ContentType 
+        public string ContentType
         {
             get { return _contentType; }
-            set 
+            set
             {
                 _contentType = value;
                 _contentTypeSet = true;
             }
         }
-        public bool IsContentTypeSet 
+        public bool IsContentTypeSet
         {
             get { return _contentTypeSet; }
         }
 
         private long _contentLength64;
-        public long ContentLength64 
+        public long ContentLength64
         {
             get { return _contentLength64; }
-            set 
+            set
             {
                 _contentLength64 = value;
                 if (null != _resp) _resp.ContentLength64 = value;
             }
         }
-        
+
         private Encoding _contentEncoding;
-        public Encoding ContentEncoding 
+        public Encoding ContentEncoding
         {
             get { return _contentEncoding; }
-            set 
+            set
             {
                 _contentEncoding = value;
                 if (null != _resp) _resp.ContentEncoding = value;
@@ -76,10 +76,10 @@ namespace OpenSim.Framework.Servers
         public CookieCollection Cookies;
 
         private bool _keepAlive;
-        public bool KeepAlive 
+        public bool KeepAlive
         {
             get { return _keepAlive; }
-            set 
+            set
             {
                 _keepAlive = value;
                 if (null != _resp) _resp.KeepAlive = value;
@@ -92,7 +92,7 @@ namespace OpenSim.Framework.Servers
         public string RedirectLocation
         {
             get { return _redirectLocation; }
-            set 
+            set
             {
                 _redirectLocation = value;
                 if (null != _resp) _resp.RedirectLocation = value;
@@ -103,7 +103,7 @@ namespace OpenSim.Framework.Servers
         public bool SendChunked
         {
             get { return _sendChunked; }
-            set 
+            set
             {
                 _sendChunked = value;
                 if (null != _resp) _resp.SendChunked = value;
@@ -111,10 +111,10 @@ namespace OpenSim.Framework.Servers
         }
 
         private int _statusCode;
-        public int StatusCode 
+        public int StatusCode
         {
             get { return _statusCode; }
-            set 
+            set
             {
                 _statusCode = value;
                 if (null != _resp) _resp.StatusCode = value;
@@ -122,10 +122,10 @@ namespace OpenSim.Framework.Servers
         }
 
         private string _statusDescription;
-        public string StatusDescription 
+        public string StatusDescription
         {
             get { return _statusDescription; }
-            set 
+            set
             {
                 _statusDescription = value;
                 if (null != _resp) _resp.StatusDescription = value;

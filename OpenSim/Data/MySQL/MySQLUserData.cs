@@ -95,7 +95,9 @@ namespace OpenSim.Data.MySQL
                     settingUsername + ";Password=" + settingPassword + ";Pooling=" + settingPooling + ";";
 
                 database = new MySQLManager(m_connectString);
-            } else {
+            }
+            else
+            {
                 m_connectString = connect;
                 m_agentsTableName = "agents";
                 m_usersTableName = "users";
@@ -190,7 +192,7 @@ namespace OpenSim.Data.MySQL
             {
                 database.ExecuteResourceSql("CreateAvatarAppearance.sql");
                 return;
-            } 
+            }
             else if (oldVersion.Contains("Rev.1"))
             {
                 database.ExecuteSql("drop table avatarappearance");
@@ -674,15 +676,15 @@ namespace OpenSim.Data.MySQL
                 {
                     Dictionary<string, string> param = new Dictionary<string, string>();
                     param["?owner"] = user.ToString();
-                    
+
                     IDbCommand result = database.Query("SELECT * FROM " + m_appearanceTableName + " WHERE owner = ?owner", param);
                     IDataReader reader = result.ExecuteReader();
-                    
+
                     AvatarAppearance appearance = database.readAppearanceRow(reader);
-                    
+
                     reader.Close();
                     result.Dispose();
-                    
+
                     return appearance;
                 }
             }

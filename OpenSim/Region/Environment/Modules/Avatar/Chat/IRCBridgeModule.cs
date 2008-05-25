@@ -43,7 +43,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 {
     public class IRCBridgeModule : IRegionModule, ISimChat
     {
-        private static readonly ILog m_log = 
+        private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private const int DEBUG_CHANNEL = 2147483647;
@@ -94,7 +94,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                     m_irc_connector.Name = "IRCConnectorThread";
                     m_irc_connector.IsBackground = true;
                 }
-                m_log.InfoFormat("[IRC] initialized for {0}, nick: {1} ", scene.RegionInfo.RegionName, 
+                m_log.InfoFormat("[IRC] initialized for {0}, nick: {1} ", scene.RegionInfo.RegionName,
                                  m_defaultzone);
             }
         }
@@ -222,7 +222,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                     if ((m_irc.Enabled) && (m_irc.Connected))
                     {
                         m_log.DebugFormat("[IRC] {0} logging on", clientName);
-                        m_irc.PrivMsg(m_irc.Nick, "Sim", 
+                        m_irc.PrivMsg(m_irc.Nick, "Sim",
                                       String.Format("notices {0} logging on", clientName));
                     }
                     m_last_new_user = clientName;
@@ -288,7 +288,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                             m_log.InfoFormat("[IRC]: {0} logging out", clientName);
                         }
 
-                        if (m_last_new_user == clientName) 
+                        if (m_last_new_user == clientName)
                             m_last_new_user = null;
                     }
                 }
@@ -588,7 +588,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                                                                      if (!avatar.IsChildAgent)
                                                                      {
                                                                          avatar.ControllingClient.SendChatMessage(
-                                                                             Helpers.StringToField(data["msg"]), 
+                                                                             Helpers.StringToField(data["msg"]),
                                                                              1, // 255,
                                                                              pos, data["nick"],
                                                                              LLUUID.Zero,(byte)ChatSourceType.Agent,(byte)ChatAudibleLevel.Fully);
@@ -634,9 +634,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                                                      if (!avatar.IsChildAgent)
                                                      {
                                                          avatar.ControllingClient.SendChatMessage(
-                                                             Helpers.StringToField(String.Format(format, args)), 
-                                                             1, //255, 
-                                                             pos, sender, LLUUID.Zero, 
+                                                             Helpers.StringToField(String.Format(format, args)),
+                                                             1, //255,
+                                                             pos, sender, LLUUID.Zero,
                                                              (byte)ChatSourceType.Object,
                                                              (byte)ChatAudibleLevel.Fully);
                                                      }

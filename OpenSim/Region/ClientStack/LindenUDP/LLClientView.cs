@@ -98,7 +98,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private Dictionary<string, LLUUID> m_defaultAnimations = new Dictionary<string, LLUUID>();
 
-
         /* protected variables */
 
         protected static Dictionary<PacketType, PacketMethod> PacketHandlers =
@@ -412,7 +411,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_packetQueue.Close();
 
             Thread.Sleep(2000);
-
 
             // Shut down timers
             m_ackTimer.Stop();
@@ -782,7 +780,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event TeleportLocationRequest OnSetStartLocationRequest;
         public event UpdateAvatarProperties OnUpdateAvatarProperties;
 
-
         public event CreateNewInventoryItem OnCreateNewInventoryItem;
         public event CreateInventoryFolder OnCreateNewInventoryFolder;
         public event UpdateInventoryFolder OnUpdateInventoryFolder;
@@ -937,13 +934,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="fromPos"></param>
         /// <param name="fromName"></param>
         /// <param name="fromAgentID"></param>
-        public void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName, 
+        public void SendChatMessage(string message, byte type, LLVector3 fromPos, string fromName,
                                     LLUUID fromAgentID, byte source, byte audible)
         {
             SendChatMessage(Helpers.StringToField(message), type, fromPos, fromName, fromAgentID, source, audible);
         }
 
-        public void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName, 
+        public void SendChatMessage(byte[] message, byte type, LLVector3 fromPos, string fromName,
                                     LLUUID fromAgentID, byte source, byte audible)
         {
             ChatFromSimulatorPacket reply = (ChatFromSimulatorPacket)PacketPool.Instance.GetPacket(PacketType.ChatFromSimulator);
@@ -3172,7 +3169,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public bool HandleObjectGroupRequest(IClientAPI sender, Packet Pack)
         {
-            
+
             ObjectGroupPacket ogpack = (ObjectGroupPacket)Pack;
             handlerObjectGroupRequest = OnObjectGroupRequest;
             if (handlerObjectGroupRequest != null)
@@ -3185,7 +3182,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return true;
         }
 
-        
+
 
         private bool HandleViewerEffect(IClientAPI sender, Packet Pack)
         {
@@ -3875,7 +3872,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             else
             {
-                
+
                 switch (Pack.Type)
                 {
                         #region  Scene/Avatar
@@ -5427,10 +5424,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         }
                         break;
                     case PacketType.ParcelReturnObjects:
-                        
+
 
                         ParcelReturnObjectsPacket parcelReturnObjects = (ParcelReturnObjectsPacket)Pack;
-                        
+
                         LLUUID[] puserselectedOwnerIDs = new LLUUID[parcelReturnObjects.OwnerIDs.Length];
                         for (int parceliterator = 0; parceliterator < parcelReturnObjects.OwnerIDs.Length; parceliterator++)
                             puserselectedOwnerIDs[parceliterator] = parcelReturnObjects.OwnerIDs[parceliterator].OwnerID;
@@ -5444,10 +5441,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if (handlerParcelReturnObjectsRequest != null)
                         {
                             handlerParcelReturnObjectsRequest(parcelReturnObjects.ParcelData.LocalID,parcelReturnObjects.ParcelData.ReturnType,puserselectedOwnerIDs,puserselectedTaskIDs, this);
-                            
+
                         }
                         break;
-                        
+
                         #endregion
 
                         #region Estate Packets
@@ -5666,7 +5663,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         break;
                     case PacketType.LandStatRequest:
                         LandStatRequestPacket lsrp = (LandStatRequestPacket)Pack;
-                        
+
                         handlerLandStatRequest = OnLandStatRequest;
                         if (handlerLandStatRequest != null)
                         {
@@ -5678,7 +5675,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         //lsrp.RequestData.ReportType; // 1 = colliders, 0 = scripts
                         //lsrp.RequestData.RequestFlags;
                         //lsrp.RequestData.Filter;
-                        
+
                         break;
 
                     case PacketType.RequestRegionInfo:

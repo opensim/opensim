@@ -211,7 +211,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// <param name="httpRequest">HTTP request header object</param>
         /// <param name="httpResponse">HTTP response header object</param>
         /// <returns></returns>
-        public string CapsRequest(string request, string path, string param, 
+        public string CapsRequest(string request, string path, string param,
                                   OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             m_log.Debug("[CAPS]: Seed Caps Request in region: " + m_regionName);
@@ -509,7 +509,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// <param name="httpRequest">HTTP request header object</param>
         /// <param name="httpResponse">HTTP response header object</param>
         /// <returns></returns>
-        public string ScriptTaskInventory(string request, string path, string param, 
+        public string ScriptTaskInventory(string request, string path, string param,
                                           OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             try
@@ -564,7 +564,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         /// <param name="path"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        public string NoteCardAgentInventory(string request, string path, string param, 
+        public string NoteCardAgentInventory(string request, string path, string param,
                                              OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             m_log.Debug("[CAPS]: NoteCardAgentInventory Request in region: " + m_regionName);

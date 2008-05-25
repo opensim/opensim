@@ -271,11 +271,11 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_rootPart.Text; }
             set { m_rootPart.Text = value; }
         }
-        
+
         protected virtual bool InSceneBackup
         {
             get { return true; }
-        }        
+        }
 
         public bool IsSelected
         {
@@ -523,11 +523,11 @@ namespace OpenSim.Region.Environment.Scenes
             {
 //                m_log.DebugFormat(
 //                    "[SCENE OBJECT GROUP]: Attaching object {0} to scene presistence sweep", UUID);
-                                  
+
                 m_scene.EventManager.OnBackup += ProcessBackup;
             }
         }
-        
+
         public LLVector3 GroupScale()
         {
             LLVector3 minScale = new LLVector3(Constants.RegionSize,Constants.RegionSize,Constants.RegionSize);
@@ -1079,21 +1079,21 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="datastore"></param>
         public void ProcessBackup(IRegionDataStore datastore)
-        {         
+        {
             // don't backup while it's selected or you're asking for changes mid stream.
             if (HasGroupChanged)
             {
                 if ((!IsSelected) && (RootPart != null))
                 {
                     m_log.InfoFormat("[SCENE OBJECT GROUP]: Storing object {0}", UUID);
-                    
+
                     SceneObjectGroup backup_group = Copy(OwnerID, GroupID, false);
-                    
+
                     datastore.StoreObject(backup_group, m_scene.RegionInfo.RegionID);
                     HasGroupChanged = false;
 
                     backup_group.ForEachPart(delegate(SceneObjectPart part) { part.ProcessInventoryBackup(datastore); });
-                    
+
                     backup_group = null;
                 }
 //                else
@@ -1102,10 +1102,10 @@ namespace OpenSim.Region.Environment.Scenes
 //                        "[SCENE OBJECT GROUP]: Did not update persistence of object {0} since it was still selected by an avatar during the backup sweep", UUID);
 //                }
             }
-            
+
             // Why is storing the inventory outside of HasGroupChanged?
 
-            
+
             //ForEachPart(delegate(SceneObjectPart part) { part.ProcessInventoryBackup(datastore); });
         }
 
@@ -1192,7 +1192,7 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.m_regionHandle = m_regionHandle;
 
             dupe.CopyRootPart(m_rootPart, OwnerID, GroupID, userExposed);
-            
+
             if (userExposed)
                 dupe.m_rootPart.TrimPermissions();
 
@@ -1223,7 +1223,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 SetRootPartOwner(m_rootPart, cAgentID, cGroupID);
                 m_rootPart.ScheduleFullUpdate();
-            }            
+            }
 
             List<SceneObjectPart> partList = new List<SceneObjectPart>(m_parts.Values);
             foreach (SceneObjectPart part in partList)
@@ -1231,7 +1231,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (part.UUID != m_rootPart.UUID)
                 {
                     dupe.CopyPart(part, OwnerID, GroupID, userExposed);
-                    
+
                     if (userExposed)
                     {
                         SetPartOwner(part, cAgentID, cGroupID);

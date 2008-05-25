@@ -176,7 +176,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             CurrentOrFirstScene.LoadPrimsFromXml(filename, generateNewIDs, loadOffset);
         }
-                
+
         /// <summary>
         /// Save the prims in the current scene to an xml file in OpenSimulator's current 'xml2' format
         /// </summary>
@@ -188,12 +188,12 @@ namespace OpenSim.Region.Environment.Scenes
 
         /// <summary>
         /// Load an xml file of prims in OpenSimulator's current 'xml2' file format to the current scene
-        /// </summary>        
+        /// </summary>
         public void LoadCurrentSceneFromXml2(string filename)
         {
             CurrentOrFirstScene.LoadPrimsFromXml2(filename);
         }
-        
+
         /// <summary>
         /// Save the current scene to an OpenSimulator archive.  This archive will eventually include the prim's assets
         /// as well as the details of the prims themselves.
@@ -203,7 +203,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             CurrentOrFirstScene.SavePrimsToArchive(filename);
         }
-        
+
         /// <summary>
         /// Load an OpenSim archive into the current scene.  This will load both the shapes of the prims and upload
         /// their assets to the asset service.

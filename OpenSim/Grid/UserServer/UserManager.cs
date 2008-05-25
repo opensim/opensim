@@ -57,7 +57,7 @@ namespace OpenSim.Grid.UserServer
         /// <param name="httpRequest">HTTP request header object</param>
         /// <param name="httpResponse">HTTP response header object</param>
         /// <returns>Success "OK" else error</returns>
-        public string RestDeleteUserSessionMethod(string request, string path, string param, 
+        public string RestDeleteUserSessionMethod(string request, string path, string param,
                                                   OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             // TODO! Important!
@@ -260,11 +260,14 @@ namespace OpenSim.Grid.UserServer
             if (requestData.Contains("owner"))
             {
                 appearance = GetUserAppearance(new LLUUID((string)requestData["owner"]));
-                if (appearance == null) {
+                if (appearance == null)
+                {
                     responseData = new Hashtable();
                     responseData["error_type"] = "no appearance";
                     responseData["error_desc"] = "There was no appearance found for this avatar";
-                } else {
+                }
+                else
+                {
                     responseData = appearance.ToHashTable();
                 }
             }

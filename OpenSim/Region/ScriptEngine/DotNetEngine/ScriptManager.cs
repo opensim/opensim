@@ -80,11 +80,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             TaskInventoryItem taskInventoryItem = new TaskInventoryItem();
             if(m_host.TaskInventory.TryGetValue(itemID,out taskInventoryItem))
                 assetID = taskInventoryItem.AssetID;
-            
+
 
             try
             {
-                // Xantor 20080525 see if we already compiled this script this session, stop incessant recompiling on 
+                // Xantor 20080525 see if we already compiled this script this session, stop incessant recompiling on
                 // scriptreset, spawning of objects with embedded scripts etc.
 
                 if (scriptList.TryGetValue(assetID, out CompiledScriptFile))

@@ -44,7 +44,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             m_method = method;
         }
 
-        public override byte[] Handle(string path, Stream request, 
+        public override byte[] Handle(string path, Stream request,
                                       OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             //Encoding encoding = Encoding.UTF8;

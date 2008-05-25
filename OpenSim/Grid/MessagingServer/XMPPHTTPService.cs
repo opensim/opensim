@@ -52,7 +52,7 @@ namespace OpenSim.Grid.MessagingServer
 
         }
 
-        public override byte[] Handle(string path, Stream request, 
+        public override byte[] Handle(string path, Stream request,
                                       OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             string param = GetParam(path);
@@ -86,7 +86,7 @@ namespace OpenSim.Grid.MessagingServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public override byte[] Handle(string path, Stream request, 
+        public override byte[] Handle(string path, Stream request,
                                       OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             string param = GetParam(path);

@@ -73,9 +73,9 @@ namespace OpenSim.Framework
     public class PrimitiveBaseShape
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         private static readonly LLObject.TextureEntry m_defaultTexture;
-        
+
         private byte[] m_textureEntry;
 
         public ushort PathBegin;
@@ -93,39 +93,39 @@ namespace OpenSim.Framework
         public sbyte PathTwist;
         public sbyte PathTwistBegin;
         public byte PCode;
-        public ushort ProfileBegin;       
-        
+        public ushort ProfileBegin;
+
         public byte ProfileCurve
         {
             get { return (byte)((byte)HollowShape | (byte)ProfileShape); }
-            
-            set 
+
+            set
             {
                 // Handle hollow shape component
                 byte hollowShapeByte = (byte)(value & 0xf0);
-                
+
                 if (!Enum.IsDefined(typeof(HollowShape), hollowShapeByte))
                 {
                     m_log.WarnFormat(
                         "[SHAPE]: Attempt to set a ProfileCurve with a hollow shape value of {0}, which isn't a valid enum.  Replacing with default shape.",
                         hollowShapeByte);
-                    
+
                     this.HollowShape = HollowShape.Same;
                 }
                 else
                 {
                     this.HollowShape = (HollowShape)hollowShapeByte;
                 }
-                                
+
                 // Handle profile shape component
                 byte profileShapeByte = (byte)(value & 0xf);
-                
+
                 if (!Enum.IsDefined(typeof(ProfileShape), profileShapeByte))
                 {
                     m_log.WarnFormat(
                         "[SHAPE]: Attempt to set a ProfileCurve with a profile shape value of {0}, which isn't a valid enum.  Replacing with square.",
                         profileShapeByte);
-                    
+
                     this.ProfileShape = ProfileShape.Square;
                 }
                 else
@@ -133,13 +133,13 @@ namespace OpenSim.Framework
                     this.ProfileShape = (ProfileShape)profileShapeByte;
                 }
             }
-        }          
+        }
 
         public ushort ProfileEnd;
         public ushort ProfileHollow;
         public LLVector3 Scale;
         public byte State;
-        
+
         // Sculpted
         [XmlIgnore] public LLUUID SculptTexture = LLUUID.Zero;
         [XmlIgnore] public byte SculptType = (byte)0;
@@ -154,7 +154,7 @@ namespace OpenSim.Framework
         [XmlIgnore] public float FlexiForceX = 0f;
         [XmlIgnore] public float FlexiForceY = 0f;
         [XmlIgnore] public float FlexiForceZ = 0f;
-        
+
         //Bright n sparkly
         [XmlIgnore] public float LightColorR = 0f;
         [XmlIgnore] public float LightColorG = 0f;
@@ -198,8 +198,8 @@ namespace OpenSim.Framework
         }
 
         public ProfileShape ProfileShape;
-        
-        public HollowShape HollowShape;    
+
+        public HollowShape HollowShape;
 
         public static PrimitiveBaseShape Default
         {
@@ -394,7 +394,7 @@ namespace OpenSim.Framework
                 returnbyte[0] = 0;
                 return returnbyte;
             }
-            
+
 
             return returnbytes;
             //m_log.Info("[EXTRAPARAMS]: Length = " + m_shape.ExtraParams.Length.ToString());
@@ -451,11 +451,11 @@ namespace OpenSim.Framework
             int i = 0;
             byte extraParamCount = data[i++];
 
-            
+
             for (int k = 0; k < extraParamCount; k++)
             {
                 ushort epType = Helpers.BytesToUInt16(data, i);
-                
+
                 i += 2;
                 uint paramLength = Helpers.BytesToUIntBig(data, i);
 
@@ -611,7 +611,7 @@ namespace OpenSim.Framework
 
             // Alpha channel in color is intensity
             LLColor tmpColor = new LLColor(LightColorR,LightColorG,LightColorB,LightIntensity);
-            
+
             tmpColor.GetBytes().CopyTo(data, 0);
             Helpers.FloatToBytes(LightRadius).CopyTo(data, 4);
             Helpers.FloatToBytes(LightCutoff).CopyTo(data, 8);

@@ -164,8 +164,8 @@ namespace OpenSim.Framework.Servers
                     if (TryGetAgentHandler(request, response, out agentHandler))
                     {
                         // m_log.DebugFormat("[HTTP-AGENT] Handler located for {0}", request.UserAgent);
-                        if(HandleAgentRequest(agentHandler, request, response))
-							return;
+                        if (HandleAgentRequest(agentHandler, request, response))
+                            return;
                     }
                 }
 
@@ -177,22 +177,22 @@ namespace OpenSim.Framework.Servers
                 string handlerKey = GetHandlerKey(request.HttpMethod, path);
 
                 //m_log.DebugFormat("[BASE HTTP SERVER]: Handling {0} request for {1}", request.HttpMethod, path);
-                
+
                 if (TryGetStreamHandler(handlerKey, out requestHandler))
                 {
-                    
+
                     // Okay, so this is bad, but should be considered temporary until everything is IStreamHandler.
                     byte[] buffer;
                     if (requestHandler is IStreamedRequestHandler)
                     {
                         IStreamedRequestHandler streamedRequestHandler = requestHandler as IStreamedRequestHandler;
-                        
+
                         buffer = streamedRequestHandler.Handle(path, request.InputStream, request, response);
                     }
                     else
                     {
                         IStreamHandler streamHandler = (IStreamHandler) requestHandler;
-                        
+
                         using (MemoryStream memoryStream = new MemoryStream())
                         {
                             streamHandler.Handle(path, request.InputStream, memoryStream, request, response);
@@ -200,11 +200,11 @@ namespace OpenSim.Framework.Servers
                             buffer = memoryStream.ToArray();
                         }
                     }
-                    
+
                     request.InputStream.Close();
                     if (!response.IsContentTypeSet) response.ContentType = requestHandler.ContentType;
                     response.ContentLength64 = buffer.LongLength;
-                    
+
                     try
                     {
                         response.OutputStream.Write(buffer, 0, buffer.Length);
@@ -216,7 +216,7 @@ namespace OpenSim.Framework.Servers
                     }
                     return;
                 }
-                
+
                 switch (request.ContentType)
                 {
                 case null:
@@ -479,7 +479,7 @@ namespace OpenSim.Framework.Servers
         private bool HandleAgentRequest(IHttpAgentHandler handler, OSHttpRequest request, OSHttpResponse response)
         {
 
-            // In the case of REST, then handler is responsible for ALL aspects of 
+            // In the case of REST, then handler is responsible for ALL aspects of
             // the request/response handling. Nothing is done here, not even encoding.
 
             try

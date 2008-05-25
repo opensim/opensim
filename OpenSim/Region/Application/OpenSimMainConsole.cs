@@ -291,7 +291,7 @@ namespace OpenSim
                     break;
                 case "save-xml":
                     m_log.Error("[CONSOLE]: PLEASE NOTE, save-xml is DEPRECATED and may be REMOVED soon.  If you are using this and there is some reason you can't use save-xml2, please file a mantis detailing the reason.");
-                
+
                     if (cmdparams.Length > 0)
                     {
                         m_sceneManager.SaveCurrentSceneToXml(cmdparams[0]);
@@ -304,7 +304,7 @@ namespace OpenSim
 
                 case "load-xml":
                     m_log.Error("[CONSOLE]: PLEASE NOTE, load-xml is DEPRECATED and may be REMOVED soon.  If you are using this and there is some reason you can't use load-xml2, please file a mantis detailing the reason.");
-                
+
                     LLVector3 loadOffset = new LLVector3(0, 0, 0);
                     if (cmdparams.Length > 0)
                     {
@@ -359,10 +359,10 @@ namespace OpenSim
                         m_sceneManager.LoadCurrentSceneFromXml2(DEFAULT_PRIM_BACKUP_FILENAME);
                     }
                     break;
-                
+
                 case "save-oar":
                     m_log.Error("[CONSOLE]: Don't use me - I haven't yet been sufficiently implemented!");
-                
+
                     if (cmdparams.Length > 0)
                     {
                         m_sceneManager.SaveCurrentSceneToArchive(cmdparams[0]);
@@ -371,7 +371,7 @@ namespace OpenSim
                     {
                         m_sceneManager.SaveCurrentSceneToArchive(DEFAULT_OAR_BACKUP_FILENAME);
                     }
-                    break;   
+                    break;
 
                 case "plugin":
                     m_sceneManager.SendCommandToPluginModules(cmdparams);
@@ -597,9 +597,9 @@ namespace OpenSim
 
                 case "users":
                     IList agents = m_sceneManager.GetCurrentSceneAvatars();
-                
+
                     m_console.Notice(String.Format("\nAgents connected: {0}\n", agents.Count));
-                                 
+
                     m_console.Notice(
                         String.Format("{0,-16}{1,-16}{2,-37}{3,-16}", "Firstname", "Lastname",
                                       "Agent ID","Region"));
@@ -627,7 +627,7 @@ namespace OpenSim
                                  presence.UUID,
                                  regionName));
                     }
-                
+
                     m_console.Notice("");
                     break;
 

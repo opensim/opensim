@@ -1078,7 +1078,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        
+
         /// <summary>
         /// Called when an object is removed from the environment into inventory.
         /// </summary>
@@ -1087,7 +1087,7 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void DeRezObject(Packet packet, IClientAPI remoteClient)
         {
             DeRezObjectPacket DeRezPacket = (DeRezObjectPacket) packet;
-            
+
             LLUUID folderID = LLUUID.Zero;
 
             foreach (DeRezObjectPacket.ObjectDataBlock Data in DeRezPacket.ObjectData)
@@ -1128,7 +1128,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                     else if (DeRezPacket.AgentBlock.Destination == 6) //Delete
                     {
-                        permissionToTake = ExternalChecks.ExternalChecksCanDeleteObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId); 
+                        permissionToTake = ExternalChecks.ExternalChecksCanDeleteObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
                         permissionToDelete = ExternalChecks.ExternalChecksCanDeleteObject(((SceneObjectGroup)selectedEnt).UUID, remoteClient.AgentId);
                     }
                     else if (DeRezPacket.AgentBlock.Destination == 9) //Return
@@ -1251,7 +1251,7 @@ namespace OpenSim.Region.Environment.Scenes
                         DeleteSceneObject(objectGroup);
                     }
                 }
-            }           
+            }
         }
 
         public void updateKnownAsset(IClientAPI remoteClient, SceneObjectGroup grp, LLUUID assetID, LLUUID agentID)
@@ -1494,7 +1494,7 @@ namespace OpenSim.Region.Environment.Scenes
                             }
 
                             group.ResetIDs();
-                            
+
                             AddSceneObject(group);
 
                             // if attachment we set it's asset id so object updates can reflect that
@@ -1583,7 +1583,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
-            
+
             return null;
         }
 
@@ -1606,7 +1606,7 @@ namespace OpenSim.Region.Environment.Scenes
                         return null;
                     }
                     group.ResetIDs();
-                    
+
                     AddSceneObject(group);
 
                     // Set the startup parameter for on_rez event and llGetStartParameter() function
@@ -1674,7 +1674,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (returnobjects.Length <= 0)
                 return false;
 
-            // for the moment we're going to store them individually..   however, in the future, the rezObject 
+            // for the moment we're going to store them individually..   however, in the future, the rezObject
             // will be able to have more items.
 
             //string returnstring = "";
@@ -1684,9 +1684,9 @@ namespace OpenSim.Region.Environment.Scenes
             //    returnstring += grp.ToXmlString2();
             //}
             //returnstring += "</scene>\n";
-            
 
-            
+
+
 
             bool permissionToDelete = false;
 
@@ -1697,7 +1697,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (userInfo == null)
                 {
                     CommsManager.UserProfileCacheService.AddNewUser(returnobjects[i].OwnerID);
-                    
+
                 }
                 if (userInfo != null)
                 {
@@ -1807,7 +1807,7 @@ namespace OpenSim.Region.Environment.Scenes
                     returningavatar.ControllingClient.SendAlertMessage(message);
                 }
                 return false;
-            }   
+            }
             return true;
 
         }

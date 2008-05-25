@@ -41,13 +41,13 @@ namespace OpenSim.Framework.Servers
         // application level protocol
         InfoSwitchingProtocols                = 101,
 
-                                              
+
         // 2xx Success codes
         // 200 Request successful
         SuccessOk                             = 200,
         // 201 Request successful, new resource created
         SuccessOkCreated                      = 201,
-        // 202 Request accepted, processing still on-going 
+        // 202 Request accepted, processing still on-going
         SuccessOkAccepted                     = 202,
         // 203 Request successful, meta information not authoritative
         SuccessOkNonAuthoritativeInformation  = 203,
@@ -60,7 +60,7 @@ namespace OpenSim.Framework.Servers
 
         // 3xx Redirect code: user agent needs to go somewhere else
         // 300 Redirect: different presentation forms available, take
-        // a pick    
+        // a pick
         RedirectMultipleChoices               = 300,
         // 301 Redirect: requested resource has moved and now lives
         // somewhere else
@@ -78,7 +78,7 @@ namespace OpenSim.Framework.Servers
         // 307 Redirect: Resource temporarily somewhere else, location
         // might change
         RedirectMovedTemporarily              = 307,
-                                              
+
         // 4xx Client error: the client borked the request
         // 400 Client error: bad request, server does not grok what
         // the client wants
@@ -92,7 +92,7 @@ namespace OpenSim.Framework.Servers
         // deliver, do not try again.
         ClientErrorForbidden                  = 403,
         // 404 Client error: Server cannot find anything matching the
-        // client request. 
+        // client request.
         ClientErrorNotFound                   = 404,
         // 405 Client error: The method specified by the client in the
         // request is not allowed for the resource requested
@@ -148,7 +148,7 @@ namespace OpenSim.Framework.Servers
         // 501 Server error: The server does not do the functionality
         // required to carry out the client request. not at
         // all. certainly not before breakfast. but also not after
-        // breakfast. 
+        // breakfast.
         ServerErrorNotImplemented             = 501,
         // 502 Server error: While acting as a proxy or a gateway, the
         // server got ditched by the upstream server and as a

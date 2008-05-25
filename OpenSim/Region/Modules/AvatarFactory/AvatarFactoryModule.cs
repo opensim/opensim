@@ -51,10 +51,10 @@ namespace OpenSim.Region.Modules.AvatarFactory
         public bool TryGetAvatarAppearance(LLUUID avatarId, out AvatarAppearance appearance)
         {
             CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(avatarId);
-            if ((profile != null) && (profile.RootFolder != null)) 
+            if ((profile != null) && (profile.RootFolder != null))
             {
                 appearance = m_scene.CommsManager.UserService.GetUserAppearance(avatarId);
-                if (appearance != null) 
+                if (appearance != null)
                 {
                     SetAppearanceAssets(profile, ref appearance);
                     m_log.InfoFormat("[APPEARANCE] found : {0}", appearance.ToString());
@@ -182,9 +182,9 @@ namespace OpenSim.Region.Modules.AvatarFactory
                         }
                     }
                     SetAppearanceAssets(profile, ref avatAppearance);
-                    
+
                     m_scene.CommsManager.UserService.UpdateUserAppearance(clientView.AgentId, avatAppearance);
-                    avatar.Appearance = avatAppearance;                    
+                    avatar.Appearance = avatAppearance;
                 }
                 else
                 {
@@ -200,7 +200,7 @@ namespace OpenSim.Region.Modules.AvatarFactory
         }
 
         public void UpdateDatabase(LLUUID user, AvatarAppearance appearance)
-        { 
+        {
             m_scene.CommsManager.UserService.UpdateUserAppearance(user, appearance);
         }
 

@@ -28,7 +28,7 @@
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.World.Archiver
-{    
+{
     /// <summary>
     /// Interface to region archive functionality
     /// </summary>
@@ -39,7 +39,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// </summary>
         /// <param name="savePath"></param>
         void ArchiveRegion(string savePath);
-        
+
         /// <summary>
         /// Dearchive the given region archive into the scene
         /// </summary>

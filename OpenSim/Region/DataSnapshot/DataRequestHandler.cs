@@ -60,7 +60,7 @@ namespace OpenSim.Region.DataSnapshot
 
             //Register CAPS handler event
             m_scene.EventManager.OnRegisterCaps += OnRegisterCaps;
-            
+
             //harbl
         }
 
@@ -72,7 +72,7 @@ namespace OpenSim.Region.DataSnapshot
                 new RestStreamHandler("POST", capsBase + m_discoveryPath, OnDiscoveryAttempt));
         }
 
-        public string OnDiscoveryAttempt(string request, string path, string param, 
+        public string OnDiscoveryAttempt(string request, string path, string param,
                                          OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             //Very static for now, flexible enough to add new formats
@@ -82,7 +82,7 @@ namespace OpenSim.Region.DataSnapshot
             LLSDDiscoveryDataURL llsd_dataurl = new LLSDDiscoveryDataURL();
             llsd_dataurl.snapshot_format = "os-datasnapshot-v1";
             llsd_dataurl.snapshot_url = "http://" + m_externalData.m_hostname + ":" + m_externalData.m_listener_port + "/?method=collector";
-                      
+
             llsd_response.snapshot_resources.Array.Add(llsd_dataurl);
 
             string response = LLSDHelpers.SerialiseLLSDReply(llsd_response);

@@ -100,7 +100,9 @@ namespace OpenSim.GUI
                     }
                 }
                 e.Handled = true;
-            } else {
+            }
+            else
+            {
                 InHistory = false;
                 HistoryPosition = -1;
             }

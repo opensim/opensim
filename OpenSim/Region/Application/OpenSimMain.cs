@@ -66,7 +66,7 @@ namespace OpenSim
         /// The file used to load and save prim backup xml if none has been specified
         /// </summary>
         protected const string DEFAULT_PRIM_BACKUP_FILENAME = "prim-backup.xml";
-        
+
         /// <summary>
         /// The file use to load and save an opensim archive if none has been specified
         /// </summary>
@@ -354,7 +354,7 @@ namespace OpenSim
         }
 
         /// <summary>
-        /// Enhance the version string with extra information if it's available.  
+        /// Enhance the version string with extra information if it's available.
         /// </summary>
         protected void EnhanceVersionInformation()
         {
@@ -387,7 +387,7 @@ namespace OpenSim
             if (!string.IsNullOrEmpty(buildVersion))
             {
                 VersionInfo.Version += ", SVN build r" + buildVersion;
-            }    
+            }
             else
             {
                 VersionInfo.Version += ", SVN build revision not available";
@@ -407,9 +407,9 @@ namespace OpenSim
             if (OSString.Length > 45)
             {
                 OSString = OSString.Substring(0, 45);
-            }   
-            
-            VersionInfo.Version += ", OS " + OSString;          
+            }
+
+            VersionInfo.Version += ", OS " + OSString;
         }
 
         /// <summary>
@@ -418,7 +418,7 @@ namespace OpenSim
         protected void InternalStartUp()
         {
             EnhanceVersionInformation();
-                    
+
             m_log.Info("[STARTUP]: OpenSim version: " + VersionInfo.Version + "\n");
 
             m_stats = StatsManager.StartCollectingSimExtraStats();
@@ -710,7 +710,7 @@ namespace OpenSim
         /// </summary>
         protected class SimStatusHandler : IStreamedRequestHandler
         {
-            public byte[] Handle(string path, Stream request, 
+            public byte[] Handle(string path, Stream request,
                                  OSHttpRequest httpRequest, OSHttpResponse httpResponse)
             {
                 return Encoding.UTF8.GetBytes("OK");

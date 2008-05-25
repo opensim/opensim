@@ -39,7 +39,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     /// This module loads and saves OpenSimulator archives
     /// </summary>
     public class ArchiverModule : IRegionModule, IRegionArchiver
-    {   
+    {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
@@ -47,51 +47,51 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// </summary>
         /// <param name="scene"></param>
         /// <param name="source"></param>
-        private Scene m_scene;        
-        
+        private Scene m_scene;
+
         public string Name { get { return "ArchiverModule"; } }
-        
+
         public bool IsSharedModule { get { return false; } }
-        
+
         public void Initialise(Scene scene, IConfigSource source)
         {
             m_scene = scene;
-            
+
             m_scene.RegisterModuleInterface<IRegionArchiver>(this);
         }
-        
+
         public void PostInitialise()
-        {           
+        {
         }
-        
+
         public void Close()
         {
         }
-        
+
         public void ArchiveRegion(string savePath)
         {
             m_log.Warn("[ARCHIVER]: Archive region not yet implemented");
-            
+
             List<EntityBase> entities = m_scene.GetEntities();
-            
+
             foreach (EntityBase entity in entities)
             {
-                
+
             }
-            
-            string serEntities = SerializeObjects(entities);  
-            
+
+            string serEntities = SerializeObjects(entities);
+
             if (serEntities != null && serEntities.Length > 0)
             {
                 m_log.DebugFormat("[ARCHIVER]: Successfully got serialization for {0} entities", entities.Count);
             }
         }
-        
+
         public void DearchiveRegion(string loadPath)
         {
             m_log.Warn("[ARCHIVER]: Dearchive region not yet implemented");
         }
-        
+
         /// <summary>
         /// Get an xml representation of the given scene objects.
         /// </summary>
@@ -115,8 +115,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 serialization += serObject;
 
             serialization += "</scene>";
-            
+
             return serialization;
-        }        
+        }
     }
 }

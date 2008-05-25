@@ -43,7 +43,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 {
     public class ChatModule : IRegionModule, ISimChat
     {
-        private static readonly ILog m_log = 
+        private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private const int DEBUG_CHANNEL = 2147483647;
@@ -115,7 +115,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
             // Filled in since it's easier than rewriting right now.
             LLVector3 fromPos = e.Position;
-            LLVector3 regionPos = new LLVector3(scene.RegionInfo.RegionLocX * Constants.RegionSize, 
+            LLVector3 regionPos = new LLVector3(scene.RegionInfo.RegionLocX * Constants.RegionSize,
                                                 scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
 
             string fromName = e.From;
@@ -130,7 +130,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             if (avatar != null)
             {
                 fromPos = avatar.AbsolutePosition;
-                regionPos = new LLVector3(scene.RegionInfo.RegionLocX * Constants.RegionSize, 
+                regionPos = new LLVector3(scene.RegionInfo.RegionLocX * Constants.RegionSize,
                                           scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
                 fromName = avatar.Firstname + " " + avatar.Lastname;
                 fromAgentID = e.Sender.AgentId;
@@ -151,13 +151,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                                                if (e.Channel == DEBUG_CHANNEL)
                                                {
                                                    TrySendChatMessage(presence, fromPos, regionPos,
-                                                                      fromAgentID, fromName, e.Type, 
+                                                                      fromAgentID, fromName, e.Type,
                                                                       message, ChatSourceType.Object);
                                                }
                                                else
                                                {
                                                    TrySendChatMessage(presence, fromPos, regionPos,
-                                                                      fromAgentID, fromName, e.Type, 
+                                                                      fromAgentID, fromName, e.Type,
                                                                       message, ChatSourceType.Agent);
                                                }
                                            });
@@ -180,7 +180,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         }
 
         private void TrySendChatMessage(ScenePresence presence, LLVector3 fromPos, LLVector3 regionPos,
-                                        LLUUID fromAgentID, string fromName, ChatTypeEnum type, 
+                                        LLUUID fromAgentID, string fromName, ChatTypeEnum type,
                                         string message, ChatSourceType src)
         {
             if (!presence.IsChildAgent)
@@ -188,7 +188,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 LLVector3 fromRegionPos = fromPos + regionPos;
                 LLVector3 toRegionPos = presence.AbsolutePosition + regionPos;
                 int dis = Math.Abs((int) Util.GetDistanceTo(toRegionPos, fromRegionPos));
-                
+
                 if (type == ChatTypeEnum.Whisper && dis > m_whisperdistance ||
                     type == ChatTypeEnum.Say && dis > m_saydistance ||
                     type == ChatTypeEnum.Shout && dis > m_shoutdistance)
@@ -197,7 +197,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 }
 
                 // TODO: should change so the message is sent through the avatar rather than direct to the ClientView
-                presence.ControllingClient.SendChatMessage(message, (byte) type, fromPos, fromName, 
+                presence.ControllingClient.SendChatMessage(message, (byte) type, fromPos, fromName,
                                                            fromAgentID,(byte)src,(byte)ChatAudibleLevel.Fully);
             }
         }

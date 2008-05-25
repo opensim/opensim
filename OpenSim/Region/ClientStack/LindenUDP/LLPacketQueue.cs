@@ -40,7 +40,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 {
     public class LLPacketQueue : IPullStatsProvider
     {
-        private static readonly log4net.ILog m_log 
+        private static readonly log4net.ILog m_log
             = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private bool m_enabled = true;
@@ -424,7 +424,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_log.Warn("[PACKET QUEUE]: SetThrottleFromClient unexpectedly received a throttle byte array containing no elements!");
                 return;
             }
-            
+
             int tResend = -1;
             int tLand = -1;
             int tWind = -1;

@@ -60,7 +60,7 @@ namespace OpenSim.Grid.AssetServer
             m_assetProvider = assetProvider;
         }
 
-        public override byte[] Handle(string path, Stream request, 
+        public override byte[] Handle(string path, Stream request,
                                       OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             string param = GetParam(path);
@@ -123,7 +123,7 @@ namespace OpenSim.Grid.AssetServer
         private OpenAsset_Main m_assetManager;
         private IAssetProvider m_assetProvider;
 
-        public override byte[] Handle(string path, Stream request, 
+        public override byte[] Handle(string path, Stream request,
                                       OSHttpRequest httpRequest, OSHttpResponse httpResponse)
         {
             string param = GetParam(path);

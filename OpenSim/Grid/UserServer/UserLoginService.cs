@@ -119,7 +119,9 @@ namespace OpenSim.Grid.UserServer
                                 RegionProfileData.RequestSimProfileData(
                                     theUser.HomeRegion, m_config.GridServerURL,
                                     m_config.GridSendKey, m_config.GridRecvKey);
-                        } else {
+                        }
+                        else
+                        {
                             start_x = Convert.ToInt32(startLocationRequestParsed[1]);
                             start_y = Convert.ToInt32(startLocationRequestParsed[2]);
                             start_z = Convert.ToInt32(startLocationRequestParsed[3]);

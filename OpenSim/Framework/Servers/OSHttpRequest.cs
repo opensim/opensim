@@ -55,7 +55,7 @@ namespace OpenSim.Framework.Servers
             get { return _acceptTypes; }
         }
 
-        public Encoding ContentEncoding 
+        public Encoding ContentEncoding
         {
             get { return _contentEncoding; }
         }
@@ -110,7 +110,7 @@ namespace OpenSim.Framework.Servers
             get { return _url; }
         }
 
-        public string UserAgent 
+        public string UserAgent
         {
             get { return _userAgent; }
         }

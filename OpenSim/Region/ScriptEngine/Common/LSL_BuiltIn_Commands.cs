@@ -3298,8 +3298,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                             result.Add(src.Substring(start,length).Trim());
                             start += length+1;
                             length = 0;
-                        } else
+                        }
+                        else
+                        {
                             length++;
+                        }
                         break;
                     default  :
                         length++;
@@ -5301,7 +5304,8 @@ namespace OpenSim.Region.ScriptEngine.Common
                             {
                                 // not present at all
                                 active[j] = false;
-                            } else
+                            }
+                            else
                             {
                                 // present and correct
                                 if (offset[j] < offset[best])
@@ -5329,10 +5333,11 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                 tokens.Add(src.Substring(beginning,offset[best]-beginning));
 
-                if (best<seplen)
+                if (best < seplen)
                 {
                     beginning = offset[best]+((string)separray[best]).Length;
-                } else
+                }
+                else
                 {
                     beginning = offset[best]+((string)spcarray[best-seplen]).Length;
                     tokens.Add(spcarray[best-seplen]);
