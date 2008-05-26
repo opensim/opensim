@@ -81,6 +81,10 @@ namespace OpenSim.Region.Environment.Scenes
 
     public delegate void PrimCountTaintedDelegate();
 
+    /// <summary>
+    /// A scene object group is conceptually an object in the scene.  The object is constituted of SceneObjectParts
+    /// (often known as prims), one of which is considered the root part.
+    /// </summary>
     public partial class SceneObjectGroup : EntityBase
     {
         private PrimCountTaintedDelegate handlerPrimCountTainted = null;
@@ -2055,9 +2059,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Get the parts of this scene object
         /// </summary>
-        /// <returns>
-        /// A <see cref="SceneObjectPart"/>
-        /// </returns>
+        /// <returns></returns>
         public SceneObjectPart[] GetParts()
         {
             int numParts = Children.Count;
@@ -2067,7 +2069,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Update the texture entry for this part
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="textureEntry"></param>
