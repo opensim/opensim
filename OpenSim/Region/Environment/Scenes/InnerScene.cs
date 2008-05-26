@@ -488,51 +488,15 @@ namespace OpenSim.Region.Environment.Scenes
 
         }
 
-        public ScenePresence CreateAndAddScenePresence(IClientAPI client, bool child, AvatarAppearance appearance)
+        protected internal ScenePresence CreateAndAddScenePresence(IClientAPI client, bool child, AvatarAppearance appearance)
         {
             ScenePresence newAvatar = null;
 
             newAvatar = new ScenePresence(client, m_parentScene, m_regInfo, appearance);
             newAvatar.IsChildAgent = child;
 
-            if (child)
-            {
-                m_numChildAgents++;
-                m_log.Info("[SCENE]: " + m_regInfo.RegionName + ": Creating new child agent.");
-            }
-            else
-            {
-                m_numRootAgents++;
-                m_log.Info("[SCENE]: " + m_regInfo.RegionName + ": Creating new root agent.");
-                m_log.Info("[SCENE]: " + m_regInfo.RegionName + ": Adding Physical agent.");
-
-                newAvatar.AddToPhysicalScene();
-            }
-
-            lock (Entities)
-            {
-                if (!Entities.ContainsKey(client.AgentId))
-                {
-                    Entities.Add(client.AgentId, newAvatar);
-                }
-                else
-                {
-                    Entities[client.AgentId] = newAvatar;
-                }
-            }
+            AddScenePresence(newAvatar);
             
-            lock (ScenePresences)
-            {
-                if (ScenePresences.ContainsKey(client.AgentId))
-                {
-                    ScenePresences[client.AgentId] = newAvatar;
-                }
-                else
-                {
-                    ScenePresences.Add(client.AgentId, newAvatar);
-                }
-            }
-
             return newAvatar;
         }
 
@@ -540,7 +504,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Add a presence to the scene
         /// </summary>
         /// <param name="presence"></param>
-        internal void AddScenePresence(ScenePresence presence)
+        protected internal void AddScenePresence(ScenePresence presence)
         {
             bool child = presence.IsChildAgent;
 
@@ -572,7 +536,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Remove a presence from the scene
         /// </summary>
-        internal void RemoveScenePresence(LLUUID agentID)
+        protected internal void RemoveScenePresence(LLUUID agentID)
         {
             lock (Entities)
             {

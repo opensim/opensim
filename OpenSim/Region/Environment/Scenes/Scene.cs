@@ -1826,7 +1826,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected virtual ScenePresence CreateAndAddScenePresence(IClientAPI client, bool child)
         {
-
             AvatarAppearance appearance = null;
             GetAvatarAppearance(client, out appearance);
 
