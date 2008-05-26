@@ -520,6 +520,7 @@ namespace OpenSim.Region.Environment.Scenes
                     Entities[client.AgentId] = newAvatar;
                 }
             }
+            
             lock (ScenePresences)
             {
                 if (ScenePresences.ContainsKey(client.AgentId))
@@ -535,7 +536,11 @@ namespace OpenSim.Region.Environment.Scenes
             return newAvatar;
         }
 
-        public void AddScenePresence(ScenePresence presence)
+        /// <summary>
+        /// Add a presence to the scene
+        /// </summary>
+        /// <param name="presence"></param>
+        internal void AddScenePresence(ScenePresence presence)
         {
             bool child = presence.IsChildAgent;
 
@@ -562,6 +567,36 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 ScenePresences[presence.UUID] = presence;
             }
+        }
+        
+        /// <summary>
+        /// Remove a presence from the scene
+        /// </summary>
+        internal void RemoveScenePresence(LLUUID agentID)
+        {
+            lock (Entities)
+            {
+                if (Entities.Remove(agentID))
+                {
+                    //m_log.InfoFormat("[SCENE] Removed scene presence {0} from entities list", agentID);
+                }
+                else
+                {
+                    m_log.WarnFormat("[SCENE] Tried to remove non-existent scene presence with agent ID {0} from scene Entities list", agentID);
+                }
+            }
+            
+            lock (ScenePresences)
+            {                
+                if (ScenePresences.Remove(agentID))
+                {
+                    //m_log.InfoFormat("[SCENE] Removed scene presence {0}", agentID);
+                }
+                else
+                {
+                    m_log.WarnFormat("[SCENE] Tried to remove non-existent scene presence with agent ID {0} from scene ScenePresences list", agentID);
+                }
+            }          
         }
 
         public void SwapRootChildAgent(bool direction_RC_CR_T_F)

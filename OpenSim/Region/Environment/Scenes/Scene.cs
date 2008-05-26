@@ -558,18 +558,19 @@ namespace OpenSim.Region.Environment.Scenes
                 m_scripts_enabled = !ScriptEngine;
                 m_log.Info("[TOTEDD]: Here is the method to trigger disabling of the scripting engine");
             }
+            
             if (m_physics_enabled != !PhysicsEngine)
             {
                 m_physics_enabled = !PhysicsEngine;
-
             }
-
         }
+        
         public int GetInaccurateNeighborCount()
         {
             lock (m_neighbours)
                 return m_neighbours.Count;
         }
+        
         // This is the method that shuts down the scene.
         public override void Close()
         {
@@ -1910,29 +1911,7 @@ namespace OpenSim.Region.Environment.Scenes
                 agentTransactions.RemoveAgentAssetTransactions(agentID);
             }
 
-            lock (m_scenePresences)
-            {
-                if (m_scenePresences.Remove(agentID))
-                {
-                    //m_log.InfoFormat("[SCENE] Removed scene presence {0}", agentID);
-                }
-                else
-                {
-                    m_log.WarnFormat("[SCENE] Tried to remove non-existent scene presence with agent ID {0} from scene ScenePresences list", agentID);
-                }
-            }
-
-            lock (Entities)
-            {
-                if (Entities.Remove(agentID))
-                {
-                    //m_log.InfoFormat("[SCENE] Removed scene presence {0} from entities list", agentID);
-                }
-                else
-                {
-                    m_log.WarnFormat("[SCENE] Tried to remove non-existent scene presence with agent ID {0} from scene Entities list", agentID);
-                }
-            }
+            m_innerScene.RemoveScenePresence(agentID);
 
             try
             {
