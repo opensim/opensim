@@ -57,7 +57,6 @@ namespace OpenSim.Grid.ScriptEngine.Common
         LSL_Types.Vector3 llRot2Up(LSL_Types.Quaternion r);
         LSL_Types.Quaternion llRotBetween(LSL_Types.Vector3 start, LSL_Types.Vector3 end);
         void llWhisper(int channelID, string text);
-        //void llSay(int channelID, string text);
         void llSay(int channelID, string text);
         void llShout(int channelID, string text);
         int llListen(int channelID, string name, string ID, string msg);

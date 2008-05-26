@@ -243,6 +243,11 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL
             m_LSL_Functions.llShout(channelID, text);
         }
 
+        public void llOwnerSay(string msg)
+        {
+            m_LSL_Functions.llOwnerSay(msg);
+        }
+
         public int llListen(int channelID, string name, string ID, string msg)
         {
             return m_LSL_Functions.llListen(channelID, name, ID, msg);
@@ -1615,11 +1620,6 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler.LSL
         public string llGetInventoryCreator(string item)
         {
             return m_LSL_Functions.llGetInventoryCreator(item);
-        }
-
-        public void llOwnerSay(string msg)
-        {
-            m_LSL_Functions.llOwnerSay(msg);
         }
 
         public void llRequestSimulatorData(string simulator, int data)

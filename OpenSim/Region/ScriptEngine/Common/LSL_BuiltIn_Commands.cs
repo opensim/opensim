@@ -50,7 +50,7 @@ namespace OpenSim.Region.ScriptEngine.Common
     /// </summary>
     public class LSL_BuiltIn_Commands : MarshalByRefObject, LSL_BuiltIn_Commands_Interface
     {
-        // private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         internal ScriptEngineBase.ScriptEngine m_ScriptEngine;
         internal SceneObjectPart m_host;
@@ -409,7 +409,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             World.SimChat(Helpers.StringToField(text),
-                          ChatTypeEnum.Whisper, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                          ChatTypeEnum.Whisper, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             wComm.DeliverMessage(ChatTypeEnum.Whisper, channelID, m_host.Name, m_host.UUID, text);
@@ -419,7 +419,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             World.SimChat(Helpers.StringToField(text),
-                          ChatTypeEnum.Say, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                          ChatTypeEnum.Say, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             wComm.DeliverMessage(ChatTypeEnum.Say, channelID, m_host.Name, m_host.UUID, text);
@@ -429,7 +429,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             World.SimChat(Helpers.StringToField(text),
-                          ChatTypeEnum.Shout, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                          ChatTypeEnum.Shout, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
             wComm.DeliverMessage(ChatTypeEnum.Shout, channelID, m_host.Name, m_host.UUID, text);
@@ -5478,15 +5478,13 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public void llOwnerSay(string msg)
         {
-            //m_host.AddScriptLPS(1); // since we reuse llInstantMessage
-            //temp fix so that lsl wiki examples aren't annoying to use to test other functions
-            //should be similar to : llInstantMessage(llGetOwner(),msg)
-            // llGetOwner ==> m_host.ObjectOwner.ToString()
-            llInstantMessage(m_host.ObjectOwner.ToString(),msg);
+            m_host.AddScriptLPS(1);
+            World.SimChatBroadcast(Helpers.StringToField(msg),
+                                   ChatTypeEnum.Owner, 0, m_host.AbsolutePosition, 
+                                   m_host.Name, m_host.UUID, false);
 
-            //World.SimChat(Helpers.StringToField(msg), ChatTypeEnum.Owner, 0, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
-            //IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
-            //wComm.DeliverMessage(ChatTypeEnum.Owner, 0, m_host.Name, m_host.UUID, msg);
+            IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
+            wComm.DeliverMessage(ChatTypeEnum.Owner, 0, m_host.Name, m_host.UUID, msg);
         }
 
         public void llRequestSimulatorData(string simulator, int data)

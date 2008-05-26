@@ -85,6 +85,7 @@ namespace OpenSim.Framework
 
         protected IScene m_scene;
         protected IClientAPI m_sender;
+        protected object m_senderObject;
         protected ChatTypeEnum m_type;
         protected LLUUID m_fromID;
 
@@ -140,6 +141,9 @@ namespace OpenSim.Framework
 
         #region IEventArgs Members
 
+        /// TODO: Sender and SenderObject should just be Sender and of
+        /// type IChatSender
+
         /// <summary>
         /// The client responsible for sending the message, or null.
         /// </summary>
@@ -147,6 +151,15 @@ namespace OpenSim.Framework
         {
             get { return m_sender; }
             set { m_sender = value; }
+        }
+
+        /// <summary>
+        /// The object responsible for sending the message, or null.
+        /// </summary>
+        public object SenderObject
+        {
+            get { return m_senderObject; }
+            set { m_senderObject = value; }
         }
 
         public LLUUID SenderUUID

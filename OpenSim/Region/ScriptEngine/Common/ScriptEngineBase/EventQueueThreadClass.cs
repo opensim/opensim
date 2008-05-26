@@ -333,7 +333,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                     m_ScriptEngine.World.SimChat(Helpers.StringToField(text),
                                                                  ChatTypeEnum.DebugChannel, 2147483647,
                                                                  m_host.AbsolutePosition,
-                                                                 m_host.Name, m_host.UUID);
+                                                                 m_host.Name, m_host.UUID, false);
                                 }
                                 catch (Exception)
                                 {

@@ -113,7 +113,6 @@ namespace OpenSim.Region.Environment.Scenes
         public IXfer XferManager;
 
         protected IHttpRequests m_httpRequestModule;
-        protected ISimChat m_simChatModule;
         protected IXMLRPC m_xmlrpcModule;
         protected IWorldComm m_worldCommModule;
         protected IAvatarFactory m_AvatarFactory;
@@ -637,7 +636,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SetModuleInterfaces()
         {
-            m_simChatModule = RequestModuleInterface<ISimChat>();
             m_httpRequestModule = RequestModuleInterface<IHttpRequests>();
             m_xmlrpcModule = RequestModuleInterface<IXMLRPC>();
             m_worldCommModule = RequestModuleInterface<IWorldComm>();

@@ -107,7 +107,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         #region ISimChat Members
         public void SimBroadcast(Object sender, ChatFromViewerArgs c)
         {
-            // We only want to relay stuff on channel 0
+            // We only want to relay stuff on channel 0 and on the debug channel
             if (c.Channel != 0 && c.Channel != DEBUG_CHANNEL) return;
 
             if (c.Channel == DEBUG_CHANNEL)
@@ -118,13 +118,25 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             LLVector3 pos = new LLVector3(128, 128, 30);
             ((Scene)c.Scene).ForEachScenePresence(delegate(ScenePresence presence)
                                                   {
-                                                      if (!presence.IsChildAgent) return;
+                                                      if (presence.IsChildAgent) return;
+
+                                                      IClientAPI client = presence.ControllingClient;
+
+                                                      if ((c.Type == ChatTypeEnum.Owner) && 
+                                                          (null != c.SenderObject) &&  
+                                                          (((SceneObjectPart)c.SenderObject).OwnerID != client.AgentId))
+                                                          return;
                                                       
-                                                      presence.ControllingClient.SendChatMessage(c.Message, 
-                                                                                                 1, //255, 
-                                                                                                 pos, c.From, LLUUID.Zero, 
-                                                                                                 c.Channel == DEBUG_CHANNEL? (byte)ChatSourceType.Object : (byte)ChatSourceType.Agent,
-                                                                                                 (byte)ChatAudibleLevel.Fully);
+                                                      if (null == c.SenderObject)
+                                                          client.SendChatMessage(c.Message, (byte)c.Type, 
+                                                                                 pos, c.From, LLUUID.Zero, 
+                                                                                 (byte)ChatSourceType.Agent,
+                                                                                 (byte)ChatAudibleLevel.Fully);
+                                                      else
+                                                          client.SendChatMessage(c.Message, (byte)c.Type, 
+                                                                                 pos, c.From, LLUUID.Zero, 
+                                                                                 (byte)ChatSourceType.Object,
+                                                                                 (byte)ChatAudibleLevel.Fully);
                                                   });
         }
         
@@ -147,7 +159,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
             string fromName = e.From;
             string message = e.Message;
-            LLUUID fromAgentID = e.SenderUUID;
+            LLUUID fromID = e.SenderUUID;
 
             if (e.Sender != null)
             {
@@ -160,7 +172,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 regionPos = new LLVector3(scene.RegionInfo.RegionLocX * Constants.RegionSize,
                                           scene.RegionInfo.RegionLocY * Constants.RegionSize, 0);
                 fromName = avatar.Firstname + " " + avatar.Lastname;
-                fromAgentID = e.Sender.AgentId;
+                fromID = e.Sender.AgentId;
             }
 
             if (e.Channel == DEBUG_CHANNEL)
@@ -175,13 +187,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                                            if (e.Channel == DEBUG_CHANNEL)
                                            {
                                                TrySendChatMessage(presence, fromPos, regionPos,
-                                                                  fromAgentID, fromName, e.Type, 
+                                                                  fromID, fromName, e.Type, 
                                                                   message, ChatSourceType.Object);
                                            }
                                            else
                                            {
                                                TrySendChatMessage(presence, fromPos, regionPos,
-                                                                  fromAgentID, fromName, e.Type, 
+                                                                  fromID, fromName, e.Type, 
                                                                   message, ChatSourceType.Agent);
                                            }
                                        });

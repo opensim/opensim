@@ -272,19 +272,30 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler
         public void llWhisper(int channelID, string text)
         {
             World.SimChat(Helpers.StringToField(text),
-                          ChatTypeEnum.Whisper, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                          ChatTypeEnum.Whisper, channelID, m_host.AbsolutePosition, 
+                          m_host.Name, m_host.UUID, false);
         }
 
         public void llSay(int channelID, string text)
         {
             World.SimChat(Helpers.StringToField(text),
-                          ChatTypeEnum.Say, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                          ChatTypeEnum.Say, channelID, m_host.AbsolutePosition, 
+                          m_host.Name, m_host.UUID, false);
         }
 
         public void llShout(int channelID, string text)
         {
             World.SimChat(Helpers.StringToField(text),
-                          ChatTypeEnum.Shout, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID);
+                          ChatTypeEnum.Shout, channelID, m_host.AbsolutePosition, 
+                          m_host.Name, m_host.UUID, false);
+        }
+
+        public void llOwnerSay(string msg)
+        {
+            m_log.DebugFormat("llOwnerSay(\"{0}\")", msg);
+            World.SimChatBroadcast(Helpers.StringToField(text),
+                                   ChatTypeEnum.Owner, 0, m_host.AbsolutePosition, 
+                                   m_host.Name, m_host.UUID, false);
         }
 
         public int llListen(int channelID, string name, string ID, string msg)
@@ -2030,11 +2041,6 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler
         {
             NotImplemented("llGetInventoryCreator");
             return "";
-        }
-
-        public void llOwnerSay(string msg)
-        {
-            NotImplemented("llOwnerSay");
         }
 
         public void llRequestSimulatorData(string simulator, int data)

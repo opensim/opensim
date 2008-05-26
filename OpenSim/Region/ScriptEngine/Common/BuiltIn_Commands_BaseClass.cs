@@ -285,6 +285,11 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.llShout(channelID, text);
         }
 
+        public void llOwnerSay(string msg)
+        {
+            m_LSL_Functions.llOwnerSay(msg);
+        }
+
         public void llRegionSay(int channelID, string text)
         {
             m_LSL_Functions.llRegionSay(channelID, text);
@@ -1671,11 +1676,6 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llGetInventoryCreator(string item)
         {
             return m_LSL_Functions.llGetInventoryCreator(item);
-        }
-
-        public void llOwnerSay(string msg)
-        {
-            m_LSL_Functions.llOwnerSay(msg);
         }
 
         public void llRequestSimulatorData(string simulator, int data)

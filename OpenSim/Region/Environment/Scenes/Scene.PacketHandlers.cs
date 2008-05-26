@@ -34,6 +34,39 @@ namespace OpenSim.Region.Environment.Scenes
 {
     public partial class Scene
     {
+        protected void SimChat(byte[] message, ChatTypeEnum type, int channel, LLVector3 fromPos, string fromName,
+                               LLUUID fromID, bool fromAgent, bool broadcast)
+        {
+            ChatFromViewerArgs args = new ChatFromViewerArgs();
+
+            args.Message = Helpers.FieldToUTF8String(message);
+            args.Channel = channel;
+            args.Type = type;
+            args.Position = fromPos;
+            args.SenderUUID = fromID;
+            args.Scene = this;
+
+            if (fromAgent)
+            {
+                ScenePresence user = GetScenePresence(fromID);
+                if (user != null)
+                    args.Sender = user.ControllingClient;
+            }
+            else
+            {
+                SceneObjectPart obj = GetSceneObjectPart(fromID);
+                args.SenderObject = obj;
+            }
+
+            args.From = fromName;
+            //args.
+
+            if (broadcast)
+                EventManager.TriggerOnChatBroadcast(this, args);
+            else 
+                EventManager.TriggerOnChatFromWorld(this, args);
+            
+        }
         /// <summary>
         ///
         /// </summary>
@@ -43,27 +76,23 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="fromName"></param>
         /// <param name="fromAgentID"></param>
         public void SimChat(byte[] message, ChatTypeEnum type, int channel, LLVector3 fromPos, string fromName,
-                            LLUUID fromAgentID)
+                            LLUUID fromID, bool fromAgent)
         {
-            ChatFromViewerArgs args = new ChatFromViewerArgs();
+            SimChat(message, type, channel, fromPos, fromName, fromID, fromAgent, false);
+        }
 
-            args.Message = Helpers.FieldToUTF8String(message);
-            args.Channel = channel;
-            args.Type = type;
-            args.Position = fromPos;
-            args.SenderUUID = fromAgentID;
-            args.Scene = this;
-
-            ScenePresence user = GetScenePresence(fromAgentID);
-            if (user != null)
-                args.Sender = user.ControllingClient;
-            else
-                args.Sender = null;
-
-            args.From = fromName;
-            //args.
-
-            EventManager.TriggerOnChatFromWorld(this, args);
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="type"></param>
+        /// <param name="fromPos"></param>
+        /// <param name="fromName"></param>
+        /// <param name="fromAgentID"></param>
+        public void SimChatBroadcast(byte[] message, ChatTypeEnum type, int channel, LLVector3 fromPos, string fromName,
+                                     LLUUID fromID, bool fromAgent)
+        {
+            SimChat(message, type, channel, fromPos, fromName, fromID, fromAgent, true);
         }
 
         /// <summary>

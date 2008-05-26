@@ -88,6 +88,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 {
                     m_irc = new IRCChatModule(config);
                 }
+
                 if (m_irc_connector == null)
                 {
                     m_irc_connector = new Thread(IRCConnectRun);
@@ -183,6 +184,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                         m_irc_connector.Name = "IRCConnectorThread";
                         m_irc_connector.IsBackground = true;
                     }
+
                     if (!m_irc_connector.IsAlive)
                     {
                         m_irc_connector.Start();
@@ -196,20 +198,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
             if (e.Message.StartsWith("/me ") && (null != avatar))
                 e.Message = String.Format("{0} {1}", fromName, e.Message.Substring(4));
-            if (e.Channel == 0 || e.Channel == DEBUG_CHANNEL)
-            {
-                if (e.Channel == DEBUG_CHANNEL)
-                    e.Type = ChatTypeEnum.DebugChannel;
-
-            // IRC stuff
-                if (e.Message.Length > 0 && e.Channel == 0)
-                {
-            if (m_irc.Connected && (avatar != null)) // this is to keep objects from talking to IRC
-            {
+            
+            // this is to keep objects from talking to IRC
+            if (m_irc.Connected && (avatar != null)) 
                 m_irc.PrivMsg(fromName, scene.RegionInfo.RegionName, e.Message);
-            }
-        }
-            }
         }
 
         #endregion
@@ -529,14 +521,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             // Get some direct matches $1 $4 is a
             if ((matches.Count == 0) || (matches.Count != 1) || (matches[0].Groups.Count != 5))
             {
-                result = new Dictionary<string, string>();
-                result.Add("nick", matches[0].Groups[1].Value);
-                result.Add("user", matches[0].Groups[2].Value);
-                result.Add("channel", matches[0].Groups[3].Value);
-                result.Add("msg", matches[0].Groups[4].Value);
-            }
-            else
-            {
                 m_log.Info("[IRC]: Number of matches: " + matches.Count);
                 if (matches.Count > 0)
                 {
@@ -641,7 +625,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         public void BroadcastSim(string sender, string format, params string[] args)
         {
-            LLVector3 pos = new LLVector3(128, 128, 20);
             try
             {
                 ChatFromViewerArgs c = new ChatFromViewerArgs();
@@ -781,8 +764,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         public void eventIrcMode(string[] commArgs)
         {
-            string IrcChannel = commArgs[2];
-            string IrcUser = commArgs[0].Split('!')[0];
             string UserMode = "";
             for (int i = 3; i < commArgs.Length; i++)
             {
