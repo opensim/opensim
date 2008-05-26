@@ -193,6 +193,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event EstateBlueBoxMessageRequest OnEstateBlueBoxMessageRequest;
         public event EstateDebugRegionRequest OnEstateDebugRegionRequest;
         public event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
+        public event ScriptReset OnScriptReset;
 
 
 #pragma warning restore 67

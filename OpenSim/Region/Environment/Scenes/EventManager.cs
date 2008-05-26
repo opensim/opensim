@@ -85,11 +85,13 @@ namespace OpenSim.Region.Environment.Scenes
 
         public delegate void ObjectGrabDelegate(uint localID, LLVector3 offsetPos, IClientAPI remoteClient);
         public delegate void ObjectDeGrabDelegate(uint localID, IClientAPI remoteClient);
+        public delegate void ScriptResetDelegate(uint localID, LLUUID itemID);
 
         public delegate void OnPermissionErrorDelegate(LLUUID user, string reason);
 
         public event ObjectGrabDelegate OnObjectGrab;
         public event ObjectDeGrabDelegate OnObjectDeGrab;
+        public event ScriptResetDelegate OnScriptReset;
 
         public event OnPermissionErrorDelegate OnPermissionError;
 
@@ -310,6 +312,7 @@ namespace OpenSim.Region.Environment.Scenes
         private OnShutdownDelegate handlerShutdown = null; //OnShutdown;
         private ObjectGrabDelegate handlerObjectGrab = null; //OnObjectGrab;
         private ObjectDeGrabDelegate handlerObjectDeGrab = null; //OnObjectDeGrab;
+        private ScriptResetDelegate handlerScriptReset = null; // OnScriptReset
         private NewRezScript handlerRezScript = null; //OnRezScript;
         private RemoveScript handlerRemoveScript = null; //OnRemoveScript;
         private SceneGroupMoved handlerSceneGroupMove = null; //OnSceneGroupMove;
@@ -481,6 +484,15 @@ namespace OpenSim.Region.Environment.Scenes
             if (handlerObjectDeGrab != null)
             {
                 handlerObjectDeGrab(localID, remoteClient);
+            }
+        }
+
+        public void TriggerScriptReset(uint localID, LLUUID itemID)
+        {
+            handlerScriptReset = OnScriptReset;
+            if (handlerScriptReset != null)
+            {
+                handlerScriptReset(localID, itemID);
             }
         }
 

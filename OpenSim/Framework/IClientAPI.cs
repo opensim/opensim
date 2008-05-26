@@ -640,6 +640,7 @@ namespace OpenSim.Framework
     public delegate void EstateBlueBoxMessageRequest(IClientAPI remoteClient, LLUUID invoice, LLUUID senderID, LLUUID sessionID, string senderName, string message);
     public delegate void EstateDebugRegionRequest(IClientAPI remoteClient, LLUUID invoice, LLUUID senderID, bool scripted, bool collisionEvents, bool physics);
     public delegate void EstateTeleportOneUserHomeRequest(IClientAPI remoteClient, LLUUID invoice, LLUUID senderID, LLUUID prey);
+    public delegate void ScriptReset(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID);
 
 
     public interface IClientAPI
@@ -836,6 +837,7 @@ namespace OpenSim.Framework
         event UUIDNameRequest OnUUIDGroupNameRequest;
 
         event RequestObjectPropertiesFamily OnObjectGroupRequest;
+        event ScriptReset OnScriptReset;
 
         [Obsolete("IClientAPI.OutPacket SHOULD NOT EXIST outside of LLClientView please refactor appropriately.")]
         void OutPacket(Packet newPack, ThrottleOutPacketType packType);

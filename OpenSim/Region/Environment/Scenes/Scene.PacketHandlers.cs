@@ -288,5 +288,14 @@ namespace OpenSim.Region.Environment.Scenes
             }
             client.SendAvatarPickerReply(agent_data, data_args);
         }
+
+        public void ProcessScriptReset(IClientAPI remoteClient, LLUUID objectID,
+                LLUUID itemID)
+        {
+            SceneObjectPart part=GetSceneObjectPart(objectID);
+            if(part == null)
+                return;
+            EventManager.TriggerScriptReset(part.LocalId, itemID);
+        }
     }
 }

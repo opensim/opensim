@@ -254,6 +254,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private UUIDNameRequest handlerUUIDGroupNameRequest = null;
 
         private RequestObjectPropertiesFamily handlerObjectGroupRequest = null;
+        private ScriptReset handlerScriptReset = null;
 
         /* Properties */
 
@@ -859,6 +860,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event EstateBlueBoxMessageRequest OnEstateBlueBoxMessageRequest;
         public event EstateDebugRegionRequest OnEstateDebugRegionRequest;
         public event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
+        public event ScriptReset OnScriptReset;
 
         #region Scene/Avatar to Client
 
@@ -5796,6 +5798,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     case PacketType.CompletePingCheck:
                         // TODO: Perhaps this should be processed on the Sim to determine whether or not to drop a dead client
                         //m_log.Warn("[CLIENT]: unhandled CompletePingCheck packet");
+                        break;
+                    case PacketType.ScriptReset:
+                        ScriptResetPacket scriptResetPacket = (ScriptResetPacket)Pack;
+                        handlerScriptReset = OnScriptReset;
+                        if (handlerScriptReset != null)
+                        {
+                            handlerScriptReset(this, scriptResetPacket.Script.ObjectID,  scriptResetPacket.Script.ItemID);
+                        }
                         break;
                     case PacketType.ViewerStats:
                         // TODO: handle this packet
