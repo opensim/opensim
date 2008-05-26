@@ -33,6 +33,40 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 {
     public class LLRAW : ITerrainLoader
     {
+        public struct HeightmapLookupValue : IComparable<HeightmapLookupValue>
+        {
+            public int Index;
+            public double Value;
+
+            public HeightmapLookupValue(int index, double value)
+            {
+                Index = index;
+                Value = value;
+            }
+
+            public int CompareTo(HeightmapLookupValue val)
+            {
+                return Value.CompareTo(val.Value);
+            }
+        }
+
+        /// <summary>Lookup table to speed up terrain exports</summary>
+        HeightmapLookupValue[] LookupHeightTable;
+
+        public LLRAW()
+        {
+            LookupHeightTable = new HeightmapLookupValue[256 * 256];
+
+            for (int i = 0; i < 256; i++)
+            {
+                for (int j = 0; j < 256; j++)
+                {
+                    LookupHeightTable[i + (j * 256)] = new HeightmapLookupValue(i + (j * 256), ((double)i * ((double)j / 127.0d)));
+                }
+            }
+            Array.Sort<HeightmapLookupValue>(LookupHeightTable);
+        }
+
         #region ITerrainLoader Members
 
         public ITerrainChannel LoadFile(string filename)
@@ -70,37 +104,21 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
             FileStream s = file.Open(FileMode.CreateNew, FileAccess.Write);
             BinaryWriter binStream = new BinaryWriter(s);
 
-            // Generate a smegging big lookup table to speed the operation up (it needs it)
-            double[] lookupHeightTable = new double[65536];
-            int i;
-            int y;
-            for (i = 0; i < 256; i++)
-            {
-                int j;
-                for (j = 0; j < 256; j++)
-                {
-                    lookupHeightTable[i + (j * 256)] = (i * (j / 127.0));
-                }
-            }
-
             // Output the calculated raw
-            for (y = 0; y < map.Height; y++)
+            for (int y = 0; y < map.Height; y++)
             {
-                int x;
-                for (x = 0; x < map.Width; x++)
+                for (int x = 0; x < map.Width; x++)
                 {
                     double t = map[x, y];
-                    double min = double.MaxValue;
                     int index = 0;
 
-                    for (i = 0; i < 65536; i++)
-                    {
-                        if (Math.Abs(t - lookupHeightTable[i]) < min)
-                        {
-                            min = Math.Abs(t - lookupHeightTable[i]);
-                            index = i;
-                        }
-                    }
+                    // The lookup table is pre-sorted, so we either find an exact match or 
+                    // the next closest (smaller) match with a binary search
+                    index = Array.BinarySearch<HeightmapLookupValue>(LookupHeightTable, new HeightmapLookupValue(0, t));
+                    if (index < 0)
+                        index = ~index - 1;
+
+                    index = LookupHeightTable[index].Index;
 
                     byte red = (byte) (index & 0xFF);
                     byte green = (byte) ((index >> 8) & 0xFF);
