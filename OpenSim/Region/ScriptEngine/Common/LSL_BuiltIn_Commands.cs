@@ -50,7 +50,7 @@ namespace OpenSim.Region.ScriptEngine.Common
     /// </summary>
     public class LSL_BuiltIn_Commands : MarshalByRefObject, LSL_BuiltIn_Commands_Interface
     {
-        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+//        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         internal ScriptEngineBase.ScriptEngine m_ScriptEngine;
         internal SceneObjectPart m_host;
