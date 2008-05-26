@@ -368,6 +368,19 @@ namespace OpenSim.Framework
                             }
                             errorMessage = "a UUID (LLUUID)";
                             break;
+                        case ConfigurationOption.ConfigurationTypes.TYPE_LLUUID_NULL_FREE:
+                            LLUUID uuidResult2;
+                            if (LLUUID.TryParse(console_result, out uuidResult2))
+                            {
+                                convertSuccess = true;
+
+                                if (uuidResult2 == LLUUID.Zero)
+                                    uuidResult2 = LLUUID.Random();
+
+                                return_result = uuidResult2;
+                            }
+                            errorMessage = "a non-null UUID (LLUUID)";
+                            break;
                         case ConfigurationOption.ConfigurationTypes.TYPE_LLVECTOR3:
                             LLVector3 vectorResult;
                             if (LLVector3.TryParse(console_result, out vectorResult))

@@ -54,6 +54,7 @@ namespace OpenSim.Framework
             TYPE_BOOLEAN,
             TYPE_BYTE,
             TYPE_LLUUID,
+            TYPE_LLUUID_NULL_FREE,
             TYPE_LLVECTOR3,
             TYPE_FLOAT,
             TYPE_DOUBLE

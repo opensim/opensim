@@ -345,7 +345,7 @@ namespace OpenSim.Framework
 
         public void loadConfigurationOptionsFromMe()
         {
-            configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+            configMember.addConfigurationOption("sim_UUID", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID_NULL_FREE,
                                                 "UUID of Region (Default is recommended, random UUID)",
                                                 RegionID.ToString(), true);
             configMember.addConfigurationOption("sim_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
