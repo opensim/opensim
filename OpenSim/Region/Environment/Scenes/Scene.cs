@@ -3065,7 +3065,8 @@ namespace OpenSim.Region.Environment.Scenes
         // ie it could be all m_scenePresences within a certain range of the calling prim/avatar.
 
         /// <summary>
-        ///
+        /// Return a list of all avatars in this region.
+        /// This list is a new object, so it can be iterated over without locking.
         /// </summary>
         /// <returns></returns>
         public List<ScenePresence> GetAvatars()
@@ -3074,7 +3075,8 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Request a List of all ScenePresences in this region.  This returns child agents as well as root agents.
+        /// Return a list of all ScenePresences in this region.  This returns child agents as well as root agents.
+        /// This list is a new object, so it can be iterated over without locking.
         /// </summary>
         /// <returns></returns>
         public List<ScenePresence> GetScenePresences()
@@ -3083,7 +3085,8 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Request a filtered list of ScenePresences in this region
+        /// Request a filtered list of ScenePresences in this region.
+        /// This list is a new object, so it can be iterated over without locking.
         /// </summary>
         /// <param name="filter"></param>
         /// <returns></returns>
