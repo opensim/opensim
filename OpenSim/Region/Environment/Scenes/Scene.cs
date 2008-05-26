@@ -197,6 +197,14 @@ namespace OpenSim.Region.Environment.Scenes
         //            set { m_innerScene.SceneObjects = value; }
         //        }
 
+        /// <summary>
+        /// The dictionary of all entities in this scene.  The contents of this dictionary may be changed at any time.
+        /// If you wish to add or remove entities, please use the appropriate method for that entity rather than
+        /// editing this dictionary directly. 
+        /// 
+        /// If you want a list of entities where the list itself is guaranteed not to change, please use 
+        /// GetEntities()
+        /// </summary>
         public Dictionary<LLUUID, EntityBase> Entities
         {
             get { return m_innerScene.Entities; }

@@ -92,8 +92,6 @@ namespace OpenSim.Region.Environment.Scenes
         public bool HasGroupChanged = false;
         public float scriptScore = 0f;
 
-
-
         private LLVector3 lastPhysGroupPos;
         private LLQuaternion lastPhysGroupRot;
 
@@ -2054,6 +2052,12 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Get the parts of this scene object
+        /// </summary>
+        /// <returns>
+        /// A <see cref="SceneObjectPart"/>
+        /// </returns>
         public SceneObjectPart[] GetParts()
         {
             int numParts = Children.Count;

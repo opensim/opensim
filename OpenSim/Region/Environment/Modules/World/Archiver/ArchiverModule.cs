@@ -30,6 +30,7 @@ using OpenSim.Region.Environment.Modules.World.Serialiser;
 using OpenSim.Region.Environment.Scenes;
 using System.Collections.Generic;
 using System.Reflection;
+using libsecondlife;
 using log4net;
 using Nini.Config;
 
@@ -71,12 +72,23 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         public void ArchiveRegion(string savePath)
         {
             m_log.Warn("[ARCHIVER]: Archive region not yet implemented");
+            
+            Dictionary<LLUUID, int> textureUuids = new Dictionary<LLUUID, int>(); 
 
             List<EntityBase> entities = m_scene.GetEntities();
 
             foreach (EntityBase entity in entities)
             {
-
+                if (entity is SceneObjectGroup)
+                {
+                    SceneObjectGroup sceneObject = (SceneObjectGroup)entity;
+                    
+                    foreach (SceneObjectPart part in sceneObject.GetParts())
+                    {
+                        LLUUID texture = new LLUUID(part.Shape.TextureEntry, 0);
+                        textureUuids[texture] = 1;
+                    }
+                }                
             }
 
             string serEntities = SerializeObjects(entities);
@@ -84,6 +96,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             if (serEntities != null && serEntities.Length > 0)
             {
                 m_log.DebugFormat("[ARCHIVER]: Successfully got serialization for {0} entities", entities.Count);
+                m_log.DebugFormat("[ARCHIVER]: Requiring save of {0} textures", textureUuids.Count);
             }
         }
 

@@ -133,7 +133,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         protected virtual void CreatePacketServer()
         {
-            LLPacketServer packetServer = new LLPacketServer(this);
+            new LLPacketServer(this);
         }
 
         protected virtual void OnReceivedData(IAsyncResult result)

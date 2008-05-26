@@ -85,7 +85,6 @@ namespace OpenSim.Region.Environment.Scenes
     [Serializable]
     public partial class SceneObjectPart : IScriptHost, ISerializable
     {
-
         [XmlIgnore] public PhysicsActor PhysActor = null;
 
         public LLUUID LastOwnerID;
@@ -102,7 +101,6 @@ namespace OpenSim.Region.Environment.Scenes
         [XmlIgnore] public scriptEvents m_aggregateScriptEvents=0;
         [XmlIgnore] private LLObject.ObjectFlags LocalFlags = LLObject.ObjectFlags.None;
         [XmlIgnore] public bool DIE_AT_EDGE = false;
-
 
         [XmlIgnore] public bool m_IsAttachment = false;
         [XmlIgnore] public uint m_attachmentPoint = (byte)0;
@@ -700,7 +698,6 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_shape; }
             set
             {
-
                 m_shape = value;
                 TriggerScriptChangedEvent(Changed.SHAPE);
             }
@@ -1949,6 +1946,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateExtraParam(ushort type, bool inUse, byte[] data)
         {
             m_shape.ReadInUpdateExtraParam(type, inUse, data);
+            
             if (type == 0x30)
             {
                 if (m_shape.SculptEntry && m_shape.SculptTexture != LLUUID.Zero)
@@ -1957,9 +1955,10 @@ namespace OpenSim.Region.Environment.Scenes
                     m_parentGroup.Scene.AssetCache.GetAsset(m_shape.SculptTexture, SculptTextureCallback, true);
                 }
             }
+            
             ScheduleFullUpdate();
-
         }
+        
         public void SculptTextureCallback(LLUUID textureID, AssetBase texture)
         {
             if (m_shape.SculptEntry)
