@@ -410,30 +410,33 @@ namespace OpenSim.Data.MySQL
         /// <param name="prim"></param>
         private void LoadItems(SceneObjectPart prim)
         {
-            //m_log.InfoFormat("[DATASTORE]: Loading inventory for {0}, {1}", prim.Name, prim.UUID);
-
-            DataTable dbItems = m_itemsTable;
-
-            String sql = String.Format("primID = '{0}'", prim.UUID.ToString());
-            DataRow[] dbItemRows = dbItems.Select(sql);
-
-            IList<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
-
-            foreach (DataRow row in dbItemRows)
+            lock (m_dataSet)
             {
-                TaskInventoryItem item = buildItem(row);
-                inventory.Add(item);
+                //m_log.InfoFormat("[DATASTORE]: Loading inventory for {0}, {1}", prim.Name, prim.UUID);
 
-                //m_log.DebugFormat("[DATASTORE]: Restored item {0}, {1}", item.Name, item.ItemID);
-            }
+                DataTable dbItems = m_itemsTable;
 
-            prim.RestoreInventoryItems(inventory);
+                String sql = String.Format("primID = '{0}'", prim.UUID.ToString());
+                DataRow[] dbItemRows = dbItems.Select(sql);
 
-            // XXX A nasty little hack to recover the folder id for the prim (which is currently stored in
-            // every item).  This data should really be stored in the prim table itself.
-            if (dbItemRows.Length > 0)
-            {
-                prim.FolderID = inventory[0].ParentID;
+                IList<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
+
+                foreach (DataRow row in dbItemRows)
+                {
+                    TaskInventoryItem item = buildItem(row);
+                    inventory.Add(item);
+
+                    //m_log.DebugFormat("[DATASTORE]: Restored item {0}, {1}", item.Name, item.ItemID);
+                }
+
+                prim.RestoreInventoryItems(inventory);
+
+                // XXX A nasty little hack to recover the folder id for the prim (which is currently stored in
+                // every item).  This data should really be stored in the prim table itself.
+                if (dbItemRows.Length > 0)
+                {
+                    prim.FolderID = inventory[0].ParentID;
+                }
             }
         }
 
@@ -442,9 +445,10 @@ namespace OpenSim.Data.MySQL
             int revision = Util.UnixTimeSinceEpoch();
             m_log.Info("[REGION DB]: Storing terrain revision r" + revision.ToString());
 
-            DataTable terrain = m_dataSet.Tables["terrain"];
             lock (m_dataSet)
             {
+                DataTable terrain = m_dataSet.Tables["terrain"];
+
                 MySqlCommand cmd = new MySqlCommand("insert into terrain(RegionUUID, Revision, Heightfield)" +
                                                     " values(?RegionUUID, ?Revision, ?Heightfield)", m_connection);
                 using (cmd)
@@ -921,13 +925,16 @@ namespace OpenSim.Data.MySQL
             {
                 // Database table was created before we got here and needs to be created! :P
 
-                using (
-                    MySqlCommand cmd =
-                        new MySqlCommand(
-                            "ALTER TABLE `prims` ADD COLUMN `SitTargetOffsetX` float NOT NULL default 0,  ADD COLUMN `SitTargetOffsetY` float NOT NULL default 0, ADD COLUMN `SitTargetOffsetZ` float NOT NULL default 0, ADD COLUMN `SitTargetOrientW` float NOT NULL default 0, ADD COLUMN `SitTargetOrientX` float NOT NULL default 0, ADD COLUMN `SitTargetOrientY` float NOT NULL default 0, ADD COLUMN `SitTargetOrientZ` float NOT NULL default 0;",
-                            m_connection))
+                lock (m_dataSet)
                 {
-                    cmd.ExecuteNonQuery();
+                    using (
+                        MySqlCommand cmd =
+                            new MySqlCommand(
+                                "ALTER TABLE `prims` ADD COLUMN `SitTargetOffsetX` float NOT NULL default 0,  ADD COLUMN `SitTargetOffsetY` float NOT NULL default 0, ADD COLUMN `SitTargetOffsetZ` float NOT NULL default 0, ADD COLUMN `SitTargetOrientW` float NOT NULL default 0, ADD COLUMN `SitTargetOrientX` float NOT NULL default 0, ADD COLUMN `SitTargetOrientY` float NOT NULL default 0, ADD COLUMN `SitTargetOrientZ` float NOT NULL default 0;",
+                                m_connection))
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
                 }
             }
             return prim;
@@ -1230,14 +1237,16 @@ namespace OpenSim.Data.MySQL
             catch (InvalidCastException)
             {
                 // Database table was created before we got here and needs to be created! :P
-
-                using (
-                    MySqlCommand cmd =
-                        new MySqlCommand(
-                            "ALTER TABLE `primshapes` ADD COLUMN `State` int NOT NULL default 0;",
-                            m_connection))
+                lock (m_dataSet)
                 {
-                    cmd.ExecuteNonQuery();
+                    using (
+                        MySqlCommand cmd =
+                            new MySqlCommand(
+                                "ALTER TABLE `primshapes` ADD COLUMN `State` int NOT NULL default 0;",
+                                m_connection))
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
                 }
             }
 
@@ -1283,45 +1292,51 @@ namespace OpenSim.Data.MySQL
             }
             catch (MySqlException)
             {
-                // Database table was created before we got here and needs to be created! :P
-                using (
-                    MySqlCommand cmd =
-                        new MySqlCommand(
-                            "ALTER TABLE `primshapes` ADD COLUMN `State` int NOT NULL default 0;",
-                            m_connection))
+                lock (m_dataSet)
                 {
-                    cmd.ExecuteNonQuery();
+                    // Database table was created before we got here and needs to be created! :P
+                    using (
+                        MySqlCommand cmd =
+                            new MySqlCommand(
+                                "ALTER TABLE `primshapes` ADD COLUMN `State` int NOT NULL default 0;",
+                                m_connection))
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
                 }
             }
         }
 
         private void addPrim(SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
         {
-            DataTable prims = m_dataSet.Tables["prims"];
-            DataTable shapes = m_dataSet.Tables["primshapes"];
+            lock (m_dataSet)
+            {
+                DataTable prims = m_dataSet.Tables["prims"];
+                DataTable shapes = m_dataSet.Tables["primshapes"];
 
-            DataRow primRow = prims.Rows.Find(Util.ToRawUuidString(prim.UUID));
-            if (primRow == null)
-            {
-                primRow = prims.NewRow();
-                fillPrimRow(primRow, prim, sceneGroupID, regionUUID);
-                prims.Rows.Add(primRow);
-            }
-            else
-            {
-                fillPrimRow(primRow, prim, sceneGroupID, regionUUID);
-            }
+                DataRow primRow = prims.Rows.Find(Util.ToRawUuidString(prim.UUID));
+                if (primRow == null)
+                {
+                    primRow = prims.NewRow();
+                    fillPrimRow(primRow, prim, sceneGroupID, regionUUID);
+                    prims.Rows.Add(primRow);
+                }
+                else
+                {
+                    fillPrimRow(primRow, prim, sceneGroupID, regionUUID);
+                }
 
-            DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
-            if (shapeRow == null)
-            {
-                shapeRow = shapes.NewRow();
-                fillShapeRow(shapeRow, prim);
-                shapes.Rows.Add(shapeRow);
-            }
-            else
-            {
-                fillShapeRow(shapeRow, prim);
+                DataRow shapeRow = shapes.Rows.Find(Util.ToRawUuidString(prim.UUID));
+                if (shapeRow == null)
+                {
+                    shapeRow = shapes.NewRow();
+                    fillShapeRow(shapeRow, prim);
+                    shapes.Rows.Add(shapeRow);
+                }
+                else
+                {
+                    fillShapeRow(shapeRow, prim);
+                }
             }
         }
 
