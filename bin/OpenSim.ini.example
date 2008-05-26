@@ -292,6 +292,7 @@ enabled = false
 ;nick    = OpenSimBotNameProbablyMakeThisShorter
 ;channel = #the_irc_channel_you_want_to_connect_to
 ;port = 6667
+;fallback_region = name of "default" region
 ;MSGformat fields : 0=botnick, 1=user, 2=region, 3=message
 ; must start with "PRIVMSG {0} : " or irc server will get upset
 ;for <bot>:<user in region> :<message>

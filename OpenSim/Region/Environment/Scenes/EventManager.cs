@@ -217,6 +217,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public delegate void ChatFromWorldEvent(Object sender, ChatFromViewerArgs chat);
         public event ChatFromWorldEvent OnChatFromWorld;
+        /// <summary>
+        /// ChatBroadcastEvent is called via Scene when a broadcast chat message
+        /// from world comes in (chat from viewer is available via client.OnChatFromViewer).
+        /// </summary>
+        public delegate void ChatBroadcastEvent(Object sender, ChatFromViewerArgs chat);
+        public event ChatBroadcastEvent OnChatBroadcast;
 
         public class MoneyTransferArgs : EventArgs
         {
@@ -320,6 +326,7 @@ namespace OpenSim.Region.Environment.Scenes
         private RegisterCapsEvent handlerRegisterCaps = null; // OnRegisterCaps;
         private DeregisterCapsEvent handlerDeregisterCaps = null; // OnDeregisterCaps;
         private ChatFromWorldEvent handlerChatFromWorld = null; // OnChatFromWorld;
+        private ChatBroadcastEvent handlerChatBroadcast = null; // OnChatBroadcast;
         private NewInventoryItemUploadComplete handlerNewInventoryItemUpdateComplete = null;
         private RequestChangeWaterHeight handlerRequestChangeWaterHeight = null; //OnRequestChangeWaterHeight
         private ScriptControlEvent handlerScriptControlEvent = null;
@@ -696,6 +703,15 @@ namespace OpenSim.Region.Environment.Scenes
             if (handlerChatFromWorld != null)
             {
                 handlerChatFromWorld(sender, chat);
+            }
+        }
+
+        public void TriggerOnChatBroadcast(Object sender, ChatFromViewerArgs chat)
+        {
+            handlerChatBroadcast = OnChatBroadcast;
+            if (handlerChatBroadcast != null)
+            {
+                handlerChatBroadcast(sender, chat);
             }
         }
 
