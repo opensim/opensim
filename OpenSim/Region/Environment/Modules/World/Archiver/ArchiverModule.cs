@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.World.Serialiser;
 using OpenSim.Region.Environment.Scenes;
@@ -71,65 +72,12 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
         public void ArchiveRegion(string savePath)
         {
-            m_log.Warn("[ARCHIVER]: Archive region not yet implemented");
-            
-            Dictionary<LLUUID, int> textureUuids = new Dictionary<LLUUID, int>(); 
-
-            List<EntityBase> entities = m_scene.GetEntities();
-
-            foreach (EntityBase entity in entities)
-            {
-                if (entity is SceneObjectGroup)
-                {
-                    SceneObjectGroup sceneObject = (SceneObjectGroup)entity;
-                    
-                    foreach (SceneObjectPart part in sceneObject.GetParts())
-                    {
-                        LLUUID texture = new LLUUID(part.Shape.TextureEntry, 0);
-                        textureUuids[texture] = 1;
-                    }
-                }                
-            }
-
-            string serEntities = SerializeObjects(entities);
-
-            if (serEntities != null && serEntities.Length > 0)
-            {
-                m_log.DebugFormat("[ARCHIVER]: Successfully got serialization for {0} entities", entities.Count);
-                m_log.DebugFormat("[ARCHIVER]: Requiring save of {0} textures", textureUuids.Count);
-            }
+            new ArchiveRequest(m_scene, savePath);
         }
 
         public void DearchiveRegion(string loadPath)
         {
             m_log.Warn("[ARCHIVER]: Dearchive region not yet implemented");
-        }
-
-        /// <summary>
-        /// Get an xml representation of the given scene objects.
-        /// </summary>
-        /// <param name="scene"></param>
-        /// <returns></returns>
-        private static string SerializeObjects(List<EntityBase> entities)
-        {
-            string serialization = "<scene>";
-
-            List<string> serObjects = new List<string>();
-
-            foreach (EntityBase ent in entities)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    serObjects.Add(((SceneObjectGroup) ent).ToXmlString2());
-                }
-            }
-
-            foreach (string serObject in serObjects)
-                serialization += serObject;
-
-            serialization += "</scene>";
-
-            return serialization;
         }
     }
 }
