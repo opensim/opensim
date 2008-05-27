@@ -31,5 +31,6 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
     {
         void LoadFromFile(string filename);
         void SaveToFile(string filename);
+        void InstallPlugin(string name, ITerrainEffect plug);
     }
 }

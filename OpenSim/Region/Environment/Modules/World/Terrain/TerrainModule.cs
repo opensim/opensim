@@ -242,24 +242,19 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                             if (pluginType.IsAbstract || pluginType.IsNotPublic)
                                 continue;
 
+                            string typeName = pluginType.Name;
+
                             if (pluginType.GetInterface("ITerrainEffect", false) != null)
                             {
                                 ITerrainEffect terEffect = (ITerrainEffect) Activator.CreateInstance(library.GetType(pluginType.ToString()));
-                                if (!m_plugineffects.ContainsKey(pluginType.Name))
-                                {
-                                    m_plugineffects.Add(pluginType.Name, terEffect);
-                                    m_log.Info("E ... " + pluginType.Name);
-                                }
-                                else
-                                {
-                                    m_log.Warn("E ... " + pluginType.Name + " (Already added)");
-                                }
+
+                                InstallPlugin(typeName, terEffect);
                             }
                             else if (pluginType.GetInterface("ITerrainLoader", false) != null)
                             {
                                 ITerrainLoader terLoader = (ITerrainLoader) Activator.CreateInstance(library.GetType(pluginType.ToString()));
                                 m_loaders[terLoader.FileExtension] = terLoader;
-                                m_log.Info("L ... " + pluginType.Name);
+                                m_log.Info("L ... " + typeName);
                             }
                         }
                         catch (AmbiguousMatchException)
@@ -269,6 +264,22 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                 }
                 catch (BadImageFormatException)
                 {
+                }
+            }
+        }
+
+        public void InstallPlugin(string pluginName, ITerrainEffect effect)
+        {
+            lock (m_plugineffects)
+            {
+                if (!m_plugineffects.ContainsKey(pluginName))
+                {
+                    m_plugineffects.Add(pluginName, effect);
+                    m_log.Info("E ... " + pluginName);
+                }
+                else
+                {
+                    m_log.Warn("E ... " + pluginName + " (Skipping)");
                 }
             }
         }
