@@ -70,7 +70,7 @@ namespace OpenSim
         /// <summary>
         /// The file use to load and save an opensim archive if none has been specified
         /// </summary>
-        protected const string DEFAULT_OAR_BACKUP_FILENAME = "scene.oar.zip";
+        protected const string DEFAULT_OAR_BACKUP_FILENAME = "scene.oar.tar";
 
         public string m_physicsEngine;
         public string m_meshEngineName;

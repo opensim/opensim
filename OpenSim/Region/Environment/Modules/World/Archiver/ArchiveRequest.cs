@@ -98,6 +98,17 @@ namespace OpenSim.Region.Environment
         protected internal void ReceivedAllAssets(IDictionary<LLUUID, AssetBase> assets)
         {
             m_log.DebugFormat("[ARCHIVER]: Received all {0} textures required", assets.Count);
+            
+            // XXX: Shouldn't hijack the asset async callback thread like this - this is only temporary
+            
+            TarArchive archive = new TarArchive();
+            
+            foreach (LLUUID uuid in assets.Keys)
+            {
+                archive.AddFile(uuid.ToString(), assets[uuid].Data);
+            }
+            
+            archive.WriteTar(m_savePath);
         }
                 
         /// <summary>
