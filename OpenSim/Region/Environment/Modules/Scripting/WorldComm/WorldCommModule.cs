@@ -330,6 +330,17 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
                            e.Sender.AgentId,
                            e.Message);
         }
+
+        public Object[] GetSerializationData(LLUUID itemID)
+        {
+            return m_listenerManager.GetSerializationData(itemID);
+        }
+
+        public void CreateFromData(uint localID, LLUUID itemID, LLUUID hostID,
+                Object[] data)
+        {
+            m_listenerManager.AddFromData(localID, itemID, hostID, data);
+        }
     }
 
     public class ListenerManager
@@ -549,6 +560,42 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             }
             return collection;
         }
+
+        public Object[] GetSerializationData(LLUUID itemID)
+        {
+            List<Object> data = new List<Object>();
+
+            foreach (List<ListenerInfo> list in m_listeners.Values)
+            {
+                foreach (ListenerInfo l in list)
+                {
+                    if(l.GetItemID() == itemID)
+                        data.AddRange(l.GetSerializationData());
+                }
+            }
+            return (Object[])data.ToArray();
+        }
+
+        public void AddFromData(uint localID, LLUUID itemID, LLUUID hostID,
+                Object[] data)
+        {
+            int idx = 0;
+            Object[] item = new Object[6];
+
+            while(idx < data.Length)
+            {
+                Array.Copy(data, idx, item, 0, 6);
+
+                ListenerInfo info =
+                        ListenerInfo.FromData(localID, itemID, hostID, item);
+
+                if(!m_listeners.ContainsKey((int)item[2]))
+                    m_listeners.Add((int)item[2], new List<ListenerInfo>());
+                m_listeners[(int)item[2]].Add(info);
+
+                idx+=6;
+            }
+        }
     }
 
     public class ListenerInfo
@@ -585,6 +632,30 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             m_name = name;
             m_id = id;
             m_message = message;
+        }
+
+        public Object[] GetSerializationData()
+        {
+            Object[] data = new Object[6];
+
+            data[0] = m_active;
+            data[1] = m_handle;
+            data[2] = m_channel;
+            data[3] = m_name;
+            data[4] = m_id;
+            data[5] = m_message;
+
+            return data;
+        }
+
+        public static ListenerInfo FromData(uint localID, LLUUID ItemID, LLUUID hostID, Object[] data)
+        {
+            ListenerInfo linfo = new ListenerInfo((int)data[1], localID,
+                    ItemID, hostID, (int)data[2], (string)data[3],
+                    (LLUUID)data[4], (string)data[5]);
+            linfo.m_active=(bool)data[0];
+
+            return linfo;
         }
 
         public LLUUID GetItemID()

@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Modules.Scripting.WorldComm;
@@ -40,5 +41,8 @@ namespace OpenSim.Region.Environment.Interfaces
         void ListenControl(LLUUID itemID, int handle, int active);
         void ListenRemove(LLUUID itemID, int handle);
         void DeleteListener(LLUUID itemID);
+        Object[] GetSerializationData(LLUUID itemID);
+        void CreateFromData(uint localID, LLUUID itemID, LLUUID hostID,
+                        Object[] data);
     }
 }
