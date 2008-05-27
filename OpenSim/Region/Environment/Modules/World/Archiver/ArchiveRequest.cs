@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.World.Serialiser;
@@ -37,6 +38,11 @@ using Nini.Config;
 
 namespace OpenSim.Region.Environment
 {       
+    /// <summary>
+    /// Method called when all the necessary assets for an archive request have been received.
+    /// </summary>
+    public delegate void AssetsRequestCallback(IDictionary<LLUUID, AssetBase> assets);
+    
     /// <summary>
     /// Handles an individual archive request
     /// </summary>
@@ -83,7 +89,15 @@ namespace OpenSim.Region.Environment
             {
                 m_log.DebugFormat("[ARCHIVER]: Successfully got serialization for {0} entities", entities.Count);
                 m_log.DebugFormat("[ARCHIVER]: Requiring save of {0} textures", textureUuids.Count);
+                
+                // Asynchronously request all the assets required to perform this archive operation
+                new AssetsRequest(ReceivedAllAssets, m_scene.AssetCache, textureUuids.Keys);
             }
+        }
+        
+        protected internal void ReceivedAllAssets(IDictionary<LLUUID, AssetBase> assets)
+        {
+            m_log.DebugFormat("[ARCHIVER]: Received all {0} textures required", assets.Count);
         }
                 
         /// <summary>
@@ -111,6 +125,63 @@ namespace OpenSim.Region.Environment
             serialization += "</scene>";
 
             return serialization;
+        }
+    }
+
+    /// <summary>
+    /// Encapsulate the asynchronous requests for the assets required for an archive operation
+    /// </summary>
+    class AssetsRequest
+    {
+        /// <summary>
+        /// Callback used when all the assets requested have been received.
+        /// </summary>
+        protected AssetsRequestCallback m_assetsRequestCallback;
+        
+        /// <summary>
+        /// Assets retrieved in this request
+        /// </summary>
+        protected Dictionary<LLUUID, AssetBase> m_assets = new Dictionary<LLUUID, AssetBase>();
+        
+        /// <summary>
+        /// Record the number of asset replies required so we know when we've finished
+        /// </summary>
+        private int m_repliesRequired;
+        
+        /// <summary>
+        /// Asset cache used to request the assets
+        /// </summary>
+        protected AssetCache m_assetCache;                
+        
+        protected internal AssetsRequest(AssetsRequestCallback assetsRequestCallback, AssetCache assetCache, ICollection<LLUUID> uuids) 
+        {            
+            m_assetsRequestCallback = assetsRequestCallback;           
+            m_assetCache = assetCache;
+            m_repliesRequired = uuids.Count;
+            
+            // We can stop here if there are no assets to fetch
+            if (m_repliesRequired == 0)
+                m_assetsRequestCallback(m_assets);                       
+            
+            foreach (LLUUID uuid in uuids)
+            {
+                m_assetCache.GetAsset(uuid, AssetRequestCallback, true);                
+            }
+        }
+        
+        /// <summary>
+        /// Called back by the asset cache when it has the asset
+        /// </summary>
+        /// <param name="assetID"></param>
+        /// <param name="asset"></param>
+        public void AssetRequestCallback(LLUUID assetID, AssetBase asset)
+        {
+            m_assets[assetID] = asset;
+            
+            if (m_assets.Count == m_repliesRequired)
+            {
+                m_assetsRequestCallback(m_assets);
+            }
         }
     }
 }
