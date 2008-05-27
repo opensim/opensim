@@ -292,7 +292,6 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler
 
         public void llOwnerSay(string msg)
         {
-            m_log.DebugFormat("llOwnerSay(\"{0}\")", msg);
             World.SimChatBroadcast(Helpers.StringToField(text),
                                    ChatTypeEnum.Owner, 0, m_host.AbsolutePosition, 
                                    m_host.Name, m_host.UUID, false);

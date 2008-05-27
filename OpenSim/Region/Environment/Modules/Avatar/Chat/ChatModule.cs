@@ -41,7 +41,7 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 {
-    public class ChatModule : IRegionModule, ISimChat
+    public class ChatModule : IRegionModule
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

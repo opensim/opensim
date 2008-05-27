@@ -41,7 +41,7 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 {
-    public class IRCBridgeModule : IRegionModule, ISimChat
+    public class IRCBridgeModule : IRegionModule
     {
         private static readonly ILog m_log = 
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -466,7 +466,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.ToString());
+                    m_log.ErrorFormat("[IRC] cannot connect to {0}:{1}: {2}", 
+                                      m_server, m_port, e.Message);
                 }
                 return m_connected;
             }
