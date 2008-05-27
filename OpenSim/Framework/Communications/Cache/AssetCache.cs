@@ -248,6 +248,12 @@ namespace OpenSim.Framework.Communications.Cache
         {
             //m_log.DebugFormat("[ASSET CACHE]: Requesting {0} {1}", isTexture ? "texture" : "asset", assetId);
 
+
+            // Xantor 20080526: 
+            // if a request is made for an asset which is not in the cache yet, but has already been requested by
+            // something else, queue up the callbacks on that requestor instead of swamping the assetserver 
+            // with multiple requests for the same asset.
+            
             AssetBase asset;
 
             if (TryGetCachedAsset(assetId, out asset))
@@ -257,9 +263,33 @@ namespace OpenSim.Framework.Communications.Cache
             else
             {
 #if DEBUG
-                //m_log.DebugFormat("[ASSET CACHE]: Adding request for {0} {1}", isTexture ? "texture" : "asset", assetId);
+                // m_log.DebugFormat("[ASSET CACHE]: Adding request for {0} {1}", isTexture ? "texture" : "asset", assetId);
 #endif
+                               
+                
+                NewAssetRequest req = new NewAssetRequest(assetId, callback);
+                AssetRequestsList requestList;
 
+                lock (RequestLists)
+                {
+                    if (RequestLists.TryGetValue(assetId, out requestList)) // do we already have a request pending?
+                    {
+                        // m_log.DebugFormat("[ASSET CACHE]: Intercepted Duplicate request for {0} {1}", isTexture ? "texture" : "asset", assetId);
+                        // add to callbacks for this assetId
+                        RequestLists[assetId].Requests.Add(req);
+                    }
+                    else
+                    {
+                        // m_log.DebugFormat("[ASSET CACHE]: Adding request for {0} {1}", isTexture ? "texture" : "asset", assetId);
+                        requestList = new AssetRequestsList(assetId);
+                        RequestLists.Add(assetId, requestList);
+                        requestList.Requests.Add(req);
+                        m_assetServer.RequestAsset(assetId, isTexture);
+                    }
+                }
+
+
+                /*  Old code doesn't handle duplicate requests right
                 NewAssetRequest req = new NewAssetRequest(assetId, callback);
 
                 // Make sure we always have a request list to which to add the asset
@@ -278,6 +308,7 @@ namespace OpenSim.Framework.Communications.Cache
                 requestList.Requests.Add(req);
 
                 m_assetServer.RequestAsset(assetId, isTexture);
+                */
             }
         }
 
@@ -447,6 +478,8 @@ namespace OpenSim.Framework.Communications.Cache
 
                     foreach (NewAssetRequest req in theseRequests)
                     {
+                        // Xantor 20080526 are we really calling all the callbacks if multiple queued for 1 request? -- Yes, checked
+                        // m_log.DebugFormat("[ASSET CACHE]: Callback for asset {0}", asset.FullID);
                         req.Callback(asset.FullID, asset);
                     }
                 }
