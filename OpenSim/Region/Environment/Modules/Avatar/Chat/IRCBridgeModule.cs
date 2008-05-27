@@ -60,12 +60,35 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         internal object m_syncInit = new object();
         internal object m_syncLogout = new object();
 
+        private IConfig m_config;
+
         #region IRegionModule Members
 
         public void Initialise(Scene scene, IConfigSource config)
         {
+            try
+            {
+                if ((m_config = config.Configs["IRC"]) == null) 
+                {
+                    m_log.InfoFormat("[IRC] module not configured");
+                    return;
+                }
+
+                if (!m_config.GetBoolean("enabled", false))
+                {
+                    m_log.InfoFormat("[IRC] module disabled in configuration");
+                    return;
+                }
+            }
+            catch (Exception)
+            {
+                m_log.Info("[IRC] module not configured");
+                return;
+            }
+
             lock (m_syncInit)
             {
+
                 if (!m_scenes.Contains(scene))
                 {
                     m_scenes.Add(scene);

@@ -194,7 +194,8 @@ namespace OpenSim.ApplicationPlugins.Rest
 
             try
             {
-                if ((_config = openSim.ConfigSource.Configs["RestPlugins"]) == null) {
+                if ((_config = openSim.ConfigSource.Configs["RestPlugins"]) == null) 
+                {
                     m_log.WarnFormat("{0} Rest Plugins not configured", MsgID);
                     return;
                 }
