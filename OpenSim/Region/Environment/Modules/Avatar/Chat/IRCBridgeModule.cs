@@ -85,7 +85,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 m_log.Info("[IRC] module not configured");
                 return;
             }
-
+            
             lock (m_syncInit)
             {
 
@@ -125,7 +125,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         public void PostInitialise()
         {
-            if (!m_irc.Enabled) return;
+            if (null == m_irc || !m_irc.Enabled) return;
 
             try
             {
