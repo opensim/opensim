@@ -114,9 +114,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             // checks for alpha.alpha way of referring to objects in C#
             // ignores alpha.x alpha.y, alpha.z for refering to vector components
-            Match SecurityM = Regex.Match(checkscript, @"(?:[a-zA-Z])\.(?:[a-wA-Z]|[a-zA-Z][a-zA-Z])", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
-            if (SecurityM.Success)
-                throw new Exception("CS0103: 'The . symbol cannot be used in LSL except in float values or vector components'");
+            Match SecurityM;
+
+            // BROKEN: this check is very wrong.  It block's any url in strings.
+            // = Regex.Match(checkscript, @"(?:[a-zA-Z])\.(?:[a-wA-Z]|[a-zA-Z][a-zA-Z])", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            // if (SecurityM.Success)
+            //    throw new Exception("CS0103: 'The . symbol cannot be used in LSL except in float values or vector components'");
 
             SecurityM = Regex.Match(checkscript, @"typeof\s", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
             if (SecurityM.Success)
