@@ -116,8 +116,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             // ignores alpha.x alpha.y, alpha.z for refering to vector components
             Match SecurityM;
 
-            // BROKEN: this check is very wrong.  It block's any url in strings.
-            SecurityM = Regex.Match(checkscript, @"(?:[a-zA-Z])\.(?:[a-wA-Z]|[a-zA-Z][a-zA-Z])", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            // Instead of blocking all foo.bar values, block only the ones that will hit 
+            // namespaces we don't like.  To add more of these bad namespaces at them
+            // to the poison array.
+            String[] poison = {"System"};
+            SecurityM = Regex.Match(checkscript, @"(" + String.Join("|", poison) + @")\.(?:[a-wA-Z]|[a-zA-Z][a-zA-Z])", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
             if (SecurityM.Success)
                throw new Exception("CS0103: 'The . symbol cannot be used in LSL except in float values or vector components'");
 
