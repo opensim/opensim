@@ -43,7 +43,7 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler
     //
     // !!!IMPORTANT!!!
     //
-    // REMEMBER TO UPDATE http://opensimulator.org/wiki/LlFunction_implementation_status
+    // REMEMBER TO UPDATE http://opensimulator.org/wiki/LSL_Status
     //
 
     /// <summary>
