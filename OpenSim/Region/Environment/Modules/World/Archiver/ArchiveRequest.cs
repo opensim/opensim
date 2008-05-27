@@ -105,7 +105,7 @@ namespace OpenSim.Region.Environment
             
             foreach (LLUUID uuid in assets.Keys)
             {
-                archive.AddFile(uuid.ToString(), assets[uuid].Data);
+                archive.AddFile(uuid.ToString() + ".jp2", assets[uuid].Data);
             }
             
             archive.WriteTar(m_savePath);
