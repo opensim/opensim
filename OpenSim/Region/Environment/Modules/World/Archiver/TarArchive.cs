@@ -51,6 +51,16 @@ namespace OpenSim.Region.Environment
         /// </summary>
         /// <param name="filePath"></param>
         /// <param name="data"></param>
+        public void AddFile(string filePath, string data)
+        {
+            AddFile(filePath, m_asciiEncoding.GetBytes(data));
+        }
+        
+        /// <summary>
+        /// Add a file to the tar archive
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="data"></param>
         public void AddFile(string filePath, byte[] data)
         {
             m_files[filePath] = data;
@@ -163,8 +173,6 @@ namespace OpenSim.Region.Environment
             {
                 oString = "0" + oString;
             }        
-            
-            m_log.DebugFormat("[TAR ARCHIVE]: oString is {0}", oString);
             
             byte[] oBytes = m_asciiEncoding.GetBytes(oString);
             

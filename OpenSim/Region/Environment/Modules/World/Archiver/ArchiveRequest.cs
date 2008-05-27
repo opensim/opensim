@@ -53,6 +53,8 @@ namespace OpenSim.Region.Environment
         private Scene m_scene;
         private string m_savePath;
         
+        private string m_serializedEntities;
+        
         public ArchiveRequest(Scene scene, string savePath)
         {
             m_scene = scene;
@@ -83,9 +85,9 @@ namespace OpenSim.Region.Environment
                 }                
             }          
 
-            string serEntities = SerializeObjects(entities);
+            m_serializedEntities = SerializeObjects(entities);
 
-            if (serEntities != null && serEntities.Length > 0)
+            if (m_serializedEntities != null && m_serializedEntities.Length > 0)
             {
                 m_log.DebugFormat("[ARCHIVER]: Successfully got serialization for {0} entities", entities.Count);
                 m_log.DebugFormat("[ARCHIVER]: Requiring save of {0} textures", textureUuids.Count);
@@ -102,6 +104,8 @@ namespace OpenSim.Region.Environment
             // XXX: Shouldn't hijack the asset async callback thread like this - this is only temporary
             
             TarArchive archive = new TarArchive();
+            
+            archive.AddFile("prims.xml", m_serializedEntities);
             
             foreach (LLUUID uuid in assets.Keys)
             {
