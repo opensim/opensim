@@ -94,6 +94,7 @@ namespace OpenSim
         protected string m_standaloneInventoryPlugin;
         protected string m_standaloneAssetPlugin;
         protected string m_standaloneUserPlugin;
+
         private string m_standaloneInventorySource;
         private string m_standaloneAssetSource;
         private string m_standaloneUserSource;
@@ -156,11 +157,15 @@ namespace OpenSim
             if (Directory.Exists("addin-db-001"))
                 Directory.Delete("addin-db-001", true);
 
-
-            m_log.Info("[OPENSIM MAIN]: PLEASE IGNORE THE SCANNING ERRORS BELOW.  These are the result of a temporary problem with our plugins manager.");
+            //This blocks the scanning warnings from outputing to the console.
+            TextWriter oldOutput = Console.Out;
+            Console.SetOut(new StreamWriter(Stream.Null));
 
             AddinManager.Initialize(".");
             AddinManager.Registry.Update(null);
+
+            //Returns the console.writelines back to the console's stream
+            Console.SetOut(oldOutput);
 
             Application.iniFilePath = startupConfig.GetString("inifile", "OpenSim.ini");
 
