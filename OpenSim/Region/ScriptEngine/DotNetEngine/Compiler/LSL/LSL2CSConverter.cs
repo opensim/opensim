@@ -42,7 +42,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         // c Style
         private Regex cstylecomments = new Regex(@"/\*(.|[\r\n])*?\*/", RegexOptions.Compiled | RegexOptions.Multiline);
         // c# one liners
-        private Regex conelinecomments = new Regex(@".?([\/]{2}[^\n]*)|([\n]{1,}[\/]{2}[^\n]*)", RegexOptions.Compiled | RegexOptions.Multiline);
+        private Regex nonCommentFwsl = new Regex("\"[a-zA-Z0-9.,:/ ]+//[^\"]+(" + @"[\\" + "\"]+)?[\"](\\s+)?;", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+        private Regex conelinecomments = new Regex(@"[^:].?([\/]{2}[^\n]*)|([\n]{1,}[\/]{2}[^\n]*)", RegexOptions.Compiled | RegexOptions.Multiline);
         // ([^\"])((?:[a-zA-Z])\.[a-zA-Z].?)([^\"])
 
         // value we're looking for: (?:[a-zA-Z])\.[a-zA-Z]
@@ -86,8 +87,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             string quote = String.Empty;
             bool last_was_escape = false;
             int quote_replaced_count = 0;
-
-            string removecomments = conelinecomments.Replace(Script, "");
+            
+            string removefwnoncomments = nonCommentFwsl.Replace(Script, "\"\";");
+            
+            string removecomments = conelinecomments.Replace(removefwnoncomments, "");
             removecomments = cstylecomments.Replace(removecomments, "");
             string[] localscript = removecomments.Split('"');
             string checkscript = String.Empty;
@@ -95,19 +98,21 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             for (int p = 0; p < localscript.Length; p++)
             {
-                if (localscript[p].Length >= 1)
-                {
-                    if (localscript[p].Substring(localscript[p].Length - 1, 1) != @"\")
+                //if (localscript[p].Length >= 1)
+                //{
+                    if (!localscript[p].EndsWith(@"\"))
                     {
                         flip = !flip;
+                        //System.Console.WriteLine("Flip:" + flip.ToString() + " - " + localscript[p] + " ! " + localscript[p].EndsWith(@"\").ToString());
                     }
-                }
-                else
-                {
-                    flip = !flip;
-                }
+                //}
+                //else
+                //{
+                //    flip = !flip;
+                //    System.Console.WriteLine("Flip:" + flip.ToString() + " - " + localscript[p]);
+                //}
                 if (!flip)
-                    checkscript += "\"" + localscript[p];
+                    checkscript += localscript[p];
             }
 
             //System.Console.WriteLine("SCRIPT:" + checkscript);
@@ -116,11 +121,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             // ignores alpha.x alpha.y, alpha.z for refering to vector components
             Match SecurityM;
 
-            // Instead of blocking all foo.bar values, block only the ones that will hit 
-            // namespaces we don't like.  To add more of these bad namespaces at them
-            // to the poison array.
-            String[] poison = {"System"};
-            SecurityM = Regex.Match(checkscript, @"(" + String.Join("|", poison) + @")\.(?:[a-wA-Z]|[a-zA-Z][a-zA-Z])", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            // BROKEN: this check is very wrong.  It block's any url in strings.
+            SecurityM = Regex.Match(checkscript, @"(?:[a-zA-Z])\.(?:[a-wA-Z]|[a-zA-Z][a-zA-Z])", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
             if (SecurityM.Success)
                throw new Exception("CS0103: 'The . symbol cannot be used in LSL except in float values or vector components'");
 
