@@ -58,7 +58,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             
             byte[] data = archive.Read(out filePath);
             
-            m_log.DebugFormat("Successfully read {0} ({1} bytes) from archive {2}", filePath, data.Length, m_loadPath);
+            m_log.DebugFormat("[ARCHIVER]: Successfully read {0} ({1} bytes) from archive {2}", filePath, data.Length, m_loadPath);
             
             archive.Close();
         }
