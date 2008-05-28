@@ -442,15 +442,19 @@ namespace OpenSim.Data.MySQL
 
         public void StoreTerrain(double[,] ter, LLUUID regionID)
         {
-            int revision = Util.UnixTimeSinceEpoch();
+            int revision = 1;
             m_log.Info("[REGION DB]: Storing terrain revision r" + revision.ToString());
 
             lock (m_dataSet)
             {
+                MySqlCommand delete = new MySqlCommand("delete from terrain where RegionUUID=?RegionUUID", m_connection);
                 MySqlCommand cmd = new MySqlCommand("insert into terrain(RegionUUID, Revision, Heightfield)" +
                                                     " values(?RegionUUID, ?Revision, ?Heightfield)", m_connection);
                 using (cmd)
                 {
+                    delete.Parameters.Add(new MySqlParameter("?RegionUUID", Util.ToRawUuidString(regionID)));
+                    delete.ExecuteNonQuery();
+                    
                     cmd.Parameters.Add(new MySqlParameter("?RegionUUID", Util.ToRawUuidString(regionID)));
                     cmd.Parameters.Add(new MySqlParameter("?Revision", revision));
                     cmd.Parameters.Add(new MySqlParameter("?Heightfield", serializeTerrain(ter)));
