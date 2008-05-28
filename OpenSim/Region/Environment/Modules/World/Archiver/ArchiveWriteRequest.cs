@@ -121,6 +121,8 @@ namespace OpenSim.Region.Environment
             }
 
             archive.WriteTar(m_savePath);
+            
+            m_log.InfoFormat("[ARCHIVER]: Wrote out OpenSimulator archive {0}", m_savePath);
         }
 
         /// <summary>

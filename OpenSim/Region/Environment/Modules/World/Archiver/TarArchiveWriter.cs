@@ -113,7 +113,7 @@ namespace OpenSim.Region.Environment
 
                 // file size in bytes (12)
                 int fileSize = data.Length;
-                m_log.DebugFormat("[TAR ARCHIVE]: File size of {0} is {1}", filePath, fileSize);
+                m_log.DebugFormat("[TAR ARCHIVE WRITER]: File size of {0} is {1}", filePath, fileSize);
 
                 byte[] fileSizeBytes = ConvertDecimalToPaddedOctalBytes(fileSize, 11);
 
@@ -146,7 +146,7 @@ namespace OpenSim.Region.Environment
                     checksum += b;
                 }
 
-                m_log.DebugFormat("[TAR ARCHIVE]: Decimal header checksum is {0}", checksum);
+                m_log.DebugFormat("[TAR ARCHIVE WRITER]: Decimal header checksum is {0}", checksum);
 
                 byte[] checkSumBytes = ConvertDecimalToPaddedOctalBytes(checksum, 6);
                 //byte[] checkSumBytes = m_asciiEncoding.GetBytes("007520");
@@ -165,7 +165,7 @@ namespace OpenSim.Region.Environment
                 {
                     int paddingRequired = 512 - (data.Length % 512);
                     
-                    m_log.DebugFormat("Padding data with {0} bytes", paddingRequired);
+                    m_log.DebugFormat("[TAR ARCHIVE WRITER]: Padding data with {0} bytes", paddingRequired);
 
                     byte[] padding = new byte[paddingRequired];
                     bw.Write(padding);
