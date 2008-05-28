@@ -3821,8 +3821,75 @@ namespace OpenSim.Region.ScriptEngine.Common
         public string llGetNotecardLine(string name, int line)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetNotecardLine");
-            return String.Empty;
+
+            // TODO: this script function should actually return
+            // the requested notecard line via the dataserver event
+            // once it is implemented - krtaylor
+
+            String[] notecardLines = GetNotecardLines(name);
+            if (!String.IsNullOrEmpty(notecardLines[0]))
+            {
+                return notecardLines[line];
+            }
+            else
+            {
+                return String.Empty;
+            }
+        }
+
+        private String[] GetNotecardLines(string name)
+        {
+            bool found = false;
+            int notecardIndex = 0;
+            String[] notecardLines = { "0" };
+            notecardLines[0] = String.Empty;
+
+            foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            {
+                if ((inv.Value.Name == name) && (inv.Value.InvType == (int)InventoryType.Notecard))
+                {
+                    // OK, it has the right name and it is a notecard
+                    // so get the asset that contains the notecard raw data
+                    // and convert it into a string
+                    AssetBase notecardAsset = World.AssetCache.GetAsset(inv.Value.AssetID, false);
+                    String dataString = System.Text.Encoding.ASCII.GetString(notecardAsset.Data);
+
+                    if (!String.IsNullOrEmpty(dataString))
+                    {
+                        // good, we have the notecard data as a string
+                        // now parse the text lines using the Linden Text delimiters
+                        notecardIndex = dataString.IndexOf("}\n");
+                        if (notecardIndex > 0)
+                        {
+                            notecardIndex = notecardIndex + 2; //get past delimiter
+                            notecardIndex = dataString.IndexOf("\n", notecardIndex);
+                            if (notecardIndex > 0)
+                            {
+                                // Finally got to the first line of the notecard
+                                // now find the end of the notecard text delimited by }<LF>
+                                // parse the lines, delimited by <LF>
+                                char[] delimChar = { '\n' };
+                                int notecardEof = dataString.IndexOf("}\n", notecardIndex);
+                                if (notecardEof > 0)
+                                {
+                                    int notecardLength = notecardEof - notecardIndex - 1;
+                                    notecardIndex = dataString.IndexOf("\n", notecardIndex);
+                                    notecardIndex++; // get past delimiter
+
+                                    // create new string to parse that only consists of the actual lines in the asset
+                                    Char[] notecardCharArray = dataString.ToCharArray(notecardIndex, notecardLength);
+                                    String notecardString = new String(notecardCharArray);
+
+                                    // split the lines of the notecard into separate strings
+                                    notecardLines = notecardString.Split(delimChar);
+                                    return notecardLines;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return notecardLines;
         }
 
         public LSL_Types.Vector3 llGetAgentSize(string id)
@@ -4769,11 +4836,23 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_host.ParentGroup.PrimCount;
         }
 
-        public string llGetNumberOfNotecardLines(string name)
+        public int llGetNumberOfNotecardLines(string name)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetNumberOfNotecardLines");
-            return String.Empty;
+
+            // TODO: this script function should actually return
+            // the number of lines via the dataserver event
+            // once it is implemented - krtaylor
+
+            String[] notecardLines = GetNotecardLines(name);
+            if (!String.IsNullOrEmpty(notecardLines[0]))
+            {
+                return notecardLines.Length;
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         public LSL_Types.list llGetBoundingBox(string obj)
