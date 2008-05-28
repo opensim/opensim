@@ -58,7 +58,7 @@ namespace OpenSim.Grid.GridServer
         /// Adds a new grid server plugin - grid servers will be requested in the order they were loaded.
         /// </summary>
         /// <param name="FileName">The filename to the grid server plugin DLL</param>
-        public void AddPlugin(string FileName)
+        public void AddPlugin(string FileName, string Connect)
         {
             m_log.Info("[DATA]: Attempting to load " + FileName);
             Assembly pluginAssembly = Assembly.LoadFrom(FileName);
@@ -75,7 +75,7 @@ namespace OpenSim.Grid.GridServer
                     {
                         IGridData plug =
                             (IGridData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                        plug.Initialise();
+                        plug.Initialise(Connect);
                         _plugins.Add(plug.getName(), plug);
                         m_log.Info("[DATA]: Added IGridData Interface");
                     }
@@ -87,7 +87,7 @@ namespace OpenSim.Grid.GridServer
                     {
                         ILogData plug =
                             (ILogData)Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                        plug.Initialise();
+                        plug.Initialise(Connect);
                         _logplugins.Add(plug.getName(), plug);
                         m_log.Info("[DATA]: Added ILogData Interface");
                     }

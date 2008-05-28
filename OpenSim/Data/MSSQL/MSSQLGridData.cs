@@ -53,8 +53,9 @@ namespace OpenSim.Data.MSSQL
         /// <summary>
         /// Initialises the Grid Interface
         /// </summary>
-        override public void Initialise()
+        override public void Initialise(string connect)
         {
+            // TODO: make the connect string actually do something
             IniFile iniFile = new IniFile("mssql_connection.ini");
 
             string settingDataSource = iniFile.ParseFileReadValue("data_source");

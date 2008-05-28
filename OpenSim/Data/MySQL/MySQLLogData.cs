@@ -24,6 +24,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+using System;
+using System.Reflection;
+using log4net;
 
 namespace OpenSim.Data.MySQL
 {
@@ -31,7 +34,8 @@ namespace OpenSim.Data.MySQL
     /// An interface to the log database for MySQL
     /// </summary>
     internal class MySQLLogData : ILogData
-    {
+    { 
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         /// <summary>
         /// The database manager
         /// </summary>
@@ -40,19 +44,25 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Artificial constructor called when the plugin is loaded
         /// </summary>
-        public void Initialise()
+        public void Initialise(string connect)
         {
-            IniFile GridDataMySqlFile = new IniFile("mysql_connection.ini");
-            string settingHostname = GridDataMySqlFile.ParseFileReadValue("hostname");
-            string settingDatabase = GridDataMySqlFile.ParseFileReadValue("database");
-            string settingUsername = GridDataMySqlFile.ParseFileReadValue("username");
-            string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
-            string settingPooling = GridDataMySqlFile.ParseFileReadValue("pooling");
-            string settingPort = GridDataMySqlFile.ParseFileReadValue("port");
+            if (connect != String.Empty) {
+                database = new MySQLManager(connect);
+            } else {
+                m_log.Warn("Using deprecated mysql_connection.ini.  Please update database_connect in GridServer_Config.xml and we'll use that instead");
 
-            database =
-                new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling,
-                                 settingPort);
+                IniFile GridDataMySqlFile = new IniFile("mysql_connection.ini");
+                string settingHostname = GridDataMySqlFile.ParseFileReadValue("hostname");
+                string settingDatabase = GridDataMySqlFile.ParseFileReadValue("database");
+                string settingUsername = GridDataMySqlFile.ParseFileReadValue("username");
+                string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
+                string settingPooling = GridDataMySqlFile.ParseFileReadValue("pooling");
+                string settingPort = GridDataMySqlFile.ParseFileReadValue("port");
+
+                database =
+                    new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling,
+                                     settingPort);
+            }
         }
 
         /// <summary>

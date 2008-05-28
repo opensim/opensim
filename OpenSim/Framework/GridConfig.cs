@@ -39,6 +39,7 @@ namespace OpenSim.Framework
 
         private ConfigurationMember configMember;
         public string DatabaseProvider = String.Empty;
+        public string DatabaseConnect = String.Empty;
         public string DefaultAssetServer = String.Empty;
         public string DefaultUserServer = String.Empty;
         public string GridOwner = String.Empty;
@@ -85,6 +86,8 @@ namespace OpenSim.Framework
                                                 "Key to expect from a simulator", "null", false);
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Data.MySQL.dll", false);
+            configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                "Database connect string", "", false);
 
             configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Http Listener port", DefaultHttpPort.ToString(), false);
@@ -127,6 +130,9 @@ namespace OpenSim.Framework
                     break;
                 case "database_provider":
                     DatabaseProvider = (string) configuration_result;
+                    break;
+                case "database_connect":
+                    DatabaseConnect = (string) configuration_result;
                     break;
                 case "http_port":
                     HttpPort = (uint) configuration_result;

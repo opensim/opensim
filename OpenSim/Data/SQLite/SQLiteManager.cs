@@ -49,11 +49,21 @@ namespace OpenSim.Data.SQLite
         /// <param name="username">The username logging into the database</param>
         /// <param name="password">The password for the user logging in</param>
         /// <param name="cpooling">Whether to use connection pooling or not, can be one of the following: 'yes', 'true', 'no' or 'false', if unsure use 'false'.</param>
-        public SQLiteManager(string hostname, string database, string username, string password, string cpooling)
+        public SQLiteManager(string connect)
         {
             try
             {
-                string connectionString = "URI=file:GridServerSqlite.db;";
+                string connectionString = String.Empty;
+                if (connect != String.Empty)
+                {
+                    connectionString = connect;
+                }
+                else
+                {
+                    m_log.Warn("[SQLITE] grid db not specified, using default");
+                    connectionString = "URI=file:GridServerSqlite.db;";
+                }
+
                 dbcon = new SQLiteConnection(connectionString);
 
                 dbcon.Open();

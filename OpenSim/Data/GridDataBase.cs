@@ -36,7 +36,7 @@ namespace OpenSim.Data
         public abstract RegionProfileData GetProfileByString(string regionName);
         public abstract RegionProfileData[] GetProfilesInRange(uint Xmin, uint Ymin, uint Xmax, uint Ymax);
         public abstract bool AuthenticateSim(LLUUID UUID, ulong regionHandle, string simrecvkey);
-        public abstract void Initialise();
+        public abstract void Initialise(string connect);
         public abstract void Close();
         public abstract string getName();
         public abstract string getVersion();

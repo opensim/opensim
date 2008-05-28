@@ -51,19 +51,24 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Initialises the Grid Interface
         /// </summary>
-        override public void Initialise()
+        override public void Initialise(string connect)
         {
-            IniFile GridDataMySqlFile = new IniFile("mysql_connection.ini");
-            string settingHostname = GridDataMySqlFile.ParseFileReadValue("hostname");
-            string settingDatabase = GridDataMySqlFile.ParseFileReadValue("database");
-            string settingUsername = GridDataMySqlFile.ParseFileReadValue("username");
-            string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
-            string settingPooling = GridDataMySqlFile.ParseFileReadValue("pooling");
-            string settingPort = GridDataMySqlFile.ParseFileReadValue("port");
+            if (connect != String.Empty) {
+                database = new MySQLManager(connect);
+            } else {
+                m_log.Warn("Using deprecated mysql_connection.ini.  Please update database_connect in GridServer_Config.xml and we'll use that instead");
+                IniFile GridDataMySqlFile = new IniFile("mysql_connection.ini");
+                string settingHostname = GridDataMySqlFile.ParseFileReadValue("hostname");
+                string settingDatabase = GridDataMySqlFile.ParseFileReadValue("database");
+                string settingUsername = GridDataMySqlFile.ParseFileReadValue("username");
+                string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
+                string settingPooling = GridDataMySqlFile.ParseFileReadValue("pooling");
+                string settingPort = GridDataMySqlFile.ParseFileReadValue("port");
 
-            database =
-                new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling,
-                                 settingPort);
+                database =
+                    new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling,
+                                     settingPort);
+            }
 
             TestTables();
         }

@@ -135,7 +135,7 @@ namespace OpenSim.Grid.GridServer
         {
             m_log.Info("[DATA]: Connecting to Storage Server");
             m_gridManager = new GridManager();
-            m_gridManager.AddPlugin(m_config.DatabaseProvider);
+            m_gridManager.AddPlugin(m_config.DatabaseProvider, m_config.DatabaseConnect);
             m_gridManager.Config = m_config;
         }
 

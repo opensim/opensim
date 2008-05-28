@@ -48,9 +48,9 @@ namespace OpenSim.Data.SQLite
         /// <summary>
         /// Initialises the Grid Interface
         /// </summary>
-        override public void Initialise()
+        override public void Initialise(string connect)
         {
-            database = new SQLiteManager("localhost", "db", "user", "password", "false");
+            database = new SQLiteManager(connect);
         }
 
         /// <summary>

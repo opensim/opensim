@@ -43,8 +43,9 @@ namespace OpenSim.Data.MSSQL
         /// <summary>
         /// Artificial constructor called when the plugin is loaded
         /// </summary>
-        public void Initialise()
+        public void Initialise(string connect)
         {
+            // TODO: do something with the connect string
             IniFile GridDataMySqlFile = new IniFile("mssql_connection.ini");
             string settingDataSource = GridDataMySqlFile.ParseFileReadValue("data_source");
             string settingInitialCatalog = GridDataMySqlFile.ParseFileReadValue("initial_catalog");
