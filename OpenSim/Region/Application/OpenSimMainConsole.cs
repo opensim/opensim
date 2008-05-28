@@ -360,6 +360,19 @@ namespace OpenSim
                     }
                     break;
 
+                case "load-oar":
+                    m_log.Error("[CONSOLE]: Don't use me - I haven't yet been sufficiently implemented!");
+
+                    if (cmdparams.Length > 0)
+                    {
+                        m_sceneManager.LoadArchiveToCurrentScene(cmdparams[0]);
+                    }
+                    else
+                    {
+                        m_sceneManager.LoadArchiveToCurrentScene(DEFAULT_OAR_BACKUP_FILENAME);
+                    }
+                    break;
+                    
                 case "save-oar":
                     m_log.Error("[CONSOLE]: Don't use me - I haven't yet been sufficiently implemented!");
 

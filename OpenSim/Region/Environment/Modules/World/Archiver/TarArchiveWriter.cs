@@ -25,7 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -38,7 +37,7 @@ namespace OpenSim.Region.Environment
     /// <summary>
     /// Temporary code to produce a tar archive in tar v7 format
     /// </summary>
-    public class TarArchive
+    public class TarArchiveWriter
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 

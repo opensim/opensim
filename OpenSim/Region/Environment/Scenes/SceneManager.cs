@@ -192,7 +192,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void LoadCurrentSceneFromXml2(string filename)
         {
             CurrentOrFirstScene.LoadPrimsFromXml2(filename);
-        }
+        }        
 
         /// <summary>
         /// Save the current scene to an OpenSimulator archive.  This archive will eventually include the prim's assets
@@ -209,9 +209,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// their assets to the asset service.
         /// </summary>
         /// <param name="filename"></param>
-        public void LoadCurrentSceneFromArchive(string filename)
+        public void LoadArchiveToCurrentScene(string filename)
         {
-            CurrentOrFirstScene.SavePrimsToArchive(filename);
+            CurrentOrFirstScene.LoadPrimsFromArchive(filename);
         }
 
         [Obsolete("TODO: Remove this warning by 0.7")]

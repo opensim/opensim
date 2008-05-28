@@ -44,9 +44,9 @@ namespace OpenSim.Region.Environment
     public delegate void AssetsRequestCallback(IDictionary<LLUUID, AssetBase> assets);
 
     /// <summary>
-    /// Handles an individual archive request
+    /// Handles an individual archive write request
     /// </summary>
-    public class ArchiveRequest
+    public class ArchiveWriteRequest
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -55,7 +55,7 @@ namespace OpenSim.Region.Environment
 
         private string m_serializedEntities;
 
-        public ArchiveRequest(Scene scene, string savePath)
+        public ArchiveWriteRequest(Scene scene, string savePath)
         {
             m_scene = scene;
             m_savePath = savePath;
@@ -65,8 +65,6 @@ namespace OpenSim.Region.Environment
 
         protected void ArchiveRegion()
         {
-            m_log.Warn("[ARCHIVER]: Archive region not yet implemented");
-
             Dictionary<LLUUID, int> textureUuids = new Dictionary<LLUUID, int>();
 
             List<EntityBase> entities = m_scene.GetEntities();
@@ -103,7 +101,7 @@ namespace OpenSim.Region.Environment
 
             // XXX: Shouldn't hijack the asset async callback thread like this - this is only temporary
 
-            TarArchive archive = new TarArchive();
+            TarArchiveWriter archive = new TarArchiveWriter();
 
             archive.AddFile("prims.xml", m_serializedEntities);
             

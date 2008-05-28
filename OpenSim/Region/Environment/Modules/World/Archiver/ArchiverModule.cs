@@ -72,12 +72,12 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
         public void ArchiveRegion(string savePath)
         {
-            new ArchiveRequest(m_scene, savePath);
+            new ArchiveWriteRequest(m_scene, savePath);
         }
 
         public void DearchiveRegion(string loadPath)
         {
-            m_log.Warn("[ARCHIVER]: Dearchive region not yet implemented");
+            new ArchiveReadRequest(m_scene, loadPath);
         }
     }
 }
