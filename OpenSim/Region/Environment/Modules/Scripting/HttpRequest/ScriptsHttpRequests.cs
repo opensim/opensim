@@ -314,6 +314,16 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
                 request.Method = httpMethod;
                 request.ContentType = httpMIMEType;
 
+                // Encode outbound data
+                if (outbound_body.Length > 0) {
+                    byte[] data = Encoding.UTF8.GetBytes(outbound_body);
+
+                    request.ContentLength = data.Length;
+                    Stream bstream = request.GetRequestStream();
+                    bstream.Write(data, 0, data.Length);
+                    bstream.Close();
+                }
+
                 request.Timeout = httpTimeout;
                 // execute the request
                 response = (HttpWebResponse)
