@@ -295,7 +295,11 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part=GetSceneObjectPart(objectID);
             if (part == null)
                 return;
-            EventManager.TriggerScriptReset(part.LocalId, itemID);
+
+            if (ExternalChecks.ExternalChecksCanResetScript(itemID, remoteClient.AgentId))
+            {
+                EventManager.TriggerScriptReset(part.LocalId, itemID);
+            }
         }
     }
 }

@@ -582,7 +582,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             #endregion
 
-            #region RUN SCRIPT
+            #region RUN SCRIPT (When Script Placed in Object)
             public delegate bool CanRunScript(LLUUID script, LLUUID objectID, LLUUID user, Scene scene);
             private List<CanRunScript> CanRunScriptCheckFunctions = new List<CanRunScript>();
 
@@ -602,6 +602,93 @@ namespace OpenSim.Region.Environment.Scenes
                 foreach (CanRunScript check in CanRunScriptCheckFunctions)
                 {
                     if (check(script, objectID, user, m_scene) == false)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            #endregion
+
+            #region START SCRIPT (When Script run box is Checked after placed in object)
+            public delegate bool CanStartScript(LLUUID script, LLUUID user, Scene scene);
+            private List<CanStartScript> CanStartScriptCheckFunctions = new List<CanStartScript>();
+
+            public void addCheckStartScript(CanStartScript delegateFunc)
+            {
+                if (!CanStartScriptCheckFunctions.Contains(delegateFunc))
+                    CanStartScriptCheckFunctions.Add(delegateFunc);
+            }
+            public void removeCheckStartScript(CanStartScript delegateFunc)
+            {
+                if (CanStartScriptCheckFunctions.Contains(delegateFunc))
+                    CanStartScriptCheckFunctions.Remove(delegateFunc);
+            }
+
+            public bool ExternalChecksCanStartScript(LLUUID script, LLUUID user)
+            {
+                foreach (CanStartScript check in CanStartScriptCheckFunctions)
+                {
+                    if (check(script, user, m_scene) == false)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+        #endregion
+
+            #region STOP SCRIPT (When Script run box is unchecked after placed in object)
+            public delegate bool CanStopScript(LLUUID script, LLUUID user, Scene scene);
+            private List<CanStopScript> CanStopScriptCheckFunctions = new List<CanStopScript>();
+
+            public void addCheckStopScript(CanStopScript delegateFunc)
+            {
+                if (!CanStopScriptCheckFunctions.Contains(delegateFunc))
+                    CanStopScriptCheckFunctions.Add(delegateFunc);
+            }
+            public void removeCheckStopScript(CanStopScript delegateFunc)
+            {
+                if (CanStopScriptCheckFunctions.Contains(delegateFunc))
+                    CanStopScriptCheckFunctions.Remove(delegateFunc);
+            }
+
+            public bool ExternalChecksCanStopScript(LLUUID script, LLUUID user)
+            {
+                foreach (CanStopScript check in CanStopScriptCheckFunctions)
+                {
+                    if (check(script, user, m_scene) == false)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            #endregion
+
+            #region RESET SCRIPT
+            public delegate bool CanResetScript(LLUUID script, LLUUID user, Scene scene);
+            private List<CanResetScript> CanResetScriptCheckFunctions = new List<CanResetScript>();
+
+            public void addCheckResetScript(CanResetScript delegateFunc)
+            {
+                if (!CanResetScriptCheckFunctions.Contains(delegateFunc))
+                    CanResetScriptCheckFunctions.Add(delegateFunc);
+            }
+            public void removeCheckResetScript(CanResetScript delegateFunc)
+            {
+                if (CanResetScriptCheckFunctions.Contains(delegateFunc))
+                    CanResetScriptCheckFunctions.Remove(delegateFunc);
+            }
+
+            public bool ExternalChecksCanResetScript(LLUUID script, LLUUID user)
+            {
+                foreach (CanResetScript check in CanResetScriptCheckFunctions)
+                {
+                    if (check(script, user, m_scene) == false)
                     {
                         return false;
                     }

@@ -1018,13 +1018,16 @@ namespace OpenSim.Region.Environment.Scenes
                         SceneObjectPart part = GetSceneObjectPart(localID);
                         if (part != null)
                         {
-                            part.ParentGroup.AddInventoryItem(remoteClient, localID, item, copyID);
-                            part.ParentGroup.StartScript(localID, copyID);
-                            part.GetProperties(remoteClient);
+                            if (ExternalChecks.ExternalChecksCanRunScript(item.ID, part.UUID, remoteClient.AgentId))
+                            {
+                                part.ParentGroup.AddInventoryItem(remoteClient, localID, item, copyID);
+                                part.ParentGroup.StartScript(localID, copyID);
+                                part.GetProperties(remoteClient);
 
-    //                        m_log.InfoFormat("[PRIMINVENTORY]: " +
-    //                                         "Rezzed script {0} into prim local ID {1} for user {2}",
-    //                                         item.inventoryName, localID, remoteClient.Name);
+                                //                        m_log.InfoFormat("[PRIMINVENTORY]: " +
+                                //                                         "Rezzed script {0} into prim local ID {1} for user {2}",
+                                //                                         item.inventoryName, localID, remoteClient.Name);
+                            }
                         }
                         else
                         {
@@ -1076,7 +1079,10 @@ namespace OpenSim.Region.Environment.Scenes
 
                 part.AddInventoryItem(taskItem);
                 part.GetProperties(remoteClient);
-                part.StartScript(taskItem);
+                if (ExternalChecks.ExternalChecksCanRunScript(taskItem.AssetID, part.UUID, remoteClient.AgentId))
+                {
+                    part.StartScript(taskItem);
+                }
             }
         }
 

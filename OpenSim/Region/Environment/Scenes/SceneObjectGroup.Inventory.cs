@@ -49,6 +49,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
+
                 part.StartScript(itemID);
 
             }
