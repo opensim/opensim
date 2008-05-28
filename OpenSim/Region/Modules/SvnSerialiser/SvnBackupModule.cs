@@ -53,7 +53,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
         private IRegionSerialiser m_serialiser;
         private bool m_svnAutoSave = false;
         private SvnClient m_svnClient;
-        private string m_svndir = "SVNmodule\\repo";
+        private string m_svndir = "SVNmodule" + Slash.DirectorySeparatorChar + "repo";
         private string m_svnpass = "password";
 
         private TimeSpan m_svnperiod = new TimeSpan(0, 0, 15, 0, 0);
@@ -96,7 +96,7 @@ namespace OpenSim.Region.Modules.SvnSerialiser
         {
             m_log.Info("[SVNBACKUP]: Saving a region to SVN with name " + scene.RegionInfo.RegionName);
 
-            List<string> filenames = m_serialiser.SerialiseRegion(scene, m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID + "\\");
+            List<string> filenames = m_serialiser.SerialiseRegion(scene, m_svndir + Slash.DirectorySeparatorChar + scene.RegionInfo.RegionID + Slash.DirectorySeparatorChar);
 
             try
             {
