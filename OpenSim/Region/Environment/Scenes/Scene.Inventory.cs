@@ -972,6 +972,8 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else // Updating existing item with new perms etc
                 {
+					TaskInventoryItem prevItem=part.GetInventoryItem(itemID);
+					itemInfo.AssetID = prevItem.AssetID;
                     if(part.UpdateInventoryItem(itemInfo))
                         part.GetProperties(remoteClient);
                 }
