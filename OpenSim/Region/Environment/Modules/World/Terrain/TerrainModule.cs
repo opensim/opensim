@@ -279,7 +279,8 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                 }
                 else
                 {
-                    m_log.Warn("E ... " + pluginName + " (Skipping)");
+                    m_plugineffects[pluginName] = effect;
+                    m_log.Warn("E ... " + pluginName + " (Replaced)");
                 }
             }
         }
