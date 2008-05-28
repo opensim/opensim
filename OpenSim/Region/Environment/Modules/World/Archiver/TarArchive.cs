@@ -47,6 +47,19 @@ namespace OpenSim.Region.Environment
         protected static System.Text.ASCIIEncoding m_asciiEncoding = new System.Text.ASCIIEncoding();
 
         /// <summary>
+        /// Add a directory to the tar archive.  We can only handle one path level right now!
+        /// </summary>
+        /// <param name="dirName"></param>
+        public void AddDir(string dirName)
+        {
+            // Directories are signalled by a final /
+            if (!dirName.EndsWith("/"))
+                dirName += "/";
+            
+            AddFile(dirName, new byte[0]);
+        }
+        
+        /// <summary>
         /// Add a file to the tar archive
         /// </summary>
         /// <param name="filePath"></param>
@@ -88,7 +101,7 @@ namespace OpenSim.Region.Environment
                 Array.Copy(nameBytes, header, nameSize);
 
                 // file mode (8)
-                byte[] modeBytes = m_asciiEncoding.GetBytes("0000644");
+                byte[] modeBytes = m_asciiEncoding.GetBytes("0000755");
                 Array.Copy(modeBytes, 0, header, 100, 7);
 
                 // owner user id (8)
@@ -113,7 +126,14 @@ namespace OpenSim.Region.Environment
 
                 // link indicator (1)
                 //header[156] = m_asciiEncoding.GetBytes("0")[0];
-                header[156] = 0;
+                if (filePath.EndsWith("/"))
+                {
+                    header[156] = m_asciiEncoding.GetBytes("5")[0];
+                }
+                else
+                {
+                    header[156] = 0;
+                }
 
                 Array.Copy(m_asciiEncoding.GetBytes("0000000"), 0, header, 329, 7);
                 Array.Copy(m_asciiEncoding.GetBytes("0000000"), 0, header, 337, 7);
@@ -142,9 +162,10 @@ namespace OpenSim.Region.Environment
                 // Write out data
                 bw.Write(data);
 
-                int paddingRequired = 512 - (data.Length % 512);
-                if (paddingRequired > 0)
+                if (data.Length % 512 != 0)
                 {
+                    int paddingRequired = 512 - (data.Length % 512);
+                    
                     m_log.DebugFormat("Padding data with {0} bytes", paddingRequired);
 
                     byte[] padding = new byte[paddingRequired];

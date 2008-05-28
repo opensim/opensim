@@ -106,10 +106,20 @@ namespace OpenSim.Region.Environment
             TarArchive archive = new TarArchive();
 
             archive.AddFile("prims.xml", m_serializedEntities);
+            
+            // It appears that gtar, at least, doesn't need the intermediate directory entries in the tar
+            //archive.AddDir("assets");
 
             foreach (LLUUID uuid in assets.Keys)
             {
-                archive.AddFile(uuid.ToString() + ".jp2", assets[uuid].Data);
+                if (assets[uuid] != null)
+                {
+                    archive.AddFile("assets/" + uuid.ToString() + ".jp2", assets[uuid].Data);
+                }
+                else
+                {
+                    m_log.DebugFormat("[ARCHIVER]: Could not find asset {0} to archive", uuid);
+                }
             }
 
             archive.WriteTar(m_savePath);
