@@ -592,6 +592,20 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        //Xantor 20080528 Sound stuff:
+        //  Note: This isn't persisted in the database right now, as the fields for that aren't just there yet.
+        //        Not a big problem as long as the script that sets it remains in the prim on startup.
+        //        for SL compatibility it should be persisted though (set sound / displaytext / particlesystem, kill script)
+        [XmlIgnore]
+        public LLUUID Sound;
+        [XmlIgnore]
+        public byte SoundFlags;
+        [XmlIgnore]
+        public double SoundGain;
+        [XmlIgnore]
+        public double SoundRadius;
+
+
         private string m_sitName = String.Empty;
 
         public string SitName
@@ -2406,7 +2420,7 @@ namespace OpenSim.Region.Environment.Scenes
                                                m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, m_shape,
                                                lPos, Velocity, Acceleration, RotationOffset, RotationalVelocity, clientFlags, m_uuid,
                                                OwnerID,
-                                               m_text, color, ParentID, m_particleSystem, m_clickAction, m_TextureAnimation, m_IsAttachment, m_attachmentPoint,fromAssetID);
+                                               m_text, color, ParentID, m_particleSystem, m_clickAction, m_TextureAnimation, m_IsAttachment, m_attachmentPoint,fromAssetID, Sound, SoundGain, SoundFlags, SoundRadius);
         }
 
         /// Terse updates

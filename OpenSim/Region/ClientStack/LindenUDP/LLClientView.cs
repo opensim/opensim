@@ -2194,7 +2194,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             SendPrimitiveToClient(regionHandle, timeDilation, localID, primShape, pos, vel,
                                   acc, rotation, rvel, flags,
                                   objectID, ownerID, text, color, parentID, particleSystem,
-                                  clickAction, textureanim, false,(uint)0, LLUUID.Zero);
+                                  clickAction, textureanim, false,(uint)0, LLUUID.Zero, LLUUID.Zero,0,0,0);
         }
 
         public void SendPrimitiveToClient(
@@ -2202,12 +2202,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             LLVector3 pos, LLVector3 velocity, LLVector3 acceleration, LLQuaternion rotation, LLVector3 rotational_velocity,
             uint flags,
             LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem,
-            byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, LLUUID AssetId)
+            byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, LLUUID AssetId, LLUUID SoundId, double SoundGain, byte SoundFlags, double SoundRadius)
         {
             if (rotation.X == rotation.Y && rotation.Y == rotation.Z && rotation.Z == rotation.W && rotation.W == 0)
                 rotation = LLQuaternion.Identity;
 
             ObjectUpdatePacket outPacket = (ObjectUpdatePacket)PacketPool.Instance.GetPacket(PacketType.ObjectUpdate);
+
+            
+
             // TODO: don't create new blocks if recycling an old packet
             outPacket.RegionData.RegionHandle = regionHandle;
             outPacket.RegionData.TimeDilation = timeDilation;
@@ -2234,7 +2237,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             outPacket.ObjectData[0].ParentID = parentID;
             outPacket.ObjectData[0].PSBlock = particleSystem;
             outPacket.ObjectData[0].ClickAction = clickAction;
-            //outPacket.ObjectData[0].Flags = 0;
+            outPacket.ObjectData[0].Flags = 0;
 
             if (attachment)
             {
@@ -2248,8 +2251,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 outPacket.ObjectData[0].State = (byte)((AttachPoint % 16) * 16 + (AttachPoint / 16));
             }
 
-            // Sound Radius
-            outPacket.ObjectData[0].Radius = 20;
+            // Xantor 20080528: Send sound info as well
+            outPacket.ObjectData[0].Sound   = SoundId;
+            outPacket.ObjectData[0].OwnerID = ownerID;
+            outPacket.ObjectData[0].Gain    = (float) SoundGain;
+            outPacket.ObjectData[0].Radius  = (float) SoundRadius;
+            outPacket.ObjectData[0].Flags   = SoundFlags; 
+
 
             byte[] pb = pos.GetBytes();
             Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);

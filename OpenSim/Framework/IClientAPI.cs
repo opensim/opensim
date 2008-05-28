@@ -892,7 +892,7 @@ namespace OpenSim.Framework
                                    LLVector3 pos, LLVector3 vel, LLVector3 acc, LLQuaternion rotation, LLVector3 rvel,
                                    uint flags,
                                    LLUUID objectID, LLUUID ownerID, string text, byte[] color, uint parentID, byte[] particleSystem,
-                                   byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, LLUUID AssetId);
+                                   byte clickAction, byte[] textureanim, bool attachment, uint AttachPoint, LLUUID AssetId, LLUUID SoundId, double SoundVolume, byte SoundFlags, double SoundRadius);
 
 
         void SendPrimitiveToClient(ulong regionHandle, ushort timeDilation, uint localID, PrimitiveBaseShape primShape,

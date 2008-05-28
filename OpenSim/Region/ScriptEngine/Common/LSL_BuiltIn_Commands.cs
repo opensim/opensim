@@ -1390,16 +1390,59 @@ namespace OpenSim.Region.ScriptEngine.Common
             Deprecated("llSound");
         }
 
+        // Xantor 20080528 PlaySound updated so it accepts an objectinventory name -or- a key to a sound
         public void llPlaySound(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
+
+            LLUUID key = LLUUID.Zero;
+
+            // if we can parse the string as a key, use it.
+            if (LLUUID.TryParse(sound, out key))
+            {
+                 sound = key.ToString();
+            }
+            // else try to locate the name in inventory of object. found returns key,
+            // not found returns LLUUID.Zero
+            else
+            {
+                 sound = InventoryKey(sound).ToString();
+            }
+
+            // send the sound, once, to all clients in range
             m_host.SendSound(sound, volume, false, 0);
+
         }
 
+        // Xantor 20080528 we should do this differently.
+        // 1) apply the sound to the object
+        // 2) schedule full update
+        // just sending the sound out once doesn't work so well when other avatars come in view later on
+        // or when the prim gets moved, changed, sat on, whatever
+        // see large number of mantises (mantes?)
         public void llLoopSound(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
-            m_host.SendSound(sound, volume, false, 1);
+//            m_host.SendSound(sound, volume, false, 1);
+            LLUUID key = LLUUID.Zero;
+
+            // if we can parse the string as a key, use it.
+            if (LLUUID.TryParse(sound, out key))
+            {
+                m_host.Sound = key;
+            }
+            // else try to locate the name in inventory of object. found returns key,
+            // not found returns LLUUID.Zero 
+            else
+            {
+                m_host.Sound = InventoryKey(sound.ToString());
+            }
+
+            m_host.SoundGain = volume;
+            m_host.SoundFlags = 1;      // looping
+            m_host.SoundRadius = 20;    // Magic number, 20 seems reasonable. Make configurable?
+
+            m_host.SendFullUpdateToAllClients();
         }
 
         public void llLoopSoundMaster(string sound, double volume)
@@ -1426,10 +1469,19 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.SendSound(sound, volume, true, 0);
         }
 
+        // Xantor 20080528: Clear prim data of sound instead
         public void llStopSound()
         {
             m_host.AddScriptLPS(1);
-            m_host.SendSound(LLUUID.Zero.ToString(), 1.0, false, 2);
+
+            m_host.Sound = LLUUID.Zero;
+            m_host.SoundGain = 0;
+            m_host.SoundFlags = 0;
+            m_host.SoundRadius = 0; 
+
+            m_host.SendFullUpdateToAllClients();
+
+            // m_host.SendSound(LLUUID.Zero.ToString(), 1.0, false, 2);
         }
 
         public void llPreloadSound(string sound)

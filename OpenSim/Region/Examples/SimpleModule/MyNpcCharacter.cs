@@ -430,7 +430,7 @@ namespace OpenSim.Region.Examples.SimpleModule
                                                   LLUUID objectID, LLUUID ownerID, string text, byte[] color,
                                                   uint parentID,
                                                   byte[] particleSystem, byte clickAction, byte[] textureanimation,
-                                                  bool attachment, uint AttachmentPoint, LLUUID AssetId)
+                                                  bool attachment, uint AttachmentPoint, LLUUID AssetId, LLUUID SoundId, double SoundVolume, byte SoundFlags, double SoundRadius)
         {
         }
         public virtual void SendPrimTerseUpdate(ulong regionHandle, ushort timeDilation, uint localID,
