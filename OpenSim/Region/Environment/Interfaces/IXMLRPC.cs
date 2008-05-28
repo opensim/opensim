@@ -32,7 +32,7 @@ namespace OpenSim.Region.Environment.Interfaces
 {
     public interface IXMLRPC
     {
-        LLUUID OpenXMLRPCChannel(uint localID, LLUUID itemID);
+        LLUUID OpenXMLRPCChannel(uint localID, LLUUID itemID, LLUUID channelID);
         void CloseXMLRPCChannel(LLUUID channelKey);
         bool hasRequests();
         void RemoteDataReply(string channel, string message_id, string sdata, int idata);

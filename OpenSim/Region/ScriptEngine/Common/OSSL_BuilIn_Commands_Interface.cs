@@ -62,5 +62,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         string osDrawImage(string drawList, int width, int height, string imageUrl);
         void osSetStateEvents(int events);
 
+        void osOpenRemoteDataChannel(string channel);
+
     }
 }

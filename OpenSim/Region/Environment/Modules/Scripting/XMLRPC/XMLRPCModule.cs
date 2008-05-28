@@ -160,6 +160,10 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
          *
          * Generate a LLUUID channel key and add it and
          * the prim id to dictionary <channelUUID, primUUID>
+         * 
+         * A custom channel key can be proposed.
+         * Otherwise, passing LLUUID.Zero will generate 
+         * and return a random channel
          *
          * First check if there is a channel assigned for
          * this itemID.  If there is, then someone called
@@ -169,9 +173,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
          *
          * ********************************************/
 
-        public LLUUID OpenXMLRPCChannel(uint localID, LLUUID itemID)
+        public LLUUID OpenXMLRPCChannel(uint localID, LLUUID itemID, LLUUID channelID)
         {
-            LLUUID channel = new LLUUID();
+            LLUUID newChannel = LLUUID.Zero;
 
             //Is a dupe?
             foreach (RPCChannelInfo ci in m_openChannels.Values)
@@ -179,22 +183,22 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
                 if (ci.GetItemID().Equals(itemID))
                 {
                     // return the original channel ID for this item
-                    channel = ci.GetChannelID();
+                    newChannel = ci.GetChannelID();
                     break;
                 }
             }
 
-            if (channel == LLUUID.Zero)
+            if (newChannel == LLUUID.Zero)
             {
-                channel = LLUUID.Random();
-                RPCChannelInfo rpcChanInfo = new RPCChannelInfo(localID, itemID, channel);
+                newChannel = (channelID == LLUUID.Zero) ? LLUUID.Random() : channelID;
+                RPCChannelInfo rpcChanInfo = new RPCChannelInfo(localID, itemID, newChannel);
                 lock (XMLRPCListLock)
                 {
-                    m_openChannels.Add(channel, rpcChanInfo);
+                    m_openChannels.Add(newChannel, rpcChanInfo);
                 }
             }
 
-            return channel;
+            return newChannel;
         }
 
         // Delete channels based on itemID

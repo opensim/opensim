@@ -2011,6 +2011,11 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.osSetStateEvents(events);
         }
 
+        public void osOpenRemoteDataChannel(string channel)
+        {
+            m_LSL_Functions.osOpenRemoteDataChannel(channel);
+        }
+
         //
 
         public double llList2Float(LSL_Types.list src, int index)

@@ -31,6 +31,7 @@ using Nini.Config;
 using OpenSim.Framework.Console;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 
 //using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL;
 
@@ -531,5 +532,16 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.SetScriptEvents(m_itemID, events);
         }
 
+        public void osOpenRemoteDataChannel(string channel)
+        {
+            m_host.AddScriptLPS(1);
+            IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
+            if (xmlrpcMod.IsEnabled())
+            {
+                LLUUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_localID, m_itemID, new LLUUID(channel));
+                object[] resobj = new object[] { new LSL_Types.LSLInteger(1), new LSL_Types.LSLString(channelID.ToString()), new LSL_Types.LSLString(LLUUID.Zero.ToString()), new LSL_Types.LSLString(String.Empty), new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(String.Empty) };
+                m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(m_localID, m_itemID, "remote_data", EventQueueManager.llDetectNull, resobj);
+            }
+        }
     }
 }

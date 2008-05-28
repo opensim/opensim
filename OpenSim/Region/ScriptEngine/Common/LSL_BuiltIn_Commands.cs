@@ -4362,7 +4362,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             IXMLRPC xmlrpcMod = m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
             if (xmlrpcMod.IsEnabled())
             {
-                LLUUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_localID, m_itemID);
+                LLUUID channelID = xmlrpcMod.OpenXMLRPCChannel(m_localID, m_itemID, LLUUID.Zero);
                 object[] resobj = new object[] { new LSL_Types.LSLInteger(1), new LSL_Types.LSLString(channelID.ToString()), new LSL_Types.LSLString(LLUUID.Zero.ToString()), new LSL_Types.LSLString(String.Empty), new LSL_Types.LSLInteger(0), new LSL_Types.LSLString(String.Empty) };
                 m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(m_localID, m_itemID, "remote_data", EventQueueManager.llDetectNull, resobj);
             }
