@@ -48,28 +48,27 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         private MySQLManager database;
 
-        /// <summary>
-        /// Loads and initialises this database plugin
-        /// </summary>
         public void Initialise(string connect)
         {
-            // TODO: actually use the provided connect string
-            Initialise();
-        }
-
-        public void Initialise()
-        {
-            IniFile GridDataMySqlFile = new IniFile("mysql_connection.ini");
-            string settingHostname = GridDataMySqlFile.ParseFileReadValue("hostname");
-            string settingDatabase = GridDataMySqlFile.ParseFileReadValue("database");
-            string settingUsername = GridDataMySqlFile.ParseFileReadValue("username");
-            string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
-            string settingPooling = GridDataMySqlFile.ParseFileReadValue("pooling");
-            string settingPort = GridDataMySqlFile.ParseFileReadValue("port");
-
-            database =
-                new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling,
-                                 settingPort);
+            if(connect != String.Empty)
+            {
+                database = new MySQLManager(connect);
+            }
+            else
+            {
+                m_log.Warn("Reverting to deprecated mysql_connection.ini file for connection info");
+                IniFile GridDataMySqlFile = new IniFile("mysql_connection.ini");
+                string settingHostname = GridDataMySqlFile.ParseFileReadValue("hostname");
+                string settingDatabase = GridDataMySqlFile.ParseFileReadValue("database");
+                string settingUsername = GridDataMySqlFile.ParseFileReadValue("username");
+                string settingPassword = GridDataMySqlFile.ParseFileReadValue("password");
+                string settingPooling = GridDataMySqlFile.ParseFileReadValue("pooling");
+                string settingPort = GridDataMySqlFile.ParseFileReadValue("port");
+                
+                database =
+                    new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling,
+                                     settingPort);
+            }
             TestTables(database.Connection);
         }
 

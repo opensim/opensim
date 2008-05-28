@@ -29,5 +29,6 @@ namespace OpenSim.Data
 {
     public abstract class InventoryDataBase
     {
+        public abstract void Initialise(string connect);
     }
 }
