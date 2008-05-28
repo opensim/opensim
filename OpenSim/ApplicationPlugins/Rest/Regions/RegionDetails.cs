@@ -72,7 +72,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
         {
             get
             {
-                switch(idx.ToLower())
+                switch (idx.ToLower())
                 {
                 case "name":
                     return region_name;

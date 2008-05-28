@@ -196,7 +196,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             }
             sceneObject.UpdateParentIDs();
-            
+
             AddSceneObject(sceneObject);
         }
 
@@ -215,14 +215,14 @@ namespace OpenSim.Region.Environment.Scenes
                     //  QuadTree.AddSceneObject(sceneObject);
                     Entities.Add(sceneObject.UUID, sceneObject);
                     m_numPrim++;
-                    
+
                     return true;
                 }
-                
+
                 return false;
             }
         }
-        
+
         /// <summary>
         /// Delete an object from the scene
         /// </summary>
@@ -236,11 +236,11 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     Entities.Remove(uuid);
                     m_numPrim--;
-                    
+
                     return true;
                 }
             }
-            
+
             return false;
         }
 
@@ -313,7 +313,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_activeScripts += number;
         }
-        
+
         protected internal void DetachObject(uint objectLocalID, IClientAPI remoteClient)
         {
             List<EntityBase> EntityList = GetEntities();
@@ -340,9 +340,9 @@ namespace OpenSim.Region.Environment.Scenes
                 SceneObjectPart part =  m_parentScene.GetSceneObjectPart(primId);
                 if (part != null)
                     part.Undo();
-            }            
+            }
         }
-        
+
         protected internal void HandleObjectGroupUpdate(
             IClientAPI remoteClient, LLUUID GroupID, uint objectLocalID, LLUUID Garbage)
         {
@@ -360,12 +360,11 @@ namespace OpenSim.Region.Environment.Scenes
                             group.SetGroup(GroupID, remoteClient);
                         else
                             remoteClient.SendAgentAlertMessage("You don't have permission to set the group", false);
-                        
                     }
                 }
             }
         }
-        
+
         /// <summary>
         /// Event Handling routine for Attach Object
         /// </summary>
@@ -379,7 +378,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             AttachObject(remoteClient, objectLocalID, AttachmentPt, rot, LLVector3.Zero);
         }
-        
+
         protected internal void RezSingleAttachment(
             IClientAPI remoteClient, LLUUID itemID, uint AttachmentPt,uint ItemFlags, uint NextOwnerMask)
         {
@@ -492,7 +491,7 @@ namespace OpenSim.Region.Environment.Scenes
             newAvatar.IsChildAgent = child;
 
             AddScenePresence(newAvatar);
-            
+
             return newAvatar;
         }
 
@@ -528,7 +527,7 @@ namespace OpenSim.Region.Environment.Scenes
                 ScenePresences[presence.UUID] = presence;
             }
         }
-        
+
         /// <summary>
         /// Remove a presence from the scene
         /// </summary>
@@ -545,9 +544,9 @@ namespace OpenSim.Region.Environment.Scenes
                     m_log.WarnFormat("[SCENE] Tried to remove non-existent scene presence with agent ID {0} from scene Entities list", agentID);
                 }
             }
-            
+
             lock (ScenePresences)
-            {                
+            {
                 if (ScenePresences.Remove(agentID))
                 {
                     //m_log.InfoFormat("[SCENE] Removed scene presence {0}", agentID);
@@ -556,7 +555,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     m_log.WarnFormat("[SCENE] Tried to remove non-existent scene presence with agent ID {0} from scene ScenePresences list", agentID);
                 }
-            }          
+            }
         }
 
         protected internal void SwapRootChildAgent(bool direction_RC_CR_T_F)
@@ -622,7 +621,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_scriptLPS = 0;
             return returnval;
         }
-        
+
         #endregion
 
         #region Get Methods
@@ -863,7 +862,6 @@ namespace OpenSim.Region.Environment.Scenes
                             {
                                 break;
                             }
-                            
                         }
                         grp.scriptScore = 0;
                     }
@@ -964,7 +962,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
-        
+
         protected internal void UpdatePrimGroupScale(uint localID, LLVector3 scale, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);

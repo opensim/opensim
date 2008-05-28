@@ -194,7 +194,7 @@ namespace OpenSim.ApplicationPlugins.Rest
 
             try
             {
-                if ((_config = openSim.ConfigSource.Configs["RestPlugins"]) == null) 
+                if ((_config = openSim.ConfigSource.Configs["RestPlugins"]) == null)
                 {
                     m_log.WarnFormat("{0} Rest Plugins not configured", MsgID);
                     return;
@@ -296,7 +296,7 @@ namespace OpenSim.ApplicationPlugins.Rest
         public bool RemoveAgentHandler(string agentName, IHttpAgentHandler handler)
         {
             if (!IsEnabled) return false;
-            if(_agents[agentName] == handler)
+            if (_agents[agentName] == handler)
             {
                 _agents.Remove(agentName);
                 return _httpd.RemoveAgentHandler(agentName, handler);

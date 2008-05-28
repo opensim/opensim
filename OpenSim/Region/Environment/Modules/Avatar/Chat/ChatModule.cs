@@ -122,24 +122,24 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
                                                       IClientAPI client = presence.ControllingClient;
 
-                                                      if ((c.Type == ChatTypeEnum.Owner) && 
-                                                          (null != c.SenderObject) &&  
+                                                      if ((c.Type == ChatTypeEnum.Owner) &&
+                                                          (null != c.SenderObject) &&
                                                           (((SceneObjectPart)c.SenderObject).OwnerID != client.AgentId))
                                                           return;
-                                                      
+
                                                       if (null == c.SenderObject)
-                                                          client.SendChatMessage(c.Message, (byte)c.Type, 
-                                                                                 pos, c.From, LLUUID.Zero, 
+                                                          client.SendChatMessage(c.Message, (byte)c.Type,
+                                                                                 pos, c.From, LLUUID.Zero,
                                                                                  (byte)ChatSourceType.Agent,
                                                                                  (byte)ChatAudibleLevel.Fully);
                                                       else
-                                                          client.SendChatMessage(c.Message, (byte)c.Type, 
-                                                                                 pos, c.From, LLUUID.Zero, 
+                                                          client.SendChatMessage(c.Message, (byte)c.Type,
+                                                                                 pos, c.From, LLUUID.Zero,
                                                                                  (byte)ChatSourceType.Object,
                                                                                  (byte)ChatAudibleLevel.Fully);
                                                   });
         }
-        
+
         public void SimChat(Object sender, ChatFromViewerArgs e)
         {
             // early return if not on public or debug channel
@@ -187,13 +187,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                                            if (e.Channel == DEBUG_CHANNEL)
                                            {
                                                TrySendChatMessage(presence, fromPos, regionPos,
-                                                                  fromID, fromName, e.Type, 
+                                                                  fromID, fromName, e.Type,
                                                                   message, ChatSourceType.Object);
                                            }
                                            else
                                            {
                                                TrySendChatMessage(presence, fromPos, regionPos,
-                                                                  fromID, fromName, e.Type, 
+                                                                  fromID, fromName, e.Type,
                                                                   message, ChatSourceType.Agent);
                                            }
                                        });
@@ -224,16 +224,16 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             LLVector3 fromRegionPos = fromPos + regionPos;
             LLVector3 toRegionPos = presence.AbsolutePosition + regionPos;
             int dis = Math.Abs((int) Util.GetDistanceTo(toRegionPos, fromRegionPos));
-            
+
             if (type == ChatTypeEnum.Whisper && dis > m_whisperdistance ||
                 type == ChatTypeEnum.Say && dis > m_saydistance ||
                 type == ChatTypeEnum.Shout && dis > m_shoutdistance)
             {
                 return;
             }
-            
+
             // TODO: should change so the message is sent through the avatar rather than direct to the ClientView
-            presence.ControllingClient.SendChatMessage(message, (byte) type, fromPos, fromName, 
+            presence.ControllingClient.SendChatMessage(message, (byte) type, fromPos, fromName,
                                                        fromAgentID,(byte)src,(byte)ChatAudibleLevel.Fully);
         }
     }

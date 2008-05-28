@@ -37,37 +37,37 @@ using log4net;
 using Nini.Config;
 
 namespace OpenSim.Region.Environment
-{       
+{
     /// <summary>
     /// Method called when all the necessary assets for an archive request have been received.
     /// </summary>
     public delegate void AssetsRequestCallback(IDictionary<LLUUID, AssetBase> assets);
-    
+
     /// <summary>
     /// Handles an individual archive request
     /// </summary>
     public class ArchiveRequest
-    {        
+    {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         private Scene m_scene;
         private string m_savePath;
-        
+
         private string m_serializedEntities;
-        
+
         public ArchiveRequest(Scene scene, string savePath)
         {
             m_scene = scene;
             m_savePath = savePath;
-            
+
             ArchiveRegion();
         }
-        
+
         protected void ArchiveRegion()
         {
             m_log.Warn("[ARCHIVER]: Archive region not yet implemented");
 
-            Dictionary<LLUUID, int> textureUuids = new Dictionary<LLUUID, int>(); 
+            Dictionary<LLUUID, int> textureUuids = new Dictionary<LLUUID, int>();
 
             List<EntityBase> entities = m_scene.GetEntities();
 
@@ -76,14 +76,14 @@ namespace OpenSim.Region.Environment
                 if (entity is SceneObjectGroup)
                 {
                     SceneObjectGroup sceneObject = (SceneObjectGroup)entity;
-                    
+
                     foreach (SceneObjectPart part in sceneObject.GetParts())
                     {
                         LLUUID texture = new LLUUID(part.Shape.TextureEntry, 0);
                         textureUuids[texture] = 1;
                     }
-                }                
-            }          
+                }
+            }
 
             m_serializedEntities = SerializeObjects(entities);
 
@@ -91,30 +91,30 @@ namespace OpenSim.Region.Environment
             {
                 m_log.DebugFormat("[ARCHIVER]: Successfully got serialization for {0} entities", entities.Count);
                 m_log.DebugFormat("[ARCHIVER]: Requiring save of {0} textures", textureUuids.Count);
-                
+
                 // Asynchronously request all the assets required to perform this archive operation
                 new AssetsRequest(ReceivedAllAssets, m_scene.AssetCache, textureUuids.Keys);
             }
         }
-        
+
         protected internal void ReceivedAllAssets(IDictionary<LLUUID, AssetBase> assets)
         {
             m_log.DebugFormat("[ARCHIVER]: Received all {0} textures required", assets.Count);
-            
+
             // XXX: Shouldn't hijack the asset async callback thread like this - this is only temporary
-            
+
             TarArchive archive = new TarArchive();
-            
+
             archive.AddFile("prims.xml", m_serializedEntities);
-            
+
             foreach (LLUUID uuid in assets.Keys)
             {
                 archive.AddFile(uuid.ToString() + ".jp2", assets[uuid].Data);
             }
-            
+
             archive.WriteTar(m_savePath);
         }
-                
+
         /// <summary>
         /// Get an xml representation of the given scene objects.
         /// </summary>
@@ -152,38 +152,38 @@ namespace OpenSim.Region.Environment
         /// Callback used when all the assets requested have been received.
         /// </summary>
         protected AssetsRequestCallback m_assetsRequestCallback;
-        
+
         /// <summary>
         /// Assets retrieved in this request
         /// </summary>
         protected Dictionary<LLUUID, AssetBase> m_assets = new Dictionary<LLUUID, AssetBase>();
-        
+
         /// <summary>
         /// Record the number of asset replies required so we know when we've finished
         /// </summary>
         private int m_repliesRequired;
-        
+
         /// <summary>
         /// Asset cache used to request the assets
         /// </summary>
-        protected AssetCache m_assetCache;                
-        
-        protected internal AssetsRequest(AssetsRequestCallback assetsRequestCallback, AssetCache assetCache, ICollection<LLUUID> uuids) 
-        {            
-            m_assetsRequestCallback = assetsRequestCallback;           
+        protected AssetCache m_assetCache;
+
+        protected internal AssetsRequest(AssetsRequestCallback assetsRequestCallback, AssetCache assetCache, ICollection<LLUUID> uuids)
+        {
+            m_assetsRequestCallback = assetsRequestCallback;
             m_assetCache = assetCache;
             m_repliesRequired = uuids.Count;
-            
+
             // We can stop here if there are no assets to fetch
             if (m_repliesRequired == 0)
-                m_assetsRequestCallback(m_assets);                       
-            
+                m_assetsRequestCallback(m_assets);
+
             foreach (LLUUID uuid in uuids)
             {
-                m_assetCache.GetAsset(uuid, AssetRequestCallback, true);                
+                m_assetCache.GetAsset(uuid, AssetRequestCallback, true);
             }
         }
-        
+
         /// <summary>
         /// Called back by the asset cache when it has the asset
         /// </summary>
@@ -192,7 +192,7 @@ namespace OpenSim.Region.Environment
         public void AssetRequestCallback(LLUUID assetID, AssetBase asset)
         {
             m_assets[assetID] = asset;
-            
+
             if (m_assets.Count == m_repliesRequired)
             {
                 m_assetsRequestCallback(m_assets);

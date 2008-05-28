@@ -272,28 +272,28 @@ namespace OpenSim.Grid.ScriptEngine.DotNetEngine.Compiler
         public void llWhisper(int channelID, string text)
         {
             World.SimChat(Helpers.StringToField(text),
-                          ChatTypeEnum.Whisper, channelID, m_host.AbsolutePosition, 
+                          ChatTypeEnum.Whisper, channelID, m_host.AbsolutePosition,
                           m_host.Name, m_host.UUID, false);
         }
 
         public void llSay(int channelID, string text)
         {
             World.SimChat(Helpers.StringToField(text),
-                          ChatTypeEnum.Say, channelID, m_host.AbsolutePosition, 
+                          ChatTypeEnum.Say, channelID, m_host.AbsolutePosition,
                           m_host.Name, m_host.UUID, false);
         }
 
         public void llShout(int channelID, string text)
         {
             World.SimChat(Helpers.StringToField(text),
-                          ChatTypeEnum.Shout, channelID, m_host.AbsolutePosition, 
+                          ChatTypeEnum.Shout, channelID, m_host.AbsolutePosition,
                           m_host.Name, m_host.UUID, false);
         }
 
         public void llOwnerSay(string msg)
         {
             World.SimChatBroadcast(Helpers.StringToField(text),
-                                   ChatTypeEnum.Owner, 0, m_host.AbsolutePosition, 
+                                   ChatTypeEnum.Owner, 0, m_host.AbsolutePosition,
                                    m_host.Name, m_host.UUID, false);
         }
 

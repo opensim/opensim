@@ -2100,26 +2100,26 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="pos"></param>
         public void UpdateOffSet(LLVector3 pos)
         {
-			if ((pos.X != OffsetPosition.X) ||
-			    (pos.Y != OffsetPosition.Y) ||
-			    (pos.Z != OffsetPosition.Z))
-			{
-	            LLVector3 newPos = new LLVector3(pos.X, pos.Y, pos.Z);
-	            OffsetPosition = newPos;
-	            ScheduleTerseUpdate();
-			}
+            if ((pos.X != OffsetPosition.X) ||
+                (pos.Y != OffsetPosition.Y) ||
+                (pos.Z != OffsetPosition.Z))
+            {
+                LLVector3 newPos = new LLVector3(pos.X, pos.Y, pos.Z);
+                OffsetPosition = newPos;
+                ScheduleTerseUpdate();
+            }
         }
 
         public void UpdateGroupPosition(LLVector3 pos)
         {
-			if ((pos.X != GroupPosition.X) ||
-			    (pos.Y != GroupPosition.Y) ||
-			    (pos.Z != GroupPosition.Z))
-			{
-	            LLVector3 newPos = new LLVector3(pos.X, pos.Y, pos.Z);
-	            GroupPosition = newPos;
-	            ScheduleTerseUpdate();
-			}
+            if ((pos.X != GroupPosition.X) ||
+                (pos.Y != GroupPosition.Y) ||
+                (pos.Z != GroupPosition.Z))
+            {
+                LLVector3 newPos = new LLVector3(pos.X, pos.Y, pos.Z);
+                GroupPosition = newPos;
+                ScheduleTerseUpdate();
+            }
         }
 
         #endregion
@@ -2128,15 +2128,15 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void UpdateRotation(LLQuaternion rot)
         {
-			if ((rot.X != RotationOffset.X) ||
-			    (rot.Y != RotationOffset.Y) ||
-			    (rot.Z != RotationOffset.Z) ||
-			    (rot.W != RotationOffset.W))
-			{
-	            //StoreUndoState();
-	            RotationOffset = new LLQuaternion(rot.X, rot.Y, rot.Z, rot.W);
-	            ScheduleTerseUpdate();
-			}
+            if ((rot.X != RotationOffset.X) ||
+                (rot.Y != RotationOffset.Y) ||
+                (rot.Z != RotationOffset.Z) ||
+                (rot.W != RotationOffset.W))
+            {
+                //StoreUndoState();
+                RotationOffset = new LLQuaternion(rot.X, rot.Y, rot.Z, rot.W);
+                ScheduleTerseUpdate();
+            }
         }
 
         #endregion

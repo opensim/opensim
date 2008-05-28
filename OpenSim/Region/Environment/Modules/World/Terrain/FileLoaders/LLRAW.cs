@@ -112,7 +112,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
                     double t = map[x, y];
                     int index = 0;
 
-                    // The lookup table is pre-sorted, so we either find an exact match or 
+                    // The lookup table is pre-sorted, so we either find an exact match or
                     // the next closest (smaller) match with a binary search
                     index = Array.BinarySearch<HeightmapLookupValue>(LookupHeightTable, new HeightmapLookupValue(0, t));
                     if (index < 0)

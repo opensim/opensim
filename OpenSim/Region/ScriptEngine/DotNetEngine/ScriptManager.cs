@@ -78,7 +78,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             // Xantor 20080525: I need assetID here to see if we already compiled this one previously
             LLUUID assetID = LLUUID.Zero;
             TaskInventoryItem taskInventoryItem = new TaskInventoryItem();
-            if(m_host.TaskInventory.TryGetValue(itemID,out taskInventoryItem))
+            if (m_host.TaskInventory.TryGetValue(itemID,out taskInventoryItem))
                 assetID = taskInventoryItem.AssetID;
 
 
@@ -140,7 +140,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     string text = "Error compiling script:\r\n" + e.Message.ToString();
                     if (text.Length > 1500)
                         text = text.Substring(0, 1500);
-                    World.SimChat(Helpers.StringToField(text), ChatTypeEnum.DebugChannel, 2147483647, 
+                    World.SimChat(Helpers.StringToField(text), ChatTypeEnum.DebugChannel, 2147483647,
                                   m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
                 }
                 catch (Exception e2) // LEGIT: User Scripting

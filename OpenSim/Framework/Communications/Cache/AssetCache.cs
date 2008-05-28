@@ -249,11 +249,11 @@ namespace OpenSim.Framework.Communications.Cache
             //m_log.DebugFormat("[ASSET CACHE]: Requesting {0} {1}", isTexture ? "texture" : "asset", assetId);
 
 
-            // Xantor 20080526: 
+            // Xantor 20080526:
             // if a request is made for an asset which is not in the cache yet, but has already been requested by
-            // something else, queue up the callbacks on that requestor instead of swamping the assetserver 
+            // something else, queue up the callbacks on that requestor instead of swamping the assetserver
             // with multiple requests for the same asset.
-            
+
             AssetBase asset;
 
             if (TryGetCachedAsset(assetId, out asset))
@@ -265,8 +265,8 @@ namespace OpenSim.Framework.Communications.Cache
 #if DEBUG
                 // m_log.DebugFormat("[ASSET CACHE]: Adding request for {0} {1}", isTexture ? "texture" : "asset", assetId);
 #endif
-                               
-                
+
+
                 NewAssetRequest req = new NewAssetRequest(assetId, callback);
                 AssetRequestsList requestList;
 
@@ -499,7 +499,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 Assets[assetID] = null;
             }
-            
+
             // Notify requesters for this asset
             AssetRequestsList reqList = null;
             lock (RequestLists)
@@ -590,20 +590,20 @@ namespace OpenSim.Framework.Communications.Cache
                     RequestedAssets.Add(requestID, request);
                     m_assetServer.RequestAsset(requestID, false);
                 }
-                
+
                 return;
             }
-            
+
             // It has an entry in our cache
             AssetInfo asset = Assets[requestID];
-            
+
             // FIXME: We never tell the client about assets which do not exist when requested by this transfer mechanism, which can't be right.
             if (null == asset)
             {
                 //m_log.DebugFormat("[ASSET CACHE]: Asset transfer request for asset which is {0} already known to be missing.  Dropping", requestID);
                 return;
             }
-                
+
             // The asset is knosn to exist and is in our cache, so add it to the AssetRequests list
             AssetRequest req = new AssetRequest();
             req.RequestUser = userInfo;

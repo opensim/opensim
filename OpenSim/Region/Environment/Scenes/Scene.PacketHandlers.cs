@@ -63,9 +63,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (broadcast)
                 EventManager.TriggerOnChatBroadcast(this, args);
-            else 
+            else
                 EventManager.TriggerOnChatFromWorld(this, args);
-            
+
         }
         /// <summary>
         ///
@@ -293,7 +293,7 @@ namespace OpenSim.Region.Environment.Scenes
                 LLUUID itemID)
         {
             SceneObjectPart part=GetSceneObjectPart(objectID);
-            if(part == null)
+            if (part == null)
                 return;
             EventManager.TriggerScriptReset(part.LocalId, itemID);
         }

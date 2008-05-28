@@ -199,9 +199,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// The dictionary of all entities in this scene.  The contents of this dictionary may be changed at any time.
         /// If you wish to add or remove entities, please use the appropriate method for that entity rather than
-        /// editing this dictionary directly. 
-        /// 
-        /// If you want a list of entities where the list itself is guaranteed not to change, please use 
+        /// editing this dictionary directly.
+        ///
+        /// If you want a list of entities where the list itself is guaranteed not to change, please use
         /// GetEntities()
         /// </summary>
         public Dictionary<LLUUID, EntityBase> Entities
@@ -565,19 +565,19 @@ namespace OpenSim.Region.Environment.Scenes
                 m_scripts_enabled = !ScriptEngine;
                 m_log.Info("[TOTEDD]: Here is the method to trigger disabling of the scripting engine");
             }
-            
+
             if (m_physics_enabled != !PhysicsEngine)
             {
                 m_physics_enabled = !PhysicsEngine;
             }
         }
-        
+
         public int GetInaccurateNeighborCount()
         {
             lock (m_neighbours)
                 return m_neighbours.Count;
         }
-        
+
         // This is the method that shuts down the scene.
         public override void Close()
         {

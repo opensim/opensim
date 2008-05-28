@@ -160,9 +160,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
          *
          * Generate a LLUUID channel key and add it and
          * the prim id to dictionary <channelUUID, primUUID>
-         * 
+         *
          * A custom channel key can be proposed.
-         * Otherwise, passing LLUUID.Zero will generate 
+         * Otherwise, passing LLUUID.Zero will generate
          * and return a random channel
          *
          * First check if there is a channel assigned for

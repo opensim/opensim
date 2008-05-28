@@ -304,7 +304,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                         {
                                             int colon=t.IndexOf(":");
 
-                                            if(-1 != colon)
+                                            if (-1 != colon)
                                             {
                                                 line = " at line " + Convert.ToInt32(t.Substring(colon + 1)).ToString();
                                                 break;

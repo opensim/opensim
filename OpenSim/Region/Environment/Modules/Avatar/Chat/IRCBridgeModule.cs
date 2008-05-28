@@ -43,7 +43,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 {
     public class IRCBridgeModule : IRegionModule
     {
-        private static readonly ILog m_log = 
+        private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private const int DEBUG_CHANNEL = 2147483647;
@@ -68,7 +68,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         {
             try
             {
-                if ((m_config = config.Configs["IRC"]) == null) 
+                if ((m_config = config.Configs["IRC"]) == null)
                 {
                     m_log.InfoFormat("[IRC] module not configured");
                     return;
@@ -85,7 +85,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 m_log.Info("[IRC] module not configured");
                 return;
             }
-            
+
             lock (m_syncInit)
             {
 
@@ -118,7 +118,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                     m_irc_connector.Name = "IRCConnectorThread";
                     m_irc_connector.IsBackground = true;
                 }
-                m_log.InfoFormat("[IRC] initialized for {0}, nick: {1} ", scene.RegionInfo.RegionName, 
+                m_log.InfoFormat("[IRC] initialized for {0}, nick: {1} ", scene.RegionInfo.RegionName,
                                  m_defaultzone);
             }
         }
@@ -221,9 +221,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
             if (e.Message.StartsWith("/me ") && (null != avatar))
                 e.Message = String.Format("{0} {1}", fromName, e.Message.Substring(4));
-            
+
             // this is to keep objects from talking to IRC
-            if (m_irc.Connected && (avatar != null)) 
+            if (m_irc.Connected && (avatar != null))
                 m_irc.PrivMsg(fromName, scene.RegionInfo.RegionName, e.Message);
         }
 
@@ -244,7 +244,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                     if ((m_irc.Enabled) && (m_irc.Connected))
                     {
                         m_log.DebugFormat("[IRC] {0} logging on", clientName);
-                        m_irc.PrivMsg(m_irc.Nick, "Sim", 
+                        m_irc.PrivMsg(m_irc.Nick, "Sim",
                                       String.Format("notices {0} logging on", clientName));
                     }
                     m_last_new_user = clientName;
@@ -310,7 +310,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                             m_log.InfoFormat("[IRC]: {0} logging out", clientName);
                         }
 
-                        if (m_last_new_user == clientName) 
+                        if (m_last_new_user == clientName)
                             m_last_new_user = null;
                     }
                 }
@@ -489,7 +489,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 }
                 catch (Exception e)
                 {
-                    m_log.ErrorFormat("[IRC] cannot connect to {0}:{1}: {2}", 
+                    m_log.ErrorFormat("[IRC] cannot connect to {0}:{1}: {2}",
                                       m_server, m_port, e.Message);
                 }
                 return m_connected;
@@ -617,16 +617,16 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
                                 // is message "\001ACTION foo
                                 // bar\001"? -> "/me foo bar"
-                                if ((1 == c.Message[0]) && c.Message.Substring(1).StartsWith("ACTION")) 
+                                if ((1 == c.Message[0]) && c.Message.Substring(1).StartsWith("ACTION"))
                                     c.Message = String.Format("/me {0}", c.Message.Substring(8, c.Message.Length - 9));
-                                
+
                                 foreach (Scene scene in m_scenes)
                                 {
                                     c.Scene = scene;
                                     scene.EventManager.TriggerOnChatBroadcast(this, c);
                                 }
                             }
-                            
+
                             Thread.Sleep(150);
                             continue;
                         }

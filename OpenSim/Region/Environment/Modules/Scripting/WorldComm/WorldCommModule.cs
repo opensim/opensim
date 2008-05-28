@@ -569,7 +569,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             {
                 foreach (ListenerInfo l in list)
                 {
-                    if(l.GetItemID() == itemID)
+                    if (l.GetItemID() == itemID)
                         data.AddRange(l.GetSerializationData());
                 }
             }
@@ -582,14 +582,14 @@ namespace OpenSim.Region.Environment.Modules.Scripting.WorldComm
             int idx = 0;
             Object[] item = new Object[6];
 
-            while(idx < data.Length)
+            while (idx < data.Length)
             {
                 Array.Copy(data, idx, item, 0, 6);
 
                 ListenerInfo info =
                         ListenerInfo.FromData(localID, itemID, hostID, item);
 
-                if(!m_listeners.ContainsKey((int)item[2]))
+                if (!m_listeners.ContainsKey((int)item[2]))
                     m_listeners.Add((int)item[2], new List<ListenerInfo>());
                 m_listeners[(int)item[2]].Add(info);
 

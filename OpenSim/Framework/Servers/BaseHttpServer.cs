@@ -310,19 +310,20 @@ namespace OpenSim.Framework.Servers
             agentHandler = null;
             try
             {
-                foreach(IHttpAgentHandler handler in m_agentHandlers.Values)
+                foreach (IHttpAgentHandler handler in m_agentHandlers.Values)
                 {
-                    if(handler.Match(request, response))
+                    if (handler.Match(request, response))
                     {
                         agentHandler = handler;
                         return true;
                     }
                 }
             }
-            catch(KeyNotFoundException) {}
+            catch(KeyNotFoundException)
+            {
+            }
 
             return false;
-
         }
 
         /// <summary>
@@ -478,7 +479,6 @@ namespace OpenSim.Framework.Servers
 
         private bool HandleAgentRequest(IHttpAgentHandler handler, OSHttpRequest request, OSHttpResponse response)
         {
-
             // In the case of REST, then handler is responsible for ALL aspects of
             // the request/response handling. Nothing is done here, not even encoding.
 
@@ -500,11 +500,12 @@ namespace OpenSim.Framework.Servers
                     response.StatusCode    = (int)OSHttpStatusCode.ServerErrorInternalError;
                     response.OutputStream.Close();
                 }
-                catch(Exception){}
+                catch(Exception)
+                {
+                }
             }
 
             return true;
-
         }
 
         public void HandleHTTPRequest(OSHttpRequest request, OSHttpResponse response)
@@ -759,13 +760,16 @@ namespace OpenSim.Framework.Servers
         {
             try
             {
-                if(handler == m_agentHandlers[agent])
+                if (handler == m_agentHandlers[agent])
                 {
                     m_agentHandlers.Remove(agent);
                     return true;
                 }
             }
-            catch(KeyNotFoundException) {}
+            catch(KeyNotFoundException)
+            {
+            }
+
             return false;
         }
 

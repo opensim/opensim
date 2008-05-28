@@ -5480,7 +5480,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             World.SimChatBroadcast(Helpers.StringToField(msg),
-                                   ChatTypeEnum.Owner, 0, m_host.AbsolutePosition, 
+                                   ChatTypeEnum.Owner, 0, m_host.AbsolutePosition,
                                    m_host.Name, m_host.UUID, false);
 
             IWorldComm wComm = m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();

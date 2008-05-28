@@ -62,7 +62,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void AddUploadedInventoryItem(LLUUID agentID, InventoryItemBase item)
         {
             IMoneyModule money=RequestModuleInterface<IMoneyModule>();
-            if(money != null)
+            if (money != null)
             {
                 money.ApplyUploadCharge(agentID);
             }
@@ -930,7 +930,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (part != null)
             {
                 TaskInventoryItem currentItem=part.GetInventoryItem(itemID);
-                if(currentItem == null)
+                if (currentItem == null)
                 {
                     LLUUID copyID = LLUUID.Random();
                     if (itemID != LLUUID.Zero)
@@ -972,9 +972,9 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else // Updating existing item with new perms etc
                 {
-					TaskInventoryItem prevItem=part.GetInventoryItem(itemID);
-					itemInfo.AssetID = prevItem.AssetID;
-                    if(part.UpdateInventoryItem(itemInfo))
+                    TaskInventoryItem prevItem=part.GetInventoryItem(itemID);
+                    itemInfo.AssetID = prevItem.AssetID;
+                    if (part.UpdateInventoryItem(itemInfo))
                         part.GetProperties(remoteClient);
                 }
             }

@@ -1407,9 +1407,9 @@ namespace OpenSim.Region.Environment.Scenes
             if (remoteAvatar == null)
                 return;
             IClientAPI cl=remoteAvatar.ControllingClient;
-            if(cl == null)
+            if (cl == null)
                 return;
-            if(m_appearance.Texture == null)
+            if (m_appearance.Texture == null)
                 return;
 
             remoteAvatar.m_controllingClient.SendAvatarData(m_regionInfo.RegionHandle, m_firstname, m_lastname, m_uuid,
