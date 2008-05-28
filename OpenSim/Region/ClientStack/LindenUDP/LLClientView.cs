@@ -47,6 +47,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 {
     public delegate bool PacketMethod(IClientAPI simClient, Packet packet);
 
+    public class PacketDupeLimiter 
+    {
+        public PacketType pktype;
+        public int timeIn;
+        public uint packetId;
+        public PacketDupeLimiter()
+        {
+        }
+    }
+
     /// <summary>
     /// Handles new client connections
     /// Constructor takes a single Packet and authenticates everything
@@ -83,6 +93,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private int m_packetsSent = 0;
         private int m_lastPacketsSentSentToScene = 0;
+        private int m_clearDuplicatePacketTrackingOlderThenXSeconds = 30;
 
         private int m_probesWithNoIngressPackets = 0;
         private int m_lastPacketsReceived = 0;
@@ -91,6 +102,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private readonly LLUUID m_agentId;
         private readonly uint m_circuitCode;
         private int m_moneyBalance;
+
+        private Dictionary<uint, PacketDupeLimiter> m_dupeLimiter = new Dictionary<uint, PacketDupeLimiter>();
 
         private int m_animationSequenceNumber = 1;
 
@@ -3837,6 +3850,40 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 m_lastPacketsSentSentToScene = m_packetsSent;
             }
         }
+        protected void ClearOldPacketDupeTracking()
+        {
+            lock (m_dupeLimiter)
+            {
+                List<uint> toEliminate = new List<uint>();
+                try
+                {
+
+                    foreach (uint seq in m_dupeLimiter.Keys)
+                    {
+                        PacketDupeLimiter pkdata = null;
+                        m_dupeLimiter.TryGetValue(seq, out pkdata);
+                        if (pkdata != null)
+                        {
+                            // doing a foreach loop, so we don't want to modify the dictionary while we're searching it
+                            if (Util.UnixTimeSinceEpoch() - pkdata.timeIn > m_clearDuplicatePacketTrackingOlderThenXSeconds)
+                                toEliminate.Add(seq);
+                        }
+                    }
+                }
+                catch (InvalidOperationException)
+                {
+                    m_log.Info("[PACKET]: Unable to clear dupe check packet data");
+                }
+
+                // remove the dupe packets that we detected in the loop above.
+                uint[] seqsToRemove = toEliminate.ToArray();
+                for (int i = 0; i<seqsToRemove.Length; i++)
+                {
+                    if (m_dupeLimiter.ContainsKey(seqsToRemove[i]))
+                        m_dupeLimiter.Remove(seqsToRemove[i]);
+                }
+            }
+        }
 
         #endregion
 
@@ -3866,7 +3913,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         protected void ProcessInPacket(Packet Pack)
         {
             ack_pack(Pack);
-
+            lock (m_dupeLimiter)
+            {
+                if (m_dupeLimiter.ContainsKey(Pack.Header.Sequence))
+                {
+                    m_log.Info("[CLIENT]: Warning Duplicate packet detected" + Pack.Type.ToString() + " Dropping.");
+                    return;
+                }
+                else
+                {
+                    PacketDupeLimiter pkdedupe = new PacketDupeLimiter();
+                    pkdedupe.packetId = Pack.Header.ID;
+                    pkdedupe.pktype = Pack.Type;
+                    pkdedupe.timeIn = Util.UnixTimeSinceEpoch();
+                    m_dupeLimiter.Add(Pack.Header.Sequence, pkdedupe);
+                }
+            }
+            //m_log.Info("Sequence"
             if (ProcessPacketMethod(Pack))
             {
                 //there is a handler registered that handled this packet type
