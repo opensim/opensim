@@ -447,8 +447,6 @@ namespace OpenSim.Data.MySQL
 
             lock (m_dataSet)
             {
-                DataTable terrain = m_dataSet.Tables["terrain"];
-
                 MySqlCommand cmd = new MySqlCommand("insert into terrain(RegionUUID, Revision, Heightfield)" +
                                                     " values(?RegionUUID, ?Revision, ?Heightfield)", m_connection);
                 using (cmd)
