@@ -129,7 +129,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
             {
                 // complete region details requested
                 XmlSerializer xs = new XmlSerializer(typeof(RegionDetails));
-                xs.Serialize(XmlWriter, details);
+                xs.Serialize(XmlWriter, details, _xmlNs);
                 return XmlWriterResult;
             }
 

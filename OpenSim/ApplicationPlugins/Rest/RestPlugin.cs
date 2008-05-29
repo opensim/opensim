@@ -66,7 +66,7 @@ namespace OpenSim.ApplicationPlugins.Rest
                                               // which all REST URLs
                                               // are living
         private StringWriter  _sw = null;
-        private XmlTextWriter _xw = null;
+        private RestXmlWriter _xw = null;
 
         private string _godkey;
         private int    _reqk;
@@ -159,7 +159,7 @@ namespace OpenSim.ApplicationPlugins.Rest
                 if (null == _xw)
                 {
                     _sw = new StringWriter();
-                    _xw = new XmlTextWriter(_sw);
+                    _xw = new RestXmlWriter(_sw);
                     _xw.Formatting = Formatting.Indented;
                 }
                 return _xw; }
@@ -170,6 +170,7 @@ namespace OpenSim.ApplicationPlugins.Rest
             get
             {
                 _xw.Flush();
+                _xw.Close();
                 _xw = null;
 
                 return _sw.ToString();

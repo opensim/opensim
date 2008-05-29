@@ -35,7 +35,7 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.ApplicationPlugins.Rest.Regions
 {
-    [XmlRoot(ElementName="region")]
+    [XmlRoot(ElementName="region", IsNullable = false)]
     public class RegionDetails
     {
         public string region_name;
