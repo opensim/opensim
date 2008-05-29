@@ -1754,6 +1754,9 @@ namespace OpenSim.Region.Environment.Scenes
         public void ChildAgentDataUpdate(ChildAgentDataUpdate cAgentData, uint tRegionX, uint tRegionY, uint rRegionX, uint rRegionY)
         {
             //
+            if (!IsChildAgent)
+                return;
+
             int shiftx = ((int)rRegionX - (int)tRegionX) * (int)Constants.RegionSize;
             int shifty = ((int)rRegionY - (int)tRegionY) * (int)Constants.RegionSize;
 
@@ -1766,7 +1769,8 @@ namespace OpenSim.Region.Environment.Scenes
 
 
             m_godlevel = cAgentData.godlevel;
-            SetHeight(cAgentData.AVHeight);
+            m_avHeight = cAgentData.AVHeight;
+            //SetHeight(cAgentData.AVHeight);
 
             ControllingClient.SetChildAgentThrottle(cAgentData.throttles);
 
