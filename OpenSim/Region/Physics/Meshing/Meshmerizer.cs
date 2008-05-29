@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
+using libsecondlife;
 
 namespace OpenSim.Region.Physics.Meshing
 {
@@ -253,7 +254,8 @@ namespace OpenSim.Region.Physics.Meshing
                 holeHull.AddVertex(IPP);
                 holeHull.AddVertex(IPM);
             }
-            if (hshape == HollowShape.Circle && pbs.PathCurve == (byte)Extrusion.Straight)
+            //if (hshape == HollowShape.Circle && pbs.PathCurve == (byte)Extrusion.Straight)
+            if ( hshape == HollowShape.Circle )
             {
                 float hollowFactorF = (float)fhollowFactor / (float)50000;
 
@@ -576,7 +578,6 @@ namespace OpenSim.Region.Physics.Meshing
                 }
             }
 
-
             if (pathShearX != 0)
             {
                 if (pathShearX > 50)
@@ -647,7 +648,7 @@ namespace OpenSim.Region.Physics.Meshing
             return result;
         }
 
-        private static Mesh CreateCyllinderMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
+        private static Mesh CreateCylinderMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
         // Builds the z (+ and -) surfaces of a box shaped prim
         {
 
@@ -1318,6 +1319,317 @@ namespace OpenSim.Region.Physics.Meshing
             return sm;
 
         }
+
+        private static Mesh CreateCircularProfileMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
+        {
+
+            UInt16 hollowFactor = primShape.ProfileHollow;
+            UInt16 profileBegin = primShape.ProfileBegin;
+            UInt16 profileEnd = primShape.ProfileEnd;
+            UInt16 taperX = primShape.PathScaleX;
+            UInt16 taperY = primShape.PathScaleY;
+            UInt16 pathShearX = primShape.PathShearX;
+            UInt16 pathShearY = primShape.PathShearY;
+            Int16 twistBot = primShape.PathTwist;
+            Int16 twistTop = primShape.PathTwistBegin;
+            HollowShape hollowShape = primShape.HollowShape;
+
+            //Console.WriteLine("pathTwist: " + primShape.PathTwist.ToString() + " pathTwistBegin: " + primShape.PathTwistBegin.ToString());
+
+            SimpleHull outerHull = new SimpleHull();
+
+            //Console.WriteLine("primShape.ProfileCurve & 0x07: " + Convert.ToString(primShape.ProfileCurve & 0x07));
+
+            if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
+
+            //if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle
+            //    || (primShape.ProfileCurve & 0x07) == (byte) ProfileShape.Square)
+            {
+                //Console.WriteLine("Meshmerizer thinks " + primName + " is a TORUS");
+                if ( hollowShape == HollowShape.Same )
+                    hollowShape = HollowShape.Circle;
+
+                // build the profile shape
+                // counter-clockwise around the quadrants, start at 45 degrees
+
+                outerHull.AddVertex(new Vertex(0.353553f, 0.353553f, 0.0f)); // 45 degrees
+                outerHull.AddVertex(new Vertex(0.250000f, 0.433013f, 0.0f)); // 60 degrees
+                outerHull.AddVertex(new Vertex(0.129410f, 0.482963f, 0.0f)); // 75 degrees
+                outerHull.AddVertex(new Vertex(0.000000f, 0.500000f, 0.0f)); // 90 degrees
+                outerHull.AddVertex(new Vertex(-0.129410f, 0.482963f, 0.0f)); // 105 degrees
+                outerHull.AddVertex(new Vertex(-0.250000f, 0.433013f, 0.0f)); // 120 degrees
+                outerHull.AddVertex(new Vertex(-0.353553f, 0.353553f, 0.0f)); // 135 degrees
+                outerHull.AddVertex(new Vertex(-0.433013f, 0.250000f, 0.0f)); // 150 degrees
+                outerHull.AddVertex(new Vertex(-0.482963f, 0.129410f, 0.0f)); // 165 degrees
+                outerHull.AddVertex(new Vertex(-0.500000f, 0.000000f, 0.0f)); // 180 degrees
+                outerHull.AddVertex(new Vertex(-0.482963f, -0.129410f, 0.0f)); // 195 degrees
+                outerHull.AddVertex(new Vertex(-0.433013f, -0.250000f, 0.0f)); // 210 degrees
+                outerHull.AddVertex(new Vertex(-0.353553f, -0.353553f, 0.0f)); // 225 degrees
+                outerHull.AddVertex(new Vertex(-0.250000f, -0.433013f, 0.0f)); // 240 degrees
+                outerHull.AddVertex(new Vertex(-0.129410f, -0.482963f, 0.0f)); // 255 degrees
+                outerHull.AddVertex(new Vertex(0.000000f, -0.500000f, 0.0f)); // 270 degrees
+                outerHull.AddVertex(new Vertex(0.129410f, -0.482963f, 0.0f)); // 285 degrees
+                outerHull.AddVertex(new Vertex(0.250000f, -0.433013f, 0.0f)); // 300 degrees
+                outerHull.AddVertex(new Vertex(0.353553f, -0.353553f, 0.0f)); // 315 degrees
+                outerHull.AddVertex(new Vertex(0.433013f, -0.250000f, 0.0f)); // 330 degrees
+                outerHull.AddVertex(new Vertex(0.482963f, -0.129410f, 0.0f)); // 345 degrees
+                outerHull.AddVertex(new Vertex(0.500000f, 0.000000f, 0.0f)); // 0 degrees
+                outerHull.AddVertex(new Vertex(0.482963f, 0.129410f, 0.0f)); // 15 degrees
+                outerHull.AddVertex(new Vertex(0.433013f, 0.250000f, 0.0f)); // 30 degrees
+            }
+
+            else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Square) // a ring
+            {
+                //Console.WriteLine("Meshmerizer thinks " + primName + " is a TUBE");
+                if ( hollowShape == HollowShape.Same )
+                    hollowShape = HollowShape.Square;
+
+                outerHull.AddVertex(new Vertex(+0.5f, +0.5f, 0.0f));
+                outerHull.AddVertex(new Vertex(-0.5f, +0.5f, 0.0f));
+                outerHull.AddVertex(new Vertex(-0.5f, -0.5f, 0.0f));
+                outerHull.AddVertex(new Vertex(+0.5f, -0.5f, 0.0f));
+            }
+
+            else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
+            {
+                //Console.WriteLine("Meshmerizer thinks " + primName + " is a RING");
+                if ( hollowShape == HollowShape.Same )
+                    hollowShape = HollowShape.Triangle;
+
+                outerHull.AddVertex(new Vertex(+0.255f, -0.375f, 0.0f));
+                outerHull.AddVertex(new Vertex(+0.25f, +0.375f, 0.0f));
+                outerHull.AddVertex(new Vertex(-0.5f, +0.0f, 0.0f));
+
+            }
+
+            else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
+            {
+                //Console.WriteLine("Meshmerizer thinks " + primName + " is a SPHERE");
+                if (hollowShape == HollowShape.Same)
+                    hollowShape = HollowShape.Circle;
+
+                // not implemented here, use old routine
+                return CreateSphereMesh(primName, primShape, size);
+            }
+
+            // Deal with cuts now
+            if ((profileBegin != 0) || (profileEnd != 0))
+            {
+                double fProfileBeginAngle = profileBegin / 50000.0 * 360.0;
+                // In degree, for easier debugging and understanding
+                //fProfileBeginAngle -= (90.0 + 45.0); // for some reasons, the SL client counts from the corner -X/-Y
+                double fProfileEndAngle = 360.0 - profileEnd / 50000.0 * 360.0; // Pathend comes as complement to 1.0
+                //fProfileEndAngle -= (90.0 + 45.0);
+                if (fProfileBeginAngle < fProfileEndAngle)
+                    fProfileEndAngle -= 360.0;
+
+                // Note, that we don't want to cut out a triangle, even if this is a
+                // good approximation for small cuts. Indeed we want to cut out an arc
+                // and we approximate this arc by a polygon chain
+                // Also note, that these vectors are of length 1.0 and thus their endpoints lay outside the model space
+                // So it can easily be subtracted from the outer hull
+                int iSteps = (int)(((fProfileBeginAngle - fProfileEndAngle) / 45.0) + .5);
+                // how many steps do we need with approximately 45 degree
+                double dStepWidth = (fProfileBeginAngle - fProfileEndAngle) / iSteps;
+
+                Vertex origin = new Vertex(0.0f, 0.0f, 0.0f);
+
+                // Note the sequence of vertices here. It's important to have the other rotational sense than in outerHull
+                SimpleHull cutHull = new SimpleHull();
+                cutHull.AddVertex(origin);
+                for (int i = 0; i < iSteps; i++)
+                {
+                    double angle = fProfileBeginAngle - i * dStepWidth; // we count against the angle orientation!!!!
+                    Vertex v = Vertex.FromAngle(angle * Math.PI / 180.0);
+                    cutHull.AddVertex(v);
+                }
+                Vertex legEnd = Vertex.FromAngle(fProfileEndAngle * Math.PI / 180.0);
+                // Calculated separately to avoid errors
+                cutHull.AddVertex(legEnd);
+
+                // m_log.DebugFormat("Starting cutting of the hollow shape from the prim {1}", 0, primName);
+                SimpleHull cuttedHull = SimpleHull.SubtractHull(outerHull, cutHull);
+
+                if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
+                {
+                    Quaternion zFlip = new Quaternion(new Vertex(0.0f, 0.0f, 1.0f), (float)Math.PI);
+                    Vertex vTmp = new Vertex(0.0f, 0.0f, 0.0f);
+                    foreach (Vertex v in cuttedHull.getVertices())
+                        if (v != null)
+                        {
+                            vTmp = v * zFlip;
+                            v.X = vTmp.X;
+                            v.Y = vTmp.Y;
+                            v.Z = vTmp.Z;
+                        }
+                }
+
+                outerHull = cuttedHull;
+            }
+
+            // Deal with the hole here
+            if (hollowFactor > 0)
+            {
+                SimpleHull holeHull;
+
+                if (hollowShape == HollowShape.Triangle)
+                {
+                    holeHull = new SimpleHull();
+
+                    float hollowFactorF = (float) hollowFactor / 50000.0f;
+
+                    if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
+                    {
+                        holeHull.AddVertex(new Vertex(+0.125f * hollowFactorF, -0.1875f * hollowFactorF, 0.0f));
+                        holeHull.AddVertex(new Vertex(-0.25f * hollowFactorF, -0f * hollowFactorF, 0.0f));
+                        holeHull.AddVertex(new Vertex(+0.125f * hollowFactorF, +0.1875f * hollowFactorF, 0.0f));
+                    }
+                    else
+                    {
+                        holeHull.AddVertex(new Vertex(+0.25f * hollowFactorF, -0.45f * hollowFactorF, 0.0f));
+                        holeHull.AddVertex(new Vertex(-0.5f * hollowFactorF, -0f * hollowFactorF, 0.0f));
+                        holeHull.AddVertex(new Vertex(+0.25f * hollowFactorF, +0.45f * hollowFactorF, 0.0f));
+
+                        ////holeHull.AddVertex(new Vertex(-0.5f * hollowFactorF, -0f * hollowFactorF, 0.0f));
+
+                        ////holeHull.AddVertex(new Vertex(+0.25f * hollowFactorF, +0.45f * hollowFactorF, 0.0f));
+                        
+                        ////holeHull.AddVertex(new Vertex(+0.25f * hollowFactorF, -0.45f * hollowFactorF, 0.0f));
+
+                        //holeHull.AddVertex(new Vertex(-0.5f * hollowFactorF, +0f * hollowFactorF, 0.0f));
+                        //holeHull.AddVertex(new Vertex(+0.25f * hollowFactorF, -0.45f * hollowFactorF, 0.0f));
+                        //holeHull.AddVertex(new Vertex(+0.25f * hollowFactorF, +0.45f * hollowFactorF, 0.0f));
+                        ////holeHull.AddVertex(new Vertex(-0.5f * hollowFactorF, +0f * hollowFactorF, 0.0f));
+                    }
+                }
+                else
+                {
+                    holeHull = BuildHoleHull(primShape, primShape.ProfileShape, primShape.HollowShape, hollowFactor);
+                }
+
+                if (holeHull != null)
+                {
+                    SimpleHull hollowedHull = SimpleHull.SubtractHull(outerHull, holeHull);
+
+                    outerHull = hollowedHull;
+                }
+            }
+
+            Mesh m = new Mesh();
+
+            Vertex Seed1 = new Vertex(0.0f, -10.0f, 0.0f);
+            Vertex Seed2 = new Vertex(-10.0f, 10.0f, 0.0f);
+            Vertex Seed3 = new Vertex(10.0f, 10.0f, 0.0f);
+
+            m.Add(Seed1);
+            m.Add(Seed2);
+            m.Add(Seed3);
+
+            m.Add(new Triangle(Seed1, Seed2, Seed3));
+            m.Add(outerHull.getVertices());
+
+            InsertVertices(m.vertices, 3, m.triangles);
+            m.DumpRaw(baseDir, primName, "Proto first Mesh");
+
+            m.Remove(Seed1);
+            m.Remove(Seed2);
+            m.Remove(Seed3);
+            m.DumpRaw(baseDir, primName, "Proto seeds removed");
+
+            m.RemoveTrianglesOutside(outerHull);
+            m.DumpRaw(baseDir, primName, "Proto outsides removed");
+
+            foreach (Triangle t in m.triangles)
+                t.invertNormal();
+
+            Vertex vTemp = new Vertex(0.0f, 0.0f, 0.0f);
+
+            //Console.WriteLine("primShape.PathScaleX: " + primShape.PathScaleX.ToString() + " primShape.PathScaleY: " + primShape.PathScaleY.ToString());
+            //Console.WriteLine("primShape.PathSkew: " + primShape.PathSkew.ToString() + " primShape.PathRadiusOffset: " + primShape.PathRadiusOffset.ToString() + " primShape.pathRevolutions: " + primShape.PathRevolutions.ToString());
+
+            float skew = primShape.PathSkew * 0.01f;
+            float pathScaleX = (float)(200 - primShape.PathScaleX) * 0.01f;
+            float pathScaleY = (float)(200 - primShape.PathScaleY) * 0.01f;
+            //Console.WriteLine("PathScaleX: " + pathScaleX.ToString() + " pathScaleY: " + pathScaleY.ToString());
+
+            float profileXComp = pathScaleX * (1.0f - Math.Abs(skew));
+            foreach (Vertex v in m.vertices)
+                if (v != null)
+                {
+                    v.X *= profileXComp;
+                    v.Y *= pathScaleY;
+                    //v.Y *= 0.5f; // torus profile is scaled in y axis
+                }
+
+            Extruder extr = new Extruder();
+
+            extr.size = size;
+            extr.pathScaleX = pathScaleX;
+            extr.pathScaleY = pathScaleY;
+            extr.pathCutBegin = 0.00002f * primShape.PathBegin;
+            extr.pathCutEnd = 0.00002f * (50000 - primShape.PathEnd);
+            extr.pathBegin = primShape.PathBegin;
+            extr.pathEnd = primShape.PathEnd;
+            extr.skew = skew;
+            extr.revolutions = 1.0f + (float)primShape.PathRevolutions * 3.0f / 200.0f;
+
+            //System.Console.WriteLine("primShape.PathBegin: " + primShape.PathBegin.ToString() + " primShape.PathEnd: " + primShape.PathEnd.ToString());
+            //System.Console.WriteLine("extr.pathCutBegin: " + extr.pathCutBegin.ToString() + " extr.pathCutEnd: " + extr.pathCutEnd.ToString());
+            //System.Console.WriteLine("extr.revolutions: " + extr.revolutions.ToString());
+
+            //System.Console.WriteLine("primShape.PathTaperX: " + primShape.PathTaperX.ToString());
+            //System.Console.WriteLine("primShape.PathTaperY: " + primShape.PathTaperY.ToString());
+
+            extr.pathTaperX = 0.01f * (float)primShape.PathTaperX;
+            extr.pathTaperY = 0.01f * (float)primShape.PathTaperY;
+
+            extr.radius = 0.01f * (float)primShape.PathRadiusOffset;
+            //System.Console.WriteLine("primShape.PathRadiusOffset: " + primShape.PathRadiusOffset.ToString());
+            
+
+
+
+
+            if (pathShearX != 0)
+            {
+                if (pathShearX > 50)
+                {
+                    // Complimentary byte.  Negative values wrap around the byte.  Positive values go up to 50
+                    extr.pushX = (((float)(256 - pathShearX) / 100) * -1f);
+                    //m_log.Warn("pushX: " + extr.pushX);
+                }
+                else
+                {
+                    extr.pushX = (float)pathShearX / 100;
+                    //m_log.Warn("pushX: " + extr.pushX);
+                }
+            }
+
+            if (pathShearY != 0)
+            {
+                if (pathShearY > 50)
+                {
+                    // Complimentary byte.  Negative values wrap around the byte.  Positive values go up to 50
+                    extr.pushY = (((float)(256 - pathShearY) / 100) * -1f);
+                    //m_log.Warn("pushY: " + extr.pushY);
+                }
+                else
+                {
+                    extr.pushY = (float)pathShearY / 100;
+                    //m_log.Warn("pushY: " + extr.pushY);
+                }
+
+            }
+
+            extr.twistTop = (float)primShape.PathTwist * (float)Math.PI * 0.02f;
+            extr.twistBot = (float)primShape.PathTwistBegin * (float)Math.PI * 0.02f;
+
+            //System.Console.WriteLine("[MESH]: twistTop = " + twistTop.ToString() + "|" + extr.twistTop.ToString() + ", twistMid = " + twistMid.ToString() + "|" + extr.twistMid.ToString() + ", twistbot = " + twistBot.ToString() + "|" + extr.twistBot.ToString());
+            Mesh result = extr.ExtrudeCircularPath(m);
+            result.DumpRaw(baseDir, primName, "Z extruded");
+            return result;
+        }
+
         public static void CalcNormals(Mesh mesh)
         {
             int iTriangles = mesh.triangles.Count;
@@ -1432,43 +1744,111 @@ namespace OpenSim.Region.Physics.Meshing
                 mesh = (Mesh)smesh;
                 CalcNormals(mesh);
             }
-            else
+            else if ((primShape.ProfileCurve & (byte)ProfileShape.Square) == (byte)ProfileShape.Square)
             {
-                switch (primShape.ProfileShape)
-                {
-                    case ProfileShape.Square:
-                        mesh = CreateBoxMesh(primName, primShape, size);
-                        CalcNormals(mesh);
-                        break;
-                    case ProfileShape.Circle:
-                        if (primShape.PathCurve == (byte)Extrusion.Straight)
-                        {
-                            mesh = CreateCyllinderMesh(primName, primShape, size);
-                            CalcNormals(mesh);
-                        }
-                        break;
-                    case ProfileShape.HalfCircle:
-                        if (primShape.PathCurve == (byte)Extrusion.Curve1)
-                        {
-                            mesh = CreateSphereMesh(primName, primShape, size);
-                            CalcNormals(mesh);
-                        }
-                        break;
-
-                    case ProfileShape.EquilateralTriangle:
-                        mesh = CreatePrismMesh(primName, primShape, size);
-                        CalcNormals(mesh);
-                        break;
-
-                    default:
-                        mesh = CreateBoxMesh(primName, primShape, size);
-                        CalcNormals(mesh);
-                        //Set default mesh to cube otherwise it'll return
-                        // null and crash on the 'setMesh' method in the physics plugins.
-                        //mesh = null;
-                        break;
+                if (primShape.PathCurve == (byte)LLObject.PathCurve.Line)
+                { // its a box
+                    mesh = CreateBoxMesh(primName, primShape, size);
+                    CalcNormals(mesh);
+                }
+                else if (primShape.PathCurve == (byte)LLObject.PathCurve.Circle)
+                { // tube
+                    // do a cylinder for now
+                    //mesh = CreateCylinderMesh(primName, primShape, size);
+                    mesh = CreateCircularProfileMesh(primName, primShape, size);
+                    CalcNormals(mesh);
                 }
             }
+            else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
+            {
+                if (primShape.PathCurve == (byte)Extrusion.Straight)
+                {
+                    mesh = CreateCylinderMesh(primName, primShape, size);
+                    CalcNormals(mesh);
+                }
+
+                // look at LLObject.cs in libsecondlife for how to know the prim type
+                // ProfileCurve seems to combine hole shape and profile curve so we need to only compare against the lower 3 bits
+                else if (primShape.PathCurve == (byte) Extrusion.Curve1 && LLObject.UnpackPathScale(primShape.PathScaleY) <= 0.75f)
+                {  // dahlia's favorite, a torus :)
+                    mesh = CreateCircularProfileMesh(primName, primShape, size);
+                    CalcNormals(mesh);
+                }
+            }
+            else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
+            {
+                if (primShape.PathCurve == (byte)Extrusion.Curve1 || primShape.PathCurve == (byte) Extrusion.Curve2)
+                {
+                    mesh = CreateSphereMesh(primName, primShape, size);
+                    CalcNormals(mesh);
+                }
+            }
+            else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
+            {
+                if (primShape.PathCurve == (byte)Extrusion.Straight)
+                {
+                    mesh = CreatePrismMesh(primName, primShape, size);
+                    CalcNormals(mesh);
+                }
+                else if (primShape.PathCurve == (byte) Extrusion.Curve1)
+                {  // a ring - do a cylinder for now
+                    //mesh = CreateCylinderMesh(primName, primShape, size);
+                    mesh = CreateCircularProfileMesh(primName, primShape, size);
+                    CalcNormals(mesh);
+                }
+            }
+            else // just do a box
+            {
+                mesh = CreateBoxMesh(primName, primShape, size);
+                CalcNormals(mesh);
+            }
+
+            //else
+            //{
+            //    switch (primShape.ProfileShape)
+            //    {
+            //        case ProfileShape.Square:
+            //            mesh = CreateBoxMesh(primName, primShape, size);
+            //            CalcNormals(mesh);
+            //            break;
+            //        case ProfileShape.Circle:
+            //            if (primShape.PathCurve == (byte)Extrusion.Straight)
+            //            {
+            //                mesh = CreateCylinderMesh(primName, primShape, size);
+            //                CalcNormals(mesh);
+            //            }
+
+            //            // look at LLObject.cs in libsecondlife for how to know the prim type
+            //            // ProfileCurve seems to combine hole shape and profile curve so we need to only compare against the lower 3 bits
+            //            else if ((primShape.ProfileCurve & 0x07) == (byte)LLObject.ProfileCurve.Circle && LLObject.UnpackPathScale(primShape.PathScaleY) <= 0.75f)
+            //            {  // dahlia's favorite, a torus :)
+            //                mesh = CreateCylinderMesh(primName, primShape, size);
+            //                CalcNormals(mesh);
+            //            }
+
+            //            break;
+            //        case ProfileShape.HalfCircle:
+            //            if (primShape.PathCurve == (byte)Extrusion.Curve1)
+            //            {
+            //                mesh = CreateSphereMesh(primName, primShape, size);
+            //                CalcNormals(mesh);
+            //            }
+            //            break;
+
+            //        case ProfileShape.EquilateralTriangle:
+            //            mesh = CreatePrismMesh(primName, primShape, size);
+            //            CalcNormals(mesh);
+            //            break;
+
+            //        default:
+            //            mesh = CreateBoxMesh(primName, primShape, size);
+            //            CalcNormals(mesh);
+            //            //Set default mesh to cube otherwise it'll return
+            //            // null and crash on the 'setMesh' method in the physics plugins.
+            //            //mesh = null;
+            //            break;
+            //    }
+            //}
 
             return mesh;
         }

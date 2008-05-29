@@ -51,9 +51,13 @@ public class Quaternion
     {
         // using (* 0.5) instead of (/2)
         w = (float)Math.Cos(angle * 0.5f);
-        x = axis.X * (float)Math.Sin(angle * 0.5f);
-        y = axis.Y * (float)Math.Sin(angle * 0.5f);
-        z = axis.Z * (float)Math.Sin(angle * 0.5f);
+        float sin = (float)Math.Sin(angle * 0.5f);
+        //x = axis.X * (float)Math.Sin(angle * 0.5f);
+        //y = axis.Y * (float)Math.Sin(angle * 0.5f);
+        //z = axis.Z * (float)Math.Sin(angle * 0.5f);
+        x = axis.X * sin;
+        y = axis.Y * sin;
+        z = axis.Z * sin;
         normalize();
     }
     public static Quaternion operator *(Quaternion a, Quaternion b)
@@ -73,12 +77,18 @@ public class Quaternion
     }
     public void normalize()
     {
-        float mag = length();
+        //float mag = length();
 
-        w /= mag;
-        x /= mag;
-        y /= mag;
-        z /= mag;
+        //w /= mag;
+        //x /= mag;
+        //y /= mag;
+        //z /= mag;
+        float iMag = 1.0f / length();
+
+        w *= iMag;
+        x *= iMag;
+        y *= iMag;
+        z *= iMag;
     }
     public float length()
     {
@@ -169,7 +179,8 @@ public class Vertex : PhysicsVector, IComparable<Vertex>
         float tlength = length();
         if (tlength != 0)
         {
-            return new Vertex(X / tlength, Y / tlength, Z / tlength);
+            float mul = 1.0f / tlength;
+            return new Vertex(X * mul, Y * mul, Z * mul);
         }
         else
         {
@@ -230,9 +241,10 @@ public class Vertex : PhysicsVector, IComparable<Vertex>
         {
             return new Vertex(0f,0f,0f);
         }
-        v1.X /= am;
-        v1.Y /= am;
-        v1.Z /= am;
+        float mul = 1.0f / am;
+        v1.X *= mul;
+        v1.Y *= mul;
+        v1.Z *= mul;
         return v1;
     }
 

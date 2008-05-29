@@ -47,6 +47,21 @@ namespace OpenSim.Region.Physics.Meshing
         public float twistTop = 0;
         public float twistBot = 0;
         public float twistMid = 0;
+        public float pathScaleX = 1.0f;
+        public float pathScaleY = 0.5f;
+        public float skew = 0.0f;
+        public float radius = 0.0f;
+        public float revolutions = 1.0f;
+
+        public float pathCutBegin = 0.0f;
+        public float pathCutEnd = 1.0f;
+
+        public ushort pathBegin = 0;
+        public ushort pathEnd = 0;
+
+        public float pathTaperX = 0.0f;
+        public float pathTaperY = 0.0f;
+
 
         public Mesh Extrude(Mesh m)
         {
@@ -228,6 +243,202 @@ namespace OpenSim.Region.Physics.Meshing
                     }
                 }
             }
+            return result;
+        }
+        public Mesh ExtrudeCircularPath(Mesh m)
+        {
+            //startParameter = float.MinValue;
+            //stopParameter = float.MaxValue;
+            // Currently only works for iSteps=1;
+            Mesh result = new Mesh();
+
+            Quaternion tt = new Quaternion();
+            Vertex v2 = new Vertex(0, 0, 0);
+
+            Mesh newLayer;
+            Mesh lastLayer = null;
+
+            int start = 0;
+            int step;
+            int steps = 24;
+
+            float twistTotal = twistTop - twistBot;
+            if (System.Math.Abs(twistTotal) > (float)System.Math.PI * 1.5) steps *= 2;
+            if (System.Math.Abs(twistTotal) > (float)System.Math.PI * 3.0) steps *= 2;
+
+            double percentOfPathMultiplier = 1.0 / steps;
+            double angleStepMultiplier = System.Math.PI * 2.0 / steps;
+
+            //System.Console.WriteLine("twistTop: " + twistTop.ToString() + " twistbot: " + twistBot.ToString() + " twisttotal: " + twistTotal.ToString());
+
+            float yPathScale = pathScaleY * 0.5f;
+            float skewStart = -skew;
+            float skewOffset = 0.0f;
+            float totalSkew = skew * 2.0f;
+
+
+            float startAngle = (float)(System.Math.PI * 2.0 * pathCutBegin * revolutions);
+            float endAngle = (float)(System.Math.PI * 2.0 * pathCutEnd * revolutions);
+            float stepSize = (float)0.2617993878; // 2*PI / 24 segments
+            step = (int)(startAngle / stepSize);
+            float angle = startAngle;
+
+            float xProfileScale = 1.0f;
+            float yProfileScale = 1.0f;
+
+            //System.Console.WriteLine("startAngle: " + startAngle.ToString() + " endAngle: " + endAngle.ToString() + " step: " + step.ToString());
+            bool done = false;
+
+            //System.Console.WriteLine(" PathScaleX: " + pathScaleX.ToString() + " pathScaleY: " + pathScaleY.ToString());
+
+            //System.Console.WriteLine("taperBotFactorX: " + taperBotFactorX.ToString() + " taperBotFactorY: " + taperBotFactorY.ToString()
+            //    + " taperTopFactorX: " + taperTopFactorX.ToString() + " taperTopFactorY: " + taperTopFactorY.ToString());
+
+
+
+            do
+            {
+                float percentOfPath = 1.0f;
+
+                percentOfPath = (angle - startAngle) / (endAngle - startAngle); // endAngle should always be larger than startAngle
+
+               // System.Console.WriteLine("angle: " + angle.ToString() + " percentOfPath: " + percentOfPath.ToString());
+
+                if (pathTaperX > 0.001f) // can't really compare to 0.0f as the value passed is never exactly zero
+                    xProfileScale = 1.0f - percentOfPath * pathTaperX;
+                else if (pathTaperX < -0.001f)
+                    xProfileScale = 1.0f + (1.0f - percentOfPath) * pathTaperX;
+                else xProfileScale = 1.0f;
+
+                if (pathTaperY > 0.001f)
+                    yProfileScale = 1.0f - percentOfPath * pathTaperY;
+                else if (pathTaperY < -0.001f)
+                    yProfileScale = 1.0f + (1.0f - percentOfPath) * pathTaperY;
+                else yProfileScale = 1.0f;
+
+                float radiusScale;
+
+                if (radius > 0.001f)
+                    radiusScale = 1.0f - radius * percentOfPath;
+                else if (radius < 0.001f)
+                    radiusScale = 1.0f + radius * (1.0f - percentOfPath);
+                else radiusScale = 1.0f;
+
+                //radiusScale = 1.0f;
+
+                //System.Console.WriteLine("Extruder: radius: " + radius.ToString() + " radiusScale: " + radiusScale.ToString());
+
+
+
+
+
+                float twist = twistBot + (twistTotal * (float)percentOfPath);
+
+                float zOffset = (float)(System.Math.Sin(angle) * (0.5f - yPathScale)) * radiusScale;
+                float yOffset = (float)(System.Math.Cos(angle) * (0.5f - yPathScale)) * radiusScale;
+                float xOffset = 0.5f * (skewStart + totalSkew * (float)percentOfPath);
+
+                newLayer = m.Clone();
+
+                Vertex vTemp = new Vertex(0.0f, 0.0f, 0.0f);
+
+                if (twistTotal != 0.0f || twistBot != 0.0f)
+                {
+                    Quaternion profileRot = new Quaternion(new Vertex(0.0f, 0.0f, -1.0f), twist);
+                    foreach (Vertex v in newLayer.vertices)
+                    {
+                        if (v != null)
+                        {
+                            vTemp = v * profileRot;
+                            v.X = vTemp.X;
+                            v.Y = vTemp.Y;
+                            v.Z = vTemp.Z;
+                        }
+                    }
+                }
+
+                Quaternion layerRot = new Quaternion(new Vertex(-1.0f, 0.0f, 0.0f), (float)angle);
+                foreach (Vertex v in newLayer.vertices)
+                {
+                    if (v != null)
+                    {
+                        vTemp = v * layerRot;
+                        v.X = xProfileScale * vTemp.X + xOffset;
+                        v.Y = yProfileScale * vTemp.Y + yOffset;
+                        v.Z = vTemp.Z + zOffset;
+                    }
+                }
+
+                if (angle == startAngle) // last layer, invert normals
+                    foreach (Triangle t in newLayer.triangles)
+                    {
+                        t.invertNormal();
+                    }
+
+                result.Append(newLayer);
+
+                int iLastNull = 0;
+
+                if (lastLayer != null)
+                {
+                    int i, count = newLayer.vertices.Count;
+
+                    for (i = 0; i < count; i++)
+                    {
+                        int iNext = (i + 1);
+
+                        if (lastLayer.vertices[i] == null) // cant make a simplex here
+                            iLastNull = i + 1;
+                        else
+                        {
+                            if (i == count - 1) // End of list
+                                iNext = iLastNull;
+
+                            if (lastLayer.vertices[iNext] == null) // Null means wrap to begin of last segment
+                                iNext = iLastNull;
+
+                            result.Add(new Triangle(newLayer.vertices[i], lastLayer.vertices[i], newLayer.vertices[iNext]));
+                            result.Add(new Triangle(newLayer.vertices[iNext], lastLayer.vertices[i], lastLayer.vertices[iNext]));
+                        }
+                    }
+                }
+                lastLayer = newLayer;
+
+
+
+
+
+
+
+
+                // calc next angle
+
+                if (angle >= endAngle)
+                    done = true;
+                else
+                {
+                    angle = stepSize * ++step;
+                    if (angle > endAngle)
+                        angle = endAngle;
+                }
+            }
+            while (!done);
+
+
+
+            // scale the mesh to the desired size
+            float xScale = size.X;
+            float yScale = size.Y;
+            float zScale = size.Z;
+
+            foreach (Vertex v in result.vertices)
+                if (v != null)
+                {
+                    v.X *= xScale;
+                    v.Y *= yScale;
+                    v.Z *= zScale;
+                }
+
             return result;
         }
     }

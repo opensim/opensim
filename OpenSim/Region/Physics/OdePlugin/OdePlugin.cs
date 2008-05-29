@@ -36,6 +36,7 @@ using Nini.Config;
 using Ode.NET;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
+using libsecondlife;
 
 //using OpenSim.Region.Physics.OdePlugin.Meshing;
 
@@ -1512,6 +1513,8 @@ namespace OpenSim.Region.Physics.OdePlugin
         /// <returns></returns>
         public bool needsMeshing(PrimitiveBaseShape pbs)
         {
+            //if (pbs.PathCurve == (byte)LLObject.PathCurve.Circle && pbs.ProfileCurve == (byte)LLObject.ProfileCurve.Circle && pbs.PathScaleY <= 0.75f)
+            //Console.WriteLine("needsMeshing: " + " pathCurve: " + pbs.PathCurve.ToString() + " profileCurve: " + pbs.ProfileCurve.ToString() + " pathScaleY: " + LLObject.UnpackPathScale(pbs.PathScaleY).ToString());
             if (pbs.SculptEntry && !meshSculptedPrim)
             {
                 return false;
@@ -1535,6 +1538,22 @@ namespace OpenSim.Region.Physics.OdePlugin
             if (pbs.ProfileShape == ProfileShape.Circle && pbs.PathCurve == (byte)Extrusion.Straight)
                 return true;
             if (pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1 && (pbs.Scale.X != pbs.Scale.Y || pbs.Scale.Y != pbs.Scale.Z || pbs.Scale.Z != pbs.Scale.X))
+                return true;
+
+            // test for torus
+            if (pbs.PathCurve == (byte)LLObject.PathCurve.Circle
+                && (pbs.ProfileCurve & 0x07) == (byte)LLObject.ProfileCurve.Circle
+                && LLObject.UnpackPathScale(pbs.PathScaleY) <= 0.75f)
+                return true;
+
+            // test for tube
+            if (pbs.PathCurve == (byte)LLObject.PathCurve.Circle
+                && (pbs.ProfileCurve & 0x07) == (byte)LLObject.ProfileCurve.EqualTriangle)
+                return true;
+
+            // test for ring
+            if (pbs.PathCurve == (byte)LLObject.PathCurve.Circle
+                && (pbs.ProfileCurve & 0x07) == (byte)LLObject.ProfileCurve.EqualTriangle)
                 return true;
 
             if (pbs.ProfileShape == ProfileShape.EquilateralTriangle)
