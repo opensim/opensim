@@ -46,16 +46,23 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                 return;
 
             IXMLRPC xmlrpc = m_CmdManager.m_ScriptEngine.World.RequestModuleInterface<IXMLRPC>();
+            if (null == xmlrpc)
+                return;
 
-            if (xmlrpc != null)
+            // Process the completed request queue
+            RPCRequestInfo rInfo = xmlrpc.GetNextCompletedRequest();
+
+            while (rInfo != null)
             {
-                RPCRequestInfo rInfo = xmlrpc.GetNextCompletedRequest();
+                bool handled = false;
 
-                while (rInfo != null)
-                {
-                    if (m_CmdManager.m_ScriptEngine.m_ScriptManager.GetScript(rInfo.GetLocalID(), rInfo.GetItemID()) != null)
-                    {
-                        xmlrpc.RemoveCompletedRequest(rInfo.GetMessageID());
+                // Request must be taken out of the queue in case there is no handler, otherwise we loop infinitely
+                xmlrpc.RemoveCompletedRequest(rInfo.GetMessageID()); 
+
+                // And since the xmlrpc request queue is actually shared among all regions on the simulator, we need
+                // to look in each one for the appropriate handler
+                foreach (ScriptEngine sman in ScriptEngine.ScriptEngines) {
+                    if (sman.m_ScriptManager.GetScript(rInfo.GetLocalID(),rInfo.GetItemID()) != null) {
 
                         //Deliver data to prim's remote_data handler
                         object[] resobj = new object[]
@@ -64,21 +71,36 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                             new LSL_Types.LSLInteger(rInfo.GetIntValue()),
                             new LSL_Types.LSLString(rInfo.GetStrVal())
                         };
-                        m_CmdManager.m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                        sman.m_EventQueueManager.AddToScriptQueue(
                             rInfo.GetLocalID(), rInfo.GetItemID(), "remote_data", EventQueueManager.llDetectNull, resobj
                         );
-                    }
 
-                    rInfo = xmlrpc.GetNextCompletedRequest();
+                        handled = true;
+                    }
                 }
 
-                SendRemoteDataRequest srdInfo = xmlrpc.GetNextCompletedSRDRequest();
-
-                while (srdInfo != null)
+                if (! handled)
                 {
-                    if (m_CmdManager.m_ScriptEngine.m_ScriptManager.GetScript(srdInfo.m_localID, srdInfo.m_itemID) != null)
-                    {
-                        xmlrpc.RemoveCompletedSRDRequest(srdInfo.GetReqID());
+                    Console.WriteLine("Unhandled xml_request: " + rInfo.GetItemID());
+                }
+
+                rInfo = xmlrpc.GetNextCompletedRequest();
+            }
+
+            // Process the send queue
+            SendRemoteDataRequest srdInfo = xmlrpc.GetNextCompletedSRDRequest();
+
+            while (srdInfo != null)
+            {
+                bool handled = false;
+
+                // Request must be taken out of the queue in case there is no handler, otherwise we loop infinitely
+                xmlrpc.RemoveCompletedSRDRequest(srdInfo.GetReqID());
+                
+                // And this is another shared queue... so we check each of the script engines for a handler
+                foreach (ScriptEngine sman in ScriptEngine.ScriptEngines)               
+                {
+                    if (sman.m_ScriptManager.GetScript(srdInfo.m_localID,srdInfo.m_itemID) != null) {
 
                         //Deliver data to prim's remote_data handler
                         object[] resobj = new object[]
@@ -87,13 +109,20 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                             new LSL_Types.LSLInteger(srdInfo.idata),
                             new LSL_Types.LSLString(srdInfo.sdata)
                         };
-                        m_CmdManager.m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(
+                        sman.m_EventQueueManager.AddToScriptQueue(
                             srdInfo.m_localID, srdInfo.m_itemID, "remote_data", EventQueueManager.llDetectNull, resobj
                         );
-                    }
 
-                    srdInfo = xmlrpc.GetNextCompletedSRDRequest();
+                        handled = true;
+                    }
                 }
+                
+                if (! handled)
+                {
+                    Console.WriteLine("Unhandled xml_srdrequest: " + srdInfo.GetReqID());
+                }
+
+                srdInfo = xmlrpc.GetNextCompletedSRDRequest();
             }
         }
     }
