@@ -44,7 +44,9 @@ namespace OpenSim.Framework.Servers
         private string _httpMethod;
         private Stream _inputStream;
         private bool _isSecureConnection;
+        private bool _isAuthenticated;
         private bool _keepAlive;
+        private bool _hasbody;
         private string _rawUrl;
         private Uri _url;
         private NameValueCollection _queryString;
@@ -95,6 +97,16 @@ namespace OpenSim.Framework.Servers
             get { return _isSecureConnection; }
         }
 
+        public bool IsAuthenticated
+        {
+            get { return _isAuthenticated; }
+        }
+
+        public bool HasEntityBody
+        {
+            get { return _hasbody; }
+        }
+
         public bool KeepAlive
         {
             get { return _keepAlive; }
@@ -133,8 +145,10 @@ namespace OpenSim.Framework.Servers
             _cookies = req.Cookies;
             _headers = req.Headers;
             _httpMethod = req.HttpMethod;
+            _hasbody = req.HasEntityBody;
             _inputStream = req.InputStream;
             _isSecureConnection = req.IsSecureConnection;
+            _isAuthenticated = req.IsAuthenticated;
             _keepAlive = req.KeepAlive;
             _rawUrl = req.RawUrl;
             _url = req.Url;
