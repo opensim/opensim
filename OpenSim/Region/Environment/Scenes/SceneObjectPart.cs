@@ -585,7 +585,15 @@ namespace OpenSim.Region.Environment.Scenes
 
         public string Text
         {
-            get { return m_text; }
+            get
+            {
+                string returnstr = m_text;
+                if (returnstr.Length > 255)
+                {
+                    returnstr = returnstr.Substring(0, 254);
+                }
+                return returnstr;
+            }
             set
             {
                 m_text = value;

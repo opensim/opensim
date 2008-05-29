@@ -42,7 +42,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         // c Style
         private Regex cstylecomments = new Regex(@"/\*(.|[\r\n])*?\*/", RegexOptions.Compiled | RegexOptions.Multiline);
         // c# one liners
-        private Regex nonCommentFwsl = new Regex("\"[a-zA-Z0-9.,:/ ]+//[^\"]+(" + @"[\\" + "\"]+)?[\"](\\s+)?;", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+        private Regex nonCommentFwsl = new Regex("\"[a-zA-Z0-9.,:/\\n ]+//[^\"+]+([\\\\\\\"+]+)?(\\s+)?[\"+](\\s+)?(;)?", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
         private Regex conelinecomments = new Regex(@"[^:].?([\/]{2}[^\n]*)|([\n]{1,}[\/]{2}[^\n]*)", RegexOptions.Compiled | RegexOptions.Multiline);
         // ([^\"])((?:[a-zA-Z])\.[a-zA-Z].?)([^\"])
 
@@ -121,10 +121,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             // ignores alpha.x alpha.y, alpha.z for refering to vector components
             Match SecurityM;
 
-            // BROKEN: this check is very wrong.  It block's any url in strings.
-            SecurityM = Regex.Match(checkscript, @"(?:[a-zA-Z])\.(?:[a-wA-Z]|[a-zA-Z][a-zA-Z])", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
-            if (SecurityM.Success)
-               throw new Exception("CS0103: 'The . symbol cannot be used in LSL except in float values or vector components'");
+            
+            SecurityM = Regex.Match(checkscript, @"([a-zA-Z])\.(?:[a-wA-Z]|[a-zA-Z][a-zA-Z])", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            if (SecurityM.Success) 
+               throw new Exception("CS0103: 'The . symbol cannot be used in LSL except in float values or vector components'.  Detected around: " + SecurityM.Captures[0].Value);
 
             SecurityM = Regex.Match(checkscript, @"typeof\s", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
             if (SecurityM.Success)
