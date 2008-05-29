@@ -84,10 +84,12 @@ namespace OpenSim.Framework.Servers
 
             string handlerKey = GetHandlerKey(httpMethod, path);
 
-            if (!m_streamHandlers.ContainsKey(handlerKey))
-            {
-                //m_log.DebugFormat("[BASE HTTP SERVER]: Adding handler key {0}", handlerKey);
-                m_streamHandlers.Add(handlerKey, handler);
+            lock(m_streamHandlers) {
+                if (!m_streamHandlers.ContainsKey(handlerKey))
+                {
+                    //m_log.DebugFormat("[BASE HTTP SERVER]: Adding handler key {0}", handlerKey);
+                    m_streamHandlers.Add(handlerKey, handler);
+                }
             }
         }
 
@@ -98,10 +100,12 @@ namespace OpenSim.Framework.Servers
 
         public bool AddXmlRPCHandler(string method, XmlRpcMethod handler)
         {
-            if (!m_rpcHandlers.ContainsKey(method))
-            {
-                m_rpcHandlers.Add(method, handler);
-                return true;
+            lock(m_rpcHandlers) {
+                if (!m_rpcHandlers.ContainsKey(method))
+                {
+                    m_rpcHandlers.Add(method, handler);
+                    return true;
+                }
             }
 
             //must already have a handler for that path so return false
@@ -110,10 +114,12 @@ namespace OpenSim.Framework.Servers
 
         public bool AddHTTPHandler(string method, GenericHTTPMethod handler)
         {
-            if (!m_HTTPHandlers.ContainsKey(method))
-            {
-                m_HTTPHandlers.Add(method, handler);
-                return true;
+            lock(m_HTTPHandlers) {
+                if (!m_HTTPHandlers.ContainsKey(method))
+                {
+                    m_HTTPHandlers.Add(method, handler);
+                    return true;
+                }
             }
 
             //must already have a handler for that path so return false
@@ -126,10 +132,12 @@ namespace OpenSim.Framework.Servers
 
         public bool AddAgentHandler(string agent, IHttpAgentHandler handler)
         {
-            if (!m_agentHandlers.ContainsKey(agent))
-            {
-                m_agentHandlers.Add(agent, handler);
-                return true;
+            lock(m_agentHandlers) {
+                if (!m_agentHandlers.ContainsKey(agent))
+                {
+                    m_agentHandlers.Add(agent, handler);
+                    return true;
+                }
             }
 
             //must already have a handler for that path so return false
@@ -156,16 +164,17 @@ namespace OpenSim.Framework.Servers
                 OSHttpRequest  request  = new OSHttpRequest(context.Request);
                 OSHttpResponse response = new OSHttpResponse(context.Response);
 
+                // user agent based requests?  not sure where this actually gets used from
                 if (request.UserAgent != null)
                 {
-
                     IHttpAgentHandler agentHandler;
 
                     if (TryGetAgentHandler(request, response, out agentHandler))
                     {
-                        // m_log.DebugFormat("[HTTP-AGENT] Handler located for {0}", request.UserAgent);
-                        if (HandleAgentRequest(agentHandler, request, response))
+                        if (HandleAgentRequest(agentHandler, request, response)) {
+                            m_log.DebugFormat("[HTTP-AGENT] Handler located for {0}", request.UserAgent);
                             return;
+                        }
                     }
                 }
 
@@ -235,7 +244,7 @@ namespace OpenSim.Framework.Servers
                     return;
                 }
             }
-            catch (SocketException)
+            catch (SocketException e)
             {
                 // At least on linux, it appears that if the client makes a request without requiring the response,
                 // an unconnected socket exception is thrown when we close the response output stream.  There's no
@@ -244,6 +253,7 @@ namespace OpenSim.Framework.Servers
                 //
                 // An alternative may be to turn off all response write exceptions on the HttpListener, but let's go
                 // with the minimum first
+                m_log.WarnFormat("[BASE HTTP SERVER]: HandleRequest threw {0}.\nNOTE: this may be spurious on Linux", e);
             }
             catch (Exception e)
             {
@@ -403,9 +413,10 @@ namespace OpenSim.Framework.Servers
                 {
                     response.OutputStream.Close();
                 }
-                catch (SocketException)
+                catch (SocketException e)
                 {
                     // This has to be here to prevent a Linux/Mono crash
+                    m_log.WarnFormat("[BASE HTTP SERVER] XmlRpcRequest issue {0}.\nNOTE: this may be spurious on Linux.", e);
                 }
             }
         }
