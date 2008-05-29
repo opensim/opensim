@@ -710,5 +710,17 @@ namespace OpenSim.Region.Environment.Scenes
 
             TriggerScriptChangedEvent(Changed.OWNER);
         }
+
+        public bool ContainsScripts()
+        {
+            foreach (TaskInventoryItem item in m_taskInventory.Values)
+            {
+                if (item.InvType == 10)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }
