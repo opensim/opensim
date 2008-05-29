@@ -1628,6 +1628,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         protected void CheckForBorderCrossing()
         {
+            if (IsChildAgent)
+                return;
             LLVector3 pos2 = AbsolutePosition;
             LLVector3 vel = Velocity;
 
