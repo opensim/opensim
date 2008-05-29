@@ -1678,9 +1678,9 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llGetInventoryCreator(item);
         }
 
-        public void llRequestSimulatorData(string simulator, int data)
+        public string llRequestSimulatorData(string simulator, int data)
         {
-            m_LSL_Functions.llRequestSimulatorData(simulator, data);
+            return m_LSL_Functions.llRequestSimulatorData(simulator, data);
         }
 
         public void llForceMouselook(int mouselook)

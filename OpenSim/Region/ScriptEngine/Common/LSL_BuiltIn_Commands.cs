@@ -5618,10 +5618,54 @@ namespace OpenSim.Region.ScriptEngine.Common
             wComm.DeliverMessage(ChatTypeEnum.Owner, 0, m_host.Name, m_host.UUID, msg);
         }
 
-        public void llRequestSimulatorData(string simulator, int data)
+        public string llRequestSimulatorData(string simulator, int data)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRequestSimulatorData");
+
+            string reply = String.Empty;
+
+            RegionInfo info = m_ScriptEngine.World.RequestClosestRegion(simulator);
+
+            switch(data)
+            {
+            case 5: // DATA_SIM_POS
+                if(info == null)
+                    return LLUUID.Zero.ToString();
+                reply = new LSL_Types.Vector3(
+                        info.RegionLocX * Constants.RegionSize,
+                        info.RegionLocY * Constants.RegionSize,
+                        0).ToString();
+                break;
+            case 6: // DATA_SIM_STATUS
+                if(info != null)
+                    reply = "up"; // Duh!
+                else
+                    reply = "unknown";
+                break;
+            case 7: // DATA_SIM_RATING
+                if(info == null)
+                    return LLUUID.Zero.ToString();
+                int access = (int)info.EstateSettings.simAccess;
+                if(access == 21)
+                    reply = "MATURE";
+                else if(access == 13)
+                    reply = "MATURE";
+                else
+                    reply = "UNKNOWN";
+                break;
+            default:
+                return LLUUID.Zero.ToString(); // Raise no event
+            }
+            LLUUID rq = LLUUID.Random();
+
+            LLUUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.
+                    m_Dataserver.RegisterRequest(m_localID,
+                    m_itemID, rq.ToString());
+
+            m_ScriptEngine.m_ASYNCLSLCommandManager.
+            m_Dataserver.DataserverReply(rq.ToString(), reply);
+
+            return tid.ToString();
         }
 
         public void llForceMouselook(int mouselook)

@@ -576,7 +576,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         //wiki: llOwnerSay(string msg)
         void llOwnerSay(string msg);
         //wiki: key llRequestSimulatorData(string simulator, integer data)
-        void llRequestSimulatorData(string simulator, int data);
+        string llRequestSimulatorData(string simulator, int data);
         //wiki: llForceMouselook(integer mouselook)
         void llForceMouselook(int mouselook);
         //wiki: double llGetObjectMass(key id)

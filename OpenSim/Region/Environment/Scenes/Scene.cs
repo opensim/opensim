@@ -2912,6 +2912,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public RegionInfo RequestClosestRegion(string name)
+        {
+            return m_sceneGridService.RequestClosestRegion(name);
+        }
+
         #endregion
 
         #region Script Engine

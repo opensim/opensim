@@ -112,6 +112,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public RegionInfo RequestClosestRegion(string name)
+        {
+            return m_commsProvider.GridService.RequestClosestRegion(name);
+        }
+
         public void Close()
         {
             if (regionCommsHost != null)

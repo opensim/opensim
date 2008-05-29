@@ -397,7 +397,10 @@ namespace OpenSim.Region.Communications.OGS1
 
         public RegionInfo RequestClosestRegion(string regionName)
         {
-            // Don't use this method.  It's only for SLURLS and Logins
+            foreach (RegionInfo ri in m_remoteRegionInfoCache.Values)
+                if(ri.RegionName == regionName)
+                    return ri;
+
             RegionInfo regionInfo = null;
             try
             {
@@ -438,7 +441,8 @@ namespace OpenSim.Region.Communications.OGS1
                 regionInfo.RegionID = new LLUUID((string) responseData["region_UUID"]);
                 regionInfo.RegionName = (string) responseData["region_name"];
 
-                m_remoteRegionInfoCache.Add(regionInfo.RegionHandle, regionInfo);
+                if(!m_remoteRegionInfoCache.ContainsKey(regionInfo.RegionHandle))
+                    m_remoteRegionInfoCache.Add(regionInfo.RegionHandle, regionInfo);
             }
             catch (WebException)
             {

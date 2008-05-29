@@ -50,6 +50,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         public Listener m_Listener;
         public SensorRepeat m_SensorRepeat;
         public XmlRequest m_XmlRequest;
+        public Dataserver m_Dataserver;
 
         public AsyncCommandManager(ScriptEngine _ScriptEngine)
         {
@@ -62,6 +63,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             m_Listener = new Listener(this);
             m_SensorRepeat = new SensorRepeat(this);
             m_XmlRequest = new XmlRequest(this);
+            m_Dataserver = new Dataserver(this);
 
             StartThread();
         }
@@ -142,6 +144,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             m_Listener.CheckListeners();
             // Check Sensors
             m_SensorRepeat.CheckSenseRepeaterEvents();
+            // Check dataserver
+            m_Dataserver.ExpireRequests();
         }
 
         /// <summary>
@@ -170,6 +174,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
             // Remove Sensors
             m_SensorRepeat.UnSetSenseRepeaterEvents(localID, itemID);
+
+            // Remove queries
+            m_Dataserver.RemoveEvents(localID, itemID);
 
         }
 
