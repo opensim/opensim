@@ -92,7 +92,7 @@ namespace OpenSim.Region.Physics.Meshing
                 
                 //Push the top of the object over by the Top Shear amount
                 v.X += pushX * size.X;
-                v.Y += pushY * size.X;
+                v.Y += pushY * size.Y;
 
                 if (twistTop != 0)
                 {
@@ -118,7 +118,7 @@ namespace OpenSim.Region.Physics.Meshing
                 v.Y *= (size.Y * ((taperTopFactorY + taperBotFactorY) / 2));
 
                 v.X += (pushX / 2) * size.X;
-                v.Y += (pushY / 2) * size.X;
+                v.Y += (pushY / 2) * size.Y;
                 //Push the top of the object over by the Top Shear amount
                 if (twistMid != 0)
                 {
