@@ -24,7 +24,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.Reflection;
 using libsecondlife;
@@ -39,6 +40,8 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
     public class EstateManagementModule : IRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        private delegate void LookupUUIDS(List<LLUUID> uuidLst);
 
         private Scene m_scene;
 
@@ -314,6 +317,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         private void HandleLandStatRequest(int parcelID, uint reportType, uint requestFlags, string filter, IClientAPI remoteClient)
         {
             Dictionary<uint, float> SceneData = new Dictionary<uint,float>();
+            List<LLUUID> uuidNameLookupList = new List<LLUUID>();
 
             if (reportType == 1)
             {
@@ -345,7 +349,17 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                                 lsri.TaskID = sog.UUID;
                                 lsri.TaskLocalID = sog.LocalId;
                                 lsri.TaskName = sog.GetPartName(obj);
-                                lsri.OwnerName = m_scene.CommsManager.UUIDNameRequestString(sog.OwnerID);
+                                if (m_scene.CommsManager.UUIDNameCachedTest(sog.OwnerID))
+                                {
+                                    lsri.OwnerName = m_scene.CommsManager.UUIDNameRequestString(sog.OwnerID);
+                                }
+                                else
+                                {
+                                    lsri.OwnerName = "waiting";
+                                    lock(uuidNameLookupList)
+                                        uuidNameLookupList.Add(sog.OwnerID);
+                                }
+
                                 if (filter.Length != 0)
                                 {
                                     if ((lsri.OwnerName.Contains(filter) || lsri.TaskName.Contains(filter)))
@@ -365,9 +379,39 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                 }
             }
             remoteClient.SendLandStatReply(reportType, requestFlags, (uint)SceneReport.Count,SceneReport.ToArray());
-
+            
+            if (uuidNameLookupList.Count > 0)
+                LookupUUID(uuidNameLookupList);
         }
 
+        private void LookupUUIDSCompleted(IAsyncResult iar)
+        {
+            LookupUUIDS icon = (LookupUUIDS)iar.AsyncState;
+            icon.EndInvoke(iar);
+        }
+        private void LookupUUID(List<LLUUID> uuidLst)
+        {
+            LookupUUIDS d = LookupUUIDsAsync;
+
+            d.BeginInvoke(uuidLst,
+                          LookupUUIDSCompleted,
+                          d);
+        }
+        private void LookupUUIDsAsync(List<LLUUID> uuidLst)
+        {
+            LLUUID[] uuidarr = new LLUUID[0];
+            
+            lock (uuidLst)
+            {
+                uuidarr = uuidLst.ToArray();
+            }
+
+            for (int i = 0; i < uuidarr.Length; i++)
+            {
+                string lookupname = m_scene.CommsManager.UUIDNameRequestString(uuidarr[i]);
+                // we drop it.  It gets cached though...  so we're ready for the next request.
+            }
+        }
         #endregion
 
         #region Outgoing Packets

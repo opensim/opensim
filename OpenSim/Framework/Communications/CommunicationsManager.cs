@@ -41,6 +41,7 @@ namespace OpenSim.Framework.Communications
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected IUserService m_userService;
+        protected Dictionary<LLUUID, string[]> m_nameRequestCache = new Dictionary<LLUUID, string[]>();
 
         public IUserService UserService
         {
@@ -248,27 +249,69 @@ namespace OpenSim.Framework.Communications
             }
             else
             {
+                string[] names = doUUIDNameRequest(uuid);
+                if (names.Length == 2)
+                {
+                    remote_client.SendNameReply(uuid, names[0], names[1]);
+                }
+
+            }  
+        }
+
+        private string[] doUUIDNameRequest(LLUUID uuid)
+        {
+            string[] returnstring = new string[0];
+            bool doLookup = false;
+            
+            
+            lock (m_nameRequestCache)
+            {
+                if (m_nameRequestCache.ContainsKey(uuid))
+                {
+                    returnstring = m_nameRequestCache[uuid];
+                }
+                else 
+                {
+                    // we don't want to lock the dictionary while we're doing the lookup
+                    doLookup = true;
+                }
+            }
+                
+            if (doLookup) {
                 UserProfileData profileData = m_userService.GetUserProfile(uuid);
                 if (profileData != null)
                 {
+                    returnstring = new string[2];
                     LLUUID profileId = profileData.ID;
-                    string firstname = profileData.FirstName;
-                    string lastname = profileData.SurName;
-
-                    remote_client.SendNameReply(profileId, firstname, lastname);
+                    returnstring[0] = profileData.FirstName;
+                    returnstring[1] = profileData.SurName;
+                    lock (m_nameRequestCache)
+                    {
+                        if (!m_nameRequestCache.ContainsKey(uuid))
+                            m_nameRequestCache.Add(uuid, returnstring);
+                    }
                 }
             }
+            return returnstring;
+            
         }
+
+        public bool UUIDNameCachedTest(LLUUID uuid)
+        {
+            lock (m_nameRequestCache)
+                return m_nameRequestCache.ContainsKey(uuid);
+        }
+
         public string UUIDNameRequestString(LLUUID uuid)
         {
-            UserProfileData profileData = m_userService.GetUserProfile(uuid);
-            if (profileData != null)
+            string[] names = doUUIDNameRequest(uuid);
+            if (names.Length == 2)
             {
-                //LLUUID profileId = profileData.ID;
-                string firstname = profileData.FirstName;
-                string lastname = profileData.SurName;
+                string firstname = names[0];
+                string lastname = names[1];
 
                 return firstname + " " + lastname;
+            
             }
             return "(hippos)";
         }
