@@ -28,6 +28,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using log4net;
 
 namespace OpenSim.Region.Environment.Modules.World.Archiver
@@ -39,12 +40,17 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
-        protected static System.Text.ASCIIEncoding m_asciiEncoding = new System.Text.ASCIIEncoding();        
+        protected static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();        
         
         /// <summary>
         /// Binary reader for the underlying stream
         /// </summary>
         protected BinaryReader m_br;
+        
+        /// <summary>
+        /// Used to trim off null chars
+        /// </summary>
+        protected char[] m_nullCharArray = new char[] { '\0' };
         
         public TarArchiveReader(string archivePath)
         {
@@ -109,6 +115,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             byte[] header = m_br.ReadBytes(512);
             
             tarHeader.FilePath = m_asciiEncoding.GetString(header, 0, 100);
+            tarHeader.FilePath = tarHeader.FilePath.Trim(m_nullCharArray);
             tarHeader.FileSize = ConvertOctalBytesToDecimal(header, 124, 11);
             
             return tarHeader;

@@ -36,7 +36,7 @@ using libsecondlife;
 using log4net;
 using Nini.Config;
 
-namespace OpenSim.Region.Environment
+namespace OpenSim.Region.Environment.Modules.World.Archiver
 {
     /// <summary>
     /// Method called when all the necessary assets for an archive request have been received.
@@ -103,7 +103,7 @@ namespace OpenSim.Region.Environment
 
             TarArchiveWriter archive = new TarArchiveWriter();
 
-            archive.AddFile("prims.xml", m_serializedEntities);
+            archive.AddFile(ArchiveConstants.PRIMS_PATH, m_serializedEntities);
             
             // It appears that gtar, at least, doesn't need the intermediate directory entries in the tar
             //archive.AddDir("assets");
@@ -112,7 +112,7 @@ namespace OpenSim.Region.Environment
             {
                 if (assets[uuid] != null)
                 {
-                    archive.AddFile("assets/" + uuid.ToString() + ".jp2", assets[uuid].Data);
+                    archive.AddFile(ArchiveConstants.ASSETS_PATH + uuid.ToString() + ".jp2", assets[uuid].Data);
                 }
                 else
                 {
