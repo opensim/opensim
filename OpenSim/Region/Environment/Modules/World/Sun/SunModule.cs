@@ -95,6 +95,7 @@ namespace OpenSim.Region.Environment.Modules
         private LLVector3 Velocity = new LLVector3(0,0,0);
         private LLQuaternion  Tilt = new LLQuaternion(1,0,0,0);
 
+        private Dictionary<LLUUID, ulong> m_rootAgents = new Dictionary<LLUUID, ulong>();
 
         // Current time in elpased seconds since Jan 1st 1970
         private ulong CurrentTime
@@ -183,7 +184,10 @@ namespace OpenSim.Region.Environment.Modules
                     //  Insert our event handling hooks
 
                     scene.EventManager.OnFrame     += SunUpdate;
-                    scene.EventManager.OnNewClient += SunToClient;
+                    //scene.EventManager.OnNewClient += SunToClient;
+                    scene.EventManager.OnMakeChildAgent += MakeChildAgent;
+                    scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
+                    scene.EventManager.OnClientClosed += ClientLoggedOut;
 
                     ready = true;
 
@@ -205,7 +209,10 @@ namespace OpenSim.Region.Environment.Modules
             ready = false;
             //  Remove our hooks
             m_scene.EventManager.OnFrame     -= SunUpdate;
-            m_scene.EventManager.OnNewClient -= SunToClient;
+           // m_scene.EventManager.OnNewClient -= SunToClient;
+            m_scene.EventManager.OnMakeChildAgent -= MakeChildAgent;
+            m_scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
+            m_scene.EventManager.OnClientClosed += ClientLoggedOut;
         }
 
         public string Name
@@ -243,7 +250,8 @@ namespace OpenSim.Region.Environment.Modules
             List<ScenePresence> avatars = m_scene.GetAvatars();
             foreach (ScenePresence avatar in avatars)
             {
-                avatar.ControllingClient.SendSunPos(Position, Velocity, CurrentTime, SecondsPerSunCycle, SecondsPerYear, OrbitalPosition);
+                if (!avatar.IsChildAgent)
+                    avatar.ControllingClient.SendSunPos(Position, Velocity, CurrentTime, SecondsPerSunCycle, SecondsPerYear, OrbitalPosition);
             }
 
             // set estate settings for region access to sun position
@@ -302,6 +310,49 @@ namespace OpenSim.Region.Environment.Modules
 
             // m_log.Debug("[SUN] Velocity("+Velocity.X+","+Velocity.Y+","+Velocity.Z+")");
 
+        }
+
+        private void ClientLoggedOut(LLUUID AgentId)
+        {
+            lock (m_rootAgents)
+            {
+                if (m_rootAgents.ContainsKey(AgentId))
+                {
+                    m_rootAgents.Remove(AgentId);
+                    m_log.Info("[SUN]: Removing " + AgentId + ". Agent logged out.");
+                }
+            }
+        }
+
+        private void AvatarEnteringParcel(ScenePresence avatar, int localLandID, LLUUID regionID)
+        {
+            lock (m_rootAgents)
+            {
+                if (m_rootAgents.ContainsKey(avatar.UUID))
+                {
+                    m_rootAgents[avatar.UUID] = avatar.RegionHandle; 
+                }
+                else
+                {
+                    m_rootAgents.Add(avatar.UUID, avatar.RegionHandle);
+                    SunToClient(avatar.ControllingClient);
+                }
+            }
+            //m_log.Info("[FRIEND]: " + avatar.Name + " status:" + (!avatar.IsChildAgent).ToString());
+        }
+
+        private void MakeChildAgent(ScenePresence avatar)
+        {
+            lock (m_rootAgents)
+            {
+                if (m_rootAgents.ContainsKey(avatar.UUID))
+                {
+                    if (m_rootAgents[avatar.UUID] == avatar.RegionHandle)
+                    {
+                        m_rootAgents.Remove(avatar.UUID);
+                    }
+                }
+            }
         }
     }
 }
