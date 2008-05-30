@@ -94,10 +94,9 @@ namespace OpenSim.Region.Environment.Modules
         private LLVector3 Position = new LLVector3(0,0,0);
         private LLVector3 Velocity = new LLVector3(0,0,0);
         private LLQuaternion  Tilt = new LLQuaternion(1,0,0,0);
-        //private float LindenEstateHour = 6f;
+        
         private long LindenHourOffset = 0;
         private bool sunFixed = false;
-        private long estateTicksOffset = 0;
 
         private Dictionary<LLUUID, ulong> m_rootAgents = new Dictionary<LLUUID, ulong>();
 
@@ -105,7 +104,6 @@ namespace OpenSim.Region.Environment.Modules
         private ulong CurrentTime
         {
             get {
-                //m_log.Debug("[LH]: " + LindenHourOffset.ToString());
                 return (ulong)(((System.DateTime.Now.Ticks) - TicksToEpoch + TicksOffset + LindenHourOffset)/10000000);
             }
         }
@@ -113,27 +111,26 @@ namespace OpenSim.Region.Environment.Modules
         private float GetLindenEstateHourFromCurrentTime()
         {
             float ticksleftover = ((float)CurrentTime) % ((float)SecondsPerSunCycle);
-            //m_log.Debug("[TICKS]: " + ticksleftover.ToString());
+            
             float hour = (24 * (ticksleftover / SecondsPerSunCycle)) + 6;
-            //m_log.Debug("[LINDENHOUR]: " + hour.ToString());
-            //m_log.Debug("[SunCycle]: " + (ticksleftover / 3600));
-            //m_log.Debug("[DayLength]: " + m_day_length.ToString());
 
             return hour;
         }
 
         private void SetTimeByLindenHour(float LindenHour)
         {
+            // Linden hour is 24 hours with a 6 hour offset.  6-30
+
             if (LindenHour - 6 == 0)
             {
                 LindenHourOffset = 0;
                 return;
             }
-            //TimeZone local = TimeZone.CurrentTimeZone;
-            //TicksOffset = local.GetUtcOffset(local.ToLocalTime(DateTime.Now)).Ticks;
 
+            // Remove LindenHourOffset to calculate it from LocalTime
             float ticksleftover = ((float)(((long)(CurrentTime * 10000000) - (long)LindenHourOffset)/ 10000000) % ((float)SecondsPerSunCycle));
             float hour = (24 * (ticksleftover / SecondsPerSunCycle));
+
             float offsethours = 0;
             
             if (LindenHour - 6 > hour)
@@ -145,8 +142,9 @@ namespace OpenSim.Region.Environment.Modules
                 offsethours = hour - (hour - (LindenHour - 6));
             }
             //m_log.Debug("[OFFSET]: " + hour + " - " + LindenHour + " - " + offsethours.ToString());
-            //LindenHourOffset = (long)((float)offsethours * (-14400000));
-            //m_log.Debug("[SUN]: Using " + CurrentTime.ToString());
+            
+            LindenHourOffset = (long)((float)offsethours * (36000000000/m_day_length));
+            m_log.Info("[SUN]: Directive from the Estate Tools to set the sun phase to LindenHour " + GetLindenEstateHourFromCurrentTime().ToString());
 
         }
         // Called immediately after the module is loaded for a given region
@@ -163,7 +161,6 @@ namespace OpenSim.Region.Environment.Modules
 
             TimeZone local = TimeZone.CurrentTimeZone;
             TicksOffset = local.GetUtcOffset(local.ToLocalTime(DateTime.Now)).Ticks;
-
             m_log.Debug("[SUN] localtime offset is " + TicksOffset);
 
             // Align ticks with Second Life
@@ -277,7 +274,8 @@ namespace OpenSim.Region.Environment.Modules
             {
                 if (ready)
                 {
-                    GenSunPos();    // Generate shared values once
+                    if (!sunFixed)
+                        GenSunPos();    // Generate shared values once
                     client.SendSunPos(Position, Velocity, CurrentTime, SecondsPerSunCycle, SecondsPerYear, OrbitalPosition);
                     m_log.Debug("[SUN] Initial update for new client");
                 }
@@ -286,7 +284,7 @@ namespace OpenSim.Region.Environment.Modules
 
         public void SunUpdate()
         {
-            if (((m_frame++%m_frame_mod) != 0) || !ready)
+            if (((m_frame++%m_frame_mod) != 0) || !ready || sunFixed)
             {
                 return;
             }
@@ -426,7 +424,10 @@ namespace OpenSim.Region.Environment.Modules
                     //LindenHourOffset = 0;
 
                 //ForceSunUpdateToAllClients();
-                //ready = true;// !FixedTime;
+                sunFixed = FixedTime;
+                if (sunFixed)
+                    GenSunPos();
+
 
             }
         }
