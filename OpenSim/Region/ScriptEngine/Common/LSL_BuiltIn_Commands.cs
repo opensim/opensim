@@ -1432,15 +1432,20 @@ namespace OpenSim.Region.ScriptEngine.Common
         // or when the prim gets moved, changed, sat on, whatever
         // see large number of mantises (mantes?)
         // 20080530 Updated to remove code duplication
+        // 20080530 Stop sound if there is one, otherwise volume only changes don't work
         public void llLoopSound(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
+
+            if (m_host.Sound != LLUUID.Zero)
+                llStopSound();
 
             m_host.Sound = KeyOrName(sound);
             m_host.SoundGain = volume;
             m_host.SoundFlags = 1;      // looping
             m_host.SoundRadius = 20;    // Magic number, 20 seems reasonable. Make configurable?
 
+            m_host.ScheduleFullUpdate();
             m_host.SendFullUpdateToAllClients();
         }
 
@@ -1478,6 +1483,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.SoundFlags = 0;
             m_host.SoundRadius = 0;
 
+            m_host.ScheduleFullUpdate();
             m_host.SendFullUpdateToAllClients();
 
             // m_host.SendSound(LLUUID.Zero.ToString(), 1.0, false, 2);
