@@ -94,7 +94,8 @@ namespace OpenSim.Region.Environment.Modules
         private LLVector3 Position = new LLVector3(0,0,0);
         private LLVector3 Velocity = new LLVector3(0,0,0);
         private LLQuaternion  Tilt = new LLQuaternion(1,0,0,0);
-        private float LindenEstateHour = 6f;
+        //private float LindenEstateHour = 6f;
+        private long LindenHourOffset = 0;
         private bool sunFixed = false;
         private long estateTicksOffset = 0;
 
@@ -104,13 +105,14 @@ namespace OpenSim.Region.Environment.Modules
         private ulong CurrentTime
         {
             get {
-
-                return (ulong)(((System.DateTime.Now.Ticks) - TicksToEpoch + TicksOffset)/10000000);
+                //m_log.Debug("[LH]: " + LindenHourOffset.ToString());
+                return (ulong)(((System.DateTime.Now.Ticks) - TicksToEpoch + TicksOffset + LindenHourOffset)/10000000);
             }
         }
+
         private float GetLindenEstateHourFromCurrentTime()
         {
-            float ticksleftover = ((float)((ulong)(((System.DateTime.Now.Ticks) - TicksToEpoch + TicksOffset) / 10000000))) % ((float)SecondsPerSunCycle);
+            float ticksleftover = ((float)CurrentTime) % ((float)SecondsPerSunCycle);
             //m_log.Debug("[TICKS]: " + ticksleftover.ToString());
             float hour = (24 * (ticksleftover / SecondsPerSunCycle)) + 6;
             //m_log.Debug("[LINDENHOUR]: " + hour.ToString());
@@ -120,6 +122,33 @@ namespace OpenSim.Region.Environment.Modules
             return hour;
         }
 
+        private void SetTimeByLindenHour(float LindenHour)
+        {
+            if (LindenHour - 6 == 0)
+            {
+                LindenHourOffset = 0;
+                return;
+            }
+            //TimeZone local = TimeZone.CurrentTimeZone;
+            //TicksOffset = local.GetUtcOffset(local.ToLocalTime(DateTime.Now)).Ticks;
+
+            float ticksleftover = ((float)(((long)(CurrentTime * 10000000) - (long)LindenHourOffset)/ 10000000) % ((float)SecondsPerSunCycle));
+            float hour = (24 * (ticksleftover / SecondsPerSunCycle));
+            float offsethours = 0;
+            
+            if (LindenHour - 6 > hour)
+            {
+                offsethours = hour + ((LindenHour-6) - hour);
+            }
+            else
+            {
+                offsethours = hour - (hour - (LindenHour - 6));
+            }
+            //m_log.Debug("[OFFSET]: " + hour + " - " + LindenHour + " - " + offsethours.ToString());
+            //LindenHourOffset = (long)((float)offsethours * (-14400000));
+            //m_log.Debug("[SUN]: Using " + CurrentTime.ToString());
+
+        }
         // Called immediately after the module is loaded for a given region
         // i.e. Immediately after instance creation.
 
@@ -203,6 +232,7 @@ namespace OpenSim.Region.Environment.Modules
                     scene.EventManager.OnMakeChildAgent += MakeChildAgent;
                     scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
                     scene.EventManager.OnClientClosed += ClientLoggedOut;
+                    scene.EventManager.OnEstateToolsTimeUpdate += EstateToolsTimeUpdate;
 
                     ready = true;
 
@@ -226,8 +256,9 @@ namespace OpenSim.Region.Environment.Modules
             m_scene.EventManager.OnFrame     -= SunUpdate;
            // m_scene.EventManager.OnNewClient -= SunToClient;
             m_scene.EventManager.OnMakeChildAgent -= MakeChildAgent;
-            m_scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
-            m_scene.EventManager.OnClientClosed += ClientLoggedOut;
+            m_scene.EventManager.OnAvatarEnteringNewParcel -= AvatarEnteringParcel;
+            m_scene.EventManager.OnClientClosed -= ClientLoggedOut;
+            m_scene.EventManager.OnEstateToolsTimeUpdate -= EstateToolsTimeUpdate;
         }
 
         public string Name
@@ -273,7 +304,21 @@ namespace OpenSim.Region.Environment.Modules
             m_scene.RegionInfo.EstateSettings.sunPosition = Position;
             m_scene.RegionInfo.EstateSettings.sunHour = GetLindenEstateHourFromCurrentTime();
         }
+        public void ForceSunUpdateToAllClients()
+        {
+            GenSunPos();        // Generate shared values once
 
+            List<ScenePresence> avatars = m_scene.GetAvatars();
+            foreach (ScenePresence avatar in avatars)
+            {
+                if (!avatar.IsChildAgent)
+                    avatar.ControllingClient.SendSunPos(Position, Velocity, CurrentTime, SecondsPerSunCycle, SecondsPerYear, OrbitalPosition);
+            }
+
+            // set estate settings for region access to sun position
+            m_scene.RegionInfo.EstateSettings.sunPosition = Position;
+            m_scene.RegionInfo.EstateSettings.sunHour = GetLindenEstateHourFromCurrentTime();
+        }
         /// <summary>
         /// Calculate the sun's orbital position and its velocity.
         /// </summary>
@@ -368,6 +413,21 @@ namespace OpenSim.Region.Environment.Modules
                         m_rootAgents.Remove(avatar.UUID);
                     }
                 }
+            }
+        }
+        
+        public void EstateToolsTimeUpdate(ulong regionHandle, bool FixedTime, bool useEstateTime, float LindenHour)
+        {
+            if (m_scene.RegionInfo.RegionHandle == regionHandle)
+            {
+                SetTimeByLindenHour(LindenHour);
+
+                //if (useEstateTime)
+                    //LindenHourOffset = 0;
+
+                //ForceSunUpdateToAllClients();
+                //ready = true;// !FixedTime;
+
             }
         }
     }

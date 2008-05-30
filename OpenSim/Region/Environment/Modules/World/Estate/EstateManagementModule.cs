@@ -183,6 +183,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             // Time of day / fixed sun
             m_scene.RegionInfo.EstateSettings.useFixedSun = UseFixedSun;
             m_scene.RegionInfo.EstateSettings.sunHour = SunHour;
+            m_scene.EventManager.TriggerEstateToolsTimeUpdate(m_scene.RegionInfo.RegionHandle, UseFixedSun, UseFixedSun, SunHour);
             //m_log.Debug("[ESTATE]: UFS: " + UseFixedSun.ToString());
             //m_log.Debug("[ESTATE]: SunHour: " + SunHour.ToString());
             sendRegionInfoPacketToAll();

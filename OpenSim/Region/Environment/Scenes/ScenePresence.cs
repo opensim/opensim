@@ -90,6 +90,9 @@ namespace OpenSim.Region.Environment.Scenes
         private short m_updateCount = 0;
         private uint m_requestedSitTargetID = 0;
         private LLVector3 m_requestedSitOffset = new LLVector3();
+
+        private LLVector3 m_LastFinitePos = new LLVector3();
+
         private float m_sitAvatarHeight = 2.0f;
         private float m_godlevel = 0;
 
@@ -750,6 +753,40 @@ namespace OpenSim.Region.Environment.Scenes
 
             // Must check for standing up even when PhysicsActor is null,
             // since sitting currently removes avatar from physical scene
+            //m_log.Debug("agentPos:" + AbsolutePosition.ToString());
+            
+            // This is irritating.  Really.
+            if (!AbsolutePosition.IsFinite())
+            {
+                RemoveFromPhysicalScene();
+                m_log.Error("[AVATAR]: NonFinite Avatar position detected...   Reset Position.  Mantis this please. Error# 9999902");
+
+                m_pos = m_LastFinitePos;
+                if (!m_pos.IsFinite())
+                {
+                    m_pos.X = 127f;
+                    m_pos.Y = 127f;
+                    m_pos.Z = 127f;
+                    m_log.Error("[AVATAR]: NonFinite Avatar position detected...   Reset Position.  Mantis this please. Error# 9999903");
+                }
+
+                AddToPhysicalScene();
+            }
+            else
+            {
+                m_LastFinitePos = m_pos;
+            }
+            //m_physicsActor.AddForce(new PhysicsVector(999999999, 99999999, 999999999999999), true);
+
+
+            //ILandObject land = LandChannel.GetLandObject(agent.startpos.X, agent.startpos.Y);
+            //if (land != null)
+            //{
+                //if (land.landData.landingType == (byte)1 && land.landData.userLocation != LLVector3.Zero)
+                //{
+                //    agent.startpos = land.landData.userLocation;
+                //}
+            //}
 
             m_perfMonMS = System.Environment.TickCount;
 

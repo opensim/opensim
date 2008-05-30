@@ -180,6 +180,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event ScriptTimerEvent OnScriptTimerEvent;
 
+        public delegate void EstateToolsTimeUpdate(ulong regionHandle, bool FixedTime, bool EstateSun, float LindenHour);
+        public event EstateToolsTimeUpdate OnEstateToolsTimeUpdate;
 
         public delegate void ObjectBeingRemovedFromScene(SceneObjectGroup obj);
         public event ObjectBeingRemovedFromScene OnObjectBeingRemovedFromScene;
@@ -346,6 +348,7 @@ namespace OpenSim.Region.Environment.Scenes
         private ParcelPrimCountTainted handlerParcelPrimCountTainted = null;
         private ObjectBeingRemovedFromScene handlerObjectBeingRemovedFromScene = null;
         private ScriptTimerEvent handlerScriptTimerEvent = null;
+        private EstateToolsTimeUpdate handlerEstateToolsTimeUpdate = null;
 
         public void TriggerOnScriptChangedEvent(uint localID, uint change)
         {
@@ -797,6 +800,15 @@ namespace OpenSim.Region.Environment.Scenes
 
             }
             
+        }
+
+        public void TriggerEstateToolsTimeUpdate(ulong regionHandle, bool FixedTime, bool useEstateTime, float LindenHour)
+        {
+            handlerEstateToolsTimeUpdate = OnEstateToolsTimeUpdate;
+            if (handlerEstateToolsTimeUpdate != null)
+            {
+                handlerEstateToolsTimeUpdate(regionHandle, FixedTime, useEstateTime, LindenHour);
+            }
         }
     }
 }
