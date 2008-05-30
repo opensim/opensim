@@ -94,6 +94,9 @@ namespace OpenSim.Region.Environment.Modules
         private LLVector3 Position = new LLVector3(0,0,0);
         private LLVector3 Velocity = new LLVector3(0,0,0);
         private LLQuaternion  Tilt = new LLQuaternion(1,0,0,0);
+        private float LindenEstateHour = 6f;
+        private bool sunFixed = false;
+        private long estateTicksOffset = 0;
 
         private Dictionary<LLUUID, ulong> m_rootAgents = new Dictionary<LLUUID, ulong>();
 
@@ -101,8 +104,20 @@ namespace OpenSim.Region.Environment.Modules
         private ulong CurrentTime
         {
             get {
+                
                 return (ulong)(((System.DateTime.Now.Ticks) - TicksToEpoch + TicksOffset)/10000000);
             }
+        }
+        private float GetLindenEstateHourFromCurrentTime()
+        {
+            float ticksleftover = ((float)((ulong)(((System.DateTime.Now.Ticks) - TicksToEpoch + TicksOffset) / 10000000))) % ((float)SecondsPerSunCycle);
+            //m_log.Debug("[TICKS]: " + ticksleftover.ToString());
+            float hour = (24 * (ticksleftover / SecondsPerSunCycle)) + 6;
+            //m_log.Debug("[LINDENHOUR]: " + hour.ToString());
+            //m_log.Debug("[SunCycle]: " + (ticksleftover / 3600));
+            //m_log.Debug("[DayLength]: " + m_day_length.ToString());
+
+            return hour;
         }
 
         // Called immediately after the module is loaded for a given region
@@ -256,6 +271,7 @@ namespace OpenSim.Region.Environment.Modules
 
             // set estate settings for region access to sun position
             m_scene.RegionInfo.EstateSettings.sunPosition = Position;
+            m_scene.RegionInfo.EstateSettings.sunHour = GetLindenEstateHourFromCurrentTime();
         }
 
         /// <summary>

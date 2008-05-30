@@ -199,7 +199,9 @@ namespace OpenSim.Framework
             set
             {
                 m_sunHour = value;
-                configMember.forceSetConfigurationOption("sun_hour", m_sunHour.ToString());
+
+                if (useFixedSun)
+                    configMember.forceSetConfigurationOption("sun_hour", m_sunHour.ToString());
             }
         }
 
