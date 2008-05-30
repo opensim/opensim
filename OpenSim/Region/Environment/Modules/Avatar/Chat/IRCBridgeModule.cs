@@ -150,8 +150,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         public void Close()
         {
-            m_irc.Close();
-            m_log.Info("[IRC] closed connection to IRC server");
+            if (null != m_irc)
+            {
+                m_irc.Close();
+                m_log.Info("[IRC] closed connection to IRC server");
+            }
         }
 
         public string Name
