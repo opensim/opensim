@@ -176,6 +176,31 @@ namespace OpenSim.Region.ScriptEngine.Common
             return LLUUID.Zero;
         }
 
+
+        /// <summary>
+        /// accepts a valid LLUUID, -or- a name of an inventory item. 
+        /// Returns a valid LLUUID or LLUUID.Zero if key invalid and item not found
+        /// in prim inventory.
+        /// </summary>
+        /// <param name="k"></param>
+        /// <returns></returns>
+        private LLUUID KeyOrName(string k)
+        {
+            LLUUID key = LLUUID.Zero;
+
+            // if we can parse the string as a key, use it.
+            if (LLUUID.TryParse(k, out key))
+            {
+                return key;
+            }
+            // else try to locate the name in inventory of object. found returns key,
+            // not found returns LLUUID.Zero which will translate to the default particle texture
+            else
+            {
+                return InventoryKey(k);
+            }
+        }
+
         public void osSetRegionWaterHeight(double height)
         {
             m_host.AddScriptLPS(1);
@@ -1391,27 +1416,13 @@ namespace OpenSim.Region.ScriptEngine.Common
         }
 
         // Xantor 20080528 PlaySound updated so it accepts an objectinventory name -or- a key to a sound
+        // 20080530 Updated to remove code duplication
         public void llPlaySound(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
 
-            LLUUID key = LLUUID.Zero;
-
-            // if we can parse the string as a key, use it.
-            if (LLUUID.TryParse(sound, out key))
-            {
-                 sound = key.ToString();
-            }
-            // else try to locate the name in inventory of object. found returns key,
-            // not found returns LLUUID.Zero
-            else
-            {
-                 sound = InventoryKey(sound).ToString();
-            }
-
             // send the sound, once, to all clients in range
-            m_host.SendSound(sound, volume, false, 0);
-
+            m_host.SendSound(KeyOrName(sound).ToString(), volume, false, 0);
         }
 
         // Xantor 20080528 we should do this differently.
@@ -1420,24 +1431,12 @@ namespace OpenSim.Region.ScriptEngine.Common
         // just sending the sound out once doesn't work so well when other avatars come in view later on
         // or when the prim gets moved, changed, sat on, whatever
         // see large number of mantises (mantes?)
+        // 20080530 Updated to remove code duplication
         public void llLoopSound(string sound, double volume)
         {
             m_host.AddScriptLPS(1);
-//            m_host.SendSound(sound, volume, false, 1);
-            LLUUID key = LLUUID.Zero;
 
-            // if we can parse the string as a key, use it.
-            if (LLUUID.TryParse(sound, out key))
-            {
-                m_host.Sound = key;
-            }
-            // else try to locate the name in inventory of object. found returns key,
-            // not found returns LLUUID.Zero
-            else
-            {
-                m_host.Sound = InventoryKey(sound.ToString());
-            }
-
+            m_host.Sound = KeyOrName(sound);
             m_host.SoundGain = volume;
             m_host.SoundFlags = 1;      // looping
             m_host.SoundRadius = 20;    // Magic number, 20 seems reasonable. Make configurable?
@@ -4117,23 +4116,12 @@ namespace OpenSim.Region.ScriptEngine.Common
                         prules.Pattern = (Primitive.ParticleSystem.SourcePattern)tmpi;
                         break;
 
-                    // Xantor 03-May-2008
+                    // Xantor 20080503
                     // Wiki:    PSYS_SRC_TEXTURE      string      inventory item name or key of the particle texture
                     //          "" = default texture.
+                    // 20080530 Updated to remove code duplication
                     case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_TEXTURE:
-                        LLUUID tkey = LLUUID.Zero;
-
-                        // if we can parse the string as a key, use it.
-                        if (LLUUID.TryParse(rules.Data[i + 1].ToString(), out tkey))
-                        {
-                            prules.Texture = tkey;
-                        }
-                        // else try to locate the name in inventory of object. found returns key,
-                        // not found returns LLUUID.Zero which will translate to the default particle texture
-                        else
-                        {
-                            prules.Texture =  InventoryKey(rules.Data[i+1].ToString());
-                        }
+                        prules.Texture = KeyOrName(rules.Data[i + 1].ToString());
                         break;
 
                     case (int)BuiltIn_Commands_BaseClass.PSYS_SRC_BURST_RATE:

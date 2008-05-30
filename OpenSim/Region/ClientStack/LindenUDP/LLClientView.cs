@@ -2229,11 +2229,22 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
 
             // Xantor 20080528: Send sound info as well
-            outPacket.ObjectData[0].Sound   = SoundId;
-            outPacket.ObjectData[0].OwnerID = ownerID;
-            outPacket.ObjectData[0].Gain    = (float) SoundGain;
-            outPacket.ObjectData[0].Radius  = (float) SoundRadius;
-            outPacket.ObjectData[0].Flags   = SoundFlags;
+            // Xantor 20080530: Zero out everything if there's no SoundId, so zerocompression will work again
+            outPacket.ObjectData[0].Sound = SoundId;
+            if (SoundId == LLUUID.Zero)
+            {
+                outPacket.ObjectData[0].OwnerID = LLUUID.Zero;
+                outPacket.ObjectData[0].Gain = 0.0f;
+                outPacket.ObjectData[0].Radius = 0.0f;
+                outPacket.ObjectData[0].Flags = 0;
+            }
+            else
+            {
+                outPacket.ObjectData[0].OwnerID = ownerID;
+                outPacket.ObjectData[0].Gain = (float)SoundGain;
+                outPacket.ObjectData[0].Radius = (float)SoundRadius;
+                outPacket.ObjectData[0].Flags = SoundFlags;
+            }
 
             byte[] pb = pos.GetBytes();
             Array.Copy(pb, 0, outPacket.ObjectData[0].ObjectData, 0, pb.Length);
