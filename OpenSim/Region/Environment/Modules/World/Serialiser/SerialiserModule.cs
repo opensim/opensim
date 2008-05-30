@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using libsecondlife;
 using Nini.Config;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.Framework.InterfaceCommander;
@@ -85,7 +86,37 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
         #endregion
 
         #region IRegionSerialiser Members
-
+            
+        public void LoadPrimsFromXml(Scene scene, string fileName, bool newIDS, LLVector3 loadOffset)
+        {
+            SceneXmlLoader.LoadPrimsFromXml(scene, fileName, newIDS, loadOffset);
+        }
+        
+        public void SavePrimsToXml(Scene scene, string fileName)
+        {
+            SceneXmlLoader.SavePrimsToXml(scene, fileName);
+        }
+        
+        public void LoadPrimsFromXml2(Scene scene, string fileName)
+        {
+            SceneXmlLoader.LoadPrimsFromXml2(scene, fileName);
+        }
+        
+        public void SavePrimsToXml2(Scene scene, string fileName)
+        {
+            SceneXmlLoader.SavePrimsToXml2(scene, fileName);
+        }
+            
+        public void LoadGroupFromXml2String(Scene scene, string xmlString)
+        {
+            SceneXmlLoader.LoadGroupFromXml2String(scene, xmlString);
+        }
+        
+        public string SavePrimGroupToXML2String(SceneObjectGroup grp)
+        {
+            return SceneXmlLoader.SavePrimGroupToXML2String(grp);
+        }
+        
         public List<string> SerialiseRegion(Scene scene, string saveDir)
         {
             List<string> results = new List<string>();

@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using libsecondlife;
 using System.Collections.Generic;
 using OpenSim.Region.Environment.Scenes;
 
@@ -32,6 +33,18 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
 {
     public interface IRegionSerialiser
     {
-        List<string> SerialiseRegion(Scene scene, string saveDir);
+        List<string> SerialiseRegion(Scene scene, string saveDir);        
+            
+        void LoadPrimsFromXml(Scene scene, string fileName, bool newIDS, LLVector3 loadOffset);
+        
+        void SavePrimsToXml(Scene scene, string fileName);
+        
+        void LoadPrimsFromXml2(Scene scene, string fileName);
+        
+        void SavePrimsToXml2(Scene scene, string fileName);
+            
+        void LoadGroupFromXml2String(Scene scene, string xmlString);
+        
+        string SavePrimGroupToXML2String(SceneObjectGroup grp);
     }
 }

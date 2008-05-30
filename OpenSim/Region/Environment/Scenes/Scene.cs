@@ -41,6 +41,7 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.World.Archiver;
+using OpenSim.Region.Environment.Modules.World.Serialiser;
 using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes.Scripting;
 using OpenSim.Region.Physics.Manager;
@@ -94,7 +95,6 @@ namespace OpenSim.Region.Environment.Scenes
         public CommunicationsManager CommsManager;
 
         protected SceneCommunicationService m_sceneGridService;
-        protected SceneXmlLoader m_sceneXmlLoader;
 
         /// <summary>
         /// Each agent has its own capabilities handler.
@@ -267,8 +267,6 @@ namespace OpenSim.Region.Environment.Scenes
             // Out of memory
             // Operating system has killed the plugin
             m_innerScene.UnRecoverableError += RestartNow;
-
-            m_sceneXmlLoader = new SceneXmlLoader(this, m_innerScene, m_regInfo);
 
             RegisterDefaultSceneEvents();
 
@@ -1400,22 +1398,26 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void LoadPrimsFromXml(string fileName, bool newIdsFlag, LLVector3 loadOffset)
         {
-            m_sceneXmlLoader.LoadPrimsFromXml(fileName, newIdsFlag, loadOffset);
+            IRegionSerialiser loader = RequestModuleInterface<IRegionSerialiser>();
+            loader.LoadPrimsFromXml(this, fileName, newIdsFlag, loadOffset);
         }
 
         public void SavePrimsToXml(string fileName)
         {
-            m_sceneXmlLoader.SavePrimsToXml(fileName);
+            IRegionSerialiser loader = RequestModuleInterface<IRegionSerialiser>();
+            loader.SavePrimsToXml(this, fileName);
         }
 
         public void LoadPrimsFromXml2(string fileName)
         {
-            m_sceneXmlLoader.LoadPrimsFromXml2(fileName);
+            IRegionSerialiser loader = RequestModuleInterface<IRegionSerialiser>();
+            loader.LoadPrimsFromXml2(this, fileName);
         }
 
         public void SavePrimsToXml2(string fileName)
         {
-            m_sceneXmlLoader.SavePrimsToXml2(fileName);
+            IRegionSerialiser loader = RequestModuleInterface<IRegionSerialiser>();
+            loader.SavePrimsToXml2(this, fileName);
         }
 
         /// <summary>
@@ -1505,15 +1507,20 @@ namespace OpenSim.Region.Environment.Scenes
             grp.OffsetForNewRegion(pos);
 
             CrossPrimGroupIntoNewRegion(newRegionHandle, grp);
-
         }
+        
         public void CrossPrimGroupIntoNewRegion(ulong newRegionHandle, SceneObjectGroup grp)
         {
             int primcrossingXMLmethod = 0;
             if (newRegionHandle != 0)
             {
                 bool successYN = false;
-                successYN = m_sceneGridService.PrimCrossToNeighboringRegion(newRegionHandle, grp.UUID, m_sceneXmlLoader.SavePrimGroupToXML2String(grp), primcrossingXMLmethod);
+                
+                IRegionSerialiser loader = RequestModuleInterface<IRegionSerialiser>();
+                successYN 
+                    = m_sceneGridService.PrimCrossToNeighboringRegion(
+                        newRegionHandle, grp.UUID, loader.SavePrimGroupToXML2String(grp), primcrossingXMLmethod);
+                
                 if (successYN)
                 {
                     // We remove the object here
@@ -1545,7 +1552,9 @@ namespace OpenSim.Region.Environment.Scenes
             m_log.Warn("{[INTERREGION]: A new prim arrived from a neighbor");
             if (XMLMethod == 0)
             {
-                m_sceneXmlLoader.LoadGroupFromXml2String(objXMLData);
+                IRegionSerialiser loader = RequestModuleInterface<IRegionSerialiser>();
+                loader.LoadGroupFromXml2String(this, objXMLData);
+                
                 SceneObjectPart RootPrim = GetSceneObjectPart(primID);
                 if (RootPrim != null)
                 {
@@ -3025,7 +3034,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         public bool pipeEventsForScript(uint localID)
         {
-
             SceneObjectPart part = GetSceneObjectPart(localID);
             if (part != null)
             {

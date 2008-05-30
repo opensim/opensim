@@ -36,20 +36,12 @@ using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim.Region.Environment.Scenes
 {
-    public class SceneXmlLoader // can move to a module?
+    /// <summary>
+    /// Static methods to serialize and deserialize scene objects to and from XML
+    /// </summary>
+    public class SceneXmlLoader
     {
-        protected InnerScene m_innerScene;
-        protected RegionInfo m_regInfo;
-        protected Scene m_parentScene;
-
-        public SceneXmlLoader(Scene parentScene, InnerScene innerScene, RegionInfo regionInfo)
-        {
-            m_parentScene = parentScene;
-            m_innerScene = innerScene;
-            m_regInfo = regionInfo;
-        }
-
-        public void LoadPrimsFromXml(string fileName, bool newIDS, LLVector3 loadOffset)
+        public static void LoadPrimsFromXml(Scene scene, string fileName, bool newIDS, LLVector3 loadOffset)
         {
             XmlDocument doc = new XmlDocument();
             XmlNode rootNode;
@@ -63,8 +55,8 @@ namespace OpenSim.Region.Environment.Scenes
                 rootNode = doc.FirstChild;
                 foreach (XmlNode aPrimNode in rootNode.ChildNodes)
                 {
-                    SceneObjectGroup obj = new SceneObjectGroup(m_parentScene,
-                                                                m_regInfo.RegionHandle, aPrimNode.OuterXml);
+                    SceneObjectGroup obj = new SceneObjectGroup(scene, scene.RegionInfo.RegionHandle, aPrimNode.OuterXml);
+                    
                     if (newIDS)
                     {
                         obj.ResetIDs();
@@ -72,16 +64,16 @@ namespace OpenSim.Region.Environment.Scenes
                     //if we want this to be a import method then we need new uuids for the object to avoid any clashes
                     //obj.RegenerateFullIDs();
                     
-                    m_innerScene.AddSceneObject(obj);
+                    scene.AddSceneObject(obj);
 
                     SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
                     // Apply loadOffsets for load/import and move combinations
                     rootPart.GroupPosition = rootPart.AbsolutePosition + loadOffset;
                     bool UsePhysics = (((rootPart.GetEffectiveObjectFlags() & (uint) LLObject.ObjectFlags.Physics) > 0) &&
-                                       m_parentScene.m_physicalPrim);
+                                       scene.m_physicalPrim);
                     if ((rootPart.GetEffectiveObjectFlags() & (uint) LLObject.ObjectFlags.Phantom) == 0)
                     {
-                        rootPart.PhysActor = m_innerScene.PhysicsScene.AddPrimShape(
+                        rootPart.PhysActor = scene.PhysicsScene.AddPrimShape(
                             rootPart.Name,
                             rootPart.Shape,
                             new PhysicsVector(rootPart.AbsolutePosition.X + loadOffset.X,
@@ -108,14 +100,14 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void SavePrimsToXml(string fileName)
+        public static void SavePrimsToXml(Scene scene, string fileName)
         {
             FileStream file = new FileStream(fileName, FileMode.Create);
             StreamWriter stream = new StreamWriter(file);
             int primCount = 0;
             stream.WriteLine("<scene>\n");
 
-            List<EntityBase> EntityList = m_innerScene.GetEntities();
+            List<EntityBase> EntityList = scene.GetEntities();
 
             foreach (EntityBase ent in EntityList)
             {
@@ -130,17 +122,16 @@ namespace OpenSim.Region.Environment.Scenes
             file.Close();
         }
 
-        public string SavePrimGroupToXML2String(SceneObjectGroup grp)
+        public static string SavePrimGroupToXML2String(SceneObjectGroup grp)
         {
             string returnstring = "";
             returnstring += "<scene>\n";
             returnstring += grp.ToXmlString2();
             returnstring += "</scene>\n";
             return returnstring;
-
         }
 
-        public void LoadGroupFromXml2String(string xmlString)
+        public static void LoadGroupFromXml2String(Scene scene, string xmlString)
         {
             XmlDocument doc = new XmlDocument();
             XmlNode rootNode;
@@ -152,12 +143,11 @@ namespace OpenSim.Region.Environment.Scenes
             rootNode = doc.FirstChild;
             foreach (XmlNode aPrimNode in rootNode.ChildNodes)
             {
-                CreatePrimFromXml(aPrimNode.OuterXml);
+                CreatePrimFromXml(scene, aPrimNode.OuterXml);
             }
-
         }
 
-        public void LoadPrimsFromXml2(string fileName)
+        public static void LoadPrimsFromXml2(Scene scene, string fileName)
         {
             XmlDocument doc = new XmlDocument();
             XmlNode rootNode;
@@ -170,7 +160,7 @@ namespace OpenSim.Region.Environment.Scenes
                 rootNode = doc.FirstChild;
                 foreach (XmlNode aPrimNode in rootNode.ChildNodes)
                 {
-                    CreatePrimFromXml(aPrimNode.OuterXml);
+                    CreatePrimFromXml(scene, aPrimNode.OuterXml);
                 }
             }
             else
@@ -179,19 +169,19 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void CreatePrimFromXml(string xmlData)
+        public static void CreatePrimFromXml(Scene scene, string xmlData)
         {
             SceneObjectGroup obj = new SceneObjectGroup(xmlData);
             LLVector3 receivedVelocity = obj.RootPart.Velocity;
-            //System.Console.WriteLine(obj.RootPart.Velocity.ToString());
-            m_innerScene.AddSceneObjectFromStorage(obj);
+            //System.Console.WriteLine(obj.RootPart.Velocity.ToString());            
+            scene.AddSceneObjectFromStorage(obj);
 
             SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
             bool UsePhysics = (((rootPart.GetEffectiveObjectFlags() & (uint) LLObject.ObjectFlags.Physics) > 0) &&
-                               m_parentScene.m_physicalPrim);
+                               scene.m_physicalPrim);
             if ((rootPart.GetEffectiveObjectFlags() & (uint) LLObject.ObjectFlags.Phantom) == 0)
             {
-                rootPart.PhysActor = m_innerScene.PhysicsScene.AddPrimShape(
+                rootPart.PhysActor = scene.PhysicsScene.AddPrimShape(
                     rootPart.Name,
                     rootPart.Shape,
                     new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y,
@@ -213,14 +203,14 @@ namespace OpenSim.Region.Environment.Scenes
             obj.ScheduleGroupForFullUpdate();
         }
 
-        public void SavePrimsToXml2(string fileName)
+        public static void SavePrimsToXml2(Scene scene, string fileName)
         {
             FileStream file = new FileStream(fileName, FileMode.Create);
             StreamWriter stream = new StreamWriter(file);
             int primCount = 0;
             stream.WriteLine("<scene>\n");
 
-            List<EntityBase> EntityList = m_innerScene.GetEntities();
+            List<EntityBase> EntityList = scene.GetEntities();
 
             foreach (EntityBase ent in EntityList)
             {
