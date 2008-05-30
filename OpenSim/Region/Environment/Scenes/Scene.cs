@@ -121,6 +121,8 @@ namespace OpenSim.Region.Environment.Scenes
         protected IWorldComm m_worldCommModule;
         protected IAvatarFactory m_AvatarFactory;
         protected IConfigSource m_config;
+        protected IRegionArchiver m_archiver;
+        protected IRegionSerialiser m_serialiser;
 
         // Central Update Loop
 
@@ -643,6 +645,8 @@ namespace OpenSim.Region.Environment.Scenes
             m_worldCommModule = RequestModuleInterface<IWorldComm>();
             XferManager = RequestModuleInterface<IXfer>();
             m_AvatarFactory = RequestModuleInterface<IAvatarFactory>();
+            m_archiver = RequestModuleInterface<IRegionArchiver>();
+            m_serialiser = RequestModuleInterface<IRegionSerialiser>();
         }
 
         #endregion
@@ -1398,26 +1402,22 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void LoadPrimsFromXml(string fileName, bool newIdsFlag, LLVector3 loadOffset)
         {
-            IRegionSerialiser loader = RequestModuleInterface<IRegionSerialiser>();
-            loader.LoadPrimsFromXml(this, fileName, newIdsFlag, loadOffset);
+            m_serialiser.LoadPrimsFromXml(this, fileName, newIdsFlag, loadOffset);
         }
 
         public void SavePrimsToXml(string fileName)
         {
-            IRegionSerialiser loader = RequestModuleInterface<IRegionSerialiser>();
-            loader.SavePrimsToXml(this, fileName);
+            m_serialiser.SavePrimsToXml(this, fileName);
         }
 
         public void LoadPrimsFromXml2(string fileName)
         {
-            IRegionSerialiser loader = RequestModuleInterface<IRegionSerialiser>();
-            loader.LoadPrimsFromXml2(this, fileName);
+            m_serialiser.LoadPrimsFromXml2(this, fileName);
         }
 
         public void SavePrimsToXml2(string fileName)
         {
-            IRegionSerialiser loader = RequestModuleInterface<IRegionSerialiser>();
-            loader.SavePrimsToXml2(this, fileName);
+            m_serialiser.SavePrimsToXml2(this, fileName);
         }
 
         /// <summary>
@@ -1426,8 +1426,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="filePath"></param>
         public void LoadPrimsFromArchive(string filePath)
         {
-            IRegionArchiver archiver = RequestModuleInterface<IRegionArchiver>();
-            archiver.DearchiveRegion(filePath);
+            m_archiver.DearchiveRegion(filePath);
         }
 
         /// <summary>
@@ -1436,8 +1435,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="filePath"></param>
         public void SavePrimsToArchive(string filePath)
         {
-            IRegionArchiver archiver = RequestModuleInterface<IRegionArchiver>();
-            archiver.ArchiveRegion(filePath);
+            m_archiver.ArchiveRegion(filePath);
         }
 
         /// <summary>
@@ -1516,10 +1514,9 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 bool successYN = false;
                 
-                IRegionSerialiser loader = RequestModuleInterface<IRegionSerialiser>();
                 successYN 
                     = m_sceneGridService.PrimCrossToNeighboringRegion(
-                        newRegionHandle, grp.UUID, loader.SavePrimGroupToXML2String(grp), primcrossingXMLmethod);
+                        newRegionHandle, grp.UUID, m_serialiser.SavePrimGroupToXML2String(grp), primcrossingXMLmethod);
                 
                 if (successYN)
                 {
@@ -1552,8 +1549,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_log.Warn("{[INTERREGION]: A new prim arrived from a neighbor");
             if (XMLMethod == 0)
             {
-                IRegionSerialiser loader = RequestModuleInterface<IRegionSerialiser>();
-                loader.LoadGroupFromXml2String(this, objXMLData);
+                m_serialiser.LoadGroupFromXml2String(this, objXMLData);
                 
                 SceneObjectPart RootPrim = GetSceneObjectPart(primID);
                 if (RootPrim != null)
