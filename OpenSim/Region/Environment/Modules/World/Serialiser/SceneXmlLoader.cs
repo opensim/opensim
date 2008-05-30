@@ -147,26 +147,43 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Load prims from the xml2 format
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="fileName"></param>
         public static void LoadPrimsFromXml2(Scene scene, string fileName)
         {
-            XmlDocument doc = new XmlDocument();
-            XmlNode rootNode;
-            if (fileName.StartsWith("http:") || File.Exists(fileName))
+            LoadPrimsFromXml2(scene, new XmlTextReader(fileName));
+        }
+        
+        /// <summary>
+        /// Load prims from the xml2 format
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="reader"></param>
+        public static void LoadPrimsFromXml2(Scene scene, TextReader reader)
+        {
+            LoadPrimsFromXml2(scene, new XmlTextReader(reader));
+        }
+
+        /// <summary>
+        /// Load prims from the xml2 format.  This method will close the reader
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="reader"></param>
+        protected static void LoadPrimsFromXml2(Scene scene, XmlTextReader reader)
+        {            
+            XmlDocument doc = new XmlDocument();                        
+            reader.WhitespaceHandling = WhitespaceHandling.None;
+            doc.Load(reader);
+            reader.Close();
+            XmlNode rootNode = doc.FirstChild;
+            
+            foreach (XmlNode aPrimNode in rootNode.ChildNodes)
             {
-                XmlTextReader reader = new XmlTextReader(fileName);
-                reader.WhitespaceHandling = WhitespaceHandling.None;
-                doc.Load(reader);
-                reader.Close();
-                rootNode = doc.FirstChild;
-                foreach (XmlNode aPrimNode in rootNode.ChildNodes)
-                {
-                    CreatePrimFromXml(scene, aPrimNode.OuterXml);
-                }
-            }
-            else
-            {
-                throw new Exception("Could not open file " + fileName + " for reading");
-            }
+                CreatePrimFromXml(scene, aPrimNode.OuterXml);
+            }            
         }
 
         public static void CreatePrimFromXml(Scene scene, string xmlData)

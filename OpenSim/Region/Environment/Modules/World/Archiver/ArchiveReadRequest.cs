@@ -26,7 +26,9 @@
  */
 
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Region.Environment.Modules.World.Serialiser;
 using System;
+using System.IO;
 using System.Reflection;
 using log4net;
 
@@ -85,7 +87,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             // Reload serialized prims
             m_log.InfoFormat("[ARCHIVER]: Loading prim data");
             
-            //m_scene.LoadPrimsFromXml2(
+            IRegionSerialiser serialiser = m_scene.RequestModuleInterface<IRegionSerialiser>();
+            serialiser.LoadPrimsFromXml2(m_scene, new StringReader(serializedPrims));
         }
     }
 }

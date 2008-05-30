@@ -101,6 +101,11 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
         {
             SceneXmlLoader.LoadPrimsFromXml2(scene, fileName);
         }
+                
+        public void LoadPrimsFromXml2(Scene scene, TextReader reader)
+        {
+            SceneXmlLoader.LoadPrimsFromXml2(scene, reader);
+        }        
         
         public void SavePrimsToXml2(Scene scene, string fileName)
         {

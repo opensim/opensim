@@ -27,6 +27,7 @@
 
 using libsecondlife;
 using System.Collections.Generic;
+using System.IO;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.World.Serialiser
@@ -38,8 +39,20 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
         void LoadPrimsFromXml(Scene scene, string fileName, bool newIDS, LLVector3 loadOffset);
         
         void SavePrimsToXml(Scene scene, string fileName);
-        
+
+        /// <summary>
+        /// Load prims from the xml2 format
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="fileName"></param>        
         void LoadPrimsFromXml2(Scene scene, string fileName);
+        
+        /// <summary>
+        /// Load prims from the xml2 format
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="reader"></param>        
+        void LoadPrimsFromXml2(Scene scene, TextReader reader);
         
         void SavePrimsToXml2(Scene scene, string fileName);
             
