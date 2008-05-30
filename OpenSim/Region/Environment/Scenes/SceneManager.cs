@@ -192,7 +192,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void LoadCurrentSceneFromXml2(string filename)
         {
             CurrentOrFirstScene.LoadPrimsFromXml2(filename);
-        }        
+        }
 
         /// <summary>
         /// Save the current scene to an OpenSimulator archive.  This archive will eventually include the prim's assets

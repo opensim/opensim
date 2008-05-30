@@ -255,7 +255,7 @@ namespace OpenSim.Region.Physics.Meshing
                 holeHull.AddVertex(IPM);
             }
             //if (hshape == HollowShape.Circle && pbs.PathCurve == (byte)Extrusion.Straight)
-            if ( hshape == HollowShape.Circle )
+            if (hshape == HollowShape.Circle)
             {
                 float hollowFactorF = (float)fhollowFactor / (float)50000;
 
@@ -1346,7 +1346,7 @@ namespace OpenSim.Region.Physics.Meshing
             //    || (primShape.ProfileCurve & 0x07) == (byte) ProfileShape.Square)
             {
                 //Console.WriteLine("Meshmerizer thinks " + primName + " is a TORUS");
-                if ( hollowShape == HollowShape.Same )
+                if (hollowShape == HollowShape.Same)
                     hollowShape = HollowShape.Circle;
 
                 // build the profile shape
@@ -1381,7 +1381,7 @@ namespace OpenSim.Region.Physics.Meshing
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Square) // a ring
             {
                 //Console.WriteLine("Meshmerizer thinks " + primName + " is a TUBE");
-                if ( hollowShape == HollowShape.Same )
+                if (hollowShape == HollowShape.Same)
                     hollowShape = HollowShape.Square;
 
                 outerHull.AddVertex(new Vertex(+0.5f, +0.5f, 0.0f));
@@ -1393,7 +1393,7 @@ namespace OpenSim.Region.Physics.Meshing
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
             {
                 //Console.WriteLine("Meshmerizer thinks " + primName + " is a RING");
-                if ( hollowShape == HollowShape.Same )
+                if (hollowShape == HollowShape.Same)
                     hollowShape = HollowShape.Triangle;
 
                 outerHull.AddVertex(new Vertex(+0.255f, -0.375f, 0.0f));

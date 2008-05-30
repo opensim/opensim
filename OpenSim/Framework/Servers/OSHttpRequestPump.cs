@@ -47,7 +47,7 @@ namespace OpenSim.Framework.Servers
         public static OSHttpRequestPump[] Pumps(OSHttpServer server, int poolSize)
         {
             OSHttpRequestPump[] pumps = new OSHttpRequestPump[poolSize];
-            for(int i = 0; i < pumps.Length; i++)
+            for (int i = 0; i < pumps.Length; i++)
             {
                 pumps[i]._httpServer = server;
             }

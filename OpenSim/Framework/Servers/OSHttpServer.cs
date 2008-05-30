@@ -58,7 +58,7 @@ namespace OpenSim.Framework.Servers
 
         // thread identifier
         protected string _engineId;
-        public string EngineID 
+        public string EngineID
         {
             get { return _engineId; }
         }
@@ -86,7 +86,7 @@ namespace OpenSim.Framework.Servers
         /// <summary>
         /// Instantiate an HTTPS server.
         /// </summary>
-        public OSHttpServer(IPAddress address, int port, X509Certificate certificate, int poolSize) : 
+        public OSHttpServer(IPAddress address, int port, X509Certificate certificate, int poolSize) :
         this(address, port, poolSize)
         {
             _engineId = String.Format("OSHttpServer [HTTPS:{0}/ps:{1}]", port, poolSize);
@@ -96,7 +96,7 @@ namespace OpenSim.Framework.Servers
         /// <summary>
         /// Start the HTTP server engine.
         /// </summary>
-        public void Start() 
+        public void Start()
         {
             _engine = new Thread(new ThreadStart(Engine));
             _engine.Name = _engineId;
@@ -107,13 +107,13 @@ namespace OpenSim.Framework.Servers
 
         /// <summary>
         /// </summary>
-        private void Engine() 
+        private void Engine()
         {
-            while (true) 
+            while (true)
             {
                 // do stuff
             }
         }
-        
+
     }
 }

@@ -255,28 +255,28 @@ namespace OpenSim.Framework.Communications
                     remote_client.SendNameReply(uuid, names[0], names[1]);
                 }
 
-            }  
+            }
         }
 
         private string[] doUUIDNameRequest(LLUUID uuid)
         {
             string[] returnstring = new string[0];
             bool doLookup = false;
-            
-            
+
+
             lock (m_nameRequestCache)
             {
                 if (m_nameRequestCache.ContainsKey(uuid))
                 {
                     returnstring = m_nameRequestCache[uuid];
                 }
-                else 
+                else
                 {
                     // we don't want to lock the dictionary while we're doing the lookup
                     doLookup = true;
                 }
             }
-                
+
             if (doLookup) {
                 UserProfileData profileData = m_userService.GetUserProfile(uuid);
                 if (profileData != null)
@@ -293,7 +293,7 @@ namespace OpenSim.Framework.Communications
                 }
             }
             return returnstring;
-            
+
         }
 
         public bool UUIDNameCachedTest(LLUUID uuid)
@@ -311,7 +311,7 @@ namespace OpenSim.Framework.Communications
                 string lastname = names[1];
 
                 return firstname + " " + lastname;
-            
+
             }
             return "(hippos)";
         }

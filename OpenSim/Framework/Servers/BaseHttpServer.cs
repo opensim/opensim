@@ -84,7 +84,8 @@ namespace OpenSim.Framework.Servers
 
             string handlerKey = GetHandlerKey(httpMethod, path);
 
-            lock(m_streamHandlers) {
+            lock (m_streamHandlers)
+            {
                 if (!m_streamHandlers.ContainsKey(handlerKey))
                 {
                     //m_log.DebugFormat("[BASE HTTP SERVER]: Adding handler key {0}", handlerKey);
@@ -100,7 +101,8 @@ namespace OpenSim.Framework.Servers
 
         public bool AddXmlRPCHandler(string method, XmlRpcMethod handler)
         {
-            lock(m_rpcHandlers) {
+            lock (m_rpcHandlers)
+            {
                 if (!m_rpcHandlers.ContainsKey(method))
                 {
                     m_rpcHandlers.Add(method, handler);
@@ -114,7 +116,8 @@ namespace OpenSim.Framework.Servers
 
         public bool AddHTTPHandler(string method, GenericHTTPMethod handler)
         {
-            lock(m_HTTPHandlers) {
+            lock (m_HTTPHandlers)
+            {
                 if (!m_HTTPHandlers.ContainsKey(method))
                 {
                     m_HTTPHandlers.Add(method, handler);
@@ -132,7 +135,8 @@ namespace OpenSim.Framework.Servers
 
         public bool AddAgentHandler(string agent, IHttpAgentHandler handler)
         {
-            lock(m_agentHandlers) {
+            lock (m_agentHandlers)
+            {
                 if (!m_agentHandlers.ContainsKey(agent))
                 {
                     m_agentHandlers.Add(agent, handler);
@@ -171,7 +175,8 @@ namespace OpenSim.Framework.Servers
 
                     if (TryGetAgentHandler(request, response, out agentHandler))
                     {
-                        if (HandleAgentRequest(agentHandler, request, response)) {
+                        if (HandleAgentRequest(agentHandler, request, response))
+                        {
                             m_log.DebugFormat("[HTTP-AGENT] Handler located for {0}", request.UserAgent);
                             return;
                         }

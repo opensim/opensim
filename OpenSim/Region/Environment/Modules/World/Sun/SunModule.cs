@@ -104,7 +104,7 @@ namespace OpenSim.Region.Environment.Modules
         private ulong CurrentTime
         {
             get {
-                
+
                 return (ulong)(((System.DateTime.Now.Ticks) - TicksToEpoch + TicksOffset)/10000000);
             }
         }
@@ -346,7 +346,7 @@ namespace OpenSim.Region.Environment.Modules
             {
                 if (m_rootAgents.ContainsKey(avatar.UUID))
                 {
-                    m_rootAgents[avatar.UUID] = avatar.RegionHandle; 
+                    m_rootAgents[avatar.UUID] = avatar.RegionHandle;
                 }
                 else
                 {

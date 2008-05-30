@@ -50,7 +50,7 @@ namespace OpenSim.Data.MySQL
 
         public void Initialise(string connect)
         {
-            if(connect != String.Empty)
+            if (connect != String.Empty)
             {
                 database = new MySQLManager(connect);
             }

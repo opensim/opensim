@@ -23,9 +23,10 @@ OpenSim Developers
 * Danx0r
 * Dalien
 * Darok
-* chi11ken (3Di)
-* adjohn (3Di)
+* chi11ken (Genkii)
+* adjohn (Genkii)
 * Alondria
+* Dr Scofield (IBM)
 
 
 Patches
@@ -38,7 +39,6 @@ Patches
 * daTwitch 
 * mikkopa/_someone - RealXtend
 * openlifegrid.com
-* Dr Scofield (IBM)
 * Daedius
 * alex_carnell
 * webmage (IBM)
@@ -81,8 +81,8 @@ This software uses components from the following developers:
 * NUnit (http://www.nunit.org)
 * AGEIA Inc. (PhysX)
 * Russel L. Smith (ODE)
-* Prebuild ( http://sourceforge.net/projects/dnpb/ )
-* LibSecondLife ( http://www.libsecondlife.org/wiki/Main_Page )
+* Prebuild (http://sourceforge.net/projects/dnpb/)
+* LibSecondLife (http://www.libsecondlife.org/wiki/Main_Page)
 
 
 In addition, we would like to thank:

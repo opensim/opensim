@@ -398,8 +398,10 @@ namespace OpenSim.Region.Communications.OGS1
         public RegionInfo RequestClosestRegion(string regionName)
         {
             foreach (RegionInfo ri in m_remoteRegionInfoCache.Values)
-                if(ri.RegionName == regionName)
+            {
+                if (ri.RegionName == regionName)
                     return ri;
+            }
 
             RegionInfo regionInfo = null;
             try
@@ -441,7 +443,7 @@ namespace OpenSim.Region.Communications.OGS1
                 regionInfo.RegionID = new LLUUID((string) responseData["region_UUID"]);
                 regionInfo.RegionName = (string) responseData["region_name"];
 
-                if(!m_remoteRegionInfoCache.ContainsKey(regionInfo.RegionHandle))
+                if (!m_remoteRegionInfoCache.ContainsKey(regionInfo.RegionHandle))
                     m_remoteRegionInfoCache.Add(regionInfo.RegionHandle, regionInfo);
             }
             catch (WebException)

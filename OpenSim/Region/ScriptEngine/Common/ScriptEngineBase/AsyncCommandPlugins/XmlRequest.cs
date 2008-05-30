@@ -57,7 +57,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                 bool handled = false;
 
                 // Request must be taken out of the queue in case there is no handler, otherwise we loop infinitely
-                xmlrpc.RemoveCompletedRequest(rInfo.GetMessageID()); 
+                xmlrpc.RemoveCompletedRequest(rInfo.GetMessageID());
 
                 // And since the xmlrpc request queue is actually shared among all regions on the simulator, we need
                 // to look in each one for the appropriate handler
@@ -96,9 +96,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
 
                 // Request must be taken out of the queue in case there is no handler, otherwise we loop infinitely
                 xmlrpc.RemoveCompletedSRDRequest(srdInfo.GetReqID());
-                
+
                 // And this is another shared queue... so we check each of the script engines for a handler
-                foreach (ScriptEngine sman in ScriptEngine.ScriptEngines)               
+                foreach (ScriptEngine sman in ScriptEngine.ScriptEngines)
                 {
                     if (sman.m_ScriptManager.GetScript(srdInfo.m_localID,srdInfo.m_itemID) != null) {
 
@@ -116,7 +116,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                         handled = true;
                     }
                 }
-                
+
                 if (! handled)
                 {
                     Console.WriteLine("Unhandled xml_srdrequest: " + srdInfo.GetReqID());

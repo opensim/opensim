@@ -1432,7 +1432,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 m_host.Sound = key;
             }
             // else try to locate the name in inventory of object. found returns key,
-            // not found returns LLUUID.Zero 
+            // not found returns LLUUID.Zero
             else
             {
                 m_host.Sound = InventoryKey(sound.ToString());
@@ -1477,7 +1477,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.Sound = LLUUID.Zero;
             m_host.SoundGain = 0;
             m_host.SoundFlags = 0;
-            m_host.SoundRadius = 0; 
+            m_host.SoundRadius = 0;
 
             m_host.SendFullUpdateToAllClients();
 
@@ -3871,7 +3871,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                             {
                                 // Finally got to the first line of the notecard
                                 // now find the end of the notecard text delimited by }<LF>
-                                // parse the lines, delimited by <LF>                  
+                                // parse the lines, delimited by <LF>
                                 notecardIndex = dataString.IndexOf("\n", notecardIndex);
                                 notecardIndex++; // get past delimiter
 
@@ -5627,10 +5627,10 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             RegionInfo info = m_ScriptEngine.World.RequestClosestRegion(simulator);
 
-            switch(data)
+            switch (data)
             {
             case 5: // DATA_SIM_POS
-                if(info == null)
+                if (info == null)
                     return LLUUID.Zero.ToString();
                 reply = new LSL_Types.Vector3(
                         info.RegionLocX * Constants.RegionSize,
@@ -5638,18 +5638,18 @@ namespace OpenSim.Region.ScriptEngine.Common
                         0).ToString();
                 break;
             case 6: // DATA_SIM_STATUS
-                if(info != null)
+                if (info != null)
                     reply = "up"; // Duh!
                 else
                     reply = "unknown";
                 break;
             case 7: // DATA_SIM_RATING
-                if(info == null)
+                if (info == null)
                     return LLUUID.Zero.ToString();
                 int access = (int)info.EstateSettings.simAccess;
-                if(access == 21)
+                if (access == 21)
                     reply = "MATURE";
-                else if(access == 13)
+                else if (access == 13)
                     reply = "MATURE";
                 else
                     reply = "UNKNOWN";

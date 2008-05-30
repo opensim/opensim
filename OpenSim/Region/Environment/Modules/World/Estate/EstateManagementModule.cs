@@ -357,7 +357,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                                 else
                                 {
                                     lsri.OwnerName = "waiting";
-                                    lock(uuidNameLookupList)
+                                    lock (uuidNameLookupList)
                                         uuidNameLookupList.Add(sog.OwnerID);
                                 }
 

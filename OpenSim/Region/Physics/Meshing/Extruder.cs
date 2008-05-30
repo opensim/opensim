@@ -62,7 +62,6 @@ namespace OpenSim.Region.Physics.Meshing
         public float pathTaperX = 0.0f;
         public float pathTaperY = 0.0f;
 
-
         public Mesh Extrude(Mesh m)
         {
             startParameter = float.MinValue;
@@ -129,8 +128,8 @@ namespace OpenSim.Region.Physics.Meshing
                     v.Y = v2.Y;
                     v.Z = v2.Z;
                 }
-              
             }
+
             foreach (Vertex v in workingMinus.vertices)
             {
                 if (v == null)
@@ -159,9 +158,7 @@ namespace OpenSim.Region.Physics.Meshing
             }
 
             result.Append(workingMinus);
-
             result.Append(workingMiddle);
-
 
             int iLastNull = 0;
 
@@ -228,6 +225,7 @@ namespace OpenSim.Region.Physics.Meshing
                     new Triangle(workingPlus.vertices[iNext], workingMiddle.vertices[i], workingMiddle.vertices[iNext]);
                 result.Add(tSide);
             }
+
             if (twistMid != 0)
             {
                 foreach (Vertex v in result.vertices)
@@ -245,6 +243,7 @@ namespace OpenSim.Region.Physics.Meshing
             }
             return result;
         }
+
         public Mesh ExtrudeCircularPath(Mesh m)
         {
             //startParameter = float.MinValue;
@@ -294,8 +293,6 @@ namespace OpenSim.Region.Physics.Meshing
             //System.Console.WriteLine("taperBotFactorX: " + taperBotFactorX.ToString() + " taperBotFactorY: " + taperBotFactorY.ToString()
             //    + " taperTopFactorX: " + taperTopFactorX.ToString() + " taperTopFactorY: " + taperTopFactorY.ToString());
 
-
-
             do
             {
                 float percentOfPath = 1.0f;
@@ -327,10 +324,6 @@ namespace OpenSim.Region.Physics.Meshing
                 //radiusScale = 1.0f;
 
                 //System.Console.WriteLine("Extruder: radius: " + radius.ToString() + " radiusScale: " + radiusScale.ToString());
-
-
-
-
 
                 float twist = twistBot + (twistTotal * (float)percentOfPath);
 
@@ -404,13 +397,6 @@ namespace OpenSim.Region.Physics.Meshing
                 }
                 lastLayer = newLayer;
 
-
-
-
-
-
-
-
                 // calc next angle
 
                 if (angle >= endAngle)
@@ -421,10 +407,7 @@ namespace OpenSim.Region.Physics.Meshing
                     if (angle > endAngle)
                         angle = endAngle;
                 }
-            }
-            while (!done);
-
-
+            } while (!done);
 
             // scale the mesh to the desired size
             float xScale = size.X;
@@ -432,12 +415,14 @@ namespace OpenSim.Region.Physics.Meshing
             float zScale = size.Z;
 
             foreach (Vertex v in result.vertices)
+            {
                 if (v != null)
                 {
                     v.X *= xScale;
                     v.Y *= yScale;
                     v.Z *= zScale;
                 }
+            }
 
             return result;
         }

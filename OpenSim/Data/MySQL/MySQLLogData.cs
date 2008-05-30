@@ -34,7 +34,7 @@ namespace OpenSim.Data.MySQL
     /// An interface to the log database for MySQL
     /// </summary>
     internal class MySQLLogData : ILogData
-    { 
+    {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         /// <summary>
         /// The database manager
@@ -46,9 +46,12 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         public void Initialise(string connect)
         {
-            if (connect != String.Empty) {
+            if (connect != String.Empty)
+            {
                 database = new MySQLManager(connect);
-            } else {
+            }
+            else
+            {
                 m_log.Warn("Using deprecated mysql_connection.ini.  Please update database_connect in GridServer_Config.xml and we'll use that instead");
 
                 IniFile GridDataMySqlFile = new IniFile("mysql_connection.ini");
@@ -59,9 +62,8 @@ namespace OpenSim.Data.MySQL
                 string settingPooling = GridDataMySqlFile.ParseFileReadValue("pooling");
                 string settingPort = GridDataMySqlFile.ParseFileReadValue("port");
 
-                database =
-                    new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling,
-                                     settingPort);
+                database = new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword,
+                                            settingPooling, settingPort);
             }
         }
 
