@@ -56,9 +56,13 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             // Just test for now by reading first file
             string filePath = "ERROR";
             
-            byte[] data = archive.Read(out filePath);
+            byte[] data;
+            while ((data = archive.ReadEntry(out filePath)) != null)
+            {                            
+                m_log.DebugFormat("[ARCHIVER]: Successfully read {0} ({1} bytes) from archive {2}", filePath, data.Length, m_loadPath);
+            }
             
-            m_log.DebugFormat("[ARCHIVER]: Successfully read {0} ({1} bytes) from archive {2}", filePath, data.Length, m_loadPath);
+            m_log.DebugFormat("[ARCHIVER]: Reached end of archive");
             
             archive.Close();
         }

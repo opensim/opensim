@@ -27,8 +27,8 @@
 
 using System;
 using System.IO;
-//using System.Reflection;
-//using log4net;
+using System.Reflection;
+using log4net;
 
 namespace OpenSim.Region.Environment.Modules.World.Archiver
 {
@@ -37,9 +37,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     /// </summary>
     public class TarArchiveReader
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
-        protected static System.Text.ASCIIEncoding m_asciiEncoding = new System.Text.ASCIIEncoding();
+        protected static System.Text.ASCIIEncoding m_asciiEncoding = new System.Text.ASCIIEncoding();        
         
         /// <summary>
         /// Binary reader for the underlying stream
@@ -51,19 +51,59 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             m_br = new BinaryReader(new FileStream(archivePath, FileMode.Open));
         }
         
-        public byte[] Read(out string filePath)
+        /// <summary>
+        /// Are we at the end of the archive?
+        /// </summary>
+        /// <returns></returns>
+        public bool AtEof()
         {
-            TarHeader header = ReadHeader();
+            // If we've reached the end of the archive we'll be in null block territory, which means
+            // the next byte will be 0            
+            if (m_br.PeekChar() == 0)
+                return true;
+            
+            return false;
+        }
+        
+        /// <summary>
+        /// Read the next entry in the tar file.
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns>the data for the entry.  Returns null if there are no more entries</returns>
+        public byte[] ReadEntry(out string filePath)
+        {
+            filePath = String.Empty;
+            
+            if (AtEof())
+                return null;
+            
+            TarHeader header = ReadHeader();    
+                        
             filePath = header.FilePath;
-            return m_br.ReadBytes(header.FileSize);
+            byte[] data = m_br.ReadBytes(header.FileSize);
+            
+            m_log.DebugFormat("[TAR ARCHIVE READER]: filePath {0}, fileSize {1}", filePath, header.FileSize);                                    
+            
+            // Read the rest of the empty padding in the 512 byte block 
+            if (header.FileSize % 512 != 0)
+            {
+                int paddingLeft = 512 - (header.FileSize % 512);
+                
+                m_log.DebugFormat("[TAR ARCHIVE READER]: Reading {0} padding bytes", paddingLeft);
+
+                m_br.ReadBytes(paddingLeft);
+            }          
+            
+            return data;
         }
 
         /// <summary>
         /// Read the next 512 byte chunk of data as a tar header.
+        /// This method assumes we are not at the end of the archive
         /// </summary>
-        /// <returns>A tar header struct</returns>
+        /// <returns>A tar header struct.</returns>
         protected TarHeader ReadHeader()
-        {
+        {            
             TarHeader tarHeader = new TarHeader();
             
             byte[] header = m_br.ReadBytes(512);
