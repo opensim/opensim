@@ -103,7 +103,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected BaseHttpServer m_httpListener;
 
-        protected Dictionary<string, IRegionModule> Modules = new Dictionary<string, IRegionModule>();
+        protected Dictionary<string, IRegionModule> m_modules = new Dictionary<string, IRegionModule>();
+        public Dictionary<string, IRegionModule> Modules
+        {
+            get { return m_modules; }
+        }
         protected Dictionary<Type, object> ModuleInterfaces = new Dictionary<Type, object>();
         protected Dictionary<string, object> ModuleAPIMethods = new Dictionary<string, object>();
         protected Dictionary<string, ICommander> m_moduleCommanders = new Dictionary<string, ICommander>();

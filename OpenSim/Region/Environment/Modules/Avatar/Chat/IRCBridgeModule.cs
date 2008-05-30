@@ -151,6 +151,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         public void Close()
         {
             m_irc.Close();
+            m_log.Info("[IRC] closed connection to IRC server");
         }
 
         public string Name
@@ -324,9 +325,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         // if IRC is enabled then just keep trying using a monitor thread
         public void IRCConnectRun()
         {
-            while (true)
+            while (m_irc.Enabled)
             {
-                if ((m_irc.Enabled) && (!m_irc.Connected))
+                if (!m_irc.Connected)
                 {
                     m_irc.Connect(m_scenes);
                 }
@@ -538,7 +539,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             m_log.Info("[IRC]: ExtractMsg: " + input);
             Dictionary<string, string> result = null;
             //string regex = @":(?<nick>\w*)!~(?<user>\S*) PRIVMSG (?<channel>\S+) :(?<msg>.*)";
-            string regex = @":(?<nick>\w*)!(?<user>\S*) PRIVMSG (?<channel>\S+) :(?<msg>.*)";
+            string regex = @":(?<nick>[\w-]*)!(?<user>\S*) PRIVMSG (?<channel>\S+) :(?<msg>.*)";
             Regex RE = new Regex(regex, RegexOptions.Multiline);
             MatchCollection matches = RE.Matches(input);
 
@@ -566,7 +567,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         {
             // IRC keep alive thread
             // send PING ever 15 seconds
-            while (true)
+            while (m_enabled)
             {
                 try
                 {
@@ -579,8 +580,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 }
                 catch (IOException)
                 {
-                    m_log.Error("[IRC]: Disconnected from IRC server.(PingRun)");
-                    Reconnect();
+                    if (m_enabled)
+                    {
+                        m_log.Error("[IRC]: Disconnected from IRC server.(PingRun)");
+                        Reconnect();
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -593,7 +597,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         {
             string inputLine;
             LLVector3 pos = new LLVector3(128, 128, 20);
-            while (true)
+            while (m_enabled)
             {
                 try
                 {
@@ -637,8 +641,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 }
                 catch (IOException)
                 {
-                    m_log.Error("[IRC]: ListenerRun IOException. Disconnected from IRC server ??? (ListenerRun)");
-                    Reconnect();
+                    if (m_enabled) 
+                    {
+                        m_log.Error("[IRC]: ListenerRun IOException. Disconnected from IRC server ??? (ListenerRun)");
+                        Reconnect();
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -838,13 +845,19 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         public void Close()
         {
-            m_connected = false;
-            m_writer.WriteLine(String.Format("QUIT :{0} to {1} wormhole with {2} closing", m_nick, m_channel, m_server));
+            m_writer.WriteLine(String.Format("QUIT :{0} to {1} wormhole to {2} closing", 
+                                             m_nick, m_channel, m_server));
             m_writer.Flush();
-            listener.Abort();
-            pingSender.Abort();
+
+            m_connected = false;
+            m_enabled = false;
+
+            // listener.Abort();
+            // pingSender.Abort();
+
             m_writer.Close();
             m_reader.Close();
+
             m_tcp.Close();
         }
     }

@@ -169,7 +169,8 @@ namespace OpenSim.Region.Environment.Modules.Grid.Interregion
 
         public void Close()
         {
-            ChannelServices.UnregisterChannel(m_tcpChannel);
+            if (null != m_tcpChannel)
+                ChannelServices.UnregisterChannel(m_tcpChannel);
         }
 
         public string Name

@@ -136,6 +136,14 @@ namespace OpenSim.ApplicationPlugins.Rest
         }
 
         /// <summary>
+        /// Access to GOD password string
+        /// </summary>
+        protected string GodKey
+        {
+            get { return _godkey; }
+        }
+
+        /// <summary>
         /// Configuration of the plugin
         /// </summary>
         public IConfig Config
