@@ -364,6 +364,13 @@ namespace OpenSim.Region.Environment.Modules
             // Correct angular velocity to reflect the seasonal rotation
 
             Magnitude  = LLVector3.Mag(Position);
+            if (sunFixed)
+            {
+                Velocity.X = 0;
+                Velocity.Y = 0;
+                Velocity.Z = 0;
+                return;
+            }
 
             Velocity = LLVector3.Rot(Velocity, Tilt)*((float)(1.0/Magnitude));
 
@@ -423,7 +430,7 @@ namespace OpenSim.Region.Environment.Modules
                 //if (useEstateTime)
                     //LindenHourOffset = 0;
 
-                //ForceSunUpdateToAllClients();
+                ForceSunUpdateToAllClients();
                 sunFixed = FixedTime;
                 if (sunFixed)
                     GenSunPos();
