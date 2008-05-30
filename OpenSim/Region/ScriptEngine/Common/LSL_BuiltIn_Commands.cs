@@ -3827,7 +3827,11 @@ namespace OpenSim.Region.ScriptEngine.Common
             // once it is implemented - krtaylor
 
             String[] notecardLines = GetNotecardLines(name);
-            if (!String.IsNullOrEmpty(notecardLines[0]))
+
+            line--; // array starts at 0
+            if ((!String.IsNullOrEmpty(notecardLines[0])) &&
+                (line >= 0) &&
+                (line < notecardLines.Length))
             {
                 return notecardLines[line];
             }
@@ -3858,7 +3862,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     {
                         // good, we have the notecard data as a string
                         // now parse the text lines using the Linden Text delimiters
-                        notecardIndex = dataString.IndexOf("}\n");
+                        notecardIndex = dataString.IndexOf("}\nText length ");
                         if (notecardIndex > 0)
                         {
                             notecardIndex = notecardIndex + 2; //get past delimiter
@@ -3867,23 +3871,20 @@ namespace OpenSim.Region.ScriptEngine.Common
                             {
                                 // Finally got to the first line of the notecard
                                 // now find the end of the notecard text delimited by }<LF>
-                                // parse the lines, delimited by <LF>
+                                // parse the lines, delimited by <LF>                  
+                                notecardIndex = dataString.IndexOf("\n", notecardIndex);
+                                notecardIndex++; // get past delimiter
+
+                                int notecardLength = dataString.Length - notecardIndex - 3;
+
+                                // create new string to parse that only consists of the actual lines in the asset
+                                Char[] notecardCharArray = dataString.ToCharArray(notecardIndex, notecardLength);
+                                String notecardString = new String(notecardCharArray);
+
+                                // split the lines of the notecard into separate strings
                                 char[] delimChar = { '\n' };
-                                int notecardEof = dataString.IndexOf("}\n", notecardIndex);
-                                if (notecardEof > 0)
-                                {
-                                    int notecardLength = notecardEof - notecardIndex - 1;
-                                    notecardIndex = dataString.IndexOf("\n", notecardIndex);
-                                    notecardIndex++; // get past delimiter
-
-                                    // create new string to parse that only consists of the actual lines in the asset
-                                    Char[] notecardCharArray = dataString.ToCharArray(notecardIndex, notecardLength);
-                                    String notecardString = new String(notecardCharArray);
-
-                                    // split the lines of the notecard into separate strings
-                                    notecardLines = notecardString.Split(delimChar);
-                                    return notecardLines;
-                                }
+                                notecardLines = notecardString.Split(delimChar);
+                                return notecardLines;
                             }
                         }
                     }
