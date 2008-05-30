@@ -535,3 +535,40 @@ Password = "password"
 ImportOnStartup = false
 Autosave = false
 AutoSavePeriod = 15 ; Number of minutes between autosave backups
+
+
+[XEngine]
+; How many threads to keep alive even if nothing is happening
+MinThreads = 2
+; How many threads to start at maximum load
+MaxThreads = 100
+; Time a thread must be idle (in seconds) before it dies
+IdleTimeout = 60
+; Thread priority ("Lowest", "BelowNormal", "Normal", "AboveNormal", "Highest")
+Priority = "BelowNormal"
+; Maximum number of events to queue for a script (excluding timers)
+MaxScriptEventQueue = 300
+; Stack size per thread created
+ThreadStackSize = 262144
+; Rate to poll for asynchronous command replies (ms)
+AsyncLLCommandLoopms = 50
+; Save the source of all compiled scripts
+WriteScriptSourceToDebugFile = false
+; Default language for scripts
+DefaultCompileLanguage = lsl
+; List of allowed languages (lsl,vb,js,cs)
+AllowedCompilers = lsl
+; Compile debug info (line numbers) into the script assemblies
+CompileWithDebugInformation = true
+; Allow the use of os* functions (some are dangerous)
+AllowOSFunctions = false
+; Interval (s) between background save of script states
+SaveInterval = 120
+; Interval (s) between maintenance runs (0 = disable)
+MaintenanceInterval = 10
+; Time a script can spend in an event handler before it is interrupted
+EventLimit = 30
+; If a script overruns it's event limit, kill the script?
+KillTimedOutScripts = false
+; Allow OS console command functionality (VERY DANGEROUS!!)
+AllowosConsoleCommand = false
