@@ -112,7 +112,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             {
                 if (assets[uuid] != null)
                 {
-                    archive.AddFile(ArchiveConstants.ASSETS_PATH + uuid.ToString() + ".jp2", assets[uuid].Data);
+                    archive.AddFile(
+                        ArchiveConstants.ASSETS_PATH + uuid.ToString() + ArchiveConstants.TEXTURE_EXTENSION, 
+                        assets[uuid].Data);
                 }
                 else
                 {

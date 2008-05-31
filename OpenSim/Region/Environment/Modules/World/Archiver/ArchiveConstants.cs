@@ -38,6 +38,11 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         public static readonly string ASSETS_PATH = "assets/";
         
         /// <summary>
+        /// Extension used for texture assets in archive
+        /// </summary>
+        public static readonly string TEXTURE_EXTENSION = ".jp2";
+        
+        /// <summary>
         /// Path for the prims file
         /// </summary>
         public static readonly string PRIMS_PATH = "prims.xml";
