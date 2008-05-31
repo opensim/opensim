@@ -1082,12 +1082,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void ResetScript()
         {
+            bool running=Running;
+
             Stop(0);
             m_Engine.m_ASYNCLSLCommandManager.RemoveScript(m_LocalID, m_ItemID);
             m_EventQueue.Clear();
             m_Script.ResetVars();
             m_State = "default";
-            Start();
+            if(running)
+                Start();
             PostEvent(new XEventParams("state_entry",
                     new Object[0], new XDetectParams[0]));
         }
