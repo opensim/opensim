@@ -114,6 +114,12 @@ namespace OpenSim.Data.MySQL
         {
             lock (_dbConnection)
             {
+                m_log.Info("[ASSET DB]: Creating Asset " + Util.ToRawUuidString(asset.FullID));
+                if (ExistsAsset(asset.FullID))
+                {
+                    m_log.Info("[ASSET DB]: Asset exists already, ignoring.");
+                }
+                
                 MySqlCommand cmd =
                     new MySqlCommand(
                         "REPLACE INTO assets(id, name, description, assetType, invType, local, temporary, data)" +
@@ -156,7 +162,40 @@ namespace OpenSim.Data.MySQL
 
         override public bool ExistsAsset(LLUUID uuid)
         {
-            throw new Exception("The method or operation is not implemented.");
+            bool assetExists = false;
+            
+            lock (_dbConnection)
+            {
+                MySqlCommand cmd =
+                    new MySqlCommand(
+                        "SELECT id FROM assets WHERE id=?id",
+                        _dbConnection.Connection);
+                MySqlParameter p = cmd.Parameters.Add("?id", MySqlDbType.Binary, 16);
+                p.Value = uuid.GetBytes();
+
+                try
+                {
+                    using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+                    {
+                        if (dbReader.Read())
+                        {
+                            assetExists = true;
+                        }
+                        
+                        dbReader.Close();
+                        cmd.Dispose();
+                    }
+                }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat(
+                        "[ASSETS DB]: MySql failure fetching asset {0}" + Environment.NewLine + e.ToString()
+                        + Environment.NewLine + "Attempting reconnection", uuid);
+                    _dbConnection.Reconnect();
+                }
+            }
+            
+            return assetExists;            
         }
 
         /// <summary>
