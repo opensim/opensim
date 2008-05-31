@@ -513,6 +513,11 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (asset != null)
             {
+                if (newName != String.Empty)
+                {
+                    asset.Name = newName;
+                }
+
                 if (remoteClient.AgentId == oldAgentID)
                 {
                     CreateNewInventoryItem(
