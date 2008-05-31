@@ -118,8 +118,15 @@ namespace OpenSim.Grid.GridServer
 
         protected void LoadGridPlugins()
         {
+            // Temporary hack to stop mono-addins scanning warnings from coming out on the console
+            TextWriter oldOutput = Console.Out;
+            Console.SetOut(new StreamWriter(Stream.Null));
+            
             AddinManager.Initialize(".");
             AddinManager.Registry.Update(null);
+            
+            // Returns the console.writelines back to the console's stream
+            Console.SetOut(oldOutput);            
 
             ExtensionNodeList nodes = AddinManager.GetExtensionNodes("/OpenSim/GridServer");
             foreach (TypeExtensionNode node in nodes)

@@ -157,14 +157,14 @@ namespace OpenSim
             if (Directory.Exists("addin-db-001"))
                 Directory.Delete("addin-db-001", true);
 
-            //This blocks the scanning warnings from outputing to the console.
+            // This blocks the scanning warnings from outputing to the console.
             TextWriter oldOutput = Console.Out;
             Console.SetOut(new StreamWriter(Stream.Null));
 
             AddinManager.Initialize(".");
             AddinManager.Registry.Update(null);
 
-            //Returns the console.writelines back to the console's stream
+            // Returns the console.writelines back to the console's stream
             Console.SetOut(oldOutput);
 
             Application.iniFilePath = startupConfig.GetString("inifile", "OpenSim.ini");
