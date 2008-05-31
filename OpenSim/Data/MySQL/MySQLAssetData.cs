@@ -114,10 +114,10 @@ namespace OpenSim.Data.MySQL
         {
             lock (_dbConnection)
             {
-                m_log.Info("[ASSET DB]: Creating Asset " + Util.ToRawUuidString(asset.FullID));
+                //m_log.Info("[ASSET DB]: Creating Asset " + Util.ToRawUuidString(asset.FullID));
                 if (ExistsAsset(asset.FullID))
                 {
-                    m_log.Info("[ASSET DB]: Asset exists already, ignoring.");
+                    //m_log.Info("[ASSET DB]: Asset exists already, ignoring.");
                 }
                 
                 MySqlCommand cmd =
