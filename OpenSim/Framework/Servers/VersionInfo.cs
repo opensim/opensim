@@ -28,10 +28,10 @@
 namespace OpenSim
 {
     /// <summary>
-    /// Exists purely to hold version information.
+    /// This is the OpenSim version string.  Change this if you are releasing a new OpenSim version.
     /// </summary>
     public class VersionInfo
     {
-        public static string Version = "trunk (post 0.5.7)";
+        public readonly static string Version = "OpenSimulator trunk (post 0.5.7)";
     }
 }

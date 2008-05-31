@@ -253,7 +253,6 @@ namespace OpenSim
                     m_console.Notice("show assets - show state of asset cache.");
                     m_console.Notice("show users - show info about connected users.");
                     m_console.Notice("show modules - shows info about loaded modules.");
-                    m_console.Notice("show version - show the running build version.");
                     m_console.Notice("show regions - show running region information.");
                     m_console.Notice("threads - list threads");
                     m_console.Notice("config set section field value - set a config value");
@@ -660,17 +659,6 @@ namespace OpenSim
                                              scene.RegionInfo.RegionLocX + " , Region YLoc: " +
                                              scene.RegionInfo.RegionLocY);
                         });
-                    break;
-
-                case "version":
-                    if (!string.IsNullOrEmpty(buildVersion))
-                    {
-                        m_console.Notice("The build version is: r" + buildVersion);
-                    }
-                    else
-                    {
-                        m_console.Notice("The build version is not available");
-                    }
                     break;
             }
         }

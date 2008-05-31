@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.IO;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Statistics;
 
@@ -37,7 +38,16 @@ namespace OpenSim.Framework.Servers
     public abstract class BaseOpenSimServer
     {
         protected ConsoleBase m_console;
+        
+        /// <summary>
+        /// Time at which this server was started
+        /// </summary>
         protected DateTime m_startuptime;
+                
+        /// <summary>
+        /// Server version information.  Usually VersionInfo + information about svn revision, operating system, etc.
+        /// </summary>
+        protected string m_version;
 
         protected BaseHttpServer m_httpServer;
         public BaseHttpServer HttpServer
@@ -53,6 +63,11 @@ namespace OpenSim.Framework.Servers
         public BaseOpenSimServer()
         {
             m_startuptime = DateTime.Now;
+            
+            m_version = VersionInfo.Version;
+            
+            // FIXME: This should probably occur in a startup method common for all the servers.
+            EnhanceVersionInformation();
         }
 
         /// <summary>
@@ -64,6 +79,7 @@ namespace OpenSim.Framework.Servers
             {
                 m_console.Close();
             }
+            
             Environment.Exit(0);
         }
 
@@ -120,6 +136,10 @@ namespace OpenSim.Framework.Servers
                     Notice("Server has been running since " + m_startuptime.DayOfWeek + ", " + m_startuptime.ToString());
                     Notice("That is an elapsed time of " + (DateTime.Now - m_startuptime).ToString());
                     break;
+                
+                case "version":
+                    m_console.Notice("This is " + m_version);
+                    break;                
             }
         }
 
@@ -136,5 +156,67 @@ namespace OpenSim.Framework.Servers
             }
         }
 
+        /// <summary>
+        /// Enhance the version string with extra information if it's available.
+        /// </summary>
+        protected void EnhanceVersionInformation()
+        {
+            string buildVersion = string.Empty;
+            
+            // Add subversion revision information if available
+            // FIXME: Making an assumption about the directory we're currently in - we do this all over the place
+            // elsewhere as well
+            string svnFileName = "../.svn/entries";
+            string inputLine;
+            int strcmp;
+
+            if (File.Exists(svnFileName))
+            {
+                StreamReader EntriesFile = File.OpenText(svnFileName);
+                inputLine = EntriesFile.ReadLine();
+                while (inputLine != null)
+                {
+                    // using the dir svn revision at the top of entries file
+                    strcmp = String.Compare(inputLine, "dir");
+                    if (strcmp == 0)
+                    {
+                        buildVersion = EntriesFile.ReadLine();
+                        break;
+                    }
+                    else
+                    {
+                        inputLine = EntriesFile.ReadLine();
+                    }
+                }
+                EntriesFile.Close();
+            }
+
+            if (!string.IsNullOrEmpty(buildVersion))
+            {
+                m_version += ", SVN build r" + buildVersion;
+            }
+            else
+            {
+                m_version += ", SVN build revision not available";
+            }
+
+            // Add operating system information if available
+            string OSString = "";
+
+            if (System.Environment.OSVersion.Platform != PlatformID.Unix)
+            {
+                OSString = System.Environment.OSVersion.ToString();
+            }
+            else
+            {
+                OSString = Util.ReadEtcIssue();
+            }
+            if (OSString.Length > 45)
+            {
+                OSString = OSString.Substring(0, 45);
+            }
+
+            m_version += ", OS " + OSString;
+        }        
     }
 }

@@ -54,11 +54,6 @@ namespace OpenSim
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        /// <summary>
-        /// Holds a human readable build version for this server.
-        /// </summary>
-        protected string buildVersion;
-
         protected string proxyUrl;
         protected int proxyOffset = 0;
 
@@ -359,72 +354,11 @@ namespace OpenSim
         }
 
         /// <summary>
-        /// Enhance the version string with extra information if it's available.
-        /// </summary>
-        protected void EnhanceVersionInformation()
-        {
-            // Add subversion revision information if available
-            string svnFileName = "../.svn/entries";
-            string inputLine;
-            int strcmp;
-
-            if (File.Exists(svnFileName))
-            {
-                StreamReader EntriesFile = File.OpenText(svnFileName);
-                inputLine = EntriesFile.ReadLine();
-                while (inputLine != null)
-                {
-                    // using the dir svn revision at the top of entries file
-                    strcmp = String.Compare(inputLine, "dir");
-                    if (strcmp == 0)
-                    {
-                        buildVersion = EntriesFile.ReadLine();
-                        break;
-                    }
-                    else
-                    {
-                        inputLine = EntriesFile.ReadLine();
-                    }
-                }
-                EntriesFile.Close();
-            }
-
-            if (!string.IsNullOrEmpty(buildVersion))
-            {
-                VersionInfo.Version += ", SVN build r" + buildVersion;
-            }
-            else
-            {
-                VersionInfo.Version += ", SVN build revision not available";
-            }
-
-            // Add operating system information if available
-            string OSString = "";
-
-            if (System.Environment.OSVersion.Platform != PlatformID.Unix)
-            {
-                OSString = System.Environment.OSVersion.ToString();
-            }
-            else
-            {
-                OSString = Util.ReadEtcIssue();
-            }
-            if (OSString.Length > 45)
-            {
-                OSString = OSString.Substring(0, 45);
-            }
-
-            VersionInfo.Version += ", OS " + OSString;
-        }
-
-        /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.
         /// </summary>
         protected void InternalStartUp()
         {
-            EnhanceVersionInformation();
-
-            m_log.Info("[STARTUP]: OpenSim version: " + VersionInfo.Version + "\n");
+            m_log.Info("[STARTUP]: Version " + m_version + "\n");
 
             m_stats = StatsManager.StartCollectingSimExtraStats();
 
@@ -658,13 +592,14 @@ namespace OpenSim
                 new Scene(regionInfo, circuitManager, m_commsManager, sceneGridService, m_assetCache,
                           storageManager, m_httpServer,
                           m_moduleLoader, m_dumpAssetsToFile, m_physicalPrim, m_see_into_region_from_neighbor, m_config,
-                          VersionInfo.Version);
+                          m_version);
 
         }
 
         public void handleRestartRegion(RegionInfo whichRegion)
         {
             m_log.Error("[OPENSIM MAIN]: Got restart signal from SceneManager");
+            
             // Shutting down the client server
             bool foundClientServer = false;
             int clientServerElement = 0;
