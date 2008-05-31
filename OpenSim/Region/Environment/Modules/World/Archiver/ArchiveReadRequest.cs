@@ -75,7 +75,6 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 {
                     serializedPrims = m_asciiEncoding.GetString(data);
                 }
-                /*
                 else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
                 {
                     // Right now we're nastily obtaining the lluuid from the filename
@@ -96,7 +95,6 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                                         
                     m_scene.AssetCache.AddAsset(asset);                    
                 }
-                */
             }
             
             m_log.DebugFormat("[ARCHIVER]: Reached end of archive");                        
