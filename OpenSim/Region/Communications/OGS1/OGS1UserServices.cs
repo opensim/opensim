@@ -205,11 +205,43 @@ namespace OpenSim.Region.Communications.OGS1
             IList parameters = new ArrayList();
             parameters.Add(param);
             XmlRpcRequest req = new XmlRpcRequest("update_user_current_region", parameters);
-            XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
-            Hashtable respData = (Hashtable)resp.Value;
-            if (respData.ContainsKey("returnString"))
+
+            XmlRpcResponse resp;
+            
+            try
             {
-                if ((string)respData["returnString"] == "TRUE")
+                resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
+            }
+            catch(WebException)
+            {
+                m_log.Warn("[OSG1 USER SERVICES]: Grid not responding. Retrying.");
+
+                try
+                {
+                    resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
+                }
+                catch (WebException)
+                {
+                    m_log.Warn("[OSG1 USER SERVICES]: Grid not responding. Failed.");
+                    return;
+                }
+            }
+           
+            if( resp == null )
+            {
+                m_log.Warn("[OSG1 USER SERVICES]: Got no response, Grid server may not be updated.");
+                return;
+            }
+
+            Hashtable respData = (Hashtable)resp.Value;
+
+            if (respData == null || !respData.ContainsKey("returnString"))
+            {
+                m_log.Warn("[OSG1 USER SERVICES]: Error updating user record, Grid server may not be updated.");
+            }
+            else
+            {
+                if ((string) respData["returnString"] == "TRUE")
                 {
                     m_log.Info("[OSG1 USER SERVICES]: Successfully updated user record");
                 }
@@ -218,12 +250,6 @@ namespace OpenSim.Region.Communications.OGS1
                     m_log.Error("[OSG1 USER SERVICES]: Error updating user record");
                 }
             }
-            else
-            {
-                m_log.Warn("[OSG1 USER SERVICES]: Error updating user record, Grid server may not be updated.");
-            }
-
-
         }
 
         public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID queryID, string query)
