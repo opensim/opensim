@@ -45,6 +45,7 @@ namespace OpenSim.Framework
         private UpdateNeighbours handlerNeighboursUpdate = null; // OnNeighboursUpdate;
         private PrimCrossing handlerPrimCrossingIntoRegion = null; // OnPrimCrossingIntoRegion;
         private RegionUp handlerRegionUp = null; // OnRegionUp;
+        private LogOffUser handlerLogOffUser = null;
 
         #region IRegionCommsListener Members
 
@@ -59,6 +60,7 @@ namespace OpenSim.Framework
         public event CloseAgentConnection OnCloseAgentConnection;
         public event RegionUp OnRegionUp;
         public event ChildAgentUpdate OnChildAgentUpdate;
+        public event LogOffUser OnLogOffUser;
 
         #endregion
 
@@ -77,6 +79,17 @@ namespace OpenSim.Framework
             }
 
             return false;
+        }
+
+        // From User Server
+        public virtual void TriggerLogOffUser(ulong regionHandle, LLUUID agentID, LLUUID RegionSecret, string message)
+        {
+            handlerLogOffUser = OnLogOffUser;
+            if (handlerLogOffUser != null)
+            {
+                handlerLogOffUser(regionHandle, agentID, RegionSecret, message);
+            }
+
         }
 
 

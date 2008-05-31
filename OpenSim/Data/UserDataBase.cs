@@ -47,7 +47,7 @@ namespace OpenSim.Data
         public abstract void StoreWebLoginKey(LLUUID agentID, LLUUID webLoginKey);
         public abstract void AddNewUserProfile(UserProfileData user);
         public abstract bool UpdateUserProfile(UserProfileData user);
-        public abstract void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid);
+        public abstract void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid, ulong regionhandle);
         public abstract void AddNewUserAgent(UserAgentData agent);
         public abstract void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms);
         public abstract void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend);

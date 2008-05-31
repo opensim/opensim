@@ -50,6 +50,8 @@ namespace OpenSim.Framework
 
     public delegate bool ChildAgentUpdate(ulong regionHandle, ChildAgentDataUpdate cAgentData);
 
+    public delegate void LogOffUser(ulong regionHandle, LLUUID agentID, LLUUID regionSecret, string message);
+
     public interface IRegionCommsListener
     {
         event ExpectUserDelegate OnExpectUser;
@@ -63,5 +65,6 @@ namespace OpenSim.Framework
         event CloseAgentConnection OnCloseAgentConnection;
         event RegionUp OnRegionUp;
         event ChildAgentUpdate OnChildAgentUpdate;
+        event LogOffUser OnLogOffUser;
     }
 }

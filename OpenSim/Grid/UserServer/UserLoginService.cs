@@ -60,6 +60,65 @@ namespace OpenSim.Grid.UserServer
         {
             m_config = config;
         }
+        public override void LogOffUser(UserProfileData theUser, string message)
+        {
+            RegionProfileData SimInfo = null;
+            try
+            {
+                SimInfo = RegionProfileData.RequestSimProfileData(
+                                theUser.CurrentAgent.Handle, m_config.GridServerURL,
+                                m_config.GridSendKey, m_config.GridRecvKey);
+                if (SimInfo == null)
+                {
+                    m_log.Error("[GRID]: Region user was in isn't currently logged in");
+                    return;
+                }
+
+            }
+            catch (Exception)
+            {
+                m_log.Error("[GRID]: Unable to look up region to log user off");
+                return;
+            }
+            // Prepare notification
+            Hashtable SimParams = new Hashtable();
+            SimParams["agent_id"] = theUser.ID.ToString();
+            SimParams["region_secret"] = theUser.CurrentAgent.SecureSessionID.ToString();
+            //SimParams["region_secret"] = SimInfo.regionSecret;
+            //m_log.Info(SimInfo.regionSecret);
+            SimParams["regionhandle"] = theUser.CurrentAgent.Handle.ToString();
+            SimParams["message"] = message;
+            ArrayList SendParams = new ArrayList();
+            SendParams.Add(SimParams);
+
+            // Update agent with target sim
+
+            m_log.InfoFormat(
+                "[ASSUMED CRASH]: Telling region {0} @ {1},{2} ({3}) that their agent is dead: {4}",
+                SimInfo.regionName, SimInfo.regionLocX, SimInfo.regionLocY, SimInfo.httpServerURI, theUser.FirstName + " " + theUser.SurName);
+            try
+            {
+                XmlRpcRequest GridReq = new XmlRpcRequest("logoff_user", SendParams);
+                XmlRpcResponse GridResp = GridReq.Send(SimInfo.httpServerURI, 6000);
+
+                if (GridResp.IsFault)
+                {
+                    m_log.ErrorFormat(
+                        "[LOGIN]: XMLRPC request for {0} failed, fault code: {1}, reason: {2}, This is likely an old region revision.",
+                        SimInfo.httpServerURI, GridResp.FaultCode, GridResp.FaultString);
+                }
+            }
+            catch (Exception)
+            {
+                m_log.Error("[LOGIN]: Error telling region to logout user!");
+            }
+
+            //base.LogOffUser(theUser);
+        }
+        //public override void LogOffUser(UserProfileData theUser)
+        //{
+
+        //}
 
         /// <summary>
         /// Customises the login response and fills in missing values.

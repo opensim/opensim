@@ -419,6 +419,16 @@ namespace OpenSim.Region.Communications.Local
             }
         }
 
+        public void TriggerLogOffUser(ulong regionHandle, LLUUID agentID, LLUUID RegionSecret, string message)
+        {
+            if (m_regionListeners.ContainsKey(regionHandle))
+            {
+                //m_log.Info("[INTER]: " + rdebugRegionName + ":Local BackEnd: FoundLocalRegion To send it to: " + agent.firstname + " " + agent.lastname);
+
+                m_regionListeners[regionHandle].TriggerLogOffUser(regionHandle, agentID, RegionSecret, message);
+            }
+        }
+
         public void TriggerExpectPrim(ulong regionHandle, LLUUID primID, string objData, int XMLMethod)
         {
             if (m_regionListeners.ContainsKey(regionHandle))

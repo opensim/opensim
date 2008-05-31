@@ -86,6 +86,7 @@ namespace OpenSim.Region.Communications.OGS1
             httpServer = httpServe;
             //Respond to Grid Services requests
             httpServer.AddXmlRPCHandler("expect_user", ExpectUser);
+            httpServer.AddXmlRPCHandler("logoff_user", LogOffUser);
             httpServer.AddXmlRPCHandler("check", PingCheckReply);
 
             StartRemoting();
@@ -600,6 +601,31 @@ namespace OpenSim.Region.Communications.OGS1
             m_localBackend.TriggerExpectUser(regionHandle, agentData);
 
             m_log.Info("[OGS1 GRID SERVICES]: Welcoming new user...");
+
+            return new XmlRpcResponse();
+        }
+        // Grid Request Processing
+        /// <summary>
+        /// Ooops, our Agent must be dead if we're getting this request!
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public XmlRpcResponse LogOffUser(XmlRpcRequest request)
+        {
+            m_log.Debug("[CONNECTION DEBUGGING]: LogOff User Called ");
+            Hashtable requestData = (Hashtable)request.Params[0];
+            string message = (string)requestData["message"];
+            LLUUID agentID = LLUUID.Zero;
+            LLUUID RegionSecret = LLUUID.Zero;
+            Helpers.TryParse((string)requestData["agent_id"], out agentID);
+            Helpers.TryParse((string)requestData["region_secret"], out RegionSecret);      
+
+            ulong regionHandle = Convert.ToUInt64((string)requestData["regionhandle"]);
+
+       
+            m_localBackend.TriggerLogOffUser(regionHandle, agentID, RegionSecret,message);
+
+            
 
             return new XmlRpcResponse();
         }

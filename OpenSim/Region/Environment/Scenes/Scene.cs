@@ -2003,8 +2003,8 @@ namespace OpenSim.Region.Environment.Scenes
             m_sceneGridService.OnChildAgentUpdate += IncomingChildAgentDataUpdate;
             m_sceneGridService.OnExpectPrim += IncomingInterRegionPrimGroup;
             m_sceneGridService.OnRemoveKnownRegionFromAvatar += HandleRemoveKnownRegionsFromAvatar;
-
-            m_sceneGridService.KillObject = SendKillObject;
+            m_sceneGridService.OnLogOffUser += HandleLogOffUserFromGrid;
+            m_sceneGridService.KillObject += SendKillObject;
         }
 
         /// <summary>
@@ -2012,6 +2012,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void UnRegisterReginWithComms()
         {
+            m_sceneGridService.KillObject -= SendKillObject;
+            m_sceneGridService.OnLogOffUser -= HandleLogOffUserFromGrid;
             m_sceneGridService.OnRemoveKnownRegionFromAvatar -= HandleRemoveKnownRegionsFromAvatar;
             m_sceneGridService.OnExpectPrim -= IncomingInterRegionPrimGroup;
             m_sceneGridService.OnChildAgentUpdate -= IncomingChildAgentDataUpdate;
@@ -2064,6 +2066,34 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        protected void HandleLogOffUserFromGrid(ulong regionHandle, LLUUID AvatarID, LLUUID RegionSecret, string message)
+        {
+            if (RegionInfo.RegionHandle == regionHandle)
+            {
+                ScenePresence loggingOffUser = null;
+                loggingOffUser = GetScenePresence(AvatarID);
+                if (loggingOffUser != null)
+                {
+                    if (RegionSecret == loggingOffUser.ControllingClient.SecureSessionId)
+                    {
+                        loggingOffUser.ControllingClient.Kick(message);
+                        // Give them a second to receive the message!
+                        System.Threading.Thread.Sleep(1000);
+                        loggingOffUser.ControllingClient.Close(true);
+                    }
+                    else
+                    {
+                        m_log.Info("[USERLOGOFF]: System sending the LogOff user message failed to sucessfully authenticate");
+                    }
+                }
+                else
+                {
+                    m_log.InfoFormat("[USERLOGOFF]: Got a logoff request for {0} but the user isn't here.  The user might already have been logged out", AvatarID.ToString());
+                }
+            }
+            
+
+        }
         /// <summary>
         /// Add a caps handler for the given agent.  If the CAPS handler already exists for this agent,
         /// then it is replaced by a new CAPS handler.

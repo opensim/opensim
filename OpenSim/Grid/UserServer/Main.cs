@@ -129,6 +129,7 @@ namespace OpenSim.Grid.UserServer
             m_httpServer.AddXmlRPCHandler("get_user_friend_list", m_userManager.XmlRpcResponseXmlRPCGetUserFriendList);
             m_httpServer.AddXmlRPCHandler("get_avatar_appearance", m_userManager.XmlRPCGetAvatarAppearance);
             m_httpServer.AddXmlRPCHandler("update_avatar_appearance", m_userManager.XmlRPCUpdateAvatarAppearance);
+            m_httpServer.AddXmlRPCHandler("update_user_current_region", m_userManager.XmlRPCAtRegion);
             m_httpServer.AddXmlRPCHandler("logout_of_simulator", m_userManager.XmlRPCLogOffUserMethodUUID);
 
             // Message Server ---> User Server
@@ -221,6 +222,7 @@ namespace OpenSim.Grid.UserServer
             {
                 case "help":
                     m_console.Notice("create user - create a new user");
+                    m_console.Notice("logoff-user <firstname> <lastname> <message> - logs off the specified user from the grid");
                     break;
 
                 case "create":
@@ -237,6 +239,67 @@ namespace OpenSim.Grid.UserServer
                                                                                                        InventoryUrl +
                                                                                                    "RootFolders/",
                                                                                                    m_lastCreatedUser);
+                    break;
+                case "logoff-user":
+
+                    if (cmdparams.Length >= 3)
+                    {
+                        string firstname = cmdparams[0];
+                        string lastname = cmdparams[1];
+                        string message = "";
+
+                        for (int i = 2; i < cmdparams.Length; i++)
+                            message += " " + cmdparams[i];
+
+                        UserProfileData theUser = null;
+                        try
+                        {
+                            theUser = m_loginService.GetTheUser(firstname, lastname);
+                        }
+                        catch (Exception)
+                        {
+                            m_log.Error("[LOGOFF]: Error getting user data from the database.");
+                        }
+
+                        if (theUser != null)
+                        {
+                            if (theUser.CurrentAgent != null)
+                            {
+                                if (theUser.CurrentAgent.AgentOnline)
+                                {
+                                    m_log.Info("[LOGOFF]: Logging off requested user!");
+                                    m_loginService.LogOffUser(theUser, message);
+
+                                    theUser.CurrentAgent.AgentOnline = false;
+                                    
+                                    m_loginService.CommitAgent(ref theUser);
+                                }
+                                else
+                                {
+                                    m_log.Info("[LOGOFF]: User Doesn't appear to be online, sending the logoff message anyway.");
+                                    m_loginService.LogOffUser(theUser, message);
+
+                                    theUser.CurrentAgent.AgentOnline = false;
+
+                                    m_loginService.CommitAgent(ref theUser);
+                                }
+                            }
+                            else
+                            {
+                                m_log.Error("[LOGOFF]: Unable to logoff-user.  User doesn't have an agent record so I can't find the simulator to notify");
+                            }
+
+                        }
+                        else
+                        {
+                            m_log.Info("[LOGOFF]: User doesn't exist in the database");
+                        }
+                    }
+                    else
+                    {
+                        m_log.Error("[LOGOFF]: Invalid amount of parameters.  logoff-user takes at least three.  Firstname, Lastname, and message");
+                    }
+
                     break;
             }
         }

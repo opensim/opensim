@@ -79,7 +79,15 @@ namespace OpenSim.Framework.Communications
         /// <param name="response">The existing response</param>
         /// <param name="theUser">The user profile</param>
         public abstract void CustomiseResponse(LoginResponse response, UserProfileData theUser, string startLocationRequest);
+        
+        /// <summary>
+        /// If the user is already logged in, try to notify the region that the user they've got is dead.
+        /// </summary>
+        /// <param name="theUser"></param>
+        public virtual void LogOffUser(UserProfileData theUser, string message)
+        {
 
+        }
         /// <summary>
         /// Get the initial login inventory skeleton (in other words, the folder structure) for the given user.
         /// </summary>
@@ -196,9 +204,14 @@ namespace OpenSim.Framework.Communications
                         //      because of some problem, for instance, the crashment of server or client,
                         //      the user cannot log in any longer.
                         userProfile.CurrentAgent.AgentOnline = false;
-                        m_userManager.CommitAgent(ref userProfile);
 
+                        m_userManager.CommitAgent(ref userProfile);
+                            
+                        // try to tell the region that their user is dead.
+                        LogOffUser(userProfile, "You were logged off because you logged in from another location");
+                        
                         // Reject the login
+                        
 
                         m_log.InfoFormat(
                             "[LOGIN END]: Notifying user {0} {1} that they are already logged in",

@@ -196,6 +196,36 @@ namespace OpenSim.Region.Communications.OGS1
             return GetUserProfile(firstName + " " + lastName);
         }
 
+        public void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid, ulong regionhandle)
+        {
+            Hashtable param = new Hashtable();
+            param.Add("avatar_id", avatarid.ToString());
+            param.Add("region_uuid", regionuuid.ToString());
+            param.Add("region_handle", regionhandle.ToString());
+            IList parameters = new ArrayList();
+            parameters.Add(param);
+            XmlRpcRequest req = new XmlRpcRequest("update_user_current_region", parameters);
+            XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
+            Hashtable respData = (Hashtable)resp.Value;
+            if (respData.ContainsKey("returnString"))
+            {
+                if ((string)respData["returnString"] == "TRUE")
+                {
+                    m_log.Info("[OSG1 USER SERVICES]: Successfully updated user record");
+                }
+                else
+                {
+                    m_log.Error("[OSG1 USER SERVICES]: Error updating user record");
+                }
+            }
+            else
+            {
+                m_log.Warn("[OSG1 USER SERVICES]: Error updating user record, Grid server may not be updated.");
+            }
+
+
+        }
+
         public List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID queryID, string query)
         {
             List<AvatarPickerAvatar> pickerlist = new List<AvatarPickerAvatar>();

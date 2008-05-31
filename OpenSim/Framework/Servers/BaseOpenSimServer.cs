@@ -84,6 +84,7 @@ namespace OpenSim.Framework.Servers
 
                     Notice("show uptime - show server startup and uptime.");
                     Notice("shutdown - shutdown the server.\n");
+                   
                     break;
 
                 case "show":

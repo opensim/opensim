@@ -179,6 +179,54 @@ namespace OpenSim.Grid.UserServer
             return AvatarPickerListtoXmlRPCResponse(queryID, returnAvatar);
         }
 
+        public XmlRpcResponse XmlRPCAtRegion(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+            Hashtable responseData = new Hashtable();
+            string returnstring = "FALSE";
+
+            if (requestData.Contains("avatar_id") && requestData.Contains("region_handle") && requestData.Contains("region_uuid"))
+            {
+                ulong cregionhandle = 0;
+                LLUUID regionUUID = LLUUID.Zero;
+                LLUUID AvatarID = LLUUID.Zero;
+
+                Helpers.TryParse((string)requestData["avatar_id"], out AvatarID);
+                Helpers.TryParse((string)requestData["region_uuid"], out regionUUID);
+                try
+                {
+                    cregionhandle = (ulong)Convert.ToInt64((string)requestData["region_handle"]);
+                }
+                catch (ArgumentException)
+                {
+                }
+                catch (OverflowException)
+                {
+                }
+                catch (FormatException)
+                {
+                }
+
+                if (AvatarID != LLUUID.Zero)
+                {
+                    UserProfileData userProfile = GetUserProfile(new LLUUID((string)requestData["avatar_id"]));
+                    userProfile.CurrentAgent.Region = new LLUUID((string)requestData["region_uuid"]);
+                    userProfile.CurrentAgent.Handle = (ulong)Convert.ToInt64((string)requestData["region_handle"]);
+                    //userProfile.CurrentAgent.
+                    CommitAgent(ref userProfile);
+                    //setUserProfile(userProfile);
+
+
+                    returnstring = "TRUE";
+                }
+
+            }
+            responseData.Add("returnString", returnstring);
+            response.Value = responseData;
+            return response;
+        }
+
         public XmlRpcResponse XmlRpcResponseXmlRPCAddUserFriend(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();

@@ -58,6 +58,7 @@ namespace OpenSim.Region.Environment.Scenes
         public event RegionUp OnRegionUp;
         public event ChildAgentUpdate OnChildAgentUpdate;
         public event RemoveKnownRegionsFromAvatarList OnRemoveKnownRegionFromAvatar;
+        public event LogOffUser OnLogOffUser;
 
         private AgentCrossing handlerAvatarCrossingIntoRegion = null; // OnAvatarCrossingIntoRegion;
         private ExpectUserDelegate handlerExpectUser = null; // OnExpectUser;
@@ -67,6 +68,7 @@ namespace OpenSim.Region.Environment.Scenes
         private RegionUp handlerRegionUp = null; // OnRegionUp;
         private ChildAgentUpdate handlerChildAgentUpdate = null; // OnChildAgentUpdate;
         private RemoveKnownRegionsFromAvatarList handlerRemoveKnownRegionFromAvatar = null; // OnRemoveKnownRegionFromAvatar;
+        private LogOffUser handlerLogOffUser = null;
 
         public KillObjectDelegate KillObject;
         public string _debugRegionName = String.Empty;
@@ -105,6 +107,7 @@ namespace OpenSim.Region.Environment.Scenes
                 regionCommsHost.OnCloseAgentConnection += CloseConnection;
                 regionCommsHost.OnRegionUp += newRegionUp;
                 regionCommsHost.OnChildAgentUpdate += ChildAgentUpdate;
+                regionCommsHost.OnLogOffUser += GridLogOffUser;
             }
             else
             {
@@ -121,6 +124,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (regionCommsHost != null)
             {
+                regionCommsHost.OnLogOffUser -= GridLogOffUser;
                 regionCommsHost.OnChildAgentUpdate -= ChildAgentUpdate;
                 regionCommsHost.OnRegionUp -= newRegionUp;
                 regionCommsHost.OnExpectUser -= NewUserConnection;
@@ -147,6 +151,15 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 //m_log.Info("[INTER]: " + debugRegionName + ": SceneCommunicationService: OnExpectUser Fired for User:" + agent.firstname + " " + agent.lastname);
                 handlerExpectUser(regionHandle, agent);
+            }
+        }
+
+        protected void GridLogOffUser(ulong regionHandle, LLUUID AgentID, LLUUID RegionSecret, string message)
+        {
+            handlerLogOffUser = OnLogOffUser;
+            if (handlerLogOffUser != null)
+            {
+                handlerLogOffUser(regionHandle, AgentID, RegionSecret, message);
             }
         }
 

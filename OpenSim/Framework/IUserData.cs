@@ -98,13 +98,8 @@ namespace OpenSim.Framework
         /// <param name="user">UserProfile to update</param>
         bool UpdateUserProfile(UserProfileData user);
 
-        /// <summary>
-        ///  Updates the current region the User is in
-        /// </summary>
-        /// <param name="avatarid">User Region the Avatar is IN</param>
-        /// <param name="retionuuid">User Region the Avatar is IN</param>
-        void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid);
 
+        void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid, ulong regionhandle);
         /// <summary>
         /// Adds a new agent to the database
         /// </summary>

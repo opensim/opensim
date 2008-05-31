@@ -321,9 +321,9 @@ namespace OpenSim.Data.MSSQL
 
         #endregion
 
-        override public void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid)
+        override public void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid, ulong regionhandle)
         {
-            m_log.Info("[USER]: Stub UpdateUserCUrrentRegion called");
+            //m_log.Info("[USER]: Stub UpdateUserCUrrentRegion called");
         }
 
 

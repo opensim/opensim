@@ -295,7 +295,7 @@ namespace OpenSim.Data.NHibernate
         }
 
         // TODO: actually implement these
-        public override void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid) {return;}
+        public override void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid, ulong regionhandle) { return; }
         public override void StoreWebLoginKey(LLUUID agentID, LLUUID webLoginKey) {return;}
         public override void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms) {return;}
         public override void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend) {return;}

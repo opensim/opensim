@@ -113,6 +113,13 @@ namespace OpenSim.Framework.Communications
         /// Get's the User Appearance
         AvatarAppearance GetUserAppearance(LLUUID user);
 
+        /// <summary>
+        ///  Updates the current region the User is in
+        /// </summary>
+        /// <param name="avatarid">User Region the Avatar is IN</param>
+        /// <param name="retionuuid">User Region the Avatar is IN</param>
+        void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid, ulong regionhandle);
+
         void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance);
 
         void AddAttachment(LLUUID user, LLUUID attach);
