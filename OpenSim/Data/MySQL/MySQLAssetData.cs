@@ -118,6 +118,7 @@ namespace OpenSim.Data.MySQL
                 if (ExistsAsset(asset.FullID))
                 {
                     //m_log.Info("[ASSET DB]: Asset exists already, ignoring.");
+                    return;
                 }
                 
                 MySqlCommand cmd =
