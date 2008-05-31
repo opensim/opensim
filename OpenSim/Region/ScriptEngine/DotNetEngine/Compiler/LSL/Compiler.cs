@@ -39,9 +39,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
     public class Compiler
     {
-        private static readonly log4net.ILog m_log
+        private static readonly log4net.ILog m_log 
             = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
+        
         // * Uses "LSL2Converter" to convert LSL to C# if necessary.
         // * Compiles C#-code into an assembly
         // * Returns assembly name ready for AppDomain load.
@@ -54,7 +54,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             lsl = 0,
             cs = 1,
             vb = 2,
-            js = 3
+            js = 3,
+            yp = 4
         }
 
         /// <summary>
@@ -75,6 +76,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         private static CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
         private static VBCodeProvider VBcodeProvider = new VBCodeProvider();
         private static JScriptCodeProvider JScodeProvider = new JScriptCodeProvider();
+        private static YP2CSConverter YP_Converter = new YP2CSConverter();
 
         private static int instanceID = new Random().Next(0, int.MaxValue);                 // Unique number to use on our compiled files
         private static UInt64 scriptCompileCounter = 0;                                     // And a counter
@@ -113,6 +115,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             LanguageMapping.Add(enumCompileType.vb.ToString(), enumCompileType.vb);
             LanguageMapping.Add(enumCompileType.lsl.ToString(), enumCompileType.lsl);
             LanguageMapping.Add(enumCompileType.js.ToString(), enumCompileType.js);
+            LanguageMapping.Add(enumCompileType.yp.ToString(), enumCompileType.yp);
 
             // Allowed compilers
             string allowComp = m_scriptEngine.ScriptConfigSource.GetString("AllowedCompilers", "lsl,cs,vb,js");
@@ -254,6 +257,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             if (Script.StartsWith("//js", true, CultureInfo.InvariantCulture))
                 l = enumCompileType.js;
 
+            if (Script.StartsWith("//yp", true, CultureInfo.InvariantCulture))
+                l = enumCompileType.yp;
+
             if (!AllowedCompilers.ContainsKey(l.ToString()))
             {
                 // Not allowed to compile to this language!
@@ -271,6 +277,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 l = enumCompileType.cs;
             }
 
+            if (l == enumCompileType.yp)
+            {
+                // Its LSL, convert it to C#
+                compileScript = YP_Converter.Convert(Script);
+                l = enumCompileType.cs;
+            }
+
             // Insert additional assemblies here
 
             //ADAM: Disabled for the moment until it's working right.
@@ -278,8 +291,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             if (enableCommanderLSL == true && l == enumCompileType.cs)
             {
-                foreach (KeyValuePair<string,
-                    ICommander> com
+                foreach (KeyValuePair<string, 
+                    ICommander> com 
                     in m_scriptEngine.World.GetCommanders())
                 {
                     compileScript = com.Value.GenerateRuntimeAPI() + compileScript;
@@ -305,7 +318,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             m_log.Debug("[ScriptEngine.DotNetEngine]: Preparing to compile the following LSL to C# translated code");
             m_log.Debug("");
             m_log.Debug(compileScript);
-
+            
             return CompileFromDotNetText(compileScript, l);
         }
 
@@ -322,13 +335,17 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
         private static string CreateCSCompilerScript(string compileScript)
         {
-
+            
 
             compileScript = String.Empty +
+                       "using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog; " +
                         "using OpenSim.Region.ScriptEngine.Common; using System.Collections.Generic;\r\n" +
                         String.Empty + "namespace SecondLife { " +
                         String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Common.BuiltIn_Commands_BaseClass { \r\n" +
-                        @"public Script() { } " +
+                        //@"public Script() { } " +
+                        @"static OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog.YP YP=null; " +
+                        @"public Script() {  YP= new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog.YP(); } "+
+
                         compileScript +
                         "} }\r\n";
             return compileScript;
