@@ -24,6 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+//#define SPAM
 
 using System;
 using System.Collections.Generic;
@@ -431,6 +432,9 @@ namespace OpenSim.Region.Physics.Meshing
             Int16 twistTop = primShape.PathTwistBegin;
             Int16 twistBot = primShape.PathTwist;
 
+#if SPAM
+            reportPrimParams("[BOX] " + primName, primShape);
+#endif
 
             //m_log.Error("pathShear:" + primShape.PathShearX.ToString() + "," + primShape.PathShearY.ToString());
             //m_log.Error("pathTaper:" + primShape.PathTaperX.ToString() + "," + primShape.PathTaperY.ToString());
@@ -553,13 +557,13 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 if (taperX > 100)
                 {
-                    extr.taperTopFactorX = 1.0f - ((float)taperX / 200);
-                    //m_log.Warn("taperTopFactorX: " + extr.taperTopFactorX.ToString());
+                    extr.taperTopFactorX = 1.0f - ((float)(taperX - 100) / 100);
+                    //System.Console.WriteLine("taperTopFactorX: " + extr.taperTopFactorX.ToString());
                 }
                 else
                 {
                     extr.taperBotFactorX = 1.0f - ((100 - (float)taperX) / 100);
-                    //m_log.Warn("taperBotFactorX: " + extr.taperBotFactorX.ToString());
+                    //System.Console.WriteLine("taperBotFactorX: " + extr.taperBotFactorX.ToString());
                 }
 
             }
@@ -568,28 +572,29 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 if (taperY > 100)
                 {
-                    extr.taperTopFactorY = 1.0f - ((float)taperY / 200);
-                    //m_log.Warn("taperTopFactorY: " + extr.taperTopFactorY.ToString());
+                    extr.taperTopFactorY = 1.0f - ((float)(taperY - 100) / 100);
+                    //System.Console.WriteLine("taperTopFactorY: " + extr.taperTopFactorY.ToString());
                 }
                 else
                 {
                     extr.taperBotFactorY = 1.0f - ((100 - (float)taperY) / 100);
-                    //m_log.Warn("taperBotFactorY: " + extr.taperBotFactorY.ToString());
+                    //System.Console.WriteLine("taperBotFactorY: " + extr.taperBotFactorY.ToString());
                 }
             }
 
             if (pathShearX != 0)
             {
+                //System.Console.WriteLine("pushX: " + pathShearX.ToString());
                 if (pathShearX > 50)
                 {
                     // Complimentary byte.  Negative values wrap around the byte.  Positive values go up to 50
                     extr.pushX = (((float)(256 - pathShearX) / 100) * -1f);
-                   // m_log.Warn("pushX: " + extr.pushX);
+                    //System.Console.WriteLine("pushX: " + extr.pushX);
                 }
                 else
                 {
                     extr.pushX = (float)pathShearX / 100;
-                   // m_log.Warn("pushX: " + extr.pushX);
+                    //System.Console.WriteLine("pushX: " + extr.pushX);
                 }
             }
 
@@ -599,12 +604,12 @@ namespace OpenSim.Region.Physics.Meshing
                 {
                     // Complimentary byte.  Negative values wrap around the byte.  Positive values go up to 50
                     extr.pushY = (((float)(256 - pathShearY) / 100) * -1f);
-                    //m_log.Warn("pushY: " + extr.pushY);
+                    //System.Console.WriteLine("pushY: " + extr.pushY);
                 }
                 else
                 {
                     extr.pushY = (float)pathShearY / 100;
-                    //m_log.Warn("pushY: " + extr.pushY);
+                    //System.Console.WriteLine("pushY: " + extr.pushY);
                 }
             }
 
@@ -661,6 +666,10 @@ namespace OpenSim.Region.Physics.Meshing
             UInt16 pathShearY = primShape.PathShearY;
             Int16 twistBot = primShape.PathTwist;
             Int16 twistTop = primShape.PathTwistBegin;
+
+#if SPAM
+            reportPrimParams("[CYLINDER] " + primName, primShape);
+#endif
 
 
             // Procedure: This is based on the fact that the upper (plus) and lower (minus) Z-surface
@@ -903,7 +912,7 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 if (taperY > 100)
                 {
-                    extr.taperTopFactorY = 1.0f - ((float)(taperY - 100) / 200);
+                    extr.taperTopFactorY = 1.0f - ((float)(taperY - 100) / 100);
                    // System.Console.WriteLine("taperTopFactorY: " + extr.taperTopFactorY.ToString());
                 }
                 else
@@ -998,6 +1007,11 @@ namespace OpenSim.Region.Physics.Meshing
 
             Int16 twistTop = primShape.PathTwistBegin;
             Int16 twistBot = primShape.PathTwist;
+
+#if SPAM
+            reportPrimParams("[PRISM] " + primName, primShape);
+#endif
+
             //m_log.Error("pathShear:" + primShape.PathShearX.ToString() + "," + primShape.PathShearY.ToString());
             //m_log.Error("pathTaper:" + primShape.PathTaperX.ToString() + "," + primShape.PathTaperY.ToString());
             //m_log.Error("ProfileBegin:" + primShape.ProfileBegin.ToString() + "," + primShape.ProfileBegin.ToString());
@@ -1116,7 +1130,7 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 if (taperX > 100)
                 {
-                    extr.taperTopFactorX = 1.0f - ((float)taperX / 200);
+                    extr.taperTopFactorX = 1.0f - ((float)(taperX - 100) / 100);
                     //System.Console.WriteLine("taperTopFactorX: " + extr.taperTopFactorX.ToString());
                 }
                 else
@@ -1124,14 +1138,15 @@ namespace OpenSim.Region.Physics.Meshing
                     extr.taperBotFactorX = 1.0f - ((100 - (float)taperX) / 100);
                     //System.Console.WriteLine("taperBotFactorX: " + extr.taperBotFactorX.ToString());
                 }
+
             }
 
             if (taperY != 100)
             {
                 if (taperY > 100)
                 {
-                    extr.taperTopFactorY = 1.0f - ((float)taperY / 200);
-                    //System.Console.WriteLine("taperTopFactorY: " + extr.taperTopFactorY.ToString());
+                    extr.taperTopFactorY = 1.0f - ((float)(taperY - 100) / 100);
+                    // System.Console.WriteLine("taperTopFactorY: " + extr.taperTopFactorY.ToString());
                 }
                 else
                 {
@@ -1209,6 +1224,8 @@ namespace OpenSim.Region.Physics.Meshing
             result.DumpRaw(baseDir, primName, "Z extruded");
             return result;
         }
+
+
         private static Mesh CreateSphereMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
         {
             // Builds an icosahedral geodesic sphere
@@ -1229,6 +1246,10 @@ namespace OpenSim.Region.Physics.Meshing
             UInt16 pathShearX = primShape.PathShearX;
             UInt16 pathShearY = primShape.PathShearY;
             Mesh m = new Mesh();
+
+#if SPAM
+            reportPrimParams("[SPHERE] " + primName, primShape);
+#endif
 
             float LOD = 0.2f;
             float diameter = 0.5f;// Our object will result in -0.5 to 0.5
@@ -1298,6 +1319,11 @@ namespace OpenSim.Region.Physics.Meshing
         }
         private SculptMesh CreateSculptMesh(string primName, PrimitiveBaseShape primShape, PhysicsVector size, float lod)
         {
+
+#if SPAM
+            reportPrimParams("[SCULPT] " + primName, primShape);
+#endif
+
             SculptMesh sm = new SculptMesh(primShape.SculptData, lod);
             // Scale the mesh based on our prim scale
             foreach (Vertex v in sm.vertices)
@@ -1320,7 +1346,7 @@ namespace OpenSim.Region.Physics.Meshing
 
         }
 
-        private static Mesh CreateCircularProfileMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
+        private static Mesh CreateCircularPathMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
         {
 
             UInt16 hollowFactor = primShape.ProfileHollow;
@@ -1334,18 +1360,23 @@ namespace OpenSim.Region.Physics.Meshing
             Int16 twistTop = primShape.PathTwistBegin;
             HollowShape hollowShape = primShape.HollowShape;
 
-            //Console.WriteLine("pathTwist: " + primShape.PathTwist.ToString() + " pathTwistBegin: " + primShape.PathTwistBegin.ToString());
+#if SPAM
+            reportPrimParams("[CIRCULAR PATH PRIM] " + primName, primShape);
+            Console.WriteLine("pathTwist: " + primShape.PathTwist.ToString() + " pathTwistBegin: " + primShape.PathTwistBegin.ToString());
+            Console.WriteLine("primShape.ProfileCurve & 0x07: " + Convert.ToString(primShape.ProfileCurve & 0x07));
+
+#endif
 
             SimpleHull outerHull = new SimpleHull();
-
-            //Console.WriteLine("primShape.ProfileCurve & 0x07: " + Convert.ToString(primShape.ProfileCurve & 0x07));
 
             if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
 
             //if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle
             //    || (primShape.ProfileCurve & 0x07) == (byte) ProfileShape.Square)
             {
-                //Console.WriteLine("Meshmerizer thinks " + primName + " is a TORUS");
+#if SPAM
+                Console.WriteLine("Meshmerizer thinks " + primName + " is a TORUS");
+#endif
                 if (hollowShape == HollowShape.Same)
                     hollowShape = HollowShape.Circle;
 
@@ -1380,7 +1411,9 @@ namespace OpenSim.Region.Physics.Meshing
 
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Square) // a ring
             {
-                //Console.WriteLine("Meshmerizer thinks " + primName + " is a TUBE");
+#if SPAM
+                Console.WriteLine("Meshmerizer thinks " + primName + " is a TUBE");
+#endif
                 if (hollowShape == HollowShape.Same)
                     hollowShape = HollowShape.Square;
 
@@ -1392,7 +1425,9 @@ namespace OpenSim.Region.Physics.Meshing
 
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
             {
-                //Console.WriteLine("Meshmerizer thinks " + primName + " is a RING");
+#if SPAM
+                Console.WriteLine("Meshmerizer thinks " + primName + " is a RING");
+#endif
                 if (hollowShape == HollowShape.Same)
                     hollowShape = HollowShape.Triangle;
 
@@ -1404,7 +1439,9 @@ namespace OpenSim.Region.Physics.Meshing
 
             else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
             {
-                //Console.WriteLine("Meshmerizer thinks " + primName + " is a SPHERE");
+#if SPAM
+                Console.WriteLine("Meshmerizer thinks " + primName + " is a SPHERE");
+#endif
                 if (hollowShape == HollowShape.Same)
                     hollowShape = HollowShape.Circle;
 
@@ -1544,15 +1581,20 @@ namespace OpenSim.Region.Physics.Meshing
 
             Vertex vTemp = new Vertex(0.0f, 0.0f, 0.0f);
 
-            //Console.WriteLine("primShape.PathScaleX: " + primShape.PathScaleX.ToString() + " primShape.PathScaleY: " + primShape.PathScaleY.ToString());
-            //Console.WriteLine("primShape.PathSkew: " + primShape.PathSkew.ToString() + " primShape.PathRadiusOffset: " + primShape.PathRadiusOffset.ToString() + " primShape.pathRevolutions: " + primShape.PathRevolutions.ToString());
-
+            
             float skew = primShape.PathSkew * 0.01f;
             float pathScaleX = (float)(200 - primShape.PathScaleX) * 0.01f;
             float pathScaleY = (float)(200 - primShape.PathScaleY) * 0.01f;
-            //Console.WriteLine("PathScaleX: " + pathScaleX.ToString() + " pathScaleY: " + pathScaleY.ToString());
-
             float profileXComp = pathScaleX * (1.0f - Math.Abs(skew));
+
+#if SPAM
+            //Console.WriteLine("primShape.PathScaleX: " + primShape.PathScaleX.ToString() + " primShape.PathScaleY: " + primShape.PathScaleY.ToString());
+            //Console.WriteLine("primShape.PathSkew: " + primShape.PathSkew.ToString() + " primShape.PathRadiusOffset: " + primShape.PathRadiusOffset.ToString() + " primShape.pathRevolutions: " + primShape.PathRevolutions.ToString());
+            Console.WriteLine("PathScaleX: " + pathScaleX.ToString() + " pathScaleY: " + pathScaleY.ToString());
+            Console.WriteLine("skew: " + skew.ToString() + " profileXComp: " + profileXComp.ToString());
+#endif
+
+            
             foreach (Vertex v in m.vertices)
                 if (v != null)
                 {
@@ -1572,20 +1614,22 @@ namespace OpenSim.Region.Physics.Meshing
             extr.pathEnd = primShape.PathEnd;
             extr.skew = skew;
             extr.revolutions = 1.0f + (float)primShape.PathRevolutions * 3.0f / 200.0f;
-
-            //System.Console.WriteLine("primShape.PathBegin: " + primShape.PathBegin.ToString() + " primShape.PathEnd: " + primShape.PathEnd.ToString());
-            //System.Console.WriteLine("extr.pathCutBegin: " + extr.pathCutBegin.ToString() + " extr.pathCutEnd: " + extr.pathCutEnd.ToString());
-            //System.Console.WriteLine("extr.revolutions: " + extr.revolutions.ToString());
-
-            //System.Console.WriteLine("primShape.PathTaperX: " + primShape.PathTaperX.ToString());
-            //System.Console.WriteLine("primShape.PathTaperY: " + primShape.PathTaperY.ToString());
-
             extr.pathTaperX = 0.01f * (float)primShape.PathTaperX;
             extr.pathTaperY = 0.01f * (float)primShape.PathTaperY;
 
             extr.radius = 0.01f * (float)primShape.PathRadiusOffset;
-            //System.Console.WriteLine("primShape.PathRadiusOffset: " + primShape.PathRadiusOffset.ToString());
+
+#if SPAM
+            //System.Console.WriteLine("primShape.PathBegin: " + primShape.PathBegin.ToString() + " primShape.PathEnd: " + primShape.PathEnd.ToString());
+            System.Console.WriteLine("extr.pathCutBegin: " + extr.pathCutBegin.ToString() + " extr.pathCutEnd: " + extr.pathCutEnd.ToString());
+            System.Console.WriteLine("extr.revolutions: " + extr.revolutions.ToString());
+
+            //System.Console.WriteLine("primShape.PathTaperX: " + primShape.PathTaperX.ToString());
+            //System.Console.WriteLine("primShape.PathTaperY: " + primShape.PathTaperY.ToString());
+
             
+            //System.Console.WriteLine("primShape.PathRadiusOffset: " + primShape.PathRadiusOffset.ToString());
+#endif
 
 
 
@@ -1744,7 +1788,7 @@ namespace OpenSim.Region.Physics.Meshing
                 mesh = (Mesh)smesh;
                 CalcNormals(mesh);
             }
-            else if ((primShape.ProfileCurve & (byte)ProfileShape.Square) == (byte)ProfileShape.Square)
+            else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Square)
             {
                 if (primShape.PathCurve == (byte)LLObject.PathCurve.Line)
                 { // its a box
@@ -1755,7 +1799,7 @@ namespace OpenSim.Region.Physics.Meshing
                 { // tube
                     // do a cylinder for now
                     //mesh = CreateCylinderMesh(primName, primShape, size);
-                    mesh = CreateCircularProfileMesh(primName, primShape, size);
+                    mesh = CreateCircularPathMesh(primName, primShape, size);
                     CalcNormals(mesh);
                 }
             }
@@ -1771,7 +1815,7 @@ namespace OpenSim.Region.Physics.Meshing
                 // ProfileCurve seems to combine hole shape and profile curve so we need to only compare against the lower 3 bits
                 else if (primShape.PathCurve == (byte) Extrusion.Curve1 && LLObject.UnpackPathScale(primShape.PathScaleY) <= 0.75f)
                 {  // dahlia's favorite, a torus :)
-                    mesh = CreateCircularProfileMesh(primName, primShape, size);
+                    mesh = CreateCircularPathMesh(primName, primShape, size);
                     CalcNormals(mesh);
                 }
             }
@@ -1793,7 +1837,7 @@ namespace OpenSim.Region.Physics.Meshing
                 else if (primShape.PathCurve == (byte) Extrusion.Curve1)
                 {  // a ring - do a cylinder for now
                     //mesh = CreateCylinderMesh(primName, primShape, size);
-                    mesh = CreateCircularProfileMesh(primName, primShape, size);
+                    mesh = CreateCircularPathMesh(primName, primShape, size);
                     CalcNormals(mesh);
                 }
             }
@@ -1853,6 +1897,34 @@ namespace OpenSim.Region.Physics.Meshing
             return mesh;
         }
 
+        private static void reportPrimParams(string name, PrimitiveBaseShape primShape)
+        {
+#if SPAM
 
+            Console.WriteLine("********************* PrimitiveBaseShape Parameters *******************\n"
+                + "Name.............: " + name.ToString() + "\n"
+                + "HollowShape......: " + primShape.HollowShape.ToString() + "\n"
+                + "PathBegin........: " + primShape.PathBegin.ToString() + "\n"
+                + "PathCurve........: " + primShape.PathCurve.ToString() + "\n"
+                + "PathEnd..........: " + primShape.PathEnd.ToString() + "\n"
+                + "PathRadiusOffset.: " + primShape.PathRadiusOffset.ToString() + "\n"
+                + "PathRevolutions..: " + primShape.PathRevolutions.ToString() + "\n"
+                + "PathScaleX.......: " + primShape.PathScaleX.ToString() + "\n"
+                + "PathScaleY.......: " + primShape.PathScaleY.ToString() + "\n"
+                + "PathShearX.......: " + primShape.PathShearX.ToString() + "\n"
+                + "PathShearY.......: " + primShape.PathShearY.ToString() + "\n"
+                + "PathSkew.........: " + primShape.PathSkew.ToString() + "\n"
+                + "PathTaperX.......: " + primShape.PathTaperX.ToString() + "\n"
+                + "PathTaperY.......: " + primShape.PathTaperY.ToString() + "\n"
+                + "PathTwist........: " + primShape.PathTwist.ToString() + "\n"
+                + "PathTwistBegin...: " + primShape.PathTwistBegin.ToString() + "\n"
+                + "ProfileBegin.....: " + primShape.ProfileBegin.ToString() + "\n"
+                + "ProfileCurve.....: " + primShape.ProfileCurve.ToString() + "\n"
+                + "ProfileEnd.......: " + primShape.ProfileEnd.ToString() + "\n"
+                + "ProfileHollow....: " + primShape.ProfileHollow.ToString() + "\n"
+                + "ProfileShape.....: " + primShape.ProfileShape.ToString() + "\n"
+                );
+#endif
+        }
     }
 }

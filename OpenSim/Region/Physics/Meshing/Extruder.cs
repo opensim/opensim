@@ -24,6 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+//#define SPAM
 
 using OpenSim.Region.Physics.Manager;
 
@@ -246,9 +247,6 @@ namespace OpenSim.Region.Physics.Meshing
 
         public Mesh ExtrudeCircularPath(Mesh m)
         {
-            //startParameter = float.MinValue;
-            //stopParameter = float.MaxValue;
-            // Currently only works for iSteps=1;
             Mesh result = new Mesh();
 
             Quaternion tt = new Quaternion();
@@ -257,7 +255,7 @@ namespace OpenSim.Region.Physics.Meshing
             Mesh newLayer;
             Mesh lastLayer = null;
 
-            int start = 0;
+            //int start = 0;
             int step;
             int steps = 24;
 
@@ -268,38 +266,36 @@ namespace OpenSim.Region.Physics.Meshing
             double percentOfPathMultiplier = 1.0 / steps;
             double angleStepMultiplier = System.Math.PI * 2.0 / steps;
 
-            //System.Console.WriteLine("twistTop: " + twistTop.ToString() + " twistbot: " + twistBot.ToString() + " twisttotal: " + twistTotal.ToString());
-
             float yPathScale = pathScaleY * 0.5f;
-            float skewStart = -skew;
-            float skewOffset = 0.0f;
-            float totalSkew = skew * 2.0f;
+            float pathLength = pathCutEnd - pathCutBegin;
+            float totalSkew = skew * 2.0f * pathLength;
+            float skewStart = (-skew) + pathCutBegin * 2.0f * skew;
 
 
             float startAngle = (float)(System.Math.PI * 2.0 * pathCutBegin * revolutions);
             float endAngle = (float)(System.Math.PI * 2.0 * pathCutEnd * revolutions);
-            float stepSize = (float)0.2617993878; // 2*PI / 24 segments
+            float stepSize = (float)0.2617993878; // 2*PI / 24 segments per revolution
             step = (int)(startAngle / stepSize);
             float angle = startAngle;
 
             float xProfileScale = 1.0f;
             float yProfileScale = 1.0f;
 
-            //System.Console.WriteLine("startAngle: " + startAngle.ToString() + " endAngle: " + endAngle.ToString() + " step: " + step.ToString());
+#if SPAM
+            System.Console.WriteLine("Extruder: twistTop: " + twistTop.ToString() + " twistbot: " + twistBot.ToString() + " twisttotal: " + twistTotal.ToString());
+            System.Console.WriteLine("Extruder: startAngle: " + startAngle.ToString() + " endAngle: " + endAngle.ToString() + " step: " + step.ToString());
+            System.Console.WriteLine("Extruder: taperBotFactorX: " + taperBotFactorX.ToString() + " taperBotFactorY: " + taperBotFactorY.ToString()
+                + " taperTopFactorX: " + taperTopFactorX.ToString() + " taperTopFactorY: " + taperTopFactorY.ToString());
+            System.Console.WriteLine("Extruder: PathScaleX: " + pathScaleX.ToString() + " pathScaleY: " + pathScaleY.ToString());
+#endif
+            
+
             bool done = false;
-
-            //System.Console.WriteLine(" PathScaleX: " + pathScaleX.ToString() + " pathScaleY: " + pathScaleY.ToString());
-
-            //System.Console.WriteLine("taperBotFactorX: " + taperBotFactorX.ToString() + " taperBotFactorY: " + taperBotFactorY.ToString()
-            //    + " taperTopFactorX: " + taperTopFactorX.ToString() + " taperTopFactorY: " + taperTopFactorY.ToString());
-
             do
             {
                 float percentOfPath = 1.0f;
 
                 percentOfPath = (angle - startAngle) / (endAngle - startAngle); // endAngle should always be larger than startAngle
-
-               // System.Console.WriteLine("angle: " + angle.ToString() + " percentOfPath: " + percentOfPath.ToString());
 
                 if (pathTaperX > 0.001f) // can't really compare to 0.0f as the value passed is never exactly zero
                     xProfileScale = 1.0f - percentOfPath * pathTaperX;
@@ -323,7 +319,10 @@ namespace OpenSim.Region.Physics.Meshing
 
                 //radiusScale = 1.0f;
 
-                //System.Console.WriteLine("Extruder: radius: " + radius.ToString() + " radiusScale: " + radiusScale.ToString());
+#if SPAM
+                System.Console.WriteLine("Extruder: angle: " + angle.ToString() + " percentOfPath: " + percentOfPath.ToString()
+                    + " radius: " + radius.ToString() + " radiusScale: " + radiusScale.ToString());
+#endif
 
                 float twist = twistBot + (twistTotal * (float)percentOfPath);
 
@@ -397,8 +396,8 @@ namespace OpenSim.Region.Physics.Meshing
                 }
                 lastLayer = newLayer;
 
-                // calc next angle
 
+                // calc the angle for the next interation of the loop
                 if (angle >= endAngle)
                     done = true;
                 else
@@ -407,6 +406,7 @@ namespace OpenSim.Region.Physics.Meshing
                     if (angle > endAngle)
                         angle = endAngle;
                 }
+
             } while (!done);
 
             // scale the mesh to the desired size
