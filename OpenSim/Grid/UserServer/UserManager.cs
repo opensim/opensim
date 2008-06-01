@@ -466,7 +466,7 @@ namespace OpenSim.Grid.UserServer
                 return CreateUnknownUserErrorResponse();
             }
 
-            return ProfileToXmlRPCResponse(userProfile);
+            return response;
         }
 
 
