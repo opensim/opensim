@@ -50,11 +50,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private OpenSimMain m_app;
+        private OpenSimBase m_app;
         private BaseHttpServer m_httpd;
         private string requiredPassword = String.Empty;
 
-        public void Initialise(OpenSimMain openSim)
+        public void Initialise(OpenSimBase openSim)
         {
             try
             {

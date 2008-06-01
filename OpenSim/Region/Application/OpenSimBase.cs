@@ -50,7 +50,10 @@ using OpenSim.Region.Physics.Manager;
 
 namespace OpenSim
 {
-    public class OpenSimMain : RegionApplicationBase
+    /// <summary>
+    /// Common OpenSim region service code
+    /// </summary>
+    public class OpenSimBase : RegionApplicationBase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -139,7 +142,7 @@ namespace OpenSim
             set { m_moduleLoader = value; }
         }
 
-        public OpenSimMain(IConfigSource configSource)
+        public OpenSimBase(IConfigSource configSource)
             : base()
         {
             IConfig startupConfig = configSource.Configs["Startup"];
@@ -321,36 +324,7 @@ namespace OpenSim
                 m_dumpAssetsToFile = standaloneConfig.GetBoolean("dump_assets_to_file", false);
             }
 
-
             m_networkServersInfo.loadFromConfiguration(m_config);
-
-        }
-
-        private ManualResetEvent WorldHasComeToAnEnd = new ManualResetEvent(false);
-
-        /// <summary>
-        /// Performs initialisation of the scene, such as loading configuration from disk.
-        /// </summary>
-        public override void StartUp()
-        {
-            //
-            // Called from app startup (OpenSim.Application)
-            //
-            m_log.Info("====================================================================");
-            m_log.Info("========================= STARTING OPENSIM =========================");
-            m_log.Info("====================================================================");
-            m_log.InfoFormat("[OPENSIM MAIN]: Running in background {0} mode", m_sandbox ? "sandbox" : "grid");
-
-            InternalStartUp();
-
-            // We are done with startup
-            m_log.InfoFormat("[OPENSIM MAIN]: Startup complete, serving {0} region{1}",
-                             m_clientServers.Count.ToString(), m_clientServers.Count > 1 ? "s" : "");
-
-            WorldHasComeToAnEnd.WaitOne();
-            m_log.Info("[OPENSIM MAIN]: Shutdown complete, goodbye.");
-
-            Environment.Exit(0);
         }
 
         /// <summary>
@@ -692,8 +666,6 @@ namespace OpenSim
 
             m_sceneManager.Close();
 
-            WorldHasComeToAnEnd.Set();
-
             base.Shutdown();
         }
 
@@ -727,3 +699,4 @@ namespace OpenSim
         }
     }
 }
+

@@ -34,7 +34,7 @@ namespace OpenSim
     [TypeExtensionPoint("/OpenSim/Startup")]
     public interface IApplicationPlugin
     {
-        void Initialise(OpenSimMain openSim);
+        void Initialise(OpenSimBase openSim);
         void Close();
     }
 }

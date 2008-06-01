@@ -46,7 +46,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
         #region IApplicationPlugin Members
 
-        public void Initialise(OpenSimMain openSim)
+        public void Initialise(OpenSimBase openSim)
         {
             m_log.Info("[LOADREGIONS]: Load Regions addin being initialised");
 
@@ -84,7 +84,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
         #endregion
 
-        public void LoadRegionFromConfig(OpenSimMain openSim, ulong regionhandle)
+        public void LoadRegionFromConfig(OpenSimBase openSim, ulong regionhandle)
         {
             m_log.Info("[LOADREGIONS]: Load Regions addin being initialised");
 

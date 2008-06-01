@@ -46,7 +46,10 @@ namespace OpenSim
 {
     public delegate void ConsoleCommand(string[] comParams);
 
-    public class OpenSimMainConsole : OpenSimMain, conscmd_callback
+    /// <summary>
+    /// Interactive OpenSim region server
+    /// </summary>
+    public class OpenSim : OpenSimBase, conscmd_callback
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -56,8 +59,7 @@ namespace OpenSim
         private string m_timedScript = "disabled";
         private Timer m_scriptTimer;
 
-        public OpenSimMainConsole(IConfigSource configSource)
-            : base(configSource)
+        public OpenSim(IConfigSource configSource) : base(configSource)
         {
         }
 
@@ -620,7 +622,6 @@ namespace OpenSim
                     {
                         RegionInfo regionInfo = m_sceneManager.GetRegionInfo(presence.RegionHandle);
                         string regionName;
-                        System.Net.EndPoint ep = null;
 
                         if (regionInfo == null)
                         {

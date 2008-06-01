@@ -102,7 +102,7 @@ namespace OpenSimExport
             {
                 // no default config files, so set default values, and save it
                 Console.WriteLine("We didn't find a config!");
-                config.Merge(OpenSimMain.DefaultConfig());
+                config.Merge(OpenSimBase.DefaultConfig());
                 config.Merge(configSource);
             }
 

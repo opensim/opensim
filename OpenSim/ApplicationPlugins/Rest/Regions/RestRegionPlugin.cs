@@ -85,7 +85,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Regions
         /// Note that entries MUST be added to the active configuration files before
         /// the plugin can be enabled.
         /// </remarks>
-        public override void Initialise(OpenSimMain openSim)
+        public override void Initialise(OpenSimBase openSim)
         {
             try
             {

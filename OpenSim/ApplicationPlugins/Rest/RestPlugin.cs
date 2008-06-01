@@ -60,7 +60,7 @@ namespace OpenSim.ApplicationPlugins.Rest
 
         private IConfig        _config;       // Configuration source: Rest Plugins
         private IConfig        _pluginConfig; // Configuration source: Plugin specific
-        private OpenSimMain    _app;          // The 'server'
+        private OpenSimBase    _app;          // The 'server'
         private BaseHttpServer _httpd;        // The server's RPC interface
         private string         _prefix;       // URL prefix below
                                               // which all REST URLs
@@ -114,7 +114,7 @@ namespace OpenSim.ApplicationPlugins.Rest
         /// <summary>
         /// OpenSimMain application
         /// </summary>
-        public OpenSimMain App
+        public OpenSimBase App
         {
             get { return _app; }
         }
@@ -196,7 +196,7 @@ namespace OpenSim.ApplicationPlugins.Rest
         /// Note that entries MUST be added to the active configuration files before
         /// the plugin can be enabled.
         /// </remarks>
-        public virtual void Initialise(OpenSimMain openSim)
+        public virtual void Initialise(OpenSimBase openSim)
         {
             RequestID = "0";
             MsgID = RequestID;

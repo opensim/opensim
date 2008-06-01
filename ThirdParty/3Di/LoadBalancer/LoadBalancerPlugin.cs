@@ -67,13 +67,13 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
         private SceneManager sceneManager;
         private string[] sceneURL;
         private string serializeDir;
-        private OpenSimMain simMain;
+        private OpenSimBase simMain;
         private TcpClient[] tcpClientList;
         private List<IClientNetworkServer> m_clientServers;
 
         #region IApplicationPlugin Members
 
-        public void Initialise(OpenSimMain openSim)
+        public void Initialise(OpenSimBase openSim)
         {
             m_log.Info("[BALANCER] " + "Entering Initialize()");
 

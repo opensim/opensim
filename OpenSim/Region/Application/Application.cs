@@ -82,12 +82,12 @@ namespace OpenSim
 
             if (background)
             {
-                OpenSimMain sim = new OpenSimMain(configSource);
+                OpenSimBase sim = new OpenSimBackground(configSource);
                 sim.StartUp();
             }
             else
             {
-                OpenSimMain sim = new OpenSimMainConsole(configSource);
+                OpenSimBase sim = new OpenSim(configSource);
                 sim.StartUp();
 
                 while (true)
