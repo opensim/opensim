@@ -58,8 +58,6 @@ namespace OpenSim
                 Console.WriteLine(" Environment is unsupported (" + supported + ")\n");
             }
 
-            Console.WriteLine("Starting...\n");
-
             Culture.SetCurrentCulture();
 
             ArgvConfigSource configSource = new ArgvConfigSource(args);

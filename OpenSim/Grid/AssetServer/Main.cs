@@ -60,8 +60,6 @@ namespace OpenSim.Grid.AssetServer
         {
             XmlConfigurator.Configure();
 
-            m_log.Info("Starting...\n");
-
             assetserver = new OpenAsset_Main();
             assetserver.Startup();
 
@@ -174,19 +172,6 @@ namespace OpenSim.Grid.AssetServer
         protected void StoreAsset(AssetBase asset)
         {
             m_assetProvider.CreateAsset(asset);
-        }
-
-        public override void RunCmd(string cmd, string[] cmdparams)
-        {
-            base.RunCmd(cmd, cmdparams);
-
-            switch (cmd)
-            {
-                case "shutdown":
-                    m_console.Close();
-                    Environment.Exit(0);
-                    break;
-            }
         }
     }
 }

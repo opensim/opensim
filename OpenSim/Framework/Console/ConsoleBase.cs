@@ -48,13 +48,6 @@ namespace OpenSim.Framework.Console
         {
             m_componentName = componentname;
             m_cmdParser = cmdparser;
-
-            m_log.Info("[" + m_componentName + "]: Started at " + DateTime.Now.ToString());
-        }
-
-        public void Close()
-        {
-            m_log.Info("[" + m_componentName + "]: Shutdown at " + DateTime.Now.ToString());
         }
 
         /// <summary>

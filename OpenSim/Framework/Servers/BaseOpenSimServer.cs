@@ -74,21 +74,20 @@ namespace OpenSim.Framework.Servers
         /// Performs initialisation of the scene, such as loading configuration from disk.
         /// </summary>
         public virtual void Startup()
-        {                                
+        {   
+            m_log.Info("[STARTUP]: Beginning startup processing");
+            
             EnhanceVersionInformation();
             
             m_log.Info("[STARTUP]: Version " + m_version + "\n");
         }
 
         /// <summary>
-        /// Should be overriden by descendents if they need to perform extra shutdown processing
+        /// Should be overriden and referenced by descendents if they need to perform extra shutdown processing
         /// </summary>
         public virtual void Shutdown()
-        {
-            if (m_console != null)
-            {
-                m_console.Close();
-            }
+        {          
+            m_log.Info("[SHUTDOWN]: Shutdown processing on main thread complete.  Exiting...");
             
             Environment.Exit(0);
         }
