@@ -456,10 +456,11 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         #region Generic Permissions
         protected bool GenericCommunicationPermission(LLUUID user, LLUUID target)
         {
-            bool permission = false;
+            // Setting this to true so that cool stuff can happen until we define what determines Generic Communication Permission
+            bool permission = true;
             string reason = "Only registered users may communicate with another account.";
 
-
+            // Uhh, we need to finish this before we enable it..   because it's blocking all sorts of goodies and features
             if (IsAdministrator(user))
                 permission = true;
 
