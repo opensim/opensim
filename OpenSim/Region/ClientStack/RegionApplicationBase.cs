@@ -73,9 +73,9 @@ namespace OpenSim.Region.ClientStack
             get { return m_sceneManager; }
         }
 
-        public override void StartUp()
+        public override void Startup()
         {
-            base.StartUp();
+            base.Startup();
             
             LLClientView.TerrainManager = new TerrainManager(new SecondLife());
 

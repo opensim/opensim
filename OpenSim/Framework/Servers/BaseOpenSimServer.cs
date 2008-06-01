@@ -73,7 +73,7 @@ namespace OpenSim.Framework.Servers
         /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.
         /// </summary>
-        public virtual void StartUp()
+        public virtual void Startup()
         {                                
             EnhanceVersionInformation();
             

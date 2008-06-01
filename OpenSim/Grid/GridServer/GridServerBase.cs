@@ -74,9 +74,9 @@ namespace OpenSim.Grid.GridServer
             }
         }
 
-        public void Startup()
+        public override void Startup()
         {
-            m_log.Info("[GRID]: Starting...");
+            base.Startup();
 
             Config();
 

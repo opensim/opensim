@@ -79,8 +79,10 @@ namespace OpenSim.Grid.MessagingServer
             }
         }
 
-        public void Startup()
+        public override void Startup()
         {
+            base.Startup();
+            
             Cfg = new MessageServerConfig("MESSAGING SERVER", (Path.Combine(Util.configDir(), "MessagingServer_Config.xml")));
 
             m_log.Info("[REGION]: Starting HTTP process");

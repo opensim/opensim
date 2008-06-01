@@ -39,7 +39,7 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.World.Permissions
 {
-    public class PermissionsModule : IRegionModule, IScenePermissions, ICommandableModule
+    public class PermissionsModule : IRegionModule, ICommandableModule
     {
         protected Scene m_scene;
         private readonly Commander m_commander = new Commander("Permissions");
@@ -137,8 +137,6 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return;
 
             m_bypassPermissions = !myConfig.GetBoolean("serverside_object_permissions", true);
-
-            m_scene.RegisterModuleInterface<IScenePermissions>(this);
 
             //Register functions with Scene External Checks!
             m_scene.ExternalChecks.addBypassPermissions(BypassPermissions); //FULLY IMPLEMENTED

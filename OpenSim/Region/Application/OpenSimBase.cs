@@ -330,9 +330,9 @@ namespace OpenSim
         /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.
         /// </summary>
-        public override void StartUp()
+        public override void Startup()
         {
-            base.StartUp();
+            base.Startup();
             
             m_stats = StatsManager.StartCollectingSimExtraStats();
 

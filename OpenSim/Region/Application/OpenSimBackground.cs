@@ -48,7 +48,7 @@ namespace OpenSim
         /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.
         /// </summary>
-        public override void StartUp()
+        public override void Startup()
         {
             //
             // Called from app startup (OpenSim.Application)
@@ -58,7 +58,7 @@ namespace OpenSim
             m_log.Info("====================================================================");
             m_log.InfoFormat("[OPENSIM MAIN]: Running in background {0} mode", m_sandbox ? "sandbox" : "grid");
 
-            base.StartUp();
+            base.Startup();
 
             // We are done with startup
             m_log.InfoFormat("[OPENSIM MAIN]: Startup complete, serving {0} region{1}",
