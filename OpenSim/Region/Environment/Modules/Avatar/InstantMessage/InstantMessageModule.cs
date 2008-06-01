@@ -24,10 +24,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using libsecondlife;
 using Nini.Config;
+using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
@@ -40,6 +42,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
         #region IRegionModule Members
 
+        private bool gridmode = false;
+
         public void Initialise(Scene scene, IConfigSource config)
         {
             lock (m_scenes)
@@ -47,6 +51,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 if (m_scenes.Count == 0)
                 {
                     //scene.AddXmlRPCHandler("avatar_location_update", processPresenceUpdate);
+                    scene.AddXmlRPCHandler("grid_instant_message", processXMLRPCGridInstantMessage);
+                    ReadConfig(config);
                 }
 
                 if (!m_scenes.Contains(scene))
@@ -55,6 +61,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                     scene.EventManager.OnNewClient += OnNewClient;
                     scene.EventManager.OnGridInstantMessageToIMModule += OnGridInstantMessage;
                 }
+            }
+        }
+
+        private void ReadConfig(IConfigSource config)
+        {
+            IConfig cnf = config.Configs["Startup"];
+            if (cnf != null)
+            {
+                gridmode = cnf.GetBoolean("gridmode", false);
             }
         }
 
@@ -137,9 +152,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 }
             }
 
+            if (gridmode)
+            {
+                // Still here, try send via Grid
+                // TODO
 
-            // Still here, try send via Grid
-            // TODO
+            }
         }
 
         // Trusty OSG1 called method.  This method also gets called from the FriendsModule
@@ -153,6 +171,154 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                              msg.message, msg.dialog, msg.fromGroup, msg.offline, msg.ParentEstateID,
                              new LLVector3(msg.Position.x, msg.Position.y, msg.Position.z), new LLUUID(msg.RegionID),
                              msg.binaryBucket);
+        }
+        protected virtual XmlRpcResponse processXMLRPCGridInstantMessage(XmlRpcRequest request)
+        {
+            // various rational defaults
+            LLUUID fromAgentID = LLUUID.Zero;
+            LLUUID fromAgentSession = LLUUID.Zero;
+            LLUUID toAgentID = LLUUID.Zero;
+            LLUUID imSessionID = LLUUID.Zero;
+            uint timestamp = 0;
+            string fromAgentName = "";
+            string message = "";
+            byte dialog = (byte)0; 
+            bool fromGroup = false;
+            byte offline = (byte)0;
+            uint ParentEstateID;
+            LLVector3 Position = LLVector3.Zero;
+            LLUUID RegionID = LLUUID.Zero ;
+            byte[] binaryBucket = new byte[0];
+
+            float pos_x = 0;
+            float pos_y = 0;
+            float pos_z = 0;
+
+
+
+            Hashtable requestData = (Hashtable)request.Params[0];
+
+            if (requestData.ContainsKey("from_agent_id") && requestData.ContainsKey("from_agent_session") 
+                    && requestData.ContainsKey("to_agent_id") && requestData.ContainsKey("im_session_id") 
+                    && requestData.ContainsKey("timestamp") && requestData.ContainsKey("from_agent_name") 
+                    && requestData.ContainsKey("message") && requestData.ContainsKey("dialog") 
+                    && requestData.ContainsKey("from_group") 
+                    && requestData.ContainsKey("offline") && requestData.ContainsKey("parent_estate_id") 
+                    && requestData.ContainsKey("position_x") && requestData.ContainsKey("position_y") 
+                    && requestData.ContainsKey("position_z") && requestData.ContainsKey("region_id") 
+                    && requestData.ContainsKey("binary_bucket") &&  requestData.ContainsKey("region_handle"))
+            {
+                Helpers.TryParse((string)requestData["from_agent_id"], out fromAgentID);
+                Helpers.TryParse((string)requestData["from_agent_session"], out fromAgentSession);
+                Helpers.TryParse((string)requestData["to_agent_id"], out toAgentID);
+                Helpers.TryParse((string)requestData["im_session_id"], out imSessionID);
+                Helpers.TryParse((string)requestData["region_id"], out RegionID);
+
+                # region timestamp
+                try
+                {
+                    timestamp = (uint)Convert.ToInt32((string)requestData["timestamp"]);
+                }
+                catch (ArgumentException)
+                {
+                }
+                catch (FormatException)
+                {
+                }
+                catch (OverflowException)
+                {
+                }
+                # endregion
+
+                fromAgentName = (string)requestData["from_agent_name"];
+                message = (string)requestData["message"];
+                dialog = (byte)requestData["dialog"];
+                
+                if ((string)requestData["from_group"] == "TRUE")
+                    fromGroup = true;
+
+                offline = (byte)requestData["offline"];
+
+                # region ParentEstateID
+                try
+                {
+                    ParentEstateID = (uint)Convert.ToInt32((string)requestData["parent_estate_id"]);
+                }
+                catch (ArgumentException)
+                {
+                }
+                catch (FormatException)
+                {
+                }
+                catch (OverflowException)
+                {
+                }
+                # endregion
+
+                # region pos_x
+                try
+                {
+                    pos_x = (uint)Convert.ToInt32((string)requestData["position_x"]);
+                }
+                catch (ArgumentException)
+                {
+                }
+                catch (FormatException)
+                {
+                }
+                catch (OverflowException)
+                {
+                }
+                # endregion
+                # region pos_y
+                try
+                {
+                    pos_y = (uint)Convert.ToInt32((string)requestData["position_y"]);
+                }
+                catch (ArgumentException)
+                {
+                }
+                catch (FormatException)
+                {
+                }
+                catch (OverflowException)
+                {
+                }
+                # endregion
+                # region pos_z
+                try
+                {
+                    pos_z = (uint)Convert.ToInt32((string)requestData["position_z"]);
+                }
+                catch (ArgumentException)
+                {
+                }
+                catch (FormatException)
+                {
+                }
+                catch (OverflowException)
+                {
+                }
+                # endregion
+
+                Position = new LLVector3(pos_x, pos_y, pos_z);
+                binaryBucket = (byte[])requestData["binary_bucket"];
+            }
+
+            return new XmlRpcResponse();
+            //(string)
+            //(string)requestData["message"];
+
+        }
+
+        protected virtual void SendGridInstantMessageViaXMLRPC(IClientAPI client, LLUUID fromAgentID,
+                                      LLUUID fromAgentSession, LLUUID toAgentID,
+                                      LLUUID imSessionID, uint timestamp, string fromAgentName,
+                                      string message, byte dialog, bool fromGroup, byte offline,
+                                      uint ParentEstateID, LLVector3 Position, LLUUID RegionID,
+                                      byte[] binaryBucket)
+        {
+
         }
     }
 }
