@@ -27,6 +27,8 @@
 
 using System;
 using System.IO;
+using System.Reflection;
+using log4net;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Statistics;
 
@@ -37,6 +39,8 @@ namespace OpenSim.Framework.Servers
     /// </summary>
     public abstract class BaseOpenSimServer
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         protected ConsoleBase m_console;
         
         /// <summary>
@@ -62,12 +66,18 @@ namespace OpenSim.Framework.Servers
 
         public BaseOpenSimServer()
         {
-            m_startuptime = DateTime.Now;
-            
+            m_startuptime = DateTime.Now;            
             m_version = VersionInfo.Version;
-            
-            // FIXME: This should probably occur in a startup method common for all the servers.
+        }
+        
+        /// <summary>
+        /// Performs initialisation of the scene, such as loading configuration from disk.
+        /// </summary>
+        public virtual void StartUp()
+        {                                
             EnhanceVersionInformation();
+            
+            m_log.Info("[STARTUP]: Version " + m_version + "\n");
         }
 
         /// <summary>

@@ -82,10 +82,6 @@ namespace OpenSim
         /// </summary>
         public override void StartUp()
         {
-            //
-            // Called from app startup (OpenSim.Application)
-            //
-
             m_log.Info("====================================================================");
             m_log.Info("========================= STARTING OPENSIM =========================");
             m_log.Info("====================================================================");
@@ -93,7 +89,8 @@ namespace OpenSim
 
             m_console = CreateConsole();
             MainConsole.Instance = m_console;
-            InternalStartUp();
+            
+            base.StartUp();
 
             //Run Startup Commands
             if (m_startupCommandsFile != String.Empty)

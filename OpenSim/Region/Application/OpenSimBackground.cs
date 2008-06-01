@@ -58,7 +58,7 @@ namespace OpenSim
             m_log.Info("====================================================================");
             m_log.InfoFormat("[OPENSIM MAIN]: Running in background {0} mode", m_sandbox ? "sandbox" : "grid");
 
-            InternalStartUp();
+            base.StartUp();
 
             // We are done with startup
             m_log.InfoFormat("[OPENSIM MAIN]: Startup complete, serving {0} region{1}",

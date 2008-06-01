@@ -73,8 +73,10 @@ namespace OpenSim.Region.ClientStack
             get { return m_sceneManager; }
         }
 
-        public virtual void StartUp()
+        public override void StartUp()
         {
+            base.StartUp();
+            
             LLClientView.TerrainManager = new TerrainManager(new SecondLife());
 
             m_storageManager = CreateStorageManager(m_storageConnectionString);

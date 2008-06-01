@@ -330,16 +330,11 @@ namespace OpenSim
         /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.
         /// </summary>
-        protected void InternalStartUp()
+        public override void StartUp()
         {
-            m_log.Info("[STARTUP]: Version " + m_version + "\n");
-
-            m_stats = StatsManager.StartCollectingSimExtraStats();
-
-            // Do baseclass startup sequence: OpenSim.Region.ClientStack.RegionApplicationBase.StartUp
-            // TerrainManager, StorageManager, HTTP Server
-            // This base will call abstract Initialize
             base.StartUp();
+            
+            m_stats = StatsManager.StartCollectingSimExtraStats();
 
             // StandAlone mode? m_sandbox is determined by !startupConfig.GetBoolean("gridmode", false)
             if (m_sandbox)
