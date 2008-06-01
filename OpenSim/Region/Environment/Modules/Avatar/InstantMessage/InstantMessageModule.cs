@@ -27,7 +27,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Net;
+using System.Threading;
 using libsecondlife;
+using log4net;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
@@ -38,11 +42,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 {
     public class InstantMessageModule : IRegionModule
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private readonly List<Scene> m_scenes = new List<Scene>();
+        private Dictionary<LLUUID, ulong> m_userRegionMap = new Dictionary<LLUUID, ulong>();
 
         #region IRegionModule Members
 
         private bool gridmode = false;
+        
 
         public void Initialise(Scene scene, IConfigSource config)
         {
@@ -150,14 +158,19 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                         return;
                     }
                 }
+                if (gridmode)
+                {
+                    // Still here, try send via Grid
+                    // TODO
+                    if (client != null)
+                    {
+                        if (dialog != (byte)InstantMessageDialog.StartTyping && dialog != (byte)InstantMessageDialog.StopTyping && dialog != (byte)InstantMessageDialog.SessionDrop)
+                            client.SendInstantMessage(toAgentID, fromAgentSession, "Unable to send instant message", fromAgentID, imSessionID, "System", (byte)InstantMessageDialog.BusyAutoResponse, (uint)Util.UnixTimeSinceEpoch());// SendAlertMessage("Unable to send instant message");
+                    }
+                }
             }
 
-            if (gridmode)
-            {
-                // Still here, try send via Grid
-                // TODO
-
-            }
+            
         }
 
         // Trusty OSG1 called method.  This method also gets called from the FriendsModule
@@ -174,6 +187,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         }
         protected virtual XmlRpcResponse processXMLRPCGridInstantMessage(XmlRpcRequest request)
         {
+            bool successful = false;
             // various rational defaults
             LLUUID fromAgentID = LLUUID.Zero;
             LLUUID fromAgentSession = LLUUID.Zero;
@@ -185,7 +199,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             byte dialog = (byte)0; 
             bool fromGroup = false;
             byte offline = (byte)0;
-            uint ParentEstateID;
+            uint ParentEstateID=0;
             LLVector3 Position = LLVector3.Zero;
             LLUUID RegionID = LLUUID.Zero ;
             byte[] binaryBucket = new byte[0];
@@ -303,12 +317,48 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
                 Position = new LLVector3(pos_x, pos_y, pos_z);
                 binaryBucket = (byte[])requestData["binary_bucket"];
+                GridInstantMessage gim = new GridInstantMessage();
+                gim.fromAgentID = fromAgentID.UUID;
+                gim.fromAgentName = fromAgentName;
+                gim.fromAgentSession = fromAgentSession.UUID;
+                gim.fromGroup = fromGroup;
+                gim.imSessionID = imSessionID.UUID;
+                gim.RegionID = RegionID.UUID;
+                gim.timestamp = timestamp;
+                gim.toAgentID = toAgentID.UUID;
+                gim.message = message;
+                gim.dialog = dialog;
+                gim.offline = offline;
+                gim.ParentEstateID = ParentEstateID;
+                gim.Position = new sLLVector3(Position);
+                gim.binaryBucket = binaryBucket;
+
+                
+                foreach (Scene scene in m_scenes)
+                {
+                    if (scene.Entities.ContainsKey(toAgentID) && scene.Entities[toAgentID] is ScenePresence)
+                    {
+                        // Local message
+                        ScenePresence user = (ScenePresence)scene.Entities[toAgentID];
+                        if (!user.IsChildAgent)
+                        {
+                            scene.EventManager.TriggerGridInstantMessage(gim, InstantMessageReceiver.FriendsModule | InstantMessageReceiver.GroupsModule | InstantMessageReceiver.IMModule);
+                        }
+                    }
+                }
+                OnGridInstantMessage(gim);
+                successful = true;
             }
 
-            return new XmlRpcResponse();
-            //(string)
-            //(string)requestData["message"];
+            XmlRpcResponse resp = new XmlRpcResponse();
+            Hashtable respdata = new Hashtable();
+            if (successful)
+                respdata["success"] = "TRUE";
+            else
+                respdata["success"] = "FALSE";
+            resp.Value = respdata;
 
+            return resp;
         }
 
         protected virtual void SendGridInstantMessageViaXMLRPC(IClientAPI client, LLUUID fromAgentID,
@@ -316,9 +366,194 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                                       LLUUID imSessionID, uint timestamp, string fromAgentName,
                                       string message, byte dialog, bool fromGroup, byte offline,
                                       uint ParentEstateID, LLVector3 Position, LLUUID RegionID,
-                                      byte[] binaryBucket)
+                                      byte[] binaryBucket, ulong regionhandle, ulong prevRegionHandle)
         {
+            UserAgentData  upd = null;
+
+            bool lookupAgent = false;
+
+            lock (m_userRegionMap)
+            {
+                if (m_userRegionMap.ContainsKey(toAgentID) && prevRegionHandle == 0)
+                {
+                    upd = new UserAgentData();
+                    upd.AgentOnline = true;
+                    upd.Handle = m_userRegionMap[toAgentID];
+
+                }
+                else
+                {
+                    lookupAgent = true;
+                    
+
+                }
+            }
+
+            if (lookupAgent)
+            {
+                upd = m_scenes[0].CommsManager.UserService.GetAgentByUUID(toAgentID);
+
+                // check if we've tried this before..   
+                if (upd.Handle == prevRegionHandle)
+                {
+                    m_log.Error("[GRID INSTANT MESSAGE]: Unable to deliver an instant message");
+                    if (client != null)
+                        client.SendInstantMessage(toAgentID, fromAgentSession, "Unable to send instant message", fromAgentID, imSessionID, "System", (byte)InstantMessageDialog.MessageFromObject,(uint)Util.UnixTimeSinceEpoch());// SendAlertMessage("Unable to send instant message");
+                    return;
+                }
+            }
+
+            if (upd != null)
+            {
+                if (upd.AgentOnline)
+                {
+                    RegionInfo reginfo = m_scenes[0].CommsManager.GridService.RequestNeighbourInfo(upd.Handle);
+                    if (reginfo != null)
+                    {
+                        GridInstantMessage msg = new GridInstantMessage();
+                        msg.fromAgentID = fromAgentID.UUID;
+                        msg.fromAgentSession = fromAgentSession.UUID;
+                        msg.toAgentID = toAgentID.UUID;
+                        msg.imSessionID = imSessionID.UUID;
+                        msg.timestamp = timestamp;
+                        msg.fromAgentName = fromAgentName;
+                        msg.message = message;
+                        msg.dialog = dialog;
+                        msg.fromGroup = fromGroup;
+                        msg.offline = offline;
+                        msg.ParentEstateID = ParentEstateID;
+                        msg.Position = new sLLVector3(Position);
+                        msg.RegionID = RegionID.UUID;
+                        msg.binaryBucket = binaryBucket;
+
+                        Hashtable msgdata = ConvertGridInstantMessageToXMLRPC(msg);
+                        msgdata["region_handle"] = getLocalRegionHandleFromUUID(RegionID);
+                        bool imresult = doIMSending(reginfo, msgdata);
+                        if (imresult)
+                        {
+                            lock (m_userRegionMap)
+                            {
+                                if (m_userRegionMap.ContainsKey(toAgentID))
+                                {
+                                    m_userRegionMap[toAgentID] = upd.Handle;
+                                }
+                                else
+                                {
+                                    m_userRegionMap.Add(toAgentID, upd.Handle);
+                                }
+                            }
+                            m_log.Info("[GRID INSTANT MESSAGE]: Successfully sent a message");
+                        }
+                        else
+                        {
+                            // try again, but lookup user this time.
+                            SendGridInstantMessageViaXMLRPC(client, fromAgentID,
+                                      fromAgentSession, toAgentID,
+                                      imSessionID, timestamp, fromAgentName,
+                                      message, dialog, fromGroup, offline,
+                                      ParentEstateID, Position, RegionID,
+                                      binaryBucket, regionhandle, upd.Handle);
+                        }
+
+                    }
+                }
+                else
+                {
+                    // send Agent Offline message
+                    if (client != null)
+                        client.SendInstantMessage(toAgentID, fromAgentSession, "Unable to send instant message", fromAgentID, imSessionID, "System", (byte)InstantMessageDialog.MessageFromObject, (uint)Util.UnixTimeSinceEpoch());// SendAlertMessage("Unable to send instant message");
+                }
+            }
+            else
+            {
+                // send Agent Offline message
+                if (client != null)
+                    client.SendInstantMessage(toAgentID, fromAgentSession, "Unable to send instant message", fromAgentID, imSessionID, "System", (byte)InstantMessageDialog.MessageFromObject, (uint)Util.UnixTimeSinceEpoch());// SendAlertMessage("Unable to send instant message");
+            }
 
         }
+
+        private bool doIMSending(RegionInfo reginfo, Hashtable xmlrpcdata)
+        {
+
+            ArrayList SendParams = new ArrayList();
+            SendParams.Add(xmlrpcdata);
+            XmlRpcRequest GridReq = new XmlRpcRequest("grid_instant_message", SendParams);
+            try
+            {
+
+                XmlRpcResponse GridResp = GridReq.Send("http://" + reginfo.ExternalHostName + ":" + reginfo.HttpPort, 3000);
+
+                Hashtable responseData = (Hashtable)GridResp.Value;
+
+                if (responseData.ContainsKey("success"))
+                {
+                    if ((string)responseData["success"] == "TRUE")
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (WebException)
+            {
+                m_log.ErrorFormat("[GRID INSTANT MESSAGE]: Error sending message to {0} the host didn't respond", "http://" + reginfo.ExternalHostName + ":" + reginfo.HttpPort);
+            }
+
+            return false;
+        }
+
+        private ulong getLocalRegionHandleFromUUID(LLUUID regionID)
+        {
+            ulong returnhandle = 0;
+
+            lock (m_scenes)
+            {
+                foreach (Scene sn in m_scenes)
+                {
+                    if (sn.RegionInfo.RegionID == regionID)
+                    {
+                        returnhandle = sn.RegionInfo.RegionHandle;
+                        break;
+                    }
+                }
+            }
+            return returnhandle;
+        }
+
+        private Hashtable ConvertGridInstantMessageToXMLRPC(GridInstantMessage msg)
+        {
+            Hashtable gim = new Hashtable();
+            gim["from_agent_id"] = msg.fromAgentID.ToString();
+            gim["from_agent_session"] = msg.fromAgentSession.ToString();
+            gim["to_agent_id"] = msg.toAgentID.ToString();
+            gim["im_session_id"] = msg.imSessionID.ToString();
+            gim["timestamp"] = msg.timestamp.ToString();
+            gim["from_agent_name"] = msg.fromAgentName;
+            gim["message"] = msg.message;
+            gim["dialog"] = msg.dialog;
+
+            if (msg.fromGroup)
+                gim["from_group"] = "TRUE";
+            else 
+                gim["from_group"] = "FALSE";
+
+            gim["offline"] = msg.offline;
+            gim["parent_estate_id"] = msg.ParentEstateID.ToString();
+            gim["position_x"] = msg.Position.x.ToString();
+            gim["position_y"] = msg.Position.y.ToString();
+            gim["position_z"] = msg.Position.z.ToString();
+            gim["region_id"] = msg.RegionID.ToString();
+            gim["binary_bucket"] = msg.binaryBucket;
+            return gim;
+        }
+
     }
 }

@@ -103,7 +103,20 @@ namespace OpenSim.Framework.Communications
 
             return null;
         }
+        public UserAgentData GetAgentByUUID(LLUUID userId)
+        {
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                UserAgentData agent = plugin.Value.GetAgentByUUID(userId);
 
+                if (agent != null)
+                {
+                    return agent;
+                }
+            }
+
+            return null;
+        }
         // see IUserService
         public UserProfileData GetUserProfile(LLUUID uuid)
         {

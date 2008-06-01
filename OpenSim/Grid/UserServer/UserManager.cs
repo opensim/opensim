@@ -420,6 +420,54 @@ namespace OpenSim.Grid.UserServer
 
             return ProfileToXmlRPCResponse(userProfile);
         }
+        public XmlRpcResponse XmlRPCGetAgentMethodUUID(XmlRpcRequest request)
+        {
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable requestData = (Hashtable)request.Params[0];
+            UserProfileData userProfile;
+            //CFK: this clogs the UserServer log and is not necessary at this time.
+            //CFK: Console.WriteLine("METHOD BY UUID CALLED");
+            if (requestData.Contains("avatar_uuid"))
+            {
+                LLUUID guess = LLUUID.Zero;
+                
+                Helpers.TryParse((string)requestData["avatar_uuid"],out guess);
+                   
+                if (guess == LLUUID.Zero)
+                {
+                    return CreateUnknownUserErrorResponse();
+                }
+
+                userProfile = GetUserProfile(guess);
+
+                if (userProfile == null)
+                {
+                    return CreateUnknownUserErrorResponse();
+                }
+                
+                // no agent???
+                if (userProfile.CurrentAgent == null)
+                {
+                    return CreateUnknownUserErrorResponse();
+                }
+                Hashtable responseData = new Hashtable();
+
+                responseData["handle"]=userProfile.CurrentAgent.Handle.ToString();
+                responseData["session"]=userProfile.CurrentAgent.SessionID.ToString();
+                if (userProfile.CurrentAgent.AgentOnline)
+                    responseData["agent_online"]="TRUE";
+                else 
+                    responseData["agent_online"]="FALSE";
+
+                response.Value = responseData;
+            }
+            else
+            {
+                return CreateUnknownUserErrorResponse();
+            }
+
+            return ProfileToXmlRPCResponse(userProfile);
+        }
 
 
         public XmlRpcResponse XmlRpcResponseXmlRPCUpdateUserProfile(XmlRpcRequest request)

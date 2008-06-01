@@ -49,6 +49,8 @@ namespace OpenSim.Framework.Communications
         /// <returns>A user profile.  Returns null if no user profile is found.</returns>
         UserProfileData GetUserProfile(LLUUID userId);
 
+        UserAgentData GetAgentByUUID(LLUUID userId);
+
         void clearUserAgent(LLUUID avatarID);
         List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID QueryID, string Query);
 

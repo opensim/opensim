@@ -85,6 +85,58 @@ namespace OpenSim.Region.Communications.OGS1
                               (float) Convert.ToDecimal((string) data["home_look_z"]));
 
             return userData;
+        } 
+        
+        /// <summary>
+        /// Get a user agent from the user server
+        /// </summary>
+        /// <param name="avatarID"></param>
+        /// <returns>null if the request fails</returns>
+        public UserAgentData GetAgentByUUID(LLUUID userId)
+        {
+           try
+           {
+               Hashtable param = new Hashtable();
+               param["avatar_uuid"] = userId.ToString();
+               IList parameters = new ArrayList();
+               parameters.Add(param);
+               XmlRpcRequest req = new XmlRpcRequest("get_agent_by_uuid", parameters);
+               XmlRpcResponse resp = req.Send(m_parent.NetworkServersInfo.UserURL, 6000);
+               Hashtable respData = (Hashtable) resp.Value;
+               if (respData.Contains("error_type"))
+               {
+                   m_log.Warn("[GRID]: " +
+                              "Error sent by user server when trying to get agent: (" +
+                              (string) respData["error_type"] +
+                              "): " + (string)respData["error_desc"]);
+                   return null;
+               }
+               LLUUID sessionid = LLUUID.Zero;
+
+               UserAgentData userAgent = new UserAgentData();
+               userAgent.Handle = Convert.ToUInt64((string)respData["handle"]);
+               Helpers.TryParse((string)respData["sessionid"], out sessionid);
+               userAgent.SessionID = sessionid;
+
+               if ((string)respData["agent_online"] == "TRUE")
+               {
+                   userAgent.AgentOnline = true;
+               }
+               else
+               {
+                   userAgent.AgentOnline = false;
+               }
+               
+               return userAgent;
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat(
+                    "[OGS1 USER SERVICES]: Error when trying to fetch agent data by uuid from remote user server: {0}",
+                    e);
+            }
+
+            return null;
         }
 
         public AvatarAppearance ConvertXMLRPCDataToAvatarAppearance(Hashtable data)
@@ -334,6 +386,7 @@ namespace OpenSim.Region.Communications.OGS1
 
             return null;
         }
+
 
         public void clearUserAgent(LLUUID avatarID)
         {
