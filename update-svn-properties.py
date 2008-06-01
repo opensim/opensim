@@ -45,6 +45,7 @@ property_map = {
     ".build" : text,
     ".cfg" : text,
     ".cgi" : text,
+    ".conf" : text,
     ".config" : text,
     ".cs" : text,
     ".csproj" : text,

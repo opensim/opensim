@@ -47,7 +47,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             return CS_code;
         }
 
-
         static string GenCode(string myCode)
         {
             Variable TermList = new Variable();
@@ -63,7 +62,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             }
             myCode.Replace("//yp", "%YPCode");
             
-
             StringWriter myCS_SW = new StringWriter();
             StringReader myCode_SR = new StringReader(" yp_nop_header_nop. \n "+myCode + "\n");
 
@@ -81,7 +79,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                     //Console.WriteLine("-------------------------")
                     YPCompiler.convertFunctionCSharp(FunctionCode);
                     //YPCompiler.convertStringCodesCSharp(VFC);
-
                 }
             }
             YP.seen();
@@ -107,7 +104,5 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                                         RegexOptions.Compiled | RegexOptions.Singleline);
             return finalcode;
         }
-
-
-   }
+    }
 }
