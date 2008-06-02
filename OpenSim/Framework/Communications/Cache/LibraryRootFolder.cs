@@ -208,12 +208,12 @@ namespace OpenSim.Framework.Communications.Cache
             item.Owner = libOwner;
             item.Creator = libOwner;
             item.ID = new LLUUID(config.GetString("inventoryID", ID.ToString()));
-            item.AssetID = new LLUUID(config.GetString("assetID", LLUUID.Random().ToString()));
+            item.AssetID = new LLUUID(config.GetString("assetID", item.ID.ToString()));
             item.Folder = new LLUUID(config.GetString("folderID", ID.ToString()));
-            item.Description = config.GetString("description", String.Empty);
             item.Name = config.GetString("name", String.Empty);
-            item.AssetType = config.GetInt("assetType", 0);
+            item.Description = config.GetString("description", item.Name);
             item.InvType = config.GetInt("inventoryType", 0);
+            item.AssetType = config.GetInt("assetType", item.InvType);
             item.CurrentPermissions = (uint)config.GetLong("currentPermissions", 0x7FFFFFFF);
             item.NextPermissions = (uint)config.GetLong("nextPermissions", 0x7FFFFFFF);
             item.EveryOnePermissions = (uint)config.GetLong("everyonePermissions", 0x7FFFFFFF);
