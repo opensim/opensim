@@ -205,6 +205,8 @@ objectcontact_bounce = 0.2
 ; # Avatar Control
 
 ; PID Controller Settings. These affect the math that causes the avatar to reach the 
+; desired velocity
+; See http://en.wikipedia.org/wiki/PID_controller
 
 av_pid_derivative_linux = 3200.0
 av_pid_proportional_linux = 1400.0
