@@ -302,12 +302,18 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
            args.redirectGridY = m_scene.RegionInfo.EstateSettings.redirectGridY;
            args.regionFlags = (uint)(m_scene.RegionInfo.EstateSettings.regionFlags);
            args.simAccess = (byte)m_scene.RegionInfo.EstateSettings.simAccess;
-           args.sunHour = m_scene.RegionInfo.EstateSettings.sunHour;
+
+           if (m_scene.RegionInfo.EstateSettings.useFixedSun)
+               args.sunHour = m_scene.RegionInfo.EstateSettings.sunHour;
+           else
+               args.sunHour = m_scene.EventManager.GetSunLindenHour();
+           
            args.terrainLowerLimit = m_scene.RegionInfo.EstateSettings.terrainLowerLimit;
            args.terrainRaiseLimit = m_scene.RegionInfo.EstateSettings.terrainRaiseLimit;
            args.useEstateSun = !m_scene.RegionInfo.EstateSettings.useFixedSun;
            args.waterHeight = m_scene.RegionInfo.EstateSettings.waterHeight;
            args.simName = m_scene.RegionInfo.RegionName;
+           
            
            remote_client.sendRegionInfoToEstateMenu(args);
         }

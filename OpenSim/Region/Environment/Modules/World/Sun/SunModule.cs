@@ -230,6 +230,7 @@ namespace OpenSim.Region.Environment.Modules
                     scene.EventManager.OnAvatarEnteringNewParcel += AvatarEnteringParcel;
                     scene.EventManager.OnClientClosed += ClientLoggedOut;
                     scene.EventManager.OnEstateToolsTimeUpdate += EstateToolsTimeUpdate;
+                    scene.EventManager.OnGetSunLindenHour += GetLindenEstateHourFromCurrentTime;
 
                     ready = true;
 
@@ -256,6 +257,7 @@ namespace OpenSim.Region.Environment.Modules
             m_scene.EventManager.OnAvatarEnteringNewParcel -= AvatarEnteringParcel;
             m_scene.EventManager.OnClientClosed -= ClientLoggedOut;
             m_scene.EventManager.OnEstateToolsTimeUpdate -= EstateToolsTimeUpdate;
+            m_scene.EventManager.OnGetSunLindenHour -= GetLindenEstateHourFromCurrentTime;
         }
 
         public string Name
@@ -300,7 +302,7 @@ namespace OpenSim.Region.Environment.Modules
 
             // set estate settings for region access to sun position
             m_scene.RegionInfo.EstateSettings.sunPosition = Position;
-            m_scene.RegionInfo.EstateSettings.sunHour = GetLindenEstateHourFromCurrentTime();
+            //m_scene.RegionInfo.EstateSettings.sunHour = GetLindenEstateHourFromCurrentTime();
         }
         public void ForceSunUpdateToAllClients()
         {

@@ -228,6 +228,9 @@ namespace OpenSim.Region.Environment.Scenes
         public delegate void ChatBroadcastEvent(Object sender, ChatFromViewerArgs chat);
         public event ChatBroadcastEvent OnChatBroadcast;
 
+        public delegate float SunLindenHour();
+        public event SunLindenHour OnGetSunLindenHour;
+
         public class MoneyTransferArgs : EventArgs
         {
             public LLUUID sender;
@@ -349,6 +352,8 @@ namespace OpenSim.Region.Environment.Scenes
         private ObjectBeingRemovedFromScene handlerObjectBeingRemovedFromScene = null;
         private ScriptTimerEvent handlerScriptTimerEvent = null;
         private EstateToolsTimeUpdate handlerEstateToolsTimeUpdate = null;
+
+        private SunLindenHour handlerSunGetLindenHour = null;
 
         public void TriggerOnScriptChangedEvent(uint localID, uint change)
         {
@@ -809,6 +814,16 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 handlerEstateToolsTimeUpdate(regionHandle, FixedTime, useEstateTime, LindenHour);
             }
+        }
+
+        public float GetSunLindenHour()
+        {
+            handlerSunGetLindenHour = OnGetSunLindenHour;
+            if (handlerSunGetLindenHour != null)
+            {
+                return handlerSunGetLindenHour();
+            }
+            return 6;
         }
     }
 }
