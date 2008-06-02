@@ -1,8 +1,26 @@
 [Startup]
+
+; Set this to true if you are connecting your OpenSimulator region serer to a grid
+; Set this to false if you are running OpenSimulator in standalone mode
 gridmode = false
 
-; Determines where the region XML files are stored.
+; ##
+; ## REGIONS
+; ##
+
+; Determine where OpenSimulator looks for the files which tell it which regions to server
+; Defaults to "filesystem" if this setting isn't present
+region_info_source = "filesystem"
+; region_info_source = "web"
+
+; Determines where the region XML files are stored if you are loading these from the filesystem.  
+; Defaults to bin/Regions in your OpenSimulator installation directory
 ; regionload_regionsdir="C:\somewhere\xmlfiles\"
+
+; Determines the page from which regions xml is retrieved if you are loading these from the web
+; The XML here has the same format as it does on the filesystem (including the <Root> tag), 
+; except that everything is also enclosed in a <Regions> tag.
+; regionload_webserver_url = "http://example.com/regions.xml";
 
 ; ##
 ; ## STORAGE
@@ -80,6 +98,7 @@ physical_prim = true
 ; ##
 ; ## ScriptEngine
 ; ##
+
 ; These are region modules loaded into each region to provide script support
 ; Scripts may be everything from LSL or C# scripts put in prims to whole game systems that controls the whole grid.
 ; You can load multiple modules by separating them with a coma.
@@ -124,10 +143,10 @@ userDatabase_plugin = "OpenSim.Data.SQLite.dll"
 ; User Source NHibernate Example (DIALECT;DRIVER;CONNECTSTRING)
 ; user_source = "SQLiteDialect;SqliteClientDriver;URI=file:User.db,version=3"
 
-
 default_location_x = 1000
 default_location_y = 1000
 dump_assets_to_file = false
+
 
 [Network]
 http_listener_port = 9000
@@ -148,14 +167,18 @@ asset_server_url = "http://127.0.0.1:8003"
 
 inventory_server_url = "http://127.0.0.1:8004"
 
+
 [Chat]
 whisper_distance = 10
 say_distance = 30
 shout_distance = 100
 
+
 [ODEPhysicsSettings]
 
-;# World Settings
+;## 
+;## World Settings
+;##
 
 ;Gravity.  Feel like falling up?  change world_gravityz to 9.8 instead of -9.8.  m/s
 world_gravityx = 0
@@ -176,7 +199,9 @@ meters_in_small_space = 29.9
 small_hashspace_size_low = -4
 small_hashspace_size_high = 66
 
-; # Contact properties. (the stuff that happens when things come in contact with each other)
+; ##
+; ## Contact properties. (the stuff that happens when things come in contact with each other)
+; ##
 
 ; surface layer around geometries other geometries can sink into before generating a contact
 world_contact_surface_layer = 0.001
@@ -202,7 +227,9 @@ m_avatarobjectcontact_bounce = 0.1
 objectcontact_friction = 250.0
 objectcontact_bounce = 0.2
 
-; # Avatar Control
+; ##
+; ## Avatar Control
+; ##
 
 ; PID Controller Settings. These affect the math that causes the avatar to reach the 
 ; desired velocity
@@ -213,7 +240,6 @@ av_pid_proportional_linux = 1400.0
 
 av_pid_derivative_win = 2200.0
 av_pid_proportional_win = 900.0;
-
 
 ;girth of the avatar.  Adds radius to the height also
 av_capsule_radius = 0.37
@@ -239,7 +265,10 @@ av_movement_divisor_walk = 1.3
 ; speed of movement with Always Run on
 av_movement_divisor_run = 0.8
 
-; # Object options
+; ##
+; ## Object options
+; ##
+
 ; used in the mass calculation.
 geometry_default_density = 10.000006836
 
@@ -263,7 +292,9 @@ geom_updates_before_throttled_update = 15
 body_motor_joint_maxforce_tensor_linux = 2
 body_motor_joint_maxforce_tensor_win = 5
 
-; # Sculpted Prim settings
+; ##
+; ## Sculpted Prim settings
+; ##
 
 ; Do we want to mesh sculpted prim to collide like they look?
 mesh_sculpted_prim = true
@@ -274,14 +305,17 @@ mesh_lod = 32
 ; number^2 physical level of detail of the sculpt texture.  16x16 - 256 verticies
 mesh_physical_lod = 16
 
+
 [RemoteAdmin]
 enabled = false
 access_password = unknown
+
 
 [RestPlugins]
 enabled = false
 password = unknown
 prefix = /admin
+
 
 [RestRegionPlugin]
 enabled = false
@@ -315,6 +349,7 @@ account_management_server = https://www.bhr.vivox.com/api2
 ; Global SIP Server for conference calls
 sip_domain = testserver.com
 
+
 [AsteriskVoice]
 ; PLEASE NOTE that we don't have voice support in OpenSim quite yet - these configuration options are stubs
 enabled = false
@@ -330,6 +365,7 @@ asterisk_password = bah-humbug
 asterisk_timeout = 3000
 ; salt for asterisk nonces
 asterisk_salt = paluempalum
+
 
 ; Uncomment the following to control the progression of daytime
 ; in the Sim.  The defaults are what is shown below
@@ -471,6 +507,7 @@ snapshot_cache_directory = "DataSnapshot"
 ; about the existence of this sim.
 data_services="http://metaverseink.com/cgi-bin/register.py"
 
+
 [Economy]
 ; These economy values get used in the BetaGridLikeMoneyModule.  - This module is for demonstration only -
 ; In grid mode, use this currency XMLRPC server.  Leave blank for normal functionality
@@ -527,6 +564,7 @@ EnergyEfficiency = 1
 PriceObjectRent = 1
 PriceObjectScaleFactor = 10
 PriceParcelRent = 1
+
 
 [SVN]
 Enabled = false
