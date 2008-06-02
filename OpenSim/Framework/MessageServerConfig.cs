@@ -63,7 +63,7 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("default_user_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default User Server URI",
-                                                "http://127.0.0.1:" + DefaultHttpPort.ToString() + "/", false);
+                                                "http://127.0.0.1:8002" + "/", false);
             configMember.addConfigurationOption("user_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to send to user server", "null", false);
             configMember.addConfigurationOption("user_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
@@ -71,7 +71,7 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("default_grid_server",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY,
                                                 "Default Grid Server URI",
-                                                "http://127.0.0.1:8002/", false);
+                                                "http://127.0.0.1:8001/", false);
             configMember.addConfigurationOption("grid_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to send to grid server", "null", false);
             configMember.addConfigurationOption("grid_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
