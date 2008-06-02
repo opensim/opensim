@@ -1541,7 +1541,7 @@ namespace OpenSim.Region.Physics.Meshing
                 }
                 else
                 {
-                    holeHull = BuildHoleHull(primShape, primShape.ProfileShape, primShape.HollowShape, hollowFactor);
+                    holeHull = BuildHoleHull(primShape, primShape.ProfileShape, hollowShape, hollowFactor);
                 }
 
                 if (holeHull != null)
@@ -1900,6 +1900,8 @@ namespace OpenSim.Region.Physics.Meshing
         private static void reportPrimParams(string name, PrimitiveBaseShape primShape)
         {
 #if SPAM
+            float pathShearX = primShape.PathShearX < 128 ? (float)primShape.PathShearX * 0.01f : (float)(primShape.PathShearX - 256) * 0.01f;
+            float pathShearY = primShape.PathShearY < 128 ? (float)primShape.PathShearY * 0.01f : (float)(primShape.PathShearY - 256) * 0.01f;
 
             Console.WriteLine("********************* PrimitiveBaseShape Parameters *******************\n"
                 + "Name.............: " + name.ToString() + "\n"
@@ -1911,8 +1913,8 @@ namespace OpenSim.Region.Physics.Meshing
                 + "PathRevolutions..: " + primShape.PathRevolutions.ToString() + "\n"
                 + "PathScaleX.......: " + primShape.PathScaleX.ToString() + "\n"
                 + "PathScaleY.......: " + primShape.PathScaleY.ToString() + "\n"
-                + "PathShearX.......: " + primShape.PathShearX.ToString() + "\n"
-                + "PathShearY.......: " + primShape.PathShearY.ToString() + "\n"
+                + "PathShearX.......: " + primShape.PathShearX.ToString() + " (" + pathShearX.ToString() + ")\n"
+                + "PathShearY.......: " + primShape.PathShearY.ToString() + " (" + pathShearY.ToString() + ")\n"
                 + "PathSkew.........: " + primShape.PathSkew.ToString() + "\n"
                 + "PathTaperX.......: " + primShape.PathTaperX.ToString() + "\n"
                 + "PathTaperY.......: " + primShape.PathTaperY.ToString() + "\n"

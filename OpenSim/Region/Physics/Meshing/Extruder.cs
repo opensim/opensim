@@ -260,8 +260,11 @@ namespace OpenSim.Region.Physics.Meshing
             int steps = 24;
 
             float twistTotal = twistTop - twistBot;
-            if (System.Math.Abs(twistTotal) > (float)System.Math.PI * 1.5) steps *= 2;
-            if (System.Math.Abs(twistTotal) > (float)System.Math.PI * 3.0) steps *= 2;
+            // if the profile has a lot of twist, add more layers otherwise the layers may overlap
+            // and the resulting mesh may be quite inaccurate. This method is arbitrary and doesnt 
+            // accurately match the viewer
+            if (System.Math.Abs(twistTotal) > (float)System.Math.PI * 1.5f) steps *= 2;
+            if (System.Math.Abs(twistTotal) > (float)System.Math.PI * 3.0f) steps *= 2;
 
             double percentOfPathMultiplier = 1.0 / steps;
             double angleStepMultiplier = System.Math.PI * 2.0 / steps;
@@ -271,10 +274,10 @@ namespace OpenSim.Region.Physics.Meshing
             float totalSkew = skew * 2.0f * pathLength;
             float skewStart = (-skew) + pathCutBegin * 2.0f * skew;
 
-
             float startAngle = (float)(System.Math.PI * 2.0 * pathCutBegin * revolutions);
             float endAngle = (float)(System.Math.PI * 2.0 * pathCutEnd * revolutions);
             float stepSize = (float)0.2617993878; // 2*PI / 24 segments per revolution
+
             step = (int)(startAngle / stepSize);
             float angle = startAngle;
 
@@ -291,11 +294,11 @@ namespace OpenSim.Region.Physics.Meshing
             
 
             bool done = false;
-            do
+            do // loop through the length of the path and add the layers
             {
-                float percentOfPath = 1.0f;
+                newLayer = m.Clone();
 
-                percentOfPath = (angle - startAngle) / (endAngle - startAngle); // endAngle should always be larger than startAngle
+                float percentOfPath = (angle - startAngle) / (endAngle - startAngle); // endAngle should always be larger than startAngle
 
                 if (pathTaperX > 0.001f) // can't really compare to 0.0f as the value passed is never exactly zero
                     xProfileScale = 1.0f - percentOfPath * pathTaperX;
@@ -309,6 +312,20 @@ namespace OpenSim.Region.Physics.Meshing
                     yProfileScale = 1.0f + (1.0f - percentOfPath) * pathTaperY;
                 else yProfileScale = 1.0f;
 
+#if SPAM
+                //System.Console.WriteLine("xProfileScale: " + xProfileScale.ToString() + " yProfileScale: " + yProfileScale.ToString());
+#endif
+                Vertex vTemp = new Vertex(0.0f, 0.0f, 0.0f);
+
+                // apply the taper to the profile before any rotations
+                if (xProfileScale != 1.0f || yProfileScale != 1.0f)
+                    foreach (Vertex v in newLayer.vertices)
+                        if ( v != null )
+                        {
+                            v.X *= xProfileScale;
+                            v.Y *= yProfileScale;
+                        }
+
                 float radiusScale;
 
                 if (radius > 0.001f)
@@ -317,11 +334,11 @@ namespace OpenSim.Region.Physics.Meshing
                     radiusScale = 1.0f + radius * (1.0f - percentOfPath);
                 else radiusScale = 1.0f;
 
-                //radiusScale = 1.0f;
 
 #if SPAM
                 System.Console.WriteLine("Extruder: angle: " + angle.ToString() + " percentOfPath: " + percentOfPath.ToString()
-                    + " radius: " + radius.ToString() + " radiusScale: " + radiusScale.ToString());
+                    + " radius: " + radius.ToString() + " radiusScale: " + radiusScale.ToString()
+                    + " xProfileScale: " + xProfileScale.ToString() + " yProfileScale: " + yProfileScale.ToString());
 #endif
 
                 float twist = twistBot + (twistTotal * (float)percentOfPath);
@@ -330,10 +347,7 @@ namespace OpenSim.Region.Physics.Meshing
                 float yOffset = (float)(System.Math.Cos(angle) * (0.5f - yPathScale)) * radiusScale;
                 float xOffset = 0.5f * (skewStart + totalSkew * (float)percentOfPath);
 
-                newLayer = m.Clone();
-
-                Vertex vTemp = new Vertex(0.0f, 0.0f, 0.0f);
-
+                // next apply twist rotation to the profile
                 if (twistTotal != 0.0f || twistBot != 0.0f)
                 {
                     Quaternion profileRot = new Quaternion(new Vertex(0.0f, 0.0f, -1.0f), twist);
@@ -349,19 +363,22 @@ namespace OpenSim.Region.Physics.Meshing
                     }
                 }
 
+                // now orient the rotation of the profile relative to it's position on the path
                 Quaternion layerRot = new Quaternion(new Vertex(-1.0f, 0.0f, 0.0f), (float)angle);
                 foreach (Vertex v in newLayer.vertices)
                 {
                     if (v != null)
                     {
                         vTemp = v * layerRot;
-                        v.X = xProfileScale * vTemp.X + xOffset;
-                        v.Y = yProfileScale * vTemp.Y + yOffset;
+                        //v.X = xProfileScale * vTemp.X + xOffset;
+                        //v.Y = yProfileScale * vTemp.Y + yOffset;
+                        v.X = vTemp.X + xOffset;
+                        v.Y = vTemp.Y + yOffset;
                         v.Z = vTemp.Z + zOffset;
                     }
                 }
 
-                if (angle == startAngle) // last layer, invert normals
+                if (angle == startAngle) // the first layer, invert normals
                     foreach (Triangle t in newLayer.triangles)
                     {
                         t.invertNormal();
@@ -407,7 +424,7 @@ namespace OpenSim.Region.Physics.Meshing
                         angle = endAngle;
                 }
 
-            } while (!done);
+            } while (!done); // loop until all the layers in the path are completed
 
             // scale the mesh to the desired size
             float xScale = size.X;
