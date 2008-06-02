@@ -106,9 +106,9 @@ namespace OpenSim.Framework.Servers
 
                     if (m_stats != null)
                         Notice("show stats - statistical information for this server");
-
-                    Notice("show version - show server version.");
+                    
                     Notice("show uptime - show server startup time and uptime.");
+                    Notice("show version - show server version.");
                     Notice("shutdown - shutdown the server.\n");
                    
                     break;

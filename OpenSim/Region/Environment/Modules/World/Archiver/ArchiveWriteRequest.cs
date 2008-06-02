@@ -77,8 +77,17 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
                     foreach (SceneObjectPart part in sceneObject.GetParts())
                     {
-                        LLUUID texture = new LLUUID(part.Shape.TextureEntry, 0);
-                        textureUuids[texture] = 1;
+                        // XXX: Not a great way to iterate through face textures, but there's no
+                        // other way to tell how many faces there actually are
+                        //int i = 0;                        
+                        foreach (LLObject.TextureEntryFace texture in part.Shape.Textures.FaceTextures)                       
+                        {                           
+                            if (texture != null)
+                            {
+                                //m_log.DebugFormat("[ARCHIVER]: Got face {0}", i++);                                
+                                textureUuids[texture.TextureID] = 1;
+                            }
+                        }
                     }
                 }
             }

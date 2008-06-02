@@ -1288,6 +1288,7 @@ namespace OpenSim.Data.MySQL
             row["ProfileHollow"] = s.ProfileHollow;
             row["Texture"] = s.TextureEntry;
             row["ExtraParams"] = s.ExtraParams;
+            
             try
             {
                 row["State"] = s.State;
