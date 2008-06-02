@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using libsecondlife;
@@ -45,6 +46,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
         private Dictionary<LLUUID, List<FriendListItem>> FriendLists = new Dictionary<LLUUID, List<FriendListItem>>();
         private Dictionary<LLUUID, LLUUID> m_pendingFriendRequests = new Dictionary<LLUUID, LLUUID>();
         private Dictionary<LLUUID, ulong> m_rootAgents = new Dictionary<LLUUID, ulong>();
+        private Dictionary<LLUUID, List<StoredFriendListUpdate>> StoredFriendListUpdates = new Dictionary<LLUUID, List<StoredFriendListUpdate>>();
+
         private List<Scene> m_scene = new List<Scene>();
 
         #region IRegionModule Members
@@ -91,6 +94,73 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
         public XmlRpcResponse processPresenceUpdate(XmlRpcRequest req)
         {
             m_log.Info("[FRIENDS]: Got Notification about a user! OMG");
+            Hashtable requestData = (Hashtable)req.Params[0];
+            if (requestData.ContainsKey("agent_id") && requestData.ContainsKey("notify_id") && requestData.ContainsKey("status"))
+            {
+                LLUUID notifyAgentId = LLUUID.Zero;
+                LLUUID notifyAboutAgentId = LLUUID.Zero;
+                bool notifyOnlineStatus = false;
+
+                if ((string)requestData["status"] == "TRUE")
+                    notifyOnlineStatus = true;
+
+                Helpers.TryParse((string)requestData["notify_id"], out notifyAgentId);
+
+                Helpers.TryParse((string)requestData["agent_id"], out notifyAboutAgentId);
+
+                ScenePresence avatar = GetPresenceFromAgentID(notifyAgentId);
+                if (avatar != null)
+                {
+                    if (avatar.IsChildAgent)
+                    {
+                        StoredFriendListUpdate sob = new StoredFriendListUpdate();
+                        sob.OnlineYN = notifyOnlineStatus;
+                        sob.storedAbout = notifyAboutAgentId;
+                        sob.storedFor = notifyAgentId;
+                        lock (StoredFriendListUpdates)
+                        {
+                            if (StoredFriendListUpdates.ContainsKey(notifyAgentId))
+                            {
+                                StoredFriendListUpdates[notifyAgentId].Add(sob);
+                            }
+                            else
+                            {
+                                List<StoredFriendListUpdate> newitem = new List<StoredFriendListUpdate>();
+                                newitem.Add(sob);
+                                StoredFriendListUpdates.Add(notifyAgentId, newitem);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (notifyOnlineStatus)
+                            doFriendListUpdateOnline(notifyAboutAgentId);
+                        else
+                            ClientLoggedOut(notifyAboutAgentId);
+                    }
+                }
+                else
+                {
+                    StoredFriendListUpdate sob = new StoredFriendListUpdate();
+                    sob.OnlineYN = notifyOnlineStatus;
+                    sob.storedAbout = notifyAboutAgentId;
+                    sob.storedFor = notifyAgentId;
+                    lock (StoredFriendListUpdates)
+                    {
+                        if (StoredFriendListUpdates.ContainsKey(notifyAgentId))
+                        {
+                            StoredFriendListUpdates[notifyAgentId].Add(sob);
+                        }
+                        else
+                        {
+                            List<StoredFriendListUpdate> newitem = new List<StoredFriendListUpdate>();
+                            newitem.Add(sob);
+                            StoredFriendListUpdates.Add(notifyAgentId, newitem);
+                        }
+                    }
+                }
+
+            }
             return new XmlRpcResponse();
         }
 
@@ -110,24 +180,30 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
             client.OnDenyFriendRequest += OnDenyFriendRequest;
             client.OnTerminateFriendship += OnTerminateFriendship;
 
+            doFriendListUpdateOnline(client.AgentId);
+  
+        }
+
+        private void doFriendListUpdateOnline(LLUUID AgentId)
+        {
             List<FriendListItem> fl = new List<FriendListItem>();
 
             //bool addFLback = false;
 
             lock (FriendLists)
             {
-                if (FriendLists.ContainsKey(client.AgentId))
+                if (FriendLists.ContainsKey(AgentId))
                 {
-                    fl = FriendLists[client.AgentId];
+                    fl = FriendLists[AgentId];
                 }
                 else
                 {
-                    fl = m_scene[0].GetFriendList(client.AgentId);
+                    fl = m_scene[0].GetFriendList(AgentId);
 
                     //lock (FriendLists)
                     //{
-                    if (!FriendLists.ContainsKey(client.AgentId))
-                        FriendLists.Add(client.AgentId, fl);
+                    if (!FriendLists.ContainsKey(AgentId))
+                        FriendLists.Add(AgentId, fl);
                     //}
                 }
             }
@@ -161,11 +237,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                     {
                         foreach (FriendListItem fli in usrfl)
                         {
-                            if (fli.Friend == client.AgentId)
+                            if (fli.Friend == AgentId)
                             {
                                 fli.onlinestatus = true;
                                 LLUUID[] Agents = new LLUUID[1];
-                                Agents[0] = client.AgentId;
+                                Agents[0] = AgentId;
                                 av.ControllingClient.SendAgentOnline(Agents);
 
                             }
@@ -176,8 +252,11 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
             if (UpdateUsers.Count > 0)
             {
-
-                client.SendAgentOnline(UpdateUsers.ToArray());
+                ScenePresence avatar = GetPresenceFromAgentID(AgentId);
+                if (avatar != null)
+                {
+                    avatar.ControllingClient.SendAgentOnline(UpdateUsers.ToArray());
+                }
 
             }
         }
@@ -302,6 +381,27 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 {
                     m_rootAgents.Add(avatar.UUID, avatar.RegionHandle);
                     m_log.Info("[FRIEND]: Claiming " + avatar.Firstname + " " + avatar.Lastname + " in region:" + avatar.RegionHandle + ".");
+                    
+                    List<StoredFriendListUpdate> updateme = new List<StoredFriendListUpdate>();
+                    lock (StoredFriendListUpdates)
+                    {
+                        if (StoredFriendListUpdates.ContainsKey(avatar.UUID))
+                        {
+                            updateme = StoredFriendListUpdates[avatar.UUID];
+                            StoredFriendListUpdates.Remove(avatar.UUID);
+                        }
+                    }
+
+                    if (updateme.Count > 0)
+                    {
+                        foreach (StoredFriendListUpdate u in updateme)
+                        {
+                            if (u.OnlineYN)
+                                doFriendListUpdateOnline(u.storedAbout);
+                            else
+                                ClientLoggedOut(u.storedAbout);
+                        }
+                    }
                 }
             }
             //m_log.Info("[FRIEND]: " + avatar.Name + " status:" + (!avatar.IsChildAgent).ToString());
@@ -441,8 +541,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
                 SceneAgentIn.TriggerGridInstantMessage(msg, InstantMessageReceiver.IMModule);
                 SceneAgentIn.StoreAddFriendship(m_pendingFriendRequests[transactionID], agentID, (uint) 1);
-                m_pendingFriendRequests.Remove(transactionID);
+                
 
+                //LLUUID[] Agents = new LLUUID[1];
+                //Agents[0] = msg.toAgentID;
+                //av.ControllingClient.SendAgentOnline(Agents);
+
+                m_pendingFriendRequests.Remove(transactionID);
                 // TODO: Inform agent that the friend is online
             }
         }
@@ -497,5 +602,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
         }
 
         #endregion
+    }
+
+    public struct StoredFriendListUpdate
+    {
+        public LLUUID storedFor;
+        public LLUUID storedAbout;
+        public bool OnlineYN;
     }
 }

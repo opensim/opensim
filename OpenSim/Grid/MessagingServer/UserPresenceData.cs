@@ -40,6 +40,7 @@ namespace OpenSim.Grid.MessagingServer
         public string httpURI = String.Empty;
         public List<FriendListItem> friendData = new List<FriendListItem> ();
         public List<LLUUID> subscriptionData = new List<LLUUID>();
+        public bool OnlineYN = false;
 
         public UserPresenceData()
         {

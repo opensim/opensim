@@ -49,6 +49,10 @@ namespace OpenSim.Framework
         public bool HttpSSL = DefaultHttpSSL;
         public string InventoryUrl = String.Empty;
 
+        public UserConfig()
+        {
+            // weird, but UserManagerBase needs this.
+        }
         public UserConfig(string description, string filename)
         {
             configMember =

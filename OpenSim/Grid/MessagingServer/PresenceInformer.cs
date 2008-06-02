@@ -27,16 +27,31 @@
 
 using System.Collections;
 using System.Reflection;
+using System.Net;
 using log4net;
 using Nwc.XmlRpc;
 using OpenSim.Data;
 
 namespace OpenSim.Grid.MessagingServer
 {
+    public delegate RegionProfileData GetRegionData(ulong region_handle);
+    public delegate void Done(PresenceInformer obj);
+   
+
     public class PresenceInformer
     {
+        public event GetRegionData OnGetRegionData;
+        public event Done OnDone;
+        
+        private GetRegionData handlerGetRegionData = null;
+        private Done handlerDone = null;
+
         public UserPresenceData presence1 = null;
         public UserPresenceData presence2 = null;
+        public string gridserverurl, gridserversendkey, gridserverrecvkey;
+        public bool lookupRegion = true;
+        //public methodGroup
+
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public PresenceInformer()
@@ -60,18 +75,68 @@ namespace OpenSim.Grid.MessagingServer
         public void SendRegionPresenceUpdate(UserPresenceData TalkingAbout, UserPresenceData UserToUpdate)
         {
             // TODO: Fill in pertenant Presence Data from 'TalkingAbout'
+            RegionProfileData whichRegion = new RegionProfileData();
+            if (lookupRegion)
+            {
+                handlerGetRegionData = OnGetRegionData;
+                if (handlerGetRegionData != null)
+                {
+                    whichRegion = handlerGetRegionData(UserToUpdate.regionData.regionHandle);
+                }
+                //RegionProfileData rp = RegionProfileData.RequestSimProfileData(UserToUpdate.regionData.regionHandle, gridserverurl, gridserversendkey, gridserverrecvkey);
 
-            RegionProfileData whichRegion = UserToUpdate.regionData;
+                //whichRegion = rp;
+            }
+            else
+            {
+                whichRegion = UserToUpdate.regionData;
+            }
             //whichRegion.httpServerURI
 
-            Hashtable PresenceParams = new Hashtable();
-            ArrayList SendParams = new ArrayList();
-            SendParams.Add(PresenceParams);
+            if (whichRegion != null)
+            {
 
-            m_log.Info("[PRESENCE]: Informing " + whichRegion.regionName + " at " + whichRegion.httpServerURI);
-            // Send
-            XmlRpcRequest RegionReq = new XmlRpcRequest("presence_update", SendParams);
-            XmlRpcResponse RegionResp = RegionReq.Send(whichRegion.httpServerURI, 6000);
+
+                Hashtable PresenceParams = new Hashtable();
+                PresenceParams.Add("agent_id",TalkingAbout.agentData.AgentID.ToString());
+                PresenceParams.Add("notify_id",UserToUpdate.agentData.AgentID.ToString());
+                if (TalkingAbout.OnlineYN)
+                    PresenceParams.Add("status","TRUE");
+                else 
+                    PresenceParams.Add("status","FALSE");
+
+                
+
+
+                ArrayList SendParams = new ArrayList();
+                SendParams.Add(PresenceParams);
+
+                
+                m_log.Info("[PRESENCE]: Informing " + whichRegion.regionName + " at " + whichRegion.httpServerURI);
+                // Send
+                XmlRpcRequest RegionReq = new XmlRpcRequest("presence_update", SendParams);
+                try
+                {
+
+                    XmlRpcResponse RegionResp = RegionReq.Send(whichRegion.httpServerURI, 6000);
+                }
+                catch (WebException)
+                {
+                    m_log.WarnFormat("[INFORM]: failed notifying region {0} containing user {1} about {2}", whichRegion.regionName, UserToUpdate.agentData.firstname + " " + UserToUpdate.agentData.lastname, TalkingAbout.agentData.firstname + " " + TalkingAbout.agentData.lastname);
+                }   
+            } 
+            else 
+            {
+                m_log.Info("[PRESENCEUPDATER]: Region data was null skipping");
+                
+            }
+
+            handlerDone = OnDone;
+            if (handlerDone != null)
+            {
+                handlerDone(this);
+            }
+
         }
     }
 }

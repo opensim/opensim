@@ -38,6 +38,7 @@ namespace OpenSim.Framework
         public static bool DefaultHttpSSL = false;
         private ConfigurationMember configMember;
         public string DatabaseProvider = String.Empty;
+        public string DatabaseConnect = String.Empty;
         public string DefaultStartupMsg = String.Empty;
         public string GridCommsProvider = String.Empty;
         public string GridRecvKey = String.Empty;
@@ -75,6 +76,11 @@ namespace OpenSim.Framework
                                                 "Key to send to grid server", "null", false);
             configMember.addConfigurationOption("grid_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to expect from user server", "null", false);
+
+
+            configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
+                                                "Connection String for Database", "", false);
+
 
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "DLL for database provider", "OpenSim.Data.MySQL.dll", false);
@@ -114,6 +120,9 @@ namespace OpenSim.Framework
                     break;
                 case "database_provider":
                     DatabaseProvider = (string) configuration_result;
+                    break;
+                case "database_connect":
+                    DatabaseConnect = (string)configuration_result;
                     break;
                 case "http_port":
                     HttpPort = (uint) configuration_result;

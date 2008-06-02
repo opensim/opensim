@@ -31,7 +31,9 @@ using System.Reflection;
 using libsecondlife;
 using log4net;
 using log4net.Config;
+
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 
@@ -88,6 +90,8 @@ namespace OpenSim.Grid.MessagingServer
             m_log.Info("[REGION]: Starting HTTP process");
             m_httpServer = new BaseHttpServer(Cfg.HttpPort);
 
+            
+
             msgsvc = new MessageService(Cfg);
 
             if (msgsvc.registerWithUserServer())
@@ -142,6 +146,24 @@ namespace OpenSim.Grid.MessagingServer
                     // m_lastCreatedUser = userID;
                     break;
             }
+        }
+
+        public override void RunCmd(string cmd, string[] cmdparams)
+        {
+            base.RunCmd(cmd, cmdparams);
+
+            switch (cmd)
+            {
+                case "help":
+                    m_console.Notice("clear-cache - Clears region cache.  Should be done when regions change position.  The region cache gets stale after a while.");
+                    break;
+                case "clear-cache":
+                    int entries = msgsvc.ClearRegionCache();
+                    m_console.Notice("Region cache cleared! Cleared " + entries.ToString() + " entries");
+                    break;
+            }
+
+                
         }
 
         public override void Shutdown()

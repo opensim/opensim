@@ -382,7 +382,13 @@ namespace OpenSim.Region.Communications.OGS1
                     regionInfo.RegionID = new LLUUID((string) responseData["region_UUID"]);
                     regionInfo.RegionName = (string) responseData["region_name"];
 
-                    m_remoteRegionInfoCache.Add(regionHandle, regionInfo);
+                    lock (m_remoteRegionInfoCache)
+                    {
+                        if (!m_remoteRegionInfoCache.ContainsKey(regionHandle))
+                        {
+                            m_remoteRegionInfoCache.Add(regionHandle, regionInfo);
+                        }
+                    }
                 }
                 catch (WebException)
                 {
