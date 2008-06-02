@@ -882,8 +882,11 @@ namespace OpenSim.Region.Physics.OdePlugin
                 }
                 if (m_isphysical)
                 {
-                    d.BodySetLinearVel(Body, 0f, 0f, 0f);
-                    enableBodySoft();
+                    if (Body != IntPtr.Zero)
+                    {
+                        d.BodySetLinearVel(Body, 0f, 0f, 0f);
+                        enableBodySoft();
+                    }
                 }
             }
 
