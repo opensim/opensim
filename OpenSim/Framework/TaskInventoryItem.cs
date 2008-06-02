@@ -90,7 +90,7 @@ namespace OpenSim.Framework
         // see IXmlSerializable
         public void ReadXml(XmlReader reader)
         {
-            //m_log.DebugFormat("[TASK INVENTORY]: ReadXml current node before actions, {0}", reader.Name);
+            // m_log.DebugFormat("[TASK INVENTORY]: ReadXml current node before actions, {0}", reader.Name);           
 
             if (!reader.IsEmptyElement)
             {
@@ -105,16 +105,16 @@ namespace OpenSim.Framework
 
                // m_log.DebugFormat("[TASK INVENTORY]: Instantiated {0} prim items in total from xml", Count);
             }
-            else
-            {
-                //m_log.DebugFormat("[TASK INVENTORY]: Skipping empty element {0}", reader.Name);
-            }
+            // else
+            // {
+            //     m_log.DebugFormat("[TASK INVENTORY]: Skipping empty element {0}", reader.Name);
+            // }
 
             // For some .net implementations, this last read is necessary so that we advance beyond the end tag
             // of the element wrapping this object so that the rest of the serialization can complete normally.
             reader.Read();
 
-            //m_log.DebugFormat("[TASK INVENTORY]: ReadXml current node after actions, {0}", reader.Name);
+            // m_log.DebugFormat("[TASK INVENTORY]: ReadXml current node after actions, {0}", reader.Name);            
         }
 
         // see IXmlSerializable
