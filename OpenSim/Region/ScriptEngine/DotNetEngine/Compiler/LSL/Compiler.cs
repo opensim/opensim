@@ -335,19 +335,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
         private static string CreateCSCompilerScript(string compileScript)
         {
-            
-
             compileScript = String.Empty +
-                       "using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog; " +
-                        "using OpenSim.Region.ScriptEngine.Common; using System.Collections.Generic;\r\n" +
-                        String.Empty + "namespace SecondLife { " +
-                        String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Common.BuiltIn_Commands_BaseClass { \r\n" +
-                        //@"public Script() { } " +
-                        @"static OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog.YP YP=null; " +
-                        @"public Script() {  YP= new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog.YP(); } "+
-
-                        compileScript +
-                        "} }\r\n";
+                "using OpenSim.Region.ScriptEngine.Common; using System.Collections.Generic;\r\n" +
+                String.Empty + "namespace SecondLife { " +
+                String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Common.BuiltIn_Commands_BaseClass { \r\n" +
+                @"public Script() { } " +
+                compileScript +
+                "} }\r\n";
             return compileScript;
         }
 
