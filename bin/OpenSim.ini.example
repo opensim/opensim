@@ -1,6 +1,6 @@
 [Startup]
 
-; Set this to true if you are connecting your OpenSimulator region serer to a grid
+; Set this to true if you are connecting your OpenSimulator regions to a grid
 ; Set this to false if you are running OpenSimulator in standalone mode
 gridmode = false
 
