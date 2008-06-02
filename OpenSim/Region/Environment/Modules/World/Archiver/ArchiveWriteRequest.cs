@@ -32,6 +32,7 @@ using OpenSim.Region.Environment.Modules.World.Serialiser;
 using OpenSim.Region.Environment.Scenes;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 using libsecondlife;
 using log4net;
 using Nini.Config;
@@ -216,8 +217,19 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
             if (m_assets.Count == m_repliesRequired)
             {
-                m_assetsRequestCallback(m_assets);
+                // We want to stop using the asset cache thread asap as we now need to do the actual work of producing the archive
+                Thread newThread = new Thread(PerformAssetsRequestCallback);
+                newThread.Name = "OpenSimulator archiving thread post assets receipt";
+                newThread.Start();
             }
+        }
+        
+        /// <summary>
+        /// Perform the callback on the original requester of the assets
+        /// </summary>
+        protected void PerformAssetsRequestCallback()        
+        {
+            m_assetsRequestCallback(m_assets);
         }
     }
 }
