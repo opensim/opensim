@@ -688,34 +688,48 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_scene.AddNewClient(this, true);
         }
 
+        /// <summary>
+        /// Authorize an incoming user session.  This method lies at the base of the entire client thread.
+        /// </summary>
         protected virtual void AuthUser()
         {
-            // AuthenticateResponse sessionInfo = m_gridServer.AuthenticateSession(m_cirpack.m_circuitCode.m_sessionId, m_cirpack.m_circuitCode.ID, m_cirpack.m_circuitCode.Code);
-            AuthenticateResponse sessionInfo =
-                m_authenticateSessionsHandler.AuthenticateSession(m_sessionId, m_agentId,
-                                                                  m_circuitCode);
-            if (!sessionInfo.Authorised)
+            try
             {
-                //session/circuit not authorised
-                m_log.Info("[CLIENT]: New user request denied to " + m_userEndPoint.ToString());
-                m_packetQueue.Close();
-                m_clientThread.Abort();
-            }
-            else
-            {
-                m_log.Info("[CLIENT]: Got authenticated connection from " + m_userEndPoint.ToString());
-                //session is authorised
-                m_firstName = sessionInfo.LoginInfo.First;
-                m_lastName = sessionInfo.LoginInfo.Last;
-
-                if (sessionInfo.LoginInfo.SecureSession != LLUUID.Zero)
+                // AuthenticateResponse sessionInfo = m_gridServer.AuthenticateSession(m_cirpack.m_circuitCode.m_sessionId, m_cirpack.m_circuitCode.ID, m_cirpack.m_circuitCode.Code);
+                AuthenticateResponse sessionInfo =
+                    m_authenticateSessionsHandler.AuthenticateSession(m_sessionId, m_agentId,
+                                                                      m_circuitCode);
+                if (!sessionInfo.Authorised)
                 {
-                    m_secureSessionId = sessionInfo.LoginInfo.SecureSession;
+                    //session/circuit not authorised
+                    m_log.Info("[CLIENT]: New user request denied to " + m_userEndPoint.ToString());
+                    m_packetQueue.Close();
+                    m_clientThread.Abort();
                 }
-                // This sets up all the timers
-                InitNewClient();
+                else
+                {
+                    m_log.Info("[CLIENT]: Got authenticated connection from " + m_userEndPoint.ToString());
+                    //session is authorised
+                    m_firstName = sessionInfo.LoginInfo.First;
+                    m_lastName = sessionInfo.LoginInfo.Last;
 
-                ClientLoop();
+                    if (sessionInfo.LoginInfo.SecureSession != LLUUID.Zero)
+                    {
+                        m_secureSessionId = sessionInfo.LoginInfo.SecureSession;
+                    }
+                    // This sets up all the timers
+                    InitNewClient();
+
+                    ClientLoop();
+                }
+            }
+            catch (Exception e)
+            {
+                // Don't let a failure in an individual client thread crash the whole sim.
+                // FIXME: possibly more sophisticated cleanup since leaving client resources around will
+                // probably cause long term instability.  I think this is still better than bring down the whole
+                // region
+                m_log.ErrorFormat("[CLIENT]: Client thread for {0} {1} crashed.  Exception {2}", Name, AgentId, e);
             }
         }
 
