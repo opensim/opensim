@@ -408,6 +408,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             ServerIncoming = new IPEndPoint(listenIP, (int)newPort);
             m_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             m_socket.Bind(ServerIncoming);
+            // Add flags to the UDP socket to prevent "Socket forcibly closed by host"
+            uint IOC_IN = 0x80000000;
+            uint IOC_VENDOR = 0x18000000;
+            uint SIO_UDP_CONNRESET = IOC_IN | IOC_VENDOR | 12;
+            m_socket.IOControl((int)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
+
             listenPort = newPort;
 
             m_log.Info("[SERVER]: UDP socket bound, getting ready to listen");
