@@ -35,7 +35,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <summary>
         /// Path for the assets held in an archive
         /// </summary>
-        public static readonly string ASSETS_PATH = "assets/";
+        public static readonly string TEXTURES_PATH = "textures/";
         
         /// <summary>
         /// Extension used for texture assets in archive

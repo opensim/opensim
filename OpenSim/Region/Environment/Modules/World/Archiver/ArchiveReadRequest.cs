@@ -75,10 +75,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 {
                     serializedPrims = m_asciiEncoding.GetString(data);
                 }
-                else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
+                else if (filePath.StartsWith(ArchiveConstants.TEXTURES_PATH))
                 {
                     // Right now we're nastily obtaining the lluuid from the filename
-                    string rawId = filePath.Remove(0, ArchiveConstants.ASSETS_PATH.Length); 
+                    string rawId = filePath.Remove(0, ArchiveConstants.TEXTURES_PATH.Length); 
                     rawId = rawId.Remove(rawId.Length - ArchiveConstants.TEXTURE_EXTENSION.Length);
                     
                     m_log.DebugFormat("[ARCHIVER]: Importing asset {0}", rawId);
@@ -86,8 +86,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                     // Not preserving asset name or description as of yet
                     AssetBase asset = new AssetBase(new LLUUID(rawId), "imported name");
                     asset.Description = "imported description";
-                    
-                    // Only importing textures right now
+                      
                     asset.Type = (sbyte)AssetType.Texture;
                     asset.InvType = (sbyte)InventoryType.Texture;
                     
