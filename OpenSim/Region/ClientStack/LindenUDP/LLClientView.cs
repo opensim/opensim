@@ -5981,6 +5981,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 onpb[i] = onpbl;
             }
             onp.AgentBlock = onpb;
+            onp.Header.Reliable = true;
             OutPacket(onp, ThrottleOutPacketType.Task);
         }
 
@@ -5995,6 +5996,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 offpb[i] = onpbl;
             }
             offp.AgentBlock = offpb;
+            offp.Header.Reliable = true;
             OutPacket(offp, ThrottleOutPacketType.Task);
         }
 

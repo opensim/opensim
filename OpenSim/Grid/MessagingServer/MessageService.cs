@@ -87,6 +87,8 @@ namespace OpenSim.Grid.MessagingServer
             {
                 if (!m_presences.Contains(userpresence.agentData.AgentID))
                     m_presences.Add(userpresence.agentData.AgentID, userpresence);
+                else
+                    m_presences[userpresence.agentData.AgentID] = userpresence;
             }
 
             List<FriendListItem> uFriendList = userpresence.friendData;
@@ -132,18 +134,24 @@ namespace OpenSim.Grid.MessagingServer
                 UserAgentData p2Handle = m_userManager.GetUserAgentData(userpresence.agentData.AgentID);
                 if (p2Handle != null)
                 {
-                    
+                    if (userpresence.lookupUserRegionYN)
+                    {
                         userpresence.regionData.regionHandle = p2Handle.Handle;
-                        PresenceInformer friendlistupdater = new PresenceInformer();
-                        friendlistupdater.presence1 = friendpresence;
-                        //friendlistupdater.gridserverurl = m_cfg.GridServerURL;
-                        //friendlistupdater.gridserversendkey = m_cfg.GridSendKey;
-                        //friendlistupdater.gridserverrecvkey = m_cfg.GridRecvKey;
-                        friendlistupdater.presence2 = userpresence;
-                        friendlistupdater.OnGetRegionData += GetRegionInfo;
-                        friendlistupdater.OnDone += PresenceUpdateDone;
-                        WaitCallback cb = new WaitCallback(friendlistupdater.go);
-                        ThreadPool.QueueUserWorkItem(cb);
+                    }
+                    else
+                    {
+                        userpresence.lookupUserRegionYN = true;
+                    }
+                    PresenceInformer friendlistupdater = new PresenceInformer();
+                    friendlistupdater.presence1 = friendpresence;
+                    //friendlistupdater.gridserverurl = m_cfg.GridServerURL;
+                    //friendlistupdater.gridserversendkey = m_cfg.GridSendKey;
+                    //friendlistupdater.gridserverrecvkey = m_cfg.GridRecvKey;
+                    friendlistupdater.presence2 = userpresence;
+                    friendlistupdater.OnGetRegionData += GetRegionInfo;
+                    friendlistupdater.OnDone += PresenceUpdateDone;
+                    WaitCallback cb = new WaitCallback(friendlistupdater.go);
+                    ThreadPool.QueueUserWorkItem(cb);
                     
                 }
                 else
@@ -462,6 +470,7 @@ namespace OpenSim.Grid.MessagingServer
             RegionProfileData riData = GetRegionInfo(regionHandle);
             up.regionData = riData;
             up.OnlineYN = true;
+            up.lookupUserRegionYN = false;
             ProcessFriendListSubscriptions(up);
 
             return new XmlRpcResponse();

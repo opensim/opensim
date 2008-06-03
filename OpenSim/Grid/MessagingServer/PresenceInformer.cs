@@ -111,8 +111,8 @@ namespace OpenSim.Grid.MessagingServer
                 ArrayList SendParams = new ArrayList();
                 SendParams.Add(PresenceParams);
 
-                
-                m_log.Info("[PRESENCE]: Informing " + whichRegion.regionName + " at " + whichRegion.httpServerURI);
+
+                m_log.InfoFormat("[PRESENCE]: Informing {0}@{1} at {2} about {3}", TalkingAbout.agentData.firstname + " " + TalkingAbout.agentData.lastname, whichRegion.regionName, whichRegion.httpServerURI, UserToUpdate.agentData.firstname + " " + UserToUpdate.agentData.lastname);
                 // Send
                 XmlRpcRequest RegionReq = new XmlRpcRequest("presence_update", SendParams);
                 try

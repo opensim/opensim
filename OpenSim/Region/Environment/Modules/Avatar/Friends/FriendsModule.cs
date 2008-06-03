@@ -93,8 +93,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
 
         public XmlRpcResponse processPresenceUpdate(XmlRpcRequest req)
         {
-            m_log.Info("[FRIENDS]: Got Notification about a user! OMG");
+            //m_log.Info("[FRIENDS]: Got Notification about a user! OMG");
             Hashtable requestData = (Hashtable)req.Params[0];
+
             if (requestData.ContainsKey("agent_id") && requestData.ContainsKey("notify_id") && requestData.ContainsKey("status"))
             {
                 LLUUID notifyAgentId = LLUUID.Zero;
@@ -107,7 +108,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                 Helpers.TryParse((string)requestData["notify_id"], out notifyAgentId);
 
                 Helpers.TryParse((string)requestData["agent_id"], out notifyAboutAgentId);
-
+                m_log.InfoFormat("[PRESENCE]: Got presence update for {0}, and we're telling {1}, with a status {2}", notifyAboutAgentId.ToString(), notifyAgentId.ToString(), notifyOnlineStatus.ToString());
                 ScenePresence avatar = GetPresenceFromAgentID(notifyAgentId);
                 if (avatar != null)
                 {
@@ -160,6 +161,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                     }
                 }
 
+            }
+            else
+            {
+                m_log.Warn("[PRESENCE]: Malformed XMLRPC Presence request");
             }
             return new XmlRpcResponse();
         }
