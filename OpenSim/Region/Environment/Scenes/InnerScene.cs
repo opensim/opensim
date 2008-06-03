@@ -825,14 +825,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         protected internal List<EntityBase> GetEntities()
         {
-            List<EntityBase> result;
-
-            lock (Entities)
-            {
-                result = new List<EntityBase>(Entities.Values);
-            }
-
-            return result;
+            return new List<EntityBase>(Entities.Values);
         }
 
         protected internal Dictionary<uint, float> GetTopScripts()
