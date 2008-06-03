@@ -727,9 +727,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 // Don't let a failure in an individual client thread crash the whole sim.
                 // FIXME: could do more sophisticated cleanup since leaving client resources around may
-                // cause instability for the region server over time.  However, it could be a little tricky to
-                // prevent an exception loop if the client thread has already crashed due to some unexpected
-                // situation.
+                // cause instability for the region server over time.
                 m_log.ErrorFormat("[CLIENT]: Client thread for {0} {1} crashed.  Exception {2}", Name, AgentId, e);
             }
         }
