@@ -3897,7 +3897,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (m_dupeLimiter.ContainsKey(Pack.Header.Sequence))
                 {
-                    m_log.Info("[CLIENT]: Warning Duplicate packet detected" + Pack.Type.ToString() + " Dropping.");
+                    //m_log.Info("[CLIENT]: Warning Duplicate packet detected" + Pack.Type.ToString() + " Dropping.");
                     return;
                 }
                 else
