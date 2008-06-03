@@ -627,19 +627,13 @@ namespace OpenSim.Region.Environment.Scenes
         #region Get Methods
 
         /// <summary>
-        /// Request a List of all m_scenePresences in this World
+        /// Request a List of all scene presences in this scene.  This returns a copy of the original list, so no 
+        /// locking is required to iterate over it.
         /// </summary>
         /// <returns></returns>
         protected internal List<ScenePresence> GetScenePresences()
         {
-            List<ScenePresence> result;
-
-            lock (ScenePresences)
-            {
-                result = new List<ScenePresence>(ScenePresences.Values);
-            }
-
-            return result;
+            return new List<ScenePresence>(ScenePresences.Values);
         }
 
         protected internal List<ScenePresence> GetAvatars()
