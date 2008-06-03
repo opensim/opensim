@@ -627,7 +627,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Get Methods
 
         /// <summary>
-        /// Request a List of all scene presences in this scene.  This returns a copy of the original list, so no 
+        /// Request a List of all scene presences in this scene.  This is a new list, so no 
         /// locking is required to iterate over it.
         /// </summary>
         /// <returns></returns>
@@ -819,8 +819,8 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Returns a list of the entities in the scene.  This is a new list so operations perform on the list itself
-        /// will not affect the original list of objects in the scene.
+        /// Returns a list of the entities in the scene.  This is a new list so no locking is required to iterate over
+        /// it
         /// </summary>
         /// <returns></returns>
         protected internal List<EntityBase> GetEntities()
