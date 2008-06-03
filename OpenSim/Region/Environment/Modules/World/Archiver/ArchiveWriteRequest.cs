@@ -89,6 +89,15 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                                 textureUuids[texture.TextureID] = 1;
                             }
                         }
+                        
+                        foreach (TaskInventoryItem tit in part.TaskInventory.Values)
+                        {
+                            if (tit.Type == (int)InventoryType.Texture)
+                            {
+                                m_log.DebugFormat("[ARCHIVER]: Recording texture {0} in object {1}", tit.AssetID, part.UUID);
+                                textureUuids[tit.AssetID] = 1;
+                            }
+                        }
                     }
                 }
             }
