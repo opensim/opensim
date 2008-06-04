@@ -355,6 +355,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                             QIS.localID, QIS.itemID);
                                     }
                                 }
+
+                                // Pass it on so it's displayed on the console
+                                // and in the logs (mikem 2008.06.02).
+                                throw e.InnerException;
                             }
                             finally
                             {
