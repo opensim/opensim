@@ -3692,12 +3692,13 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (LLUUID.TryParse(id,out key))
             {
                 ScenePresence presence = World.GetScenePresence(key);
-
+                
                 if (presence != null)
                 {
-                    return presence.Name;
+                    return presence.ControllingClient.Name;
+                    //return presence.Name;
                 }
-
+                
                 if (World.GetSceneObjectPart(key) != null)
                 {
                     return World.GetSceneObjectPart(key).Name;
