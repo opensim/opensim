@@ -123,23 +123,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             TarArchiveWriter archive = new TarArchiveWriter();
 
             archive.AddFile(ArchiveConstants.PRIMS_PATH, m_serializedEntities);
-
-            // It appears that gtar, at least, doesn't need the intermediate directory entries in the tar
-            //archive.AddDir("assets");
-
-            foreach (LLUUID uuid in assets.Keys)
-            {
-                if (assets[uuid] != null)
-                {
-                    archive.AddFile(
-                        ArchiveConstants.TEXTURES_PATH + uuid.ToString() + ArchiveConstants.TEXTURE_EXTENSION,
-                        assets[uuid].Data);
-                }
-                else
-                {
-                    m_log.DebugFormat("[ARCHIVER]: Could not find asset {0} to archive", uuid);
-                }
-            }
+            
+            AssetsArchiver assetsArchiver = new AssetsArchiver(assets);
+            assetsArchiver.Archive(archive);
 
             archive.WriteTar(m_savePath);
 

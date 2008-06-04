@@ -718,6 +718,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         m_secureSessionId = sessionInfo.LoginInfo.SecureSession;
                     }
+                    
                     // This sets up all the timers
                     InitNewClient();
 
@@ -726,7 +727,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             catch (Exception e)
             {
-                // ThreadAbortExceptions need to go through unmolested.
                 if (e is ThreadAbortException)
                     throw e;
                 
