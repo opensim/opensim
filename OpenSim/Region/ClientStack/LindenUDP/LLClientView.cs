@@ -725,6 +725,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             catch (Exception e)
             {
+                // ThreadAbortExceptions need to go through unmolested.
+                if (e is ThreadAbortException)
+                    throw e;
+                
                 // Don't let a failure in an individual client thread crash the whole sim.
                 // FIXME: could do more sophisticated cleanup since leaving client resources around may
                 // cause instability for the region server over time.
