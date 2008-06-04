@@ -50,6 +50,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             myScriptEngine.Log.Info("[XEngine] Hooking up to server events");
             myScriptEngine.World.EventManager.OnObjectGrab += touch_start;
             myScriptEngine.World.EventManager.OnObjectDeGrab += touch_end;
+            myScriptEngine.World.EventManager.OnRezEvent += on_rez;
             myScriptEngine.World.EventManager.OnScriptChangedEvent += changed;
             myScriptEngine.World.EventManager.OnScriptAtTargetEvent += at_target;
             myScriptEngine.World.EventManager.OnScriptNotAtTargetEvent += not_at_target;
