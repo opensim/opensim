@@ -2025,8 +2025,17 @@ namespace OpenSim.Region.Physics.OdePlugin
             {
                 for (int x = 0; x < 512; x++)
                 {
+                    if (Single.IsNaN(resultarr2[y, x]) || Single.IsInfinity(resultarr2[y, x]))
+                    {
+                        m_log.Warn("[PHYSICS]: Non finite heightfield element detected.  Setting it to 0");
+                        resultarr2[y, x] = 0;
+                    }
+
                     if (resultarr2[y, x] <= 0)
+                    {
                         returnarr[i] = 0.0000001f;
+                        
+                    }
                     else
                         returnarr[i] = resultarr2[y, x];
 
