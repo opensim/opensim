@@ -75,7 +75,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 {
                     ListPair VFC = new ListPair(FunctionCode, new Variable());
                     //Console.WriteLine("-------------------------")
-                    //Console.WriteLine( FunctionCode.ToString())
+                    //Console.WriteLine(FunctionCode.ToString())
                     //Console.WriteLine("-------------------------")
                     YPCompiler.convertFunctionCSharp(FunctionCode);
                     //YPCompiler.convertStringCodesCSharp(VFC);

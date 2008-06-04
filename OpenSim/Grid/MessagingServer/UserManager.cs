@@ -44,7 +44,7 @@ namespace OpenSim.Grid.MessagingServer
         public UserAgentData GetUserAgentData(LLUUID AgentID)
         {
             UserProfileData userProfile = GetUserProfile(AgentID);
-            
+
             if (userProfile != null)
             {
                 return userProfile.CurrentAgent;
@@ -58,19 +58,19 @@ namespace OpenSim.Grid.MessagingServer
         public override UserProfileData SetupMasterUser(string firstName, string lastName)
         {
             //throw new Exception("The method or operation is not implemented.");
-            return null; 
+            return null;
         }
 
         public override UserProfileData SetupMasterUser(string firstName, string lastName, string password)
         {
             //throw new Exception("The method or operation is not implemented.");
-            return null; 
+            return null;
         }
 
         public override UserProfileData SetupMasterUser(LLUUID uuid)
         {
             //throw new Exception("The method or operation is not implemented.");
-            return null; 
+            return null;
         }
     }
 }

@@ -43,7 +43,7 @@ namespace OpenSim.Grid.GridServer
     public class GridServerBase : BaseOpenSimServer, conscmd_callback
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         protected GridConfig m_config;
         protected GridManager m_gridManager;
         protected List<IGridPlugin> m_plugins = new List<IGridPlugin>();
@@ -121,12 +121,12 @@ namespace OpenSim.Grid.GridServer
             // Temporary hack to stop mono-addins scanning warnings from coming out on the console
             TextWriter oldOutput = Console.Out;
             Console.SetOut(new StreamWriter(Stream.Null));
-            
+
             AddinManager.Initialize(".");
             AddinManager.Registry.Update(null);
-            
+
             // Returns the console.writelines back to the console's stream
-            Console.SetOut(oldOutput);            
+            Console.SetOut(oldOutput);
 
             ExtensionNodeList nodes = AddinManager.GetExtensionNodes("/OpenSim/GridServer");
             foreach (TypeExtensionNode node in nodes)
@@ -175,7 +175,7 @@ namespace OpenSim.Grid.GridServer
                 catch
                 {
                 }
-                
+
                 if (SimResponse == "OK")
                 {
                     m_simProfileManager.SimProfiles[sim.UUID].online = true;
@@ -187,11 +187,11 @@ namespace OpenSim.Grid.GridServer
             }
             */
         }
-        
+
         public override void Shutdown()
         {
             foreach (IGridPlugin plugin in m_plugins) plugin.Close();
-            
+
             base.Shutdown();
         }
     }

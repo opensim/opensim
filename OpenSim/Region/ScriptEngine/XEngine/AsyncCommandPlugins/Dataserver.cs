@@ -57,11 +57,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine.AsyncCommandPlugins
         }
 
         public LLUUID RegisterRequest(uint localID, LLUUID itemID,
-                string identifier)
+                                      string identifier)
         {
-            lock(DataserverRequests)
+            lock (DataserverRequests)
             {
-                if(DataserverRequests.ContainsKey(identifier))
+                if (DataserverRequests.ContainsKey(identifier))
                     return LLUUID.Zero;
 
                 DataserverRequest ds = new DataserverRequest();
@@ -84,9 +84,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine.AsyncCommandPlugins
         {
             DataserverRequest ds;
 
-            lock(DataserverRequests)
+            lock (DataserverRequests)
             {
-                if(!DataserverRequests.ContainsKey(identifier))
+                if (!DataserverRequests.ContainsKey(identifier))
                     return;
                 
                 ds=DataserverRequests[identifier];
@@ -94,7 +94,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.AsyncCommandPlugins
             }
 
             m_CmdManager.m_ScriptEngine.PostObjectEvent(ds.localID,
-                    new XEventParams( "dataserver", new Object[]
+                    new XEventParams("dataserver", new Object[]
                             { new LSL_Types.LSLString(ds.ID.ToString()),
                             new LSL_Types.LSLString(reply)},
                     new XDetectParams[0]));
@@ -102,11 +102,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine.AsyncCommandPlugins
 
         public void RemoveEvents(uint localID, LLUUID itemID)
         {
-            lock(DataserverRequests)
+            lock (DataserverRequests)
             {
                 foreach (DataserverRequest ds in new List<DataserverRequest>(DataserverRequests.Values))
                 {
-                    if(ds.itemID == itemID)
+                    if (ds.itemID == itemID)
                         DataserverRequests.Remove(ds.handle);
                 }
             }
@@ -114,11 +114,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine.AsyncCommandPlugins
 
         public void ExpireRequests()
         {
-            lock(DataserverRequests)
+            lock (DataserverRequests)
             {
                 foreach (DataserverRequest ds in new List<DataserverRequest>(DataserverRequests.Values))
                 {
-                    if(ds.startTime > DateTime.Now.AddSeconds(30))
+                    if (ds.startTime > DateTime.Now.AddSeconds(30))
                         DataserverRequests.Remove(ds.handle);
                 }
             }

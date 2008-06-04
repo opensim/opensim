@@ -85,8 +85,8 @@ namespace OpenSim.Region.Communications.OGS1
                               (float) Convert.ToDecimal((string) data["home_look_z"]));
 
             return userData;
-        } 
-        
+        }
+
         /// <summary>
         /// Get a user agent from the user server
         /// </summary>
@@ -126,7 +126,7 @@ namespace OpenSim.Region.Communications.OGS1
                {
                    userAgent.AgentOnline = false;
                }
-               
+
                return userAgent;
             }
             catch (Exception e)
@@ -259,7 +259,7 @@ namespace OpenSim.Region.Communications.OGS1
             XmlRpcRequest req = new XmlRpcRequest("update_user_current_region", parameters);
 
             XmlRpcResponse resp;
-            
+
             try
             {
                 resp = req.Send(m_parent.NetworkServersInfo.UserURL, 3000);
@@ -278,8 +278,8 @@ namespace OpenSim.Region.Communications.OGS1
                     return;
                 }
             }
-           
-            if( resp == null )
+
+            if (resp == null)
             {
                 m_log.Warn("[OSG1 USER SERVICES]: Got no response, Grid server may not be updated.");
                 return;

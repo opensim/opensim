@@ -40,14 +40,14 @@ namespace OpenSim.Framework.Servers
     public abstract class BaseOpenSimServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         protected ConsoleBase m_console;
-        
+
         /// <summary>
         /// Time at which this server was started
         /// </summary>
         protected DateTime m_startuptime;
-                
+
         /// <summary>
         /// Server version information.  Usually VersionInfo + information about svn revision, operating system, etc.
         /// </summary>
@@ -66,19 +66,19 @@ namespace OpenSim.Framework.Servers
 
         public BaseOpenSimServer()
         {
-            m_startuptime = DateTime.Now;            
+            m_startuptime = DateTime.Now;
             m_version = VersionInfo.Version;
         }
-        
+
         /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.
         /// </summary>
         public virtual void Startup()
-        {   
+        {
             m_log.Info("[STARTUP]: Beginning startup processing");
-            
+
             EnhanceVersionInformation();
-            
+
             m_log.Info("[STARTUP]: Version " + m_version + "\n");
         }
 
@@ -86,9 +86,9 @@ namespace OpenSim.Framework.Servers
         /// Should be overriden and referenced by descendents if they need to perform extra shutdown processing
         /// </summary>
         public virtual void Shutdown()
-        {          
+        {
             m_log.Info("[SHUTDOWN]: Shutdown processing on main thread complete.  Exiting...");
-            
+
             Environment.Exit(0);
         }
 
@@ -110,7 +110,7 @@ namespace OpenSim.Framework.Servers
                     Notice("show uptime - show server startup time and uptime.");
                     Notice("show version - show server version.");
                     Notice("shutdown - shutdown the server.\n");
-                   
+
                     break;
 
                 case "show":
@@ -146,10 +146,10 @@ namespace OpenSim.Framework.Servers
                     Notice("Server has been running since " + m_startuptime.DayOfWeek + ", " + m_startuptime.ToString());
                     Notice("That is an elapsed time of " + (DateTime.Now - m_startuptime).ToString());
                     break;
-                
+
                 case "version":
                     m_console.Notice("This is " + m_version);
-                    break;                
+                    break;
             }
         }
 
@@ -172,7 +172,7 @@ namespace OpenSim.Framework.Servers
         protected void EnhanceVersionInformation()
         {
             string buildVersion = string.Empty;
-            
+
             // Add subversion revision information if available
             // FIXME: Making an assumption about the directory we're currently in - we do this all over the place
             // elsewhere as well
@@ -227,6 +227,6 @@ namespace OpenSim.Framework.Servers
             }
 
             m_version += ", OS " + OSString;
-        }        
+        }
     }
 }

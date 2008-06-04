@@ -627,7 +627,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Get Methods
 
         /// <summary>
-        /// Request a List of all scene presences in this scene.  This is a new list, so no 
+        /// Request a List of all scene presences in this scene.  This is a new list, so no
         /// locking is required to iterate over it.
         /// </summary>
         /// <returns></returns>

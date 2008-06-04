@@ -1048,7 +1048,7 @@ namespace OpenSim.Region.Environment.Scenes
             Vector3 normalpart = ipoint - vAbsolutePosition;
             returnresult.normal = normalpart / normalpart.Length;
 
-            // It's funny how the LLVector3 object has a Distance function, but the Axiom.Math object doesnt.
+            // It's funny how the LLVector3 object has a Distance function, but the Axiom.Math object doesn't.
             // I can write a function to do it..    but I like the fact that this one is Static.
 
             LLVector3 distanceConvert1 = new LLVector3(iray.Origin.x, iray.Origin.y, iray.Origin.z);

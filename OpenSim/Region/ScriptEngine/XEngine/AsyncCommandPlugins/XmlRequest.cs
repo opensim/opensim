@@ -71,10 +71,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine.AsyncCommandPlugins
                     
                     foreach (XEngine xe in XEngine.ScriptEngines)
                     {
-                        if(xe.PostScriptEvent(
+                        if (xe.PostScriptEvent(
                                 rInfo.GetItemID(), new XEventParams(
-                                "remote_data", resobj,
-                                new XDetectParams[0])))
+                                    "remote_data", resobj,
+                                    new XDetectParams[0])))
                             break;
                     }
 
@@ -100,10 +100,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine.AsyncCommandPlugins
 
                     foreach (XEngine xe in XEngine.ScriptEngines)
                     {
-                        if(xe.PostScriptEvent(
+                        if (xe.PostScriptEvent(
                                 srdInfo.m_itemID, new XEventParams(
-                                "remote_data", resobj,
-                                new XDetectParams[0])))
+                                    "remote_data", resobj,
+                                    new XDetectParams[0])))
                             break;
                     }
 

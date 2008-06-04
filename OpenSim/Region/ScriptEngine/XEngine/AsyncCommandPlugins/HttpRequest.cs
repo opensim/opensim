@@ -77,7 +77,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.AsyncCommandPlugins
 
                 foreach (XEngine xe in XEngine.ScriptEngines)
                 {
-                    if(xe.PostObjectEvent(httpInfo.localID,
+                    if (xe.PostObjectEvent(httpInfo.localID,
                             new XEventParams("http_response",
                             resobj, new XDetectParams[0])))
                         break;

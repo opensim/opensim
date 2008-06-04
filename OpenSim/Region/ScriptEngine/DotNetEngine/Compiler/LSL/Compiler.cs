@@ -39,9 +39,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 {
     public class Compiler
     {
-        private static readonly log4net.ILog m_log 
+        private static readonly log4net.ILog m_log
             = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         // * Uses "LSL2Converter" to convert LSL to C# if necessary.
         // * Compiles C#-code into an assembly
         // * Returns assembly name ready for AppDomain load.
@@ -291,8 +291,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             if (enableCommanderLSL == true && l == enumCompileType.cs)
             {
-                foreach (KeyValuePair<string, 
-                    ICommander> com 
+                foreach (KeyValuePair<string,
+                    ICommander> com
                     in m_scriptEngine.World.GetCommanders())
                 {
                     compileScript = com.Value.GenerateRuntimeAPI() + compileScript;
@@ -318,7 +318,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             m_log.Debug("[ScriptEngine.DotNetEngine]: Preparing to compile the following LSL to C# translated code");
             m_log.Debug("");
             m_log.Debug(compileScript);
-            
+
             return CompileFromDotNetText(compileScript, l);
         }
 

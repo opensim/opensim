@@ -41,10 +41,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     /// </summary>
     public class ArchiveReadRequest
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);        
-        
-        protected static System.Text.ASCIIEncoding m_asciiEncoding = new System.Text.ASCIIEncoding();        
-        
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        protected static System.Text.ASCIIEncoding m_asciiEncoding = new System.Text.ASCIIEncoding();
+
         private Scene m_scene;
         private string m_loadPath;
 
@@ -55,22 +55,22 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
             DearchiveRegion();
         }
-        
+
         protected void DearchiveRegion()
-        {   
+        {
             TarArchiveReader archive = new TarArchiveReader(m_loadPath);
-            
+
             string serializedPrims = string.Empty;
-            
+
             // Just test for now by reading first file
             string filePath = "ERROR";
-            
+
             byte[] data;
             while ((data = archive.ReadEntry(out filePath)) != null)
-            {                            
+            {
                 m_log.DebugFormat(
                     "[ARCHIVER]: Successfully read {0} ({1} bytes) from archive {2}", filePath, data.Length, m_loadPath);
-                
+
                 if (filePath.Equals(ArchiveConstants.PRIMS_PATH))
                 {
                     serializedPrims = m_asciiEncoding.GetString(data);
@@ -78,37 +78,37 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 else if (filePath.StartsWith(ArchiveConstants.TEXTURES_PATH))
                 {
                     // Right now we're nastily obtaining the lluuid from the filename
-                    string rawId = filePath.Remove(0, ArchiveConstants.TEXTURES_PATH.Length); 
+                    string rawId = filePath.Remove(0, ArchiveConstants.TEXTURES_PATH.Length);
                     rawId = rawId.Remove(rawId.Length - ArchiveConstants.TEXTURE_EXTENSION.Length);
-                    
+
                     m_log.DebugFormat("[ARCHIVER]: Importing asset {0}", rawId);
-                    
+
                     // Not preserving asset name or description as of yet
                     AssetBase asset = new AssetBase(new LLUUID(rawId), "imported name");
                     asset.Description = "imported description";
-                      
+
                     asset.Type = (sbyte)AssetType.Texture;
                     asset.InvType = (sbyte)InventoryType.Texture;
-                    
+
                     asset.Data = data;
-                                        
-                    m_scene.AssetCache.AddAsset(asset);                    
+
+                    m_scene.AssetCache.AddAsset(asset);
                 }
             }
-            
-            m_log.DebugFormat("[ARCHIVER]: Reached end of archive");                        
-            
+
+            m_log.DebugFormat("[ARCHIVER]: Reached end of archive");
+
             archive.Close();
-            
+
             if (serializedPrims.Equals(string.Empty))
             {
                 m_log.ErrorFormat("[ARCHIVER]: Archive did not contain a {0} file", ArchiveConstants.PRIMS_PATH);
                 return;
             }
-            
+
             // Reload serialized prims
             m_log.InfoFormat("[ARCHIVER]: Loading prim data");
-            
+
             IRegionSerialiser serialiser = m_scene.RequestModuleInterface<IRegionSerialiser>();
             serialiser.LoadPrimsFromXml2(m_scene, new StringReader(serializedPrims));
         }

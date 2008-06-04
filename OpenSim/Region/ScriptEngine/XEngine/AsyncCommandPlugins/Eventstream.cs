@@ -55,14 +55,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine.AsyncCommandPlugins
         public void AddObjectEvent(uint localID, string eventName, XDetectParams det)
         {
             SceneObjectPart part = m_CmdManager.m_ScriptEngine.World.
-                    GetSceneObjectPart(localID);
+                GetSceneObjectPart(localID);
 
-            if(part == null) // Can't register events for non-prims
+            if (part == null) // Can't register events for non-prims
                 return;
 
-            if(!part.ContainsScripts())
+            if (!part.ContainsScripts())
                 return;
-
         }
 
         public void RemoveObjectEvent(uint localID, string eventName, LLUUID id)

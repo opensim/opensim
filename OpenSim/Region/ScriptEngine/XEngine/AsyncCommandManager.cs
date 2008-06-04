@@ -184,7 +184,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             List<Object> data = new List<Object>();
 
             Object[] listeners=m_Listener.GetSerializationData(itemID);
-            if(listeners.Length > 0)
+            if (listeners.Length > 0)
             {
                 data.Add("listener");
                 data.Add(listeners.Length);
@@ -192,7 +192,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             Object[] timers=m_Timer.GetSerializationData(itemID);
-            if(timers.Length > 0)
+            if (timers.Length > 0)
             {
                 data.Add("timer");
                 data.Add(timers.Length);
@@ -200,7 +200,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             Object[] sensors=m_SensorRepeat.GetSerializationData(itemID);
-            if(sensors.Length > 0)
+            if (sensors.Length > 0)
             {
                 data.Add("sensor");
                 data.Add(sensors.Length);
@@ -211,36 +211,36 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         }
 
         public void CreateFromData(uint localID, LLUUID itemID, LLUUID hostID,
-                Object[] data)
+                                   Object[] data)
         {
-            int idx=0;
+            int idx = 0;
             int len;
 
-            while(idx < data.Length)
+            while (idx < data.Length)
             {
                 string type = data[idx].ToString();
                 len = (int)data[idx+1];
                 idx+=2;
 
-                if(len > 0)
+                if (len > 0)
                 {
                     Object[] item = new Object[len];
                     Array.Copy(data, idx, item, 0, len);
 
                     idx+=len;
 
-                    switch(type)
+                    switch (type)
                     {
                     case "listener":
                         m_Listener.CreateFromData(localID, itemID, hostID,
-                                item);
+                                                  item);
                         break;
                     case "timer":
                         m_Timer.CreateFromData(localID, itemID, hostID, item);
                         break;
                     case "sensor":
                         m_SensorRepeat.CreateFromData(localID, itemID, hostID,
-                                item);
+                                                      item);
                         break;
                     }
                 }
@@ -249,11 +249,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         #region Check llRemoteData channels
 
-
         #endregion
 
         #region Check llListeners
-
 
         #endregion
 

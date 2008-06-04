@@ -106,7 +106,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Script
         {
             foreach (KeyValuePair<string, object> var in vars)
             {
-                if(m_Fields.ContainsKey(var.Key))
+                if (m_Fields.ContainsKey(var.Key))
                 {
                     m_Fields[var.Key].SetValue(this, var.Value);
                 }

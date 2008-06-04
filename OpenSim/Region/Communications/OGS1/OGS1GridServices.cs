@@ -624,14 +624,14 @@ namespace OpenSim.Region.Communications.OGS1
             LLUUID agentID = LLUUID.Zero;
             LLUUID RegionSecret = LLUUID.Zero;
             Helpers.TryParse((string)requestData["agent_id"], out agentID);
-            Helpers.TryParse((string)requestData["region_secret"], out RegionSecret);      
+            Helpers.TryParse((string)requestData["region_secret"], out RegionSecret);
 
             ulong regionHandle = Convert.ToUInt64((string)requestData["regionhandle"]);
 
-       
+
             m_localBackend.TriggerLogOffUser(regionHandle, agentID, RegionSecret,message);
 
-            
+
 
             return new XmlRpcResponse();
         }
@@ -647,7 +647,7 @@ namespace OpenSim.Region.Communications.OGS1
             try
             {
                 ch = new TcpChannel((int)NetworkServersInfo.RemotingListenerPort);
-                ChannelServices.RegisterChannel(ch, false); // Disabled security as Mono doesnt support this.
+                ChannelServices.RegisterChannel(ch, false); // Disabled security as Mono doesn't support this.
             }
             catch (Exception ex)
             {

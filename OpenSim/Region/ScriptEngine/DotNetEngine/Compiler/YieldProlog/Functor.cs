@@ -1,20 +1,20 @@
 /*
  * Copyright (C) 2007-2008, Jeff Thompson
- * 
+ *
  * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without 
+ *
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
- *     * Redistributions of source code must retain the above copyright 
+ *
+ *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright 
- *       notice, this list of conditions and the following disclaimer in the 
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its contributors 
- *       may be used to endorse or promote products derived from this software 
+ *     * Neither the name of the copyright holder nor the names of its contributors
+ *       may be used to endorse or promote products derived from this software
  *       without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -66,14 +66,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
 
         /// <summary>
         /// Return an Atom, Functor1, Functor2, Functor3 or Functor depending on the
-        /// length of args.  
+        /// length of args.
         /// Note that this is different than the Functor constructor which requires
         /// the length of args to be greater than 3.
         /// </summary>
         /// <param name="name"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public static object make(Atom name, object[] args) 
+        public static object make(Atom name, object[] args)
         {
             if (args.Length <= 0)
                 return name;

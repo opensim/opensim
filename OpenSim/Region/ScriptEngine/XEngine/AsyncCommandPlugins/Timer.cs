@@ -131,7 +131,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.AsyncCommandPlugins
             {
                 foreach (TimerClass ts in Timers)
                 {
-                    if(ts.itemID == itemID)
+                    if (ts.itemID == itemID)
                     {
                         data.Add(ts.interval);
                         data.Add(ts.next-DateTime.Now.Ticks);
@@ -142,11 +142,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine.AsyncCommandPlugins
         }
 
         public void CreateFromData(uint localID, LLUUID itemID, LLUUID objectID,
-                Object[] data)
+                                   Object[] data)
         {
-            int idx=0;
+            int idx = 0;
 
-            while(idx < data.Length)
+            while (idx < data.Length)
             {
                 TimerClass ts = new TimerClass();
 

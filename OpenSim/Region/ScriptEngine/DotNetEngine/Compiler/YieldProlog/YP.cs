@@ -1,20 +1,20 @@
 /*
  * Copyright (C) 2007-2008, Jeff Thompson
- * 
+ *
  * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without 
+ *
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
- *     * Redistributions of source code must retain the above copyright 
+ *
+ *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright 
- *       notice, this list of conditions and the following disclaimer in the 
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its contributors 
- *       may be used to endorse or promote products derived from this software 
+ *     * Neither the name of the copyright holder nor the names of its contributors
+ *       may be used to endorse or promote products derived from this software
  *       without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -650,8 +650,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             if (term1TypeCode == -2)
             {
                 // Variable.
-                // We always check for equality first because we want to be sure 
-                //   that less than returns false if the terms are equal, in 
+                // We always check for equality first because we want to be sure
+                //   that less than returns false if the terms are equal, in
                 //   case that the less than check really behaves like less than or equal.
                 if ((Variable)Term1 != (Variable)Term2)
                     // The hash code should be unique to a Variable object.
@@ -694,8 +694,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         }
 
         /// <summary>
-        /// Type code is -2 if term is a Variable, 0 if it is an Atom, 
-        /// 1 if it is a Functor1, 2 if it is a Functor2, 3 if it is a Functor3, 
+        /// Type code is -2 if term is a Variable, 0 if it is an Atom,
+        /// 1 if it is a Functor1, 2 if it is a Functor2, 3 if it is a Functor3,
         /// 4 if it is Functor.
         /// Otherwise, type code is -1.
         /// This does not call YP.getValue(term).
@@ -1115,7 +1115,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             IndexedAnswers indexedAnswers;
             if (!_predicatesStore.TryGetValue(nameArity, out clauses))
             {
-                // Create an IndexedAnswers as the first clause of the predicate.                
+                // Create an IndexedAnswers as the first clause of the predicate.
                 _predicatesStore[nameArity] = (clauses = new List<IClause>());
                 clauses.Add(indexedAnswers = new IndexedAnswers());
             }
@@ -1135,7 +1135,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             List<IClause> clauses;
             if (!_predicatesStore.TryGetValue(new NameArity(name, arguments.Length), out clauses))
                 throw new UndefinedPredicateException
-                    ("Undefined fact: " + name + "/" + arguments.Length, name, 
+                    ("Undefined fact: " + name + "/" + arguments.Length, name,
                     arguments.Length);
 
             if (clauses.Count == 1)
@@ -1209,7 +1209,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         }
 
         /// <summary>
-        /// Use YP.getFunctorName(Goal) and invoke the static method of this name in the 
+        /// Use YP.getFunctorName(Goal) and invoke the static method of this name in the
         /// declaringClass, using arguments from YP.getFunctorArgs(Goal).
         /// Note that Goal must be a simple functor, not a complex expression.
         /// If not found, this throws UndefinedPredicateException.

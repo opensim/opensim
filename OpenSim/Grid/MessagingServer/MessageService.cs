@@ -67,12 +67,12 @@ namespace OpenSim.Grid.MessagingServer
             UserConfig uc = new UserConfig();
             uc.DatabaseConnect = cfg.DatabaseConnect;
             uc.DatabaseProvider = cfg.DatabaseProvider;
-            
+
             m_userManager._config = uc;
             m_userManager.AddPlugin(cfg.DatabaseProvider, cfg.DatabaseConnect);
         }
 
-       
+
 
         #region FriendList Methods
 
@@ -152,7 +152,7 @@ namespace OpenSim.Grid.MessagingServer
                     friendlistupdater.OnDone += PresenceUpdateDone;
                     WaitCallback cb = new WaitCallback(friendlistupdater.go);
                     ThreadPool.QueueUserWorkItem(cb);
-                    
+
                 }
                 else
                 {
@@ -173,7 +173,7 @@ namespace OpenSim.Grid.MessagingServer
                 {
                     // we need to send out online status update, but the user is already subscribed
                 }
-                
+
                 UserAgentData p2Handle = m_userManager.GetUserAgentData(friendpresence.agentData.AgentID);
 
                 if (p2Handle != null)
@@ -196,7 +196,7 @@ namespace OpenSim.Grid.MessagingServer
                     // skip, agent doesn't appear to exist anymore
                 }
 
-               
+
 
                 //SendRegionPresenceUpdate(userpresence, friendpresence);
             }
@@ -315,8 +315,8 @@ namespace OpenSim.Grid.MessagingServer
                         UserAgentData p2Handle = m_userManager.GetUserAgentData(friendd.agentData.AgentID);
                         if (p2Handle != null)
                         {
-                                
-                            
+
+
                                 friendd.regionData.regionHandle = p2Handle.Handle;
                                 PresenceInformer friendlistupdater = new PresenceInformer();
                                 friendlistupdater.presence1 = AgentData;
@@ -328,11 +328,11 @@ namespace OpenSim.Grid.MessagingServer
 
                                 friendlistupdater.OnGetRegionData += GetRegionInfo;
                                 friendlistupdater.OnDone += PresenceUpdateDone;
-                            
+
                                 WaitCallback cb3 = new WaitCallback(friendlistupdater.go);
                                 ThreadPool.QueueUserWorkItem(cb3);
 
-                            
+
 
                         }
                         else
@@ -519,14 +519,14 @@ namespace OpenSim.Grid.MessagingServer
                 else
                 {
                     // Don't lock the cache while we're looking up the region!
-                    lookup = true; 
+                    lookup = true;
                 }
             }
 
             if (lookup)
             {
                 regionInfo = RequestRegionInfo(regionhandle);
-                
+
                 if (regionInfo != null)
                 {
                     lock (m_regionInfoCache)
@@ -542,7 +542,7 @@ namespace OpenSim.Grid.MessagingServer
                     }
                 }
             }
-            
+
             return regionInfo;
         }
 
@@ -555,7 +555,7 @@ namespace OpenSim.Grid.MessagingServer
                 cachecount = m_regionInfoCache.Count;
                 m_regionInfoCache.Clear();
             }
-            
+
             return cachecount;
         }
 

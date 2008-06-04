@@ -56,14 +56,14 @@ namespace OpenSim.Region.Environment.Scenes
                 foreach (XmlNode aPrimNode in rootNode.ChildNodes)
                 {
                     SceneObjectGroup obj = new SceneObjectGroup(scene, scene.RegionInfo.RegionHandle, aPrimNode.OuterXml);
-                    
+
                     if (newIDS)
                     {
                         obj.ResetIDs();
                     }
                     //if we want this to be a import method then we need new uuids for the object to avoid any clashes
                     //obj.RegenerateFullIDs();
-                    
+
                     scene.AddSceneObject(obj);
 
                     SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
@@ -156,7 +156,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             LoadPrimsFromXml2(scene, new XmlTextReader(fileName));
         }
-        
+
         /// <summary>
         /// Load prims from the xml2 format
         /// </summary>
@@ -173,24 +173,24 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="scene"></param>
         /// <param name="reader"></param>
         protected static void LoadPrimsFromXml2(Scene scene, XmlTextReader reader)
-        {            
-            XmlDocument doc = new XmlDocument();                        
+        {
+            XmlDocument doc = new XmlDocument();
             reader.WhitespaceHandling = WhitespaceHandling.None;
             doc.Load(reader);
             reader.Close();
             XmlNode rootNode = doc.FirstChild;
-            
+
             foreach (XmlNode aPrimNode in rootNode.ChildNodes)
             {
                 CreatePrimFromXml(scene, aPrimNode.OuterXml);
-            }            
+            }
         }
 
         public static void CreatePrimFromXml(Scene scene, string xmlData)
         {
             SceneObjectGroup obj = new SceneObjectGroup(xmlData);
             LLVector3 receivedVelocity = obj.RootPart.Velocity;
-            //System.Console.WriteLine(obj.RootPart.Velocity.ToString());            
+            //System.Console.WriteLine(obj.RootPart.Velocity.ToString());
             scene.AddSceneObjectFromStorage(obj);
 
             SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);

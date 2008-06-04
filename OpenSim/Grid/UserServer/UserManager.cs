@@ -430,9 +430,9 @@ namespace OpenSim.Grid.UserServer
             if (requestData.Contains("avatar_uuid"))
             {
                 LLUUID guess = LLUUID.Zero;
-                
+
                 Helpers.TryParse((string)requestData["avatar_uuid"],out guess);
-                   
+
                 if (guess == LLUUID.Zero)
                 {
                     return CreateUnknownUserErrorResponse();
@@ -444,7 +444,7 @@ namespace OpenSim.Grid.UserServer
                 {
                     return CreateUnknownUserErrorResponse();
                 }
-                
+
                 // no agent???
                 if (userProfile.CurrentAgent == null)
                 {
@@ -456,7 +456,7 @@ namespace OpenSim.Grid.UserServer
                 responseData["session"]=userProfile.CurrentAgent.SessionID.ToString();
                 if (userProfile.CurrentAgent.AgentOnline)
                     responseData["agent_online"]="TRUE";
-                else 
+                else
                     responseData["agent_online"]="FALSE";
 
                 response.Value = responseData;

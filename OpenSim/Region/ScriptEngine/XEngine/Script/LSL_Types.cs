@@ -1212,8 +1212,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Script
 
             public LSLInteger(Object o)
             {
-                if(!(o is Int32))
-                    value=0;
+                if (!(o is Int32))
+                    value = 0;
                 else
                     value = (int)o;
             }
@@ -1327,11 +1327,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Script
 
             public override bool Equals(object o)
             {
-                if(o is Int32)
+                if (o is Int32)
                 {
                     return value == (Int32)o;
                 }
-                if(o is LSLInteger)
+                if (o is LSLInteger)
                 {
                     return value == ((LSLInteger)o).value;
                 }

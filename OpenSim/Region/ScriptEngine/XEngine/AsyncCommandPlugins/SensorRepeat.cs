@@ -69,7 +69,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine.AsyncCommandPlugins
         private object SenseRepeatListLock = new object();
 
         public void SetSenseRepeatEvent(uint m_localID, LLUUID m_itemID,
-            string name, LLUUID keyID, int type, double range, double arc, double sec, SceneObjectPart host)
+                                        string name, LLUUID keyID, int type, double range,
+                                        double arc, double sec, SceneObjectPart host)
         {
             Console.WriteLine("SetSensorEvent");
 
@@ -319,7 +320,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.AsyncCommandPlugins
                             new XDetectParams[SensedObjects.Length];
 
                     int idx;
-                    for(idx = 0 ; idx < SensedObjects.Length; idx++)
+                    for (idx = 0; idx < SensedObjects.Length; idx++)
                     {
                         detect[idx].Key=(LLUUID)(SensedObjects.Data[idx]);
                     }
@@ -339,7 +340,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.AsyncCommandPlugins
 
             foreach (SenseRepeatClass ts in SenseRepeaters)
             {
-                if(ts.itemID == itemID)
+                if (ts.itemID == itemID)
                 {
                     data.Add(ts.interval);
                     data.Add(ts.name);
@@ -353,18 +354,18 @@ namespace OpenSim.Region.ScriptEngine.XEngine.AsyncCommandPlugins
         }
 
         public void CreateFromData(uint localID, LLUUID itemID, LLUUID objectID,
-                Object[] data)
+                                   Object[] data)
         {
             SceneObjectPart part =
-                    m_CmdManager.m_ScriptEngine.World.GetSceneObjectPart(
+                m_CmdManager.m_ScriptEngine.World.GetSceneObjectPart(
                     objectID);
 
-            if(part == null)
+            if (part == null)
                 return;
 
-            int idx=0;
+            int idx = 0;
 
-            while(idx < data.Length)
+            while (idx < data.Length)
             {
                 SenseRepeatClass ts = new SenseRepeatClass();
 
@@ -380,12 +381,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine.AsyncCommandPlugins
                 ts.host = part;
 
                 ts.next =
-                        DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
+                    DateTime.Now.ToUniversalTime().AddSeconds(ts.interval);
 
                 SenseRepeaters.Add(ts);
                 idx += 6;
             }
         }
-
     }
 }

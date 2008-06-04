@@ -79,7 +79,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             // Save the flags we just computed and return the result
-            if(eventFlags != 0)
+            if (eventFlags != 0)
                 m_stateEvents.Add(m_Script.State, eventFlags);
 
             //Console.WriteLine("Returning {0:x}", eventFlags);
@@ -130,7 +130,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 #endif
             // Found
             ev.Invoke(m_Script, args);
-
         }
     }
 }

@@ -50,7 +50,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         #region IRegionModule Members
 
         private bool gridmode = false;
-        
+
 
         public void Initialise(Scene scene, IConfigSource config)
         {
@@ -183,13 +183,13 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 }
             }
 
-            
+
         }
 
         // Trusty OSG1 called method.  This method also gets called from the FriendsModule
         // Turns out the sim has to send an instant message to the user to get it to show an accepted friend.
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="msg"></param>
         private void OnGridInstantMessage(GridInstantMessage msg)
@@ -207,7 +207,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
         /// Process a XMLRPC Grid Instant Message
         /// </summary>
         /// <param name="request">XMLRPC parameters from_agent_id from_agent_session to_agent_id im_session_id timestamp
-        /// from_agent_name message dialog from_group offline parent_estate_id  position_x position_y  position_z region_id 
+        /// from_agent_name message dialog from_group offline parent_estate_id  position_x position_y  position_z region_id
         /// binary_bucket region_handle</param>
         /// <returns>Nothing much</returns>
         protected virtual XmlRpcResponse processXMLRPCGridInstantMessage(XmlRpcRequest request)
@@ -221,7 +221,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             uint timestamp = 0;
             string fromAgentName = "";
             string message = "";
-            byte dialog = (byte)0; 
+            byte dialog = (byte)0;
             bool fromGroup = false;
             byte offline = (byte)0;
             uint ParentEstateID=0;
@@ -237,14 +237,14 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
             Hashtable requestData = (Hashtable)request.Params[0];
             // Check if it's got all the data
-            if (requestData.ContainsKey("from_agent_id") && requestData.ContainsKey("from_agent_session") 
-                    && requestData.ContainsKey("to_agent_id") && requestData.ContainsKey("im_session_id") 
-                    && requestData.ContainsKey("timestamp") && requestData.ContainsKey("from_agent_name") 
-                    && requestData.ContainsKey("message") && requestData.ContainsKey("dialog") 
-                    && requestData.ContainsKey("from_group") 
-                    && requestData.ContainsKey("offline") && requestData.ContainsKey("parent_estate_id") 
-                    && requestData.ContainsKey("position_x") && requestData.ContainsKey("position_y") 
-                    && requestData.ContainsKey("position_z") && requestData.ContainsKey("region_id") 
+            if (requestData.ContainsKey("from_agent_id") && requestData.ContainsKey("from_agent_session")
+                    && requestData.ContainsKey("to_agent_id") && requestData.ContainsKey("im_session_id")
+                    && requestData.ContainsKey("timestamp") && requestData.ContainsKey("from_agent_name")
+                    && requestData.ContainsKey("message") && requestData.ContainsKey("dialog")
+                    && requestData.ContainsKey("from_group")
+                    && requestData.ContainsKey("offline") && requestData.ContainsKey("parent_estate_id")
+                    && requestData.ContainsKey("position_x") && requestData.ContainsKey("position_y")
+                    && requestData.ContainsKey("position_z") && requestData.ContainsKey("region_id")
                     && requestData.ContainsKey("binary_bucket") &&  requestData.ContainsKey("region_handle"))
             {
                 // Do the easy way of validating the UUIDs
@@ -276,7 +276,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 // Bytes don't transfer well over XMLRPC, so, we Base64 Encode them.
                 byte[] dialogdata = Convert.FromBase64String((string)requestData["dialog"]);
                 dialog = dialogdata[0];
-                
+
                 if ((string)requestData["from_group"] == "TRUE")
                     fromGroup = true;
 
@@ -365,7 +365,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 gim.Position = new sLLVector3(Position);
                 gim.binaryBucket = binaryBucket;
 
-                
+
                 // Trigger the Instant message in the scene.
                 foreach (Scene scene in m_scenes)
                 {
@@ -381,7 +381,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                     }
                 }
                 //OnGridInstantMessage(gim);
-                
+
             }
 
             //Send response back to region calling if it was successful
@@ -482,7 +482,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                 else
                 {
                     lookupAgent = true;
-                    
+
 
                 }
             }
@@ -564,7 +564,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
                         else
                         {
                             // try again, but lookup user this time.
-                            // Warning, this must call the Async version 
+                            // Warning, this must call the Async version
                             // of this method or we'll be making thousands of threads
                             // The version within the spawned thread is SendGridInstantMessageViaXMLRPCAsync
                             // The version that spawns the thread is SendGridInstantMessageViaXMLRPC
@@ -686,7 +686,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
 
             if (msg.fromGroup)
                 gim["from_group"] = "TRUE";
-            else 
+            else
                 gim["from_group"] = "FALSE";
             byte[] offlinedata = new byte[1]; offlinedata[0] = msg.offline;
             gim["offline"] = Convert.ToBase64String(offlinedata, Base64FormattingOptions.None);

@@ -178,7 +178,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
 
         /// <summary>
-        /// accepts a valid LLUUID, -or- a name of an inventory item. 
+        /// accepts a valid LLUUID, -or- a name of an inventory item.
         /// Returns a valid LLUUID or LLUUID.Zero if key invalid and item not found
         /// in prim inventory.
         /// </summary>

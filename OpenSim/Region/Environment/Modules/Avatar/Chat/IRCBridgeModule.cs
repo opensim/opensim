@@ -644,7 +644,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 }
                 catch (IOException)
                 {
-                    if (m_enabled) 
+                    if (m_enabled)
                     {
                         m_log.Error("[IRC]: ListenerRun IOException. Disconnected from IRC server ??? (ListenerRun)");
                         Reconnect();
@@ -848,7 +848,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         public void Close()
         {
-            m_writer.WriteLine(String.Format("QUIT :{0} to {1} wormhole to {2} closing", 
+            m_writer.WriteLine(String.Format("QUIT :{0} to {1} wormhole to {2} closing",
                                              m_nick, m_channel, m_server));
             m_writer.Flush();
 

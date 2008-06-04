@@ -80,16 +80,16 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                     {
                         // XXX: Not a great way to iterate through face textures, but there's no
                         // other way to tell how many faces there actually are
-                        //int i = 0;                        
-                        foreach (LLObject.TextureEntryFace texture in part.Shape.Textures.FaceTextures)                       
-                        {                           
+                        //int i = 0;
+                        foreach (LLObject.TextureEntryFace texture in part.Shape.Textures.FaceTextures)
+                        {
                             if (texture != null)
                             {
-                                //m_log.DebugFormat("[ARCHIVER]: Got face {0}", i++);                                
+                                //m_log.DebugFormat("[ARCHIVER]: Got face {0}", i++);
                                 textureUuids[texture.TextureID] = 1;
                             }
                         }
-                        
+
                         foreach (TaskInventoryItem tit in part.TaskInventory.Values)
                         {
                             if (tit.Type == (int)InventoryType.Texture)
@@ -123,7 +123,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             TarArchiveWriter archive = new TarArchiveWriter();
 
             archive.AddFile(ArchiveConstants.PRIMS_PATH, m_serializedEntities);
-            
+
             // It appears that gtar, at least, doesn't need the intermediate directory entries in the tar
             //archive.AddDir("assets");
 
@@ -132,7 +132,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 if (assets[uuid] != null)
                 {
                     archive.AddFile(
-                        ArchiveConstants.TEXTURES_PATH + uuid.ToString() + ArchiveConstants.TEXTURE_EXTENSION, 
+                        ArchiveConstants.TEXTURES_PATH + uuid.ToString() + ArchiveConstants.TEXTURE_EXTENSION,
                         assets[uuid].Data);
                 }
                 else
@@ -142,7 +142,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             }
 
             archive.WriteTar(m_savePath);
-            
+
             m_log.InfoFormat("[ARCHIVER]: Wrote out OpenSimulator archive {0}", m_savePath);
         }
 
@@ -232,11 +232,11 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 newThread.Start();
             }
         }
-        
+
         /// <summary>
         /// Perform the callback on the original requester of the assets
         /// </summary>
-        protected void PerformAssetsRequestCallback()        
+        protected void PerformAssetsRequestCallback()
         {
             m_assetsRequestCallback(m_assets);
         }

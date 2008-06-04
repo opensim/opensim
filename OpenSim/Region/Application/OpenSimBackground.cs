@@ -31,20 +31,20 @@ using log4net;
 using Nini.Config;
 
 namespace OpenSim
-{    
+{
     /// <summary>
     /// Consoleless OpenSim region server
-    /// </summary>   
+    /// </summary>
     public class OpenSimBackground : OpenSimBase
-    {       
+    {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private ManualResetEvent WorldHasComeToAnEnd = new ManualResetEvent(false);
-        
+
         public OpenSimBackground(IConfigSource configSource) : base(configSource)
         {
         }
-        
+
         /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.
         /// </summary>
@@ -65,8 +65,8 @@ namespace OpenSim
                              m_clientServers.Count.ToString(), m_clientServers.Count > 1 ? "s" : "");
 
             WorldHasComeToAnEnd.WaitOne();
-        } 
-        
+        }
+
         /// <summary>
         /// Performs any last-minute sanity checking and shuts down the region server
         /// </summary>
@@ -75,6 +75,6 @@ namespace OpenSim
             WorldHasComeToAnEnd.Set();
 
             base.Shutdown();
-        }        
+        }
     }
 }

@@ -39,24 +39,24 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     public class TarArchiveReader
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
-        protected static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();        
-        
+
+        protected static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
+
         /// <summary>
         /// Binary reader for the underlying stream
         /// </summary>
         protected BinaryReader m_br;
-        
+
         /// <summary>
         /// Used to trim off null chars
         /// </summary>
         protected char[] m_nullCharArray = new char[] { '\0' };
-        
+
         public TarArchiveReader(string archivePath)
         {
             m_br = new BinaryReader(new FileStream(archivePath, FileMode.Open));
         }
-        
+
         /// <summary>
         /// Are we at the end of the archive?
         /// </summary>
@@ -64,13 +64,13 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         public bool AtEof()
         {
             // If we've reached the end of the archive we'll be in null block territory, which means
-            // the next byte will be 0            
+            // the next byte will be 0
             if (m_br.PeekChar() == 0)
                 return true;
-            
+
             return false;
         }
-        
+
         /// <summary>
         /// Read the next entry in the tar file.
         /// </summary>
@@ -79,27 +79,27 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         public byte[] ReadEntry(out string filePath)
         {
             filePath = String.Empty;
-            
+
             if (AtEof())
                 return null;
-            
-            TarHeader header = ReadHeader();    
-                        
+
+            TarHeader header = ReadHeader();
+
             filePath = header.FilePath;
             byte[] data = m_br.ReadBytes(header.FileSize);
-            
-            m_log.DebugFormat("[TAR ARCHIVE READER]: filePath {0}, fileSize {1}", filePath, header.FileSize);                                    
-            
-            // Read the rest of the empty padding in the 512 byte block 
+
+            m_log.DebugFormat("[TAR ARCHIVE READER]: filePath {0}, fileSize {1}", filePath, header.FileSize);
+
+            // Read the rest of the empty padding in the 512 byte block
             if (header.FileSize % 512 != 0)
             {
                 int paddingLeft = 512 - (header.FileSize % 512);
-                
+
                 m_log.DebugFormat("[TAR ARCHIVE READER]: Reading {0} padding bytes", paddingLeft);
 
                 m_br.ReadBytes(paddingLeft);
-            }          
-            
+            }
+
             return data;
         }
 
@@ -109,44 +109,44 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// </summary>
         /// <returns>A tar header struct.</returns>
         protected TarHeader ReadHeader()
-        {            
+        {
             TarHeader tarHeader = new TarHeader();
-            
+
             byte[] header = m_br.ReadBytes(512);
-            
+
             tarHeader.FilePath = m_asciiEncoding.GetString(header, 0, 100);
             tarHeader.FilePath = tarHeader.FilePath.Trim(m_nullCharArray);
             tarHeader.FileSize = ConvertOctalBytesToDecimal(header, 124, 11);
-            
+
             return tarHeader;
         }
-        
+
         public void Close()
         {
             m_br.Close();
         }
-        
+
         /// <summary>
         /// Convert octal bytes to a decimal representation
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
         public static int ConvertOctalBytesToDecimal(byte[] bytes, int startIndex, int count)
-        {           
-            string oString = m_asciiEncoding.GetString(bytes, startIndex, count);            
-            
+        {
+            string oString = m_asciiEncoding.GetString(bytes, startIndex, count);
+
             int d = 0;
-                        
+
             foreach (char c in oString)
             {
-                d <<= 3;                
-                d |= c - '0';               
+                d <<= 3;
+                d |= c - '0';
             }
 
             return d;
-        }        
+        }
     }
-    
+
     public struct TarHeader
     {
         public string FilePath;

@@ -120,7 +120,7 @@ namespace OpenSim.Data.MySQL
                     //m_log.Info("[ASSET DB]: Asset exists already, ignoring.");
                     return;
                 }
-                
+
                 MySqlCommand cmd =
                     new MySqlCommand(
                         "REPLACE INTO assets(id, name, description, assetType, invType, local, temporary, data)" +
@@ -164,7 +164,7 @@ namespace OpenSim.Data.MySQL
         override public bool ExistsAsset(LLUUID uuid)
         {
             bool assetExists = false;
-            
+
             lock (_dbConnection)
             {
                 MySqlCommand cmd =
@@ -182,7 +182,7 @@ namespace OpenSim.Data.MySQL
                         {
                             assetExists = true;
                         }
-                        
+
                         dbReader.Close();
                         cmd.Dispose();
                     }
@@ -195,8 +195,8 @@ namespace OpenSim.Data.MySQL
                     _dbConnection.Reconnect();
                 }
             }
-            
-            return assetExists;            
+
+            return assetExists;
         }
 
         /// <summary>

@@ -253,10 +253,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             string OutFile = Path.Combine(ScriptEnginesPath, Path.Combine(
                     m_scriptEngine.World.RegionInfo.RegionID.ToString(),
                     FilePrefix + "_compiled_" + asset + ".dll"));
-//            string OutFile = Path.Combine(ScriptEnginesPath, 
+//            string OutFile = Path.Combine(ScriptEnginesPath,
 //                    FilePrefix + "_compiled_" + asset + ".dll");
 
-            if(File.Exists(OutFile))
+            if (File.Exists(OutFile))
                 return OutFile;
 
             if (!Directory.Exists(ScriptEnginesPath))
@@ -271,7 +271,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             if (!Directory.Exists(Path.Combine(ScriptEnginesPath,
-                    m_scriptEngine.World.RegionInfo.RegionID.ToString())))
+                                               m_scriptEngine.World.RegionInfo.RegionID.ToString())))
             {
                 try
                 {
@@ -283,7 +283,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             enumCompileType l = DefaultCompileLanguage;
-
 
             if (Script.StartsWith("//c#", true, CultureInfo.InvariantCulture))
                 l = enumCompileType.cs;
@@ -334,7 +333,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             // End of insert
 
-
             switch (l)
             {
                 case enumCompileType.cs:
@@ -368,27 +366,25 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         private static string CreateCSCompilerScript(string compileScript)
         {
-
-
             compileScript = String.Empty +
-                        "using OpenSim.Region.ScriptEngine.XEngine.Script; using System.Collections.Generic;\r\n" +
-                        String.Empty + "namespace SecondLife { " +
-                        String.Empty + "public class Script : OpenSim.Region.ScriptEngine.XEngine.Script.BuiltIn_Commands_BaseClass { \r\n" +
-                        @"public Script() { } " +
-                        compileScript +
-                        "} }\r\n";
+                "using OpenSim.Region.ScriptEngine.XEngine.Script; using System.Collections.Generic;\r\n" +
+                String.Empty + "namespace SecondLife { " +
+                String.Empty + "public class Script : OpenSim.Region.ScriptEngine.XEngine.Script.BuiltIn_Commands_BaseClass { \r\n" +
+                @"public Script() { } " +
+                compileScript +
+                "} }\r\n";
             return compileScript;
         }
 
         private static string CreateVBCompilerScript(string compileScript)
         {
             compileScript = String.Empty +
-                        "Imports OpenSim.Region.ScriptEngine.XEngine.Script: Imports System.Collections.Generic: " +
-                        String.Empty + "NameSpace SecondLife:" +
-                        String.Empty + "Public Class Script: Inherits OpenSim.Region.ScriptEngine.XEngine.Script.BuiltIn_Commands_BaseClass: " +
-                        "\r\nPublic Sub New()\r\nEnd Sub: " +
-                        compileScript +
-                        ":End Class :End Namespace\r\n";
+                "Imports OpenSim.Region.ScriptEngine.XEngine.Script: Imports System.Collections.Generic: " +
+                String.Empty + "NameSpace SecondLife:" +
+                String.Empty + "Public Class Script: Inherits OpenSim.Region.ScriptEngine.XEngine.Script.BuiltIn_Commands_BaseClass: " +
+                "\r\nPublic Sub New()\r\nEnd Sub: " +
+                compileScript +
+                ":End Class :End Namespace\r\n";
             return compileScript;
         }
 
@@ -404,8 +400,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             // Output assembly name
             scriptCompileCounter++;
             string OutFile = Path.Combine(ScriptEnginesPath, Path.Combine(
-                    m_scriptEngine.World.RegionInfo.RegionID.ToString(),
-                    FilePrefix + "_compiled_" + asset + ".dll"));
+                                              m_scriptEngine.World.RegionInfo.RegionID.ToString(),
+                                              FilePrefix + "_compiled_" + asset + ".dll"));
 #if DEBUG
 //            m_scriptEngine.Log.Debug("[" + m_scriptEngine.ScriptEngineName + "]: Starting compile of \"" + OutFile + "\".");
 #endif
@@ -490,15 +486,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 foreach (CompilerError CompErr in results.Errors)
                 {
                     errtext += "Line number " + (CompErr.Line - LinesToRemoveOnError) +
-                               ", Error Number: " + CompErr.ErrorNumber +
-                               ", '" + CompErr.ErrorText + "'\r\n";
+                        ", Error Number: " + CompErr.ErrorNumber +
+                        ", '" + CompErr.ErrorText + "'\r\n";
                 }
                 if (!File.Exists(OutFile))
                 {
                     throw new Exception(errtext);
                 }
             }
-
 
             //
             // NO ERRORS, BUT NO COMPILED FILE

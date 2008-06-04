@@ -111,8 +111,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             m_host.AddScriptLPS(1);
             
-            if(text.Length > 1023)
-                text=text.Substring(0, 1023);
+            if (text.Length > 1023)
+                text = text.Substring(0, 1023);
 
             World.SimChat(Helpers.StringToField(text),
                           ChatTypeEnum.Say, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
@@ -129,13 +129,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         private LLUUID InventorySelf()
         {
-            LLUUID invItemID=new LLUUID();
+            LLUUID invItemID = new LLUUID();
 
             foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
                 if (inv.Value.Type == 10 && inv.Value.ItemID == m_itemID)
                 {
-                    invItemID=inv.Key;
+                    invItemID = inv.Key;
                     break;
                 }
             }
@@ -300,7 +300,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return angle;
         }
 
-
         // Old implementation of llRot2Euler, now normalized
 
         public LSL_Types.Vector3 llRot2Euler(LSL_Types.Quaternion r)
@@ -321,7 +320,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             else
                 return new LSL_Types.Vector3(0.0, -Math.PI / 2, NormalizeAngle(Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z)));
         }
-
 
         // Xantor's newer llEuler2Rot() *try the second* inverted quaternions (-x,-y,-z,w) as LL seems to like
         // New and improved, now actually works as described. Prim rotates as expected as does llRot2Euler.
@@ -363,7 +361,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return new LSL_Types.Quaternion(x, y, z, s);
         }
 
-
         public LSL_Types.Quaternion llAxes2Rot(LSL_Types.Vector3 fwd, LSL_Types.Vector3 left, LSL_Types.Vector3 up)
         {
             m_host.AddScriptLPS(1);
@@ -388,6 +385,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_host.AddScriptLPS(1);
             return (new LSL_Types.Vector3(0, 0, 1) * r);
         }
+
         public LSL_Types.Quaternion llRotBetween(LSL_Types.Vector3 a, LSL_Types.Vector3 b)
         {
             //A and B should both be normalized
@@ -401,12 +399,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             return new LSL_Types.Quaternion(axis.x * s, axis.y * s, axis.z * s, (float)Math.Cos(angle / 2));
         }
+
         public void llWhisper(int channelID, string text)
         {
             m_host.AddScriptLPS(1);
             
-            if(text.Length > 1023)
-                text=text.Substring(0, 1023);
+            if (text.Length > 1023)
+                text = text.Substring(0, 1023);
 
             World.SimChat(Helpers.StringToField(text),
                           ChatTypeEnum.Whisper, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
@@ -419,8 +418,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             m_host.AddScriptLPS(1);
             
-            if(text.Length > 1023)
-                text=text.Substring(0, 1023);
+            if (text.Length > 1023)
+                text = text.Substring(0, 1023);
 
             World.SimChat(Helpers.StringToField(text),
                           ChatTypeEnum.Shout, channelID, m_host.AbsolutePosition, m_host.Name, m_host.UUID, true);
@@ -437,9 +436,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return;
             }
 
-            
-            if(text.Length > 1023)
-                text=text.Substring(0, 1023);
+            if (text.Length > 1023)
+                text = text.Substring(0, 1023);
 
             m_host.AddScriptLPS(1);
 
@@ -486,7 +484,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             LLUUID.TryParse(id, out keyID);
 
             m_ScriptEngine.m_ASYNCLSLCommandManager.m_SensorRepeat.SetSenseRepeatEvent(m_localID, m_itemID, name, keyID, type, range, arc, rate, m_host);
-       }
+        }
 
         public void llSensorRemove()
         {
@@ -520,17 +518,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (SensedObject == null)
                 return String.Empty;
             return SensedObject.Name;
-
         }
 
         public string llDetectedName(int number)
         {
             m_host.AddScriptLPS(1);
             LLUUID sensedUUID = m_ScriptEngine.GetDetectID(m_itemID, number);
-            if(sensedUUID != null)
+            if (sensedUUID != null)
                 return resolveName(sensedUUID);
             return String.Empty;
-       }
+        }
 
         public LLUUID uuidDetectedKey(int number)
         {
@@ -540,7 +537,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public EntityBase entityDetectedKey(int number)
         {
             LLUUID sensedUUID = m_ScriptEngine.GetDetectID(m_itemID, number);
-            if(sensedUUID != null)
+            if (sensedUUID != null)
             {
                 EntityBase SensedObject = null;
                 lock (World.Entities)
@@ -567,7 +564,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             // returns UUID of owner of object detected
             m_host.AddScriptLPS(1);
             EntityBase SensedObject = entityDetectedKey(number);
-            if (SensedObject ==null)
+            if (SensedObject == null)
                 return String.Empty;
             LLUUID SensedUUID = uuidDetectedKey(number);
             if (World.GetScenePresence(SensedUUID) == null)
@@ -575,7 +572,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 // sensed object is not an avatar
                 // so get the owner of the sensed object
                 SceneObjectPart SOP = World.GetSceneObjectPart(SensedUUID);
-                if (SOP != null) { return SOP.ObjectOwner.ToString(); }
+                if (SOP != null)
+                {
+                    return SOP.ObjectOwner.ToString();
+                }
             }
             else
             {
@@ -583,9 +583,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return SensedUUID.ToString();
             }
 
-
             return String.Empty;
-
        }
 
         public LSL_Types.LSLInteger llDetectedType(int number)
@@ -599,14 +597,18 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             LLUUID SensedUUID = uuidDetectedKey(number);
             LSL_Types.Vector3 ZeroVector = new LSL_Types.Vector3(0, 0, 0);
 
-            if (World.GetScenePresence(SensedUUID) != null) mask |= 0x01; // actor
+            if (World.GetScenePresence(SensedUUID) != null)
+                mask |= 0x01; // actor
+
             if (SensedObject.Velocity.Equals(ZeroVector))
                 mask |= 0x04; // passive non-moving
             else
                 mask |= 0x02; // active moving
-            if (SensedObject is IScript) mask |= 0x08; // Scripted. It COULD have one hidden ...
-            return mask;
 
+            if (SensedObject is IScript)
+                mask |= 0x08; // Scripted. It COULD have one hidden ...
+
+            return mask;
         }
 
         public LSL_Types.Vector3 llDetectedPos(int number)
@@ -627,7 +629,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return new LSL_Types.Vector3(0, 0, 0);
 
             return new LSL_Types.Vector3(SensedObject.Velocity.X, SensedObject.Velocity.Y, SensedObject.Velocity.Z);
-           // return new LSL_Types.Vector3();
+            // return new LSL_Types.Vector3();
         }
 
         public LSL_Types.Vector3 llDetectedGrab(int number)
@@ -702,8 +704,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     m_host.ScriptSetPhysicsStatus(true);
                 else
                     m_host.ScriptSetPhysicsStatus(false);
-
             }
+
             if ((status & BuiltIn_Commands_BaseClass.STATUS_PHANTOM) == BuiltIn_Commands_BaseClass.STATUS_PHANTOM)
             {
                 if (value == 1)
@@ -711,27 +713,32 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 else
                     m_host.ScriptSetPhantomStatus(false);
             }
+
             if ((status & BuiltIn_Commands_BaseClass.STATUS_CAST_SHADOWS) == BuiltIn_Commands_BaseClass.STATUS_CAST_SHADOWS)
             {
                 m_host.AddFlag(LLObject.ObjectFlags.CastShadows);
             }
+
             if ((status & BuiltIn_Commands_BaseClass.STATUS_ROTATE_X) == BuiltIn_Commands_BaseClass.STATUS_ROTATE_X)
             {
                 statusrotationaxis |= BuiltIn_Commands_BaseClass.STATUS_ROTATE_X;
-
             }
+
             if ((status & BuiltIn_Commands_BaseClass.STATUS_ROTATE_Y) == BuiltIn_Commands_BaseClass.STATUS_ROTATE_Y)
             {
                 statusrotationaxis |= BuiltIn_Commands_BaseClass.STATUS_ROTATE_Y;
             }
+
             if ((status & BuiltIn_Commands_BaseClass.STATUS_ROTATE_Z) == BuiltIn_Commands_BaseClass.STATUS_ROTATE_Z)
             {
                 statusrotationaxis |= BuiltIn_Commands_BaseClass.STATUS_ROTATE_Z;
             }
+
             if ((status & BuiltIn_Commands_BaseClass.STATUS_BLOCK_GRAB) == BuiltIn_Commands_BaseClass.STATUS_BLOCK_GRAB)
             {
                 NotImplemented("llSetStatus - STATUS_BLOCK_GRAB");
             }
+
             if ((status & BuiltIn_Commands_BaseClass.STATUS_DIE_AT_EDGE) == BuiltIn_Commands_BaseClass.STATUS_DIE_AT_EDGE)
             {
                 if (value == 1)
@@ -739,18 +746,20 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 else
                     m_host.SetDieAtEdge(false);
             }
+
             if ((status & BuiltIn_Commands_BaseClass.STATUS_RETURN_AT_EDGE) == BuiltIn_Commands_BaseClass.STATUS_RETURN_AT_EDGE)
             {
                 NotImplemented("llSetStatus - STATUS_RETURN_AT_EDGE");
             }
+
             if ((status & BuiltIn_Commands_BaseClass.STATUS_SANDBOX) == BuiltIn_Commands_BaseClass.STATUS_SANDBOX)
             {
                 NotImplemented("llSetStatus - STATUS_SANDBOX");
             }
+
             if (statusrotationaxis != 0)
             {
                 m_host.SetAxisRotation(statusrotationaxis, value);
-
             }
         }
 
@@ -766,23 +775,26 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         return 1;
                     }
                     return 0;
+
                 case BuiltIn_Commands_BaseClass.STATUS_PHANTOM:
                     if ((m_host.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Phantom) == (uint)LLObject.ObjectFlags.Phantom)
                     {
                         return 1;
                     }
                     return 0;
+
                 case BuiltIn_Commands_BaseClass.STATUS_CAST_SHADOWS:
                     if ((m_host.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.CastShadows) == (uint)LLObject.ObjectFlags.CastShadows)
                     {
                         return 1;
                     }
                     return 0;
+
                 case BuiltIn_Commands_BaseClass.STATUS_BLOCK_GRAB:
                     NotImplemented("llGetStatus - STATUS_BLOCK_GRAB");
                     return 0;
-                case BuiltIn_Commands_BaseClass.STATUS_DIE_AT_EDGE:
 
+                case BuiltIn_Commands_BaseClass.STATUS_DIE_AT_EDGE:
                     if (m_host.GetDieAtEdge())
                         return 1;
                     else
@@ -791,15 +803,19 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 case BuiltIn_Commands_BaseClass.STATUS_RETURN_AT_EDGE:
                     NotImplemented("llGetStatus - STATUS_RETURN_AT_EDGE");
                     return 0;
+
                 case BuiltIn_Commands_BaseClass.STATUS_ROTATE_X:
                     NotImplemented("llGetStatus - STATUS_ROTATE_X");
                     return 0;
+
                 case BuiltIn_Commands_BaseClass.STATUS_ROTATE_Y:
                     NotImplemented("llGetStatus - STATUS_ROTATE_Y");
                     return 0;
+
                 case BuiltIn_Commands_BaseClass.STATUS_ROTATE_Z:
                     NotImplemented("llGetStatus - STATUS_ROTATE_Z");
                     return 0;
+
                 case BuiltIn_Commands_BaseClass.STATUS_SANDBOX:
                     NotImplemented("llGetStatus - STATUS_SANDBOX");
                     return 0;
@@ -2499,17 +2515,17 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             string reply = String.Empty;
 
-            switch(data)
+            switch (data)
             {
             case 1: // DATA_ONLINE (0|1)
                 // TODO: implement fetching of this information
-//                if(userProfile.CurrentAgent.AgentOnline)
+//                if (userProfile.CurrentAgent.AgentOnline)
 //                    reply = "1";
 //                else
                     reply = "0";
                 break;
             case 2: // DATA_NAME (First Last)
-                reply = userProfile.FirstName+" "+userProfile.SurName;
+                reply = userProfile.FirstName + " " + userProfile.SurName;
                 break;
             case 3: // DATA_BORN (YYYY-MM-DD)
                 DateTime born = new DateTime(1970, 1, 1, 0, 0, 0, 0);
@@ -2529,8 +2545,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             LLUUID rq = LLUUID.Random();
 
             LLUUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.
-                    m_Dataserver.RegisterRequest(m_localID,
-                    m_itemID, rq.ToString());
+                m_Dataserver.RegisterRequest(m_localID,
+                                             m_itemID, rq.ToString());
 
             m_ScriptEngine.m_ASYNCLSLCommandManager.
             m_Dataserver.DataserverReply(rq.ToString(), reply);
@@ -2547,8 +2563,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if (item.Type == 3 && item.Name == name)
                 {
                     LLUUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.
-                            m_Dataserver.RegisterRequest(m_localID,
-                            m_itemID, item.AssetID.ToString());
+                        m_Dataserver.RegisterRequest(m_localID,
+                                                     m_itemID, item.AssetID.ToString());
 
                     LLVector3 region = new LLVector3(
                         World.RegionInfo.RegionLocX * Constants.RegionSize,
@@ -2565,8 +2581,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             string reply = region.ToString();
 
                             m_ScriptEngine.m_ASYNCLSLCommandManager.
-                                    m_Dataserver.DataserverReply(i.ToString(),
-                                    reply);
+                                m_Dataserver.DataserverReply(i.ToString(),
+                                                             reply);
                         }, false);
 
                     return tid.ToString();
@@ -3314,25 +3330,28 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 switch (src[i])
                 {
-                    case '<' :
+                    case '<':
                         parens++;
                         length++;
                         break;
-                    case '>' :
+                    case '>':
                         if (parens > 0)
                             parens--;
                         length++;
                         break;
-                    case ',' :
+                    case ',':
                         if (parens == 0)
                         {
                             result.Add(src.Substring(start,length).Trim());
                             start += length+1;
                             length = 0;
-                        } else
+                        }
+                        else
+                        {
                             length++;
+                        }
                         break;
-                    default  :
+                    default:
                         length++;
                         break;
                 }
@@ -3341,7 +3360,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             result.Add(src.Substring(start,length).Trim());
 
             return result;
-
         }
 
         ///  <summary>
@@ -5290,11 +5308,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         if (active[j])
                         {
                             // scan all of the markers
-                            if ((offset[j] = src.IndexOf((string)spcarray[j-seplen],beginning)) == -1)
+                            if ((offset[j] = src.IndexOf((string)spcarray[j-seplen], beginning)) == -1)
                             {
                                 // not present at all
                                 active[j] = false;
-                            } else
+                            }
+                            else
                             {
                                 // present and correct
                                 if (offset[j] < offset[best])
@@ -5313,7 +5332,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 {
                     // no markers were found on this pass
                     // so we're pretty much done
-                    tokens.Add(src.Substring(beginning, srclen-beginning));
+                    tokens.Add(src.Substring(beginning, srclen - beginning));
                     break;
                 }
 
@@ -5322,15 +5341,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                 tokens.Add(src.Substring(beginning,offset[best]-beginning));
 
-                if (best<seplen)
+                if (best < seplen)
                 {
-                    beginning = offset[best]+((string)separray[best]).Length;
-                } else
-                {
-                    beginning = offset[best]+((string)spcarray[best-seplen]).Length;
-                    tokens.Add(spcarray[best-seplen]);
+                    beginning = offset[best] + ((string)separray[best]).Length;
                 }
-
+                else
+                {
+                    beginning = offset[best] + ((string)spcarray[best - seplen]).Length;
+                    tokens.Add(spcarray[best - seplen]);
+                }
             }
 
             //    This an awkward an not very intuitive boundary case. If the
@@ -5475,60 +5494,60 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public string llRequestSimulatorData(string simulator, int data)
         {
-try
-{
-            m_host.AddScriptLPS(1);
-
-            string reply = String.Empty;
-
-            RegionInfo info = m_ScriptEngine.World.RequestClosestRegion(simulator);
-
-            switch(data)
+            try
             {
-            case 5: // DATA_SIM_POS
-                if(info == null)
-                    return LLUUID.Zero.ToString();
-                reply = new LSL_Types.Vector3(
-                        info.RegionLocX * Constants.RegionSize,
-                        info.RegionLocY * Constants.RegionSize,
-                        0).ToString();
-                break;
-            case 6: // DATA_SIM_STATUS
-                if(info != null)
-                    reply = "up"; // Duh!
-                else
-                    reply = "unknown";
-                break;
-            case 7: // DATA_SIM_RATING
-                if(info == null)
-                    return LLUUID.Zero.ToString();
-                int access = (int)info.EstateSettings.simAccess;
-                if(access == 21)
-                    reply = "MATURE";
-                else if(access == 13)
-                    reply = "MATURE";
-                else
-                    reply = "UNKNOWN";
-                break;
-            default:
-                return LLUUID.Zero.ToString(); // Raise no event
-            }
-            LLUUID rq = LLUUID.Random();
+                m_host.AddScriptLPS(1);
 
-            LLUUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.
+                string reply = String.Empty;
+
+                RegionInfo info = m_ScriptEngine.World.RequestClosestRegion(simulator);
+
+                switch (data)
+                {
+                    case 5: // DATA_SIM_POS
+                        if (info == null)
+                            return LLUUID.Zero.ToString();
+                        reply = new LSL_Types.Vector3(
+                            info.RegionLocX * Constants.RegionSize,
+                            info.RegionLocY * Constants.RegionSize,
+                            0).ToString();
+                        break;
+                    case 6: // DATA_SIM_STATUS
+                        if (info != null)
+                            reply = "up"; // Duh!
+                        else
+                            reply = "unknown";
+                        break;
+                    case 7: // DATA_SIM_RATING
+                        if (info == null)
+                            return LLUUID.Zero.ToString();
+                        int access = (int)info.EstateSettings.simAccess;
+                        if (access == 21)
+                            reply = "MATURE";
+                        else if (access == 13)
+                            reply = "MATURE";
+                        else
+                            reply = "UNKNOWN";
+                        break;
+                    default:
+                        return LLUUID.Zero.ToString(); // Raise no event
+                }
+                LLUUID rq = LLUUID.Random();
+
+                LLUUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.
                     m_Dataserver.RegisterRequest(m_localID,
-                    m_itemID, rq.ToString());
+                                                 m_itemID, rq.ToString());
 
-            m_ScriptEngine.m_ASYNCLSLCommandManager.
-            m_Dataserver.DataserverReply(rq.ToString(), reply);
+                m_ScriptEngine.m_ASYNCLSLCommandManager.
+                    m_Dataserver.DataserverReply(rq.ToString(), reply);
 
-            return tid.ToString();
-}
-catch(Exception e)
-{
-Console.WriteLine(e.ToString());
-return LLUUID.Zero.ToString();
-}
+                return tid.ToString();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                return LLUUID.Zero.ToString();
+            }
         }
 
         public void llForceMouselook(int mouselook)
@@ -5543,7 +5562,7 @@ return LLUUID.Zero.ToString();
             LLUUID key = new LLUUID();
             if (LLUUID.TryParse(id,out key))
             {
-                return (double)World.GetSceneObjectPart(World.Entities[key].LocalId).GetMass();
+                return (double) World.GetSceneObjectPart(World.Entities[key].LocalId).GetMass();
             }
             return 0;
         }
@@ -5562,7 +5581,6 @@ return LLUUID.Zero.ToString();
 
         public LSL_Types.list llListReplaceList(LSL_Types.list dest, LSL_Types.list src, int start, int end)
         {
-
             LSL_Types.list pref = null;
 
             m_host.AddScriptLPS(1);
@@ -5592,9 +5610,9 @@ return LLUUID.Zero.ToString();
                     pref = dest.GetSublist(0,start-1);
                     // Only add a suffix if there is something
                     // beyond the end index (it's inclusive too).
-                    if (end+1 < dest.Length)
+                    if (end + 1 < dest.Length)
                     {
-                        return pref + src + dest.GetSublist(end+1,-1);
+                        return pref + src + dest.GetSublist(end + 1, -1);
                     }
                     else
                     {
@@ -5609,9 +5627,9 @@ return LLUUID.Zero.ToString();
                 // is removed.
                 else
                 {
-                    if (end+1 < dest.Length)
+                    if (end + 1 < dest.Length)
                     {
-                        return src + dest.GetSublist(end+1,-1);
+                        return src + dest.GetSublist(end + 1, -1);
                     }
                     else
                     {
@@ -5627,7 +5645,7 @@ return LLUUID.Zero.ToString();
             // might have been negative.
             else
             {
-                return dest.GetSublist(end+1,start-1)+src;
+                return dest.GetSublist(end + 1, start - 1) + src;
             }
         }
 
@@ -6250,7 +6268,7 @@ return LLUUID.Zero.ToString();
                     LLUUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.
                             m_Dataserver.RegisterRequest(m_localID,
                             m_itemID, item.AssetID.ToString());
-                    if(NotecardCache.IsCached(item.AssetID))
+                    if (NotecardCache.IsCached(item.AssetID))
                     {
                         m_ScriptEngine.m_ASYNCLSLCommandManager.
                         m_Dataserver.DataserverReply(item.AssetID.ToString(),
@@ -6286,7 +6304,7 @@ return LLUUID.Zero.ToString();
                     LLUUID tid = m_ScriptEngine.m_ASYNCLSLCommandManager.
                             m_Dataserver.RegisterRequest(m_localID,
                             m_itemID, item.AssetID.ToString());
-                    if(NotecardCache.IsCached(item.AssetID))
+                    if (NotecardCache.IsCached(item.AssetID))
                     {
                         m_ScriptEngine.m_ASYNCLSLCommandManager.
                         m_Dataserver.DataserverReply(item.AssetID.ToString(),
@@ -6329,13 +6347,13 @@ return LLUUID.Zero.ToString();
         {
             CacheCheck();
 
-            lock(m_Notecards)
+            lock (m_Notecards)
             {
-                if(m_Notecards.ContainsKey(assetID))
+                if (m_Notecards.ContainsKey(assetID))
                     return;
 
                 Notecard nc = new Notecard();
-                nc.lastRef=DateTime.Now;
+                nc.lastRef = DateTime.Now;
                 nc.text = ParseText(text.Replace("\r", "").Split('\n'));
                 m_Notecards[assetID] = nc;
             }
@@ -6343,56 +6361,57 @@ return LLUUID.Zero.ToString();
 
         private static string[] ParseText(string[] input)
         {
-            int idx=0;
-            int level=0;
+            int idx = 0;
+            int level = 0;
             List<string> output = new List<string>();
             string[] words;
 
-            while(idx < input.Length)
+            while (idx < input.Length)
             {
-                if(input[idx] == "{")
+                if (input[idx] == "{")
                 {
                     level++;
                     idx++;
                     continue;
                 }
-                if(input[idx]== "}")
+
+                if (input[idx]== "}")
                 {
                     level--;
                     idx++;
                     continue;
                 }
 
-                switch(level)
+                switch (level)
                 {
                 case 0:
                     words = input[idx].Split(' '); // Linden text ver
                     int version = int.Parse(words[3]);
-                    if(version != 2)
+                    if (version != 2)
                         return new String[0];
                     break;
                 case 1:
                     words = input[idx].Split(' ');
-                    if(words[0] == "LLEmbeddedItems")
+                    if (words[0] == "LLEmbeddedItems")
                         break;
-                    if(words[0] == "Text")
+                    if (words[0] == "Text")
                     {
                         int len = int.Parse(words[2]);
                         idx++;
 
-                        int count=-1;
+                        int count = -1;
 
-                        while(count < len)
+                        while (count < len)
                         {
                             int l = input[idx].Length;
                             string ln = input[idx];
 
                             int need = len-count-1;
-                            if(ln.Length > need)
-                                ln=ln.Substring(0, need);
+                            if (ln.Length > need)
+                                ln = ln.Substring(0, need);
 
                             output.Add(ln);
-                            count+=ln.Length+1;
+                            count += ln.Length + 1;
                             idx++;
                         }
                             
@@ -6401,10 +6420,10 @@ return LLUUID.Zero.ToString();
                     break;
                 case 2:
                     words = input[idx].Split(' '); // count
-                    if(words[0] == "count")
+                    if (words[0] == "count")
                     {
                         int c = int.Parse(words[1]);
-                        if(c > 0)
+                        if (c > 0)
                             return new String[0];
                         break;
                     }
@@ -6417,7 +6436,7 @@ return LLUUID.Zero.ToString();
 
         public static bool IsCached(LLUUID assetID)
         {
-            lock(m_Notecards)
+            lock (m_Notecards)
             {
                 return m_Notecards.ContainsKey(assetID);
             }
@@ -6425,10 +6444,10 @@ return LLUUID.Zero.ToString();
 
         public static int GetLines(LLUUID assetID)
         {
-            if(!IsCached(assetID))
+            if (!IsCached(assetID))
                 return -1;
 
-            lock(m_Notecards)
+            lock (m_Notecards)
             {
                 m_Notecards[assetID].lastRef = DateTime.Now;
                 return m_Notecards[assetID].text.Length;
@@ -6437,23 +6456,23 @@ return LLUUID.Zero.ToString();
 
         public static string GetLine(LLUUID assetID, int line)
         {
-            if(line < 0)
+            if (line < 0)
                 return "";
 
             string data;
 
-            if(!IsCached(assetID))
+            if (!IsCached(assetID))
                 return "";
 
-            lock(m_Notecards)
+            lock (m_Notecards)
             {
                 m_Notecards[assetID].lastRef = DateTime.Now;
 
-                if(line >= m_Notecards[assetID].text.Length)
+                if (line >= m_Notecards[assetID].text.Length)
                     return "\n\n\n";
 
-                data=m_Notecards[assetID].text[line];
-                if(data.Length > 255)
+                data = m_Notecards[assetID].text[line];
+                if (data.Length > 255)
                     data = data.Substring(0, 255);
 
                 return data;
@@ -6465,10 +6484,9 @@ return LLUUID.Zero.ToString();
             foreach (LLUUID key in new List<LLUUID>(m_Notecards.Keys))
             {
                 Notecard nc = m_Notecards[key];
-                if(nc.lastRef.AddSeconds(30) < DateTime.Now)
+                if (nc.lastRef.AddSeconds(30) < DateTime.Now)
                     m_Notecards.Remove(key);
             }
         }
-
     }
 }

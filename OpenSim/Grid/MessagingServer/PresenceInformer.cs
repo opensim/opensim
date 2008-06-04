@@ -36,13 +36,13 @@ namespace OpenSim.Grid.MessagingServer
 {
     public delegate RegionProfileData GetRegionData(ulong region_handle);
     public delegate void Done(PresenceInformer obj);
-   
+
 
     public class PresenceInformer
     {
         public event GetRegionData OnGetRegionData;
         public event Done OnDone;
-        
+
         private GetRegionData handlerGetRegionData = null;
         private Done handlerDone = null;
 
@@ -102,10 +102,10 @@ namespace OpenSim.Grid.MessagingServer
                 PresenceParams.Add("notify_id",UserToUpdate.agentData.AgentID.ToString());
                 if (TalkingAbout.OnlineYN)
                     PresenceParams.Add("status","TRUE");
-                else 
+                else
                     PresenceParams.Add("status","FALSE");
 
-                
+
 
 
                 ArrayList SendParams = new ArrayList();
@@ -123,12 +123,12 @@ namespace OpenSim.Grid.MessagingServer
                 catch (WebException)
                 {
                     m_log.WarnFormat("[INFORM]: failed notifying region {0} containing user {1} about {2}", whichRegion.regionName, UserToUpdate.agentData.firstname + " " + UserToUpdate.agentData.lastname, TalkingAbout.agentData.firstname + " " + TalkingAbout.agentData.lastname);
-                }   
-            } 
-            else 
+                }
+            }
+            else
             {
                 m_log.Info("[PRESENCEUPDATER]: Region data was null skipping");
-                
+
             }
 
             handlerDone = OnDone;

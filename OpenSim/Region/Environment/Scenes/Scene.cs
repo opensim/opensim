@@ -1506,18 +1506,18 @@ namespace OpenSim.Region.Environment.Scenes
 
             CrossPrimGroupIntoNewRegion(newRegionHandle, grp);
         }
-        
+
         public void CrossPrimGroupIntoNewRegion(ulong newRegionHandle, SceneObjectGroup grp)
         {
             int primcrossingXMLmethod = 0;
             if (newRegionHandle != 0)
             {
                 bool successYN = false;
-                
-                successYN 
+
+                successYN
                     = m_sceneGridService.PrimCrossToNeighboringRegion(
                         newRegionHandle, grp.UUID, m_serialiser.SavePrimGroupToXML2String(grp), primcrossingXMLmethod);
-                
+
                 if (successYN)
                 {
                     // We remove the object here
@@ -1550,7 +1550,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (XMLMethod == 0)
             {
                 m_serialiser.LoadGroupFromXml2String(this, objXMLData);
-                
+
                 SceneObjectPart RootPrim = GetSceneObjectPart(primID);
                 if (RootPrim != null)
                 {
@@ -2091,7 +2091,7 @@ namespace OpenSim.Region.Environment.Scenes
                     m_log.InfoFormat("[USERLOGOFF]: Got a logoff request for {0} but the user isn't here.  The user might already have been logged out", AvatarID.ToString());
                 }
             }
-            
+
 
         }
         /// <summary>

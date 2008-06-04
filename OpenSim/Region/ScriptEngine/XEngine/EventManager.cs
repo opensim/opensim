@@ -199,7 +199,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public void on_rez(uint localID, LLUUID itemID, int startParam)
         {
             myScriptEngine.PostObjectEvent(localID, new XEventParams(
-                    "on_rez",new object[] { 
+                    "on_rez",new object[] {
                     new LSL_Types.LSLInteger(startParam)},
                     new XDetectParams[0]));
         }
@@ -207,7 +207,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public void control(uint localID, LLUUID itemID, LLUUID agentID, uint held, uint change)
         {
             myScriptEngine.PostObjectEvent(localID, new XEventParams(
-                    "control",new object[] { 
+                    "control",new object[] {
                     new LSL_Types.LSLString(agentID.ToString()),
                     new LSL_Types.LSLInteger(held),
                     new LSL_Types.LSLInteger(change)},
@@ -218,7 +218,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 string address, string subject, string message, int numLeft)
         {
             myScriptEngine.PostObjectEvent(localID, new XEventParams(
-                    "email",new object[] { 
+                    "email",new object[] {
                     new LSL_Types.LSLString(timeSent),
                     new LSL_Types.LSLString(address),
                     new LSL_Types.LSLString(subject),

@@ -89,7 +89,7 @@ namespace OpenSim.Region.Physics.Meshing
                 v.X *= (size.X * taperTopFactorX);
                 v.Y *= (size.Y * taperTopFactorY);
                 v.Z *= size.Z;
-                
+
                 //Push the top of the object over by the Top Shear amount
                 v.X += pushX * size.X;
                 v.Y += pushY * size.Y;
@@ -165,7 +165,7 @@ namespace OpenSim.Region.Physics.Meshing
 
             for (int i = 0; i < workingMiddle.vertices.Count; i++)
             {
-                int iNext = (i + 1);
+                int iNext = i + 1;
 
                 if (workingMiddle.vertices[i] == null) // Can't make a simplex here
                 {
@@ -200,7 +200,7 @@ namespace OpenSim.Region.Physics.Meshing
             iLastNull = 0;
             for (int i = 0; i < workingPlus.vertices.Count; i++)
             {
-                int iNext = (i + 1);
+                int iNext = i + 1;
 
                 if (workingPlus.vertices[i] == null) // Can't make a simplex here
                 {
@@ -261,7 +261,7 @@ namespace OpenSim.Region.Physics.Meshing
 
             float twistTotal = twistTop - twistBot;
             // if the profile has a lot of twist, add more layers otherwise the layers may overlap
-            // and the resulting mesh may be quite inaccurate. This method is arbitrary and doesnt 
+            // and the resulting mesh may be quite inaccurate. This method is arbitrary and doesn't
             // accurately match the viewer
             if (System.Math.Abs(twistTotal) > (float)System.Math.PI * 1.5f) steps *= 2;
             if (System.Math.Abs(twistTotal) > (float)System.Math.PI * 3.0f) steps *= 2;
@@ -291,7 +291,6 @@ namespace OpenSim.Region.Physics.Meshing
                 + " taperTopFactorX: " + taperTopFactorX.ToString() + " taperTopFactorY: " + taperTopFactorY.ToString());
             System.Console.WriteLine("Extruder: PathScaleX: " + pathScaleX.ToString() + " pathScaleY: " + pathScaleY.ToString());
 #endif
-            
 
             bool done = false;
             do // loop through the length of the path and add the layers
@@ -319,12 +318,16 @@ namespace OpenSim.Region.Physics.Meshing
 
                 // apply the taper to the profile before any rotations
                 if (xProfileScale != 1.0f || yProfileScale != 1.0f)
+                {
                     foreach (Vertex v in newLayer.vertices)
-                        if ( v != null )
+                    {
+                        if (v != null)
                         {
                             v.X *= xProfileScale;
                             v.Y *= yProfileScale;
                         }
+                    }
+                }
 
                 float radiusScale;
 
@@ -332,8 +335,8 @@ namespace OpenSim.Region.Physics.Meshing
                     radiusScale = 1.0f - radius * percentOfPath;
                 else if (radius < 0.001f)
                     radiusScale = 1.0f + radius * (1.0f - percentOfPath);
-                else radiusScale = 1.0f;
-
+                else
+                    radiusScale = 1.0f;
 
 #if SPAM
                 System.Console.WriteLine("Extruder: angle: " + angle.ToString() + " percentOfPath: " + percentOfPath.ToString()
@@ -379,10 +382,12 @@ namespace OpenSim.Region.Physics.Meshing
                 }
 
                 if (angle == startAngle) // the first layer, invert normals
+                {
                     foreach (Triangle t in newLayer.triangles)
                     {
                         t.invertNormal();
                     }
+                }
 
                 result.Append(newLayer);
 
@@ -397,7 +402,9 @@ namespace OpenSim.Region.Physics.Meshing
                         int iNext = (i + 1);
 
                         if (lastLayer.vertices[i] == null) // cant make a simplex here
+                        {
                             iLastNull = i + 1;
+                        }
                         else
                         {
                             if (i == count - 1) // End of list
@@ -413,17 +420,17 @@ namespace OpenSim.Region.Physics.Meshing
                 }
                 lastLayer = newLayer;
 
-
                 // calc the angle for the next interation of the loop
                 if (angle >= endAngle)
+                {
                     done = true;
+                }
                 else
                 {
                     angle = stepSize * ++step;
                     if (angle > endAngle)
                         angle = endAngle;
                 }
-
             } while (!done); // loop until all the layers in the path are completed
 
             // scale the mesh to the desired size

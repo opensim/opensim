@@ -1,20 +1,20 @@
 /*
  * Copyright (C) 2007-2008, Jeff Thompson
- * 
+ *
  * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without 
+ *
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
- *     * Redistributions of source code must retain the above copyright 
+ *
+ *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright 
- *       notice, this list of conditions and the following disclaimer in the 
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its contributors 
- *       may be used to endorse or promote products derived from this software 
+ *     * Neither the name of the copyright holder nor the names of its contributors
+ *       may be used to endorse or promote products derived from this software
  *       without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -47,7 +47,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             new TermArrayEqualityComparer();
 
         /// <summary>
-        /// To get the free variables, split off any existential qualifiers from Goal such as the X in 
+        /// To get the free variables, split off any existential qualifiers from Goal such as the X in
         /// "X ^ f(Y)", get the set of unbound variables in Goal that are not qualifiers, then remove
         /// the unbound variables that are qualifiers as well as the unbound variables in Template.
         /// </summary>
@@ -67,7 +67,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 UnqualifiedGoal = YP.getValue(((Functor2)UnqualifiedGoal)._arg2);
             }
 
-            // Remember how many non-free variables there are so we can find the unique free variables 
+            // Remember how many non-free variables there are so we can find the unique free variables
             //   that are added.
             int nNonFreeVariables = variableSet.Count;
             YP.addUniqueVariables(UnqualifiedGoal, variableSet);
@@ -116,8 +116,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         /// <summary>
         /// For each result, unify the _freeVariables and unify bagArrayVariable with the associated bag.
         /// </summary>
-        /// <param name="bagArrayVariable">this is unified with the List<object> of matches for template that 
-        /// corresponds to the bindings for freeVariables.  Be very careful: this does not unify with a Prolog 
+        /// <param name="bagArrayVariable">this is unified with the List<object> of matches for template that
+        /// corresponds to the bindings for freeVariables.  Be very careful: this does not unify with a Prolog
         /// list.</param>
         /// <returns></returns>
         public IEnumerable<bool> resultArray(Variable bagArrayVariable)

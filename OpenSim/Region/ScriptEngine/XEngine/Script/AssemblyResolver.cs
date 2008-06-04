@@ -37,25 +37,25 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Script
         public static Assembly OnAssemblyResolve(object sender,
                 ResolveEventArgs args)
         {
-            if(!(sender is System.AppDomain))
+            if (!(sender is System.AppDomain))
                 return null;
 
             AppDomain myDomain = (AppDomain)sender;
             string dirName = myDomain.FriendlyName;
 
-            string[] pathList=new string[] {"bin", "ScriptEngines",
-                    Path.Combine("ScriptEngines", dirName)};
+            string[] pathList = new string[] {"bin", "ScriptEngines",
+                                              Path.Combine("ScriptEngines", dirName)};
 
             string assemblyName = args.Name;
-            if(assemblyName.IndexOf(",") != -1)
-                assemblyName=args.Name.Substring(0, args.Name.IndexOf(","));
+            if (assemblyName.IndexOf(",") != -1)
+                assemblyName = args.Name.Substring(0, args.Name.IndexOf(","));
 
             foreach (string s in pathList)
             {
-                string path=Path.Combine(Directory.GetCurrentDirectory(),
+                string path = Path.Combine(Directory.GetCurrentDirectory(),
                         Path.Combine(s, assemblyName))+".dll";
                         
-                if(File.Exists(path))
+                if (File.Exists(path))
                     return Assembly.LoadFrom(path);
             }
             
