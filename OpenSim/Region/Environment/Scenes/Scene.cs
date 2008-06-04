@@ -1311,12 +1311,34 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 rootPart.AddFlag(LLObject.ObjectFlags.Phantom);
                 //rootPart.ObjectFlags += (uint)LLObject.ObjectFlags.Phantom;
+                if (rootPart.Shape.PCode != (byte)PCode.Grass)
+                    AdaptTree(ref shape);
             }
             // if not phantom, add to physics
             sceneOb.ApplyPhysics(m_physicalPrim);
             m_innerScene.AddToUpdateList(sceneOb);
 
             return sceneOb;
+        }
+
+        void AdaptTree(ref PrimitiveBaseShape tree)
+        {
+            // Tree size has to be adapted depending on its type
+            switch((Tree)tree.State)
+            {
+                case Tree.Cypress1:
+                case Tree.Cypress2:
+                    tree.Scale = new LLVector3(4, 4, 10);
+                    break;
+
+                // case... other tree types
+                // tree.Scale = new LLVector3(?, ?, ?);
+                // break;
+                
+                default:
+                    tree.Scale = new LLVector3(4, 4, 4);
+                    break;
+            }
         }
 
         public SceneObjectGroup AddTree(LLVector3 scale, LLQuaternion rotation, LLVector3 position,
