@@ -76,6 +76,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         private static CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
         private static VBCodeProvider VBcodeProvider = new VBCodeProvider();
         private static JScriptCodeProvider JScodeProvider = new JScriptCodeProvider();
+        private static CSharpCodeProvider YPcodeProvider = new CSharpCodeProvider(); // YP is translated into CSharp
         private static YP2CSConverter YP_Converter = new YP2CSConverter();
 
         private static int instanceID = new Random().Next(0, int.MaxValue);                 // Unique number to use on our compiled files
@@ -118,7 +119,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             LanguageMapping.Add(enumCompileType.yp.ToString(), enumCompileType.yp);
 
             // Allowed compilers
-            string allowComp = m_scriptEngine.ScriptConfigSource.GetString("AllowedCompilers", "lsl,cs,vb,js");
+            string allowComp = m_scriptEngine.ScriptConfigSource.GetString("AllowedCompilers", "lsl,cs,vb,js,yp");
             AllowedCompilers.Clear();
 
 #if DEBUG
@@ -279,9 +280,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
 
             if (l == enumCompileType.yp)
             {
-                // Its LSL, convert it to C#
+                // Its YP, convert it to C#
                 compileScript = YP_Converter.Convert(Script);
-                l = enumCompileType.cs;
+                // We have our own processor now
+                //l = enumCompileType.cs;
             }
 
             // Insert additional assemblies here
@@ -289,7 +291,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             //ADAM: Disabled for the moment until it's working right.
             bool enableCommanderLSL = false;
 
-            if (enableCommanderLSL == true && l == enumCompileType.cs)
+            if (enableCommanderLSL == true && ((l == enumCompileType.cs) || (l == enumCompileType.yp)))
             {
                 foreach (KeyValuePair<string,
                     ICommander> com
@@ -312,6 +314,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                     break;
                 case enumCompileType.js:
                     compileScript = CreateJSCompilerScript(compileScript);
+                    break;
+                case enumCompileType.yp:
+                    compileScript = CreateYPCompilerScript(compileScript);
                     break;
             }
 
@@ -342,6 +347,24 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 @"public Script() { } " +
                 compileScript +
                 "} }\r\n";
+            return compileScript;
+        }
+
+        private static string CreateYPCompilerScript(string compileScript)
+        {
+            
+
+            compileScript = String.Empty +
+                       "using OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog; " +
+                        "using OpenSim.Region.ScriptEngine.Common; using System.Collections.Generic;\r\n" +
+                        String.Empty + "namespace SecondLife { " +
+                        String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Common.BuiltIn_Commands_BaseClass { \r\n" +
+                        //@"public Script() { } " +
+                        @"static OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog.YP YP=null; " +
+                        @"public Script() {  YP= new OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog.YP(); } "+
+
+                        compileScript +
+                        "} }\r\n";
             return compileScript;
         }
 
@@ -437,6 +460,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                     break;
                 case enumCompileType.js:
                     results = JScodeProvider.CompileAssemblyFromSource(parameters, Script);
+                    break;
+                case enumCompileType.yp:
+                    results = YPcodeProvider.CompileAssemblyFromSource(parameters, Script);
                     break;
                 default:
                     throw new Exception("Compiler is not able to recongnize language type \"" + lang.ToString() + "\"");
