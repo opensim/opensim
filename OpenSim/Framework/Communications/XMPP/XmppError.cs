@@ -27,29 +27,15 @@
 
 using System;
 using System.Xml;
+using System.Xml.Serialization;
 
 namespace OpenSim.Framework.Communications.XMPP
 {
-    public class Stanza
+    [XmlRoot("error")]
+    public class XmppErrorStanza
     {
-        public string localName = String.Empty;
-        public JId to;
-        public JId from;
-        public string id;
-        public string lang;
-        public string nodeName;
-
-        public Stanza(XmlNode node, Object defaults, bool hasID)
+        public XmppErrorStanza()
         {
-
-        }
-        //public virtual XmlElement getNode()
-        //{
-            //return new XmlElement();
-        //}
-        public virtual string generateId()
-        {
-            return "";
         }
     }
 }

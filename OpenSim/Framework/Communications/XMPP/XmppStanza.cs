@@ -25,10 +25,47 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+using System.Xml;
+using System.Xml.Serialization;
+
 namespace OpenSim.Framework.Communications.XMPP
 {
-    public class XMPPParser
+    public abstract class XmppStanza
     {
+        /// <summary>
+        /// counter used for generating ID
+        /// </summary>
+        [XmlIgnore]
+        private static ulong _ctr = 0;
 
+        /// <summary>
+        /// recipient JID
+        /// </summary>
+        [XmlAttribute("to")]
+        public string ToJid;
+
+        /// <summary>
+        /// sender JID
+        /// </summary>
+        [XmlAttribute("from")]
+        public string FromJid;
+
+        /// <summary>
+        /// unique ID.
+        /// </summary>
+        [XmlAttribute("id")]
+        public string MessageId;
+
+        public XmppStanza()
+        {
+        }
+
+        public XmppStanza(string fromJid, string toJid)
+        {
+            ToJid = toJid;
+            FromJid = fromJid;
+            MessageId = String.Format("OpenSim_{0}{1}", DateTime.UtcNow.Ticks, _ctr++);
+        }
     }
 }
