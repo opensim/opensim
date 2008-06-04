@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -44,7 +45,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected Dictionary<EndPoint, uint> clientCircuits = new Dictionary<EndPoint, uint>();
-        public Dictionary<uint, EndPoint> clientCircuits_reverse = new Dictionary<uint, EndPoint>();
+
+        //public Dictionary<uint, EndPoint> clientCircuits_reverse = new Dictionary<uint, EndPoint>();
+        public Hashtable clientCircuits_reverse = Hashtable.Synchronized(new Hashtable());
+
         protected Dictionary<uint, EndPoint> proxyCircuits = new Dictionary<uint, EndPoint>();
         private Socket m_socket;
         protected IPEndPoint ServerIncoming;
@@ -379,13 +383,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     else
                         m_log.Error("[UDPSERVER]: clientCircuits already contans entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
                 }
-                lock (clientCircuits_reverse)
-                {
-                    if (!clientCircuits_reverse.ContainsKey(useCircuit.CircuitCode.Code))
-                        clientCircuits_reverse.Add(useCircuit.CircuitCode.Code, epSender);
-                    else
-                        m_log.Error("[UDPSERVER]: clientCurcuits_reverse already contains entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
-                }
+
+                // This doesn't need locking as it's synchronized data
+                if (!clientCircuits_reverse.ContainsKey(useCircuit.CircuitCode.Code))
+                    clientCircuits_reverse.Add(useCircuit.CircuitCode.Code, epSender);
+                else
+                    m_log.Error("[UDPSERVER]: clientCurcuits_reverse already contains entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
+
 
                 lock (proxyCircuits)
                 {
@@ -437,22 +441,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             // find the endpoint for this circuit
             EndPoint sendto = null;
-            lock (clientCircuits_reverse)
+            try {
+                sendto = (EndPoint)clientCircuits_reverse[circuitcode];
+            } catch {
+                // Exceptions here mean there is no circuit
+                m_log.Warn("Circuit not found, not sending packet");
+                return;
+            }
+
+            if (sendto != null)
             {
-                if (clientCircuits_reverse.TryGetValue(circuitcode, out sendto))
+                //we found the endpoint so send the packet to it
+                if (proxyPortOffset != 0)
                 {
-                    //we found the endpoint so send the packet to it
-                    if (proxyPortOffset != 0)
-                    {
-                        //MainLog.Instance.Verbose("UDPSERVER", "SendPacketTo proxy " + proxyCircuits[circuitcode].ToString() + ": client " + sendto.ToString());
-                        PacketPool.EncodeProxyMessage(buffer, ref size, sendto);
-                        m_socket.SendTo(buffer, size, flags, proxyCircuits[circuitcode]);
-                    }
-                    else
-                    {
-                        //MainLog.Instance.Verbose("UDPSERVER", "SendPacketTo : client " + sendto.ToString());
-                        m_socket.SendTo(buffer, size, flags, sendto);
-                    }
+                    //MainLog.Instance.Verbose("UDPSERVER", "SendPacketTo proxy " + proxyCircuits[circuitcode].ToString() + ": client " + sendto.ToString());
+                    PacketPool.EncodeProxyMessage(buffer, ref size, sendto);
+                    m_socket.SendTo(buffer, size, flags, proxyCircuits[circuitcode]);
+                }
+                else
+                {
+                    //MainLog.Instance.Verbose("UDPSERVER", "SendPacketTo : client " + sendto.ToString());
+                    m_socket.SendTo(buffer, size, flags, sendto);
                 }
             }
         }
@@ -460,13 +469,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public virtual void RemoveClientCircuit(uint circuitcode)
         {
             EndPoint sendto = null;
-            lock (clientCircuits_reverse)
-            {
-                if (clientCircuits_reverse.TryGetValue(circuitcode, out sendto))
-                {
-                    clientCircuits.Remove(sendto);
+            if (clientCircuits_reverse.Contains(circuitcode)) {
+                sendto = (EndPoint)clientCircuits_reverse[circuitcode];
 
-                    clientCircuits_reverse.Remove(circuitcode);
+                clientCircuits_reverse.Remove(circuitcode);
+                
+                lock(clientCircuits) {
+                    clientCircuits.Remove(sendto);
+                }
+                lock(proxyCircuits) {
                     proxyCircuits.Remove(circuitcode);
                 }
             }
@@ -488,13 +499,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 else
                     m_log.Error("[UDPSERVER]: clientCircuits already contans entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
             }
-            lock (clientCircuits_reverse)
-            {
-                if (!clientCircuits_reverse.ContainsKey(useCircuit.CircuitCode.Code))
-                    clientCircuits_reverse.Add(useCircuit.CircuitCode.Code, userEP);
-                else
-                    m_log.Error("[UDPSERVER]: clientCurcuits_reverse already contains entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
-            }
+
+            // This data structure is synchronized, so we don't need the lock
+            if (!clientCircuits_reverse.ContainsKey(useCircuit.CircuitCode.Code))
+                clientCircuits_reverse.Add(useCircuit.CircuitCode.Code, userEP);
+            else
+                m_log.Error("[UDPSERVER]: clientCurcuits_reverse already contains entry for user " + useCircuit.CircuitCode.Code.ToString() + ". NOT adding.");
 
             lock (proxyCircuits)
             {
