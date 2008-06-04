@@ -45,8 +45,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
         protected static System.Text.ASCIIEncoding m_asciiEncoding = new System.Text.ASCIIEncoding();
 
-        private Scene m_scene;
-        private string m_loadPath;
+        protected Scene m_scene;
+        protected string m_loadPath;
 
         public ArchiveReadRequest(Scene scene, string loadPath)
         {
@@ -59,6 +59,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         protected void DearchiveRegion()
         {
             TarArchiveReader archive = new TarArchiveReader(m_loadPath);
+            AssetsDearchiver dearchiver = new AssetsDearchiver(m_scene.AssetCache);
 
             string serializedPrims = string.Empty;
 
@@ -75,28 +76,18 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 {
                     serializedPrims = m_asciiEncoding.GetString(data);
                 }
+                else if (filePath.Equals(ArchiveConstants.ASSETS_METADATA_PATH))
+                {
+                    string xml = m_asciiEncoding.GetString(data);
+                    dearchiver.AddAssetMetadata(xml);
+                }
                 else if (filePath.StartsWith(ArchiveConstants.TEXTURES_PATH))
                 {
-                    // Right now we're nastily obtaining the lluuid from the filename
-                    string rawId = filePath.Remove(0, ArchiveConstants.TEXTURES_PATH.Length);
-                    rawId = rawId.Remove(rawId.Length - ArchiveConstants.TEXTURE_EXTENSION.Length);
-
-                    m_log.DebugFormat("[ARCHIVER]: Importing asset {0}", rawId);
-
-                    // Not preserving asset name or description as of yet
-                    AssetBase asset = new AssetBase(new LLUUID(rawId), "imported name");
-                    asset.Description = "imported description";
-
-                    asset.Type = (sbyte)AssetType.Texture;
-                    asset.InvType = (sbyte)InventoryType.Texture;
-
-                    asset.Data = data;
-
-                    m_scene.AssetCache.AddAsset(asset);
+                    dearchiver.AddAssetData(filePath, data);
                 }
             }
 
-            m_log.DebugFormat("[ARCHIVER]: Reached end of archive");
+            m_log.Debug("[ARCHIVER]: Reached end of archive");
 
             archive.Close();
 

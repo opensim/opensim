@@ -43,6 +43,11 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         public static readonly string TEXTURE_EXTENSION = ".jp2";
         
         /// <summary>
+        /// Path for the assets metadata file
+        /// </summary>
+        public static readonly string ASSETS_METADATA_PATH = "assets.xml";
+        
+        /// <summary>
         /// Path for the prims file
         /// </summary>
         public static readonly string PRIMS_PATH = "prims.xml";
