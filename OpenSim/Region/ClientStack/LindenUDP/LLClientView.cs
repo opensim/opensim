@@ -39,6 +39,7 @@ using libsecondlife.Packets;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
+using OpenSim.Framework.Statistics;
 using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Environment.Scenes;
 using Timer=System.Timers.Timer;
@@ -728,6 +729,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 // ThreadAbortExceptions need to go through unmolested.
                 if (e is ThreadAbortException)
                     throw e;
+                
+                if (StatsManager.SimExtraStats != null)
+                    StatsManager.SimExtraStats.AddAbnormalClientThreadTermination();
                 
                 // Don't let a failure in an individual client thread crash the whole sim.
                 // FIXME: could do more sophisticated cleanup since leaving client resources around may

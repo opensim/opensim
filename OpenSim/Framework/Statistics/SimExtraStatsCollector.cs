@@ -37,7 +37,9 @@ namespace OpenSim.Framework.Statistics
     /// Collects sim statistics which aren't already being collected for the linden viewer's statistics pane
     /// </summary>
     public class SimExtraStatsCollector : IStatsCollector
-    {
+    {        
+        private long abnormalClientThreadTerminations;
+        
         private long assetsInCache;
         private long texturesInCache;
         private long assetCacheMemoryUsage;
@@ -45,6 +47,11 @@ namespace OpenSim.Framework.Statistics
         private long blockedMissingTextureRequests;
 
         private long inventoryServiceRetrievalFailures;
+        
+        /// <summary>
+        /// Number of times that a client thread terminated because of an exception
+        /// </summary>
+        public long AbnormalClientThreadTerminations { get { return abnormalClientThreadTerminations; } }
 
         public long AssetsInCache { get { return assetsInCache; } }
         public long TexturesInCache { get { return texturesInCache; } }
@@ -71,6 +78,11 @@ namespace OpenSim.Framework.Statistics
         /// </summary>
         private IDictionary<LLUUID, PacketQueueStatsCollector> packetQueueStatsCollectors
             = new Dictionary<LLUUID, PacketQueueStatsCollector>();
+        
+        public void AddAbnormalClientThreadTermination()
+        {
+            abnormalClientThreadTerminations++;
+        }
 
         public void AddAsset(AssetBase asset)
         {
@@ -147,6 +159,14 @@ namespace OpenSim.Framework.Statistics
 Blocked requests for missing textures: {2}" + Environment.NewLine,
                     TexturesInCache, TextureCacheMemoryUsage / 1024.0,
                     BlockedMissingTextureRequests));
+            
+            sb.Append(Environment.NewLine);
+            sb.Append("CONNECTION STATISTICS");
+            sb.Append(Environment.NewLine);
+            sb.Append(
+                string.Format(
+                    "Abnormal client thread terminations: {0}" + Environment.NewLine,
+                    abnormalClientThreadTerminations));
 
             sb.Append(Environment.NewLine);
             sb.Append("INVENTORY STATISTICS");
