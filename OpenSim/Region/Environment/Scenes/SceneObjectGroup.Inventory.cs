@@ -98,6 +98,21 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Start the scripts contained in all the prims in this group.
+        /// </summary>
+        public void StartScripts(int param)
+        {
+            // Don't start scripts if they're turned off in the region!
+            if (!((m_scene.RegionInfo.EstateSettings.regionFlags & Simulator.RegionFlags.SkipScripts) == Simulator.RegionFlags.SkipScripts))
+            {
+                foreach (SceneObjectPart part in m_parts.Values)
+                {
+                    part.StartScripts(param);
+                }
+            }
+        }
+
         public void StopScripts()
         {
             lock (m_parts)

@@ -153,6 +153,24 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
+        /// Start all the scripts contained in this prim's inventory
+        /// </summary>
+        public void StartScripts(int param)
+        {
+            lock (m_taskInventory)
+            {
+                foreach (TaskInventoryItem item in m_taskInventory.Values)
+                {
+                    // XXX more hardcoding badness.  Should be an enum in TaskInventoryItem
+                    if (10 == item.Type)
+                    {
+                        StartScript(item, param);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Stop all the scripts in this prim.
         /// </summary>
         public void StopScripts()
@@ -175,6 +193,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
+        public void StartScript(TaskInventoryItem item, int param)
+        {
+            StartScript(item);
+            m_parentGroup.Scene.EventManager.TriggerOnRezEvent(LocalId, item.ItemID, param);
+        }
+
         public void StartScript(TaskInventoryItem item)
         {
             //            m_log.InfoFormat(

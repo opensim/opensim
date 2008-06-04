@@ -96,8 +96,11 @@ namespace OpenSim.Region.Environment.Scenes
         public event OnPermissionErrorDelegate OnPermissionError;
 
         public delegate void NewRezScript(uint localID, LLUUID itemID, string script);
+        public delegate void RezEvent(uint localID, LLUUID itemID, int param);
 
         public event NewRezScript OnRezScript;
+
+        public event RezEvent OnRezEvent;
 
         public delegate void RemoveScript(uint localID, LLUUID itemID);
 
@@ -319,6 +322,7 @@ namespace OpenSim.Region.Environment.Scenes
         private ObjectDeGrabDelegate handlerObjectDeGrab = null; //OnObjectDeGrab;
         private ScriptResetDelegate handlerScriptReset = null; // OnScriptReset
         private NewRezScript handlerRezScript = null; //OnRezScript;
+        private RezEvent handlerOnRezEvent = null; //OnRezEvent;
         private RemoveScript handlerRemoveScript = null; //OnRemoveScript;
         private SceneGroupMoved handlerSceneGroupMove = null; //OnSceneGroupMove;
         private SceneGroupGrabed handlerSceneGroupGrab = null; //OnSceneGroupGrab;
@@ -510,6 +514,15 @@ namespace OpenSim.Region.Environment.Scenes
             if (handlerRezScript != null)
             {
                 handlerRezScript(localID, itemID, script);
+            }
+        }
+
+        public void TriggerOnRezEvent(uint localID, LLUUID itemID, int param)
+        {
+            handlerOnRezEvent = OnRezEvent;
+            if (handlerOnRezEvent != null)
+            {
+                handlerOnRezEvent(localID, itemID, param);
             }
         }
 
