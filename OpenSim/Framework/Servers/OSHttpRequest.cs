@@ -67,6 +67,11 @@ namespace OpenSim.Framework.Servers
             get { return _contentLength64; }
         }
 
+        public long ContentLength64
+        {
+            get { return _contentLength64; }
+        }
+
         public string ContentType
         {
             get { return _contentType; }

@@ -28,21 +28,27 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
+using log4net;
 
 namespace OpenSim.Framework.Communications.XMPP
 {
-    public class XMPPSerializer
+    public class XmppSerializer
     {
+        private static readonly ILog _log = 
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         // need to do it this way, as XmlSerializer(type, extratypes)
         // does not work on mono (at least).
-        private Dictionary<Type, XmlSerializer> _serializers = new Dictionary<Type, XmlSerializer>();
+        private Dictionary<Type, XmlSerializer> _serializerForType = new Dictionary<Type, XmlSerializer>();
+        private Dictionary<string, XmlSerializer> _serializerForName = new Dictionary<string, XmlSerializer>();
         private XmlSerializerNamespaces _xmlNs;
         private string _defaultNS;
 
-        public XMPPSerializer(bool server)
+        public XmppSerializer(bool server)
         {
             _xmlNs = new XmlSerializerNamespaces();
             _xmlNs.Add(String.Empty, String.Empty);
@@ -51,15 +57,27 @@ namespace OpenSim.Framework.Communications.XMPP
             else
                 _defaultNS = "jabber:client";
 
-            _serializers[typeof(XmppMessageStanza)] = new XmlSerializer(typeof(XmppMessageStanza), _defaultNS);
+            // TODO: do this via reflection
+            _serializerForType[typeof(XmppMessageStanza)] = _serializerForName["message"] = 
+                new XmlSerializer(typeof(XmppMessageStanza), _defaultNS);
         }
 
         public void Serialize(XmlWriter xw, object o)
         {
-            if (!_serializers.ContainsKey(o.GetType())) 
+            if (!_serializerForType.ContainsKey(o.GetType())) 
                 throw new ArgumentException(String.Format("no serializer available for type {0}", o.GetType()));
 
-            _serializers[o.GetType()].Serialize(xw, o, _xmlNs);
+            _serializerForType[o.GetType()].Serialize(xw, o, _xmlNs);
+        }
+
+        public object Deserialize(XmlReader xr)
+        {
+            // position on next element
+            xr.Read();
+            if (!_serializerForName.ContainsKey(xr.LocalName))
+                throw new ArgumentException(String.Format("no serializer available for name {0}", xr.LocalName));
+
+            return _serializerForName[xr.LocalName].Deserialize(xr);
         }
     }
 }

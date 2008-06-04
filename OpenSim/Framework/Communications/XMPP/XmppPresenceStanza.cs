@@ -34,62 +34,38 @@ namespace OpenSim.Framework.Communications.XMPP
     /// <summary>
     /// Message types.
     /// </summary>
-    public enum XmppMessageType
+    public enum XmppPresenceType
     {
-        [XmlEnum("chat")] chat,
-        [XmlEnum("error")] error,
-        [XmlEnum("groupchat")] groupchat,
-        [XmlEnum("headline")] headline,
-        [XmlEnum("normal")] normal,
+        [XmlEnum("unavailable")]  unavailable,
+        [XmlEnum("subscribe")]    subscribe,
+        [XmlEnum("subscribed")]   subscribed,
+        [XmlEnum("unsubscribe")]  unsubscribe,
+        [XmlEnum("unsubscribed")] unsubscribed,
+        [XmlEnum("probe")]        probe,
+        [XmlEnum("error")]        error,
     }
 
-    /// <summary>
-    /// Message body.
-    /// </summary>
-    public class XmppMessageBody
-    {
-        [XmlText]
-        public string Text;
-
-        public XmppMessageBody()
-        {
-        }
-
-        public XmppMessageBody(string message)
-        {
-            Text = message;
-        }
-
-        public string ToString()
-        {
-            return Text;
-        }
-    }
 
     [XmlRoot("message")]
-    public class XmppMessageStanza: XmppStanza
+    public class XmppPresenceStanza: XmppStanza
     {
         /// <summary>
         /// IQ type: one of set, get, result, error
         /// </summary>
         [XmlAttribute("type")]
-        public XmppMessageType MessageType;
+        public XmppPresenceType PresenceType;
 
         // [XmlAttribute("error")]
         // public XmppError Error;
 
-        [XmlElement("body")]
-        public XmppMessageBody Body;
-
-        public XmppMessageStanza() : base()
+        public XmppPresenceStanza() : base()
         {
         }
 
-        public XmppMessageStanza(string fromJid, string toJid, XmppMessageType mType, string message) :
+        public XmppPresenceStanza(string fromJid, string toJid, XmppPresenceType pType) :
             base(fromJid, toJid)
         {
-            MessageType = mType;
-            Body = new XmppMessageBody(message);
+            PresenceType = pType;
         }
     }
 }
