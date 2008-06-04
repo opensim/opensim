@@ -255,7 +255,6 @@ namespace OpenSim.Region.Physics.Meshing
             Mesh newLayer;
             Mesh lastLayer = null;
 
-            //int start = 0;
             int step;
             int steps = 24;
 
@@ -274,8 +273,17 @@ namespace OpenSim.Region.Physics.Meshing
             float totalSkew = skew * 2.0f * pathLength;
             float skewStart = (-skew) + pathCutBegin * 2.0f * skew;
 
-            float startAngle = (float)(System.Math.PI * 2.0 * pathCutBegin * revolutions);
-            float endAngle = (float)(System.Math.PI * 2.0 * pathCutEnd * revolutions);
+            // It's not quite clear what pushY (Y top shear) does, but subtracting it from the start and end
+            // angles appears to approximate it's effects on path cut. Likewise, adding it to the angle used
+            // to calculate the sine for generating the path radius appears to approximate it's effects there
+            // too, but there are some subtle differences in the radius which are noticeable as the prim size 
+            // increases and it may affect megaprims quite a bit. The effect of the Y top shear parameter on
+            // the meshes generated with this technique appear nearly identical in shape to the same prims when
+            // displayed by the viewer.
+
+
+            float startAngle = (float)(System.Math.PI * 2.0 * pathCutBegin * revolutions) - pushY * 0.9f;
+            float endAngle = (float)(System.Math.PI * 2.0 * pathCutEnd * revolutions) - pushY * 0.9f;
             float stepSize = (float)0.2617993878; // 2*PI / 24 segments per revolution
 
             step = (int)(startAngle / stepSize);
@@ -283,6 +291,7 @@ namespace OpenSim.Region.Physics.Meshing
 
             float xProfileScale = 1.0f;
             float yProfileScale = 1.0f;
+
 
 #if SPAM
             System.Console.WriteLine("Extruder: twistTop: " + twistTop.ToString() + " twistbot: " + twistBot.ToString() + " twisttotal: " + twistTotal.ToString());
@@ -346,35 +355,41 @@ namespace OpenSim.Region.Physics.Meshing
 
                 float twist = twistBot + (twistTotal * (float)percentOfPath);
 
-                float zOffset = (float)(System.Math.Sin(angle) * (0.5f - yPathScale)) * radiusScale;
-                float yOffset = (float)(System.Math.Cos(angle) * (0.5f - yPathScale)) * radiusScale;
-                float xOffset = 0.5f * (skewStart + totalSkew * (float)percentOfPath);
+                float xOffset;
+                float yOffset;
+                float zOffset;
 
-                // next apply twist rotation to the profile
-                if (twistTotal != 0.0f || twistBot != 0.0f)
-                {
-                    Quaternion profileRot = new Quaternion(new Vertex(0.0f, 0.0f, -1.0f), twist);
-                    foreach (Vertex v in newLayer.vertices)
+                
+                xOffset = 0.5f * (skewStart + totalSkew * (float)percentOfPath);
+                xOffset += (float) System.Math.Sin(angle) * pushX * 0.45f;
+                yOffset = (float)(System.Math.Cos(angle) * (0.5f - yPathScale)) * radiusScale;
+                zOffset = (float)(System.Math.Sin(angle + pushY * 0.9f) * (0.5f - yPathScale)) * radiusScale;
+
+
+                    // next apply twist rotation to the profile layer
+                    if (twistTotal != 0.0f || twistBot != 0.0f)
                     {
-                        if (v != null)
+                        Quaternion profileRot = new Quaternion(new Vertex(0.0f, 0.0f, -1.0f), twist);
+                        foreach (Vertex v in newLayer.vertices)
                         {
-                            vTemp = v * profileRot;
-                            v.X = vTemp.X;
-                            v.Y = vTemp.Y;
-                            v.Z = vTemp.Z;
+                            if (v != null)
+                            {
+                                vTemp = v * profileRot;
+                                v.X = vTemp.X;
+                                v.Y = vTemp.Y;
+                                v.Z = vTemp.Z;
+                            }
                         }
                     }
-                }
 
-                // now orient the rotation of the profile relative to it's position on the path
-                Quaternion layerRot = new Quaternion(new Vertex(-1.0f, 0.0f, 0.0f), (float)angle);
+                // now orient the rotation of the profile layer relative to it's position on the path
+                // adding pushY to the angle used to generate the quat appears to approximate the viewer
+                Quaternion layerRot = new Quaternion(new Vertex(-1.0f, 0.0f, 0.0f), (float)angle + pushY * 0.9f);
                 foreach (Vertex v in newLayer.vertices)
                 {
                     if (v != null)
                     {
                         vTemp = v * layerRot;
-                        //v.X = xProfileScale * vTemp.X + xOffset;
-                        //v.Y = yProfileScale * vTemp.Y + yOffset;
                         v.X = vTemp.X + xOffset;
                         v.Y = vTemp.Y + yOffset;
                         v.Z = vTemp.Z + zOffset;
