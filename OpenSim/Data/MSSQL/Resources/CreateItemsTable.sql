@@ -22,7 +22,7 @@ CREATE TABLE [inventoryitems] (
   [saleType] [tinyint] default NULL,
   [creationDate] [int] default NULL,
   [groupID] [varchar](36) default NULL,
-  [groupOwned] [tinyint] default NULL,
+  [groupOwned] [bit] default NULL,
   [flags] [int] unsigned default NULL,
   PRIMARY KEY CLUSTERED
 (
@@ -42,4 +42,5 @@ CREATE NONCLUSTERED INDEX [folder] ON [inventoryitems]
 )WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
 
 SET ANSI_PADDING OFF
+
 

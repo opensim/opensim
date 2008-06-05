@@ -317,7 +317,7 @@ namespace OpenSim.Data.MSSQL
                 item.CreationDate = (int) reader["creationDate"];
                 item.GroupID = new LLUUID(reader["groupID"].ToString());
                 item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
-                item.Flags = (uint) reader["flags"];
+                item.Flags = Convert.ToUInt32(reader["flags"]);
 
                 return item;
             }
