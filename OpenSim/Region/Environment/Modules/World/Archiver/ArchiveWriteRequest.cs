@@ -66,7 +66,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
         protected void ArchiveRegion()
         {
-            Dictionary<LLUUID, int> textureUuids = new Dictionary<LLUUID, int>();
+            Dictionary<LLUUID, int> assetUuids = new Dictionary<LLUUID, int>();
 
             List<EntityBase> entities = m_scene.GetEntities();
 
@@ -86,7 +86,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                             if (texture != null)
                             {
                                 //m_log.DebugFormat("[ARCHIVER]: Got face {0}", i++);
-                                textureUuids[texture.TextureID] = 1;
+                                assetUuids[texture.TextureID] = 1;
                             }
                         }
 
@@ -95,7 +95,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                             if (tit.Type != (int)InventoryType.Object)
                             {
                                 m_log.DebugFormat("[ARCHIVER]: Recording asset {0} in object {1}", tit.AssetID, part.UUID);
-                                textureUuids[tit.AssetID] = 1;
+                                assetUuids[tit.AssetID] = 1;
                             }
                         }
                     }
@@ -107,10 +107,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             if (m_serializedEntities != null && m_serializedEntities.Length > 0)
             {
                 m_log.DebugFormat("[ARCHIVER]: Successfully got serialization for {0} entities", entities.Count);
-                m_log.DebugFormat("[ARCHIVER]: Requiring save of {0} textures", textureUuids.Count);
+                m_log.DebugFormat("[ARCHIVER]: Requiring save of {0} textures", assetUuids.Count);
 
                 // Asynchronously request all the assets required to perform this archive operation
-                new AssetsRequest(ReceivedAllAssets, m_scene.AssetCache, textureUuids.Keys);
+                new AssetsRequest(ReceivedAllAssets, m_scene.AssetCache, assetUuids.Keys);
             }
         }
 
