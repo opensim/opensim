@@ -302,6 +302,17 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                   RegexOptions.Compiled | RegexOptions.Multiline);
             }
 
+            // Change jumps into goto's and prefix its label
+            Script =
+                Regex.Replace(Script,
+                              @"(\W)jump\s+([a-zA-Z_][a-zA-Z_0-9]*)\s*;",
+                              @"$1goto label_$2;", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+            // and prefix labels so the do not clash with C#'s reserved words
+            Script =
+                Regex.Replace(Script,
+                              @"@([a-zA-Z_][a-zA-Z_0-9]*)\s*;",
+                              @"label_$1: ;", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.Singleline);
+
             // Add "void" in front of functions that needs it
             Script =
                 Regex.Replace(Script,
