@@ -734,9 +734,30 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     StatsManager.SimExtraStats.AddAbnormalClientThreadTermination();
                 
                 // Don't let a failure in an individual client thread crash the whole sim.
-                // FIXME: could do more sophisticated cleanup since leaving client resources around may
-                // cause instability for the region server over time.
-                m_log.ErrorFormat("[CLIENT]: Client thread for {0} {1} crashed.  Exception {2}", Name, AgentId, e);
+                m_log.ErrorFormat("[CLIENT]: Client thread for {0} {1} crashed.  Logging them out.  Exception {2}", Name, AgentId, e);                
+
+                try
+                {     
+                    // Make an attempt to alert the user that their session has crashed
+                    AgentAlertMessagePacket packet 
+                        = BuildAgentAlertPacket(
+                            "Unfortunately the session for this client on the server has crashed.\n"
+                                + "Any further actions taken will not be processed.\n"
+                                + "Please relog", true); 
+                    
+                    ProcessOutPacket(packet);
+                    
+                    // There may be a better way to do this.  Perhaps kick?  Not sure this propogates notifications to
+                    // listeners yet, though.
+                    Logout(this);
+                }
+                catch (Exception e2)
+                {
+                    if (e2 is ThreadAbortException)
+                        throw e2;    
+                    
+                    m_log.ErrorFormat("[CLIENT]: Further exception thrown on forced session logout.  {0}", e2);
+                }                                       
             }
         }
 
@@ -1808,11 +1829,23 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// the AlertMessage packet).</param>
         public void SendAgentAlertMessage(string message, bool modal)
         {
+            OutPacket(BuildAgentAlertPacket(message, modal), ThrottleOutPacketType.Task);
+        }
+        
+        /// <summary>
+        /// Construct an agent alert packet
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="modal"></param>
+        /// <returns></returns>
+        protected AgentAlertMessagePacket BuildAgentAlertPacket(string message, bool modal)
+        {
             AgentAlertMessagePacket alertPack = (AgentAlertMessagePacket)PacketPool.Instance.GetPacket(PacketType.AgentAlertMessage);
             alertPack.AgentData.AgentID = AgentId;
             alertPack.AlertData.Message = Helpers.StringToField(message);
             alertPack.AlertData.Modal = modal;
-            OutPacket(alertPack, ThrottleOutPacketType.Task);
+            
+            return alertPack;
         }
 
         public void SendLoadURL(string objectname, LLUUID objectID, LLUUID ownerID, bool groupOwned, string message,
@@ -3265,7 +3298,27 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return LLUUID.Zero;
         }
 
+        /// <summary>
+        /// Handler called when we receive a logout packet.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="packet"></param>
+        /// <returns></returns>
         protected virtual bool Logout(IClientAPI client, Packet packet)
+        {
+            return Logout(client);
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="client">
+        /// A <see cref="IClientAPI"/>
+        /// </param>
+        /// <returns>
+        /// A <see cref="System.Boolean"/>
+        /// </returns>
+        protected virtual bool Logout(IClientAPI client)
         {
             m_log.Info("[CLIENT]: Got a logout request");
 
@@ -5007,6 +5060,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 if (handlerUpdateInventoryItem != null)
                                 {
                                     InventoryItemBase itemUpd = new InventoryItemBase();
+                                    itemUpd = null;
                                     itemUpd.ID = update.InventoryData[i].ItemID;
                                     itemUpd.Name = Util.FieldToString(update.InventoryData[i].Name);
                                     itemUpd.Description = Util.FieldToString(update.InventoryData[i].Description);
