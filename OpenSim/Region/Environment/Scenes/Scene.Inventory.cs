@@ -1583,7 +1583,8 @@ namespace OpenSim.Region.Environment.Scenes
                                 {
                                     group.ClearPartAttachmentData();
                                 }
-                                group.ApplyPhysics(m_physicalPrim);
+                                // Ghost prim if this is enabled!
+                                //group.ApplyPhysics(m_physicalPrim);
                             }
 
                             group.StartScripts();
