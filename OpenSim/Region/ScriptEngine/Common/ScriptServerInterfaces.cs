@@ -31,6 +31,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.ScriptEngine.Common.ScriptEngineBase;
 
+
 namespace OpenSim.Region.ScriptEngine.Common
 {
     public class ScriptServerInterfaces
@@ -43,11 +44,11 @@ namespace OpenSim.Region.ScriptEngine.Common
             void state_exit(uint localID);
             void touch(uint localID, LLUUID itemID);
             void touch_end(uint localID, LLUUID itemID);
-            void collision_start(uint localID, LLUUID itemID);
-            void collision(uint localID, LLUUID itemID);
-            void collision_end(uint localID, LLUUID itemID);
+            void collision_start(uint localID, ColliderArgs col);
+            void collision(uint localID, ColliderArgs col);
+            void collision_end(uint localID, ColliderArgs col);
             void land_collision_start(uint localID, LLUUID itemID);
-            void land_collision(uint localID, LLUUID itemID);
+            void land_collision(uint localID, ColliderArgs col);
             void land_collision_end(uint localID, LLUUID itemID);
             void timer(uint localID, LLUUID itemID);
             void listen(uint localID, LLUUID itemID);

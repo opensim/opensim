@@ -113,6 +113,8 @@ namespace OpenSim.Region.Environment.Scenes
         public Int32 CreationDate;
         public uint ParentID = 0;
 
+        private List<uint> m_lastColliders = new List<uint>();
+
         private PhysicsVector m_lastRotationalVelocity = PhysicsVector.Zero;
         private Vector3 m_sitTargetPosition = new Vector3(0, 0, 0);
         private Quaternion m_sitTargetOrientation = new Quaternion(0, 0, 0, 1);
@@ -2807,20 +2809,180 @@ namespace OpenSim.Region.Environment.Scenes
         }
         public void PhysicsCollision(EventArgs e)
         {
-            return;
+            //return;
 
-            //
-            //if (e == null)
-            //{
-            //    return;
-            //}
-            //CollisionEventUpdate a = (CollisionEventUpdate)e;
-            //Dictionary<uint, float> collissionswith = a.m_objCollisionList;
-            //foreach (uint localid in collissionswith.Keys)
-            //{
-             //   m_log.Debug("[OBJECT]: Collided with:" + localid.ToString() + " at depth of: " + collissionswith[localid].ToString());
-            //}
+            // single threaded here
+            if (e == null)
+            {
+                return;
+            }
+            
+            CollisionEventUpdate a = (CollisionEventUpdate)e;
+            Dictionary<uint, float> collissionswith = a.m_objCollisionList;
+            List<uint> thisHitColliders = new List<uint>();
+            List<uint> endedColliders = new List<uint>();
+            List<uint> startedColliders = new List<uint>();
+
+            // calculate things that started colliding this time
+            // and build up list of colliders this time
+            foreach (uint localid in collissionswith.Keys)
+            {
+                if (localid != 0)
+                {
+                    thisHitColliders.Add(localid);
+                    if (!m_lastColliders.Contains(localid))
+                    {
+                        startedColliders.Add(localid);
+                    }
+
+
+                    //m_log.Debug("[OBJECT]: Collided with:" + localid.ToString() + " at depth of: " + collissionswith[localid].ToString());
+                }
+            }
+
+            // calculate things that ended colliding
+            foreach (uint localID in m_lastColliders)
+            {
+                if (!thisHitColliders.Contains(localID))
+                {
+                    endedColliders.Add(localID);
+                }
+            }
+            // remove things that ended colliding from the last colliders list
+            foreach (uint localID in endedColliders)
+            {
+                m_lastColliders.Remove(localID);
+            }
+
+            //add the items that started colliding this time to the last colliders list.
+            foreach (uint localID in startedColliders)
+            {
+                m_lastColliders.Add(localID);
+            }
+            // do event notification
+            if (startedColliders.Count > 0)
+            {
+                ColliderArgs StartCollidingMessage = new ColliderArgs();
+                List<DetectedObject> colliding = new List<DetectedObject>();
+                foreach (uint localId in startedColliders)
+                {
+                    // always running this check because if the user deletes the object it would return a null reference.
+                    if (m_parentGroup == null)
+                        return;
+                    if (m_parentGroup.Scene == null)
+                        return;
+                    SceneObjectPart obj = m_parentGroup.Scene.GetSceneObjectPart(localId);
+                    if (obj != null)
+                    {
+                        DetectedObject detobj = new DetectedObject();
+                        detobj.keyUUID = obj.UUID;
+                        detobj.nameStr = obj.Name;
+                        detobj.ownerUUID = obj.OwnerID;
+                        detobj.posVector = obj.AbsolutePosition;
+                        detobj.rotQuat = obj.GetWorldRotation();
+                        detobj.velVector = obj.Velocity;
+                        detobj.colliderType = 0;
+                        detobj.groupUUID = obj.GroupID;
+                        colliding.Add(detobj);
+                    }
+                }
+                if (colliding.Count > 0)
+                {
+                    StartCollidingMessage.Colliders = colliding;
+                    // always running this check because if the user deletes the object it would return a null reference.
+                    if (m_parentGroup == null)
+                        return;
+                    if (m_parentGroup.Scene == null)
+                        return;
+                    m_parentGroup.Scene.EventManager.TriggerScriptCollidingStart(LocalId, StartCollidingMessage);
+                }
+
+            }
+            if (m_lastColliders.Count > 0)
+            {
+                ColliderArgs CollidingMessage = new ColliderArgs();
+                List<DetectedObject> colliding = new List<DetectedObject>();
+                foreach (uint localId in m_lastColliders)
+                {
+                    // always running this check because if the user deletes the object it would return a null reference.
+                    if (localId == 0)
+                        continue;
+
+                    if (m_parentGroup == null)
+                        return;
+                    if (m_parentGroup.Scene == null)
+                        return;
+                    SceneObjectPart obj = m_parentGroup.Scene.GetSceneObjectPart(localId);
+                    if (obj != null)
+                    {
+                        DetectedObject detobj = new DetectedObject();
+                        detobj.keyUUID = obj.UUID;
+                        detobj.nameStr = obj.Name;
+                        detobj.ownerUUID = obj.OwnerID;
+                        detobj.posVector = obj.AbsolutePosition;
+                        detobj.rotQuat = obj.GetWorldRotation();
+                        detobj.velVector = obj.Velocity;
+                        detobj.colliderType = 0;
+                        detobj.groupUUID = obj.GroupID;
+                        colliding.Add(detobj);
+                    }
+                }
+                if (colliding.Count > 0)
+                {
+                    CollidingMessage.Colliders = colliding;
+                    // always running this check because if the user deletes the object it would return a null reference.
+                    if (m_parentGroup == null)
+                        return;
+                    if (m_parentGroup.Scene == null)
+                        return;
+                    m_parentGroup.Scene.EventManager.TriggerScriptCollidingStart(LocalId, CollidingMessage);
+                }
+
+            }
+            if (endedColliders.Count > 0)
+            {
+                ColliderArgs EndCollidingMessage = new ColliderArgs();
+                List<DetectedObject> colliding = new List<DetectedObject>();
+                foreach (uint localId in endedColliders)
+                {
+                    if (localId == 0)
+                        continue;
+
+                    // always running this check because if the user deletes the object it would return a null reference.
+                    if (m_parentGroup == null)
+                        return;
+                    if (m_parentGroup.Scene == null)
+                        return;
+                    SceneObjectPart obj = m_parentGroup.Scene.GetSceneObjectPart(localId);
+                    if (obj != null)
+                    {
+                        DetectedObject detobj = new DetectedObject();
+                        detobj.keyUUID = obj.UUID;
+                        detobj.nameStr = obj.Name;
+                        detobj.ownerUUID = obj.OwnerID;
+                        detobj.posVector = obj.AbsolutePosition;
+                        detobj.rotQuat = obj.GetWorldRotation();
+                        detobj.velVector = obj.Velocity;
+                        detobj.colliderType = 0;
+                        detobj.groupUUID = obj.GroupID;
+                        colliding.Add(detobj);
+                    }
+                }
+                if (colliding.Count > 0)
+                {
+                    EndCollidingMessage.Colliders = colliding;
+                    // always running this check because if the user deletes the object it would return a null reference.
+                    if (m_parentGroup == null)
+                        return;
+                    if (m_parentGroup.Scene == null)
+                        return;
+                    m_parentGroup.Scene.EventManager.TriggerScriptCollidingStart(LocalId, EndCollidingMessage);
+                }
+
+            }
         }
+
+
 
         public void SetDieAtEdge(bool p)
         {

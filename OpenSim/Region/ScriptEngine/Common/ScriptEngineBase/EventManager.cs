@@ -26,9 +26,12 @@
  */
 
 using System;
+using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney;
+using OpenSim.Region.Environment;
+using OpenSim.Region;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
 
@@ -74,6 +77,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 myScriptEngine.World.EventManager.OnScriptAtTargetEvent += at_target;
                 myScriptEngine.World.EventManager.OnScriptNotAtTargetEvent += not_at_target;
                 myScriptEngine.World.EventManager.OnScriptControlEvent += control;
+                myScriptEngine.World.EventManager.OnScriptColliderStart += collision_start;
+                myScriptEngine.World.EventManager.OnScriptColliding += collision;
+                myScriptEngine.World.EventManager.OnScriptCollidingEnd += collision_end;
 
                 // TODO: HOOK ALL EVENTS UP TO SERVER!
                 IMoneyModule money=myScriptEngine.World.RequestModuleInterface<IMoneyModule>();
@@ -171,19 +177,82 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "touch_end", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(1) });
         }
 
-        public void collision_start(uint localID, LLUUID itemID)
+        public void collision_start(uint localID, ColliderArgs col)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "collision_start", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(1) });
+            EventQueueManager.Queue_llDetectParams_Struct detstruct = new EventQueueManager.Queue_llDetectParams_Struct();
+            detstruct._string = new string[col.Colliders.Count];
+            detstruct._Quaternion = new LSL_Types.Quaternion[col.Colliders.Count];
+            detstruct._int = new int[col.Colliders.Count];
+            detstruct._key = new LSL_Types.key[col.Colliders.Count];
+            detstruct._Vector3 = new LSL_Types.Vector3[col.Colliders.Count];
+            detstruct._Vector32 = new LSL_Types.Vector3[col.Colliders.Count];
+            detstruct._bool = new bool[col.Colliders.Count];
+
+            int i = 0;
+            foreach (DetectedObject detobj in col.Colliders)
+            {
+                detstruct._key[i] = new LSL_Types.key(detobj.keyUUID.ToString());
+                detstruct._Quaternion[i] = new LSL_Types.Quaternion(detobj.rotQuat.X, detobj.rotQuat.Y, detobj.rotQuat.Z, detobj.rotQuat.W);
+                detstruct._string[i] = detobj.nameStr;
+                detstruct._int[i] = detobj.colliderType;
+                detstruct._Vector3[i] = new LSL_Types.Vector3(detobj.posVector.X, detobj.posVector.Y, detobj.posVector.Z);
+                detstruct._Vector32[i] = new LSL_Types.Vector3(detobj.velVector.X, detobj.velVector.Y, detobj.velVector.Z);
+                detstruct._bool[i] = true; // Apparently the script engine uses this to see if this is a valid entry...       
+                i++;
+            }
+
+            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "collision_start", detstruct, new object[] { new LSL_Types.LSLInteger(col.Colliders.Count) });
         }
 
-        public void collision(uint localID, LLUUID itemID)
+        public void collision(uint localID, ColliderArgs col)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "collision", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(1) });
+            EventQueueManager.Queue_llDetectParams_Struct detstruct = new EventQueueManager.Queue_llDetectParams_Struct();
+            detstruct._string = new string[col.Colliders.Count];
+            detstruct._Quaternion = new LSL_Types.Quaternion[col.Colliders.Count];
+            detstruct._int = new int[col.Colliders.Count];
+            detstruct._key = new LSL_Types.key[col.Colliders.Count];
+            detstruct._Vector3 = new LSL_Types.Vector3[col.Colliders.Count];
+            detstruct._Vector32 = new LSL_Types.Vector3[col.Colliders.Count];
+            detstruct._bool = new bool[col.Colliders.Count];
+
+            int i = 0;
+            foreach (DetectedObject detobj in col.Colliders)
+            {
+                detstruct._key[i] = new LSL_Types.key(detobj.keyUUID.ToString());
+                detstruct._Quaternion[i] = new LSL_Types.Quaternion(detobj.rotQuat.X, detobj.rotQuat.Y, detobj.rotQuat.Z, detobj.rotQuat.W);
+                detstruct._string[i] = detobj.nameStr;
+                detstruct._int[i] = detobj.colliderType;
+                detstruct._Vector3[i] = new LSL_Types.Vector3(detobj.posVector.X, detobj.posVector.Y, detobj.posVector.Z);
+                detstruct._Vector32[i] = new LSL_Types.Vector3(detobj.velVector.X, detobj.velVector.Y, detobj.velVector.Z);
+                detstruct._bool[i] = true; // Apparently the script engine uses this to see if this is a valid entry...                    i++;
+            }
+            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "collision", detstruct, new object[] { new LSL_Types.LSLInteger(col.Colliders.Count) });
         }
 
-        public void collision_end(uint localID, LLUUID itemID)
+        public void collision_end(uint localID, ColliderArgs col)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "collision_end", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(1) });
+            EventQueueManager.Queue_llDetectParams_Struct detstruct = new EventQueueManager.Queue_llDetectParams_Struct();
+            detstruct._string = new string[col.Colliders.Count];
+            detstruct._Quaternion = new LSL_Types.Quaternion[col.Colliders.Count];
+            detstruct._int = new int[col.Colliders.Count];
+            detstruct._key = new LSL_Types.key[col.Colliders.Count];
+            detstruct._Vector3 = new LSL_Types.Vector3[col.Colliders.Count];
+            detstruct._Vector32 = new LSL_Types.Vector3[col.Colliders.Count];
+            detstruct._bool = new bool[col.Colliders.Count];
+
+            int i = 0;
+            foreach (DetectedObject detobj in col.Colliders)
+            {
+                detstruct._key[i] = new LSL_Types.key(detobj.keyUUID.ToString());
+                detstruct._Quaternion[i] = new LSL_Types.Quaternion(detobj.rotQuat.X, detobj.rotQuat.Y, detobj.rotQuat.Z, detobj.rotQuat.W);
+                detstruct._string[i] = detobj.nameStr;
+                detstruct._int[i] = detobj.colliderType;
+                detstruct._Vector3[i] = new LSL_Types.Vector3(detobj.posVector.X, detobj.posVector.Y, detobj.posVector.Z);
+                detstruct._Vector32[i] = new LSL_Types.Vector3(detobj.velVector.X, detobj.velVector.Y, detobj.velVector.Z);
+                detstruct._bool[i] = true; // Apparently the script engine uses this to see if this is a valid entry...       
+                i++;
+            }
+            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "collision_end", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(col.Colliders.Count) });
         }
 
         public void land_collision_start(uint localID, LLUUID itemID)
@@ -191,9 +260,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "land_collision_start", EventQueueManager.llDetectNull);
         }
 
-        public void land_collision(uint localID, LLUUID itemID)
+        public void land_collision(uint localID, ColliderArgs col)
         {
-            myScriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "land_collision", EventQueueManager.llDetectNull);
+            myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "land_collision", EventQueueManager.llDetectNull);
         }
 
         public void land_collision_end(uint localID, LLUUID itemID)

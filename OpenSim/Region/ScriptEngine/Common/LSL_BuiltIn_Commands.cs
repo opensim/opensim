@@ -562,6 +562,25 @@ namespace OpenSim.Region.ScriptEngine.Common
                     return resolveName(SensedUUID);
                 }
             }
+            else
+            {
+                ScriptManager sm;
+                IScript script = null;
+
+                if ((sm = m_ScriptEngine.m_ScriptManager) != null)
+                {
+                    if (sm.Scripts.ContainsKey(m_localID))
+                    {
+                        if ((script = sm.GetScript(m_localID, m_itemID)) != null)
+                        {
+                            if (script.llDetectParams._bool.Length > number && script.llDetectParams._bool[number])
+                            {
+                                return script.llDetectParams._string[number];
+                            }
+                        }
+                    }
+                }
+            }
             return String.Empty;
        }
 
@@ -587,9 +606,12 @@ namespace OpenSim.Region.ScriptEngine.Common
                     {
                         if ((script = sm.GetScript(m_localID, m_itemID)) != null)
                         {
-                            if (script.llDetectParams._key[0])
+                            if (script.llDetectParams._bool.Length > number && script.llDetectParams._bool[number])
                             {
-                                return new LLUUID(script.llDetectParams._key[0]);
+                                LLUUID returnUUID = LLUUID.Zero;
+                                Helpers.TryParse(script.llDetectParams._key[number], out returnUUID);
+
+                                return returnUUID;
                             }
                         }
                     }
@@ -612,6 +634,35 @@ namespace OpenSim.Region.ScriptEngine.Common
                         World.Entities.TryGetValue(SensedUUID, out SensedObject);
                     }
                     return SensedObject;
+                }
+            }
+            else
+            {
+                ScriptManager sm;
+                IScript script = null;
+
+                if ((sm = m_ScriptEngine.m_ScriptManager) != null)
+                {
+                    if (sm.Scripts.ContainsKey(m_localID))
+                    {
+                        if ((script = sm.GetScript(m_localID, m_itemID)) != null)
+                        {
+                            if (script.llDetectParams._key[number])
+                            {
+                                EntityBase SensedObject = null;
+                                LLUUID SensedUUID = LLUUID.Zero;
+                                Helpers.TryParse(script.llDetectParams._key.ToString(), out SensedUUID);
+                                if (SensedUUID == LLUUID.Zero)
+                                    return null;
+                                lock (World.Entities)
+                                {
+                                    World.Entities.TryGetValue(SensedUUID, out SensedObject);
+                                }
+                                return SensedObject;
+                                
+                            }
+                        }
+                    }
                 }
             }
             return null;

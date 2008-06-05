@@ -158,8 +158,16 @@ namespace OpenSim.Region.Environment.Scenes
         public event ScriptAtTargetEvent OnScriptAtTargetEvent;
 
         public delegate void ScriptNotAtTargetEvent(uint localID);
-
+        
         public event ScriptNotAtTargetEvent OnScriptNotAtTargetEvent;
+
+        public delegate void ScriptColliding(uint localID, ColliderArgs colliders);
+
+        public event ScriptColliding OnScriptColliderStart;
+        public event ScriptColliding OnScriptColliding;
+        public event ScriptColliding OnScriptCollidingEnd;
+
+        
 
         public delegate void OnMakeChildAgentDelegate(ScenePresence presence);
         public event OnMakeChildAgentDelegate OnMakeChildAgent;
@@ -293,6 +301,8 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+
+
         public delegate void MoneyTransferEvent(Object sender, MoneyTransferArgs e);
 
         public delegate void LandBuy(Object sender, LandBuyArgs e);
@@ -356,6 +366,11 @@ namespace OpenSim.Region.Environment.Scenes
         private ObjectBeingRemovedFromScene handlerObjectBeingRemovedFromScene = null;
         private ScriptTimerEvent handlerScriptTimerEvent = null;
         private EstateToolsTimeUpdate handlerEstateToolsTimeUpdate = null;
+
+        private ScriptColliding handlerCollidingStart = null;
+        private ScriptColliding handlerColliding = null;
+        private ScriptColliding handlerCollidingEnd = null;
+
 
         private SunLindenHour handlerSunGetLindenHour = null;
 
@@ -838,5 +853,26 @@ namespace OpenSim.Region.Environment.Scenes
             }
             return 6;
         }
+
+        public void TriggerScriptCollidingStart(uint localId, ColliderArgs colliders)
+        {
+            handlerCollidingStart = OnScriptColliderStart;
+            if (handlerCollidingStart != null)
+                handlerCollidingStart(localId, colliders);
+        }
+        public void TriggerScriptColliding(uint localId, ColliderArgs colliders)
+        {
+
+            handlerColliding = OnScriptColliding;
+            if (handlerColliding != null)
+                handlerColliding(localId, colliders);
+        }
+        public void TriggerScriptCollidingEnd(uint localId, ColliderArgs colliders)
+        {
+            handlerCollidingEnd = OnScriptCollidingEnd;
+            if (handlerCollidingEnd != null)
+                handlerCollidingEnd(localId, colliders);
+        }
+
     }
 }
