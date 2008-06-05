@@ -52,7 +52,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             // Only the types we need to convert
             dataTypes.Add("void", "void");
             dataTypes.Add("integer", "LSL_Types.LSLInteger");
-            dataTypes.Add("float", "double");
+            dataTypes.Add("float", "LSL_Types.LSLFloat");
             dataTypes.Add("string", "LSL_Types.LSLString");
             dataTypes.Add("key", "LSL_Types.LSLString");
             dataTypes.Add("vector", "LSL_Types.Vector3");
