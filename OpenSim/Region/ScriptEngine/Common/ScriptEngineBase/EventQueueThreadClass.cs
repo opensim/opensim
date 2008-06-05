@@ -302,11 +302,14 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                                         int idx=t.IndexOf("SecondLife.Script.");
                                         if (idx != -1)
                                         {
-                                            int colon=t.IndexOf(":");
+                                            // Need to skip past windows paths that have "c:\" in them
+                                            int colon=t.LastIndexOf(":");
 
                                             if (-1 != colon)
                                             {
-                                                line = " at line " + Convert.ToInt32(t.Substring(colon + 1)).ToString();
+                                                // Not sure why this is converted to an int then back to a string, either
+                                                // way, need to skip the word "line " in the substring
+                                                line = " at line " + Convert.ToInt32(t.Substring(colon + 6)).ToString();
                                                 break;
                                             }
                                         }
