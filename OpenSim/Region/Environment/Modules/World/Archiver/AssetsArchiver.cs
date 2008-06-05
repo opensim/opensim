@@ -58,9 +58,6 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <param name="archive"></param>
         public void Archive(TarArchiveWriter archive)
         {
-            // It appears that gtar, at least, doesn't need the intermediate directory entries in the tar
-            //archive.AddDir("assets");
-            
             WriteMetadata(archive);
             WriteData(archive);
         }
@@ -111,12 +108,15 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <param name="archive"></param>
         protected void WriteData(TarArchiveWriter archive)
         {
+            // It appears that gtar, at least, doesn't need the intermediate directory entries in the tar
+            //archive.AddDir("assets");
+                        
             foreach (LLUUID uuid in m_assets.Keys)
             {
                 if (m_assets[uuid] != null)
                 {
                     archive.AddFile(
-                        ArchiveConstants.TEXTURES_PATH + uuid.ToString() + ArchiveConstants.TEXTURE_EXTENSION,
+                        ArchiveConstants.ASSETS_PATH + uuid.ToString() + ArchiveConstants.TEXTURE_EXTENSION,
                         m_assets[uuid].Data);
                 }
                 else

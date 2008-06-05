@@ -144,7 +144,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         protected void ResolveAssetData(string assetPath, byte[] data)
         {
             // Right now we're nastily obtaining the lluuid from the filename
-            string filename = assetPath.Remove(0, ArchiveConstants.TEXTURES_PATH.Length);
+            string filename = assetPath.Remove(0, ArchiveConstants.ASSETS_PATH.Length);
             
             if (m_metadata.ContainsKey(filename))
             {

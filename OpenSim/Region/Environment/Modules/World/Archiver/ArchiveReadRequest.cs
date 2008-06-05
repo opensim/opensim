@@ -81,7 +81,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                     string xml = m_asciiEncoding.GetString(data);
                     dearchiver.AddAssetMetadata(xml);
                 }
-                else if (filePath.StartsWith(ArchiveConstants.TEXTURES_PATH))
+                else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
                 {
                     dearchiver.AddAssetData(filePath, data);
                 }
