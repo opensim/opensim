@@ -524,7 +524,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             m_host.AddScriptLPS(1);
             LLUUID sensedUUID = m_ScriptEngine.GetDetectID(m_itemID, number);
-            if (sensedUUID != null)
+            if (sensedUUID != LLUUID.Zero)
                 return resolveName(sensedUUID);
             return String.Empty;
         }
@@ -537,7 +537,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public EntityBase entityDetectedKey(int number)
         {
             LLUUID sensedUUID = m_ScriptEngine.GetDetectID(m_itemID, number);
-            if (sensedUUID != null)
+            if (sensedUUID != LLUUID.Zero)
             {
                 EntityBase SensedObject = null;
                 lock (World.Entities)
@@ -636,6 +636,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             m_host.AddScriptLPS(1);
             XDetectParams parms = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if(parms == null)
+                return new LSL_Types.Vector3(0, 0, 0);
 
             return parms.OffsetPos;
         }
@@ -660,8 +662,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public LSL_Types.LSLInteger llDetectedLinkNumber(int number)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llDetectedLinkNumber");
-            return 0;
+            XDetectParams parms = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if(parms == null)
+                return new LSL_Types.LSLInteger(0);
+
+            return new LSL_Types.LSLInteger(parms.LinkNum);
         }
 
         public void llDie()
@@ -1920,8 +1925,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             msg.fromAgentSession = new Guid(friendTransactionID.ToString());// fromAgentSession.UUID;
             msg.toAgentID = new Guid(user); // toAgentID.UUID;
             msg.imSessionID = new Guid(friendTransactionID.ToString()); // This is the item we're mucking with here
-            Console.WriteLine("[Scripting IM]: From:" + msg.fromAgentID.ToString() + " To: " + msg.toAgentID.ToString() + " Session:" + msg.imSessionID.ToString() + " Message:" + message);
-            Console.WriteLine("[Scripting IM]: Filling Session: " + msg.imSessionID.ToString());
+//            Console.WriteLine("[Scripting IM]: From:" + msg.fromAgentID.ToString() + " To: " + msg.toAgentID.ToString() + " Session:" + msg.imSessionID.ToString() + " Message:" + message);
+//            Console.WriteLine("[Scripting IM]: Filling Session: " + msg.imSessionID.ToString());
             msg.timestamp = (uint)Util.UnixTimeSinceEpoch();// timestamp;
             //if (client != null)
             //{
@@ -2513,15 +2518,21 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             UserProfileData userProfile =
                     World.CommsManager.UserService.GetUserProfile(id);
 
+            UserAgentData userAgent =
+                    World.CommsManager.UserService.GetAgentByUUID(id);
+
+            if(userProfile == null || userAgent == null)
+                return LLUUID.Zero.ToString();
+
             string reply = String.Empty;
 
             switch (data)
             {
             case 1: // DATA_ONLINE (0|1)
                 // TODO: implement fetching of this information
-//                if (userProfile.CurrentAgent.AgentOnline)
-//                    reply = "1";
-//                else
+                if (userProfile.CurrentAgent.AgentOnline)
+                    reply = "1";
+                else
                     reply = "0";
                 break;
             case 2: // DATA_NAME (First Last)
@@ -2671,8 +2682,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     break;
 
                 case (int)BuiltIn_Commands_BaseClass.LINK_SET:
-
-                    Console.WriteLine("LINK_SET");
 
                     foreach (SceneObjectPart partInst in m_host.ParentGroup.GetParts())
                     {
@@ -6280,7 +6289,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         System.Text.ASCIIEncoding enc =
                             new System.Text.ASCIIEncoding();
                         string data = enc.GetString(a.Data);
-                        Console.WriteLine(data);
+                        //Console.WriteLine(data);
                         NotecardCache.Cache(id, data);
                         m_ScriptEngine.m_ASYNCLSLCommandManager.
                                 m_Dataserver.DataserverReply(id.ToString(),
@@ -6316,7 +6325,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         System.Text.ASCIIEncoding enc =
                             new System.Text.ASCIIEncoding();
                         string data = enc.GetString(a.Data);
-                        Console.WriteLine(data);
+                        //Console.WriteLine(data);
                         NotecardCache.Cache(id, data);
                         m_ScriptEngine.m_ASYNCLSLCommandManager.
                                 m_Dataserver.DataserverReply(id.ToString(),

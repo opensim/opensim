@@ -322,6 +322,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.AsyncCommandPlugins
                     int idx;
                     for (idx = 0; idx < SensedObjects.Length; idx++)
                     {
+                        detect[idx] = new XDetectParams();
                         detect[idx].Key=(LLUUID)(SensedObjects.Data[idx]);
                     }
 

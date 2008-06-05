@@ -79,7 +79,17 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             // Add to queue for all scripts in ObjectID object
             XDetectParams[] det = new XDetectParams[1];
+            det[0] = new XDetectParams();
             det[0].Key = remoteClient.AgentId;
+
+            SceneObjectPart part = myScriptEngine.World.GetSceneObjectPart(
+                    localID);
+            if(part == null)
+                return;
+
+            det[0].LinkNum = 0;
+            if(part.ParentGroup.Children.Count > 0)
+                det[0].LinkNum = part.LinkNum + 1;
 
             myScriptEngine.PostObjectEvent(localID, new XEventParams(
                     "touch_start", new Object[] { new LSL_Types.LSLInteger(1) },
@@ -91,10 +101,20 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             // Add to queue for all scripts in ObjectID object
             XDetectParams[] det = new XDetectParams[1];
+            det[0] = new XDetectParams();
             det[0].Key = remoteClient.AgentId;
             det[0].OffsetPos = new LSL_Types.Vector3(offsetPos.X,
                                                      offsetPos.Y,
                                                      offsetPos.Z);
+
+            SceneObjectPart part = myScriptEngine.World.GetSceneObjectPart(
+                    localID);
+            if(part == null)
+                return;
+
+            det[0].LinkNum = 0;
+            if(part.ParentGroup.Children.Count > 0)
+                det[0].LinkNum = part.LinkNum + 1;
 
             myScriptEngine.PostObjectEvent(localID, new XEventParams(
                     "touch", new Object[] { new LSL_Types.LSLInteger(1) },
@@ -105,7 +125,17 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             // Add to queue for all scripts in ObjectID object
             XDetectParams[] det = new XDetectParams[1];
+            det[0] = new XDetectParams();
             det[0].Key = remoteClient.AgentId;
+
+            SceneObjectPart part = myScriptEngine.World.GetSceneObjectPart(
+                    localID);
+            if(part == null)
+                return;
+
+            det[0].LinkNum = 0;
+            if(part.ParentGroup.Children.Count > 0)
+                det[0].LinkNum = part.LinkNum + 1;
 
             myScriptEngine.PostObjectEvent(localID, new XEventParams(
                     "touch_end", new Object[] { new LSL_Types.LSLInteger(1) },
@@ -137,6 +167,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             // Add to queue for all scripts in ObjectID object
             XDetectParams[] det = new XDetectParams[1];
+            det[0] = new XDetectParams();
             det[0].Key = remoteClient.AgentId;
 
             myScriptEngine.PostObjectEvent(localID, new XEventParams(
@@ -150,6 +181,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             // Add to queue for all scripts in ObjectID object
             XDetectParams[] det = new XDetectParams[1];
+            det[0] = new XDetectParams();
             det[0].Key = remoteClient.AgentId;
 
             myScriptEngine.PostObjectEvent(localID, new XEventParams(
@@ -162,6 +194,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             // Add to queue for all scripts in ObjectID object
             XDetectParams[] det = new XDetectParams[1];
+            det[0] = new XDetectParams();
             det[0].Key = remoteClient.AgentId;
 
             myScriptEngine.PostObjectEvent(localID, new XEventParams(

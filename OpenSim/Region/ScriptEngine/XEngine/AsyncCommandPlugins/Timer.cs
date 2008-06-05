@@ -59,8 +59,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine.AsyncCommandPlugins
 
         public void SetTimerEvent(uint m_localID, LLUUID m_itemID, double sec)
         {
-            Console.WriteLine("SetTimerEvent");
-
             // Always remove first, in case this is a re-set
             UnSetTimerEvents(m_localID, m_itemID);
             if (sec == 0) // Disabling timer

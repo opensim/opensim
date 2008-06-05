@@ -280,9 +280,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         //
         public void OnRezScript(uint localID, LLUUID itemID, string script)
         {
-            m_ThreadPool.QueueWorkItem(new WorkItemCallback(
-                    this.DoOnRezScript), new Object[]
-                    { localID, itemID, script});
+//            m_ThreadPool.QueueWorkItem(new WorkItemCallback(
+//                    this.DoOnRezScript), new Object[]
+//                    { localID, itemID, script});
+            DoOnRezScript(new Object[] { localID, itemID, script});
         }
 
         private object DoOnRezScript(object parm)
@@ -346,15 +347,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 // Create the object record
 
-                if (!m_PrimObjects.ContainsKey(localID))
-                    m_PrimObjects[localID] = new List<LLUUID>();
-
-                if (!m_PrimObjects[localID].Contains(itemID))
-                    m_PrimObjects[localID].Add(itemID);
-
-                if (!m_Assemblies.ContainsKey(assetID))
-                    m_Assemblies[assetID] = assembly;
-
                 if ((!m_Scripts.ContainsKey(itemID)) ||
                     (m_Scripts[itemID].AssetID != assetID))
                 {
@@ -402,6 +394,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                     m_Scripts[itemID] = instance;
                 }
+
+                if(!m_PrimObjects.ContainsKey(localID))
+                    m_PrimObjects[localID] = new List<LLUUID>();
+
+                if(!m_PrimObjects[localID].Contains(itemID))
+                    m_PrimObjects[localID].Add(itemID);
+
+                if(!m_Assemblies.ContainsKey(assetID))
+                    m_Assemblies[assetID] = assembly;
             }
             return true;
         }
@@ -653,7 +654,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             XScriptInstance instance = GetInstance(itemID);
             if (instance != null)
                 return instance.GetDetectParams(idx);
-            return new XDetectParams();
+            return null;
         }
 
         public LLUUID GetDetectID(LLUUID itemID, int idx)
@@ -665,10 +666,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         }
     }
 
-    public struct XDetectParams
+    public class XDetectParams
     {
         public LLUUID Key;
         public LSL_Types.Vector3 OffsetPos;
+        public int LinkNum;
     }
 
     public class XEventParams
@@ -886,6 +888,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 {
                     if (m_CurrentResult == null)
                         m_CurrentResult = m_Engine.QueueEventHandler(this);
+                    else
+                        m_Engine.Log.Error("[XEngine] Tried to start a script that was already queued");
                 }
             }
         }
@@ -923,12 +927,22 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             lock (m_EventQueue)
             {
-                if (m_CurrentResult != null)
-                    m_CurrentResult.Abort();
-                else
-                    return true;
+                result = m_CurrentResult;
             }
 
+            if(result == null)
+                return true;
+
+            if(SmartThreadPool.WaitAll(new IWorkItemResult[] {result}, new TimeSpan((long)10000000), false))
+            {
+                lock(m_EventQueue)
+                {
+                    m_CurrentResult = null;
+                }
+                return true;
+            }
+
+            m_Engine.Log.Error("[XEngine] Failed to reliably stop script");
             return true;
         }
 
@@ -1109,7 +1123,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public XDetectParams GetDetectParams(int idx)
         {
             if (idx < 0 || idx >= m_DetectParams.Length)
-                return new XDetectParams();
+                return null;
 
             return m_DetectParams[idx];
         }
@@ -1307,7 +1321,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                         LLUUID.TryParse(det.InnerText,
                                                 out uuid);
 
-                                        XDetectParams d;
+                                        XDetectParams d = new XDetectParams();
                                         d.Key = uuid;
                                         d.OffsetPos = v;
 

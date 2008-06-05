@@ -81,9 +81,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Script
 
         public Dictionary<string, object> GetVars()
         {
-            m_Fields.Clear();
-
             Dictionary<string, object> vars = new Dictionary<string, object>();
+
+            if(m_Fields == null)
+                return vars;
+
+            m_Fields.Clear();
 
             Type t = GetType();
 
