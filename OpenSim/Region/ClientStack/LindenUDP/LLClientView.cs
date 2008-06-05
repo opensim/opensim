@@ -703,7 +703,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 if (!sessionInfo.Authorised)
                 {
                     //session/circuit not authorised
-                    m_log.Info("[CLIENT]: New user request denied to " + m_userEndPoint.ToString());
+                    m_log.WarnFormat(
+                        "[CLIENT]: New user request denied to avatar {0} with circuit code {1} at {2}",
+                        m_agentId, m_circuitCode, m_userEndPoint);
+                    
                     m_packetQueue.Close();
                     m_clientThread.Abort();
                 }
