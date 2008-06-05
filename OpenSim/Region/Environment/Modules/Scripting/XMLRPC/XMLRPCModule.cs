@@ -97,12 +97,23 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
 
         public void Initialise(Scene scene, IConfigSource config)
         {
-            try
+            // We need to create these early because the scripts might be calling
+            // But since this gets called for every region, we need to make sure they
+            // get called only one time (or we lose any open channels)
+            if (null == m_openChannels)
             {
-                m_remoteDataPort = config.Configs["Network"].GetInt("remoteDataPort", m_remoteDataPort);
-            }
-            catch (Exception)
-            {
+                m_openChannels = new Dictionary<LLUUID, RPCChannelInfo>();
+                m_rpcPending = new Dictionary<LLUUID, RPCRequestInfo>();
+                m_rpcPendingResponses = new Dictionary<LLUUID, RPCRequestInfo>();
+                m_pendingSRDResponses = new Dictionary<LLUUID, SendRemoteDataRequest>();
+
+                try
+                {
+                    m_remoteDataPort = config.Configs["Network"].GetInt("remoteDataPort", m_remoteDataPort);
+                }
+                catch (Exception)
+                {
+                }
             }
 
             if (!m_scenes.Contains(scene))
@@ -117,11 +128,6 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
         {
             if (IsEnabled())
             {
-                m_openChannels = new Dictionary<LLUUID, RPCChannelInfo>();
-                m_rpcPending = new Dictionary<LLUUID, RPCRequestInfo>();
-                m_rpcPendingResponses = new Dictionary<LLUUID, RPCRequestInfo>();
-                m_pendingSRDResponses = new Dictionary<LLUUID, SendRemoteDataRequest>();
-
                 // Start http server
                 // Attach xmlrpc handlers
                 m_log.Info("[REMOTE_DATA]: " +
@@ -176,6 +182,13 @@ namespace OpenSim.Region.Environment.Modules.Scripting.XMLRPC
         public LLUUID OpenXMLRPCChannel(uint localID, LLUUID itemID, LLUUID channelID)
         {
             LLUUID newChannel = LLUUID.Zero;
+
+            // This should no longer happen, but the check is reasonable anyway
+            if (null == m_openChannels)
+            {
+                m_log.Warn("[RemoteDataReply] Attempt to open channel before initialization is complete");
+                return newChannel;
+            }
 
             //Is a dupe?
             foreach (RPCChannelInfo ci in m_openChannels.Values)
