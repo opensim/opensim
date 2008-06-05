@@ -1594,6 +1594,27 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Region.ScriptEngine.Common.Tests" path="OpenSim/Tests/OpenSim/Region/ScriptEngine/Common" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../../../bin/</ReferencePath>
+      <Reference name="OpenSim.Region.ScriptEngine.Common"/>
+      <Reference name="OpenSim.Tests.Common"/>
+      <Reference name="nunit.framework.dll" />
+      <Files>
+        <Match pattern="*.cs" recurse="false"/>
+      </Files>
+    </Project>
+
     <Project name="OpenSim.Region.ScriptEngine.DotNetEngine" path="OpenSim/Region/ScriptEngine/DotNetEngine" type="Library">
       <Configuration name="Debug">
         <Options>
