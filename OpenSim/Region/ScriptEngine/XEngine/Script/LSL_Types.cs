@@ -1093,6 +1093,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Script
                 m_string=s;
             }
 
+            public LSLString(LSLFloat f)
+            {
+                string s=String.Format("{0:0.000000}", f.value);
+                m_string=s;
+            }
+
             #endregion
 
             #region Operators
@@ -1160,6 +1166,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Script
                 return new LSLString(d);
             }
 
+            public static explicit operator LSLString(LSLFloat f)
+            {
+                return new LSLString(f);
+            }
+
             public static implicit operator Vector3(LSLString s)
             {
                 return new Vector3(s.m_string);
@@ -1224,6 +1235,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Script
             }
 
             #endregion
+
+            #region Operators
 
             static public implicit operator int(LSLInteger i)
             {
@@ -1318,6 +1331,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Script
                 return i.value == 0;
             }
 
+            #endregion
+
             #region Overriders
 
             public override string ToString()
@@ -1352,6 +1367,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Script
             public double value;
 
             #region Constructors
+
             public LSLFloat(int i)
             {
                 this.value = (double)i;
@@ -1366,20 +1382,19 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Script
 
             #region Operators
 
-            static public implicit operator Double(LSLFloat f)
+            static public implicit operator int(LSLFloat f)
             {
-                return f.value;
+                return (int)f.value;
             }
 
-            //static public implicit operator System.Int32(LSLFloat f)
-            //{
-            //    return (int)f.value;
-            //}
-
+            static public implicit operator uint(LSLFloat f)
+            {
+                return (uint) Math.Abs(f.value);
+            }
 
             static public implicit operator Boolean(LSLFloat f)
             {
-                if (f.value == 0)
+                if (f.value == 0.0)
                 {
                     return false;
                 }
@@ -1394,17 +1409,57 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Script
                 return new LSLFloat(i);
             }
 
+            static public implicit operator LSLFloat(string s)
+            {
+                return new LSLFloat(double.Parse(s));
+            }
+
             static public implicit operator LSLFloat(double d)
             {
                 return new LSLFloat(d);
             }
+
+            static public bool operator ==(LSLFloat f1, LSLFloat f2)
+            {
+                return f1.value == f2.value;
+            }
+
+            static public bool operator !=(LSLFloat f1, LSLFloat f2)
+            {
+                return f1.value != f2.value;
+            }
+
+            static public LSLFloat operator ++(LSLFloat f)
+            {
+                f.value++;
+                return f;
+            }
+
+            static public LSLFloat operator --(LSLFloat f)
+            {
+                f.value--;
+                return f;
+            }
+
+            static public implicit operator System.Double(LSLFloat f)
+            {
+                return f.value;
+            }
+
+            //static public implicit operator System.Int32(LSLFloat f)
+            //{
+            //    return (int)f.value;
+            //}
+
             #endregion
 
             #region Overriders
+
             public override string ToString()
             {
-                return this.value.ToString();
+                return String.Format("{0:0.000000}", this.value);
             }
+
             #endregion
         }
     }
