@@ -97,7 +97,6 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             reader.ReadStartElement("assets");
             reader.Read();
             
-            m_log.DebugFormat("next node {0}", reader.Name);
             while (reader.Name.Equals("asset"))
             {
                 reader.Read();
@@ -150,11 +149,16 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             {
                 AssetMetadata metadata = m_metadata[filename];
                 
-                string rawId = filename.Remove(filename.Length - ArchiveConstants.TEXTURE_EXTENSION.Length);
+                string extension = String.Empty;
+                
+                if ((sbyte)AssetType.Texture == metadata.AssetType)
+                {
+                    filename = filename.Remove(filename.Length - ArchiveConstants.TEXTURE_EXTENSION.Length);
+                }
 
-                m_log.DebugFormat("[ARCHIVER]: Importing asset {0}", rawId);
+                m_log.DebugFormat("[ARCHIVER]: Importing asset {0}", filename);
 
-                AssetBase asset = new AssetBase(new LLUUID(rawId), metadata.Name);
+                AssetBase asset = new AssetBase(new LLUUID(filename), metadata.Name);
                 asset.Description = metadata.Description;
                 asset.Type = metadata.AssetType;
                 asset.InvType = metadata.InventoryType;

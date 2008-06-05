@@ -92,9 +92,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
                         foreach (TaskInventoryItem tit in part.TaskInventory.Values)
                         {
-                            if (tit.Type == (int)InventoryType.Texture)
+                            if (tit.Type != (int)InventoryType.Object)
                             {
-                                m_log.DebugFormat("[ARCHIVER]: Recording texture {0} in object {1}", tit.AssetID, part.UUID);
+                                m_log.DebugFormat("[ARCHIVER]: Recording asset {0} in object {1}", tit.AssetID, part.UUID);
                                 textureUuids[tit.AssetID] = 1;
                             }
                         }

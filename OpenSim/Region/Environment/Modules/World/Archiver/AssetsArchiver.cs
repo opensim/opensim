@@ -78,13 +78,21 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             
             foreach (LLUUID uuid in m_assets.Keys)
             {
-                if (m_assets[uuid] != null)
+                AssetBase asset = m_assets[uuid];
+                
+                if (asset != null)
                 {
                     xtw.WriteStartElement("asset");
                     
-                    AssetBase asset = m_assets[uuid];
+                    string extension = string.Empty;
                     
-                    xtw.WriteElementString("filename", uuid.ToString() + ArchiveConstants.TEXTURE_EXTENSION);
+                    if ((sbyte)AssetType.Texture == asset.Type)
+                    {
+                        extension = ArchiveConstants.TEXTURE_EXTENSION;
+                    }
+                    
+                    xtw.WriteElementString("filename", uuid.ToString() + extension);
+                    
                     xtw.WriteElementString("name", asset.Name);
                     xtw.WriteElementString("description", asset.Description);
                     xtw.WriteElementString("asset-type", asset.Type.ToString());
@@ -113,11 +121,20 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                         
             foreach (LLUUID uuid in m_assets.Keys)
             {
-                if (m_assets[uuid] != null)
+                AssetBase asset = m_assets[uuid];
+                
+                if (asset != null)
                 {
+                    string extension = string.Empty;
+                    
+                    if ((sbyte)AssetType.Texture == asset.Type)
+                    {
+                        extension = ArchiveConstants.TEXTURE_EXTENSION;
+                    }
+                    
                     archive.AddFile(
-                        ArchiveConstants.ASSETS_PATH + uuid.ToString() + ArchiveConstants.TEXTURE_EXTENSION,
-                        m_assets[uuid].Data);
+                        ArchiveConstants.ASSETS_PATH + uuid.ToString() + extension,
+                        asset.Data);
                 }
                 else
                 {
