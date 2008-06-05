@@ -933,6 +933,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if(result == null)
                 return true;
 
+            result.Abort();
+
             if(SmartThreadPool.WaitAll(new IWorkItemResult[] {result}, new TimeSpan((long)10000000), false))
             {
                 lock(m_EventQueue)
