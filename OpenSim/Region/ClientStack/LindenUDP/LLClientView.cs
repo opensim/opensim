@@ -5063,7 +5063,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 if (handlerUpdateInventoryItem != null)
                                 {
                                     InventoryItemBase itemUpd = new InventoryItemBase();
-                                    itemUpd = null;
                                     itemUpd.ID = update.InventoryData[i].ItemID;
                                     itemUpd.Name = Util.FieldToString(update.InventoryData[i].Name);
                                     itemUpd.Description = Util.FieldToString(update.InventoryData[i].Description);
