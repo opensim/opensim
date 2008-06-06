@@ -39,13 +39,6 @@
  
     <echo message="Generating Doxygen documentation" />
     <exec program="doxygen" workingdir="../doc" commandline="doxygen.conf" />
-
-    <tar destfile="../${projectdir}-doc-html.tar.gz" compression="GZip">
-      <fileset basedir="..">
-        <include name="doc/html/**" />
-      </fileset>
-    </tar>
-
-    <copy file="../${projectdir}-doc-html.tar.gz" tofile="/home/buildsystem/public_html/${projectdir}-TRUNK-doc-html.tar.gz" overwrite="true" />
+    <exec program="rsync" workingdir="../doc" commandline="-avz --delete html/ /home/afrisby/public_html/docs/html/" />
   </target>
 </project>
