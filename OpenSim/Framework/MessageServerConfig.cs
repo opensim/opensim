@@ -75,7 +75,7 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("grid_send_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to send to grid server", "null", false);
             configMember.addConfigurationOption("grid_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                "Key to expect from user server", "null", false);
+                                                "Key to expect from grid server", "null", false);
 
 
             configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
