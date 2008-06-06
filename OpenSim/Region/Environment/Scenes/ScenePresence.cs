@@ -592,9 +592,16 @@ namespace OpenSim.Region.Environment.Scenes
 //                 Name, UUID, m_scene.RegionInfo.RegionName);
 
             m_isChildAgent = false;
+           
+            float localAVHeight = 1.56f;
+            if (m_avHeight != 127.0f)
+            {
+                localAVHeight = m_avHeight;
+            }
+
             float posZLimit = (float)m_scene.GetLandHeight((int)pos.X, (int)pos.Y);
-            float newPosZ = posZLimit + m_avHeight;
-            if (posZLimit >= (pos.Z -(m_avHeight/2)) && !(Single.IsInfinity(newPosZ) || Single.IsNaN(newPosZ)))
+            float newPosZ = posZLimit + localAVHeight;
+            if (posZLimit >= (pos.Z - (localAVHeight / 2)) && !(Single.IsInfinity(newPosZ) || Single.IsNaN(newPosZ)))
             {
                 pos.Z = newPosZ;
             }
