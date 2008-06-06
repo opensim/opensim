@@ -214,7 +214,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     //  QuadTree.AddSceneObject(sceneObject);
                     Entities.Add(sceneObject.UUID, sceneObject);
-                    m_numPrim++;
+                    m_numPrim += sceneObject.Children.Count;
 
                     return true;
                 }
@@ -228,14 +228,18 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="sceneObject"></param>
         /// <returns>true if the object was deleted, false if there was no object to delete</returns>
-        protected internal bool DeleteSceneObject(LLUUID uuid)
+        protected internal bool DeleteSceneObject(LLUUID uuid, bool resultOfObjectLinked)
         {
             lock (Entities)
             {
                 if (Entities.ContainsKey(uuid))
                 {
+                    Console.WriteLine("REMOVED " + ((SceneObjectGroup)Entities[uuid]).Children.Count + "!");
+                    if (!resultOfObjectLinked)
+                    {
+                        m_numPrim -= ((SceneObjectGroup)Entities[uuid]).Children.Count;
+                    }
                     Entities.Remove(uuid);
-                    m_numPrim--;
 
                     return true;
                 }
@@ -584,7 +588,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        protected internal int GetChildAgentCount()
+        public int GetChildAgentCount()
         {
             // some network situations come in where child agents get closed twice.
             if (m_numChildAgents < 0)
@@ -595,27 +599,27 @@ namespace OpenSim.Region.Environment.Scenes
             return m_numChildAgents;
         }
 
-        protected internal int GetRootAgentCount()
+        public int GetRootAgentCount()
         {
             return m_numRootAgents;
         }
 
-        protected internal int GetTotalObjects()
+        public int GetTotalObjectsCount()
         {
             return m_numPrim;
         }
 
-        protected internal int GetActiveObjects()
+        public int GetActiveObjectsCount()
         {
             return m_physicalPrim;
         }
 
-        protected internal int GetActiveScripts()
+        public int GetActiveScriptsCount()
         {
             return m_activeScripts;
         }
 
-        protected internal int GetScriptLPS()
+        public int GetScriptLPS()
         {
             int returnval = m_scriptLPS;
             m_scriptLPS = 0;
@@ -1437,7 +1441,7 @@ namespace OpenSim.Region.Environment.Scenes
                     // think it's selected, so it will never send a deselect...
                     copy.IsSelected = false;
 
-                    m_numPrim++;
+                    m_numPrim += copy.Children.Count;
 
                     copy.StartScripts();
                     copy.ScheduleGroupForFullUpdate();

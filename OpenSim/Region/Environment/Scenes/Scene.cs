@@ -757,13 +757,13 @@ namespace OpenSim.Region.Environment.Scenes
                     m_statsReporter.AddInPackets(0);
                     m_statsReporter.SetRootAgents(m_innerScene.GetRootAgentCount());
                     m_statsReporter.SetChildAgents(m_innerScene.GetChildAgentCount());
-                    m_statsReporter.SetObjects(m_innerScene.GetTotalObjects());
-                    m_statsReporter.SetActiveObjects(m_innerScene.GetActiveObjects());
+                    m_statsReporter.SetObjects(m_innerScene.GetTotalObjectsCount());
+                    m_statsReporter.SetActiveObjects(m_innerScene.GetActiveObjectsCount());
                     frameMS = System.Environment.TickCount - frameMS;
                     m_statsReporter.addFrameMS(frameMS);
                     m_statsReporter.addPhysicsMS(physicsMS);
                     m_statsReporter.addOtherMS(otherMS);
-                    m_statsReporter.SetActiveScripts(m_innerScene.GetActiveScripts());
+                    m_statsReporter.SetActiveScripts(m_innerScene.GetActiveScriptsCount());
                     m_statsReporter.addScriptLines(m_innerScene.GetScriptLPS());
                 }
             }
@@ -1412,7 +1412,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns>true if the object was in the scene, false if it was not</returns>
         public bool UnlinkSceneObject(LLUUID uuid)
         {
-            if (m_innerScene.DeleteSceneObject(uuid))
+            if (m_innerScene.DeleteSceneObject(uuid,true))
             {
                 m_storageManager.DataStore.RemoveObject(uuid, m_regInfo.RegionID);
 
