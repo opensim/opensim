@@ -950,6 +950,22 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+        public void FakeDeleteGroup()
+        {
+            foreach (SceneObjectPart part in m_parts.Values)
+            {
+                List<ScenePresence> avatars = Scene.GetScenePresences();
+                for (int i = 0; i < avatars.Count; i++)
+                {
+                    if (avatars[i].ParentID == LocalId)
+                    {
+                        avatars[i].StandUp();
+                    }
+
+                    avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
+                }
+            }
+        }
 
         /// <summary>
         /// Delete all the parts in this group.

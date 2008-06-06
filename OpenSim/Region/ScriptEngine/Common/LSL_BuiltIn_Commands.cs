@@ -1049,8 +1049,13 @@ namespace OpenSim.Region.ScriptEngine.Common
             if (part == null)
                 return;
 
+            bool needs_fakedelete = false;
             if (flexi)
             {
+                if (!part.Shape.FlexiEntry)
+                {
+                    needs_fakedelete = true;
+                }
                 part.Shape.FlexiEntry = true;   // this setting flexi true isn't working, but the below parameters do 
                                                 // work once the prim is already flexi
                 part.Shape.FlexiSoftness = softness;
@@ -1065,10 +1070,49 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
             else
             {
+                if (part.Shape.FlexiEntry)
+                {
+                    needs_fakedelete = true;
+                }
                 part.Shape.FlexiEntry = false;
             }
-            part.SendFullUpdateToAllClients();
+
+            needs_fakedelete = false;
+            if (needs_fakedelete)
+            {
+                if (part.ParentGroup != null)
+                {
+                    part.ParentGroup.FakeDeleteGroup();
+                }
+            }
+
+            part.ScheduleFullUpdate();
         }
+
+        private void SetPointLight(SceneObjectPart part, bool light, LSL_Types.Vector3 color, float intensity, float radius, float falloff)
+        {
+            if (part == null)
+                return;
+
+            if (light)
+            {
+                part.Shape.LightEntry = true;
+                part.Shape.LightColorR = (float)color.x;
+                part.Shape.LightColorG = (float)color.y;
+                part.Shape.LightColorB = (float)color.z;
+                part.Shape.LightIntensity = intensity;
+                part.Shape.LightRadius = radius;
+                part.Shape.LightFalloff = falloff;
+            }
+            else
+            {
+                part.Shape.LightEntry = false;
+            }
+
+            part.ScheduleFullUpdate();
+        }
+
+
 
         public LSL_Types.Vector3 llGetColor(int face)
         {
@@ -4701,7 +4745,18 @@ namespace OpenSim.Region.ScriptEngine.Common
                         SetFlexi(part, (flexi == 1), softness, gravity, friction, wind, tension, force);
 
                         break;
-                    
+                    case 23: // PRIM_POINT_LIGHT
+                        if (remain < 5)
+                            return;
+                        int light = Convert.ToInt32(rules.Data[idx++]);
+                        LSL_Types.Vector3 lightcolor =new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                        float intensity = (float)Convert.ToDouble(rules.Data[idx++]);
+                        float radius = (float)Convert.ToDouble(rules.Data[idx++]);
+                        float falloff = (float)Convert.ToDouble(rules.Data[idx++]);
+                        
+                        SetPointLight(part, (light == 1), lightcolor, intensity, radius, falloff);
+
+                        break;
                 }
             }
         }
