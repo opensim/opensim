@@ -1066,6 +1066,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 part.Shape.FlexiForceX = (float)Force.x;
                 part.Shape.FlexiForceY = (float)Force.y;
                 part.Shape.FlexiForceZ = (float)Force.z;
+                part.Shape.PathCurve = 0x80;
 
             }
             else
