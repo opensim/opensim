@@ -237,7 +237,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         {
             try
             {
-                string clientName = String.Format("{0}{1}", client.FirstName, client.LastName);
+                string clientName = String.Format("{0} {1}", client.FirstName, client.LastName);
 
                 client.OnChatFromViewer += SimChat;
                 client.OnLogout += ClientLoggedOut;
@@ -250,7 +250,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                         m_log.DebugFormat("[IRC] {0} logging on", clientName);
                         m_irc.PrivMsg(m_irc.Nick, "Sim",
                                       String.Format("notices {0} logging on", clientName));
-                        m_irc.NewUser(clientName);
                     }
                     m_last_new_user = clientName;
                 }
@@ -285,10 +284,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 if ((m_irc.Enabled) && (m_irc.Connected))
                 {
                     string regionName = presence.Scene.RegionInfo.RegionName;
-                    string clientName = String.Format("{0}{1}", presence.Firstname, presence.Lastname);
+                    string clientName = String.Format("{0} {1}", presence.Firstname, presence.Lastname);
                     m_log.DebugFormat("[IRC] noticing {0} in {1}", clientName, regionName);
                     m_irc.PrivMsg(m_irc.Nick, "Sim", String.Format("notices {0} left {1}", clientName, regionName));
-                    m_irc.RemoveUser(clientName);
                 }
             }
             catch (Exception)
@@ -484,8 +482,12 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                     listener.Start();
                     ThreadTracker.Add(listener);
 
-                    NewUser(m_user);
-
+                    m_writer.WriteLine(m_user);
+                    m_writer.Flush();
+                    m_writer.WriteLine(String.Format("NICK {0}", m_nick));
+                    m_writer.Flush();
+                    m_writer.WriteLine(String.Format("JOIN {0}", m_channel));
+                    m_writer.Flush();
                     m_log.Info("[IRC]: Connection fully established");
                     m_connected = true;
                 }
@@ -496,21 +498,6 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 }
                 return m_connected;
             }
-        }
-
-        public void NewUser(string nick)
-        {
-            m_writer.WriteLine(nick);
-            m_writer.Flush();
-            m_writer.WriteLine(String.Format("NICK {0}", m_nick));
-            m_writer.Flush();
-            m_writer.WriteLine(String.Format("JOIN {0}", m_channel));
-            m_writer.Flush();
-        }
-
-        public void RemoveUser(string nick)
-        {
-            m_writer.WriteLine(String.Format("QUIT :{0}", nick));
         }
 
         public void Reconnect()
