@@ -43,6 +43,17 @@ namespace OpenSim.Data.MSSQL
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        #region Helper converters to preserve unsigned bitfield-type data in DB roundtrips via signed int32s
+        private static int ConvertUint32BitFieldToInt32(uint bitField)
+        {
+            return BitConverter.ToInt32(BitConverter.GetBytes(bitField), 0);
+        }
+        private static uint ConvertInt32BitFieldToUint32(int bitField)
+        {
+            return BitConverter.ToUInt32(BitConverter.GetBytes(bitField), 0);
+        }
+        #endregion
+
         /// <summary>
         /// The database manager
         /// </summary>
@@ -306,18 +317,18 @@ namespace OpenSim.Data.MSSQL
                 item.Owner = new LLUUID((string) reader["avatarID"]);
                 item.Name = (string) reader["inventoryName"];
                 item.Description = (string) reader["inventoryDescription"];
-                item.NextPermissions = Convert.ToUInt32(reader["inventoryNextPermissions"]);
-                item.CurrentPermissions = Convert.ToUInt32(reader["inventoryCurrentPermissions"]);
+                item.NextPermissions = ConvertInt32BitFieldToUint32((int)reader["inventoryNextPermissions"]);
+                item.CurrentPermissions = ConvertInt32BitFieldToUint32((int)reader["inventoryCurrentPermissions"]);
                 item.InvType = (int) reader["invType"];
                 item.Creator = new LLUUID((string) reader["creatorID"]);
-                item.BasePermissions = Convert.ToUInt32(reader["inventoryBasePermissions"]);
-                item.EveryOnePermissions = Convert.ToUInt32(reader["inventoryEveryOnePermissions"]);
+                item.BasePermissions = ConvertInt32BitFieldToUint32((int)reader["inventoryBasePermissions"]);
+                item.EveryOnePermissions = ConvertInt32BitFieldToUint32((int)reader["inventoryEveryOnePermissions"]);
                 item.SalePrice = (int) reader["salePrice"];
                 item.SaleType = Convert.ToByte(reader["saleType"]);
                 item.CreationDate = (int) reader["creationDate"];
                 item.GroupID = new LLUUID(reader["groupID"].ToString());
                 item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
-                item.Flags = Convert.ToUInt32(reader["flags"]);
+                item.Flags = ConvertInt32BitFieldToUint32((int)reader["flags"]);
 
                 return item;
             }
@@ -368,7 +379,7 @@ namespace OpenSim.Data.MSSQL
         /// <summary>
         /// Reads a list of inventory folders returned by a query.
         /// </summary>
-        /// <param name="reader">A MySQL Data Reader</param>
+        /// <param name="reader">A MSSQL Data Reader</param>
         /// <returns>A List containing inventory folders</returns>
         protected static InventoryFolderBase readInventoryFolder(IDataReader reader)
         {
@@ -380,7 +391,7 @@ namespace OpenSim.Data.MSSQL
                 folder.ID = new LLUUID((string) reader["folderID"]);
                 folder.Name = (string) reader["folderName"];
                 folder.Type = (short) reader["type"];
-                folder.Version = (ushort) ((int) reader["version"]);
+                folder.Version = Convert.ToUInt16(reader["version"]);
                 return folder;
             }
             catch (Exception e)
@@ -450,31 +461,29 @@ namespace OpenSim.Data.MSSQL
 
             try
             {
-                Dictionary<string, string> param = new Dictionary<string, string>();
-                param["inventoryID"] = item.ID.ToString();
-                param["assetID"] = item.AssetID.ToString();
-                param["assetType"] = item.AssetType.ToString();
-                param["parentFolderID"] = item.Folder.ToString();
-                param["avatarID"] = item.Owner.ToString();
-                param["inventoryName"] = item.Name;
-                param["inventoryDescription"] = item.Description;
-                param["inventoryNextPermissions"] = item.NextPermissions.ToString();
-                param["inventoryCurrentPermissions"] = item.CurrentPermissions.ToString();
-                param["invType"] = Convert.ToString(item.InvType);
-                param["creatorID"] = item.Creator.ToString();
-                param["inventoryBasePermissions"] = Convert.ToString(item.BasePermissions);
-                param["inventoryEveryOnePermissions"] = Convert.ToString(item.EveryOnePermissions);
+                SqlCommand command = new SqlCommand(sql, database.getConnection());
+                command.Parameters.AddWithValue("inventoryID", item.ID.ToString());
+                command.Parameters.AddWithValue("assetID", item.AssetID.ToString());
+                command.Parameters.AddWithValue("assetType", item.AssetType.ToString());
+                command.Parameters.AddWithValue("parentFolderID", item.Folder.ToString());
+                command.Parameters.AddWithValue("avatarID", item.Owner.ToString());
+                command.Parameters.AddWithValue("inventoryName", item.Name);
+                command.Parameters.AddWithValue("inventoryDescription", item.Description);
+                command.Parameters.AddWithValue("inventoryNextPermissions", ConvertUint32BitFieldToInt32(item.NextPermissions));
+                command.Parameters.AddWithValue("inventoryCurrentPermissions", ConvertUint32BitFieldToInt32(item.CurrentPermissions));
+                command.Parameters.AddWithValue("invType", item.InvType);
+                command.Parameters.AddWithValue("creatorID", item.Creator.ToString());
+                command.Parameters.AddWithValue("inventoryBasePermissions", ConvertUint32BitFieldToInt32(item.BasePermissions));
+                command.Parameters.AddWithValue("inventoryEveryOnePermissions", ConvertUint32BitFieldToInt32(item.EveryOnePermissions));
+                command.Parameters.AddWithValue("salePrice", item.SalePrice);
+                command.Parameters.AddWithValue("saleType", item.SaleType);
+                command.Parameters.AddWithValue("creationDate", item.CreationDate);
+                command.Parameters.AddWithValue("groupID", item.GroupID.ToString());
+                command.Parameters.AddWithValue("groupOwned", item.GroupOwned);
+                command.Parameters.AddWithValue("flags", ConvertUint32BitFieldToInt32(item.Flags));
 
-                param["salePrice"] = Convert.ToString(item.SalePrice);
-                param["saleType"] = Convert.ToString(item.SaleType);
-                param["creationDate"] = Convert.ToString(item.CreationDate);
-                param["groupID"] = item.GroupID.ToString();
-                param["groupOwned"] = Convert.ToString(item.GroupOwned);
-                param["flags"] = Convert.ToString(item.Flags);
-
-                IDbCommand result = database.Query(sql, param);
-                result.ExecuteNonQuery();
-                result.Dispose();
+                command.ExecuteNonQuery();
+                command.Dispose();
             }
             catch (SqlException e)
             {
@@ -490,46 +499,44 @@ namespace OpenSim.Data.MSSQL
         {
             SqlCommand command = new SqlCommand("UPDATE inventoryitems set inventoryID = @inventoryID, " +
                                                 "assetID = @assetID, " +
-                                                "assetType = @assetType" +
-                                                "parentFolderID = @parentFolderID" +
-                                                "avatarID = @avatarID" +
-                                                "inventoryName = @inventoryName" +
-                                                "inventoryDescription = @inventoryDescription" +
-                                                "inventoryNextPermissions = @inventoryNextPermissions" +
-                                                "inventoryCurrentPermissions = @inventoryCurrentPermissions" +
-                                                "invType = @invType" +
-                                                "creatorID = @creatorID" +
-                                                "inventoryBasePermissions = @inventoryBasePermissions" +
-                                                "inventoryEveryOnePermissions = @inventoryEveryOnePermissions) where " +
+                                                "assetType = @assetType," +
+                                                "parentFolderID = @parentFolderID," +
+                                                "avatarID = @avatarID," +
+                                                "inventoryName = @inventoryName," +
+                                                "inventoryDescription = @inventoryDescription," +
+                                                "inventoryNextPermissions = @inventoryNextPermissions," +
+                                                "inventoryCurrentPermissions = @inventoryCurrentPermissions," +
+                                                "invType = @invType," +
+                                                "creatorID = @creatorID," +
+                                                "inventoryBasePermissions = @inventoryBasePermissions," +
+                                                "inventoryEveryOnePermissions = @inventoryEveryOnePermissions," + 
+                                                "salePrice = @salePrice," +
+                                                "saleType = @saleType," + 
+                                                "creationDate = @creationDate," +
+                                                "groupID = @groupID,"  +
+                                                "groupOwned = @groupOwned," + 
+                                                "flags = @flags where " +
                                                 "inventoryID = @keyInventoryID;", database.getConnection());
-            SqlParameter param1 = new SqlParameter("@inventoryID", item.ID.ToString());
-            SqlParameter param2 = new SqlParameter("@assetID", item.AssetID);
-            SqlParameter param3 = new SqlParameter("@assetType", item.AssetType);
-            SqlParameter param4 = new SqlParameter("@parentFolderID", item.Folder);
-            SqlParameter param5 = new SqlParameter("@avatarID", item.Owner);
-            SqlParameter param6 = new SqlParameter("@inventoryName", item.Name);
-            SqlParameter param7 = new SqlParameter("@inventoryDescription", item.Description);
-            SqlParameter param8 = new SqlParameter("@inventoryNextPermissions", item.NextPermissions);
-            SqlParameter param9 = new SqlParameter("@inventoryCurrentPermissions", item.CurrentPermissions);
-            SqlParameter param10 = new SqlParameter("@invType", item.InvType);
-            SqlParameter param11 = new SqlParameter("@creatorID", item.Creator);
-            SqlParameter param12 = new SqlParameter("@inventoryBasePermissions", item.BasePermissions);
-            SqlParameter param13 = new SqlParameter("@inventoryEveryOnePermissions", item.EveryOnePermissions);
-            SqlParameter param14 = new SqlParameter("@keyInventoryID", item.ID.ToString());
-            command.Parameters.Add(param1);
-            command.Parameters.Add(param2);
-            command.Parameters.Add(param3);
-            command.Parameters.Add(param4);
-            command.Parameters.Add(param5);
-            command.Parameters.Add(param6);
-            command.Parameters.Add(param7);
-            command.Parameters.Add(param8);
-            command.Parameters.Add(param9);
-            command.Parameters.Add(param10);
-            command.Parameters.Add(param11);
-            command.Parameters.Add(param12);
-            command.Parameters.Add(param13);
-            command.Parameters.Add(param14);
+            command.Parameters.AddWithValue("inventoryID", item.ID.ToString());
+            command.Parameters.AddWithValue("assetID", item.AssetID.ToString());
+            command.Parameters.AddWithValue("assetType", item.AssetType.ToString());
+            command.Parameters.AddWithValue("parentFolderID", item.Folder.ToString());
+            command.Parameters.AddWithValue("avatarID", item.Owner.ToString());
+            command.Parameters.AddWithValue("inventoryName", item.Name);
+            command.Parameters.AddWithValue("inventoryDescription", item.Description);
+            command.Parameters.AddWithValue("inventoryNextPermissions", ConvertUint32BitFieldToInt32(item.NextPermissions));
+            command.Parameters.AddWithValue("inventoryCurrentPermissions", ConvertUint32BitFieldToInt32(item.CurrentPermissions));
+            command.Parameters.AddWithValue("invType", item.InvType);
+            command.Parameters.AddWithValue("creatorID", item.Creator.ToString());
+            command.Parameters.AddWithValue("inventoryBasePermissions", ConvertUint32BitFieldToInt32(item.BasePermissions));
+            command.Parameters.AddWithValue("inventoryEveryOnePermissions", ConvertUint32BitFieldToInt32(item.EveryOnePermissions));
+            command.Parameters.AddWithValue("salePrice", item.SalePrice);
+            command.Parameters.AddWithValue("saleType", item.SaleType);
+            command.Parameters.AddWithValue("creationDate", item.CreationDate);
+            command.Parameters.AddWithValue("groupID", item.GroupID.ToString());
+            command.Parameters.AddWithValue("groupOwned", item.GroupOwned);
+            command.Parameters.AddWithValue("flags", ConvertUint32BitFieldToInt32(item.Flags));
+            command.Parameters.AddWithValue("@keyInventoryID", item.ID.ToString());
 
             try
             {
@@ -574,19 +581,19 @@ namespace OpenSim.Data.MSSQL
             sql += "(@folderID, @agentID, @parentFolderID, @folderName, @type, @version);";
 
 
-            Dictionary<string, string> param = new Dictionary<string, string>();
-            param["folderID"] = folder.ID.ToString();
-            param["agentID"] = folder.Owner.ToString();
-            param["parentFolderID"] = folder.ParentID.ToString();
-            param["folderName"] = folder.Name;
-            param["type"] = Convert.ToString(folder.Type);
-            param["version"] = Convert.ToString(folder.Version);
+            SqlCommand command = new SqlCommand(sql, database.getConnection());
+            command.Parameters.AddWithValue("folderID", folder.ID.ToString());
+            command.Parameters.AddWithValue("agentID", folder.Owner.ToString());
+            command.Parameters.AddWithValue("parentFolderID", folder.ParentID.ToString());
+            command.Parameters.AddWithValue("folderName", folder.Name);
+            command.Parameters.AddWithValue("type", folder.Type);
+            command.Parameters.AddWithValue("version", Convert.ToInt32(folder.Version));
 
             try
             {
-                IDbCommand result = database.Query(sql, param);
-                result.ExecuteNonQuery();
-                result.Dispose();
+                //IDbCommand result = database.Query(sql, param);
+                command.ExecuteNonQuery();
+                command.Dispose();
             }
             catch (Exception e)
             {
@@ -612,7 +619,7 @@ namespace OpenSim.Data.MSSQL
             SqlParameter param3 = new SqlParameter("@parentFolderID", folder.ParentID.ToString());
             SqlParameter param4 = new SqlParameter("@folderName", folder.Name);
             SqlParameter param5 = new SqlParameter("@type", folder.Type);
-            SqlParameter param6 = new SqlParameter("@version", folder.Version);
+            SqlParameter param6 = new SqlParameter("@version", Convert.ToInt32(folder.Version));
             SqlParameter param7 = new SqlParameter("@keyFolderID", folder.ID.ToString());
             command.Parameters.Add(param1);
             command.Parameters.Add(param2);
