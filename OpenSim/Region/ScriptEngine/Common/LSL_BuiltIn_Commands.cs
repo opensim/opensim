@@ -1042,6 +1042,33 @@ namespace OpenSim.Region.ScriptEngine.Common
             }
         }
 
+        private void SetFlexi(SceneObjectPart part, bool flexi, int softness, float gravity, float friction, 
+            float wind, float tension, LSL_Types.Vector3 Force)
+        {
+            if (part == null)
+                return;
+
+            if (flexi)
+            {
+                part.Shape.FlexiEntry = true;   // this setting flexi true isn't working, but the below parameters do 
+                                                // work once the prim is already flexi
+                part.Shape.FlexiSoftness = softness;
+                part.Shape.FlexiGravity = gravity;
+                part.Shape.FlexiDrag = friction;
+                part.Shape.FlexiWind = wind;
+                part.Shape.FlexiTension = tension;
+                part.Shape.FlexiForceX = (float)Force.x;
+                part.Shape.FlexiForceY = (float)Force.y;
+                part.Shape.FlexiForceZ = (float)Force.z;
+
+            }
+            else
+            {
+                part.Shape.FlexiEntry = false;
+            }
+            part.SendFullUpdateToAllClients();
+        }
+
         public LSL_Types.Vector3 llGetColor(int face)
         {
             m_host.AddScriptLPS(1);
@@ -4612,7 +4639,14 @@ namespace OpenSim.Region.ScriptEngine.Common
                         SetPos(part, v);
 
                         break;
+                    case 7: // PRIM_SIZE
+                        if (remain < 1)
+                            return;
 
+                        v=new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                        SetScale(part, v);
+                        
+                        break;
                     case 8: // PRIM_ROTATION
                         if (remain < 1)
                             return;
@@ -4651,15 +4685,22 @@ namespace OpenSim.Region.ScriptEngine.Common
                         SetAlpha(part, alpha, face);
 
                         break;
-
-                    case 7: // PRIM_SIZE
-                        if (remain < 1)
+                    case 21: // PRIM_FLEXI
+                        if (remain < 7)
                             return;
 
-                        v=new LSL_Types.Vector3(rules.Data[idx++].ToString());
-                        SetScale(part, v);
+                        int flexi = Convert.ToInt32(rules.Data[idx++]);
+                        int softness = Convert.ToInt32(rules.Data[idx++]);
+                        float gravity = (float)Convert.ToDouble(rules.Data[idx++]);
+                        float friction = (float)Convert.ToDouble(rules.Data[idx++]);
+                        float wind = (float)Convert.ToDouble(rules.Data[idx++]);
+                        float tension = (float)Convert.ToDouble(rules.Data[idx++]);
+                        LSL_Types.Vector3 force =new LSL_Types.Vector3(rules.Data[idx++].ToString());
+
+                        SetFlexi(part, (flexi == 1), softness, gravity, friction, wind, tension, force);
 
                         break;
+                    
                 }
             }
         }
