@@ -734,6 +734,18 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 StoreUndoState();
                 m_shape.Scale = value;
+
+                if (PhysActor != null && m_parentGroup != null)
+                {
+                    if (m_parentGroup.Scene != null)
+                    {
+                        if (m_parentGroup.Scene.PhysicsScene != null)
+                        {
+                            PhysActor.Size = new PhysicsVector(m_shape.Scale.X, m_shape.Scale.Y, m_shape.Scale.Z);
+                            m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+                        }
+                    }
+                }
                 TriggerScriptChangedEvent(Changed.SCALE);
             }
         }
