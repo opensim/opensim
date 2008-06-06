@@ -472,6 +472,7 @@ namespace OpenSim.Region.Environment.Scenes
             UpdateParentIDs();
         }
 
+       
         /// <summary>
         ///
         /// </summary>
@@ -488,12 +489,12 @@ namespace OpenSim.Region.Environment.Scenes
             newPart.LinkNum = m_parts.Count;
             m_parts.Add(newPart.UUID, newPart);
             SetPartAsRoot(newPart);
-
-            AttachToBackup();
+            // one of these is a proxy.
+            if (shape.PCode != (byte)PCode.None && shape.PCode != (byte)PCode.ParticleSystem)
+                AttachToBackup();
 
             //ApplyPhysics(scene.m_physicalPrim);
         }
-
         /// <summary>
         ///
         /// </summary>

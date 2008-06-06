@@ -269,6 +269,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private RequestObjectPropertiesFamily handlerObjectGroupRequest = null;
         private ScriptReset handlerScriptReset = null;
+        private UpdateVector handlerAutoPilotGo = null;
 
         /* Properties */
 
@@ -900,6 +901,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event EstateDebugRegionRequest OnEstateDebugRegionRequest;
         public event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
         public event ScriptReset OnScriptReset;
+        public event UpdateVector OnAutoPilotGo;
 
         #region Scene/Avatar to Client
 
@@ -1125,7 +1127,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 patches[0] = patchx + 0 + patchy * 16;
 
-                Packet layerpack = LLClientView.TerrainManager.CreateLandPacket(map, patches);
+                LayerDataPacket layerpack = LLClientView.TerrainManager.CreateLandPacket(map, patches);
                 layerpack.Header.Zerocoded = true;
                 OutPacket(layerpack, ThrottleOutPacketType.Land);
             }
@@ -3966,7 +3968,50 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             get { return m_packetProcessingEnabled; }
             set { m_packetProcessingEnabled = value; }
         }
+        public void DecipherGenericMessage(string gmMethod, LLUUID gmInvoice, GenericMessagePacket.ParamListBlock[] gmParams)
+        {
+            switch (gmMethod)
+            {
+                case "autopilot":
+                    float locx = 0f;
+                    float locy = 0f;
+                    float locz = 0f;
+                    uint regionX = 0;
+                    uint regionY = 0;
+                    try
 
+                    {
+                        Helpers.LongToUInts(Scene.RegionInfo.RegionHandle,out regionX, out regionY);
+                        locx = Convert.ToSingle(Helpers.FieldToUTF8String(gmParams[0].Parameter)) - (float)regionX;
+                        locy = Convert.ToSingle(Helpers.FieldToUTF8String(gmParams[1].Parameter)) - (float)regionY;
+                        locz = Convert.ToSingle(Helpers.FieldToUTF8String(gmParams[2].Parameter));
+                    }
+                    catch (InvalidCastException)
+                    {
+                        m_log.Error("[CLIENT]: Invalid autopilot request");
+                        return;
+                    }
+
+                    handlerAutoPilotGo = OnAutoPilotGo;
+                    if (handlerAutoPilotGo != null)
+                    {
+                        handlerAutoPilotGo(0, new LLVector3(locx, locy, locz), this);
+                    }
+                    m_log.InfoFormat("[CLIENT]: Client Requests autopilot to position <{0},{1},{2}>", locx, locy, locz);
+
+
+                    break;
+                default: 
+                    m_log.Debug("[CLIENT]: Unknown Generic Message, Method: " + gmMethod + ". Invoice: " + gmInvoice.ToString() + ".  Dumping Params:");
+                    for (int hi = 0; hi < gmParams.Length; hi++)
+                    {
+                        System.Console.WriteLine(gmParams[hi].ToString());
+                    }
+                    //gmpack.MethodData.
+                    break;
+
+            }
+        }
         protected void ProcessInPacket(Packet Pack)
         {
             ack_pack(Pack);
@@ -3998,6 +4043,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     #region Scene/Avatar
 
+                    case PacketType.GenericMessage:
+                        GenericMessagePacket gmpack = (GenericMessagePacket)Pack;
+                        
+                        DecipherGenericMessage(Helpers.FieldToUTF8String(gmpack.MethodData.Method),gmpack.MethodData.Invoice,gmpack.ParamList);
+                        
+                        break;
                     case PacketType.AvatarPropertiesRequest:
                         AvatarPropertiesRequestPacket avatarProperties = (AvatarPropertiesRequestPacket)Pack;
 
@@ -5933,10 +5984,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // TODO: handle this packet
                         m_log.Warn("[CLIENT]: unhandled CreateGroupRequest packet");
                         break;
-                    case PacketType.GenericMessage:
+                    //case PacketType.GenericMessage:
                         // TODO: handle this packet
-                        m_log.Warn("[CLIENT]: unhandled GenericMessage packet");
-                        break;
+                        //m_log.Warn("[CLIENT]: unhandled GenericMessage packet");
+                        //break;
                     case PacketType.MapItemRequest:
                         // TODO: handle this packet
                         m_log.Warn("[CLIENT]: unhandled MapItemRequest packet");

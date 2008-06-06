@@ -62,6 +62,9 @@ namespace OpenSim.Region.Environment.Scenes
             public uint ExternalChecksGenerateClientFlags(LLUUID userID, LLUUID objectID)
             {
                 SceneObjectPart part=m_scene.GetSceneObjectPart(objectID);
+                
+                if (part == null)
+                    return 0;
 
                 uint perms=part.GetEffectiveObjectFlags() |
                         (uint)LLObject.ObjectFlags.ObjectModify |

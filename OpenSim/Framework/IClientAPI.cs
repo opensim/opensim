@@ -838,6 +838,7 @@ namespace OpenSim.Framework
 
         event RequestObjectPropertiesFamily OnObjectGroupRequest;
         event ScriptReset OnScriptReset;
+        event UpdateVector OnAutoPilotGo;
 
         [Obsolete("IClientAPI.OutPacket SHOULD NOT EXIST outside of LLClientView please refactor appropriately.")]
         void OutPacket(Packet newPack, ThrottleOutPacketType packType);

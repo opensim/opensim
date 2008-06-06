@@ -1736,6 +1736,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnObjectGroupRequest += m_innerScene.HandleObjectGroupUpdate;
             client.OnParcelReturnObjectsRequest += LandChannel.ReturnObjectsInParcel;
             client.OnScriptReset += ProcessScriptReset;
+            
 
             // EventManager.TriggerOnNewClient(client);
         }

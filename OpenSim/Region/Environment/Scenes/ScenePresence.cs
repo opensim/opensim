@@ -80,6 +80,8 @@ namespace OpenSim.Region.Environment.Scenes
         private Dictionary<LLUUID, ScriptControllers> scriptedcontrols = new Dictionary<LLUUID, ScriptControllers>();
         private ScriptControlled IgnoredControls = ScriptControlled.CONTROL_ZERO;
         private ScriptControlled LastCommands = ScriptControlled.CONTROL_ZERO;
+        private SceneObjectGroup proxyObjectGroup = null;
+        private SceneObjectPart proxyObjectPart = null;
 
         public Vector3 lastKnownAllowedPosition = new Vector3();
         public bool sentMessageAboutRestrictedParcelFlyingDown = false;
@@ -89,6 +91,8 @@ namespace OpenSim.Region.Environment.Scenes
         private readonly List<NewForce> m_forcesList = new List<NewForce>();
         private short m_updateCount = 0;
         private uint m_requestedSitTargetID = 0;
+        private LLUUID m_requestedSitTargetUUID = LLUUID.Zero;
+
         private LLVector3 m_requestedSitOffset = new LLVector3();
 
         private LLVector3 m_LastFinitePos = new LLVector3();
@@ -143,6 +147,10 @@ namespace OpenSim.Region.Environment.Scenes
 
         //Reuse the LLVector3 instead of creating a new one on the UpdateMovement method
         private LLVector3 movementvector = new LLVector3();
+
+        private bool m_autopilotMoving = false;
+        private LLVector3 m_autoPilotTarget = LLVector3.Zero;
+        private bool m_sitAtAutoTarget = false;
 
         private List<LLUUID> m_knownPrimUUID = new List<LLUUID>();
 
@@ -439,6 +447,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_controllingClient.OnStartAnim += HandleStartAnim;
             m_controllingClient.OnStopAnim += HandleStopAnim;
             m_controllingClient.OnForceReleaseControls += HandleForceReleaseControls;
+            m_controllingClient.OnAutoPilotGo += DoAutoPilot;
 
             // ControllingClient.OnChildAgentStatus += new StatusChange(this.ChildStatusChange);
             // ControllingClient.OnStopMovement += new GenericCall2(this.StopMovement);
@@ -471,6 +480,8 @@ namespace OpenSim.Region.Environment.Scenes
             }
             // }
         }
+
+        
 
         public uint GenerateClientFlags(LLUUID ObjectID)
         {
@@ -835,6 +846,9 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
             }
 
+            if (m_autopilotMoving)
+                CheckAtSitTarget();
+
             if ((flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_SIT_ON_GROUND) != 0)
             {
                 // TODO: This doesn't enable the "stand up" button on the viewer yet (probably a parent ID problem)
@@ -856,14 +870,16 @@ namespace OpenSim.Region.Environment.Scenes
                 bool DCFlagKeyPressed = false;
                 Vector3 agent_control_v3 = new Vector3(0, 0, 0);
                 Quaternion q = new Quaternion(bodyRotation.W, bodyRotation.X, bodyRotation.Y, bodyRotation.Z);
-                bool oldflying = PhysicsActor.Flying;
-
-                PhysicsActor.Flying = ((flags & (uint) AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
-                if (PhysicsActor.Flying != oldflying)
+                if (PhysicsActor != null)
                 {
-                    update_movementflag = true;
-                }
+                    bool oldflying = PhysicsActor.Flying;
 
+                    PhysicsActor.Flying = ((flags & (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY) != 0);
+                    if (PhysicsActor.Flying != oldflying)
+                    {
+                        update_movementflag = true;
+                    }
+                }
                 if (q != m_bodyRot)
                 {
                     m_bodyRot = q;
@@ -930,11 +946,78 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
 
+            
+
             m_scene.EventManager.TriggerOnClientMovement(this);
 
             m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
         }
 
+        public void DoAutoPilot(uint not_used, LLVector3 Pos, IClientAPI remote_client)
+        {
+            m_autopilotMoving = true;
+            m_autoPilotTarget = Pos;
+            m_sitAtAutoTarget = false;
+            PrimitiveBaseShape proxy = PrimitiveBaseShape.Default;
+            //proxy.PCode = (byte)PCode.ParticleSystem;
+            uint nextUUID = m_scene.NextLocalId;
+
+            proxyObjectGroup = new SceneObjectGroup(m_scene, m_scene.RegionInfo.RegionHandle, UUID, nextUUID, Pos, new LLQuaternion(Rotation.x, Rotation.y, Rotation.z, Rotation.w), proxy);
+            if (proxyObjectGroup != null)
+            {
+                proxyObjectGroup.SendGroupFullUpdate();
+                remote_client.SendSitResponse(proxyObjectGroup.UUID, LLVector3.Zero, LLQuaternion.Identity, true, LLVector3.Zero, LLVector3.Zero, false);
+                m_scene.DeleteSceneObject(proxyObjectGroup);
+            }
+            else
+            {
+                m_autopilotMoving = false;
+                m_autoPilotTarget = LLVector3.Zero;
+                ControllingClient.SendAlertMessage("Autopilot cancelled");
+            }
+
+        }
+
+        private void CheckAtSitTarget()
+        {
+            //m_log.Debug("[AUTOPILOT]: " + Util.GetDistanceTo(AbsolutePosition, m_autoPilotTarget).ToString());
+            if (Util.GetDistanceTo(AbsolutePosition, m_autoPilotTarget) <= 1.5)
+            {
+                
+                if (m_sitAtAutoTarget)
+                {
+                    SceneObjectPart part = m_scene.GetSceneObjectPart(m_requestedSitTargetUUID);
+                    if (part != null)
+                    {
+                        AbsolutePosition = part.AbsolutePosition;
+                        Velocity = new LLVector3(0, 0, 0);
+                        SendFullUpdateToAllClients();
+
+                        //HandleAgentSit(ControllingClient, m_requestedSitTargetUUID);
+                    }
+                    //ControllingClient.SendSitResponse(m_requestedSitTargetID, m_requestedSitOffset, LLQuaternion.Identity, false, LLVector3.Zero, LLVector3.Zero, false);
+                    m_requestedSitTargetUUID = LLUUID.Zero;
+                }
+                else
+                {
+                    //ControllingClient.SendAlertMessage("Autopilot cancelled");
+                    //SendTerseUpdateToAllClients();
+                    //PrimitiveBaseShape proxy = PrimitiveBaseShape.Default;
+                    //proxy.PCode = (byte)PCode.ParticleSystem;
+                    ////uint nextUUID = m_scene.NextLocalId;
+
+                    //proxyObjectGroup = new SceneObjectGroup(m_scene, m_scene.RegionInfo.RegionHandle, UUID, nextUUID, m_autoPilotTarget, LLQuaternion.Identity, proxy);
+                    //if (proxyObjectGroup != null)
+                    //{
+                        //proxyObjectGroup.SendGroupFullUpdate();
+                        //ControllingClient.SendSitResponse(LLUUID.Zero, m_autoPilotTarget, LLQuaternion.Identity, true, LLVector3.Zero, LLVector3.Zero, false);
+                        //m_scene.DeleteSceneObject(proxyObjectGroup);
+                    //}
+                }
+                m_autoPilotTarget = LLVector3.Zero;
+                m_autopilotMoving = false;
+            }
+        }
         /// <summary>
         /// Perform the logic necessary to stand the client up.  This method also executes
         /// the stand animation.
@@ -963,7 +1046,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 m_parentID = 0;
                 SendFullUpdateToAllClients();
-
+                m_requestedSitTargetID = 0;
                 if (m_physicsActor != null)
                 {
                     SetHeight(m_avHeight);
@@ -1005,7 +1088,11 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
                 pos = part.AbsolutePosition + offset;
-
+                //if (Math.Abs(part.AbsolutePosition.Z - AbsolutePosition.Z) > 1)
+                //{
+                   // offset = pos;
+                    //autopilot = false;
+                //}
                 if (m_physicsActor != null)
                 {
                     // If we're not using the client autopilot, we're immediately warping the avatar to the location
@@ -1030,11 +1117,14 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             ControllingClient.SendSitResponse(targetID, offset, sitOrientation, autopilot, LLVector3.Zero, LLVector3.Zero, false);
-
+            m_requestedSitTargetUUID = targetID;
             // This calls HandleAgentSit twice, once from here, and the client calls
             // HandleAgentSit itself after it gets to the location
             // It doesn't get to the location until we've moved them there though
             // which happens in HandleAgentSit :P
+            m_autopilotMoving = autopilot;
+            m_autoPilotTarget = pos;
+            m_sitAtAutoTarget = autopilot;
             if (!autopilot)
                 HandleAgentSit(remoteClient, UUID);
         }
@@ -1064,32 +1154,38 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SceneObjectPart part = m_scene.GetSceneObjectPart(m_requestedSitTargetID);
 
-            if (part != null)
+            if (m_sitAtAutoTarget || !m_autopilotMoving)
             {
-                if (part.GetAvatarOnSitTarget() == UUID)
+                if (part != null)
                 {
-                    Vector3 sitTargetPos = part.GetSitTargetPosition();
-                    Quaternion sitTargetOrient = part.GetSitTargetOrientation();
+                    if (part.GetAvatarOnSitTarget() == UUID)
+                    {
+                        Vector3 sitTargetPos = part.GetSitTargetPosition();
+                        Quaternion sitTargetOrient = part.GetSitTargetOrientation();
 
-                    //Quaternion vq = new Quaternion(sitTargetPos.x, sitTargetPos.y+0.2f, sitTargetPos.z+0.2f, 0);
-                    //Quaternion nq = new Quaternion(sitTargetOrient.w, -sitTargetOrient.x, -sitTargetOrient.y, -sitTargetOrient.z);
+                        //Quaternion vq = new Quaternion(sitTargetPos.x, sitTargetPos.y+0.2f, sitTargetPos.z+0.2f, 0);
+                        //Quaternion nq = new Quaternion(sitTargetOrient.w, -sitTargetOrient.x, -sitTargetOrient.y, -sitTargetOrient.z);
 
-                    //Quaternion result = (sitTargetOrient * vq) * nq;
+                        //Quaternion result = (sitTargetOrient * vq) * nq;
 
-                    m_pos = new LLVector3(sitTargetPos.x, sitTargetPos.y, sitTargetPos.z);
-                    m_bodyRot = sitTargetOrient;
-                    //Rotation = sitTargetOrient;
-                    m_parentPosition = part.AbsolutePosition;
+                        m_pos = new LLVector3(sitTargetPos.x, sitTargetPos.y, sitTargetPos.z);
+                        m_bodyRot = sitTargetOrient;
+                        //Rotation = sitTargetOrient;
+                        m_parentPosition = part.AbsolutePosition;
 
-                    //SendTerseUpdateToAllClients();
+                        //SendTerseUpdateToAllClients();
+                    }
+                    else
+                    {
+                        m_pos -= part.AbsolutePosition;
+                        m_parentPosition = part.AbsolutePosition;
+                    }
                 }
                 else
                 {
-                    m_pos -= part.AbsolutePosition;
-                    m_parentPosition = part.AbsolutePosition;
+                    return;
                 }
             }
-
             m_parentID = m_requestedSitTargetID;
 
             Velocity = new LLVector3(0, 0, 0);

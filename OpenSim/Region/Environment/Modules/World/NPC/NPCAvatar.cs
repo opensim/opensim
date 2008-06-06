@@ -289,6 +289,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event EstateDebugRegionRequest OnEstateDebugRegionRequest;
         public event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
         public event ScriptReset OnScriptReset;
+        public event UpdateVector OnAutoPilotGo;
 
 #pragma warning restore 67
         #endregion
