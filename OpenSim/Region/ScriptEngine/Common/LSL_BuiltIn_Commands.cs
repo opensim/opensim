@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Runtime.Remoting.Lifetime;
 using System.Text;
 using System.Threading;
+using Nini.Config;
 using Axiom.Math;
 using libsecondlife;
 using OpenSim.Framework;
@@ -5623,30 +5624,39 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSetObjectPermMask(int mask, int value)
         {
             m_host.AddScriptLPS(1);
-
-            if (mask == BuiltIn_Commands_BaseClass.MASK_BASE)//0
+            IConfigSource config = new IniConfigSource(Application.iniFilePath);
+            if (config.Configs["LL-Functions"] == null)
+                config.AddConfig("LL-Functions");
+            
+            if (config.Configs["LL-Functions"].GetBoolean("AllowGodFunctions", false))
             {
-                m_host.BaseMask = (uint)value;
-            }
+                if (World.ExternalChecks.ExternalChecksCanRunConsoleCommand(m_host.OwnerID))
+                {
+                    if (mask == BuiltIn_Commands_BaseClass.MASK_BASE)//0
+                    {
+                        m_host.BaseMask = (uint)value;
+                    }
 
-            else if (mask == BuiltIn_Commands_BaseClass.MASK_OWNER)//1
-            {
-                m_host.OwnerMask = (uint)value;
-            }
+                    else if (mask == BuiltIn_Commands_BaseClass.MASK_OWNER)//1
+                    {
+                        m_host.OwnerMask = (uint)value;
+                    }
 
-            else if (mask == BuiltIn_Commands_BaseClass.MASK_GROUP)//2
-            {
-                m_host.GroupMask = (uint)value;
-            }
+                    else if (mask == BuiltIn_Commands_BaseClass.MASK_GROUP)//2
+                    {
+                        m_host.GroupMask = (uint)value;
+                    }
 
-            else if (mask == BuiltIn_Commands_BaseClass.MASK_EVERYONE)//3
-            {
-                m_host.EveryoneMask = (uint)value;
-            }
+                    else if (mask == BuiltIn_Commands_BaseClass.MASK_EVERYONE)//3
+                    {
+                        m_host.EveryoneMask = (uint)value;
+                    }
 
-            else if (mask == BuiltIn_Commands_BaseClass.MASK_NEXT)//4
-            {
-                m_host.NextOwnerMask = (uint)value;
+                    else if (mask == BuiltIn_Commands_BaseClass.MASK_NEXT)//4
+                    {
+                        m_host.NextOwnerMask = (uint)value;
+                    }
+                }
             }
         }
 

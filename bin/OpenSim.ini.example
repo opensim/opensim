@@ -487,6 +487,8 @@ CleanUpOldScriptsOnStartup=true
 ; Set the following to true to allow administrator owned scripts to execute console commands
 AllowosConsoleCommand=false
 
+AllowGodFunctions = false
+
 ; Maximum number of llListen events we allow per script
 ; Set this to 0 to have no limit imposed.
 max_listens_per_script = 64
