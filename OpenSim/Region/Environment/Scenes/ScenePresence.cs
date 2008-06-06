@@ -592,7 +592,12 @@ namespace OpenSim.Region.Environment.Scenes
 //                 Name, UUID, m_scene.RegionInfo.RegionName);
 
             m_isChildAgent = false;
-
+            float posZLimit = (float)m_scene.GetLandHeight((int)pos.X, (int)pos.Y);
+            float newPosZ = posZLimit + m_avHeight;
+            if (posZLimit >= (pos.Z -(m_avHeight/2)) && !(Single.IsInfinity(newPosZ) && Single.IsNaN(newPosZ)))
+            {
+                pos.Z = newPosZ;
+            }
             AbsolutePosition = pos;
 
             AddToPhysicalScene();
