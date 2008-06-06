@@ -57,7 +57,7 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
 
             LSL_Types.LSLFloat testFloat;
 
-            foreach(KeyValuePair<int, double> number in numberSet)
+            foreach (KeyValuePair<int, double> number in numberSet)
             {
                 testFloat = new LSL_Types.LSLFloat(number.Key);
                 Assert.That(testFloat.value, new DoubleToleranceConstraint(number.Value, _lowPrecisionTolerance));
@@ -94,7 +94,7 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
 
             LSL_Types.LSLFloat testFloat;
 
-            foreach(KeyValuePair<double, double> number in numberSet)
+            foreach (KeyValuePair<double, double> number in numberSet)
             {
                 testFloat = new LSL_Types.LSLFloat(number.Key);
                 Assert.That(testFloat.value, new DoubleToleranceConstraint(number.Value, _lowPrecisionTolerance));
@@ -131,7 +131,7 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
 
             int testNumber;
 
-            foreach(KeyValuePair<double, int> number in numberSet)
+            foreach (KeyValuePair<double, int> number in numberSet)
             {
                 testNumber = new LSL_Types.LSLFloat(number.Key);
                 Assert.AreEqual(number.Value, testNumber, "Converting double " + number.Key + ", expecting int " + number.Value);
@@ -168,7 +168,7 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
 
             uint testNumber;
 
-            foreach(KeyValuePair<double, int> number in numberSet)
+            foreach (KeyValuePair<double, int> number in numberSet)
             {
                 testNumber = new LSL_Types.LSLFloat(number.Key);
                 Assert.AreEqual(number.Value, testNumber, "Converting double " + number.Key + ", expecting uint " + number.Value);
@@ -205,7 +205,7 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
             LSL_Types.LSLFloat testFloat;
             bool testBool;
 
-            foreach(double number in numberList)
+            foreach (double number in numberList)
             {
                 testFloat = new LSL_Types.LSLFloat(number);
                 testBool = testFloat;
@@ -244,7 +244,7 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
 
             LSL_Types.LSLFloat testFloat;
 
-            foreach(int number in numberList)
+            foreach (int number in numberList)
             {
                 testFloat = number;
                 Assert.That(testFloat.value, new DoubleToleranceConstraint(number, _lowPrecisionTolerance));
@@ -281,7 +281,7 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
 
             LSL_Types.LSLFloat testFloat;
 
-            foreach(KeyValuePair<string, double> number in numberSet)
+            foreach (KeyValuePair<string, double> number in numberSet)
             {
                 testFloat = number.Key;
                 Assert.That(testFloat.value, new DoubleToleranceConstraint(number.Value, _lowPrecisionTolerance));
@@ -318,7 +318,7 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
 
             LSL_Types.LSLFloat testFloat;
 
-            foreach(double number in numberList)
+            foreach (double number in numberList)
             {
                 testFloat = number;
                 Assert.That(testFloat.value, new DoubleToleranceConstraint(number, _lowPrecisionTolerance));
@@ -355,7 +355,7 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
 
             LSL_Types.LSLFloat testFloatA, testFloatB;
 
-            foreach(double number in numberList)
+            foreach (double number in numberList)
             {
                 testFloatA = new LSL_Types.LSLFloat(number);
                 testFloatB = new LSL_Types.LSLFloat(number);
@@ -396,7 +396,7 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
 
             LSL_Types.LSLFloat testFloatA, testFloatB;
 
-            foreach(double number in numberList)
+            foreach (double number in numberList)
             {
                 testFloatA = new LSL_Types.LSLFloat(number);
                 testFloatB = new LSL_Types.LSLFloat(number + 1.0);
@@ -438,7 +438,7 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
             LSL_Types.LSLFloat testFloat;
             double testNumber;
 
-            foreach(double number in numberList)
+            foreach (double number in numberList)
             {
                 testFloat = new LSL_Types.LSLFloat(number);
 
@@ -484,7 +484,7 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
             LSL_Types.LSLFloat testFloat;
             double testNumber;
 
-            foreach(double number in numberList)
+            foreach (double number in numberList)
             {
                 testFloat = new LSL_Types.LSLFloat(number);
 
@@ -530,7 +530,7 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
             double testNumber;
             LSL_Types.LSLFloat testFloat;
 
-            foreach(double number in numberList)
+            foreach (double number in numberList)
             {
                 testFloat = new LSL_Types.LSLFloat(number);
                 testNumber = testFloat;
@@ -569,7 +569,7 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
 
             LSL_Types.LSLFloat testFloat;
 
-            foreach(KeyValuePair<double, string> number in numberSet)
+            foreach (KeyValuePair<double, string> number in numberSet)
             {
                 testFloat = new LSL_Types.LSLFloat(number.Key);
                 Assert.AreEqual(number.Value, testFloat.ToString());

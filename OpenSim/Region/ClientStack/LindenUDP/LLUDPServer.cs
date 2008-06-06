@@ -474,10 +474,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 clientCircuits_reverse.Remove(circuitcode);
                 
-                lock(clientCircuits) {
+                lock (clientCircuits) {
                     clientCircuits.Remove(sendto);
                 }
-                lock(proxyCircuits) {
+                lock (proxyCircuits) {
                     proxyCircuits.Remove(circuitcode);
                 }
             }

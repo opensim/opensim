@@ -84,11 +84,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             SceneObjectPart part = myScriptEngine.World.GetSceneObjectPart(
                     localID);
-            if(part == null)
+            if (part == null)
                 return;
 
             det[0].LinkNum = 0;
-            if(part.ParentGroup.Children.Count > 0)
+            if (part.ParentGroup.Children.Count > 0)
                 det[0].LinkNum = part.LinkNum + 1;
 
             myScriptEngine.PostObjectEvent(localID, new XEventParams(
@@ -109,11 +109,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             SceneObjectPart part = myScriptEngine.World.GetSceneObjectPart(
                     localID);
-            if(part == null)
+            if (part == null)
                 return;
 
             det[0].LinkNum = 0;
-            if(part.ParentGroup.Children.Count > 0)
+            if (part.ParentGroup.Children.Count > 0)
                 det[0].LinkNum = part.LinkNum + 1;
 
             myScriptEngine.PostObjectEvent(localID, new XEventParams(
@@ -130,11 +130,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             SceneObjectPart part = myScriptEngine.World.GetSceneObjectPart(
                     localID);
-            if(part == null)
+            if (part == null)
                 return;
 
             det[0].LinkNum = 0;
-            if(part.ParentGroup.Children.Count > 0)
+            if (part.ParentGroup.Children.Count > 0)
                 det[0].LinkNum = part.LinkNum + 1;
 
             myScriptEngine.PostObjectEvent(localID, new XEventParams(

@@ -65,7 +65,7 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
 
             LSL_Types.LSLString testString;
 
-            foreach(KeyValuePair<double, string> number in numberSet)
+            foreach (KeyValuePair<double, string> number in numberSet)
             {
                 testString = new LSL_Types.LSLString(new LSL_Types.LSLFloat(number.Key));
                 Assert.AreEqual(number.Value, testString.m_string);
@@ -102,7 +102,7 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
 
             LSL_Types.LSLString testString;
 
-            foreach(KeyValuePair<double, string> number in numberSet)
+            foreach (KeyValuePair<double, string> number in numberSet)
             {
                 testString = (LSL_Types.LSLString) new LSL_Types.LSLFloat(number.Key);
                 Assert.AreEqual(number.Value, testString.m_string);

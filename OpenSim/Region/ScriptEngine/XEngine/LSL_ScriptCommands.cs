@@ -661,7 +661,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             m_host.AddScriptLPS(1);
             XDetectParams parms = m_ScriptEngine.GetDetectParams(m_itemID, number);
-            if(parms == null)
+            if (parms == null)
                 return new LSL_Types.Vector3(0, 0, 0);
 
             return parms.OffsetPos;
@@ -688,7 +688,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             m_host.AddScriptLPS(1);
             XDetectParams parms = m_ScriptEngine.GetDetectParams(m_itemID, number);
-            if(parms == null)
+            if (parms == null)
                 return new LSL_Types.LSLInteger(0);
 
             return new LSL_Types.LSLInteger(parms.LinkNum);
@@ -2578,7 +2578,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             UserAgentData userAgent =
                     World.CommsManager.UserService.GetAgentByUUID(id);
 
-            if(userProfile == null || userAgent == null)
+            if (userProfile == null || userAgent == null)
                 return LLUUID.Zero.ToString();
 
             string reply = String.Empty;

@@ -395,13 +395,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     m_Scripts[itemID] = instance;
                 }
 
-                if(!m_PrimObjects.ContainsKey(localID))
+                if (!m_PrimObjects.ContainsKey(localID))
                     m_PrimObjects[localID] = new List<LLUUID>();
 
-                if(!m_PrimObjects[localID].Contains(itemID))
+                if (!m_PrimObjects[localID].Contains(itemID))
                     m_PrimObjects[localID].Add(itemID);
 
-                if(!m_Assemblies.ContainsKey(assetID))
+                if (!m_Assemblies.ContainsKey(assetID))
                     m_Assemblies[assetID] = assembly;
             }
             return true;
@@ -930,14 +930,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 result = m_CurrentResult;
             }
 
-            if(result == null)
+            if (result == null)
                 return true;
 
             result.Abort();
 
-            if(SmartThreadPool.WaitAll(new IWorkItemResult[] {result}, new TimeSpan((long)10000000), false))
+            if (SmartThreadPool.WaitAll(new IWorkItemResult[] {result}, new TimeSpan((long)10000000), false))
             {
-                lock(m_EventQueue)
+                lock (m_EventQueue)
                 {
                     m_CurrentResult = null;
                 }

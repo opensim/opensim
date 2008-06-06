@@ -83,7 +83,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Script
         {
             Dictionary<string, object> vars = new Dictionary<string, object>();
 
-            if(m_Fields == null)
+            if (m_Fields == null)
                 return vars;
 
             m_Fields.Clear();

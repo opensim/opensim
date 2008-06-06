@@ -1324,7 +1324,7 @@ namespace OpenSim.Region.Environment.Scenes
         void AdaptTree(ref PrimitiveBaseShape tree)
         {
             // Tree size has to be adapted depending on its type
-            switch((Tree)tree.State)
+            switch ((Tree)tree.State)
             {
                 case Tree.Cypress1:
                 case Tree.Cypress2:
