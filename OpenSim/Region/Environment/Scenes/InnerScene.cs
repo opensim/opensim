@@ -234,7 +234,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (Entities.ContainsKey(uuid))
                 {
-                    Console.WriteLine("REMOVED " + ((SceneObjectGroup)Entities[uuid]).Children.Count + "!");
                     if (!resultOfObjectLinked)
                     {
                         m_numPrim -= ((SceneObjectGroup)Entities[uuid]).Children.Count;
