@@ -823,7 +823,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 {
                     FileInfo fi = new FileInfo(savedState);
                     int size=(int)fi.Length;
-                    if (size < 130000)
+                    if (size < 512000)
                     {
                         using (FileStream fs = File.Open(savedState,
                                                          FileMode.Open, FileAccess.Read, FileShare.None))
