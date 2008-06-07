@@ -177,7 +177,7 @@ namespace OpenSim
         public override void RunCmd(string command, string[] cmdparams)
         {
             base.RunCmd(command, cmdparams);
-
+            RunPluginCommands(command + " " + CombineParams(cmdparams, 0));
             switch (command)
             {
                 case "clear-assets":
@@ -226,6 +226,7 @@ namespace OpenSim
                     break;
 
                 case "help":
+                    RunPluginCommandHelp(CombineParams(cmdparams, 0),m_console);
                     m_console.Notice("alert - send alert to a designated user or all users.");
                     m_console.Notice("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
                     m_console.Notice("  alert general [Message] - send an alert to all users.");
@@ -673,5 +674,96 @@ namespace OpenSim
         }
 
         #endregion
+
+        static private List<ConsolePluginCommand> m_PluginCommandInfos = new List<ConsolePluginCommand>();
+
+        public bool RunPluginCommands(string cmd)
+        {
+            ConsolePluginCommand bestMatch = null;
+            int bestLength = 0;
+            foreach (ConsolePluginCommand cmdinfo in m_PluginCommandInfos)
+            {
+                int matchLen = cmdinfo.matchLength(cmd);
+                if (matchLen > bestLength)
+                {
+                    bestMatch = cmdinfo;
+                    bestLength = matchLen;
+                }
+            }
+            if (bestMatch == null)
+            {
+                return false;
+            }
+            bestMatch.Run(cmd);
+            return true;
+        }
+        public bool RunPluginCommandHelp(string cmd, ConsoleBase console)
+        {
+            ConsolePluginCommand bestMatch = null;
+            int bestLength = 0;
+            foreach (ConsolePluginCommand cmdinfo in m_PluginCommandInfos)
+            {
+                int matchLen = cmdinfo.matchLength(cmd);
+                if (matchLen > bestLength)
+                {
+                    bestMatch = cmdinfo;
+                    bestLength = matchLen;
+                }
+            }
+            if (bestMatch == null)
+            {
+                return false;
+            }
+            bestMatch.ShowHelp(console);
+            return true;
+        }
+        public static void RegisterCmd(string cmd, ConsoleCommand deligate, string hlp)
+        {
+            m_PluginCommandInfos.Add(new ConsolePluginCommand(cmd, deligate, hlp));
+        }
+
+        public class ConsolePluginCommand
+        {
+            private ConsoleCommand m_commandDelegate;
+            private string m_helpText;
+            private string m_cmdText;
+
+            public int matchLength(string targetText)
+            {
+                // QUESTION: have a case insensitive flag?
+                targetText = targetText.ToLower();
+                string matchText = m_cmdText.ToLower();
+                if (targetText.StartsWith(matchText))
+                {
+                    // TODO return cmdText.Length; ?
+                    return matchText.Length;
+                }
+                return 0;
+            }
+            public ConsolePluginCommand(string cmd, ConsoleCommand del, string help)
+            {
+                m_cmdText = cmd;
+                m_commandDelegate = del;
+                m_helpText = help;
+            }
+
+            public void Run(string incomming)
+            {          
+                string targetText = m_cmdText.ToLower();
+                string matchText = incomming.ToLower();
+
+                if (targetText.StartsWith(matchText))
+                {
+                    incomming = incomming.Substring(matchText.Length);
+                }
+                m_commandDelegate(incomming.Split(new char[] {' '}));
+            }
+
+            public void ShowHelp(ConsoleBase console)
+            {
+                console.Notice(m_cmdText + ": " + m_helpText);
+                // throw new Exception("The method or operation is not implemented.");
+            }
+        }
     }
 }
