@@ -550,113 +550,55 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public string llDetectedName(int number)
         {
             m_host.AddScriptLPS(1);
-            LLUUID sensedUUID = m_ScriptEngine.GetDetectID(m_itemID, number);
-            if (sensedUUID != LLUUID.Zero)
-                return resolveName(sensedUUID);
-            return String.Empty;
-        }
-
-        public LLUUID uuidDetectedKey(int number)
-        {
-            return m_ScriptEngine.GetDetectID(m_itemID, number);
-        }
-
-        public EntityBase entityDetectedKey(int number)
-        {
-            LLUUID sensedUUID = m_ScriptEngine.GetDetectID(m_itemID, number);
-            if (sensedUUID != LLUUID.Zero)
-            {
-                EntityBase SensedObject = null;
-                lock (World.Entities)
-                {
-                    World.Entities.TryGetValue(sensedUUID, out SensedObject);
-                }
-                return SensedObject;
-            }
-            return null;
+            XDetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (d == null)
+                return String.Empty;
+            return d.Name;
         }
 
         public string llDetectedKey(int number)
         {
             m_host.AddScriptLPS(1);
-            LLUUID SensedUUID = uuidDetectedKey(number);
-            if (SensedUUID == LLUUID.Zero)
+            XDetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (d == null)
                 return String.Empty;
-
-            return SensedUUID.ToString();
+            return d.Key.ToString();
         }
 
         public string llDetectedOwner(int number)
         {
-            // returns UUID of owner of object detected
             m_host.AddScriptLPS(1);
-            EntityBase SensedObject = entityDetectedKey(number);
-            if (SensedObject == null)
+            XDetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (d == null)
                 return String.Empty;
-            LLUUID SensedUUID = uuidDetectedKey(number);
-            if (World.GetScenePresence(SensedUUID) == null)
-            {
-                // sensed object is not an avatar
-                // so get the owner of the sensed object
-                SceneObjectPart SOP = World.GetSceneObjectPart(SensedUUID);
-                if (SOP != null)
-                {
-                    return SOP.ObjectOwner.ToString();
-                }
-            }
-            else
-            {
-                // sensed object is an avatar, and so must be its own owner
-                return SensedUUID.ToString();
-            }
-
-            return String.Empty;
-       }
+            return d.Owner.ToString();
+        }
 
         public LSL_Types.LSLInteger llDetectedType(int number)
         {
             m_host.AddScriptLPS(1);
-            EntityBase SensedObject = entityDetectedKey(number);
-            if (SensedObject == null)
+            XDetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (d == null)
                 return 0;
-            int mask = 0;
-
-            LLUUID SensedUUID = uuidDetectedKey(number);
-            LSL_Types.Vector3 ZeroVector = new LSL_Types.Vector3(0, 0, 0);
-
-            if (World.GetScenePresence(SensedUUID) != null)
-                mask |= 0x01; // actor
-
-            if (SensedObject.Velocity.Equals(ZeroVector))
-                mask |= 0x04; // passive non-moving
-            else
-                mask |= 0x02; // active moving
-
-            if (SensedObject is IScript)
-                mask |= 0x08; // Scripted. It COULD have one hidden ...
-
-            return mask;
+            return new LSL_Types.LSLInteger(d.Type);
         }
 
         public LSL_Types.Vector3 llDetectedPos(int number)
         {
             m_host.AddScriptLPS(1);
-            EntityBase SensedObject = entityDetectedKey(number);
-            if (SensedObject == null)
-                return new LSL_Types.Vector3(0, 0, 0);
-
-            return new LSL_Types.Vector3(SensedObject.AbsolutePosition.X,SensedObject.AbsolutePosition.Y,SensedObject.AbsolutePosition.Z);
+            XDetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (d == null)
+                return new LSL_Types.Vector3();
+            return d.Position;
         }
 
         public LSL_Types.Vector3 llDetectedVel(int number)
         {
             m_host.AddScriptLPS(1);
-            EntityBase SensedObject = entityDetectedKey(number);
-            if (SensedObject == null)
-                return new LSL_Types.Vector3(0, 0, 0);
-
-            return new LSL_Types.Vector3(SensedObject.Velocity.X, SensedObject.Velocity.Y, SensedObject.Velocity.Z);
-            // return new LSL_Types.Vector3();
+            XDetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (d == null)
+                return new LSL_Types.Vector3();
+            return d.Velocity;
         }
 
         public LSL_Types.Vector3 llDetectedGrab(int number)
@@ -672,18 +614,21 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public LSL_Types.Quaternion llDetectedRot(int number)
         {
             m_host.AddScriptLPS(1);
-            EntityBase SensedObject = entityDetectedKey(number);
-            if (SensedObject == null)
+            XDetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (d == null)
                 return new LSL_Types.Quaternion();
-
-            return new LSL_Types.Quaternion(SensedObject.Rotation.x, SensedObject.Rotation.y, SensedObject.Rotation.z, SensedObject.Rotation.w);
+            return d.Rotation;
         }
 
         public LSL_Types.LSLInteger llDetectedGroup(int number)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llDetectedGroup");
-            return 0;
+            XDetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
+            if (d == null)
+                return new LSL_Types.LSLInteger(0);
+            if(m_host.GroupID == d.Group)
+                return new LSL_Types.LSLInteger(1);
+            return new LSL_Types.LSLInteger(0);
         }
 
         public LSL_Types.LSLInteger llDetectedLinkNumber(int number)

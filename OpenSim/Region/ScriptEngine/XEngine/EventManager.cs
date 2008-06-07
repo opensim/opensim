@@ -26,6 +26,8 @@
  */
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney;
@@ -55,6 +57,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             myScriptEngine.World.EventManager.OnScriptAtTargetEvent += at_target;
             myScriptEngine.World.EventManager.OnScriptNotAtTargetEvent += not_at_target;
             myScriptEngine.World.EventManager.OnScriptControlEvent += control;
+            myScriptEngine.World.EventManager.OnScriptColliderStart += collision_start;
+            myScriptEngine.World.EventManager.OnScriptColliding += collision;
+            myScriptEngine.World.EventManager.OnScriptCollidingEnd += collision_end;
             IMoneyModule money=myScriptEngine.World.RequestModuleInterface<IMoneyModule>();
             if (money != null)
             {
@@ -81,6 +86,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             XDetectParams[] det = new XDetectParams[1];
             det[0] = new XDetectParams();
             det[0].Key = remoteClient.AgentId;
+            det[0].Populate(myScriptEngine.World);
 
             SceneObjectPart part = myScriptEngine.World.GetSceneObjectPart(
                     localID);
@@ -103,6 +109,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             XDetectParams[] det = new XDetectParams[1];
             det[0] = new XDetectParams();
             det[0].Key = remoteClient.AgentId;
+            det[0].Populate(myScriptEngine.World);
             det[0].OffsetPos = new LSL_Types.Vector3(offsetPos.X,
                                                      offsetPos.Y,
                                                      offsetPos.Z);
@@ -127,6 +134,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             XDetectParams[] det = new XDetectParams[1];
             det[0] = new XDetectParams();
             det[0].Key = remoteClient.AgentId;
+            det[0].Populate(myScriptEngine.World);
 
             SceneObjectPart part = myScriptEngine.World.GetSceneObjectPart(
                     localID);
@@ -162,45 +170,60 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     new XDetectParams[0]));
         }
 
-        public void collision_start(uint localID, LLUUID itemID,
-                IClientAPI remoteClient)
+        public void collision_start(uint localID, ColliderArgs col)
         {
             // Add to queue for all scripts in ObjectID object
-            XDetectParams[] det = new XDetectParams[1];
-            det[0] = new XDetectParams();
-            det[0].Key = remoteClient.AgentId;
+            List<XDetectParams> det = new List<XDetectParams>();
+
+            foreach (DetectedObject detobj in col.Colliders)
+            {
+                XDetectParams d = new XDetectParams();
+                d.Key =detobj.keyUUID;
+                d.Populate(myScriptEngine.World);
+                det.Add(d);
+            }
 
             myScriptEngine.PostObjectEvent(localID, new XEventParams(
                     "collision_start",
                     new Object[] { new LSL_Types.LSLInteger(1) },
-                    det));
+                    det.ToArray()));
         }
 
-        public void collision(uint localID, LLUUID itemID,
-                IClientAPI remoteClient)
+        public void collision(uint localID, ColliderArgs col)
         {
             // Add to queue for all scripts in ObjectID object
-            XDetectParams[] det = new XDetectParams[1];
-            det[0] = new XDetectParams();
-            det[0].Key = remoteClient.AgentId;
+            List<XDetectParams> det = new List<XDetectParams>();
+
+            foreach (DetectedObject detobj in col.Colliders)
+            {
+                XDetectParams d = new XDetectParams();
+                d.Key =detobj.keyUUID;
+                d.Populate(myScriptEngine.World);
+                det.Add(d);
+            }
 
             myScriptEngine.PostObjectEvent(localID, new XEventParams(
                     "collision", new Object[] { new LSL_Types.LSLInteger(1) },
-                    det));
+                    det.ToArray()));
         }
 
-        public void collision_end(uint localID, LLUUID itemID,
-                IClientAPI remoteClient)
+        public void collision_end(uint localID, ColliderArgs col)
         {
             // Add to queue for all scripts in ObjectID object
-            XDetectParams[] det = new XDetectParams[1];
-            det[0] = new XDetectParams();
-            det[0].Key = remoteClient.AgentId;
+            List<XDetectParams> det = new List<XDetectParams>();
+
+            foreach (DetectedObject detobj in col.Colliders)
+            {
+                XDetectParams d = new XDetectParams();
+                d.Key =detobj.keyUUID;
+                d.Populate(myScriptEngine.World);
+                det.Add(d);
+            }
 
             myScriptEngine.PostObjectEvent(localID, new XEventParams(
                     "collision_end",
                     new Object[] { new LSL_Types.LSLInteger(1) },
-                    det));
+                    det.ToArray()));
         }
 
         public void land_collision_start(uint localID, LLUUID itemID)

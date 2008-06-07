@@ -2080,6 +2080,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Script
         public const int CHANGED_LINK = 32;
         public const int CHANGED_ALLOWED_DROP = 64;
         public const int CHANGED_OWNER = 128;
+        public const int CHANGED_REGION_RESTART = 256;
         public const int TYPE_INVALID = 0;
         public const int TYPE_INTEGER = 1;
         public const int TYPE_double = 2;

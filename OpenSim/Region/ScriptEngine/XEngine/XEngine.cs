@@ -388,7 +388,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                            part.UUID, itemID, assetID, assembly,
                            m_AppDomains[appDomain],
                            part.ParentGroup.RootPart.Name,
-                           item.Name);
+                           item.Name, XScriptInstance.StateSource.NewRez);
 
                     m_log.DebugFormat("[XEngine] Loaded script {0}.{1}",
                             part.ParentGroup.RootPart.Name, item.Name);
@@ -673,9 +673,97 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
     public class XDetectParams
     {
+        public XDetectParams()
+        {
+            Key = LLUUID.Zero;
+            OffsetPos = new LSL_Types.Vector3();
+            LinkNum = 0;
+            Group = LLUUID.Zero;
+            Name = String.Empty;
+            Owner = LLUUID.Zero;
+            Position = new LSL_Types.Vector3();
+            Rotation = new LSL_Types.Quaternion();
+            Type = 0;
+            Velocity = new LSL_Types.Vector3();
+        }
+
         public LLUUID Key;
         public LSL_Types.Vector3 OffsetPos;
         public int LinkNum;
+        public LLUUID Group;
+        public string Name;
+        public LLUUID Owner;
+        public LSL_Types.Vector3 Position;
+        public LSL_Types.Quaternion Rotation;
+        public int Type;
+        public LSL_Types.Vector3 Velocity;
+
+        public void Populate(Scene scene)
+        {
+            SceneObjectPart part = scene.GetSceneObjectPart(Key);
+            if(part == null) // Avatar, maybe?
+            {
+                ScenePresence presence = scene.GetScenePresence(Key);
+                if(presence == null)
+                    return;
+
+                Name = presence.Firstname + " " + presence.Lastname;
+                Owner = Key;
+                Position = new LSL_Types.Vector3(
+                        presence.AbsolutePosition.X,
+                        presence.AbsolutePosition.X,
+                        presence.AbsolutePosition.Z);
+                Rotation = new LSL_Types.Quaternion(
+                        presence.Rotation.x,
+                        presence.Rotation.y,
+                        presence.Rotation.z,
+                        presence.Rotation.w);
+                Velocity = new LSL_Types.Vector3(
+                        presence.Velocity.X,
+                        presence.Velocity.X,
+                        presence.Velocity.Z);
+
+                Type = 0x01; // Avatar
+                if(presence.Velocity != LLVector3.Zero)
+                    Type |= 0x02; // Active
+
+                Group = presence.ControllingClient.ActiveGroupId;
+
+                return;
+            }
+
+            part=part.ParentGroup.RootPart; // We detect objects only
+
+            LinkNum = 0; // Not relevant
+
+            Group = part.GroupID;
+            Name = part.Name;
+            Owner = part.OwnerID;
+            if(part.Velocity == LLVector3.Zero)
+                Type = 0x04; // Passive
+            else
+                Type = 0x02; // Passive
+
+            foreach (SceneObjectPart p in part.ParentGroup.Children.Values)
+            {
+                if(part.ContainsScripts())
+                {
+                    Type |= 0x08; // Scripted
+                    break;
+                }
+            }
+
+            Position = new LSL_Types.Vector3(part.AbsolutePosition.X,
+                                             part.AbsolutePosition.Y,
+                                             part.AbsolutePosition.Z);
+
+            LLQuaternion wr = part.GetWorldRotation();
+            Rotation = new LSL_Types.Quaternion(wr.X, wr.Y, wr.Z, wr.W);
+
+            Velocity = new LSL_Types.Vector3(part.Velocity.X,
+                                             part.Velocity.Y,
+                                             part.Velocity.Z);
+        }
     }
 
     public class XEventParams
@@ -714,6 +802,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private string m_PrimName;
         private string m_ScriptName;
         private string m_Assembly;
+
+        public enum StateSource
+        {
+            NewRez = 0,
+            PrimCrossing = 1,
+            AttachmentCrossing = 2
+        }
 
         // Script state
         private string m_State="default";
@@ -786,7 +881,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public XScriptInstance(XEngine engine, uint localID, LLUUID objectID,
                 LLUUID itemID, LLUUID assetID, string assembly, AppDomain dom,
-                string primName, string scriptName)
+                string primName, string scriptName, StateSource stateSource)
         {
             m_Engine = engine;
 
@@ -874,6 +969,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                 m_RunEvents = false;
                                 Start();
                             }
+
+                            // we get new rez events on sim restart, too
+                            // but if there is state, then we fire the change
+                            // event
+                            if(stateSource == StateSource.NewRez)
+                                    PostEvent(new XEventParams("changed",
+                                    new Object[] {256}, new XDetectParams[0]));
                         }
                     }
                     else
@@ -1286,6 +1388,47 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     XmlAttribute pos = xmldoc.CreateAttribute("", "pos", "");
                     pos.Value = det.OffsetPos.ToString();
                     objectElem.Attributes.Append(pos);
+
+                    XmlAttribute d_linkNum = xmldoc.CreateAttribute("",
+                            "linkNum", "");
+                    d_linkNum.Value = det.LinkNum.ToString();
+                    objectElem.Attributes.Append(d_linkNum);
+
+                    XmlAttribute d_group = xmldoc.CreateAttribute("",
+                            "group", "");
+                    d_group.Value = det.Group.ToString();
+                    objectElem.Attributes.Append(d_group);
+
+                    XmlAttribute d_name = xmldoc.CreateAttribute("",
+                            "name", "");
+                    d_name.Value = det.Name.ToString();
+                    objectElem.Attributes.Append(d_name);
+
+                    XmlAttribute d_owner = xmldoc.CreateAttribute("",
+                            "owner", "");
+                    d_owner.Value = det.Owner.ToString();
+                    objectElem.Attributes.Append(d_owner);
+
+                    XmlAttribute d_position = xmldoc.CreateAttribute("",
+                            "position", "");
+                    d_position.Value = det.Position.ToString();
+                    objectElem.Attributes.Append(d_position);
+
+                    XmlAttribute d_rotation = xmldoc.CreateAttribute("",
+                            "rotation", "");
+                    d_rotation.Value = det.Rotation.ToString();
+                    objectElem.Attributes.Append(d_rotation);
+
+                    XmlAttribute d_type = xmldoc.CreateAttribute("",
+                            "type", "");
+                    d_type.Value = det.Type.ToString();
+                    objectElem.Attributes.Append(d_type);
+
+                    XmlAttribute d_velocity = xmldoc.CreateAttribute("",
+                            "velocity", "");
+                    d_velocity.Value = det.Velocity.ToString();
+                    objectElem.Attributes.Append(d_velocity);
+
                     objectElem.AppendChild(
                         xmldoc.CreateTextNode(det.Key.ToString()));
 
@@ -1385,6 +1528,62 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                                 "pos").Value;
                                         LSL_Types.Vector3 v =
                                                 new LSL_Types.Vector3(vect);
+
+                                        int d_linkNum=0;
+                                        LLUUID d_group = LLUUID.Zero;
+                                        string d_name = String.Empty;
+                                        LLUUID d_owner = LLUUID.Zero;
+                                        LSL_Types.Vector3 d_position =
+                                            new LSL_Types.Vector3();
+                                        LSL_Types.Quaternion d_rotation =
+                                            new LSL_Types.Quaternion();
+                                        int d_type = 0;
+                                        LSL_Types.Vector3 d_velocity =
+                                            new LSL_Types.Vector3();
+
+                                        try
+                                        {
+                                            string tmp;
+
+                                            tmp = det.Attributes.GetNamedItem(
+                                                    "linkNum").Value;
+                                            int.TryParse(tmp, out d_linkNum);
+
+                                            tmp = det.Attributes.GetNamedItem(
+                                                    "group").Value;
+                                            LLUUID.TryParse(tmp, out d_group);
+
+                                            d_name = det.Attributes.GetNamedItem(
+                                                    "name").Value;
+
+                                            tmp = det.Attributes.GetNamedItem(
+                                                    "owner").Value;
+                                            LLUUID.TryParse(tmp, out d_owner);
+
+                                            tmp = det.Attributes.GetNamedItem(
+                                                    "position").Value;
+                                            d_position =
+                                                new LSL_Types.Vector3(tmp);
+
+                                            tmp = det.Attributes.GetNamedItem(
+                                                    "rotation").Value;
+                                            d_rotation =
+                                                new LSL_Types.Quaternion(tmp);
+
+                                            tmp = det.Attributes.GetNamedItem(
+                                                    "type").Value;
+                                            int.TryParse(tmp, out d_type);
+
+                                            tmp = det.Attributes.GetNamedItem(
+                                                    "velocity").Value;
+                                            d_velocity =
+                                                new LSL_Types.Vector3(tmp);
+
+                                        }
+                                        catch (Exception) // Old version XML
+                                        {
+                                        }
+
                                         LLUUID uuid = new LLUUID();
                                         LLUUID.TryParse(det.InnerText,
                                                 out uuid);
@@ -1392,6 +1591,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                         XDetectParams d = new XDetectParams();
                                         d.Key = uuid;
                                         d.OffsetPos = v;
+                                        d.LinkNum = d_linkNum;
+                                        d.Group = d_group;
+                                        d.Name = d_name;
+                                        d.Owner = d_owner;
+                                        d.Position = d_position;
+                                        d.Rotation = d_rotation;
+                                        d.Type = d_type;
+                                        d.Velocity = d_velocity;
 
                                         detected.Add(d);
                                     }

@@ -324,6 +324,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.AsyncCommandPlugins
                     {
                         detect[idx] = new XDetectParams();
                         detect[idx].Key=(LLUUID)(SensedObjects.Data[idx]);
+                        detect[idx].Populate(m_CmdManager.m_ScriptEngine.World);
                     }
 
                     m_CmdManager.m_ScriptEngine.PostScriptEvent(ts.itemID,
