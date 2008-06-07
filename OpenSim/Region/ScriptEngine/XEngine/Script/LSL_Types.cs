@@ -425,6 +425,30 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Script
                 return new list(tmp);
             }
 
+            private void ExtendAndAdd(object o)
+            {
+                Array.Resize(ref m_data, Length + 1);
+                m_data.SetValue(o, Length - 1);
+            }
+
+            public static list operator +(list a, string s)
+            {
+                a.ExtendAndAdd(s);
+                return a;
+            }
+
+            public static list operator +(list a, int i)
+            {
+                a.ExtendAndAdd(i);
+                return a;
+            }
+
+            public static list operator +(list a, double d)
+            {
+                a.ExtendAndAdd(d);
+                return a;
+            }
+
             public void Add(object o)
             {
                 object[] tmp;
@@ -1321,6 +1345,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Script
                 return (double)i.value;
             }
 
+            static public implicit operator LSLFloat(LSLInteger i)
+            {
+                return new LSLFloat((double)i.value);
+            }
+
             public static bool operator true(LSLInteger i)
             {
                 return i.value != 0;
@@ -1370,12 +1399,28 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Script
 
             public LSLFloat(int i)
             {
-                this.value = (double)i;
+                value = (double)i;
             }
 
             public LSLFloat(double d)
             {
-                this.value = d;
+                value = d;
+            }
+
+            public LSLFloat(string s)
+            {
+                value = double.Parse(s);
+            }
+
+            public LSLFloat(Object o)
+            {
+                if(!((o is double) || (o is float)))
+                {
+                    value = 0.0;
+                    return;
+                }
+
+                value = (double)o;
             }
 
             #endregion
@@ -1445,11 +1490,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Script
             {
                 return f.value;
             }
-
-            //static public implicit operator System.Int32(LSLFloat f)
-            //{
-            //    return (int)f.value;
-            //}
+            
+            static public explicit operator LSLString(LSLFloat f)
+            {
+                string v = String.Format("{0:0.000000}", f.value);
+                return new LSLString(v);
+            }
 
             #endregion
 

@@ -257,7 +257,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 //                    FilePrefix + "_compiled_" + asset + ".dll");
 
             if (File.Exists(OutFile))
+            {
+                m_scriptEngine.Log.DebugFormat("[XEngine] Returning existing assembly for {0}", asset);
                 return OutFile;
+            }
 
             if (!Directory.Exists(ScriptEnginesPath))
             {
@@ -422,9 +425,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 string srcFileName = FilePrefix + "_source_" + Path.GetFileNameWithoutExtension(OutFile) + ext;
                 try
                 {
-                    File.WriteAllText(
-                        Path.Combine("ScriptEngines", srcFileName),
-                        Script);
+                    File.WriteAllText(Path.Combine(Path.Combine(
+                        ScriptEnginesPath,
+                        m_scriptEngine.World.RegionInfo.RegionID.ToString()),
+                        srcFileName), Script);
                 }
                 catch (Exception ex) // NOTLEGIT - Should be just catching FileIOException
                 {
@@ -504,6 +508,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 errtext += "No compile error. But not able to locate compiled file.";
                 throw new Exception(errtext);
             }
+            m_scriptEngine.Log.DebugFormat("[XEngine] Compiled new assembly for {0}", asset);
             return OutFile;
         }
     }

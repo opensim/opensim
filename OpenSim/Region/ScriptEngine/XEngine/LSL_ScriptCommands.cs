@@ -31,8 +31,10 @@ using System.Collections.Generic;
 using System.Runtime.Remoting.Lifetime;
 using System.Text;
 using System.Threading;
+using Nini.Config;
 using Axiom.Math;
 using libsecondlife;
+using OpenSim;
 using OpenSim.Framework;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Interfaces;
@@ -972,6 +974,78 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return;
             }
         }
+
+        private void SetFlexi(SceneObjectPart part, bool flexi, int softness, float gravity, float friction, 
+            float wind, float tension, LSL_Types.Vector3 Force)
+        {
+            if (part == null)
+                return;
+
+            bool needs_fakedelete = false;
+            if (flexi)
+            {
+                if (!part.Shape.FlexiEntry)
+                {
+                    needs_fakedelete = true;
+                }
+                part.Shape.FlexiEntry = true;   // this setting flexi true isn't working, but the below parameters do 
+                                                // work once the prim is already flexi
+                part.Shape.FlexiSoftness = softness;
+                part.Shape.FlexiGravity = gravity;
+                part.Shape.FlexiDrag = friction;
+                part.Shape.FlexiWind = wind;
+                part.Shape.FlexiTension = tension;
+                part.Shape.FlexiForceX = (float)Force.x;
+                part.Shape.FlexiForceY = (float)Force.y;
+                part.Shape.FlexiForceZ = (float)Force.z;
+                part.Shape.PathCurve = 0x80;
+
+            }
+            else
+            {
+                if (part.Shape.FlexiEntry)
+                {
+                    needs_fakedelete = true;
+                }
+                part.Shape.FlexiEntry = false;
+            }
+
+            needs_fakedelete = false;
+            if (needs_fakedelete)
+            {
+                if (part.ParentGroup != null)
+                {
+                    part.ParentGroup.FakeDeleteGroup();
+                }
+            }
+
+            part.ScheduleFullUpdate();
+        }
+
+        private void SetPointLight(SceneObjectPart part, bool light, LSL_Types.Vector3 color, float intensity, float radius, float falloff)
+        {
+            if (part == null)
+                return;
+
+            if (light)
+            {
+                part.Shape.LightEntry = true;
+                part.Shape.LightColorR = (float)color.x;
+                part.Shape.LightColorG = (float)color.y;
+                part.Shape.LightColorB = (float)color.z;
+                part.Shape.LightIntensity = intensity;
+                part.Shape.LightRadius = radius;
+                part.Shape.LightFalloff = falloff;
+            }
+            else
+            {
+                part.Shape.LightEntry = false;
+            }
+
+            part.ScheduleFullUpdate();
+        }
+
+
 
         public LSL_Types.Vector3 llGetColor(int face)
         {
@@ -4516,7 +4590,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         SetPos(part, v);
 
                         break;
+                    case 7: // PRIM_SIZE
+                        if (remain < 1)
+                            return;
 
+                        v=new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                        SetScale(part, v);
+                        
+                        break;
                     case 8: // PRIM_ROTATION
                         if (remain < 1)
                             return;
@@ -4555,13 +4636,31 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         SetAlpha(part, alpha, face);
 
                         break;
-
-                    case 7: // PRIM_SIZE
-                        if (remain < 1)
+                    case 21: // PRIM_FLEXI
+                        if (remain < 7)
                             return;
 
-                        v=new LSL_Types.Vector3(rules.Data[idx++].ToString());
-                        SetScale(part, v);
+                        int flexi = Convert.ToInt32(rules.Data[idx++]);
+                        int softness = Convert.ToInt32(rules.Data[idx++]);
+                        float gravity = (float)Convert.ToDouble(rules.Data[idx++]);
+                        float friction = (float)Convert.ToDouble(rules.Data[idx++]);
+                        float wind = (float)Convert.ToDouble(rules.Data[idx++]);
+                        float tension = (float)Convert.ToDouble(rules.Data[idx++]);
+                        LSL_Types.Vector3 force =new LSL_Types.Vector3(rules.Data[idx++].ToString());
+
+                        SetFlexi(part, (flexi == 1), softness, gravity, friction, wind, tension, force);
+
+                        break;
+                    case 23: // PRIM_POINT_LIGHT
+                        if (remain < 5)
+                            return;
+                        int light = Convert.ToInt32(rules.Data[idx++]);
+                        LSL_Types.Vector3 lightcolor =new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                        float intensity = (float)Convert.ToDouble(rules.Data[idx++]);
+                        float radius = (float)Convert.ToDouble(rules.Data[idx++]);
+                        float falloff = (float)Convert.ToDouble(rules.Data[idx++]);
+                        
+                        SetPointLight(part, (light == 1), lightcolor, intensity, radius, falloff);
 
                         break;
                 }
@@ -5466,30 +5565,39 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public void llSetObjectPermMask(int mask, int value)
         {
             m_host.AddScriptLPS(1);
-
-            if (mask == BuiltIn_Commands_BaseClass.MASK_BASE)//0
+            IConfigSource config = new IniConfigSource(Application.iniFilePath);
+            if (config.Configs["XEngine"] == null)
+                config.AddConfig("XEngine");
+            
+            if (config.Configs["XEngine"].GetBoolean("AllowGodFunctions", false))
             {
-                m_host.BaseMask = (uint)value;
-            }
+                if (World.ExternalChecks.ExternalChecksCanRunConsoleCommand(m_host.OwnerID))
+                {
+                    if (mask == BuiltIn_Commands_BaseClass.MASK_BASE)//0
+                    {
+                        m_host.BaseMask = (uint)value;
+                    }
 
-            else if (mask == BuiltIn_Commands_BaseClass.MASK_OWNER)//1
-            {
-                m_host.OwnerMask = (uint)value;
-            }
+                    else if (mask == BuiltIn_Commands_BaseClass.MASK_OWNER)//1
+                    {
+                        m_host.OwnerMask = (uint)value;
+                    }
 
-            else if (mask == BuiltIn_Commands_BaseClass.MASK_GROUP)//2
-            {
-                m_host.GroupMask = (uint)value;
-            }
+                    else if (mask == BuiltIn_Commands_BaseClass.MASK_GROUP)//2
+                    {
+                        m_host.GroupMask = (uint)value;
+                    }
 
-            else if (mask == BuiltIn_Commands_BaseClass.MASK_EVERYONE)//3
-            {
-                m_host.EveryoneMask = (uint)value;
-            }
+                    else if (mask == BuiltIn_Commands_BaseClass.MASK_EVERYONE)//3
+                    {
+                        m_host.EveryoneMask = (uint)value;
+                    }
 
-            else if (mask == BuiltIn_Commands_BaseClass.MASK_NEXT)//4
-            {
-                m_host.NextOwnerMask = (uint)value;
+                    else if (mask == BuiltIn_Commands_BaseClass.MASK_NEXT)//4
+                    {
+                        m_host.NextOwnerMask = (uint)value;
+                    }
+                }
             }
         }
 

@@ -314,8 +314,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 assembly = m_Compiler.PerformScriptCompile(script,
                                                            assetID.ToString());
-                m_log.DebugFormat("[XEngine] Loaded script {0}.{1}",
-                                  part.ParentGroup.RootPart.Name, item.Name);
             }
             catch (Exception e)
             {
@@ -387,8 +385,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     m_DomainScripts[appDomain].Add(itemID);
 
                     XScriptInstance instance = new XScriptInstance(this,localID,
-                                                                   part.UUID, itemID, assetID, assembly,
-                                                                   m_AppDomains[appDomain]);
+                           part.UUID, itemID, assetID, assembly,
+                           m_AppDomains[appDomain],
+                           part.ParentGroup.RootPart.Name,
+                           item.Name);
+
+                    m_log.DebugFormat("[XEngine] Loaded script {0}.{1}",
+                            part.ParentGroup.RootPart.Name, item.Name);
 
                     instance.AppDomain = appDomain;
 
@@ -449,6 +452,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     m_DomainScripts.Remove(instance.AppDomain);
                     UnloadAppDomain(instance.AppDomain);
                 }
+
+                instance.RemoveState();
 
                 instance = null;
 
@@ -706,6 +711,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private bool m_TimerQueued;
         private DateTime m_EventStart;
         private bool m_InEvent;
+        private string m_PrimName;
+        private string m_ScriptName;
+        private string m_Assembly;
 
         // Script state
         private string m_State="default";
@@ -715,6 +723,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public bool Running
         {
             get { return m_RunEvents; }
+            set { m_RunEvents = value; }
         }
 
         public string State
@@ -732,6 +741,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             get { return m_AppDomain; }
             set { m_AppDomain = value; }
+        }
+
+        public string PrimName
+        {
+            get { return m_PrimName; }
+        }
+
+        public string ScriptName
+        {
+            get { return m_ScriptName; }
         }
 
         public LLUUID ItemID
@@ -766,7 +785,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         }
 
         public XScriptInstance(XEngine engine, uint localID, LLUUID objectID,
-                LLUUID itemID, LLUUID assetID, string assembly, AppDomain dom)
+                LLUUID itemID, LLUUID assetID, string assembly, AppDomain dom,
+                string primName, string scriptName)
         {
             m_Engine = engine;
 
@@ -774,6 +794,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_ObjectID = objectID;
             m_ItemID = itemID;
             m_AssetID = assetID;
+            m_PrimName = primName;
+            m_ScriptName = scriptName;
+            m_Assembly = assembly;
 
             SceneObjectPart part=engine.World.GetSceneObjectPart(localID);
             if (part == null)
@@ -811,10 +834,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
             catch (Exception e)
             {
-                m_Engine.Log.Error("Error loading script instance\n"+e.ToString());
+                m_Engine.Log.Error("[XEngine] Error loading script instance\n"+e.ToString());
+                return;
             }
 
-            string savedState = assembly + ".state";
+            string savedState = Path.Combine(Path.GetDirectoryName(assembly),
+                    m_ItemID.ToString() + ".state");
             if (File.Exists(savedState))
             {
                 string xml = String.Empty;
@@ -841,28 +866,53 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             m_Engine.m_ASYNCLSLCommandManager.CreateFromData(
                                 m_LocalID, m_ItemID, m_ObjectID,
                                 PluginData);
+
+                            m_Engine.Log.DebugFormat("[XEngine] Successfully retrieved state for script {0}.{1}", m_PrimName, m_ScriptName);
+
+                            if(m_RunEvents)
+                            {
+                                m_RunEvents = false;
+                                Start();
+                            }
                         }
                     }
                     else
                     {
-                        m_Engine.Log.Error("Unable to load script state: Memory limit exceeded");
+                        m_Engine.Log.Error("[XEngine] Unable to load script state: Memory limit exceeded");
                         PostEvent(new XEventParams("state_entry",
                                                    new Object[0], new XDetectParams[0]));
+                        Start();
                     }
                 }
                 catch (Exception e)
                 {
-                    m_Engine.Log.ErrorFormat("Unable to load script state from xml: {0}\n"+e.ToString(), xml);
+                    m_Engine.Log.ErrorFormat("[XEngine] Unable to load script state from xml: {0}\n"+e.ToString(), xml);
                     PostEvent(new XEventParams("state_entry",
                                                new Object[0], new XDetectParams[0]));
+                    Start();
                 }
             }
             else
             {
+                m_Engine.Log.ErrorFormat("[XEngine] Unable to load script state, file not found");
                 PostEvent(new XEventParams("state_entry",
                                            new Object[0], new XDetectParams[0]));
+                Start();
             }
-            Start();
+        }
+
+        public void RemoveState()
+        {
+            string savedState = Path.Combine(Path.GetDirectoryName(m_Assembly),
+                    m_ItemID.ToString() + ".state");
+            
+            try
+            {
+                File.Delete(savedState);
+            }
+            catch(Exception)
+            {
+            }
         }
 
         public void VarDump(Dictionary<string, object> vars)
@@ -935,16 +985,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             result.Abort();
 
-            if (SmartThreadPool.WaitAll(new IWorkItemResult[] {result}, new TimeSpan((long)10000000), false))
+            lock (m_EventQueue)
             {
-                lock (m_EventQueue)
-                {
-                    m_CurrentResult = null;
-                }
-                return true;
+                m_CurrentResult = null;
             }
 
-            m_Engine.Log.Error("[XEngine] Failed to reliably stop script");
             return true;
         }
 
@@ -960,6 +1005,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void PostEvent(XEventParams data)
         {
+//            m_Engine.Log.DebugFormat("[XEngine] Posted event {2} in state {3} to {0}.{1}",
+//                        m_PrimName, m_ScriptName, data.EventName, m_State);
             lock (m_EventQueue)
             {
                 if (m_EventQueue.Count >= m_Engine.MaxScriptQueue)
@@ -1003,6 +1050,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             if (data.EventName == "state") // Hardcoded state change
             {
+//                m_Engine.Log.DebugFormat("[XEngine] Script {0}.{1} state set to {2}",
+//                        m_PrimName, m_ScriptName, data.Params[0].ToString());
                 m_State=data.Params[0].ToString();
                 m_Engine.m_ASYNCLSLCommandManager.RemoveScript(
                     m_LocalID, m_ItemID);
@@ -1020,6 +1069,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 //                m_Engine.Log.DebugFormat("[XEngine] Processed event {0}", data.EventName);
                 SceneObjectPart part = m_Engine.World.GetSceneObjectPart(
                     m_LocalID);
+//                m_Engine.Log.DebugFormat("[XEngine] Delivered event {2} in state {3} to {0}.{1}",
+//                        m_PrimName, m_ScriptName, data.EventName, m_State);
+
                 try
                 {
                     m_EventStart = DateTime.Now;
@@ -1148,14 +1200,19 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             try
             {
-                FileStream fs = File.Create(assembly + ".state");
+                FileStream fs = File.Create(Path.Combine(Path.GetDirectoryName(assembly), m_ItemID.ToString() + ".state"));
                 System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
                 Byte[] buf = enc.GetBytes(xml);
                 fs.Write(buf, 0, buf.Length);
                 fs.Close();
             }
-            catch(Exception)
+            catch(Exception e)
             {
+                Console.WriteLine("Unable to save xml\n"+e.ToString());
+            }
+            if(!File.Exists(Path.Combine(Path.GetDirectoryName(assembly), m_ItemID.ToString() + ".state")))
+            {
+                throw new Exception("Completed persistence save, but no file was created");
             }
         }
     }
@@ -1180,6 +1237,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             state.AppendChild(xmldoc.CreateTextNode(instance.State));
 
             rootElement.AppendChild(state);
+
+            XmlElement running = xmldoc.CreateElement("", "Running", "");
+            running.AppendChild(xmldoc.CreateTextNode(
+                    instance.Running.ToString()));
+
+            rootElement.AppendChild(running);
 
             Dictionary<string, Object> vars = instance.GetVars();
 
@@ -1276,6 +1339,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     {
                     case "State":
                         instance.State=part.InnerText;
+                        break;
+                    case "Running":
+                        instance.Running=bool.Parse(part.InnerText);
                         break;
                     case "Variables":
                         XmlNodeList varL = part.ChildNodes;

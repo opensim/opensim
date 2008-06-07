@@ -1668,6 +1668,7 @@
       <Reference name="System.Runtime.Remoting" localCopy="false"/>
       <Reference name="libsecondlife.dll"/>
       <Reference name="RAIL.dll"/>
+      <Reference name="OpenSim"/>
       <Reference name="OpenSim.Framework"/>
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="OpenSim.Framework.Communications"/>
