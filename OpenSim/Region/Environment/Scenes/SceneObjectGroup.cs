@@ -1784,7 +1784,7 @@ namespace OpenSim.Region.Environment.Scenes
                 part.ClearUndoState();
             }
 
-            m_scene.UnlinkSceneObject(objectGroup.UUID);
+            m_scene.UnlinkSceneObject(objectGroup.UUID, true);
 
             // TODO Deleting the parts may cause problems later on if they have already
             // made it into the update queue.  However, sending out updates for those parts is now

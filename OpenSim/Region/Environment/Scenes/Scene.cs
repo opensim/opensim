@@ -1386,7 +1386,7 @@ namespace OpenSim.Region.Environment.Scenes
                 rootPart.PhysActor = null;
             }
 
-            if (UnlinkSceneObject(group.UUID))
+            if (UnlinkSceneObject(group.UUID, false))
             {
                 EventManager.TriggerObjectBeingRemovedFromScene(group);
                 EventManager.TriggerParcelPrimCountTainted();
@@ -1410,9 +1410,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="uuid"></param>
         /// <returns>true if the object was in the scene, false if it was not</returns>
-        public bool UnlinkSceneObject(LLUUID uuid)
+        public bool UnlinkSceneObject(LLUUID uuid, bool resultOfLinkingObjects)
         {
-            if (m_innerScene.DeleteSceneObject(uuid,true))
+            if (m_innerScene.DeleteSceneObject(uuid,resultOfLinkingObjects))
             {
                 m_storageManager.DataStore.RemoveObject(uuid, m_regInfo.RegionID);
 
