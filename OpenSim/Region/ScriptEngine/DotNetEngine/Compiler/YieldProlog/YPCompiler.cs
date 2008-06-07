@@ -276,6 +276,58 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         }
 
         /// <summary>
+        /// Use makeFunctionPseudoCode, convertFunctionCSharp and compileAnonymousFunction
+        /// to return an anonymous YP.IClause for the Head and Body of a rule clause.
+        /// </summary>
+        /// <param name="Head">a prolog term such as new Functor2("test1", X, Y).
+        /// Note that the name of the head is ignored.
+        /// </param>
+        /// <param name="Body">a prolog term such as 
+        /// new Functor2(",", new Functor1(Atom.a("test2", Atom.a("")), X), 
+        ///              new Functor2("=", Y, X)).
+        /// This may not be null.  (For a head-only clause, set the Body to Atom.a("true").
+        /// </param>
+        /// <param name="declaringClass">if not null, the code is compiled as a subclass of this class
+        /// to resolve references to the default module Atom.a("")</param>
+        /// <returns>a new YP.IClause object on which you can call match(object[] args) where
+        /// args length is the arity of the Head</returns>
+        public static YP.IClause compileAnonymousClause(object Head, object Body, Type declaringClass)
+        {
+            object[] args = YP.getFunctorArgs(Head);
+            // compileAnonymousFunction wants "function".
+            object Rule = new Functor2(Atom.RULE, Functor.make("function", args), Body);
+            object RuleList = ListPair.make(new Functor2(Atom.F, Rule, Atom.NIL));
+
+            StringWriter functionCode = new StringWriter();
+            Variable SaveOutputStream = new Variable();
+            foreach (bool l1 in YP.current_output(SaveOutputStream))
+            {
+                try
+                {
+                    YP.tell(functionCode);
+                    Variable FunctionCode = new Variable();
+                    foreach (bool l2 in makeFunctionPseudoCode(RuleList, FunctionCode))
+                    {
+                        if (YP.termEqual(FunctionCode, Atom.a("getDeclaringClass")))
+                            // Ignore getDeclaringClass since we have access to the one passed in.
+                            continue;
+
+                        // Debug: should check if FunctionCode is a single call.
+                        convertFunctionCSharp(FunctionCode);
+                    }
+                    YP.told();
+                }
+                finally
+                {
+                    // Restore after calling tell.
+                    YP.tell(SaveOutputStream.getValue());
+                }
+            }
+            return YPCompiler.compileAnonymousFunction
+                (functionCode.ToString(), args.Length, declaringClass);
+        }
+
+        /// <summary>
         /// Use CodeDomProvider to compile the functionCode and return a YP.IClause.
         /// The function name must be "function" and have nArgs arguments.
         /// </summary>
@@ -337,8 +389,8 @@ namespace Temporary {
 
         // Compiler output follows.
 
-        class YPInnerClass { }
-        static Type getDeclaringClass() { return typeof(YPInnerClass).DeclaringType; }
+        public class YPInnerClass { }
+        public static System.Type getDeclaringClass() { return typeof(YPInnerClass).DeclaringType; }
 
         public static void repeatWrite(object arg1, object N)
         {
@@ -391,7 +443,11 @@ namespace Temporary {
                     CompilerState.assertPred(State, new Functor1(@"var", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
                     CompilerState.assertPred(State, new Functor1(@"nonvar", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
                     CompilerState.assertPred(State, new Functor1(@"atom", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
+                    CompilerState.assertPred(State, new Functor1(@"integer", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
+                    CompilerState.assertPred(State, new Functor1(@"float", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
                     CompilerState.assertPred(State, new Functor1(@"number", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
+                    CompilerState.assertPred(State, new Functor1(@"atomic", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
+                    CompilerState.assertPred(State, new Functor1(@"compound", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
                     CompilerState.assertPred(State, new Functor2(@"==", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in")), new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
                     CompilerState.assertPred(State, new Functor2(@"\==", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in")), new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
                     CompilerState.assertPred(State, new Functor2(@"@<", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in")), new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
@@ -654,13 +710,37 @@ namespace Temporary {
                                                             }
                                                             goto cutIf7;
                                                         }
-                                                        foreach (bool l12 in YP.unify(BodyWithReturn, BodyCode))
+                                                        if (CompilerState.determinismEquals(State, Atom.a(@"detNoneOut")))
+                                                        {
+                                                            foreach (bool l13 in YP.unify(BodyWithReturn, BodyCode))
+                                                            {
+                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                                {
+                                                                    yield return false;
+                                                                }
+                                                            }
+                                                            goto cutIf8;
+                                                        }
+                                                        if (CompilerState.codeUsesYield(State))
+                                                        {
+                                                            foreach (bool l13 in YP.unify(BodyWithReturn, BodyCode))
+                                                            {
+                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                                {
+                                                                    yield return false;
+                                                                }
+                                                            }
+                                                            goto cutIf9;
+                                                        }
+                                                        foreach (bool l12 in append(BodyCode, new ListPair(new Functor2(@"foreach", new Functor2(@"call", Atom.a(@"YP.fail"), Atom.NIL), new ListPair(Atom.a(@"yieldfalse"), Atom.NIL)), Atom.NIL), BodyWithReturn))
                                                         {
                                                             foreach (bool l13 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                             {
                                                                 yield return false;
                                                             }
                                                         }
+                                                    cutIf9:
+                                                    cutIf8:
                                                     cutIf7:
                                                         { }
                                                     }
@@ -679,19 +759,43 @@ namespace Temporary {
                                                                     yield return false;
                                                                 }
                                                             }
-                                                            goto cutIf9;
+                                                            goto cutIf11;
                                                         }
-                                                        foreach (bool l12 in YP.unify(BodyWithReturn, BodyCode))
+                                                        if (CompilerState.determinismEquals(State, Atom.a(@"detNoneOut")))
+                                                        {
+                                                            foreach (bool l13 in YP.unify(BodyWithReturn, BodyCode))
+                                                            {
+                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                                {
+                                                                    yield return false;
+                                                                }
+                                                            }
+                                                            goto cutIf12;
+                                                        }
+                                                        if (CompilerState.codeUsesYield(State))
+                                                        {
+                                                            foreach (bool l13 in YP.unify(BodyWithReturn, BodyCode))
+                                                            {
+                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                                {
+                                                                    yield return false;
+                                                                }
+                                                            }
+                                                            goto cutIf13;
+                                                        }
+                                                        foreach (bool l12 in append(BodyCode, new ListPair(new Functor2(@"foreach", new Functor2(@"call", Atom.a(@"YP.fail"), Atom.NIL), new ListPair(Atom.a(@"yieldfalse"), Atom.NIL)), Atom.NIL), BodyWithReturn))
                                                         {
                                                             foreach (bool l13 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                             {
                                                                 yield return false;
                                                             }
                                                         }
-                                                    cutIf9:
+                                                    cutIf13:
+                                                    cutIf12:
+                                                    cutIf11:
                                                         { }
                                                     }
-                                                    goto cutIf8;
+                                                    goto cutIf10;
                                                 }
                                                 foreach (bool l10 in YP.unify(ReturnType, Atom.a(@"IEnumerable<bool>")))
                                                 {
@@ -704,19 +808,43 @@ namespace Temporary {
                                                                 yield return false;
                                                             }
                                                         }
-                                                        goto cutIf10;
+                                                        goto cutIf14;
                                                     }
-                                                    foreach (bool l11 in YP.unify(BodyWithReturn, BodyCode))
+                                                    if (CompilerState.determinismEquals(State, Atom.a(@"detNoneOut")))
+                                                    {
+                                                        foreach (bool l12 in YP.unify(BodyWithReturn, BodyCode))
+                                                        {
+                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                            {
+                                                                yield return false;
+                                                            }
+                                                        }
+                                                        goto cutIf15;
+                                                    }
+                                                    if (CompilerState.codeUsesYield(State))
+                                                    {
+                                                        foreach (bool l12 in YP.unify(BodyWithReturn, BodyCode))
+                                                        {
+                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                            {
+                                                                yield return false;
+                                                            }
+                                                        }
+                                                        goto cutIf16;
+                                                    }
+                                                    foreach (bool l11 in append(BodyCode, new ListPair(new Functor2(@"foreach", new Functor2(@"call", Atom.a(@"YP.fail"), Atom.NIL), new ListPair(Atom.a(@"yieldfalse"), Atom.NIL)), Atom.NIL), BodyWithReturn))
                                                             {
                                                         foreach (bool l12 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                         {
                                                             yield return false;
                                                         }
                                                     }
-                                                cutIf10:
+                                                cutIf16:
+                                                cutIf15:
+                                                cutIf14:
                                                     { }
                                                 }
-                                            cutIf8:
+                                            cutIf10:
                                             cutIf6:
                                                 { }
                                             }
@@ -730,36 +858,36 @@ namespace Temporary {
                     foreach (bool l3 in YP.unify(Head, FirstRule))
                     {
                         CompilerState.startFunction(State, Head);
-                        FindallAnswers findallAnswers11 = new FindallAnswers(new Functor2(@"f", ArgAssignments, Calls));
+                        FindallAnswers findallAnswers17 = new FindallAnswers(new Functor2(@"f", ArgAssignments, Calls));
                         foreach (bool l4 in member(new Functor2(@"f", Rule, VariableNameSuggestions), SamePredicateRuleList))
                         {
                             foreach (bool l5 in compileBodyWithHeadBindings(Rule, VariableNameSuggestions, State, ArgAssignments, Calls))
                             {
-                                findallAnswers11.add();
+                                findallAnswers17.add();
                             }
                         }
-                        foreach (bool l4 in findallAnswers11.result(ClauseBag))
+                        foreach (bool l4 in findallAnswers17.result(ClauseBag))
                         {
                             foreach (bool l5 in YP.univ(Head, new ListPair(Name, ArgsList)))
                             {
                                 foreach (bool l6 in getFunctionArgNames(ArgsList, 1, FunctionArgNames))
                                 {
-                                    FindallAnswers findallAnswers12 = new FindallAnswers(MergedArgName);
+                                    FindallAnswers findallAnswers18 = new FindallAnswers(MergedArgName);
                                     foreach (bool l7 in member(ArgName, FunctionArgNames))
                                     {
                                         foreach (bool l8 in argAssignedAll(ArgName, ClauseBag, MergedArgName))
                                         {
-                                            findallAnswers12.add();
-                                            goto cutIf13;
+                                            findallAnswers18.add();
+                                            goto cutIf19;
                                         }
                                         foreach (bool l8 in YP.unify(MergedArgName, ArgName))
                                         {
-                                            findallAnswers12.add();
+                                            findallAnswers18.add();
                                         }
-                                    cutIf13:
+                                    cutIf19:
                                         { }
                                     }
-                                    foreach (bool l7 in findallAnswers12.result(MergedArgNames))
+                                    foreach (bool l7 in findallAnswers18.result(MergedArgNames))
                                     {
                                         foreach (bool l8 in maplist_arg(MergedArgNames, FunctionArgs))
                                         {
@@ -778,19 +906,43 @@ namespace Temporary {
                                                                     yield return false;
                                                                 }
                                                             }
-                                                            goto cutIf15;
+                                                            goto cutIf21;
                                                         }
-                                                        foreach (bool l12 in YP.unify(BodyWithReturn, BodyCode))
+                                                        if (CompilerState.determinismEquals(State, Atom.a(@"detNoneOut")))
+                                                        {
+                                                            foreach (bool l13 in YP.unify(BodyWithReturn, BodyCode))
+                                                            {
+                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                                {
+                                                                    yield return false;
+                                                                }
+                                                            }
+                                                            goto cutIf22;
+                                                        }
+                                                        if (CompilerState.codeUsesYield(State))
+                                                        {
+                                                            foreach (bool l13 in YP.unify(BodyWithReturn, BodyCode))
+                                                            {
+                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                                {
+                                                                    yield return false;
+                                                                }
+                                                            }
+                                                            goto cutIf23;
+                                                        }
+                                                        foreach (bool l12 in append(BodyCode, new ListPair(new Functor2(@"foreach", new Functor2(@"call", Atom.a(@"YP.fail"), Atom.NIL), new ListPair(Atom.a(@"yieldfalse"), Atom.NIL)), Atom.NIL), BodyWithReturn))
                                                         {
                                                             foreach (bool l13 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                             {
                                                                 yield return false;
                                                             }
                                                         }
-                                                    cutIf15:
+                                                    cutIf23:
+                                                    cutIf22:
+                                                    cutIf21:
                                                         { }
                                                     }
-                                                    goto cutIf14;
+                                                    goto cutIf20;
                                                 }
                                                 if (CompilerState.determinismEquals(State, Atom.a(@"semidetNoneOut")))
                                                 {
@@ -805,19 +957,43 @@ namespace Temporary {
                                                                     yield return false;
                                                                 }
                                                             }
-                                                            goto cutIf17;
+                                                            goto cutIf25;
                                                         }
-                                                        foreach (bool l12 in YP.unify(BodyWithReturn, BodyCode))
+                                                        if (CompilerState.determinismEquals(State, Atom.a(@"detNoneOut")))
+                                                        {
+                                                            foreach (bool l13 in YP.unify(BodyWithReturn, BodyCode))
+                                                            {
+                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                                {
+                                                                    yield return false;
+                                                                }
+                                                            }
+                                                            goto cutIf26;
+                                                        }
+                                                        if (CompilerState.codeUsesYield(State))
+                                                        {
+                                                            foreach (bool l13 in YP.unify(BodyWithReturn, BodyCode))
+                                                            {
+                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                                {
+                                                                    yield return false;
+                                                                }
+                                                            }
+                                                            goto cutIf27;
+                                                        }
+                                                        foreach (bool l12 in append(BodyCode, new ListPair(new Functor2(@"foreach", new Functor2(@"call", Atom.a(@"YP.fail"), Atom.NIL), new ListPair(Atom.a(@"yieldfalse"), Atom.NIL)), Atom.NIL), BodyWithReturn))
                                                         {
                                                             foreach (bool l13 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                             {
                                                                 yield return false;
                                                             }
                                                         }
-                                                    cutIf17:
+                                                    cutIf27:
+                                                    cutIf26:
+                                                    cutIf25:
                                                         { }
                                                     }
-                                                    goto cutIf16;
+                                                    goto cutIf24;
                                                 }
                                                 foreach (bool l10 in YP.unify(ReturnType, Atom.a(@"IEnumerable<bool>")))
                                                 {
@@ -830,20 +1006,44 @@ namespace Temporary {
                                                                 yield return false;
                                                             }
                                                         }
-                                                        goto cutIf18;
+                                                        goto cutIf28;
                                                     }
-                                                    foreach (bool l11 in YP.unify(BodyWithReturn, BodyCode))
+                                                    if (CompilerState.determinismEquals(State, Atom.a(@"detNoneOut")))
+                                                    {
+                                                        foreach (bool l12 in YP.unify(BodyWithReturn, BodyCode))
+                                                        {
+                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                            {
+                                                                yield return false;
+                                                            }
+                                                        }
+                                                        goto cutIf29;
+                                                    }
+                                                    if (CompilerState.codeUsesYield(State))
+                                                    {
+                                                        foreach (bool l12 in YP.unify(BodyWithReturn, BodyCode))
+                                                        {
+                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                            {
+                                                                yield return false;
+                                                            }
+                                                        }
+                                                        goto cutIf30;
+                                                    }
+                                                    foreach (bool l11 in append(BodyCode, new ListPair(new Functor2(@"foreach", new Functor2(@"call", Atom.a(@"YP.fail"), Atom.NIL), new ListPair(Atom.a(@"yieldfalse"), Atom.NIL)), Atom.NIL), BodyWithReturn))
                                                     {
                                                         foreach (bool l12 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                         {
                                                             yield return false;
                                                         }
                                                     }
-                                                cutIf18:
+                                                cutIf30:
+                                                cutIf29:
+                                                cutIf28:
                                                     { }
                                                 }
-                                            cutIf16:
-                                            cutIf14:
+                                            cutIf24:
+                                            cutIf20:
                                                 { }
                                             }
                                         }
@@ -1537,11 +1737,12 @@ namespace Temporary {
                 }
             }
             {
-                object _State = arg2;
+                object State = arg2;
                 foreach (bool l2 in YP.unify(arg1, Atom.a(@"!")))
                 {
                     foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a(@"yieldtrue"), new ListPair(Atom.a(@"yieldbreak"), Atom.NIL))))
                     {
+                        CompilerState.setCodeUsesYield(State);
                         yield return true;
                         yield break;
                     }
@@ -1588,11 +1789,12 @@ namespace Temporary {
                 }
             }
             {
-                object _State = arg2;
+                object State = arg2;
                 foreach (bool l2 in YP.unify(arg1, Atom.a(@"true")))
                 {
                     foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a(@"yieldfalse"), Atom.NIL)))
                     {
+                        CompilerState.setCodeUsesYield(State);
                         yield return true;
                         yield break;
                     }
@@ -2022,6 +2224,97 @@ namespace Temporary {
                 object State = arg2;
                 Variable A = new Variable();
                 Variable B = new Variable();
+                Variable ATermCode = new Variable();
+                Variable BCode = new Variable();
+                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor1(@"asserta", A), B)))
+                {
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2(@"call", Atom.a(@"YP.asserta"), new ListPair(ATermCode, new ListPair(new Functor2(@"call", Atom.a(@"getDeclaringClass"), Atom.NIL), Atom.NIL))), BCode)))
+                    {
+                        foreach (bool l4 in compileTerm(A, State, ATermCode))
+                        {
+                            foreach (bool l5 in compileRuleBody(B, State, BCode))
+                            {
+                                yield return true;
+                                yield break;
+                            }
+                        }
+                    }
+                }
+            }
+            {
+                object State = arg2;
+                Variable A = new Variable();
+                Variable B = new Variable();
+                Variable ATermCode = new Variable();
+                Variable BCode = new Variable();
+                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor1(@"assertz", A), B)))
+                {
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2(@"call", Atom.a(@"YP.assertz"), new ListPair(ATermCode, new ListPair(new Functor2(@"call", Atom.a(@"getDeclaringClass"), Atom.NIL), Atom.NIL))), BCode)))
+                    {
+                        foreach (bool l4 in compileTerm(A, State, ATermCode))
+                        {
+                            foreach (bool l5 in compileRuleBody(B, State, BCode))
+                            {
+                                yield return true;
+                                yield break;
+                            }
+                        }
+                    }
+                }
+            }
+            {
+                object State = arg2;
+                object PseudoCode = arg3;
+                Variable A = new Variable();
+                Variable B = new Variable();
+                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor1(@"assert", A), B)))
+                {
+                    foreach (bool l3 in compileRuleBody(new Functor2(@",", new Functor1(@"assertz", A), B), State, PseudoCode))
+                    {
+                        yield return true;
+                        yield break;
+                    }
+                }
+            }
+            {
+                object State = arg2;
+                Variable Goal = new Variable();
+                Variable Catcher = new Variable();
+                Variable Handler = new Variable();
+                Variable B = new Variable();
+                Variable CatchGoal = new Variable();
+                Variable GoalTermCode = new Variable();
+                Variable BCode = new Variable();
+                Variable CatcherTermCode = new Variable();
+                Variable HandlerAndBCode = new Variable();
+                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor3(@"catch", Goal, Catcher, Handler), B)))
+                {
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor3(@"declare", Atom.a(@"YP.Catch"), CatchGoal, new Functor2(@"new", Atom.a(@"YP.Catch"), new ListPair(new Functor2(@"call", Atom.a(@"YP.getIterator"), new ListPair(GoalTermCode, new ListPair(new Functor2(@"call", Atom.a(@"getDeclaringClass"), Atom.NIL), Atom.NIL))), Atom.NIL))), new ListPair(new Functor2(@"foreach", new Functor1(@"var", CatchGoal), BCode), new ListPair(new Functor2(@"foreach", new Functor3(@"callMember", new Functor1(@"var", CatchGoal), Atom.a(@"unifyExceptionOrThrow"), new ListPair(CatcherTermCode, Atom.NIL)), HandlerAndBCode), Atom.NIL)))))
+                    {
+                        foreach (bool l4 in CompilerState.gensym(State, Atom.a(@"catchGoal"), CatchGoal))
+                        {
+                            foreach (bool l5 in compileTerm(Goal, State, GoalTermCode))
+                            {
+                                foreach (bool l6 in compileTerm(Catcher, State, CatcherTermCode))
+                                {
+                                    foreach (bool l7 in compileRuleBody(B, State, BCode))
+                                    {
+                                        foreach (bool l8 in compileRuleBody(new Functor2(@",", Handler, B), State, HandlerAndBCode))
+                                        {
+                                            yield return true;
+                                            yield break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            {
+                object State = arg2;
+                Variable A = new Variable();
+                Variable B = new Variable();
                 Variable ACode = new Variable();
                 Variable BCode = new Variable();
                 foreach (bool l2 in YP.unify(arg1, new Functor2(@",", A, B)))
@@ -2254,28 +2547,39 @@ namespace Temporary {
             }
         }
 
-        public static IEnumerable<bool> compileFunctorCall(object Functor_1, object State, object arg3)
+        public static IEnumerable<bool> compileFunctorCall(object Functor_1, object State, object PseudoCode)
         {
             {
-                Variable FunctionName = new Variable();
-                Variable CompiledArgs = new Variable();
                 Variable FunctorName = new Variable();
                 Variable FunctorArgs = new Variable();
-                Variable x7 = new Variable();
+                Variable x6 = new Variable();
                 Variable Arity = new Variable();
-                foreach (bool l2 in YP.unify(arg3, new Functor2(@"call", FunctionName, CompiledArgs)))
+                Variable CompiledArgs = new Variable();
+                Variable FunctionName = new Variable();
+                foreach (bool l2 in YP.univ(Functor_1, new ListPair(FunctorName, FunctorArgs)))
                 {
-                    foreach (bool l3 in YP.univ(Functor_1, new ListPair(FunctorName, FunctorArgs)))
+                    foreach (bool l3 in YP.functor(Functor_1, x6, Arity))
                     {
-                        foreach (bool l4 in YP.functor(Functor_1, x7, Arity))
+                        foreach (bool l4 in maplist_compileTerm(FunctorArgs, State, CompiledArgs))
                         {
                             foreach (bool l5 in functorCallFunctionName(State, FunctorName, Arity, FunctionName))
                             {
-                                foreach (bool l6 in maplist_compileTerm(FunctorArgs, State, CompiledArgs))
+                                if (YP.termEqual(FunctionName, Atom.NIL))
+                                {
+                                    foreach (bool l7 in YP.unify(PseudoCode, new Functor2(@"call", Atom.a(@"YP.matchDynamic"), new ListPair(new Functor2(@"call", Atom.a(@"Atom.a"), new ListPair(new Functor1(@"object", FunctorName), Atom.NIL)), new ListPair(new Functor1(@"objectArray", CompiledArgs), Atom.NIL)))))
                                 {
                                     yield return true;
                                     yield break;
                                 }
+                                    goto cutIf1;
+                                }
+                                foreach (bool l6 in YP.unify(PseudoCode, new Functor2(@"call", FunctionName, CompiledArgs)))
+                                {
+                                    yield return true;
+                                    yield break;
+                                }
+                            cutIf1:
+                                { }
                             }
                         }
                     }
@@ -2287,408 +2591,13 @@ namespace Temporary {
         {
             {
                 object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"=")))
+                object Name = arg2;
+                object Arity = arg3;
+                object FunctionName = arg4;
+                foreach (bool l2 in functorCallYPFunctionName(Name, Arity, FunctionName))
                 {
-                    foreach (bool l3 in YP.unify(arg3, 2))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.unify")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"=..")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 2))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.univ")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"var")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 1))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.var")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"nonvar")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 1))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.nonvar")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"arg")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 3))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.arg")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"functor")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 3))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.functor")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"repeat")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 0))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.repeat")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"get_code")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 1))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.get_code")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"current_op")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 3))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.current_op")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"atom_length")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 2))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.atom_length")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"atom_concat")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 3))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.atom_concat")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"sub_atom")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 5))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.sub_atom")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"atom_codes")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 2))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.atom_codes")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"number_codes")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 2))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.number_codes")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"copy_term")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 2))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.copy_term")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"sort")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 2))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.sort")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"script_event")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 2))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.script_event")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"nl")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 0))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.nl")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"write")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 1))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.write")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"put_code")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 1))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.put_code")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"atom")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 1))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.atom")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"number")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 1))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.number")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"==")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 2))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.termEqual")))
-                {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"\==")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 2))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.termNotEqual")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"@<")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 2))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.termLessThan")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"@=<")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 2))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.termLessThanOrEqual")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"@>")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 2))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.termGreaterThan")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"@>=")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 2))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.termGreaterThanOrEqual")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object x1 = arg1;
-                foreach (bool l2 in YP.unify(arg2, Atom.a(@"throw")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, 1))
-                    {
-                        foreach (bool l4 in YP.unify(arg4, Atom.a(@"YP.throwException")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
+                    yield return true;
+                    yield break;
                 }
             }
             {
@@ -2727,12 +2636,13 @@ namespace Temporary {
                 object _State = arg1;
                 object Name = arg2;
                 object Arity = arg3;
-                object x4 = arg4;
-                foreach (bool l2 in Atom.module(Name, Atom.NIL))
+                foreach (bool l2 in YP.unify(arg4, Atom.NIL))
                 {
-                    YP.throwException(new Functor2(@"error", new Functor2(@"type_error", Atom.a(@"callable"), new Functor2(@"/", Name, Arity)), Atom.a(@"Calls to dynamic predicates not supported")));
-                    yield return true;
-                    yield break;
+                    foreach (bool l3 in Atom.module(Name, Atom.NIL))
+                    {
+                        yield return true;
+                        yield break;
+                    }
                 }
             }
             {
@@ -2744,11 +2654,453 @@ namespace Temporary {
                 Variable Message = new Variable();
                 foreach (bool l2 in Atom.module(Name, Module))
                 {
-                    foreach (bool l3 in Atom.module(Name, Atom.NIL))
-                {
-                        foreach (bool l4 in YP.atom_concat(Atom.a(@"Not supporting calls to external module: "), Module, Message))
+                    foreach (bool l3 in YP.atom_concat(Atom.a(@"Not supporting calls to external module: "), Module, Message))
                     {
-                            YP.throwException(new Functor2(@"error", new Functor2(@"type_error", Atom.a(@"callable"), new Functor2(@"/", Name, Arity)), Message));
+                        YP.throwException(new Functor2(@"error", new Functor2(@"type_error", Atom.a(@"callable"), new Functor2(@"/", Name, Arity)), Message));
+                        yield return true;
+                        yield break;
+                    }
+                }
+            }
+                {
+                object _State = arg1;
+                object Name = arg2;
+                object _Arity = arg3;
+                object x4 = arg4;
+                YP.throwException(new Functor2(@"error", new Functor2(@"type_error", Atom.a(@"callable"), Name), Atom.a(@"Term is not callable")));
+                yield return true;
+                yield break;
+            }
+        }
+
+        public static IEnumerable<bool> functorCallYPFunctionName(object arg1, object arg2, object arg3)
+        {
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"=")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.unify")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"=..")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.univ")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"var")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.var")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"nonvar")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.nonvar")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"arg")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 3))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.arg")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"functor")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 3))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.functor")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"repeat")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 0))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.repeat")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"get_code")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.get_code")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"current_op")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 3))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.current_op")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"atom_length")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.atom_length")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"atom_concat")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 3))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.atom_concat")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"sub_atom")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 5))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.sub_atom")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"atom_codes")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.atom_codes")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"number_codes")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.number_codes")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"copy_term")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.copy_term")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"sort")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.sort")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+            // Manually included : script_event for callback to LSL/C#
+
+                //object x1 = arg1;
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"script_event")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.script_event")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"nl")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 0))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.nl")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"write")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.write")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"put_code")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.put_code")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"atom")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.atom")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"integer")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.integer")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"float")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.isFloat")))
+                {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"number")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.number")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"atomic")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.atomic")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"compound")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.compound")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"==")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.termEqual")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"\==")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.termNotEqual")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"@<")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.termLessThan")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"@=<")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.termLessThanOrEqual")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"@>")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.termGreaterThan")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"@>=")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.termGreaterThanOrEqual")))
+                {
+                    yield return true;
+                    yield break;
+                }
+            }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a(@"throw")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.throwException")))
+                    {
                         yield return true;
                         yield break;
                     }
@@ -3052,6 +3404,8 @@ namespace Temporary {
                 Variable x9 = new Variable();
                 Variable X2 = new Variable();
                 Variable Arg2 = new Variable();
+                Variable x12 = new Variable();
+                Variable Arity = new Variable();
                 if (YP.nonvar(Term))
                 {
                     foreach (bool l3 in YP.univ(Term, new ListPair(Name, TermArgs)))
@@ -3100,8 +3454,11 @@ namespace Temporary {
                                     goto cutIf3;
                                 }
                             }
-                            YP.throwException(new Functor2(@"error", new Functor2(@"type_error", Atom.a(@"evaluable"), Name), Atom.a(@"Not an expression function")));
+                            foreach (bool l5 in YP.functor(Term, x12, Arity))
+                            {
+                                YP.throwException(new Functor2(@"error", new Functor2(@"type_error", Atom.a(@"evaluable"), new Functor2(@"/", Name, Arity)), Atom.a(@"Not an expression function")));
                             yield return false;
+                            }
                         cutIf3:
                         cutIf2:
                         cutIf1:
@@ -3402,9 +3759,9 @@ namespace Temporary {
             {
                 foreach (bool l2 in YP.unify(arg1, Atom.a(@"getDeclaringClass")))
                 {
-                    YP.write(Atom.a(@"class YPInnerClass {}"));
+                    YP.write(Atom.a(@"public class YPInnerClass {}"));
                     YP.nl();
-                    YP.write(Atom.a(@"static System.Type getDeclaringClass() { return typeof(YPInnerClass).DeclaringType; }"));
+                    YP.write(Atom.a(@"public static System.Type getDeclaringClass() { return typeof(YPInnerClass).DeclaringType; }"));
                     YP.nl();
                     YP.nl();
                     return;
@@ -3705,6 +4062,20 @@ namespace Temporary {
                         convertStatementListCSharp(RestStatements, Level);
                         return;
                     }
+                }
+            }
+            {
+                Variable Expression = new Variable();
+                Variable RestStatements = new Variable();
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1(@"throw", Expression), RestStatements)))
+                {
+                    convertIndentationCSharp(Level);
+                    YP.write(Atom.a(@"throw "));
+                    convertExpressionCSharp(Expression);
+                    YP.write(Atom.a(@";"));
+                    YP.nl();
+                    convertStatementListCSharp(RestStatements, Level);
+                    return;
                 }
             }
         }
@@ -4202,6 +4573,21 @@ namespace Temporary {
                         convertStatementListJavascript(RestStatements, Level);
                         return;
                     }
+                }
+            }
+            {
+                object Level = arg2;
+                Variable Expression = new Variable();
+                Variable RestStatements = new Variable();
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1(@"throw", Expression), RestStatements)))
+                {
+                    convertIndentationJavascript(Level);
+                    YP.write(Atom.a(@"throw "));
+                    convertExpressionJavascript(Expression);
+                    YP.write(Atom.a(@";"));
+                    YP.nl();
+                    convertStatementListJavascript(RestStatements, Level);
+                    return;
                 }
             }
         }
@@ -4980,6 +5366,24 @@ namespace Temporary {
                         cutIf6:
                             { }
                         }
+                    }
+                }
+            }
+            {
+                object Level = arg2;
+                object HasBreakableBlock = arg3;
+                Variable Expression = new Variable();
+                Variable RestStatements = new Variable();
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1(@"throw", Expression), RestStatements)))
+                {
+                    convertIndentationPython(Level);
+                    YP.write(Atom.a(@"raise "));
+                    convertExpressionPython(Expression);
+                    YP.nl();
+                    foreach (bool l3 in convertStatementListPython(RestStatements, Level, HasBreakableBlock))
+                    {
+                        yield return true;
+                        yield break;
                     }
                 }
             }

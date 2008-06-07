@@ -149,6 +149,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 YP.getValue(((Functor2)term)._arg2) == Atom.NIL)
                 // Assume it is a char type like "a".
                 term = YP.getValue(((Functor2)term)._arg1);
+            if (term is Variable)
+                throw new PrologException(Atom.a("instantiation_error"), 
+                    "Expected a number but the argument is an unbound variable");
 
             return Convert.ToDouble(term);
         }
@@ -982,11 +985,22 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             return YP.getValue(Term) is Atom;
         }
 
+        public static bool integer(object Term)
+        {
+            // Debug: Should exhaustively check for all integer types.
+            return getValue(Term) is int;
+        }
+
+        // Use isFloat instead of float because it is a reserved keyword.
+        public static bool isFloat(object Term)
+        {
+            // Debug: Should exhaustively check for all float types.
+            return getValue(Term) is double;
+        }
+
         public static bool number(object Term)
         {
-            Term = getValue(Term);
-            // Debug: Should exhaustively check for all number types.
-            return Term is int || Term is double;
+            return YP.integer(Term) || YP.isFloat(Term);
         }
 
         public static bool atomic(object Term)
@@ -1060,6 +1074,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             _outputStream = Console.Out;
         }
 
+        public static IEnumerable<bool> current_output(object Stream)
+        {
+            return YP.unify(Stream, _outputStream);
+        }
+
         public static void write(object x)
         {
             x = YP.getValue(x);
@@ -1108,6 +1127,93 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             return YP.unify(code, _inputStream.Read());
         }
 
+        public static void asserta(object Term, Type declaringClass)
+        {
+            assertDynamic(Term, declaringClass, true);
+        }
+
+        public static void assertz(object Term, Type declaringClass)
+        {
+            assertDynamic(Term, declaringClass, false);
+        }
+
+        public static void assertDynamic(object Term, Type declaringClass, bool prepend)
+        {
+            Term = getValue(Term);
+            if (Term is Variable)
+                throw new PrologException("instantiation_error", "Term to assert is an unbound variable");
+
+            Variable.CopyStore copyStore = new Variable.CopyStore();
+            object TermCopy = makeCopy(Term, copyStore);
+            object Head, Body;
+            if (TermCopy is Functor2 && ((Functor2)TermCopy)._name == Atom.RULE)
+            {
+                Head = YP.getValue(((Functor2)TermCopy)._arg1);
+                Body = YP.getValue(((Functor2)TermCopy)._arg2);
+            }
+            else
+            {
+                Head = TermCopy;
+                Body = Atom.a("true");
+            }
+
+            Atom name = getFunctorName(Head) as Atom;
+            if (name == null)
+                // name is a non-Atom, such as a number.
+                throw new PrologException
+                    (new Functor2("type_error", Atom.a("callable"), Head), "Term to assert is not callable");
+            object[] args = getFunctorArgs(Head);
+            if (!isDynamic(name, args.Length))
+                throw new PrologException
+                    (new Functor3("permission_error", Atom.a("modify"), Atom.a("static_procedure"),
+                                  new Functor2(Atom.SLASH, name, args.Length)),
+                     "Assert cannot modify static predicate " + name + "/" + args.Length);
+
+            if (copyStore.getNUniqueVariables() == 0 && Body == Atom.a("true"))
+            {
+                // Debug: Until IndexedAnswers supports prepend, compile the fact so we can prepend it below.
+                if (!prepend)
+                {
+                    // This is a fact with no unbound variables
+                    // assertFact uses IndexedAnswers, so don't we don't need to compile.
+                    assertFact(name, args);
+                    return;
+                }
+            }
+
+            IClause clause = YPCompiler.compileAnonymousClause(Head, Body, declaringClass);
+
+            // Add the clause to the entry in _predicatesStore.
+            NameArity nameArity = new NameArity(name, args.Length);
+            List<IClause> clauses;
+            if (!_predicatesStore.TryGetValue(nameArity, out clauses))
+                // Create an entry for the nameArity.
+                _predicatesStore[nameArity] = (clauses = new List<IClause>());
+
+            if (prepend)
+                clauses.Insert(0, clause);
+            else
+                clauses.Add(clause);
+        }
+
+        private static bool isDynamic(Atom name, int arity)
+        {
+            if (arity == 2 && (name == Atom.a(",") || name == Atom.a(";") || name == Atom.DOT))
+                return false;
+            // Use the same mapping to static predicates in YP as the compiler.
+            foreach (bool l1 in YPCompiler.functorCallYPFunctionName(name, arity, new Variable()))
+                return false;
+            // Debug: Do we need to check if name._module is null?
+            return true;
+        }
+
+        /// <summary>
+        /// Assert values at the end of the set of facts for the predicate with the
+        /// name and with arity values.Length.
+        /// </summary>
+        /// <param name="name">must be an Atom</param>
+        /// <param name="values">the array of arguments to the fact predicate.
+        /// It is an error if an value has an unbound variable.</param>
         public static void assertFact(Atom name, object[] values)
         {
             NameArity nameArity = new NameArity(name, values.Length);
@@ -1130,7 +1236,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             indexedAnswers.addAnswer(values);
         }
 
-        public static IEnumerable<bool> matchFact(Atom name, object[] arguments)
+        /// <summary>
+        /// Match all clauses of the dynamic predicate with the name and with arity
+        /// arguments.Length.
+        /// It is an error if the predicate is not defined.
+        /// </summary>
+        /// <param name="name">must be an Atom</param>
+        /// <param name="arguments">an array of arity number of arguments</param>
+        /// <returns>an iterator which you can use in foreach</returns>
+        public static IEnumerable<bool> matchDynamic(Atom name, object[] arguments)
         {
             List<IClause> clauses;
             if (!_predicatesStore.TryGetValue(new NameArity(name, arguments.Length), out clauses))
@@ -1147,20 +1261,46 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
 
         /// <summary>
         /// Call match(arguments) for each IClause in clauses.  We make this a separate
-        /// function so that matchFact itself does not need to be an iterator object.
+        /// function so that matchDynamic itself does not need to be an iterator object.
         /// </summary>
         /// <param name="clauses"></param>
         /// <param name="arguments"></param>
         /// <returns></returns>
         private static IEnumerable<bool> matchAllClauses(List<IClause> clauses, object[] arguments)
         {
+            // Debug: If the clause asserts another clause into this same predicate, the iterator
+            //   over clauses will be corrupted.  Should we take the time to copy clauses?
             foreach (IClause clause in clauses)
             {
                 foreach (bool lastCall in clause.match(arguments))
+                {
                     yield return false;
+                    if (lastCall)
+                        // This happens after a cut in a clause.
+                        yield break;
+                }
             }
         }
 
+        /// <summary>
+        /// This is deprecated and just calls matchDynamic. This matches all clauses, 
+        /// not just the ones defined with assertFact.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="arguments"></param>
+        /// <returns></returns>
+        public static IEnumerable<bool> matchFact(Atom name, object[] arguments)
+        {
+            return matchDynamic(name, arguments);
+        }
+
+        /// <summary>
+        /// This actually searches all clauses, not just
+        /// the ones defined with assertFact, but we keep the name for 
+        /// backwards compatibility.
+        /// </summary>
+        /// <param name="name">must be an Atom</param>
+        /// <param name="arguments">an array of arity number of arguments</param>
         public static void retractFact(Atom name, object[] arguments)
         {
             NameArity nameArity = new NameArity(name, arguments.Length);
@@ -1219,40 +1359,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         /// <returns></returns>
         public static IEnumerable<bool> getIterator(object Goal, Type declaringClass)
         {
+            Goal = YP.getValue(Goal);
+            if (Goal is Variable)
+                throw new PrologException("instantiation_error", "Goal to call is an unbound variable");
 #if true
             List<Variable> variableSetList = new List<Variable>();
             addUniqueVariables(Goal, variableSetList);
             Variable[] variableSet = variableSetList.ToArray();
-            object Head = Functor.make("function", variableSet);
 
-            object Rule = new Functor2(Atom.RULE, Head, Goal);
-            object RuleList = ListPair.make(new Functor2(Atom.F, Rule, Atom.NIL));
-            StringWriter functionCode = new StringWriter();
-            TextWriter saveOutputStream = _outputStream;
-            try
-            {
-                tell(functionCode);
-                Variable FunctionCode = new Variable();
-                foreach (bool l1 in YPCompiler.makeFunctionPseudoCode(RuleList, FunctionCode))
-                {
-                    if (YP.termEqual(FunctionCode, Atom.a("getDeclaringClass")))
-                        // Ignore getDeclaringClass since we have access to the one passed in.
-                        continue;
-
-                    // Debug: should check if FunctionCode is a single call.
-                    YPCompiler.convertFunctionCSharp(FunctionCode);
-                }
-                told();
-            }
-            finally
-            {
-                // Restore after calling tell.
-                _outputStream = saveOutputStream;
-            }
-            return YPCompiler.compileAnonymousFunction
-                (functionCode.ToString(), variableSet.Length, declaringClass).match(variableSet);
+            // Use Atom.F since it is ignored.
+            return YPCompiler.compileAnonymousClause
+                (Functor.make(Atom.F, variableSet), Goal, declaringClass).match(variableSet);
 #else
-            Goal = YP.getValue(Goal);
             Atom name;
             object[] args;
             while (true)
@@ -1429,6 +1547,92 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
 
             public void Dispose()
             {
+            }
+
+            public void Reset()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// An enumerator that wraps another enumerator in order to catch a PrologException.
+        /// </summary>
+        public class Catch : IEnumerator<bool>, IEnumerable<bool>
+        {
+            private IEnumerator<bool> _enumerator;
+            private PrologException _exception = null;
+
+            public Catch(IEnumerable<bool> iterator)
+            {
+                _enumerator = iterator.GetEnumerator();
+            }
+
+            /// <summary>
+            /// Call _enumerator.MoveNext().  If it throws a PrologException, set _exception
+            /// and return false.  After this returns false, call unifyExceptionOrThrow.
+            /// Assume that, after this returns false, it will not be called again.
+            /// </summary>
+            /// <returns></returns>
+            public bool MoveNext()
+            {
+                try
+                {
+                    return _enumerator.MoveNext();
+                }
+                catch (PrologException exception)
+                {
+                    _exception = exception;
+                    return false;
+                }
+            }
+
+            /// <summary>
+            /// Call this after MoveNext() returns false to check for an exception.  If
+            /// MoveNext did not get a PrologException, don't yield.
+            /// Otherwise, unify the exception with Catcher and yield so the caller can
+            /// do the handler code.  However, if can't unify with Catcher then throw the exception.
+            /// </summary>
+            /// <param name="Catcher"></param>
+            /// <returns></returns>
+            public IEnumerable<bool> unifyExceptionOrThrow(object Catcher)
+            {
+                if (_exception != null)
+                {
+                    bool didUnify = false;
+                    foreach (bool l1 in YP.unify(_exception._term, Catcher))
+                    {
+                        didUnify = true;
+                        yield return false;
+                    }
+                    if (!didUnify)
+                        throw _exception;
+                }
+            }
+
+            public IEnumerator<bool> GetEnumerator()
+            {
+                return (IEnumerator<bool>)this;
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+
+            public bool Current
+            {
+                get { return _enumerator.Current; }
+            }
+
+            object IEnumerator.Current
+            {
+                get { return _enumerator.Current; }
+            }
+
+            public void Dispose()
+            {
+                _enumerator.Dispose();
             }
 
             public void Reset()
