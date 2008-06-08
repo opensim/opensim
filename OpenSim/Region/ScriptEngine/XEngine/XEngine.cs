@@ -974,8 +974,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             // but if there is state, then we fire the change
                             // event
                             if(stateSource == StateSource.NewRez)
-                                    PostEvent(new XEventParams("changed",
-                                    new Object[] {256}, new XDetectParams[0]));
+                            {
+//                                m_Engine.Log.Debug("[XEngine] Posted changed(CHANGED_REGION_RESTART) to script");
+                                PostEvent(new XEventParams("changed",
+                                    new Object[] {new LSL_Types.LSLInteger(256)}, new XDetectParams[0]));
+                            }
                         }
                     }
                     else
@@ -1323,7 +1326,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
     {
         public static string Serialize(XScriptInstance instance)
         {
-            instance.Stop(50);
+            bool running = instance.Running;
+
+            if(running)
+                instance.Stop(50);
 
             XmlDocument xmldoc = new XmlDocument();
 
@@ -1340,11 +1346,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             rootElement.AppendChild(state);
 
-            XmlElement running = xmldoc.CreateElement("", "Running", "");
-            running.AppendChild(xmldoc.CreateTextNode(
-                    instance.Running.ToString()));
+            XmlElement run = xmldoc.CreateElement("", "Running", "");
+            run.AppendChild(xmldoc.CreateTextNode(
+                    running.ToString()));
 
-            rootElement.AppendChild(running);
+            rootElement.AppendChild(run);
 
             Dictionary<string, Object> vars = instance.GetVars();
 
@@ -1449,7 +1455,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             rootElement.AppendChild(plugins);
 
-            instance.Start();
+            if(running)
+                instance.Start();
 
             return xmldoc.InnerXml;
         }
