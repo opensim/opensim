@@ -121,7 +121,33 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             // Add to queue for all scripts in ObjectID object
             EventQueueManager.Queue_llDetectParams_Struct detstruct = new EventQueueManager.Queue_llDetectParams_Struct();
             detstruct._key = new LSL_Types.key[1];
-            detstruct._key[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
+            detstruct._key2 = new LSL_Types.key[1];
+            detstruct._string = new string[1];
+            detstruct._Vector3 = new LSL_Types.Vector3[1];
+            detstruct._Vector32 = new LSL_Types.Vector3[1];
+            detstruct._Quaternion = new LSL_Types.Quaternion[1];
+            detstruct._int = new int[1];
+            ScenePresence av = myScriptEngine.World.GetScenePresence(remoteClient.AgentId);
+            if (av != null)
+            {
+                detstruct._key[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
+                detstruct._key2[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
+                detstruct._string[0] = remoteClient.Name;
+                detstruct._int[0] = 0;
+                detstruct._Quaternion[0] = new LSL_Types.Quaternion(av.Rotation.x,av.Rotation.y,av.Rotation.z,av.Rotation.w);
+                detstruct._Vector3[0] = new LSL_Types.Vector3(av.AbsolutePosition.X,av.AbsolutePosition.Y,av.AbsolutePosition.Z);
+                detstruct._Vector32[0] = new LSL_Types.Vector3(av.Velocity.X,av.Velocity.Y,av.Velocity.Z);
+            }
+            else
+            {
+                detstruct._key[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
+                detstruct._key2[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
+                detstruct._string[0] = remoteClient.Name;
+                detstruct._int[0] = 0;
+                detstruct._Quaternion[0] = new LSL_Types.Quaternion(0, 0, 0, 1);
+                detstruct._Vector3[0] = new LSL_Types.Vector3(0, 0, 0);
+                detstruct._Vector32[0] = new LSL_Types.Vector3(0, 0, 0);
+            }
             myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_start", detstruct, new object[] { new LSL_Types.LSLInteger(1) });
         }
 
@@ -130,7 +156,33 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             // Add to queue for all scripts in ObjectID object
             EventQueueManager.Queue_llDetectParams_Struct detstruct = new EventQueueManager.Queue_llDetectParams_Struct();
             detstruct._key = new LSL_Types.key[1];
-            detstruct._key[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
+            detstruct._key2 = new LSL_Types.key[1];
+            detstruct._string = new string[1];
+            detstruct._Vector3 = new LSL_Types.Vector3[1];
+            detstruct._Vector32 = new LSL_Types.Vector3[1];
+            detstruct._Quaternion = new LSL_Types.Quaternion[1];
+            detstruct._int = new int[1];
+            ScenePresence av = myScriptEngine.World.GetScenePresence(remoteClient.AgentId);
+            if (av != null)
+            {
+                detstruct._key[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
+                detstruct._key2[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
+                detstruct._string[0] = remoteClient.Name;
+                detstruct._int[0] = 0;
+                detstruct._Quaternion[0] = new LSL_Types.Quaternion(av.Rotation.x, av.Rotation.y, av.Rotation.z, av.Rotation.w);
+                detstruct._Vector3[0] = new LSL_Types.Vector3(av.AbsolutePosition.X, av.AbsolutePosition.Y, av.AbsolutePosition.Z);
+                detstruct._Vector32[0] = new LSL_Types.Vector3(av.Velocity.X, av.Velocity.Y, av.Velocity.Z);
+            }
+            else
+            {
+                detstruct._key[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
+                detstruct._key2[0] = new LSL_Types.key(remoteClient.AgentId.ToString());
+                detstruct._string[0] = remoteClient.Name;
+                detstruct._int[0] = 0;
+                detstruct._Quaternion[0] = new LSL_Types.Quaternion(0, 0, 0, 1);
+                detstruct._Vector3[0] = new LSL_Types.Vector3(0, 0, 0);
+                detstruct._Vector32[0] = new LSL_Types.Vector3(0, 0, 0);
+            }
             myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_end", detstruct, new object[] { new LSL_Types.LSLInteger(1) });
         }
 
@@ -184,6 +236,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             detstruct._Quaternion = new LSL_Types.Quaternion[col.Colliders.Count];
             detstruct._int = new int[col.Colliders.Count];
             detstruct._key = new LSL_Types.key[col.Colliders.Count];
+            detstruct._key2 = new LSL_Types.key[col.Colliders.Count];
             detstruct._Vector3 = new LSL_Types.Vector3[col.Colliders.Count];
             detstruct._Vector32 = new LSL_Types.Vector3[col.Colliders.Count];
             detstruct._bool = new bool[col.Colliders.Count];
@@ -192,6 +245,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             foreach (DetectedObject detobj in col.Colliders)
             {
                 detstruct._key[i] = new LSL_Types.key(detobj.keyUUID.ToString());
+                detstruct._key2[i] = new LSL_Types.key(detobj.ownerUUID.ToString());
                 detstruct._Quaternion[i] = new LSL_Types.Quaternion(detobj.rotQuat.X, detobj.rotQuat.Y, detobj.rotQuat.Z, detobj.rotQuat.W);
                 detstruct._string[i] = detobj.nameStr;
                 detstruct._int[i] = detobj.colliderType;
@@ -211,6 +265,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             detstruct._Quaternion = new LSL_Types.Quaternion[col.Colliders.Count];
             detstruct._int = new int[col.Colliders.Count];
             detstruct._key = new LSL_Types.key[col.Colliders.Count];
+            detstruct._key2 = new LSL_Types.key[col.Colliders.Count];
             detstruct._Vector3 = new LSL_Types.Vector3[col.Colliders.Count];
             detstruct._Vector32 = new LSL_Types.Vector3[col.Colliders.Count];
             detstruct._bool = new bool[col.Colliders.Count];
@@ -219,6 +274,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             foreach (DetectedObject detobj in col.Colliders)
             {
                 detstruct._key[i] = new LSL_Types.key(detobj.keyUUID.ToString());
+                detstruct._key2[i] = new LSL_Types.key(detobj.ownerUUID.ToString());
                 detstruct._Quaternion[i] = new LSL_Types.Quaternion(detobj.rotQuat.X, detobj.rotQuat.Y, detobj.rotQuat.Z, detobj.rotQuat.W);
                 detstruct._string[i] = detobj.nameStr;
                 detstruct._int[i] = detobj.colliderType;
@@ -236,6 +292,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             detstruct._Quaternion = new LSL_Types.Quaternion[col.Colliders.Count];
             detstruct._int = new int[col.Colliders.Count];
             detstruct._key = new LSL_Types.key[col.Colliders.Count];
+            detstruct._key2 = new LSL_Types.key[col.Colliders.Count];
             detstruct._Vector3 = new LSL_Types.Vector3[col.Colliders.Count];
             detstruct._Vector32 = new LSL_Types.Vector3[col.Colliders.Count];
             detstruct._bool = new bool[col.Colliders.Count];
@@ -244,6 +301,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             foreach (DetectedObject detobj in col.Colliders)
             {
                 detstruct._key[i] = new LSL_Types.key(detobj.keyUUID.ToString());
+                detstruct._key2[i] = new LSL_Types.key(detobj.ownerUUID.ToString());
                 detstruct._Quaternion[i] = new LSL_Types.Quaternion(detobj.rotQuat.X, detobj.rotQuat.Y, detobj.rotQuat.Z, detobj.rotQuat.W);
                 detstruct._string[i] = detobj.nameStr;
                 detstruct._int[i] = detobj.colliderType;

@@ -153,7 +153,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             // More or less just a placeholder for the actual moving of additional data
             // should be fixed to something better :)
-            public LSL_Types.key[] _key;
+            public LSL_Types.key[] _key; // detected key
+            public LSL_Types.key[] _key2;  // ownerkey
             public LSL_Types.Quaternion[] _Quaternion;
             public LSL_Types.Vector3[] _Vector3; // Pos
             public LSL_Types.Vector3[] _Vector32; // Vel

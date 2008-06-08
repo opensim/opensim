@@ -563,6 +563,32 @@ namespace OpenSim.Region.ScriptEngine.Common
                     return resolveName(SensedUUID);
                 }
             }
+            else
+            {
+                ScriptManager sm;
+                IScript script = null;
+
+                if ((sm = m_ScriptEngine.m_ScriptManager) != null)
+                {
+                    if (sm.Scripts.ContainsKey(m_localID))
+                    {
+                        if ((script = sm.GetScript(m_localID, m_itemID)) != null)
+                        {
+                            //System.Console.WriteLine(number + " - " + script.llDetectParams._key.Length);
+                            if (script.llDetectParams._string != null)
+                            {
+                                if (script.llDetectParams._string.Length > number)
+                                {
+                                    if (script.llDetectParams._string[number] != null)
+                                    {
+                                        return script.llDetectParams._string[number];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             return String.Empty;
        }
 
@@ -588,9 +614,13 @@ namespace OpenSim.Region.ScriptEngine.Common
                     {
                         if ((script = sm.GetScript(m_localID, m_itemID)) != null)
                         {
-                            if (script.llDetectParams._key[0])
+                            //System.Console.WriteLine(number + " - " + script.llDetectParams._key.Length);
+                            if (script.llDetectParams._key.Length > number)
                             {
-                                return new LLUUID(script.llDetectParams._key[0]);
+                                if (script.llDetectParams._key[number])
+                                {
+                                    return new LLUUID(script.llDetectParams._key[number]);
+                                }
                             }
                         }
                     }
@@ -615,6 +645,36 @@ namespace OpenSim.Region.ScriptEngine.Common
                     return SensedObject;
                 }
             }
+            else
+            {
+                ScriptManager sm;
+                IScript script = null;
+
+                if ((sm = m_ScriptEngine.m_ScriptManager) != null)
+                {
+                    if (sm.Scripts.ContainsKey(m_localID))
+                    {
+                        if ((script = sm.GetScript(m_localID, m_itemID)) != null)
+                        {
+                            //System.Console.WriteLine(number + " - " + script.llDetectParams._key.Length);
+                            if (script.llDetectParams._key.Length > number)
+                            {
+                                if (script.llDetectParams._key[number])
+                                {
+                                    LLUUID SensedUUID = new LLUUID(script.llDetectParams._key[number]);
+                                    EntityBase SensedObject = null;
+                                    lock (World.Entities)
+                                    {
+                                        World.Entities.TryGetValue(SensedUUID, out SensedObject);
+                                    }
+                                    return SensedObject;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             return null;
         }
 
