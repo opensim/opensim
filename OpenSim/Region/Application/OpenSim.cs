@@ -58,6 +58,10 @@ namespace OpenSim
 
         private string m_timedScript = "disabled";
         private Timer m_scriptTimer;
+        /// <summary>
+        /// List of Console Plugin Commands
+        /// </summary>
+        private static List<ConsolePluginCommand> m_PluginCommandInfos = new List<ConsolePluginCommand>();
 
         public OpenSim(IConfigSource configSource) : base(configSource)
         {
@@ -226,7 +230,6 @@ namespace OpenSim
                     break;
 
                 case "help":
-                    RunPluginCommandHelp(CombineParams(cmdparams, 0),m_console);
                     m_console.Notice("alert - send alert to a designated user or all users.");
                     m_console.Notice("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
                     m_console.Notice("  alert general [Message] - send an alert to all users.");
@@ -259,6 +262,7 @@ namespace OpenSim
                     m_console.Notice("config get section field - get a config value");
                     m_console.Notice("config save - save OpenSim.ini");
                     m_console.Notice("terrain help - show help for terrain commands.");
+                    ShowPluginCommandsHelp(CombineParams(cmdparams, 0), m_console);
                     break;
 
                 case "threads":
@@ -673,97 +677,148 @@ namespace OpenSim
             return result;
         }
 
+		/// <summary>
+		/// Runs the best matching plugin command
+		/// 
+		/// returns true if a match was found, false otherwise.
+		/// </summary>
+		public bool RunPluginCommands(string cmdWithParams)
+		{
+			ConsolePluginCommand bestMatch = null;
+			int bestLength = 0;
+			foreach (ConsolePluginCommand cmdinfo in m_PluginCommandInfos)
+			{
+				int matchLen = cmdinfo.matchLength(cmdWithParams);
+				if (matchLen > bestLength)
+				{
+					bestMatch = cmdinfo;
+					bestLength = matchLen;
+				}
+			}
+			if (bestMatch == null) return false;
+			bestMatch.Run(cmdWithParams.Substring(bestLength));
+			return true;
+		}
+
+		/// <summary>
+		/// Show the matching plugins command help
+		/// </summary>
+		public void ShowPluginCommandsHelp(string cmdWithParams, ConsoleBase console)
+		{
+			foreach (ConsolePluginCommand cmdinfo in m_PluginCommandInfos)
+			{
+				if (cmdinfo.IsHelpfull(cmdWithParams))
+				{
+					cmdinfo.ShowHelp(console);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Registers a new console plugin command
+		/// </summary>
+		public static void RegisterCmd(string cmd, ConsoleCommand deligate, string help)
+		{
+			RegisterConsolePluginCommand(new ConsolePluginCommand(cmd, deligate, help));
+		}
+		/// <summary>
+		/// Registers a new console plugin command
+		/// </summary>
+		public static void RegisterConsolePluginCommand(ConsolePluginCommand pluginCommand)
+		{
+			m_PluginCommandInfos.Add(pluginCommand);
+		}
         #endregion
 
-        static private List<ConsolePluginCommand> m_PluginCommandInfos = new List<ConsolePluginCommand>();
+	}
+    /// <summary>
+    /// Holder object for a new console plugin command
+    /// 
+    /// Override the methods like Run and IsHelpfull (but the defaults might work ok.)
+    /// </summary>
+    public class ConsolePluginCommand
+    {
+        /// <summary>
+        /// command delegate used in running
+        /// </summary>
+        private ConsoleCommand m_commandDelegate;
+        /// <summary>
+        /// help text displayed
+        /// </summary>
+        private string m_helpText;
+        /// <summary>
+        /// command in the form of "showme new commands"
+        /// </summary>
+        private string m_cmdText;
 
-        public bool RunPluginCommands(string cmd)
+        /// <summary>
+        /// Construct a new ConsolePluginCommand 
+        /// 
+        /// for use with OpenSim.RegisterConsolePluginCommand(myCmd);
+        /// 
+        /// </summary>
+        /// <param name="command">in the form of "showme new commands"</param>
+        /// <param name="dlg">ommand delegate used in running</param>
+        /// <param name="help">the text displayed in "help showme new commands"</param>
+        public ConsolePluginCommand(string command, ConsoleCommand dlg, string help)
         {
-            ConsolePluginCommand bestMatch = null;
-            int bestLength = 0;
-            foreach (ConsolePluginCommand cmdinfo in m_PluginCommandInfos)
-            {
-                int matchLen = cmdinfo.matchLength(cmd);
-                if (matchLen > bestLength)
-                {
-                    bestMatch = cmdinfo;
-                    bestLength = matchLen;
-                }
-            }
-            if (bestMatch == null)
-            {
-                return false;
-            }
-            bestMatch.Run(cmd);
-            return true;
-        }
-        public bool RunPluginCommandHelp(string cmd, ConsoleBase console)
-        {
-            ConsolePluginCommand bestMatch = null;
-            int bestLength = 0;
-            foreach (ConsolePluginCommand cmdinfo in m_PluginCommandInfos)
-            {
-                int matchLen = cmdinfo.matchLength(cmd);
-                if (matchLen > bestLength)
-                {
-                    bestMatch = cmdinfo;
-                    bestLength = matchLen;
-                }
-            }
-            if (bestMatch == null)
-            {
-                return false;
-            }
-            bestMatch.ShowHelp(console);
-            return true;
-        }
-        public static void RegisterCmd(string cmd, ConsoleCommand deligate, string hlp)
-        {
-            m_PluginCommandInfos.Add(new ConsolePluginCommand(cmd, deligate, hlp));
+            m_cmdText = command;
+            m_commandDelegate = dlg;
+            m_helpText = help;
         }
 
-        public class ConsolePluginCommand
+        /// <summary>
+        /// Returns the match length this command has upon the 'cmdWithParams' 
+        /// At least a higher number for "show plugin status" then "show" would return
+        /// This is used to have multi length command verbs
+        /// 
+        /// @see OopenSim.RunPluginCommands
+        /// It will only run the one with the highest number
+        /// 
+        /// </summary>
+        public int matchLength(string cmdWithParams)
         {
-            private ConsoleCommand m_commandDelegate;
-            private string m_helpText;
-            private string m_cmdText;
-
-            public int matchLength(string targetText)
+            // QUESTION: have a case insensitive flag?
+            cmdWithParams = cmdWithParams.ToLower().Trim();
+            string matchText = m_cmdText.ToLower().Trim();
+            if (cmdWithParams.StartsWith(matchText))
             {
-                // QUESTION: have a case insensitive flag?
-                targetText = targetText.ToLower();
-                string matchText = m_cmdText.ToLower();
-                if (targetText.StartsWith(matchText))
-                {
-                    // TODO return cmdText.Length; ?
-                    return matchText.Length;
-                }
-                return 0;
+                // QUESTION Instead return cmdText.Length; ?
+                return matchText.Length;
             }
-            public ConsolePluginCommand(string cmd, ConsoleCommand del, string help)
+            return 0;
+        }
+
+        /// <summary>
+        /// Run the delegate the incomming string may contain the command, if so, it is chopped off
+        /// </summary>
+        public void Run(string cmdParams)
+        {
+            string targetText = m_cmdText.ToLower();
+            string matchText = cmdParams.ToLower();
+            if (targetText.StartsWith(matchText))
             {
-                m_cmdText = cmd;
-                m_commandDelegate = del;
-                m_helpText = help;
+                cmdParams = cmdParams.Substring(matchText.Length);
             }
+            m_commandDelegate(cmdParams.Split(new char[] { ' ' }));
+        }
 
-            public void Run(string incomming)
-            {          
-                string targetText = m_cmdText.ToLower();
-                string matchText = incomming.ToLower();
+        /// <summary>
+        /// Shows help information on the console's Notice method
+        /// </summary>
+        public void ShowHelp(ConsoleBase console)
+        {
+            console.Notice(m_cmdText + " - " + m_helpText);
+        }
 
-                if (targetText.StartsWith(matchText))
-                {
-                    incomming = incomming.Substring(matchText.Length);
-                }
-                m_commandDelegate(incomming.Split(new char[] {' '}));
-            }
-
-            public void ShowHelp(ConsoleBase console)
-            {
-                console.Notice(m_cmdText + ": " + m_helpText);
-                // throw new Exception("The method or operation is not implemented.");
-            }
+        /// <summary>
+        /// return true if the ShowHelp(..) method might be helpfull
+        /// </summary>
+        public bool IsHelpfull(string cmdWithParams)
+        {
+            cmdWithParams = cmdWithParams.ToLower();
+            return cmdWithParams.Contains(m_cmdText.ToLower()) || m_helpText.ToLower().Contains(cmdWithParams);
         }
     }
+    
 }
