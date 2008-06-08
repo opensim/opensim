@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+//#define SPAM
 using System;
 using System.Collections.Generic;
 using libsecondlife;
@@ -70,8 +70,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
         public void SetSenseRepeatEvent(uint m_localID, LLUUID m_itemID,
             string name, LLUUID keyID, int type, double range, double arc, double sec, SceneObjectPart host)
         {
+            #if SPAM
             Console.WriteLine("SetSensorEvent");
-
+            #endif
             // Always remove first, in case this is a re-set
             UnSetSenseRepeaterEvents(m_localID, m_itemID);
             if (sec == 0) // Disabling timer
@@ -161,7 +162,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                 Dictionary<LLUUID, LSL_Types.list> Obj = null;
                 if (!SenseEvents.TryGetValue(m_localID, out Obj))
                 {
+                    #if SPAM
                     m_CmdManager.m_ScriptEngine.Log.Info("[AsyncLSL]: GetSensorList missing localID: " + m_localID);
+                    #endif
                     return null;
                 }
                 lock (Obj)
@@ -170,7 +173,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                     LSL_Types.list SenseList = null;
                     if (!Obj.TryGetValue(m_itemID, out SenseList))
                     {
+                        #if SPAM
                         m_CmdManager.m_ScriptEngine.Log.Info("[AsyncLSL]: GetSensorList missing itemID: " + m_itemID);
+                        #endif
                         return null;
                     }
                     return SenseList;
@@ -185,7 +190,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
 
             if (SensePoint == null)
             {
+
+                #if SPAM
                 //m_ScriptEngine.Log.Info("[AsyncLSL]: Enter SensorSweep (SensePoint == null) for "+ts.itemID.ToString());
+                #endif
                 return;
             }
             //m_ScriptEngine.Log.Info("[AsyncLSL]: Enter SensorSweep Scan");
@@ -286,8 +294,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase.AsyncCommandPlugin
                     }
                 }
             }
+            #if SPAM
             //m_ScriptEngine.Log.Info("[AsyncLSL]: Enter SensorSweep SenseLock");
-
+            #endif
             lock (SenseLock)
             {
                 // Create object if it doesn't exist
