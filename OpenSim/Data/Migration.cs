@@ -82,6 +82,8 @@ namespace OpenSim.Data
             _type = type;
             _conn = conn;
             _assem = assem;
+            
+            Initialize();
         }
 
         private void Initialize()
@@ -103,6 +105,7 @@ namespace OpenSim.Data
         public void Update()
         {
             int version = 0;
+            int newversion = 0;
             version = FindVersion(_type);
 
             List<string> migrations = GetMigrationsAfter(version);
@@ -112,7 +115,10 @@ namespace OpenSim.Data
                 cmd.CommandText = m;
                 cmd.ExecuteNonQuery();
             }
-            UpdateVersion(_type, MaxVersion());
+
+            newversion = MaxVersion();
+            if (newversion > version) 
+                UpdateVersion(_type, newversion);
         }
 
         private int MaxVersion()
@@ -126,9 +132,12 @@ namespace OpenSim.Data
             foreach (string s in names)
             {
                 Match m = r.Match(s);
-                int MigrationVersion = int.Parse(m.Groups[1].ToString());
-                if ( MigrationVersion > max )
-                    max = MigrationVersion;
+                if (m.Success) 
+                {
+                    int MigrationVersion = int.Parse(m.Groups[1].ToString());
+                    if ( MigrationVersion > max )
+                        max = MigrationVersion;
+                }
             }
             return max;
         }
@@ -137,14 +146,18 @@ namespace OpenSim.Data
         {
             int version = 0;
             DbCommand cmd = _conn.CreateCommand();
-            cmd.CommandText = "select version from migrations where name='" + type + "' limit 1";
-            using (IDataReader reader = cmd.ExecuteReader())
-            {
-                if (reader.Read())
+            try {
+                cmd.CommandText = "select version from migrations where name='" + type + "' limit 1";
+                using (IDataReader reader = cmd.ExecuteReader())
                 {
-                    version = Convert.ToInt32(reader["version"]);
+                    if (reader.Read())
+                    {
+                        version = Convert.ToInt32(reader["version"]);
+                    }
+                    reader.Close();
                 }
-                reader.Close();
+            } catch {
+                // Something went wrong, so we're version 0
             }
             return version;
         }
@@ -189,9 +202,8 @@ namespace OpenSim.Data
 
             // TODO: once this is working, get rid of this
             if (migrations.Count < 1) {
-                throw new Exception(string.Format("Resource '{0}' was not found", _type));
+                m_log.InfoFormat("Resource '{0}' was not found", _type);
             }
-
             return migrations;
         }
     }
