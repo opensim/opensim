@@ -71,29 +71,33 @@ namespace OpenSim.Data.Migrations
         private string _type;
         private DbConnection _conn;
         private string _subtype;
+        private Assembly _assem;
         
         private static readonly string _migrations_create = "create table migrations(name varchar(100), version int)";
         private static readonly string _migrations_init = "insert into migrations values('migrations', 1)";
         private static readonly string _migrations_find = "select version from migrations where name='migrations'";
         
-        public Migration(DbConnection conn, string type)
+        public Migration(DbConnection conn, Assembly assem, string type)
         {
             _type = type;
             _conn = conn;
-
+            _assem = assem;
         }
 
         private void Initialize()
         {
+            // clever, eh, we figure out which migrations version we are
+            int migration_version = FindVersion("migrations");
+
+            if (migration_version > 0) 
+                return;
+
+            // If not, create the migration tables
             DbCommand cmd = _conn.CreateCommand();
-            cmd.CommandText = _migrations_find;
-            // TODO: generic way to get that text
-            // if ( not found )
             cmd.CommandText = _migrations_create;
             cmd.ExecuteNonQuery();
 
-            cmd.CommandText = _migrations_init;
-            cmd.ExecuteNonQuery();
+            UpdateVersion("migrations", 1);
         }
 
         public void Update()
@@ -102,23 +106,55 @@ namespace OpenSim.Data.Migrations
             version = FindVersion(_type);
 
             List<string> migrations = GetMigrationsAfter(version);
+            DbCommand cmd = _conn.CreateCommand();
             foreach (string m in migrations) 
             {
-                // TODO: update each
+                cmd.CommandText = m;
+                cmd.ExecuteNonQuery();
             }
-
-            // TODO: find the last revision by number and populate it back
+            UpdateVersion(_type, MaxVersion());
         }
 
-        private int FindVersion(string _type) 
+        private int MaxVersion()
+        {
+            int max = 0;
+            
+            string[] names = _assem.GetManifestResourceNames();
+            List<string> migrations = new List<string>();
+            Regex r = new Regex(@"^(\d\d\d)_" + _type + @"\.sql");
+
+            foreach (string s in names)
+            {
+                Match m = r.Match(s);
+                int MigrationVersion = int.Parse(m.Groups[1].ToString());
+                if ( MigrationVersion > max )
+                    max = MigrationVersion;
+            }
+            return max;
+        }
+
+        private int FindVersion(string type) 
         {
             int version = 0;
             DbCommand cmd = _conn.CreateCommand();
-            cmd.CommandText = "select version from migrations where name='" + _type + "' limit 1";
-            
+            cmd.CommandText = "select version from migrations where name='" + type + "' limit 1";
+            using (IDataReader reader = cmd.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    version = Convert.ToInt32(reader["version"]);
+                }
+                reader.Close();
+            }
             return version;
         }
         
+        private void UpdateVersion(string type, int version) 
+        {
+            DbCommand cmd = _conn.CreateCommand();
+            cmd.CommandText = "update migrations set version=" + version + " where name='" + type + "'";
+            cmd.ExecuteNonQuery();
+        }
         
         private List<string> GetAllMigrations()
         {
@@ -127,8 +163,7 @@ namespace OpenSim.Data.Migrations
 
         private List<string> GetMigrationsAfter(int version)
         {
-            Assembly assem = GetType().Assembly;
-            string[] names = assem.GetManifestResourceNames();
+            string[] names = _assem.GetManifestResourceNames();
             List<string> migrations = new List<string>();
 
             Regex r = new Regex(@"^(\d\d\d)_" + _type + @"\.sql");
@@ -141,7 +176,7 @@ namespace OpenSim.Data.Migrations
                     Match m = r.Match(s);
                     m_log.Info("MIGRATION: Match: " + m.Groups[1].ToString());
                     int MigrationVersion = int.Parse(m.Groups[1].ToString());
-                    using (Stream resource = assem.GetManifestResourceStream(s))
+                    using (Stream resource = _assem.GetManifestResourceStream(s))
                     {
                         using (StreamReader resourceReader = new StreamReader(resource))
                         {
@@ -159,9 +194,5 @@ namespace OpenSim.Data.Migrations
 
             return migrations;
         }
-
-
     }
-
-    
 }
