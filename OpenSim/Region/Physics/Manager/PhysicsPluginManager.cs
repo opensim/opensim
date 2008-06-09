@@ -130,8 +130,11 @@ namespace OpenSim.Region.Physics.Manager
                             IPhysicsPlugin plug =
                                 (IPhysicsPlugin) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
                             plug.Init();
-                            _PhysPlugins.Add(plug.GetName(), plug);
-                            m_log.Info("[PHYSICS]: Added physics engine: " + plug.GetName());
+							if(!_PhysPlugins.ContainsKey(plug.GetName()))
+							{
+		                        _PhysPlugins.Add(plug.GetName(), plug);
+		                        m_log.Info("[PHYSICS]: Added physics engine: " + plug.GetName());
+							}
                         }
 
                         Type meshTypeInterface = pluginType.GetInterface("IMeshingPlugin", true);
@@ -140,8 +143,11 @@ namespace OpenSim.Region.Physics.Manager
                         {
                             IMeshingPlugin plug =
                                 (IMeshingPlugin) Activator.CreateInstance(pluginAssembly.GetType(pluginType.ToString()));
-                            _MeshPlugins.Add(plug.GetName(), plug);
-                            m_log.Info("[PHYSICS]: Added meshing engine: " + plug.GetName());
+							if(!_MeshPlugins.ContainsKey(plug.GetName()))
+							{
+		                        _MeshPlugins.Add(plug.GetName(), plug);
+		                        m_log.Info("[PHYSICS]: Added meshing engine: " + plug.GetName());
+							}
                         }
 
                         physTypeInterface = null;
