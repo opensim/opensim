@@ -53,7 +53,7 @@ namespace OpenSim.Data
     /// When a database driver starts up, it specifies a resource that
     /// needs to be brought up to the current revision.  For instance:
     ///
-    ///    Migration um = new Migration(DbConnection, "Users");
+    ///    Migration um = new Migration(Assembly, DbConnection, "Users");
     ///    um.Upgrade();
     ///
     /// This works out which version Users is at, and applies all the
@@ -61,6 +61,10 @@ namespace OpenSim.Data
     /// revisions are applied in order.  Consider each future
     /// migration to be an incremental roll forward of the tables in
     /// question.
+    ///
+    /// Assembly must be specifically passed in because otherwise you
+    /// get the assembly that Migration.cs is part of, and what you
+    /// really want is the assembly of your database class.
     ///
     /// </summary>
 
@@ -99,7 +103,7 @@ namespace OpenSim.Data
             cmd.CommandText = _migrations_create;
             cmd.ExecuteNonQuery();
 
-            UpdateVersion("migrations", 1);
+            InsertVersion("migrations", 1);
         }
 
         public void Update()
@@ -117,8 +121,13 @@ namespace OpenSim.Data
             }
 
             newversion = MaxVersion();
-            if (newversion > version) 
-                UpdateVersion(_type, newversion);
+            if (newversion > version) {
+                if (version == 0) {
+                    InsertVersion(_type, newversion);
+                } else {
+                    UpdateVersion(_type, newversion);
+                }
+            }
         }
 
         private int MaxVersion()
@@ -127,7 +136,7 @@ namespace OpenSim.Data
             
             string[] names = _assem.GetManifestResourceNames();
             List<string> migrations = new List<string>();
-            Regex r = new Regex(@"^(\d\d\d)_" + _type + @"\.sql");
+            Regex r = new Regex(@"\.(\d\d\d)_" + _type + @"\.sql");
 
             foreach (string s in names)
             {
@@ -161,11 +170,20 @@ namespace OpenSim.Data
             }
             return version;
         }
+
+        private void InsertVersion(string type, int version) 
+        {
+            DbCommand cmd = _conn.CreateCommand();
+            cmd.CommandText = "insert into migrations(name, version) values('" + type + "', " + version + ")";
+            m_log.InfoFormat("Creating {0} at version {1}", type, version);
+            cmd.ExecuteNonQuery();
+        }
         
         private void UpdateVersion(string type, int version) 
         {
             DbCommand cmd = _conn.CreateCommand();
             cmd.CommandText = "update migrations set version=" + version + " where name='" + type + "'";
+            m_log.InfoFormat("Updating {0} to version {1}", type, version);
             cmd.ExecuteNonQuery();
         }
         
@@ -183,10 +201,9 @@ namespace OpenSim.Data
 
             foreach (string s in names)
             {
-                m_log.Info("MIGRATION: Resources: " + s);
-                if (s.EndsWith(_type + @"\.sql"))
+                Match m = r.Match(s);
+                if (m.Success)
                 {
-                    Match m = r.Match(s);
                     m_log.Info("MIGRATION: Match: " + m.Groups[1].ToString());
                     int MigrationVersion = int.Parse(m.Groups[1].ToString());
                     using (Stream resource = _assem.GetManifestResourceStream(s))
