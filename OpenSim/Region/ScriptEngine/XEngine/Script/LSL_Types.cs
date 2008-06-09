@@ -1414,7 +1414,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine.Script
 
             public LSLFloat(Object o)
             {
-                if(!((o is double) || (o is float)))
+                if (!((o is double) || (o is float)))
                 {
                     value = 0.0;
                     return;

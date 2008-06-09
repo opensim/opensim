@@ -626,7 +626,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             XDetectParams d = m_ScriptEngine.GetDetectParams(m_itemID, number);
             if (d == null)
                 return new LSL_Types.LSLInteger(0);
-            if(m_host.GroupID == d.Group)
+            if (m_host.GroupID == d.Group)
                 return new LSL_Types.LSLInteger(1);
             return new LSL_Types.LSLInteger(0);
         }

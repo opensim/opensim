@@ -677,60 +677,61 @@ namespace OpenSim
             return result;
         }
 
-		/// <summary>
-		/// Runs the best matching plugin command
-		/// 
-		/// returns true if a match was found, false otherwise.
-		/// </summary>
-		public bool RunPluginCommands(string cmdWithParams)
-		{
-			ConsolePluginCommand bestMatch = null;
-			int bestLength = 0;
-			foreach (ConsolePluginCommand cmdinfo in m_PluginCommandInfos)
-			{
-				int matchLen = cmdinfo.matchLength(cmdWithParams);
-				if (matchLen > bestLength)
-				{
-					bestMatch = cmdinfo;
-					bestLength = matchLen;
-				}
-			}
-			if (bestMatch == null) return false;
-			bestMatch.Run(cmdWithParams.Substring(bestLength));
-			return true;
-		}
+        /// <summary>
+        /// Runs the best matching plugin command
+        /// 
+        /// returns true if a match was found, false otherwise.
+        /// </summary>
+        public bool RunPluginCommands(string cmdWithParams)
+        {
+            ConsolePluginCommand bestMatch = null;
+            int bestLength = 0;
+            foreach (ConsolePluginCommand cmdinfo in m_PluginCommandInfos)
+            {
+                int matchLen = cmdinfo.matchLength(cmdWithParams);
+                if (matchLen > bestLength)
+                {
+                    bestMatch = cmdinfo;
+                    bestLength = matchLen;
+                }
+            }
+            if (bestMatch == null) return false;
+            bestMatch.Run(cmdWithParams.Substring(bestLength));
+            return true;
+        }
 
-		/// <summary>
-		/// Show the matching plugins command help
-		/// </summary>
-		public void ShowPluginCommandsHelp(string cmdWithParams, ConsoleBase console)
-		{
-			foreach (ConsolePluginCommand cmdinfo in m_PluginCommandInfos)
-			{
-				if (cmdinfo.IsHelpfull(cmdWithParams))
-				{
-					cmdinfo.ShowHelp(console);
-				}
-			}
-		}
+        /// <summary>
+        /// Show the matching plugins command help
+        /// </summary>
+        public void ShowPluginCommandsHelp(string cmdWithParams, ConsoleBase console)
+        {
+            foreach (ConsolePluginCommand cmdinfo in m_PluginCommandInfos)
+            {
+                if (cmdinfo.IsHelpfull(cmdWithParams))
+                {
+                    cmdinfo.ShowHelp(console);
+                }
+            }
+        }
 
-		/// <summary>
-		/// Registers a new console plugin command
-		/// </summary>
-		public static void RegisterCmd(string cmd, ConsoleCommand deligate, string help)
-		{
-			RegisterConsolePluginCommand(new ConsolePluginCommand(cmd, deligate, help));
-		}
-		/// <summary>
-		/// Registers a new console plugin command
-		/// </summary>
-		public static void RegisterConsolePluginCommand(ConsolePluginCommand pluginCommand)
-		{
-			m_PluginCommandInfos.Add(pluginCommand);
-		}
+        /// <summary>
+        /// Registers a new console plugin command
+        /// </summary>
+        public static void RegisterCmd(string cmd, ConsoleCommand deligate, string help)
+        {
+            RegisterConsolePluginCommand(new ConsolePluginCommand(cmd, deligate, help));
+        }
+
+        /// <summary>
+        /// Registers a new console plugin command
+        /// </summary>
+        public static void RegisterConsolePluginCommand(ConsolePluginCommand pluginCommand)
+        {
+            m_PluginCommandInfos.Add(pluginCommand);
+        }
         #endregion
+    }
 
-	}
     /// <summary>
     /// Holder object for a new console plugin command
     /// 

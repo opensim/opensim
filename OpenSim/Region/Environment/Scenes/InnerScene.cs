@@ -174,9 +174,10 @@ namespace OpenSim.Region.Environment.Scenes
 
             foreach (EntityBase entity in moveEntities)
             {
-                if(entity != null)entity.UpdateMovement();
                 //cfk. This throws occaisional exceptions on a heavily used region
                 //and I added this null check to try to preclude the exception.
+                if (entity != null)
+                    entity.UpdateMovement();
             }
         }
 

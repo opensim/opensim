@@ -701,10 +701,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public void Populate(Scene scene)
         {
             SceneObjectPart part = scene.GetSceneObjectPart(Key);
-            if(part == null) // Avatar, maybe?
+            if (part == null) // Avatar, maybe?
             {
                 ScenePresence presence = scene.GetScenePresence(Key);
-                if(presence == null)
+                if (presence == null)
                     return;
 
                 Name = presence.Firstname + " " + presence.Lastname;
@@ -724,7 +724,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         presence.Velocity.Z);
 
                 Type = 0x01; // Avatar
-                if(presence.Velocity != LLVector3.Zero)
+                if (presence.Velocity != LLVector3.Zero)
                     Type |= 0x02; // Active
 
                 Group = presence.ControllingClient.ActiveGroupId;
@@ -739,14 +739,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             Group = part.GroupID;
             Name = part.Name;
             Owner = part.OwnerID;
-            if(part.Velocity == LLVector3.Zero)
+            if (part.Velocity == LLVector3.Zero)
                 Type = 0x04; // Passive
             else
                 Type = 0x02; // Passive
 
             foreach (SceneObjectPart p in part.ParentGroup.Children.Values)
             {
-                if(part.ContainsScripts())
+                if (part.ContainsScripts())
                 {
                     Type |= 0x08; // Scripted
                     break;
@@ -964,7 +964,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                             m_Engine.Log.DebugFormat("[XEngine] Successfully retrieved state for script {0}.{1}", m_PrimName, m_ScriptName);
 
-                            if(m_RunEvents)
+                            if (m_RunEvents)
                             {
                                 m_RunEvents = false;
                                 Start();
@@ -973,7 +973,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             // we get new rez events on sim restart, too
                             // but if there is state, then we fire the change
                             // event
-                            if(stateSource == StateSource.NewRez)
+                            if (stateSource == StateSource.NewRez)
                             {
 //                                m_Engine.Log.Debug("[XEngine] Posted changed(CHANGED_REGION_RESTART) to script");
                                 PostEvent(new XEventParams("changed",
@@ -1315,7 +1315,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             {
                 Console.WriteLine("Unable to save xml\n"+e.ToString());
             }
-            if(!File.Exists(Path.Combine(Path.GetDirectoryName(assembly), m_ItemID.ToString() + ".state")))
+            if (!File.Exists(Path.Combine(Path.GetDirectoryName(assembly), m_ItemID.ToString() + ".state")))
             {
                 throw new Exception("Completed persistence save, but no file was created");
             }
@@ -1328,7 +1328,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             bool running = instance.Running;
 
-            if(running)
+            if (running)
                 instance.Stop(50);
 
             XmlDocument xmldoc = new XmlDocument();
@@ -1455,7 +1455,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             rootElement.AppendChild(plugins);
 
-            if(running)
+            if (running)
                 instance.Start();
 
             return xmldoc.InnerXml;
