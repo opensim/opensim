@@ -196,30 +196,6 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Data.Migrations" path="OpenSim/Data/Migrations" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="log4net" />
-      <!-- needed for LLUUID types -->
-      <Reference name="libsecondlife.dll"/>
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
     <Project name="OpenSim.Data" path="OpenSim/Data" type="Library">
       <Configuration name="Debug">
         <Options>

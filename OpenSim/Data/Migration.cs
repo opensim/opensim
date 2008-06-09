@@ -34,7 +34,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using log4net;
 
-namespace OpenSim.Data.Migrations
+namespace OpenSim.Data
 {
     /// <summary> 
     ///
