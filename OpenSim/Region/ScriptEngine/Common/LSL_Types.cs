@@ -425,6 +425,30 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return new list(tmp);
             }
 
+            private void ExtendAndAdd(object o)
+            {
+                Array.Resize(ref m_data, Length + 1);
+                m_data.SetValue(o, Length - 1);
+            }
+
+            public static list operator +(list a, string s)
+            {
+                a.ExtendAndAdd(s);
+                return a;
+            }
+
+            public static list operator +(list a, int i)
+            {
+                a.ExtendAndAdd(i);
+                return a;
+            }
+
+            public static list operator +(list a, double d)
+            {
+                a.ExtendAndAdd(d);
+                return a;
+            }
+
             public void Add(object o)
             {
                 object[] tmp;
