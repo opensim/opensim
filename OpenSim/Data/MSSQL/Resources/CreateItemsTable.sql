@@ -23,7 +23,7 @@ CREATE TABLE [inventoryitems] (
   [creationDate] [int] default NULL,
   [groupID] [varchar](36) default NULL,
   [groupOwned] [bit] default NULL,
-  [flags] [int] unsigned default NULL,
+  [flags] [int] default NULL,
   PRIMARY KEY CLUSTERED
 (
 	[inventoryID] ASC
