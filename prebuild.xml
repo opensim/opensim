@@ -212,6 +212,7 @@
       <Reference name="System" localCopy="false"/>
       <Reference name="System.Data"/>
       <Reference name="OpenSim.Framework"/>
+      <Reference name="log4net" />
       <!-- needed for LLUUID types -->
       <Reference name="libsecondlife.dll"/>
       <Files>

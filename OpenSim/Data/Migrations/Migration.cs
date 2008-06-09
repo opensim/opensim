@@ -28,8 +28,11 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.IO;
 using System.Reflection;
+using System.Text.RegularExpressions;
+using log4net;
 
 namespace OpenSim.Data.Migrations
 {
@@ -50,8 +53,8 @@ namespace OpenSim.Data.Migrations
     /// When a database driver starts up, it specifies a resource that
     /// needs to be brought up to the current revision.  For instance:
     ///
-    ///    Migration um = new Migration("Users");
-    ///    um.Upgrade(dbconnection);
+    ///    Migration um = new Migration(DbConnection, "Users");
+    ///    um.Upgrade();
     ///
     /// This works out which version Users is at, and applies all the
     /// revisions past it to it.  If there is no users table, all
@@ -63,11 +66,98 @@ namespace OpenSim.Data.Migrations
 
     public class Migration
     {
-        private string _type;
+        private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public Migration(string type)
+        private string _type;
+        private DbConnection _conn;
+        private string _subtype;
+        
+        private static readonly string _migrations_create = "create table migrations(name varchar(100), version int)";
+        private static readonly string _migrations_init = "insert into migrations values('migrations', 1)";
+        private static readonly string _migrations_find = "select version from migrations where name='migrations'";
+        
+        public Migration(DbConnection conn, string type)
         {
             _type = type;
+            _conn = conn;
+
+        }
+
+        private void Initialize()
+        {
+            DbCommand cmd = _conn.CreateCommand();
+            cmd.CommandText = _migrations_find;
+            // TODO: generic way to get that text
+            // if ( not found )
+            cmd.CommandText = _migrations_create;
+            cmd.ExecuteNonQuery();
+
+            cmd.CommandText = _migrations_init;
+            cmd.ExecuteNonQuery();
+        }
+
+        public void Update()
+        {
+            int version = 0;
+            version = FindVersion(_type);
+
+            List<string> migrations = GetMigrationsAfter(version);
+            foreach (string m in migrations) 
+            {
+                // TODO: update each
+            }
+
+            // TODO: find the last revision by number and populate it back
+        }
+
+        private int FindVersion(string _type) 
+        {
+            int version = 0;
+            DbCommand cmd = _conn.CreateCommand();
+            cmd.CommandText = "select version from migrations where name='" + _type + "' limit 1";
+            
+            return version;
+        }
+        
+        
+        private List<string> GetAllMigrations()
+        {
+            return GetMigrationsAfter(0);
+        }
+
+        private List<string> GetMigrationsAfter(int version)
+        {
+            Assembly assem = GetType().Assembly;
+            string[] names = assem.GetManifestResourceNames();
+            List<string> migrations = new List<string>();
+
+            Regex r = new Regex(@"^(\d\d\d)_" + _type + @"\.sql");
+
+            foreach (string s in names)
+            {
+                m_log.Info("MIGRATION: Resources: " + s);
+                if (s.EndsWith(_type + @"\.sql"))
+                {
+                    Match m = r.Match(s);
+                    m_log.Info("MIGRATION: Match: " + m.Groups[1].ToString());
+                    int MigrationVersion = int.Parse(m.Groups[1].ToString());
+                    using (Stream resource = assem.GetManifestResourceStream(s))
+                    {
+                        using (StreamReader resourceReader = new StreamReader(resource))
+                        {
+                            string resourceString = resourceReader.ReadToEnd();
+                            migrations.Add(resourceString);
+                        }
+                    }
+                }
+            }
+
+            // TODO: once this is working, get rid of this
+            if (migrations.Count < 1) {
+                throw new Exception(string.Format("Resource '{0}' was not found", _type));
+            }
+
+            return migrations;
         }
 
 
