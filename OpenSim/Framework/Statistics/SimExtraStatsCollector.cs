@@ -53,6 +53,11 @@ namespace OpenSim.Framework.Statistics
         /// </summary>
         public long AbnormalClientThreadTerminations { get { return abnormalClientThreadTerminations; } }
 
+        /// <summary>
+        /// These statistics are being collected by push rather than pull.  Pull would be simpler, but I had the
+        /// notion of providing some flow statistics (which pull wouldn't give us).  Though admittedly these 
+        /// haven't yet been implemented... :)
+        /// </summary>
         public long AssetsInCache { get { return assetsInCache; } }
         public long TexturesInCache { get { return texturesInCache; } }
         public long AssetCacheMemoryUsage { get { return assetCacheMemoryUsage; } }
@@ -99,6 +104,17 @@ namespace OpenSim.Framework.Statistics
                 // This could have been a pull stat, though there was originally a nebulous idea to measure flow rates
                 textureCacheMemoryUsage += image.Data.Length;
             }
+        }
+        
+        /// <summary>
+        /// Signal that the asset cache can be cleared.
+        /// </summary>
+        public void ClearAssetCacheStatistics()
+        {
+            assetsInCache = 0;
+            assetCacheMemoryUsage = 0;
+            texturesInCache = 0;
+            textureCacheMemoryUsage = 0;
         }
 
         public void AddBlockedMissingTextureRequest()

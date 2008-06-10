@@ -143,6 +143,10 @@ namespace OpenSim.Framework.Communications.Cache
         public void Clear()
         {
             m_log.Info("[ASSET CACHE]: Clearing Asset cache");
+            
+            if (StatsManager.SimExtraStats != null)
+                StatsManager.SimExtraStats.ClearAssetCacheStatistics();
+            
             Initialize();
         }
 
