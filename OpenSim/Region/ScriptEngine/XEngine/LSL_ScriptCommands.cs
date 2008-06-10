@@ -3769,7 +3769,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                 if (presence != null)
                 {
-                    return presence.Name;
+                    return presence.ControllingClient.Name;
+                    //return presence.Name;
                 }
 
                 if (World.GetSceneObjectPart(key) != null)
