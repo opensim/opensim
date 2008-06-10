@@ -46,7 +46,7 @@ namespace OpenSim.Framework.Servers
         /// This will control a periodic log printout of the current 'show stats' (if they are active) for this
         /// server.
         /// </summary>
-        private Timer m_periodicLogStatsTimer = new Timer(60 * 60 * 1000);
+        private Timer m_periodicLogStatsTimer = new Timer(20 * 60 * 1000);
         
         protected ConsoleBase m_console;
 
