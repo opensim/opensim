@@ -163,17 +163,17 @@ namespace OpenSim.Framework.Statistics
             sb.Append(Environment.NewLine);
             sb.Append(
                 string.Format(
-@"Asset   cache contains {0,6} assets   using {1,10:0.000} K" + Environment.NewLine,
-                    AssetsInCache, AssetCacheMemoryUsage / 1024.0));
+@"Asset   cache contains {0,6} assets   using {1,10} K" + Environment.NewLine,
+                    AssetsInCache, Math.Round(AssetCacheMemoryUsage / 1024.0)));
 
             sb.Append(Environment.NewLine);
             sb.Append("TEXTURE STATISTICS");
             sb.Append(Environment.NewLine);
             sb.Append(
                 string.Format(
-@"Texture cache contains {0,6} textures using {1,10:0.000} K
+@"Texture cache contains {0,6} textures using {1,10} K
 Blocked requests for missing textures: {2}" + Environment.NewLine,
-                    TexturesInCache, TextureCacheMemoryUsage / 1024.0,
+                    TexturesInCache, Math.Round(TextureCacheMemoryUsage / 1024.0),
                     BlockedMissingTextureRequests));
             
             sb.Append(Environment.NewLine);
