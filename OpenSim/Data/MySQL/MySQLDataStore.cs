@@ -1046,7 +1046,13 @@ namespace OpenSim.Data.MySQL
             // TODO: COMPATIBILITY - Add byte-order conversions
             for (int x = 0; x < 256; x++)
                 for (int y = 0; y < 256; y++)
-                    bw.Write(val[x, y]);
+                {
+                    double height = val[x, y];
+                    if (height == 0.0)
+                        height = double.Epsilon;
+
+                    bw.Write(height);
+                }
 
             return str.ToArray();
         }
