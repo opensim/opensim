@@ -738,10 +738,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     StatsManager.SimExtraStats.AddAbnormalClientThreadTermination();
                 
                 // Don't let a failure in an individual client thread crash the whole sim.
-                m_log.ErrorFormat("[CLIENT]: Client thread for {0} {1} crashed.  Logging them out.  Exception {2}", Name, AgentId, e);                
+                m_log.ErrorFormat("[CLIENT]: Client thread for {0} {1} crashed.  Logging them out.  Exception {2}", Name, AgentId, e);
 
                 try
-                {     
+                {
                     // Make an attempt to alert the user that their session has crashed
                     AgentAlertMessagePacket packet 
                         = BuildAgentAlertPacket(
@@ -758,10 +758,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 catch (Exception e2)
                 {
                     if (e2 is ThreadAbortException)
-                        throw e2;    
+                        throw e2;
                     
                     m_log.ErrorFormat("[CLIENT]: Further exception thrown on forced session logout.  {0}", e2);
-                }                                       
+                }
             }
         }
 

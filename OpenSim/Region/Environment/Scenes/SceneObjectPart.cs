@@ -1391,7 +1391,6 @@ namespace OpenSim.Region.Environment.Scenes
                     //    distance2 = (float)GetDistanceTo(q, iray.Origin);
                     //}
 
-
                     if (distance2 < returnresult.distance)
                     {
                         returnresult.distance = distance2;
@@ -1410,8 +1409,8 @@ namespace OpenSim.Region.Environment.Scenes
                             if (scaleComponent.y != 0) ScaleOffset = AXscale.y;
                             if (scaleComponent.z != 0) ScaleOffset = AXscale.z;
                             ScaleOffset = Math.Abs(ScaleOffset);
-                            Vector3 offset = (returnresult.normal * ScaleOffset);
-                            returnresult.ipoint = (AXpos + offset );
+                            Vector3 offset = returnresult.normal * ScaleOffset;
+                            returnresult.ipoint = AXpos + offset;
                             
                             ///pos = (intersectionpoint + offset);
                         }
@@ -1420,10 +1419,8 @@ namespace OpenSim.Region.Environment.Scenes
                             returnresult.normal = normals[i];
                         }
                         returnresult.AAfaceNormal = AAfacenormals[i];
-
                     }
                 }
-
             }
             return returnresult;
         }
@@ -1443,8 +1440,8 @@ namespace OpenSim.Region.Environment.Scenes
             //{
                 m_shape.State = (byte)AttachmentPoint;
             //}
-
         }
+
         /// <summary>
         ///
         /// </summary>
@@ -1472,7 +1469,6 @@ namespace OpenSim.Region.Environment.Scenes
             if (m_parentGroup != null)
             {
                 m_parentGroup.SetAxisRotation(axis, rotate);
-
             }
         }
 
@@ -1494,10 +1490,8 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     PhysActor.FloatOnWater = false;
                 }
-
             }
         }
-
 
         public LLVector3 GetSitTargetPositionLL()
         {
@@ -1543,7 +1537,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             return m_sitTargetAvatar;
         }
-
 
         public LLUUID GetRootPartUUID()
         {
@@ -1797,8 +1790,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void UpdatePrimFlags(ushort type, bool inUse, byte[] data)
         {
-
-
             //m_log.Info("TSomething1:" + ((type & (ushort)ExtraParamType.Something1) == (ushort)ExtraParamType.Something1));
             //m_log.Info("TSomething2:" + ((type & (ushort)ExtraParamType.Something2) == (ushort)ExtraParamType.Something2));
             //m_log.Info("TSomething3:" + ((type & (ushort)ExtraParamType.Something3) == (ushort)ExtraParamType.Something3));
@@ -1813,7 +1804,6 @@ namespace OpenSim.Region.Environment.Scenes
             bool wasUsingPhysics = ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) != 0);
             //bool IsLocked = false;
             int i = 0;
-
 
             try
             {
@@ -1857,7 +1847,6 @@ namespace OpenSim.Region.Environment.Scenes
                     DoPhysicsPropertyUpdate(usePhysics, false);
                 }
             }
-
 
             if (IsPhantom)
             {
@@ -1927,6 +1916,7 @@ namespace OpenSim.Region.Environment.Scenes
             //            System.Console.WriteLine("Update:  PHY:" + UsePhysics.ToString() + ", T:" + IsTemporary.ToString() + ", PHA:" + IsPhantom.ToString() + " S:" + CastsShadows.ToString());
             ScheduleFullUpdate();
         }
+
         public void ScriptSetPhysicsStatus(bool UsePhysics)
         {
             if (m_parentGroup != null)
@@ -1934,6 +1924,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_parentGroup.ScriptSetPhysicsStatus(UsePhysics);
             }
         }
+
         public void ScriptSetPhantomStatus(bool Phantom)
         {
             if (m_parentGroup != null)
@@ -1941,6 +1932,7 @@ namespace OpenSim.Region.Environment.Scenes
                 m_parentGroup.ScriptSetPhantomStatus(Phantom);
             }
         }
+
         public void DoPhysicsPropertyUpdate(bool UsePhysics, bool isNew)
         {
             if (PhysActor != null)
@@ -1965,7 +1957,6 @@ namespace OpenSim.Region.Environment.Scenes
                     /// that's not wholesome.  Had to make Scene public
                     //PhysActor = null;
 
-
                     if ((ObjectFlags & (uint) LLObject.ObjectFlags.Phantom) == 0)
                     {
                         //PhysActor = m_parentGroup.Scene.PhysicsScene.AddPrimShape(
@@ -1989,7 +1980,6 @@ namespace OpenSim.Region.Environment.Scenes
                                     PhysActor.link(ParentGroup.RootPart.PhysActor);
                                 }
                             }
-
                         }
                     }
                 }
@@ -2029,7 +2019,6 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
-
         }
 
         #endregion
@@ -2394,7 +2383,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-
         public void AddFullUpdateToAvatar(ScenePresence presence)
         {
             presence.QueuePartForUpdate(this);
@@ -2454,13 +2442,11 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
 
-
             byte[] color = new byte[] {m_color.R, m_color.G, m_color.B, m_color.A};
-            remoteClient.SendPrimitiveToClient(
-                                               m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, m_shape,
-                                               lPos, Velocity, Acceleration, RotationOffset, RotationalVelocity, clientFlags, m_uuid,
-                                               OwnerID,
-                                               m_text, color, ParentID, m_particleSystem, m_clickAction, m_TextureAnimation, m_IsAttachment, m_attachmentPoint,fromAssetID, Sound, SoundGain, SoundFlags, SoundRadius);
+            remoteClient.SendPrimitiveToClient(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, m_shape,
+                                               lPos, Velocity, Acceleration, RotationOffset, RotationalVelocity, clientFlags, m_uuid, OwnerID,
+                                               m_text, color, ParentID, m_particleSystem, m_clickAction, m_TextureAnimation, m_IsAttachment,
+                                               m_attachmentPoint,fromAssetID, Sound, SoundGain, SoundFlags, SoundRadius);
         }
 
         /// Terse updates
@@ -2557,7 +2543,6 @@ namespace OpenSim.Region.Environment.Scenes
                     m_parentGroup.AbsolutePosition = newpos;
                     return;
                 }
-
             }
             ScheduleTerseUpdate();
 
@@ -2577,7 +2562,6 @@ namespace OpenSim.Region.Environment.Scenes
         public virtual void OnGrab(LLVector3 offsetPos, IClientAPI remoteClient)
         {
         }
-
 
         public void SetText(string text)
         {
@@ -2724,7 +2708,6 @@ namespace OpenSim.Region.Environment.Scenes
             info.AddValue("PayPrice", PayPrice);
         }
 
-
         public void Undo()
         {
             if (m_undo.Count > 0)
@@ -2837,10 +2820,9 @@ namespace OpenSim.Region.Environment.Scenes
             else
                 ScheduleFullUpdate();
         }
+
         public void PhysicsCollision(EventArgs e)
         {
-            //return;
-
             // single threaded here
             if (e == null)
             {
@@ -2865,7 +2847,6 @@ namespace OpenSim.Region.Environment.Scenes
                         startedColliders.Add(localid);
                     }
 
-
                     //m_log.Debug("[OBJECT]: Collided with:" + localid.ToString() + " at depth of: " + collissionswith[localid].ToString());
                 }
             }
@@ -2878,7 +2859,6 @@ namespace OpenSim.Region.Environment.Scenes
                     endedColliders.Add(localID);
                 }
             }
-            
 
             //add the items that started colliding this time to the last colliders list.
             foreach (uint localID in startedColliders)
@@ -2944,7 +2924,6 @@ namespace OpenSim.Region.Environment.Scenes
                                         colliding.Add(detobj);
                                     }
                                 }
-
                             }
                         }
                     }
@@ -2958,7 +2937,6 @@ namespace OpenSim.Region.Environment.Scenes
                             return;
                         m_parentGroup.Scene.EventManager.TriggerScriptCollidingStart(LocalId, StartCollidingMessage);
                     }
-
                 }
             }
             if ((m_parentGroup.RootPart.ScriptEvents & scriptEvents.collision) != 0)

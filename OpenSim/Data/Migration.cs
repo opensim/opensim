@@ -121,10 +121,14 @@ namespace OpenSim.Data
             }
 
             newversion = MaxVersion();
-            if (newversion > version) {
-                if (version == 0) {
+            if (newversion > version)
+            {
+                if (version == 0)
+                {
                     InsertVersion(_type, newversion);
-                } else {
+                }
+                else
+                {
                     UpdateVersion(_type, newversion);
                 }
             }
@@ -144,7 +148,7 @@ namespace OpenSim.Data
                 if (m.Success) 
                 {
                     int MigrationVersion = int.Parse(m.Groups[1].ToString());
-                    if ( MigrationVersion > max )
+                    if (MigrationVersion > max)
                         max = MigrationVersion;
                 }
             }
@@ -155,7 +159,8 @@ namespace OpenSim.Data
         {
             int version = 0;
             DbCommand cmd = _conn.CreateCommand();
-            try {
+            try
+            {
                 cmd.CommandText = "select version from migrations where name='" + type + "' limit 1";
                 using (IDataReader reader = cmd.ExecuteReader())
                 {
@@ -165,7 +170,9 @@ namespace OpenSim.Data
                     }
                     reader.Close();
                 }
-            } catch {
+            }
+            catch
+            {
                 // Something went wrong, so we're version 0
             }
             return version;
@@ -218,7 +225,8 @@ namespace OpenSim.Data
             }
 
             // TODO: once this is working, get rid of this
-            if (migrations.Count < 1) {
+            if (migrations.Count < 1)
+            {
                 m_log.InfoFormat("Resource '{0}' was not found", _type);
             }
             return migrations;

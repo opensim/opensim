@@ -37,7 +37,7 @@ namespace OpenSim.Framework.Statistics
     /// Collects sim statistics which aren't already being collected for the linden viewer's statistics pane
     /// </summary>
     public class SimExtraStatsCollector : IStatsCollector
-    {        
+    {
         private long abnormalClientThreadTerminations;
         
         private long assetsInCache;

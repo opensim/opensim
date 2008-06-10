@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -40,7 +40,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     /// </summary>
     public class AssetsArchiver
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);        
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         
         /// <summary>
         /// Archive assets
@@ -99,15 +99,14 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                     xtw.WriteElementString("inventory-type", asset.InvType.ToString());
                     
                     xtw.WriteEndElement();
-                }                
-                
+                }
             }
             
             xtw.WriteEndElement();
             
             xtw.WriteEndDocument();
             
-            archive.AddFile("assets.xml", sw.ToString());            
+            archive.AddFile("assets.xml", sw.ToString());
         }
         
         /// <summary>
@@ -118,7 +117,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         {
             // It appears that gtar, at least, doesn't need the intermediate directory entries in the tar
             //archive.AddDir("assets");
-                        
+            
             foreach (LLUUID uuid in m_assets.Keys)
             {
                 AssetBase asset = m_assets[uuid];
@@ -140,7 +139,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 {
                     m_log.DebugFormat("[ARCHIVER]: Could not find asset {0} to archive", uuid);
                 }
-            }            
+            }
         }
     }
 }

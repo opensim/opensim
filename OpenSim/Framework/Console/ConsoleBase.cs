@@ -230,13 +230,12 @@ namespace OpenSim.Framework.Console
         {
             try
             {
-				string line = System.Console.ReadLine();
-				while(line == null)
-				{
-
-					line = System.Console.ReadLine();
-				}
-					
+                string line = System.Console.ReadLine();
+                while (line == null)
+                {
+                    line = System.Console.ReadLine();
+                }
+                    
                 return line;
             }
             catch (Exception e)
@@ -364,8 +363,7 @@ namespace OpenSim.Framework.Console
         public void Prompt()
         {
             string tempstr = CmdPrompt(m_componentName + "# ");
-			RunCommand(tempstr);
-			
+            RunCommand(tempstr);
         }
 
         public void RunCommand(string cmdline)

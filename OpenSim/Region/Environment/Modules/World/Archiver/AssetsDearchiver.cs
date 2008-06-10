@@ -39,7 +39,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 {
     /// <summary>
     /// Dearchives assets
-    /// </summary>    
+    /// </summary>
     public class AssetsDearchiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -61,7 +61,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// </summary>
         protected AssetCache m_cache;
         
-        public AssetsDearchiver(AssetCache cache)            
+        public AssetsDearchiver(AssetCache cache)
         {
             m_cache = cache;
         }
@@ -82,7 +82,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 ResolveAssetData(assetFilename, data);
             }
         }
-                 
+        
         /// <summary>
         /// Add asset metadata xml
         /// </summary>
@@ -92,7 +92,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             m_metadata = new Dictionary<string, AssetMetadata>();
             
             StringReader sr = new StringReader(xml);
-            XmlTextReader reader = new XmlTextReader(sr);   
+            XmlTextReader reader = new XmlTextReader(sr);
             
             reader.ReadStartElement("assets");
             reader.Read();
@@ -109,7 +109,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 metadata.Name = reader.ReadElementString("name");
                 metadata.Description = reader.ReadElementString("description");
                 metadata.AssetType = Convert.ToSByte(reader.ReadElementString("asset-type"));
-                metadata.AssetType = Convert.ToSByte(reader.ReadElementString("inventory-type"));                                                
+                metadata.AssetType = Convert.ToSByte(reader.ReadElementString("inventory-type"));
                 
                 m_metadata[filename] = metadata;
                 
@@ -131,7 +131,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         {
             foreach (string filename in m_assetDataAwaitingMetadata.Keys)
             {
-                ResolveAssetData(filename, m_assetDataAwaitingMetadata[filename]);                
+                ResolveAssetData(filename, m_assetDataAwaitingMetadata[filename]);
             }
         }
         

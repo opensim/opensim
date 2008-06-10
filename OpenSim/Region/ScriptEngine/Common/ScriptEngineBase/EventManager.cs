@@ -251,7 +251,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 detstruct._int[i] = detobj.colliderType;
                 detstruct._Vector3[i] = new LSL_Types.Vector3(detobj.posVector.X, detobj.posVector.Y, detobj.posVector.Z);
                 detstruct._Vector32[i] = new LSL_Types.Vector3(detobj.velVector.X, detobj.velVector.Y, detobj.velVector.Z);
-                detstruct._bool[i] = true; // Apparently the script engine uses this to see if this is a valid entry...       
+                detstruct._bool[i] = true; // Apparently the script engine uses this to see if this is a valid entry...
                 i++;
             }
 
@@ -307,7 +307,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 detstruct._int[i] = detobj.colliderType;
                 detstruct._Vector3[i] = new LSL_Types.Vector3(detobj.posVector.X, detobj.posVector.Y, detobj.posVector.Z);
                 detstruct._Vector32[i] = new LSL_Types.Vector3(detobj.velVector.X, detobj.velVector.Y, detobj.velVector.Z);
-                detstruct._bool[i] = true; // Apparently the script engine uses this to see if this is a valid entry...       
+                detstruct._bool[i] = true; // Apparently the script engine uses this to see if this is a valid entry...
                 i++;
             }
             myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "collision_end", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(col.Colliders.Count) });
