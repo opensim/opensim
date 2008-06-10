@@ -76,6 +76,7 @@ namespace OpenSim.Data
         private DbConnection _conn;
         private string _subtype;
         private Assembly _assem;
+        private Regex _match;
         
         private static readonly string _migrations_create = "create table migrations(name varchar(100), version int)";
         private static readonly string _migrations_init = "insert into migrations values('migrations', 1)";
@@ -86,7 +87,16 @@ namespace OpenSim.Data
             _type = type;
             _conn = conn;
             _assem = assem;
-            
+            _match = new Regex(@"\.(\d\d\d)_" + _type + @"\.sql");
+            Initialize();
+        }
+
+        public Migration(DbConnection conn, Assembly assem, string subtype, string type)
+        {
+            _type = type;
+            _conn = conn;
+            _assem = assem;
+            _match = new Regex(subtype + @"\.(\d\d\d)_" + _type + @"\.sql");
             Initialize();
         }
 
@@ -109,46 +119,37 @@ namespace OpenSim.Data
         public void Update()
         {
             int version = 0;
-            int newversion = 0;
             version = FindVersion(_type);
 
-            List<string> migrations = GetMigrationsAfter(version);
+            SortedList<int, string> migrations = GetMigrationsAfter(version);
             DbCommand cmd = _conn.CreateCommand();
-            foreach (string m in migrations) 
+            foreach (KeyValuePair<int, string> kvp in migrations) 
             {
-                cmd.CommandText = m;
+                int newversion = kvp.Key;
+                cmd.CommandText = kvp.Value;
                 cmd.ExecuteNonQuery();
-            }
-
-            newversion = MaxVersion();
-            if (newversion > version)
-            {
-                if (version == 0)
-                {
+                
+                if (version == 0) {
                     InsertVersion(_type, newversion);
-                }
-                else
-                {
+                } else {
                     UpdateVersion(_type, newversion);
                 }
+                version = newversion;
             }
         }
 
         private int MaxVersion()
         {
             int max = 0;
-            
             string[] names = _assem.GetManifestResourceNames();
-            List<string> migrations = new List<string>();
-            Regex r = new Regex(@"\.(\d\d\d)_" + _type + @"\.sql");
 
             foreach (string s in names)
             {
-                Match m = r.Match(s);
+                Match m = _match.Match(s);
                 if (m.Success) 
                 {
                     int MigrationVersion = int.Parse(m.Groups[1].ToString());
-                    if (MigrationVersion > max)
+                    if ( MigrationVersion > max )
                         max = MigrationVersion;
                 }
             }
@@ -159,8 +160,7 @@ namespace OpenSim.Data
         {
             int version = 0;
             DbCommand cmd = _conn.CreateCommand();
-            try
-            {
+            try {
                 cmd.CommandText = "select version from migrations where name='" + type + "' limit 1";
                 using (IDataReader reader = cmd.ExecuteReader())
                 {
@@ -170,9 +170,7 @@ namespace OpenSim.Data
                     }
                     reader.Close();
                 }
-            }
-            catch
-            {
+            } catch {
                 // Something went wrong, so we're version 0
             }
             return version;
@@ -194,39 +192,38 @@ namespace OpenSim.Data
             cmd.ExecuteNonQuery();
         }
         
-        private List<string> GetAllMigrations()
+        private SortedList<int, string> GetAllMigrations()
         {
             return GetMigrationsAfter(0);
         }
 
-        private List<string> GetMigrationsAfter(int version)
+        private SortedList<int, string> GetMigrationsAfter(int after)
         {
             string[] names = _assem.GetManifestResourceNames();
-            List<string> migrations = new List<string>();
-
-            Regex r = new Regex(@"^(\d\d\d)_" + _type + @"\.sql");
+            SortedList<int, string> migrations = new SortedList<int, string>();
 
             foreach (string s in names)
             {
-                Match m = r.Match(s);
+                Match m = _match.Match(s);
                 if (m.Success)
                 {
                     m_log.Info("MIGRATION: Match: " + m.Groups[1].ToString());
-                    int MigrationVersion = int.Parse(m.Groups[1].ToString());
-                    using (Stream resource = _assem.GetManifestResourceStream(s))
-                    {
-                        using (StreamReader resourceReader = new StreamReader(resource))
+                    int version = int.Parse(m.Groups[1].ToString());
+                    if (version > after) {
+                        using (Stream resource = _assem.GetManifestResourceStream(s))
                         {
-                            string resourceString = resourceReader.ReadToEnd();
-                            migrations.Add(resourceString);
+                            using (StreamReader resourceReader = new StreamReader(resource))
+                            {
+                                string resourceString = resourceReader.ReadToEnd();
+                                migrations.Add(version, resourceString);
+                            }
                         }
                     }
                 }
             }
 
             // TODO: once this is working, get rid of this
-            if (migrations.Count < 1)
-            {
+            if (migrations.Count < 1) {
                 m_log.InfoFormat("Resource '{0}' was not found", _type);
             }
             return migrations;
