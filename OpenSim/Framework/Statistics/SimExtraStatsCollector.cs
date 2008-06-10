@@ -36,7 +36,7 @@ namespace OpenSim.Framework.Statistics
     /// <summary>
     /// Collects sim statistics which aren't already being collected for the linden viewer's statistics pane
     /// </summary>
-    public class SimExtraStatsCollector : IStatsCollector
+    public class SimExtraStatsCollector : BaseStatsCollector
     {
         private long abnormalClientThreadTerminations;
         
@@ -140,14 +140,14 @@ namespace OpenSim.Framework.Statistics
         /// Report back collected statistical information.
         /// </summary>
         /// <returns></returns>
-        public string Report()
+        public override string Report()
         {
             StringBuilder sb = new StringBuilder(Environment.NewLine);
             sb.Append("ASSET STATISTICS");
             sb.Append(Environment.NewLine);
             sb.Append(
                 string.Format(
-@"Asset   cache contains {0,6} assets   using {1,10:0.000}K" + Environment.NewLine,
+@"Asset   cache contains {0,6} assets   using {1,10:0.000} K" + Environment.NewLine,
                     AssetsInCache, AssetCacheMemoryUsage / 1024.0));
 
             sb.Append(Environment.NewLine);
@@ -155,7 +155,7 @@ namespace OpenSim.Framework.Statistics
             sb.Append(Environment.NewLine);
             sb.Append(
                 string.Format(
-@"Texture cache contains {0,6} textures using {1,10:0.000}K
+@"Texture cache contains {0,6} textures using {1,10:0.000} K
 Blocked requests for missing textures: {2}" + Environment.NewLine,
                     TexturesInCache, TextureCacheMemoryUsage / 1024.0,
                     BlockedMissingTextureRequests));
@@ -193,6 +193,8 @@ Blocked requests for missing textures: {2}" + Environment.NewLine,
                 sb.Append(Environment.NewLine);
             }
 
+            sb.Append(base.Report());
+            
             return sb.ToString();
         }
     }
