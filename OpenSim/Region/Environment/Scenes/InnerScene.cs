@@ -1399,12 +1399,24 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Duplicate the given object.
+        /// Duplicate the given object, Fire and Forget, No rotation, no return wrapper
         /// </summary>
         /// <param name="originalPrim"></param>
         /// <param name="offset"></param>
         /// <param name="flags"></param>
         protected internal void DuplicateObject(uint originalPrim, LLVector3 offset, uint flags, LLUUID AgentID, LLUUID GroupID)
+        {
+            //m_log.DebugFormat("[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}", originalPrim, offset, AgentID);
+
+            SceneObjectGroup dupe = DuplicateObject(originalPrim, offset, flags, AgentID, GroupID, Quaternion.Zero);
+        }
+        /// <summary>
+        /// Duplicate the given object.
+        /// </summary>
+        /// <param name="originalPrim"></param>
+        /// <param name="offset"></param>
+        /// <param name="flags"></param>
+        protected internal SceneObjectGroup DuplicateObject(uint originalPrim, LLVector3 offset, uint flags, LLUUID AgentID, LLUUID GroupID, Quaternion rot)
         {
             //m_log.DebugFormat("[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}", originalPrim, offset, AgentID);
 
@@ -1445,16 +1457,22 @@ namespace OpenSim.Region.Environment.Scenes
 
                     m_numPrim += copy.Children.Count;
 
+                    if (rot != Quaternion.Zero)
+                    {
+                        copy.UpdateGroupRotation(new LLQuaternion(rot.x, rot.y, rot.z, rot.w));
+                    }
+
                     copy.StartScripts();
                     copy.ScheduleGroupForFullUpdate();
+                    return copy;
                 }
             }
             else
             {
                 m_log.WarnFormat("[SCENE]: Attempted to duplicate nonexistant prim id {0}", GroupID);
             }
+            return null;
         }
-
         /// <summary>
         /// Calculates the distance between two Vector3s
         /// </summary>

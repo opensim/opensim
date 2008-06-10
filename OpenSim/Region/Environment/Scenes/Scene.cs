@@ -1759,7 +1759,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             LLVector3 pos;
             const bool frontFacesOnly = true;
-
+            //m_log.Info("HITTARGET: " + RayTargetObj.ToString() + ", COPYTARGET: " + localID.ToString());
             SceneObjectPart target = GetSceneObjectPart(localID);
             SceneObjectPart target2 = GetSceneObjectPart(RayTargetObj);
 
@@ -1781,10 +1781,10 @@ namespace OpenSim.Region.Environment.Scenes
                     Ray NewRay = new Ray(AXOrigin, AXdirection);
 
                     // Ray Trace against target here
-                    EntityIntersection ei = target.TestIntersectionOBB(NewRay, new Quaternion(1, 0, 0, 0), frontFacesOnly, false);
+                    EntityIntersection ei = target2.TestIntersectionOBB(NewRay, new Quaternion(1, 0, 0, 0), frontFacesOnly, CopyCenters);
 
                     // Un-comment out the following line to Get Raytrace results printed to the console.
-                    // m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
+                    //m_log.Info("[RAYTRACERESULTS]: Hit:" + ei.HitTF.ToString() + " Point: " + ei.ipoint.ToString() + " Normal: " + ei.normal.ToString());
                     float ScaleOffset = 0.5f;
 
                     // If we hit something
@@ -1801,31 +1801,21 @@ namespace OpenSim.Region.Environment.Scenes
                         LLVector3 offset = (normal * (ScaleOffset / 2f));
                         pos = (intersectionpoint + offset);
 
-                        if (CopyCenters)
-                        {
-                            //  now we cast a ray from inside the prim(absolute position) to one of it's faces along the face normal.
-                            LLVector3 direction2 = LLVector3.Norm(pos - target2.AbsolutePosition);
-                            Vector3 AXOrigin2 = new Vector3(target2.AbsolutePosition.X, target2.AbsolutePosition.Y, target2.AbsolutePosition.Z);
-                            Vector3 AXdirection2 = new Vector3(direction2.X, direction2.Y, direction2.Z); //ei.AAfaceNormal;
-                            Ray NewRay2 = new Ray(AXOrigin2, AXdirection2);
-                            EntityIntersection ei2 = target.TestIntersectionOBB(NewRay2, new Quaternion(1, 0, 0, 0), false, CopyCenters);
-                            if (ei2.HitTF)
-                            {
-                               //m_log.Info("[RAYTRACERESULTS]: Hit:" + ei2.HitTF.ToString() + " Point: " + ei2.ipoint.ToString() + " Normal: " + ei2.normal.ToString());
-                               pos = new LLVector3(ei2.ipoint.x,ei2.ipoint.y,ei2.ipoint.z);
-                                normal.X = ei2.normal.x;
-                                normal.Y = ei2.normal.y;
-                                normal.Z = ei2.normal.z;
-                            }
-                        }
-
-                        // Set the position to the intersection point
-                        offset = (normal * (ScaleOffset / 2f));
-                        pos = (intersectionpoint + offset);
-
+                        
                         // stick in offset format from the original prim
-                        pos = pos - target2.ParentGroup.AbsolutePosition;
-                        m_innerScene.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID);
+                        pos = pos - target.ParentGroup.AbsolutePosition;
+                        if (CopyRotates)
+                        {
+                            LLQuaternion worldRot = target2.GetWorldRotation();
+
+                            SceneObjectGroup obj = m_innerScene.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, new Quaternion(worldRot.W,worldRot.X,worldRot.Y,worldRot.Z));
+                            //obj.Rotation = new Quaternion(worldRot.W, worldRot.X, worldRot.Y, worldRot.Z);
+                            //obj.UpdateGroupRotation(worldRot);
+                        }
+                        else
+                        {
+                            m_innerScene.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID);
+                        }
                     }
 
                     return;

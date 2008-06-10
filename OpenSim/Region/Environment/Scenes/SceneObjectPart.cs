@@ -1352,14 +1352,14 @@ namespace OpenSim.Region.Environment.Scenes
                 AmBb = FaceB[i] - FaceC[i];
                 d = normals[i].Dot(FaceB[i]);
 
-                if (faceCenters)
-                {
-                    c = normals[i].Dot(normals[i]);
-                }
-                else
-                {
+                //if (faceCenters)
+                //{
+                //    c = normals[i].Dot(normals[i]);
+                //}
+                //else
+                //{
                     c = iray.Direction.Dot(normals[i]);
-                }
+                //}
                 if (c == 0)
                     continue;
 
@@ -1375,21 +1375,21 @@ namespace OpenSim.Region.Environment.Scenes
                 if (iray.Direction.Dot(normals[i]) < 0 || !frontFacesOnly)
                 {
 
-                    if (faceCenters)
-                    {   //(FaceA[i] + FaceB[i] + FaceC[1] + FaceD[i]) / 4f;
-                        q =  iray.Origin + a * normals[i];
-                    }
-                    else
-                    {
+                    //if (faceCenters)
+                    //{   //(FaceA[i] + FaceB[i] + FaceC[1] + FaceD[i]) / 4f;
+                    //    q =  iray.Origin + a * normals[i];
+                    //}
+                    //else
+                    //{
                         q = iray.Origin + a * iray.Direction;
-                    }
+                    //}
 
                     float distance2 = (float)GetDistanceTo(q, AXpos);
                     // Is this the closest hit to the object's origin?
-                    if (faceCenters)
-                    {
-                        distance2 = (float)GetDistanceTo(q, iray.Origin);
-                    }
+                    //if (faceCenters)
+                    //{
+                    //    distance2 = (float)GetDistanceTo(q, iray.Origin);
+                    //}
 
 
                     if (distance2 < returnresult.distance)
@@ -1397,10 +1397,28 @@ namespace OpenSim.Region.Environment.Scenes
                         returnresult.distance = distance2;
                         returnresult.HitTF = true;
                         returnresult.ipoint = q;
-                        m_log.Info("[FACE]:" + i.ToString());
-                        m_log.Info("[POINT]: " + q.ToString());
-                        m_log.Info("[DIST]: " + distance2.ToString());
-                        returnresult.normal = normals[i];
+                        //m_log.Info("[FACE]:" + i.ToString());
+                        //m_log.Info("[POINT]: " + q.ToString());
+                        //m_log.Info("[DIST]: " + distance2.ToString());
+                        if (faceCenters)
+                        {
+                            returnresult.normal = (AXrot * AAfacenormals[i]);
+
+                            Vector3 scaleComponent = AAfacenormals[i];
+                            float ScaleOffset = 0.5f;
+                            if (scaleComponent.x != 0) ScaleOffset = AXscale.x;
+                            if (scaleComponent.y != 0) ScaleOffset = AXscale.y;
+                            if (scaleComponent.z != 0) ScaleOffset = AXscale.z;
+                            ScaleOffset = Math.Abs(ScaleOffset);
+                            Vector3 offset = (returnresult.normal * ScaleOffset);
+                            returnresult.ipoint = (AXpos + offset );
+                            
+                            ///pos = (intersectionpoint + offset);
+                        }
+                        else
+                        {
+                            returnresult.normal = normals[i];
+                        }
                         returnresult.AAfaceNormal = AAfacenormals[i];
 
                     }
