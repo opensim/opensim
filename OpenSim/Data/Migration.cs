@@ -156,6 +156,12 @@ namespace OpenSim.Data
             return max;
         }
 
+        public int Version 
+        {
+            get { return FindVersion(_type); }
+            set { UpdateVersion(_type, value); }
+        }
+
         private int FindVersion(string type) 
         {
             int version = 0;
