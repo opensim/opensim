@@ -28,6 +28,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Timers;
 using log4net;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Statistics;
@@ -41,6 +42,12 @@ namespace OpenSim.Framework.Servers
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// This will control a periodic log printout of the current 'show stats' (if they are active) for this
+        /// server.
+        /// </summary>
+        private Timer m_periodicLogStatsTimer = new Timer(60 * 60 * 1000);
+        
         protected ConsoleBase m_console;
 
         /// <summary>
@@ -68,6 +75,20 @@ namespace OpenSim.Framework.Servers
         {
             m_startuptime = DateTime.Now;
             m_version = VersionInfo.Version;
+            
+            m_periodicLogStatsTimer.Elapsed += new ElapsedEventHandler(LogStats);            
+            m_periodicLogStatsTimer.Enabled = true;
+        }
+                
+        /// <summary>
+        /// Print statistics to the logfile, if they are active
+        /// </summary>
+        protected void LogStats(object source, ElapsedEventArgs e)
+        {
+            if (m_stats != null)
+            {
+                m_log.Info(m_stats.Report());
+            }            
         }
 
         /// <summary>
