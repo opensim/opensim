@@ -1012,6 +1012,7 @@ namespace OpenSim.Region.Environment.Scenes
                 //Vector3 AXdirection = new Vector3();
                 //Ray testRay = new Ray();
                 //EntityIntersection rt = new EntityIntersection();
+                bool terraincorruptedwarningsaid = false;
 
                 float low = 255;
                 float high = 0;
@@ -1063,11 +1064,25 @@ namespace OpenSim.Region.Environment.Scenes
                             if (heightvalue < 0)
                                 heightvalue = 0;
 
+                            if (Single.IsInfinity(heightvalue) || Single.IsNaN(heightvalue))
+                                heightvalue = 0;
+                            try
+                            {
+                                Color green = Color.FromArgb((int)heightvalue, 100, (int)heightvalue);
 
-                            Color green = Color.FromArgb((int)heightvalue, 100, (int)heightvalue);
-
-                            // Y flip the cordinates
-                            mapbmp.SetPixel(x, (256 - y) - 1, green);
+                                // Y flip the cordinates
+                                mapbmp.SetPixel(x, (256 - y) - 1, green);
+                            }
+                            catch (System.ArgumentException)
+                            {
+                                if (!terraincorruptedwarningsaid)
+                                {
+                                    m_log.WarnFormat("[MAPIMAGE]: Your terrain is corrupted in region {0}, it might take a few minutes to generate the map image depending on the corruption level",RegionInfo.RegionName);
+                                    terraincorruptedwarningsaid = true;
+                                }
+                                Color black = Color.Black;
+                                mapbmp.SetPixel(x, (256 - y) - 1, black);
+                            }
                         }
                         else
                         {
@@ -1086,13 +1101,31 @@ namespace OpenSim.Region.Environment.Scenes
                             if (heightvalue < 0)
                                 heightvalue = 0;
 
-                            Color water = Color.FromArgb((int)heightvalue, (int)heightvalue, 255);
-                            mapbmp.SetPixel(x, (256 - y) - 1, water);
+                            if (Single.IsInfinity(heightvalue) || Single.IsNaN(heightvalue))
+                                heightvalue = 0;
+
+                            try
+                            {
+                                Color water = Color.FromArgb((int)heightvalue, (int)heightvalue, 255);
+                                mapbmp.SetPixel(x, (256 - y) - 1, water);
+                            }
+                            catch (System.ArgumentException)
+                            {
+                                if (!terraincorruptedwarningsaid)
+                                {
+                                    m_log.WarnFormat("[MAPIMAGE]: Your terrain is corrupted in region {0}, it might take a few minutes to generate the map image depending on the corruption level", RegionInfo.RegionName);
+                                    terraincorruptedwarningsaid = true;
+                                }
+                                Color black = Color.Black;
+                                mapbmp.SetPixel(x, (256 - y) - 1, black);
+                            }
                         }
-                        //}
-
-
+                        
                     }
+                    //}
+
+
+                
                     //tc = System.Environment.TickCount - tc;
                     //m_log.Info("[MAPTILE]: Completed One row in " + tc + " ms");
                 }
