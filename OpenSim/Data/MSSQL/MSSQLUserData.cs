@@ -749,11 +749,147 @@ namespace OpenSim.Data.MSSQL
         /// TODO: stubs for now to get us to a compiling state gently
         override public AvatarAppearance GetUserAppearance(LLUUID user)
         {
-            return new AvatarAppearance();
+//            return new AvatarAppearance();
+            try
+            {
+                lock (database)
+                {
+                    Dictionary<string, string> param = new Dictionary<string, string>();
+                    param["@UUID"] = user.ToString();
+
+                    IDbCommand result =
+                        database.Query("SELECT * FROM avatarappearance WHERE owner = @UUID", param);
+                    IDataReader reader = result.ExecuteReader();
+
+                    AvatarAppearance item = null;
+                    if (reader.Read())
+                        item = readUserAppearance(reader);
+
+                    reader.Close();
+                    result.Dispose();
+
+                    return item;
+                }
+            }
+            catch (Exception e)
+            {
+                database.Reconnect();
+                m_log.Error(e.ToString());
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Reads a one item from an SQL result
+        /// </summary>
+        /// <param name="reader">The SQL Result</param>
+        /// <returns>the item read</returns>
+        private static AvatarAppearance readUserAppearance(IDataReader reader)
+        {
+            try
+            {
+                AvatarAppearance appearance = new AvatarAppearance();
+
+                appearance.Owner = new LLUUID((string)reader["owner"]);
+                appearance.Serial = Convert.ToInt32(reader["serial"]);
+                appearance.VisualParams = (byte[])reader["visual_params"];
+                appearance.Texture = new LLObject.TextureEntry((byte[])reader["texture"], 0, ((byte[])reader["texture"]).Length);
+                appearance.AvatarHeight = (float)Convert.ToDouble(reader["avatar_height"]);
+                appearance.BodyItem = new LLUUID((string)reader["body_item"]);
+                appearance.BodyAsset = new LLUUID((string)reader["body_asset"]);
+                appearance.SkinItem = new LLUUID((string)reader["skin_item"]);
+                appearance.SkinAsset = new LLUUID((string)reader["skin_asset"]);
+                appearance.HairItem = new LLUUID((string)reader["hair_item"]);
+                appearance.HairAsset = new LLUUID((string)reader["hair_asset"]);
+                appearance.EyesItem = new LLUUID((string)reader["eyes_item"]);
+                appearance.EyesAsset = new LLUUID((string)reader["eyes_asset"]);
+                appearance.ShirtItem = new LLUUID((string)reader["shirt_item"]);
+                appearance.ShirtAsset = new LLUUID((string)reader["shirt_asset"]);
+                appearance.PantsItem = new LLUUID((string)reader["pants_item"]);
+                appearance.PantsAsset = new LLUUID((string)reader["pants_asset"]);
+                appearance.ShoesItem = new LLUUID((string)reader["shoes_item"]);
+                appearance.ShoesAsset = new LLUUID((string)reader["shoes_asset"]);
+                appearance.SocksItem = new LLUUID((string)reader["socks_item"]);
+                appearance.SocksAsset = new LLUUID((string)reader["socks_asset"]);
+                appearance.JacketItem = new LLUUID((string)reader["jacket_item"]);
+                appearance.JacketAsset = new LLUUID((string)reader["jacket_asset"]);
+                appearance.GlovesItem = new LLUUID((string)reader["gloves_item"]);
+                appearance.GlovesAsset = new LLUUID((string)reader["gloves_asset"]);
+                appearance.UnderShirtItem = new LLUUID((string)reader["undershirt_item"]);
+                appearance.UnderShirtAsset = new LLUUID((string)reader["undershirt_asset"]);
+                appearance.UnderPantsItem = new LLUUID((string)reader["underpants_item"]);
+                appearance.UnderPantsAsset = new LLUUID((string)reader["underpants_asset"]);
+                appearance.SkirtItem = new LLUUID((string)reader["skirt_item"]);
+                appearance.SkirtAsset = new LLUUID((string)reader["skirt_asset"]);
+
+                return appearance;
+            }
+            catch (SqlException e)
+            {
+                m_log.Error(e.ToString());
+            }
+
+            return null;
         }
 
         override public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
         {
+            string sql = String.Empty;
+            sql += "DELETE FROM avatarappearance WHERE owner=@owner ";
+            sql += "INSERT INTO avatarappearance ";
+            sql += "(owner, serial, visual_params, texture, avatar_height, ";
+            sql += "body_item, body_asset, skin_item, skin_asset, hair_item, hair_asset, eyes_item, eyes_asset, ";
+            sql += "shirt_item, shirt_asset, pants_item, pants_asset, shoes_item, shoes_asset, socks_item, socks_asset, ";
+            sql += "jacket_item, jacket_asset, gloves_item, gloves_asset, undershirt_item, undershirt_asset, underpants_item, underpants_asset, ";
+            sql += "skirt_item, skirt_asset) values (";
+            sql += "@owner, @serial, @visual_params, @texture, @avatar_height, ";
+            sql += "@body_item, @body_asset, @skin_item, @skin_asset, @hair_item, @hair_asset, @eyes_item, @eyes_asset, ";
+            sql += "@shirt_item, @shirt_asset, @pants_item, @pants_asset, @shoes_item, @shoes_asset, @socks_item, @socks_asset, ";
+            sql += "@jacket_item, @jacket_asset, @gloves_item, @gloves_asset, @undershirt_item, @undershirt_asset, @underpants_item, @underpants_asset, ";
+            sql += "@skirt_item, @skirt_asset)";
+
+            SqlCommand cmd = new SqlCommand(sql, database.getConnection());
+            cmd.Parameters.AddWithValue("@owner", appearance.Owner.ToString());
+            cmd.Parameters.AddWithValue("@serial", appearance.Serial);
+            cmd.Parameters.AddWithValue("@visual_params", appearance.VisualParams);
+            cmd.Parameters.AddWithValue("@texture", appearance.Texture.ToBytes());
+            cmd.Parameters.AddWithValue("@avatar_height", appearance.AvatarHeight);
+            cmd.Parameters.AddWithValue("@body_item", appearance.BodyItem.ToString());
+            cmd.Parameters.AddWithValue("@body_asset", appearance.BodyAsset.ToString());
+            cmd.Parameters.AddWithValue("@skin_item", appearance.SkinItem.ToString());
+            cmd.Parameters.AddWithValue("@skin_asset", appearance.SkinAsset.ToString());
+            cmd.Parameters.AddWithValue("@hair_item", appearance.HairItem.ToString());
+            cmd.Parameters.AddWithValue("@hair_asset", appearance.HairAsset.ToString());
+            cmd.Parameters.AddWithValue("@eyes_item", appearance.EyesItem.ToString());
+            cmd.Parameters.AddWithValue("@eyes_asset", appearance.EyesAsset.ToString());
+            cmd.Parameters.AddWithValue("@shirt_item", appearance.ShirtItem.ToString());
+            cmd.Parameters.AddWithValue("@shirt_asset", appearance.ShirtAsset.ToString());
+            cmd.Parameters.AddWithValue("@pants_item", appearance.PantsItem.ToString());
+            cmd.Parameters.AddWithValue("@pants_asset", appearance.PantsAsset.ToString());
+            cmd.Parameters.AddWithValue("@shoes_item", appearance.ShoesItem.ToString());
+            cmd.Parameters.AddWithValue("@shoes_asset", appearance.ShoesAsset.ToString());
+            cmd.Parameters.AddWithValue("@socks_item", appearance.SocksItem.ToString());
+            cmd.Parameters.AddWithValue("@socks_asset", appearance.SocksAsset.ToString());
+            cmd.Parameters.AddWithValue("@jacket_item", appearance.JacketItem.ToString());
+            cmd.Parameters.AddWithValue("@jacket_asset", appearance.JacketAsset.ToString());
+            cmd.Parameters.AddWithValue("@gloves_item", appearance.GlovesItem.ToString());
+            cmd.Parameters.AddWithValue("@gloves_asset", appearance.GlovesAsset.ToString());
+            cmd.Parameters.AddWithValue("@undershirt_item", appearance.UnderShirtItem.ToString());
+            cmd.Parameters.AddWithValue("@undershirt_asset", appearance.UnderShirtAsset.ToString());
+            cmd.Parameters.AddWithValue("@underpants_item", appearance.UnderPantsItem.ToString());
+            cmd.Parameters.AddWithValue("@underpants_asset", appearance.UnderPantsAsset.ToString());
+            cmd.Parameters.AddWithValue("@skirt_item", appearance.SkirtItem.ToString());
+            cmd.Parameters.AddWithValue("@skirt_asset", appearance.SkirtAsset.ToString());
+                
+            try
+            {
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+            }
+            catch (Exception e)
+            {
+                m_log.Error(e.ToString());
+            }
             return;
         }
 
