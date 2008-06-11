@@ -2630,7 +2630,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             this.OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
-        public void sendLandProperties(IClientAPI remote_client,int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int simObjectCapacity, uint regionFlags)
+        public void sendLandProperties(IClientAPI remote_client,int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
         {
             ParcelPropertiesPacket updatePacket = (ParcelPropertiesPacket) PacketPool.Instance.GetPacket(PacketType.ParcelProperties);
             // TODO: don't create new blocks if recycling an old packet
@@ -2654,10 +2654,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updatePacket.ParcelData.LocalID = landData.localID;
             if (landData.area > 0)
             {
-                updatePacket.ParcelData.MaxPrims =
-                    Convert.ToInt32(
-                        Math.Round((Convert.ToDecimal(landData.area) / Convert.ToDecimal(65536)) * simObjectCapacity *
-                                   Convert.ToDecimal(simObjectBonusFactor)));
+                updatePacket.ParcelData.MaxPrims = parcelObjectCapacity;
             }
             else
             {
@@ -2696,10 +2693,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updatePacket.ParcelData.SequenceID = sequence_id;
             if (landData.simwideArea > 0)
             {
-                updatePacket.ParcelData.SimWideMaxPrims =
-                    Convert.ToInt32(
-                        Math.Round((Convert.ToDecimal(landData.simwideArea) / Convert.ToDecimal(65536)) * simObjectCapacity *
-                                   Convert.ToDecimal(simObjectBonusFactor)));
+                updatePacket.ParcelData.SimWideMaxPrims = parcelObjectCapacity;
             }
             else
             {

@@ -32,8 +32,14 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
+    public delegate int overrideParcelMaxPrimCountDelegate(ILandObject obj);
+    public delegate int overrideSimulatorMaxPrimCountDelegate(ILandObject obj);
+
     public interface ILandObject
     {
+        int getParcelMaxPrimCount(ILandObject thisObject);
+        int getSimulatorMaxPrimCount(ILandObject thisObject);
+
         LandData landData { get; set; }
         bool[,] landBitmap { get; set; }
         LLUUID regionUUID { get; }
@@ -57,6 +63,7 @@ namespace OpenSim.Region.Environment.Interfaces
         void forceUpdateLandInfo();
         void setLandBitmap(bool[,] bitmap);
 
+
         bool[,] basicFullRegionLandBitmap();
         bool[,] getSquareLandBitmap(int start_x, int start_y, int end_x, int end_y);
         bool[,] modifyLandBitmapSquare(bool[,] land_bitmap, int start_x, int start_y, int end_x, int end_y, bool set_value);
@@ -69,5 +76,8 @@ namespace OpenSim.Region.Environment.Interfaces
         void addPrimToCount(SceneObjectGroup obj);
         void removePrimFromCount(SceneObjectGroup obj);
         void updateLandSold(LLUUID avatarID, LLUUID groupID, bool groupOwned, uint AuctionID, int claimprice, int area);
+
+        void setParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel);
+        void setSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel);
     }
 }

@@ -5576,7 +5576,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             m_host.AddScriptLPS(1);
             NotImplemented("llSetInventoryPermMask");
-        }
+        }   
 
         public string llGetInventoryCreator(string item)
         {

@@ -116,13 +116,52 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             return newLand;
         }
 
-        #endregion
+        
+        static overrideParcelMaxPrimCountDelegate overrideParcelMaxPrimCount;
+        static overrideSimulatorMaxPrimCountDelegate overrideSimulatorMaxPrimCount;
 
+        public void setParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel)
+        {
+            overrideParcelMaxPrimCount = overrideDel;
+        }
+        public void setSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel)
+        {
+            overrideSimulatorMaxPrimCount = overrideDel;
+        }
+
+        public int getParcelMaxPrimCount(ILandObject thisObject)
+        {
+            if (overrideParcelMaxPrimCount != null)
+            {
+                return overrideParcelMaxPrimCount(thisObject);
+            }
+            else
+            {
+                //Normal Calculations
+                return Convert.ToInt32(
+                        Math.Round((Convert.ToDecimal(landData.area) / Convert.ToDecimal(65536)) * m_scene.objectCapacity *
+                                   Convert.ToDecimal(m_scene.RegionInfo.EstateSettings.objectBonusFactor))); ;
+            }
+        }
+        public int getSimulatorMaxPrimCount(ILandObject thisObject)
+        {
+            if (overrideSimulatorMaxPrimCount != null)
+            {
+                return overrideSimulatorMaxPrimCount(thisObject);
+            }
+            else
+            {
+                //Normal Calculations
+                return m_scene.objectCapacity;
+            }
+        }
+        #endregion
+        
         #region Packet Request Handling
 
         public void sendLandProperties(int sequence_id, bool snap_selection, int request_result, IClientAPI remote_client)
         {
-            remote_client.sendLandProperties(remote_client, sequence_id, snap_selection, request_result, landData, m_scene.RegionInfo.EstateSettings.objectBonusFactor, m_scene.objectCapacity,(uint) m_scene.RegionInfo.EstateSettings.regionFlags);
+            remote_client.sendLandProperties(remote_client, sequence_id, snap_selection, request_result, landData, m_scene.RegionInfo.EstateSettings.objectBonusFactor, getParcelMaxPrimCount(this), getSimulatorMaxPrimCount(this), (uint)m_scene.RegionInfo.EstateSettings.regionFlags);
         }
 
         public void updateLandProperties(LandUpdateArgs args, IClientAPI remote_client)

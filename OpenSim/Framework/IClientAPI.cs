@@ -972,7 +972,7 @@ namespace OpenSim.Framework
         void sendEstateCovenantInformation();
         void sendDetailedEstateData(LLUUID invoice,string estateName, uint estateID);
 
-        void sendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int simObjectCapacity, uint regionFlags);
+        void sendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags);
         void sendLandAccessListData(List<LLUUID> avatars, uint accessFlag, int localLandID);
         void sendForceClientSelectObjects(List<uint> objectIDs);
         void sendLandObjectOwners(Dictionary<LLUUID, int> ownersAndCount);

@@ -149,6 +149,22 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 m_landManagementModule.ReturnObjectsInParcel(localID, returnType, agentIDs, taskIDs, remoteClient);
             }
         }
+
+        public void setParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel)
+        {
+            if (m_landManagementModule != null)
+            {
+                m_landManagementModule.setParcelObjectMaxOverride(overrideDel);
+            }
+        }
+
+        public void setSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel)
+        {
+            if (m_landManagementModule != null)
+            {
+                m_landManagementModule.setSimulatorObjectMaxOverride(overrideDel);
+            }
+        }
         #endregion
 
     }

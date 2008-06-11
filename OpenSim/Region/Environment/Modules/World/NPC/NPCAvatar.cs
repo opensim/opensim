@@ -748,7 +748,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public void sendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int simObjectCapacity, uint regionFlags)
+        public void sendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor,int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
         {
         }
         public void sendLandAccessListData(List<LLUUID> avatars, uint accessFlag, int localLandID)
