@@ -84,6 +84,8 @@ namespace OpenSim.Data.SQLite
             m_conn = new SqliteConnection(m_connectionString);
             m_conn.Open();
 
+
+
             SqliteCommand primSelectCmd = new SqliteCommand(primSelect, m_conn);
             primDa = new SqliteDataAdapter(primSelectCmd);
             //            SqliteCommandBuilder primCb = new SqliteCommandBuilder(primDa);
@@ -104,10 +106,15 @@ namespace OpenSim.Data.SQLite
             SqliteCommand landAccessListSelectCmd = new SqliteCommand(landAccessListSelect, m_conn);
             landAccessListDa = new SqliteDataAdapter(landAccessListSelectCmd);
 
-            // We fill the data set, now we've got copies in memory for the information
-            // TODO: see if the linkage actually holds.
-            // primDa.FillSchema(ds, SchemaType.Source, "PrimSchema");
-            TestTables(m_conn);
+            // This actually does the roll forward assembly stuff
+            Assembly assem = GetType().Assembly;
+            Migration m = new Migration(m_conn, assem, "RegionStore");
+
+            // TODO: After rev 6000, remove this.  People should have
+            // been rolled onto the new migration code by then.
+            TestTables(m_conn, m);
+
+            m.Update();
 
             lock (ds)
             {
@@ -1520,81 +1527,81 @@ namespace OpenSim.Data.SQLite
         /// Create the necessary database tables.
         /// </summary>
         /// <param name="conn"></param>
-        private void InitDB(SqliteConnection conn)
-        {
-            string createPrims = defineTable(createPrimTable());
-            string createShapes = defineTable(createShapeTable());
-            string createItems = defineTable(createItemsTable());
-            string createTerrain = defineTable(createTerrainTable());
-            string createLand = defineTable(createLandTable());
-            string createLandAccessList = defineTable(createLandAccessListTable());
+        // private void InitDB(SqliteConnection conn)
+        // {
+        //     string createPrims = defineTable(createPrimTable());
+        //     string createShapes = defineTable(createShapeTable());
+        //     string createItems = defineTable(createItemsTable());
+        //     string createTerrain = defineTable(createTerrainTable());
+        //     string createLand = defineTable(createLandTable());
+        //     string createLandAccessList = defineTable(createLandAccessListTable());
 
-            SqliteCommand pcmd = new SqliteCommand(createPrims, conn);
-            SqliteCommand scmd = new SqliteCommand(createShapes, conn);
-            SqliteCommand icmd = new SqliteCommand(createItems, conn);
-            SqliteCommand tcmd = new SqliteCommand(createTerrain, conn);
-            SqliteCommand lcmd = new SqliteCommand(createLand, conn);
-            SqliteCommand lalcmd = new SqliteCommand(createLandAccessList, conn);
+        //     SqliteCommand pcmd = new SqliteCommand(createPrims, conn);
+        //     SqliteCommand scmd = new SqliteCommand(createShapes, conn);
+        //     SqliteCommand icmd = new SqliteCommand(createItems, conn);
+        //     SqliteCommand tcmd = new SqliteCommand(createTerrain, conn);
+        //     SqliteCommand lcmd = new SqliteCommand(createLand, conn);
+        //     SqliteCommand lalcmd = new SqliteCommand(createLandAccessList, conn);
 
-            try
-            {
-                pcmd.ExecuteNonQuery();
-            }
-            catch (SqliteSyntaxException)
-            {
-                m_log.Warn("[REGION DB]: Primitives Table Already Exists");
-            }
+        //     try
+        //     {
+        //         pcmd.ExecuteNonQuery();
+        //     }
+        //     catch (SqliteSyntaxException)
+        //     {
+        //         m_log.Warn("[REGION DB]: Primitives Table Already Exists");
+        //     }
 
-            try
-            {
-                scmd.ExecuteNonQuery();
-            }
-            catch (SqliteSyntaxException)
-            {
-                m_log.Warn("[REGION DB]: Shapes Table Already Exists");
-            }
+        //     try
+        //     {
+        //         scmd.ExecuteNonQuery();
+        //     }
+        //     catch (SqliteSyntaxException)
+        //     {
+        //         m_log.Warn("[REGION DB]: Shapes Table Already Exists");
+        //     }
 
-            if (persistPrimInventories)
-            {
-                try
-                {
-                    icmd.ExecuteNonQuery();
-                }
-                catch (SqliteSyntaxException)
-                {
-                    m_log.Warn("[REGION DB]: Primitives Inventory Table Already Exists");
-                }
-            }
+        //     if (persistPrimInventories)
+        //     {
+        //         try
+        //         {
+        //             icmd.ExecuteNonQuery();
+        //         }
+        //         catch (SqliteSyntaxException)
+        //         {
+        //             m_log.Warn("[REGION DB]: Primitives Inventory Table Already Exists");
+        //         }
+        //     }
 
-            try
-            {
-                tcmd.ExecuteNonQuery();
-            }
-            catch (SqliteSyntaxException)
-            {
-                m_log.Warn("[REGION DB]: Terrain Table Already Exists");
-            }
+        //     try
+        //     {
+        //         tcmd.ExecuteNonQuery();
+        //     }
+        //     catch (SqliteSyntaxException)
+        //     {
+        //         m_log.Warn("[REGION DB]: Terrain Table Already Exists");
+        //     }
 
-            try
-            {
-                lcmd.ExecuteNonQuery();
-            }
-            catch (SqliteSyntaxException)
-            {
-                m_log.Warn("[REGION DB]: Land Table Already Exists");
-            }
+        //     try
+        //     {
+        //         lcmd.ExecuteNonQuery();
+        //     }
+        //     catch (SqliteSyntaxException)
+        //     {
+        //         m_log.Warn("[REGION DB]: Land Table Already Exists");
+        //     }
 
-            try
-            {
-                lalcmd.ExecuteNonQuery();
-            }
-            catch (SqliteSyntaxException)
-            {
-                m_log.Warn("[SQLITE]: LandAccessList Table Already Exists");
-            }
-        }
+        //     try
+        //     {
+        //         lalcmd.ExecuteNonQuery();
+        //     }
+        //     catch (SqliteSyntaxException)
+        //     {
+        //         m_log.Warn("[SQLITE]: LandAccessList Table Already Exists");
+        //     }
+        // }
 
-        private bool TestTables(SqliteConnection conn)
+        private bool TestTables(SqliteConnection conn, Migration m)
         {
             SqliteCommand primSelectCmd = new SqliteCommand(primSelect, conn);
             SqliteDataAdapter pDa = new SqliteDataAdapter(primSelectCmd);
@@ -1630,65 +1637,72 @@ namespace OpenSim.Data.SQLite
             catch (SqliteSyntaxException)
             {
                 m_log.Info("[DATASTORE]: SQLite Database doesn't exist... creating");
-                InitDB(conn);
+                return false;
             }
 
-            pDa.Fill(tmpDS, "prims");
-            sDa.Fill(tmpDS, "primshapes");
+            // if we've gotten this far, and our version is still 0,
+            // it's because the migration was never done, so
+            // initialize to 1 just to sync up to where we should be.
+            
+            if (m.Version == 0) 
+                m.Version = 1;
 
-            if (persistPrimInventories)
-                iDa.Fill(tmpDS, "primitems");
+            // pDa.Fill(tmpDS, "prims");
+            // sDa.Fill(tmpDS, "primshapes");
 
-            tDa.Fill(tmpDS, "terrain");
-            lDa.Fill(tmpDS, "land");
-            lalDa.Fill(tmpDS, "landaccesslist");
+            // if (persistPrimInventories)
+            //     iDa.Fill(tmpDS, "primitems");
 
-            foreach (DataColumn col in createPrimTable().Columns)
-            {
-                if (!tmpDS.Tables["prims"].Columns.Contains(col.ColumnName))
-                {
-                    m_log.Info("[REGION DB]: Missing required column:" + col.ColumnName);
-                    return false;
-                }
-            }
+            // tDa.Fill(tmpDS, "terrain");
+            // lDa.Fill(tmpDS, "land");
+            // lalDa.Fill(tmpDS, "landaccesslist");
 
-            foreach (DataColumn col in createShapeTable().Columns)
-            {
-                if (!tmpDS.Tables["primshapes"].Columns.Contains(col.ColumnName))
-                {
-                    m_log.Info("[REGION DB]: Missing required column:" + col.ColumnName);
-                    return false;
-                }
-            }
+            // foreach (DataColumn col in createPrimTable().Columns)
+            // {
+            //     if (!tmpDS.Tables["prims"].Columns.Contains(col.ColumnName))
+            //     {
+            //         m_log.Info("[REGION DB]: Missing required column:" + col.ColumnName);
+            //         return false;
+            //     }
+            // }
 
-            // XXX primitems should probably go here eventually
+            // foreach (DataColumn col in createShapeTable().Columns)
+            // {
+            //     if (!tmpDS.Tables["primshapes"].Columns.Contains(col.ColumnName))
+            //     {
+            //         m_log.Info("[REGION DB]: Missing required column:" + col.ColumnName);
+            //         return false;
+            //     }
+            // }
 
-            foreach (DataColumn col in createTerrainTable().Columns)
-            {
-                if (!tmpDS.Tables["terrain"].Columns.Contains(col.ColumnName))
-                {
-                    m_log.Info("[REGION DB]: Missing require column:" + col.ColumnName);
-                    return false;
-                }
-            }
+            // // XXX primitems should probably go here eventually
 
-            foreach (DataColumn col in createLandTable().Columns)
-            {
-                if (!tmpDS.Tables["land"].Columns.Contains(col.ColumnName))
-                {
-                    m_log.Info("[REGION DB]: Missing require column:" + col.ColumnName);
-                    return false;
-                }
-            }
+            // foreach (DataColumn col in createTerrainTable().Columns)
+            // {
+            //     if (!tmpDS.Tables["terrain"].Columns.Contains(col.ColumnName))
+            //     {
+            //         m_log.Info("[REGION DB]: Missing require column:" + col.ColumnName);
+            //         return false;
+            //     }
+            // }
 
-            foreach (DataColumn col in createLandAccessListTable().Columns)
-            {
-                if (!tmpDS.Tables["landaccesslist"].Columns.Contains(col.ColumnName))
-                {
-                    m_log.Info("[DATASTORE]: Missing require column:" + col.ColumnName);
-                    return false;
-                }
-            }
+            // foreach (DataColumn col in createLandTable().Columns)
+            // {
+            //     if (!tmpDS.Tables["land"].Columns.Contains(col.ColumnName))
+            //     {
+            //         m_log.Info("[REGION DB]: Missing require column:" + col.ColumnName);
+            //         return false;
+            //     }
+            // }
+
+            // foreach (DataColumn col in createLandAccessListTable().Columns)
+            // {
+            //     if (!tmpDS.Tables["landaccesslist"].Columns.Contains(col.ColumnName))
+            //     {
+            //         m_log.Info("[DATASTORE]: Missing require column:" + col.ColumnName);
+            //         return false;
+            //     }
+            // }
 
             return true;
         }

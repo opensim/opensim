@@ -64,7 +64,19 @@ namespace OpenSim.Data.SQLite
             }
             m_conn = new SqliteConnection(dbconnect);
             m_conn.Open();
-            TestTables(m_conn);
+
+
+
+
+            Assembly assem = GetType().Assembly;
+            Migration m = new Migration(m_conn, assem, "AssetStore");
+            // TODO: remove this next line after changeset 6000,
+            // people should have all gotten into the migration swing
+            // again.
+            TestTables(m_conn, m);
+
+            m.Update();
+
             return;
         }
 
@@ -258,7 +270,7 @@ namespace OpenSim.Data.SQLite
             pcmd.ExecuteNonQuery();
         }
 
-        private static bool TestTables(SqliteConnection conn)
+        private static bool TestTables(SqliteConnection conn, Migration m)
         {
             SqliteCommand cmd = new SqliteCommand(assetSelect, conn);
             SqliteDataAdapter pDa = new SqliteDataAdapter(cmd);
@@ -270,8 +282,14 @@ namespace OpenSim.Data.SQLite
             catch (SqliteSyntaxException)
             {
                 m_log.Info("[ASSET DB]: SQLite Database doesn't exist... creating");
-                InitDB(conn);
+                return false;
             }
+            
+            // if the tables are here, and we don't have a migration,
+            // set it to 1, as we're migrating off of legacy bits
+            if (m.Version == 0) 
+                m.Version = 1;
+
             return true;
         }
 

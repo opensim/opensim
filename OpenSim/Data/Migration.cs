@@ -159,7 +159,13 @@ namespace OpenSim.Data
         public int Version 
         {
             get { return FindVersion(_type); }
-            set { UpdateVersion(_type, value); }
+            set { 
+                if (Version < 1) {
+                    InsertVersion(_type, value);
+                } else {
+                    UpdateVersion(_type, value);
+                } 
+            }
         }
 
         private int FindVersion(string type) 

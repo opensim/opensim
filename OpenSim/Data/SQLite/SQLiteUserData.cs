@@ -72,11 +72,19 @@ namespace OpenSim.Data.SQLite
                 connect = "URI=file:userprofiles.db,version=3";
 
             SqliteConnection conn = new SqliteConnection(connect);
-            TestTables(conn);
 
             // This sucks, but It doesn't seem to work with the dataset Syncing :P
             g_conn = conn;
             g_conn.Open();
+
+            Assembly assem = GetType().Assembly;
+            Migration m = new Migration(g_conn, assem, "UserStore");
+            
+            // TODO: remove this after rev 6000
+            TestTables(conn, m);
+
+            m.Update();
+
 
             ds = new DataSet();
             da = new SqliteDataAdapter(new SqliteCommand(userSelect, conn));
@@ -824,7 +832,7 @@ namespace OpenSim.Data.SQLite
             conn.Close();
         }
 
-        private static bool TestTables(SqliteConnection conn)
+        private static bool TestTables(SqliteConnection conn, Migration m)
         {
             SqliteCommand cmd = new SqliteCommand(userSelect, conn);
             SqliteCommand fcmd = new SqliteCommand(userFriendsSelect, conn);
@@ -842,26 +850,32 @@ namespace OpenSim.Data.SQLite
             catch (SqliteSyntaxException)
             {
                 m_log.Info("[USER DB]: SQLite Database doesn't exist... creating");
-                InitDB(conn);
-            }
-            conn.Open();
-            try
-            {
-                cmd = new SqliteCommand("select webLoginKey from users limit 1;", conn);
-                cmd.ExecuteNonQuery();
-            }
-            catch (SqliteSyntaxException)
-            {
-                cmd = new SqliteCommand("alter table users add column webLoginKey text default '00000000-0000-0000-0000-000000000000';", conn);
-                cmd.ExecuteNonQuery();
-                pDa.Fill(tmpDS, "users");
-            }
-            finally
-            {
-                conn.Close();
+                return false;
             }
 
+            if (m.Version == 0) 
+                m.Version = 1;
+
             return true;
+
+            // conn.Open();
+            // try
+            // {
+            //     cmd = new SqliteCommand("select webLoginKey from users limit 1;", conn);
+            //     cmd.ExecuteNonQuery();
+            // }
+            // catch (SqliteSyntaxException)
+            // {
+            //     cmd = new SqliteCommand("alter table users add column webLoginKey text default '00000000-0000-0000-0000-000000000000';", conn);
+            //     cmd.ExecuteNonQuery();
+            //     pDa.Fill(tmpDS, "users");
+            // }
+            // finally
+            // {
+            //     conn.Close();
+            // }
+
+            // return true;
         }
     }
 }
