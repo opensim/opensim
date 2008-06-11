@@ -596,7 +596,7 @@ namespace OpenSim.Region.Environment.Scenes
                 LLVector3 emergencyPos = new LLVector3(128, 128, 128);
                 
                 m_log.WarnFormat(
-                    "[SCENE PRESENCE]: MakeRootAgent() was given an illegal position of {0} for avatar {2}, {3}.  Substituting {4}", 
+                    "[SCENE PRESENCE]: MakeRootAgent() was given an illegal position of {0} for avatar {1}, {2}.  Substituting {3}", 
                     pos, Name, UUID, emergencyPos);
                 
                 pos = emergencyPos;
