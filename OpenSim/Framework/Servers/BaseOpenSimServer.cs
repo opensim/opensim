@@ -54,6 +54,11 @@ namespace OpenSim.Framework.Servers
         /// Time at which this server was started
         /// </summary>
         protected DateTime m_startuptime;
+        
+        /// <summary>
+        /// Record the initial startup directory for info purposes
+        /// </summary>
+        protected string m_startupDirectory = Environment.CurrentDirectory;
 
         /// <summary>
         /// Server version information.  Usually VersionInfo + information about svn revision, operating system, etc.
@@ -125,8 +130,10 @@ namespace OpenSim.Framework.Servers
                 case "help":
                     Notice("quit - equivalent to shutdown.");
 
+                    Notice("show info - show server information (e.g. startup path).");
+                
                     if (m_stats != null)
-                        Notice("show stats - statistical information for this server");
+                        Notice("show stats - show statistical information for this server");
                     
                     Notice("show uptime - show server startup time and uptime.");
                     Notice("show version - show server version.");
@@ -156,6 +163,11 @@ namespace OpenSim.Framework.Servers
         {
             switch (ShowWhat)
             {
+                case "info":
+                    Notice("Version: " + m_version );
+                    Notice("Startup directory: " + m_startupDirectory);                    
+                    break;
+                
                 case "stats":
                     if (m_stats != null)
                     {
@@ -164,12 +176,13 @@ namespace OpenSim.Framework.Servers
                     break;
 
                 case "uptime":
+                    Notice("Time now is " + DateTime.Now);
                     Notice("Server has been running since " + m_startuptime.DayOfWeek + ", " + m_startuptime.ToString());
                     Notice("That is an elapsed time of " + (DateTime.Now - m_startuptime).ToString());
                     break;
 
                 case "version":
-                    m_console.Notice("This is " + m_version);
+                    Notice("Version: " + m_version);
                     break;
             }
         }
@@ -242,6 +255,7 @@ namespace OpenSim.Framework.Servers
             {
                 OSString = Util.ReadEtcIssue();
             }
+            
             if (OSString.Length > 45)
             {
                 OSString = OSString.Substring(0, 45);
