@@ -588,8 +588,19 @@ namespace OpenSim.Region.Environment.Scenes
         public void MakeRootAgent(LLVector3 pos, bool isFlying)
         {
 //            m_log.DebugFormat(
-//                 "[SCENEPRESENCE]: Upgrading child agent {0}, {1} to a root agent in {2}",
-//                 Name, UUID, m_scene.RegionInfo.RegionName);
+//                 "[SCENE PRESENCE]: Upgrading child agent {0}, {1} to a root agent in {2} at pos {3}",
+//                 Name, UUID, m_scene.RegionInfo.RegionName, pos);
+            
+            if (pos.X < 0 || pos.X > Constants.RegionSize || pos.Y < 0 || pos.Y > Constants.RegionSize || pos.Z < 0)
+            {
+                LLVector3 emergencyPos = new LLVector3(128, 128, 128);
+                
+                m_log.WarnFormat(
+                    "[SCENE PRESENCE]: MakeRootAgent() was given an illegal position of {0} for avatar {2}, {3}.  Substituting {4}", 
+                    pos, Name, UUID, emergencyPos);
+                
+                pos = emergencyPos;
+            }            
 
             m_isChildAgent = false;
            
@@ -599,7 +610,7 @@ namespace OpenSim.Region.Environment.Scenes
                 localAVHeight = m_avHeight;
             }
 
-            float posZLimit = (float)m_scene.GetLandHeight((int)pos.X, (int)pos.Y);
+            float posZLimit = (float)m_scene.GetLandHeight((int)pos.X, (int)pos.Y);            
             float newPosZ = posZLimit + localAVHeight;
             if (posZLimit >= (pos.Z - (localAVHeight / 2)) && !(Single.IsInfinity(newPosZ) || Single.IsNaN(newPosZ)))
             {
