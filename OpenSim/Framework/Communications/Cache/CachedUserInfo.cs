@@ -379,7 +379,7 @@ namespace OpenSim.Framework.Communications.Cache
                 baseFolder.Type = (short) type;
                 baseFolder.Version = RootFolder.Version;
 
-                m_commsManager.InventoryService.AddFolder(baseFolder);
+                m_commsManager.InventoryService.UpdateFolder(baseFolder);
             }
             else
             {

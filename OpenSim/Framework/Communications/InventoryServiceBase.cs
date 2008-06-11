@@ -199,6 +199,21 @@ namespace OpenSim.Framework.Communications
         }
 
         // See IInventoryServices
+        public bool UpdateFolder(InventoryFolderBase folder)
+        {
+            m_log.DebugFormat(
+                "[AGENT INVENTORY]: Updating folder {0} {1} to folder {2}", folder.Name, folder.ID, folder.ParentID);
+
+            foreach (KeyValuePair<string, IInventoryData> plugin in m_plugins)
+            {
+                plugin.Value.updateInventoryFolder(folder);
+            }
+
+            // FIXME: Should return false on failure
+            return true;
+        }
+
+        // See IInventoryServices
         public bool MoveFolder(InventoryFolderBase folder)
         {
             m_log.DebugFormat(

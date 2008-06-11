@@ -58,6 +58,13 @@ namespace OpenSim.Framework.Communications
         bool AddFolder(InventoryFolderBase folder);
 
         /// <summary>
+        /// Update a folder in the user's inventory
+        /// </summary>
+        /// <param name="folder"></param>
+        /// <returns>true if the folder was successfully updated</returns>
+        bool UpdateFolder(InventoryFolderBase folder);
+
+        /// <summary>
         /// Move an inventory folder to a new location
         /// </summary>
         /// <param name="folder">A folder containing the details of the new location</param>

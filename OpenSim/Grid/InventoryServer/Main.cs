@@ -98,6 +98,10 @@ namespace OpenSim.Grid.InventoryServer
 
             m_httpServer.AddStreamHandler(
                 new RestDeserialisehandler<InventoryFolderBase, bool>(
+                    "POST", "/UpdateFolder/", m_inventoryService.UpdateFolder));
+
+            m_httpServer.AddStreamHandler(
+                new RestDeserialisehandler<InventoryFolderBase, bool>(
                     "POST", "/MoveFolder/", m_inventoryService.MoveFolder));
 
             m_httpServer.AddStreamHandler(

@@ -179,6 +179,26 @@ namespace OpenSim.Region.Communications.OGS1
         /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
         /// </summary>
         /// <param name="folder"></param>
+        public bool UpdateFolder(InventoryFolderBase folder)
+        {
+            try
+            {
+                return SynchronousRestObjectPoster.BeginPostObject<InventoryFolderBase, bool>(
+                    "POST", _inventoryServerUrl + "/UpdateFolder/", folder);
+            }
+            catch (WebException e)
+            {
+                m_log.ErrorFormat("[OGS1 INVENTORY SERVICE]: Update inventory folder operation failed, {0} {1}",
+                     e.Source, e.Message);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
+        /// </summary>
+        /// <param name="folder"></param>
         public bool MoveFolder(InventoryFolderBase folder)
         {
             try
