@@ -51,12 +51,13 @@ namespace OpenSim.Region.Modules.AvatarFactory
         public bool TryGetAvatarAppearance(LLUUID avatarId, out AvatarAppearance appearance)
         {
             CachedUserInfo profile = m_scene.CommsManager.UserProfileCacheService.GetUserDetails(avatarId);
-            if ((profile != null) && (profile.RootFolder != null))
+            //if ((profile != null) && (profile.RootFolder != null))
+            if (profile != null)
             {
                 appearance = m_scene.CommsManager.UserService.GetUserAppearance(avatarId);
                 if (appearance != null)
                 {
-                    SetAppearanceAssets(profile, ref appearance);
+                    //SetAppearanceAssets(profile, ref appearance);
                     m_log.InfoFormat("[APPEARANCE] found : {0}", appearance.ToString());
                     return true;
                 }
