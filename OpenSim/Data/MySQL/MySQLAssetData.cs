@@ -42,6 +42,48 @@ namespace OpenSim.Data.MySQL
 
         private MySQLManager _dbConnection;
 
+        #region IPlugin Members
+
+        override public void Initialise(string connect)
+        {
+            // TODO: This will let you pass in the connect string in
+            // the config, though someone will need to write that.
+            if (connect == String.Empty)
+            {
+                // This is old seperate config file
+                m_log.Warn("no connect string, using old mysql_connection.ini instead");
+                Initialise();
+            }
+            else
+            {
+                _dbConnection = new MySQLManager(connect);
+            }
+
+            // This actually does the roll forward assembly stuff
+            Assembly assem = GetType().Assembly;
+            Migration m = new Migration(_dbConnection.Connection, assem, "AssetStore");
+
+            // TODO: After rev 6000, remove this.  People should have
+            // been rolled onto the new migration code by then.
+            TestTables(m);
+
+            m.Update();
+        }
+
+        override public void Initialise()
+        {
+            IniFile GridDataMySqlFile = new IniFile("mysql_connection.ini");
+            string hostname = GridDataMySqlFile.ParseFileReadValue("hostname");
+            string database = GridDataMySqlFile.ParseFileReadValue("database");
+            string username = GridDataMySqlFile.ParseFileReadValue("username");
+            string password = GridDataMySqlFile.ParseFileReadValue("password");
+            string pooling = GridDataMySqlFile.ParseFileReadValue("pooling");
+            string port = GridDataMySqlFile.ParseFileReadValue("port");
+
+            _dbConnection = new MySQLManager(hostname, database, username, password, pooling, port);
+
+        }
+
         #region IAssetProvider Members
 
         private void UpgradeAssetsTable(string oldVersion)
@@ -58,14 +100,20 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Ensure that the assets related tables exists and are at the latest version
         /// </summary>
-        private void TestTables()
+        private void TestTables(Migration m)
         {
             Dictionary<string, string> tableList = new Dictionary<string, string>();
 
             tableList["assets"] = null;
             _dbConnection.GetTableVersion(tableList);
 
-            UpgradeAssetsTable(tableList["assets"]);
+            // if there is no table, return, migrations will handle it.
+            if (tableList["assets"] == null) 
+                return;
+
+            // if there is a table, and we don't have a migration, set it to 1
+            if (m.Version == 0) 
+                m.Version = 1;
         }
 
         override public AssetBase FetchAsset(LLUUID assetID)
@@ -208,38 +256,6 @@ namespace OpenSim.Data.MySQL
 
         #endregion
 
-        #region IPlugin Members
-
-        override public void Initialise(string connect)
-        {
-            // TODO: This will let you pass in the connect string in
-            // the config, though someone will need to write that.
-            if (connect == String.Empty)
-            {
-                // This is old seperate config file
-                Initialise();
-            }
-            else
-            {
-                _dbConnection = new MySQLManager(connect);
-                TestTables();
-            }
-        }
-
-        override public void Initialise()
-        {
-            IniFile GridDataMySqlFile = new IniFile("mysql_connection.ini");
-            string hostname = GridDataMySqlFile.ParseFileReadValue("hostname");
-            string database = GridDataMySqlFile.ParseFileReadValue("database");
-            string username = GridDataMySqlFile.ParseFileReadValue("username");
-            string password = GridDataMySqlFile.ParseFileReadValue("password");
-            string pooling = GridDataMySqlFile.ParseFileReadValue("pooling");
-            string port = GridDataMySqlFile.ParseFileReadValue("port");
-
-            _dbConnection = new MySQLManager(hostname, database, username, password, pooling, port);
-
-            TestTables();
-        }
 
         override public string Version
         {

@@ -69,7 +69,16 @@ namespace OpenSim.Data.MySQL
                     new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword, settingPooling,
                                      settingPort);
             }
-            TestTables(database.Connection);
+
+            // This actually does the roll forward assembly stuff
+            Assembly assem = GetType().Assembly;
+            Migration m = new Migration(database.Connection, assem, "AssetStore");
+
+            // TODO: After rev 6000, remove this.  People should have
+            // been rolled onto the new migration code by then.
+            TestTables(database.Connection, m);
+
+            m.Update();
         }
 
         #region Test and initialization code
@@ -107,7 +116,7 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        private void TestTables(MySqlConnection conn)
+        private void TestTables(MySqlConnection conn, Migration m)
         {
             Dictionary<string, string> tableList = new Dictionary<string, string>();
 
@@ -115,11 +124,28 @@ namespace OpenSim.Data.MySQL
             tableList["inventoryitems"] = null;
 
             database.GetTableVersion(tableList);
-            m_log.Info("[INVENTORY DB]: Inventory Folder Version: " + tableList["inventoryfolders"]);
-            m_log.Info("[INVENTORY DB]: Inventory Items Version: " + tableList["inventoryitems"]);
 
+            // if we've already started using migrations, get out of
+            // here, we've got this under control
+            if (m.Version > 0)
+                return;
+
+            // if there are no tables, get out of here and let
+            // migrations do their job
+            if(
+               tableList["inventoryfolders"] == null &&
+               tableList["inventoryitems"] == null
+               )
+                return;
+
+            // otherwise, let the upgrade on legacy proceed...
             UpgradeFoldersTable(tableList["inventoryfolders"]);
             UpgradeItemsTable(tableList["inventoryitems"]);
+
+            // ... and set the version
+            if (m.Version == 0)
+                m.Version = 1;
+            
         }
 
         #endregion

@@ -105,7 +105,15 @@ namespace OpenSim.Data.MySQL
                 database = new MySQLManager(m_connectString);
             }
 
-            TestTables();
+            // This actually does the roll forward assembly stuff
+            Assembly assem = GetType().Assembly;
+            Migration m = new Migration(database.Connection, assem, "AssetStore");
+
+            // TODO: After rev 6000, remove this.  People should have
+            // been rolled onto the new migration code by then.
+            TestTables(m);
+
+            m.Update();
         }
 
         #region Test and initialization code
@@ -113,7 +121,7 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Ensure that the user related tables exists and are at the latest version
         /// </summary>
-        private void TestTables()
+        private void TestTables(Migration m)
         {
             Dictionary<string, string> tableList = new Dictionary<string, string>();
 
@@ -123,10 +131,30 @@ namespace OpenSim.Data.MySQL
             tableList[m_appearanceTableName] = null;
             database.GetTableVersion(tableList);
 
+            // if we've already started using migrations, get out of
+            // here, we've got this under control
+            if (m.Version > 0)
+                return;
+
+            // if there are no tables, get out of here and let
+            // migrations do their job
+            if(
+               tableList[m_agentsTableName] == null &&
+               tableList[m_usersTableName] == null &&
+               tableList[m_userFriendsTableName] == null &&
+               tableList[m_appearanceTableName] == null
+               )
+                return;
+
+            // otherwise, let the upgrade on legacy proceed...
             UpgradeAgentsTable(tableList[m_agentsTableName]);
             UpgradeUsersTable(tableList[m_usersTableName]);
             UpgradeFriendsTable(tableList[m_userFriendsTableName]);
             UpgradeAppearanceTable(tableList[m_appearanceTableName]);
+
+            // ... and set the version
+            if (m.Version == 0)
+                m.Version = 1;
         }
 
         /// <summary>

@@ -91,7 +91,16 @@ namespace OpenSim.Data.MySQL
             m_log.Info("[REGION DB]: MySql - connecting: " + connectionstring);
             m_connection = new MySqlConnection(connectionstring);
 
-            TestTablesVersionable(m_connection);
+            // This actually does the roll forward assembly stuff
+            Assembly assem = GetType().Assembly;
+            Migration m = new Migration(m_connection, assem, "RegionStore");
+
+            // TODO: After rev 6000, remove this.  People should have
+            // been rolled onto the new migration code by then.
+            TestTables(m_connection, m);
+
+            m.Update();
+
 
             MySqlCommand primSelectCmd = new MySqlCommand(m_primSelect, m_connection);
             m_primDataAdapter = new MySqlDataAdapter(primSelectCmd);
@@ -111,8 +120,6 @@ namespace OpenSim.Data.MySQL
             MySqlCommand landAccessListSelectCmd = new MySqlCommand(m_landAccessListSelect, m_connection);
             m_landAccessListDataAdapter = new MySqlDataAdapter(landAccessListSelectCmd);
 
-
-            TestTables(m_connection);
 
             lock (m_dataSet)
             {
@@ -185,18 +192,18 @@ namespace OpenSim.Data.MySQL
                 }
             }
         }
-        private void TestTablesVersionable(MySqlConnection dbconn)
-        {
-            Dictionary<string, string> tableList = new Dictionary<string, string>();
+        // private void TestTablesVersionable(MySqlConnection dbconn)
+        // {
+        //     Dictionary<string, string> tableList = new Dictionary<string, string>();
 
-            tableList["land"] = null;
-            dbconn.Open();
-            GetTableVersion(tableList,dbconn);
+        //     tableList["land"] = null;
+        //     dbconn.Open();
+        //     GetTableVersion(tableList,dbconn);
 
-            UpgradeLandTable(tableList["land"], dbconn);
-            //database.Close();
+        //     UpgradeLandTable(tableList["land"], dbconn);
+        //     //database.Close();
 
-        }
+        // }
 
         /// <summary>
         /// Execute a SQL statement stored in a resource, as a string
@@ -1660,7 +1667,7 @@ namespace OpenSim.Data.MySQL
             conn.Close();
         }
 
-        private bool TestTables(MySqlConnection conn)
+        private bool TestTables(MySqlConnection conn, Migration m)
         {
             MySqlCommand primSelectCmd = new MySqlCommand(m_primSelect, conn);
             MySqlDataAdapter pDa = new MySqlDataAdapter(primSelectCmd);
@@ -1681,8 +1688,7 @@ namespace OpenSim.Data.MySQL
                 pDa.Fill(tmpDS, "prims");
                 sDa.Fill(tmpDS, "primshapes");
 
-                if (persistPrimInventories)
-                    iDa.Fill(tmpDS, "primitems");
+                iDa.Fill(tmpDS, "primitems");
 
                 tDa.Fill(tmpDS, "terrain");
                 lDa.Fill(tmpDS, "land");
@@ -1691,67 +1697,73 @@ namespace OpenSim.Data.MySQL
             catch (MySqlException)
             {
                 m_log.Info("[DATASTORE]: MySql Database doesn't exist... creating");
-                InitDB(conn);
+                return false;
             }
 
-            pDa.Fill(tmpDS, "prims");
-            sDa.Fill(tmpDS, "primshapes");
-
-            if (persistPrimInventories)
-                iDa.Fill(tmpDS, "primitems");
-
-            tDa.Fill(tmpDS, "terrain");
-            lDa.Fill(tmpDS, "land");
-            lalDa.Fill(tmpDS, "landaccesslist");
-
-            foreach (DataColumn col in createPrimTable().Columns)
-            {
-                if (!tmpDS.Tables["prims"].Columns.Contains(col.ColumnName))
-                {
-                    m_log.Info("[REGION DB]: Missing required column:" + col.ColumnName);
-                    return false;
-                }
-            }
-
-            foreach (DataColumn col in createShapeTable().Columns)
-            {
-                if (!tmpDS.Tables["primshapes"].Columns.Contains(col.ColumnName))
-                {
-                    m_log.Info("[REGION DB]: Missing required column:" + col.ColumnName);
-                    return false;
-                }
-            }
-
-            // XXX primitems should probably go here eventually
-
-            foreach (DataColumn col in createTerrainTable().Columns)
-            {
-                if (!tmpDS.Tables["terrain"].Columns.Contains(col.ColumnName))
-                {
-                    m_log.Info("[REGION DB]: Missing require column:" + col.ColumnName);
-                    return false;
-                }
-            }
-
-            foreach (DataColumn col in createLandTable().Columns)
-            {
-                if (!tmpDS.Tables["land"].Columns.Contains(col.ColumnName))
-                {
-                    m_log.Info("[REGION DB]: Missing require column:" + col.ColumnName);
-                    return false;
-                }
-            }
-
-            foreach (DataColumn col in createLandAccessListTable().Columns)
-            {
-                if (!tmpDS.Tables["landaccesslist"].Columns.Contains(col.ColumnName))
-                {
-                    m_log.Info("[DATASTORE]: Missing require column:" + col.ColumnName);
-                    return false;
-                }
-            }
+            // we have tables, but not a migration model yet
+            if (m.Version == 0)
+                m.Version = 1;
 
             return true;
+
+            // pDa.Fill(tmpDS, "prims");
+            // sDa.Fill(tmpDS, "primshapes");
+
+            // if (persistPrimInventories)
+            //     iDa.Fill(tmpDS, "primitems");
+
+            // tDa.Fill(tmpDS, "terrain");
+            // lDa.Fill(tmpDS, "land");
+            // lalDa.Fill(tmpDS, "landaccesslist");
+
+            // foreach (DataColumn col in createPrimTable().Columns)
+            // {
+            //     if (!tmpDS.Tables["prims"].Columns.Contains(col.ColumnName))
+            //     {
+            //         m_log.Info("[REGION DB]: Missing required column:" + col.ColumnName);
+            //         return false;
+            //     }
+            // }
+
+            // foreach (DataColumn col in createShapeTable().Columns)
+            // {
+            //     if (!tmpDS.Tables["primshapes"].Columns.Contains(col.ColumnName))
+            //     {
+            //         m_log.Info("[REGION DB]: Missing required column:" + col.ColumnName);
+            //         return false;
+            //     }
+            // }
+
+            // // XXX primitems should probably go here eventually
+
+            // foreach (DataColumn col in createTerrainTable().Columns)
+            // {
+            //     if (!tmpDS.Tables["terrain"].Columns.Contains(col.ColumnName))
+            //     {
+            //         m_log.Info("[REGION DB]: Missing require column:" + col.ColumnName);
+            //         return false;
+            //     }
+            // }
+
+            // foreach (DataColumn col in createLandTable().Columns)
+            // {
+            //     if (!tmpDS.Tables["land"].Columns.Contains(col.ColumnName))
+            //     {
+            //         m_log.Info("[REGION DB]: Missing require column:" + col.ColumnName);
+            //         return false;
+            //     }
+            // }
+
+            // foreach (DataColumn col in createLandAccessListTable().Columns)
+            // {
+            //     if (!tmpDS.Tables["landaccesslist"].Columns.Contains(col.ColumnName))
+            //     {
+            //         m_log.Info("[DATASTORE]: Missing require column:" + col.ColumnName);
+            //         return false;
+            //     }
+            // }
+
+            // return true;
         }
 
         /***********************************************************************
