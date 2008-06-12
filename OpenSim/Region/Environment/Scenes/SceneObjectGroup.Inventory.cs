@@ -124,6 +124,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
         /// Start a given script.
         /// </summary>
         /// <param name="localID">

@@ -351,15 +351,13 @@ namespace OpenSim.Region.Environment.Scenes
 
             RegionHandle = regionHandle;
 
-            AttachToBackup();
-
             ApplyPhysics(scene.m_physicalPrim);
 
             ScheduleGroupForFullUpdate();
         }
 
         /// <summary>
-        /// Restore the object from its serialized xml representation.
+        /// Create an object using serialized data in OpenSim's original xml format.
         /// </summary>
         public SceneObjectGroup(Scene scene, ulong regionHandle, string xmlData)
         {
@@ -417,15 +415,13 @@ namespace OpenSim.Region.Environment.Scenes
             m_rootPart.RegionHandle = m_regionHandle;
             UpdateParentIDs();
 
-            AttachToBackup();
-
             ApplyPhysics(scene.m_physicalPrim);
 
             ScheduleGroupForFullUpdate();
         }
 
         /// <summary>
-        ///
+        /// Create an object using serialized data in OpenSim's xml2 format.
         /// </summary>
         public SceneObjectGroup(string xmlData)
         {
@@ -495,6 +491,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             //ApplyPhysics(scene.m_physicalPrim);
         }
+        
         /// <summary>
         ///
         /// </summary>
@@ -527,7 +524,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Hooks this object up to the backup event so that it is persisted to the database when the update thread executes.
         /// </summary>
-        private void AttachToBackup()
+        public void AttachToBackup()
         {
             if (InSceneBackup)
             {
@@ -822,7 +819,6 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetScene(Scene scene)
         {
             m_scene = scene;
-            AttachToBackup();
         }
 
         /// <summary>
@@ -1848,38 +1844,9 @@ namespace OpenSim.Region.Environment.Scenes
 
                 linkPart.RotationOffset = worldRot;
 
-                // This chunk is probably unnecesary now - delete later on
-                /*
-                Quaternion oldRot
-                    = new Quaternion(
-                        linkPart.RotationOffset.W,
-                        linkPart.RotationOffset.X,
-                        linkPart.RotationOffset.Y,
-                        linkPart.RotationOffset.Z);
-                Quaternion newRot = parentRot*oldRot;
-                linkPart.RotationOffset = new LLQuaternion(newRot.x, newRot.y, newRot.z, newRot.w);
-                */
-
-                // Add physics information back to delinked part if appropriate
-                // XXX This is messy and should be refactorable with the similar section in
-                // SceneObjectPart.UpdatePrimFlags()
-                //if (m_rootPart.PhysActor != null)
-                //{
-                //linkPart.PhysActor = m_scene.PhysicsScene.AddPrimShape(
-                //linkPart.Name,
-                //linkPart.Shape,
-                //new PhysicsVector(linkPart.AbsolutePosition.X, linkPart.AbsolutePosition.Y,
-                //linkPart.AbsolutePosition.Z),
-                //new PhysicsVector(linkPart.Scale.X, linkPart.Scale.Y, linkPart.Scale.Z),
-                //new Quaternion(linkPart.RotationOffset.W, linkPart.RotationOffset.X,
-                //linkPart.RotationOffset.Y, linkPart.RotationOffset.Z),
-                //m_rootPart.PhysActor.IsPhysical);
-                //m_rootPart.DoPhysicsPropertyUpdate(m_rootPart.PhysActor.IsPhysical, true);
-                //}
-
                 SceneObjectGroup objectGroup = new SceneObjectGroup(m_scene, m_regionHandle, linkPart);
 
-                m_scene.AddSceneObject(objectGroup);
+                m_scene.AddSceneObject(objectGroup, true);
 
                 ScheduleGroupForFullUpdate();
             }
@@ -1891,7 +1858,11 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        private void DetachFromBackup(SceneObjectGroup objectGroup)
+        /// <summary>
+        /// Stop this object from being persisted over server restarts.
+        /// </summary>
+        /// <param name="objectGroup"></param>
+        public void DetachFromBackup(SceneObjectGroup objectGroup)
         {
             m_scene.EventManager.OnBackup -= objectGroup.ProcessBackup;
         }

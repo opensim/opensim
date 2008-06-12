@@ -1483,8 +1483,6 @@ namespace OpenSim.Region.Environment.Scenes
                       RayStart, RayEnd, RayTargetID, new LLQuaternion(0, 0, 0, 1),
                       BypassRayCast, bRayEndIsIntersection,true,scale, false);
 
-
-
             // Rez object
             CachedUserInfo userInfo = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
             if (userInfo != null)
@@ -1508,7 +1506,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                             group.ResetIDs();
 
-                            AddSceneObject(group);
+                            AddSceneObject(group, true);
 
                             // if attachment we set it's asset id so object updates can reflect that
                             // if not, we set it's position in world.
@@ -1601,6 +1599,15 @@ namespace OpenSim.Region.Environment.Scenes
             return null;
         }
 
+        /// <summary>
+        /// Rez an object in the scene
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="pos"></param>
+        /// <param name="rot"></param>
+        /// <param name="vel"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public virtual SceneObjectGroup RezObject(TaskInventoryItem item, LLVector3 pos, LLQuaternion rot, LLVector3 vel, int param)
         {
             // Rez object
@@ -1621,7 +1628,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     group.ResetIDs();
 
-                    AddSceneObject(group);
+                    AddSceneObject(group, true);
 
                     // Set the startup parameter for on_rez event and llGetStartParameter() function
                     group.StartParameter = param;
@@ -1678,10 +1685,11 @@ namespace OpenSim.Region.Environment.Scenes
                     rootPart.ScheduleFullUpdate();
                     return rootPart.ParentGroup;
                 }
-
             }
+            
             return null;
         }
+        
         public virtual bool returnObjects(SceneObjectGroup[] returnobjects, LLUUID AgentId)
         {
             string message = "";
@@ -1698,9 +1706,6 @@ namespace OpenSim.Region.Environment.Scenes
             //    returnstring += grp.ToXmlString2();
             //}
             //returnstring += "</scene>\n";
-
-
-
 
             bool permissionToDelete = false;
 

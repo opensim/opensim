@@ -1492,7 +1492,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SceneObjectGroup sceneOb =
                 new SceneObjectGroup(this, m_regionHandle, ownerID, PrimIDAllocate(), pos, rot, shape);
-            AddSceneObject(sceneOb);
+            AddSceneObject(sceneOb, true);
             SceneObjectPart rootPart = sceneOb.GetChildPart(sceneOb.UUID);
             // if grass or tree, make phantom
             //rootPart.TrimPermissions();
@@ -1556,9 +1556,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// Add an object to the scene
         /// </summary>
         /// <param name="sceneObject"></param>
-        public void AddSceneObject(SceneObjectGroup sceneObject)
+        /// <param name="attachToBackup">
+        /// If true, the object is made persistent into the scene.  
+        /// If false, the object will not persist over server restarts
+        /// </param>
+        public void AddSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
         {
-            m_innerScene.AddSceneObject(sceneObject);
+            m_innerScene.AddSceneObject(sceneObject, attachToBackup);
         }
 
         /// <summary>
