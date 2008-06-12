@@ -326,7 +326,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Constructors
 
         /// <summary>
-        ///
+        /// Constructor
         /// </summary>
         public SceneObjectGroup()
         {
@@ -766,8 +766,8 @@ namespace OpenSim.Region.Environment.Scenes
             AttachToBackup();
             m_rootPart.ScheduleFullUpdate();
             m_rootPart.ClearUndoState();
-
         }
+        
         public void DetachToInventoryPrep()
         {
             ScenePresence avatar = m_scene.GetScenePresence(m_rootPart.m_attachedAvatar);

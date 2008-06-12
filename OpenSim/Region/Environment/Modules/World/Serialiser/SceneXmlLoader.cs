@@ -143,7 +143,7 @@ namespace OpenSim.Region.Environment.Scenes
             rootNode = doc.FirstChild;
             foreach (XmlNode aPrimNode in rootNode.ChildNodes)
             {
-                CreatePrimFromXml(scene, aPrimNode.OuterXml);
+                CreatePrimFromXml2(scene, aPrimNode.OuterXml);
             }
         }
 
@@ -182,13 +182,20 @@ namespace OpenSim.Region.Environment.Scenes
 
             foreach (XmlNode aPrimNode in rootNode.ChildNodes)
             {
-                CreatePrimFromXml(scene, aPrimNode.OuterXml);
+                CreatePrimFromXml2(scene, aPrimNode.OuterXml);
             }
         }
 
-        public static void CreatePrimFromXml(Scene scene, string xmlData)
+        /// <summary>
+        /// Create a prim from the xml2 representation.
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="xmlData"></param>
+        protected static void CreatePrimFromXml2(Scene scene, string xmlData)
         {
             SceneObjectGroup obj = new SceneObjectGroup(xmlData);
+            
+            
             LLVector3 receivedVelocity = obj.RootPart.Velocity;
             //System.Console.WriteLine(obj.RootPart.Velocity.ToString());
             scene.AddSceneObjectFromStorage(obj);
