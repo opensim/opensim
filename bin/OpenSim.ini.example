@@ -22,6 +22,10 @@ region_info_source = "filesystem"
 ; except that everything is also enclosed in a <Regions> tag.
 ; regionload_webserver_url = "http://example.com/regions.xml";
 
+; Draw objects on maptile.   This step might take a long time if you've got a huge amount of 
+; objects, so you can turn it off here if you'd like.
+DrawPrimOnMapTile = true
+
 ; ##
 ; ## STORAGE
 ; ##

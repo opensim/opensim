@@ -998,9 +998,11 @@ namespace OpenSim.Region.Environment.Scenes
             // Cannot create a map for a nonexistant heightmap yet.
             if (Heightmap == null)
                 return;
-
+            
             if (terrain == null)
             {
+                int tc = System.Environment.TickCount;
+                m_log.Info("[MAPTILE]: Generating Maptile Step 1: Terrain");
                 Bitmap mapbmp = new Bitmap(256, 256);
                 double[,] hm = Heightmap.GetDoubles();
 
@@ -1129,6 +1131,146 @@ namespace OpenSim.Region.Environment.Scenes
                     //tc = System.Environment.TickCount - tc;
                     //m_log.Info("[MAPTILE]: Completed One row in " + tc + " ms");
                 }
+                m_log.Info("[MAPTILE]: Generating Maptile Step 1: Done in " + (System.Environment.TickCount - tc) + " ms");
+
+                bool drawPrimVolume = true;
+
+
+                try
+                {
+                    IConfig startupConfig = m_config.Configs["Startup"];
+                    drawPrimVolume = startupConfig.GetBoolean("DrawPrimOnMapTile", true);
+                }
+                catch (Exception)
+                {
+                    m_log.Warn("Failed to load StarupConfg");
+                }
+               
+
+                if (drawPrimVolume)
+                {
+                    tc = System.Environment.TickCount;
+                    m_log.Info("[MAPTILE]: Generating Maptile Step 2: Object Volume Profile");
+                    List<EntityBase> objs = GetEntities();
+
+                    lock (objs)
+                    {
+                        foreach (EntityBase obj in objs)
+                        {
+                            // Only draw the contents of SceneObjectGroup
+                            if (obj is SceneObjectGroup)
+                            {
+                                SceneObjectGroup mapdot = (SceneObjectGroup)obj;
+                                Color mapdotspot = Color.Gray; // Default color when prim color is white
+                                // Loop over prim in group
+                                foreach (SceneObjectPart part in mapdot.Children.Values)
+                                {
+                                    // Draw if the object is at least 1 meter wide in any direction
+                                    if (part.Scale.X > 1f || part.Scale.Y > 1f || part.Scale.Z > 1f)
+                                    {
+                                        LLColor texcolor = part.Shape.Textures.DefaultTexture.RGBA;
+                                        int colorr = 255 - (int)(texcolor.R * 255f);
+                                        int colorg = 255 - (int)(texcolor.G * 255f);
+                                        int colorb = 255 - (int)(texcolor.B * 255f);
+
+                                        if (colorr == 255 && colorg == 255 && colorb == 255)
+                                        { }
+                                        else
+                                        {
+                                            try
+                                            {
+                                                // If the color gets goofy somehow, skip it *shakes fist at LLColor
+                                                mapdotspot = Color.FromArgb(colorr, colorg, colorb);
+                                            }
+                                            catch (ArgumentException)
+                                            {
+                                            }
+                                        }
+
+                                        LLVector3 pos = part.GetWorldPosition();
+
+                                        // skip prim outside of retion
+                                        if (pos.X < 0f || pos.X > 256f || pos.Y < 0f || pos.Y > 256f)
+                                            continue;
+
+                                        // skip prim in non-finite position
+                                        if (Single.IsNaN(pos.X) || Single.IsNaN(pos.Y) || Single.IsInfinity(pos.X)
+                                                                || Single.IsInfinity(pos.Y))
+                                            continue;
+
+                                        // Figure out if object is under 256m above the height of the terrain
+                                        bool isBelow256AboveTerrain = false;
+
+                                        try
+                                        {
+                                            isBelow256AboveTerrain = (pos.Z < ((float)hm[(int)pos.X, (int)pos.Y] + 256f));
+                                        }
+                                        catch (Exception)
+                                        {
+                                        }
+
+                                        if (isBelow256AboveTerrain)
+                                        {
+                                            // Translate scale by rotation so scale is represented properly when object is rotated
+                                            Vector3 scale = new Vector3(part.Shape.Scale.X, part.Shape.Scale.Y, part.Shape.Scale.Z);
+                                            LLQuaternion llrot = part.GetWorldRotation();
+                                            Quaternion rot = new Quaternion(llrot.W, llrot.X, llrot.Y, llrot.Z);
+                                            scale = rot * scale;
+
+                                            // negative scales don't work in this situation
+                                            scale.x = Math.Abs(scale.x);
+                                            scale.y = Math.Abs(scale.y);
+                                            scale.z = Math.Abs(scale.z);
+
+                                            // This scaling isn't very accurate and doesn't take into account the face rotation :P
+                                            int mapdrawstartX = (int)(pos.X - scale.x);
+                                            int mapdrawstartY = (int)(pos.Y - scale.y);
+                                            int mapdrawendX = (int)(pos.X + scale.x);
+                                            int mapdrawendY = (int)(pos.Y + scale.y);
+
+                                            // If object is beyond the edge of the map, don't draw it to avoid errors
+                                            if (mapdrawstartX < 0 || mapdrawstartX > 255 || mapdrawendX < 0 || mapdrawendX > 255
+                                                                  || mapdrawstartY < 0 || mapdrawstartY > 255 || mapdrawendY < 0
+                                                                  || mapdrawendY > 255)
+                                                continue;
+
+
+                                            int wy = 0;
+
+                                            bool breakYN = false; // If we run into an error drawing, break out of the 
+                                            // loop so we don't lag to death on error handling
+                                            for (int wx = mapdrawstartX; wx < mapdrawendX; wx++)
+                                            {
+                                                for (wy = mapdrawstartY; wy < mapdrawendY; wy++)
+                                                {
+                                                    //m_log.InfoFormat("[MAPDEBUG]: {0},{1}({2})", wx, (255 - wy),wy);
+                                                    try
+                                                    {
+                                                        // Remember, flip the y!
+                                                        mapbmp.SetPixel(wx, (255 - wy), mapdotspot);
+                                                    }
+                                                    catch (ArgumentException)
+                                                    {
+                                                        breakYN = true;
+                                                    }
+
+                                                    if (breakYN)
+                                                        break;
+                                                }
+
+                                                if (breakYN)
+                                                    break;
+                                            }  
+                                        } // Object is within 256m Z of terrain
+                                    } // object is at least a meter wide
+                                } // loop over group children
+                            } // entitybase is sceneobject group
+                        } // foreach loop over entities
+                    } // lock entities objs
+
+                    m_log.Info("[MAPTILE]: Generating Maptile Step 2: Done in " + (System.Environment.TickCount - tc) + " ms");
+                } // end if drawPrimOnMaptle
+
                 byte[] data;
                 try
                 {
