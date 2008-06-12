@@ -1168,23 +1168,37 @@ namespace OpenSim.Region.Environment.Scenes
                                     // Draw if the object is at least 1 meter wide in any direction
                                     if (part.Scale.X > 1f || part.Scale.Y > 1f || part.Scale.Z > 1f)
                                     {
-                                        LLColor texcolor = part.Shape.Textures.DefaultTexture.RGBA;
-                                        int colorr = 255 - (int)(texcolor.R * 255f);
-                                        int colorg = 255 - (int)(texcolor.G * 255f);
-                                        int colorb = 255 - (int)(texcolor.B * 255f);
-
-                                        if (colorr == 255 && colorg == 255 && colorb == 255)
-                                        { }
-                                        else
+                                        // Try to get the RGBA of the default texture entry..  
+                                        // 
+                                        try
                                         {
-                                            try
+                                            LLColor texcolor = part.Shape.Textures.DefaultTexture.RGBA;
+                                            int colorr = 255 - (int)(texcolor.R * 255f);
+                                            int colorg = 255 - (int)(texcolor.G * 255f);
+                                            int colorb = 255 - (int)(texcolor.B * 255f);
+
+                                            if (colorr == 255 && colorg == 255 && colorb == 255)
+                                            { }
+                                            else
                                             {
-                                                // If the color gets goofy somehow, skip it *shakes fist at LLColor
-                                                mapdotspot = Color.FromArgb(colorr, colorg, colorb);
+                                                //Try to set the map spot color
+                                                try
+                                                {
+                                                    // If the color gets goofy somehow, skip it *shakes fist at LLColor
+                                                    mapdotspot = Color.FromArgb(colorr, colorg, colorb);
+                                                }
+                                                catch (ArgumentException)
+                                                {
+                                                }
                                             }
-                                            catch (ArgumentException)
-                                            {
-                                            }
+                                        }
+                                        catch (IndexOutOfRangeException)
+                                        {
+                                            // Windows Array
+                                        }
+                                        catch (ArgumentOutOfRangeException)
+                                        {
+                                            // Mono Array
                                         }
 
                                         LLVector3 pos = part.GetWorldPosition();
