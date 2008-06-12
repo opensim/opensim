@@ -1107,7 +1107,9 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if ((!IsSelected) && (RootPart != null))
                 {
-                    m_log.InfoFormat("[SCENE OBJECT GROUP]: Storing object {0}", UUID);
+                    m_log.InfoFormat(
+                        "[SCENE]: Storing object {0}, {1} in {2}", 
+                        m_rootPart.Name, UUID, m_scene.RegionInfo.RegionName);
 
                     SceneObjectGroup backup_group = Copy(OwnerID, GroupID, false);
 

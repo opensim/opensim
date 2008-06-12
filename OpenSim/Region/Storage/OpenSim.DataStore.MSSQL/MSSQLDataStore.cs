@@ -130,7 +130,7 @@ namespace OpenSim.DataStore.MSSQL
             {
                 foreach (SceneObjectPart prim in obj.Children.Values)
                 {
-                    m_log.Info("[DATASTORE]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
+                    //m_log.Info("[DATASTORE]: Adding obj: " + obj.UUID + " to region: " + regionUUID);
                     addPrim(prim, obj.UUID, regionUUID);
                 }
             }
