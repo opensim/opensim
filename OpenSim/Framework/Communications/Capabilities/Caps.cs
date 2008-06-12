@@ -135,10 +135,10 @@ namespace OpenSim.Framework.Communications.Capabilities
             {
                 // the root of all evil
                 m_capsHandlers["SEED"] = new RestStreamHandler("POST", capsBase + m_requestPath, CapsRequest);
-                m_capsHandlers["MapLayer"] =
-                    new LLSDStreamhandler<LLSDMapRequest, LLSDMapLayerResponse>("POST",
-                                                                                capsBase + m_mapLayerPath,
-                                                                                GetMapLayer);
+                //m_capsHandlers["MapLayer"] =
+                //    new LLSDStreamhandler<LLSDMapRequest, LLSDMapLayerResponse>("POST",
+                //                                                                capsBase + m_mapLayerPath,
+                //                                                                GetMapLayer);
                 m_capsHandlers["NewFileAgentInventory"] =
                     new LLSDStreamhandler<LLSDAssetUploadRequest, LLSDAssetUploadResponse>("POST",
                                                                                            capsBase + m_newInventory,
@@ -420,6 +420,7 @@ namespace OpenSim.Framework.Communications.Capabilities
             mapLayer.Right = 5000;
             mapLayer.Top = 5000;
             mapLayer.ImageID = new LLUUID("00000000-0000-1111-9999-000000000006");
+            
             return mapLayer;
         }
 

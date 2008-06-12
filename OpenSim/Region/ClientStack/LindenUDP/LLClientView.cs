@@ -1209,27 +1209,52 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(newSimPack, ThrottleOutPacketType.Unknown);
         }
 
-        public void SendMapBlock(List<MapBlockData> mapBlocks)
+        internal void SendMapBlockSplit(List<MapBlockData> mapBlocks)
         {
             MapBlockReplyPacket mapReply = (MapBlockReplyPacket)PacketPool.Instance.GetPacket(PacketType.MapBlockReply);
             // TODO: don't create new blocks if recycling an old packet
+
+            MapBlockData[] mapBlocks2 = mapBlocks.ToArray();
+
             mapReply.AgentData.AgentID = AgentId;
-            mapReply.Data = new MapBlockReplyPacket.DataBlock[mapBlocks.Count];
+            mapReply.Data = new MapBlockReplyPacket.DataBlock[mapBlocks2.Length];
             mapReply.AgentData.Flags = 0;
 
-            for (int i = 0; i < mapBlocks.Count; i++)
+            for (int i = 0; i < mapBlocks2.Length; i++)
             {
                 mapReply.Data[i] = new MapBlockReplyPacket.DataBlock();
-                mapReply.Data[i].MapImageID = mapBlocks[i].MapImageId;
-                mapReply.Data[i].X = mapBlocks[i].X;
-                mapReply.Data[i].Y = mapBlocks[i].Y;
-                mapReply.Data[i].WaterHeight = mapBlocks[i].WaterHeight;
-                mapReply.Data[i].Name = Helpers.StringToField(mapBlocks[i].Name);
-                mapReply.Data[i].RegionFlags = mapBlocks[i].RegionFlags;
-                mapReply.Data[i].Access = mapBlocks[i].Access;
-                mapReply.Data[i].Agents = mapBlocks[i].Agents;
+                mapReply.Data[i].MapImageID = mapBlocks2[i].MapImageId;
+                mapReply.Data[i].X = mapBlocks2[i].X;
+                mapReply.Data[i].Y = mapBlocks2[i].Y;
+                mapReply.Data[i].WaterHeight = mapBlocks2[i].WaterHeight;
+                mapReply.Data[i].Name = Helpers.StringToField(mapBlocks2[i].Name);
+                mapReply.Data[i].RegionFlags = mapBlocks2[i].RegionFlags;
+                mapReply.Data[i].Access = mapBlocks2[i].Access;
+                mapReply.Data[i].Agents = mapBlocks2[i].Agents;
             }
             OutPacket(mapReply, ThrottleOutPacketType.Land);
+        }
+
+        public void SendMapBlock(List<MapBlockData> mapBlocks)
+        {
+           
+            MapBlockData[] mapBlocks2 = mapBlocks.ToArray();
+            
+            int maxsend = 10;
+            
+            //int packets = Math.Ceiling(mapBlocks2.Length / maxsend);
+
+            List<MapBlockData> sendingBlocks = new List<MapBlockData>();
+            
+            for (int i = 0; i < mapBlocks2.Length; i++)
+            {
+                sendingBlocks.Add(mapBlocks2[i]);
+                if (((i + 1) == mapBlocks2.Length) || ((i % maxsend) == 0))
+                {
+                    SendMapBlockSplit(sendingBlocks);
+                    sendingBlocks = new List<MapBlockData>();
+                }
+            }
         }
 
         public void SendLocalTeleport(LLVector3 position, LLVector3 lookAt, uint flags)

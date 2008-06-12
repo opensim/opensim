@@ -1867,7 +1867,7 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnUpdatePrimGroupScale += m_innerScene.UpdatePrimGroupScale;
             client.OnUpdateExtraParams += m_innerScene.UpdateExtraParam;
             client.OnUpdatePrimShape += m_innerScene.UpdatePrimShape;
-            client.OnRequestMapBlocks += RequestMapBlocks;
+            //client.OnRequestMapBlocks += RequestMapBlocks; // handled in a module now.
             client.OnUpdatePrimTexture += m_innerScene.UpdatePrimTexture;
             client.OnTeleportLocationRequest += RequestTeleportLocation;
             client.OnTeleportLandmarkRequest += RequestTeleportLandmark;
@@ -2487,7 +2487,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="maxY"></param>
         public void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY)
         {
-            m_sceneGridService.RequestMapBlocks(remoteClient, minX, minY, maxX, maxX);
+            m_log.InfoFormat("[MAPBLOCK]: {0}-{1}, {2}-{3}", minX, minY, maxX, maxY);
+            m_sceneGridService.RequestMapBlocks(remoteClient, minX, minY, maxX, maxY);
         }
 
         /// <summary>

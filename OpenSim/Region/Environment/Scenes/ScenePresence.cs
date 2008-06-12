@@ -81,7 +81,7 @@ namespace OpenSim.Region.Environment.Scenes
         private ScriptControlled IgnoredControls = ScriptControlled.CONTROL_ZERO;
         private ScriptControlled LastCommands = ScriptControlled.CONTROL_ZERO;
         private SceneObjectGroup proxyObjectGroup = null;
-        private SceneObjectPart proxyObjectPart = null;
+        //private SceneObjectPart proxyObjectPart = null;
 
         public Vector3 lastKnownAllowedPosition = new Vector3();
         public bool sentMessageAboutRestrictedParcelFlyingDown = false;
