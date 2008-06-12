@@ -1,3 +1,5 @@
+BEGIN;
+
 SET FOREIGN_KEY_CHECKS=0;
 -- ----------------------------
 -- Table structure for agents
@@ -17,7 +19,7 @@ CREATE TABLE `agents` (
   PRIMARY KEY  (`UUID`),
   UNIQUE KEY `session` (`sessionID`),
   UNIQUE KEY `ssession` (`secureSessionID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev. 1';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create schema avatar_appearance
 --
@@ -54,10 +56,8 @@ CREATE TABLE `avatarappearance` (
   Underpants_Asset char(36) NOT NULL,
   Skirt_Item char(36) NOT NULL,
   Skirt_Asset char(36) NOT NULL,
-
-
   PRIMARY KEY  (`Owner`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev.2';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 SET FOREIGN_KEY_CHECKS=0;
 -- ----------------------------
@@ -69,7 +69,7 @@ CREATE TABLE `userfriends` (
    `friendPerms` INT NOT NULL,
    `datetimestamp` INT NOT NULL,
 	 UNIQUE KEY  (`ownerID`, `friendID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev.1';SET FOREIGN_KEY_CHECKS=0;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 -- ----------------------------
 -- Table structure for users
 -- ----------------------------
@@ -99,8 +99,9 @@ CREATE TABLE `users` (
   `webLoginKey` varchar(36) default NULL,
   PRIMARY KEY  (`UUID`),
   UNIQUE KEY `usernames` (`username`,`lastname`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev. 2';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records 
 -- ----------------------------
+COMMIT;

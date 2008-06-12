@@ -1,3 +1,5 @@
+BEGIN;
+
 CREATE TABLE `assets` (
   `id` binary(16) NOT NULL,
   `name` varchar(64) NOT NULL,
@@ -9,3 +11,5 @@ CREATE TABLE `assets` (
   `data` longblob NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev. 1';
+
+COMMIT;

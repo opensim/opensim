@@ -1,3 +1,5 @@
+BEGIN;
+
 CREATE TABLE `prims` (
   `UUID` varchar(255) NOT NULL,
   `RegionUUID` varchar(255) default NULL,
@@ -46,7 +48,7 @@ CREATE TABLE `prims` (
   `SitTargetOrientY` float default NULL,
   `SitTargetOrientZ` float default NULL,
   PRIMARY KEY  (`UUID`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 CREATE TABLE `primshapes` (
   `UUID` varchar(255) NOT NULL,
@@ -77,7 +79,7 @@ CREATE TABLE `primshapes` (
   `Texture` longblob,
   `ExtraParams` longblob,
   PRIMARY KEY  (`UUID`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 CREATE TABLE `primitems` (
   `itemID` varchar(255) NOT NULL,
@@ -99,13 +101,13 @@ CREATE TABLE `primitems` (
   `everyonePermissions` int(11) default NULL,
   `groupPermissions` int(11) default NULL,
   PRIMARY KEY  (`itemID`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 CREATE TABLE `terrain` (
   `RegionUUID` varchar(255) default NULL,
   `Revision` int(11) default NULL,
   `Heightfield` longblob
-) ENGINE=MyISAM DEFAULT CHARSET=latin1
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 CREATE TABLE `land` (
   `UUID` varchar(255) NOT NULL,
@@ -141,10 +143,12 @@ CREATE TABLE `land` (
   `UserLookAtZ` float default NULL,
   `AuthbuyerID` varchar(36) NOT NULL default '00000000-0000-0000-0000-000000000000',
   PRIMARY KEY  (`UUID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev. 2'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `landaccesslist` (
   `LandUUID` varchar(255) default NULL,
   `AccessUUID` varchar(255) default NULL,
   `Flags` int(11) default NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+COMMIT;

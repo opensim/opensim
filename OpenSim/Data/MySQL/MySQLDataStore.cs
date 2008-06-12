@@ -90,6 +90,7 @@ namespace OpenSim.Data.MySQL
 
             m_log.Info("[REGION DB]: MySql - connecting: " + connectionstring);
             m_connection = new MySqlConnection(connectionstring);
+            m_connection.Open();
 
             // This actually does the roll forward assembly stuff
             Assembly assem = GetType().Assembly;

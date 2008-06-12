@@ -72,7 +72,7 @@ namespace OpenSim.Data.MySQL
 
             // This actually does the roll forward assembly stuff
             Assembly assem = GetType().Assembly;
-            Migration m = new Migration(database.Connection, assem, "AssetStore");
+            Migration m = new Migration(database.Connection, assem, "InventoryStore");
 
             // TODO: After rev 6000, remove this.  People should have
             // been rolled onto the new migration code by then.

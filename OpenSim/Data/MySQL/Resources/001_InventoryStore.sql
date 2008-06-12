@@ -1,3 +1,5 @@
+BEGIN;
+
 CREATE TABLE `inventoryfolders` (
   `folderID` varchar(36) NOT NULL default '',
   `agentID` varchar(36) default NULL,
@@ -8,7 +10,8 @@ CREATE TABLE `inventoryfolders` (
   PRIMARY KEY  (`folderID`),
   KEY `owner` (`agentID`),
   KEY `parent` (`parentFolderID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev. 2';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 CREATE TABLE `inventoryitems` (
   `inventoryID` varchar(36) NOT NULL default '',
   `assetID` varchar(36) default NULL,
@@ -32,4 +35,6 @@ CREATE TABLE `inventoryitems` (
   PRIMARY KEY  (`inventoryID`),
   KEY `owner` (`avatarID`),
   KEY `folder` (`parentFolderID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Rev. 3';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+COMMIT;
