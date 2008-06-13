@@ -753,14 +753,20 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return new LSL_Types.Vector3(0, 0, 0);
 
             return new LSL_Types.Vector3(SensedObject.Velocity.X, SensedObject.Velocity.Y, SensedObject.Velocity.Z);
-           // return new LSL_Types.Vector3();
         }
 
         public LSL_Types.Vector3 llDetectedGrab(int number)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llDetectedGrab");
-            return new LSL_Types.Vector3();
+            EntityBase SensedObject = entityDetectedKey(number);
+            if (SensedObject == null)
+                return new LSL_Types.Vector3(0, 0, 0);
+
+            return new LSL_Types.Vector3(
+                SensedObject.AbsolutePosition.X,
+                SensedObject.AbsolutePosition.Y,
+                SensedObject.AbsolutePosition.Y );
+                      
         }
 
         public LSL_Types.Quaternion llDetectedRot(int number)
@@ -3036,7 +3042,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             z = axis.z * t;
 
             return new LSL_Types.Quaternion(x,y,z,s);
-            // NotImplemented("llAxisAngle2Rot");
         }
 
 
@@ -3123,7 +3128,6 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
 
            return (double) Math.Acos(a.x * b.x + a.y * b.y + a.z * b.z + a.s * b.s) * 2;
-//            NotImplemented("llAngleBetween");
         }
 
         public string llGetInventoryKey(string name)
@@ -4400,12 +4404,6 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             return m_host.GetAvatarOnSitTarget().ToString();
-            //LLUUID AVID = m_host.GetAvatarOnSitTarget();
-
-            //if (AVID != LLUUID.Zero)
-            //    return AVID.ToString();
-            //else
-            //    return String.Empty;
         }
 
         public void llAddToLandPassList(string avatar, double hours)

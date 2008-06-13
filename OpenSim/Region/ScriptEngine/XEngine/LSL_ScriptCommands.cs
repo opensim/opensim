@@ -2978,7 +2978,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             z = axis.z * t;
 
             return new LSL_Types.Quaternion(x,y,z,s);
-            // NotImplemented("llAxisAngle2Rot");
         }
 
 
@@ -3065,7 +3064,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_host.AddScriptLPS(1);
 
            return (double) Math.Acos(a.x * b.x + a.y * b.y + a.z * b.z + a.s * b.s) * 2;
-//            NotImplemented("llAngleBetween");
         }
 
         public string llGetInventoryKey(string name)
@@ -4266,12 +4264,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             m_host.AddScriptLPS(1);
             return m_host.GetAvatarOnSitTarget().ToString();
-            //LLUUID AVID = m_host.GetAvatarOnSitTarget();
-
-            //if (AVID != LLUUID.Zero)
-            //    return AVID.ToString();
-            //else
-            //    return String.Empty;
         }
 
         public void llAddToLandPassList(string avatar, double hours)
