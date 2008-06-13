@@ -49,37 +49,29 @@ namespace OpenSim.Framework.Communications.Cache
 
         protected override AssetBase GetAsset(AssetRequest req)
         {
-            Stream s = null;
-            try
+            #if DEBUG
+            //m_log.DebugFormat("[GRID ASSET CLIENT]: Querying for {0}", req.AssetID.ToString());
+            #endif
+
+            RestClient rc = new RestClient(_assetServerUrl);
+            rc.AddResourcePath("assets");
+            rc.AddResourcePath(req.AssetID.ToString());
+            if (req.IsTexture)
+                rc.AddQueryParameter("texture");
+
+            rc.RequestMethod = "GET";
+            
+            Stream s = rc.Request();
+
+            if (s.Length > 0)
             {
-                #if DEBUG
-                //m_log.DebugFormat("[GRID ASSET CLIENT]: Querying for {0}", req.AssetID.ToString());
-                #endif
+                XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
 
-                RestClient rc = new RestClient(_assetServerUrl);
-                rc.AddResourcePath("assets");
-                rc.AddResourcePath(req.AssetID.ToString());
-                if (req.IsTexture)
-                    rc.AddQueryParameter("texture");
-
-                rc.RequestMethod = "GET";
-                s = rc.Request();
-
-                if (s.Length > 0)
-                {
-                    XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
-
-                    return (AssetBase) xs.Deserialize(s);
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[GRID ASSET CLIENT]: Failed to get asset {0}, {1}", req.AssetID, e);
+                return (AssetBase) xs.Deserialize(s);
             }
 
             return null;
         }
-
 
         public override void UpdateAsset(AssetBase asset)
         {
