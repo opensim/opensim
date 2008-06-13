@@ -780,9 +780,16 @@ namespace OpenSim.Framework.Communications.Capabilities
 
                 httpListener.RemoveStreamHandler("POST", uploaderPath);
 
+                // TODO: probably make this a better set of extensions here
+                string extension = ".jp2";
+                if (m_invType != "image") 
+                {
+                    extension = ".dat";
+                }
+
                 if (m_dumpAssetsToFile)
                 {
-                    SaveAssetToFile(m_assetName + ".jp2", data);
+                    SaveAssetToFile(m_assetName + extension, data);
                 }
                 handlerUpLoad = OnUpLoad;
                 if (handlerUpLoad != null)
