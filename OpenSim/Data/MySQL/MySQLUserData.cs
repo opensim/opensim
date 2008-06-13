@@ -138,7 +138,7 @@ namespace OpenSim.Data.MySQL
 
             // if there are no tables, get out of here and let
             // migrations do their job
-            if(
+            if (
                tableList[m_agentsTableName] == null &&
                tableList[m_usersTableName] == null &&
                tableList[m_userFriendsTableName] == null &&

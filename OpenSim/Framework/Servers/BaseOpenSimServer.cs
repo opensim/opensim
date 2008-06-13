@@ -47,14 +47,14 @@ namespace OpenSim.Framework.Servers
         /// server.
         /// </summary>
         private Timer m_periodicLogStatsTimer = new Timer(60 * 60 * 1000);
-        
+
         protected ConsoleBase m_console;
 
         /// <summary>
         /// Time at which this server was started
         /// </summary>
         protected DateTime m_startuptime;
-        
+
         /// <summary>
         /// Record the initial startup directory for info purposes
         /// </summary>
@@ -80,11 +80,11 @@ namespace OpenSim.Framework.Servers
         {
             m_startuptime = DateTime.Now;
             m_version = VersionInfo.Version;
-            
-            m_periodicLogStatsTimer.Elapsed += new ElapsedEventHandler(LogStats);            
+
+            m_periodicLogStatsTimer.Elapsed += new ElapsedEventHandler(LogStats);
             m_periodicLogStatsTimer.Enabled = true;
         }
-                
+
         /// <summary>
         /// Print statistics to the logfile, if they are active
         /// </summary>
@@ -93,7 +93,7 @@ namespace OpenSim.Framework.Servers
             if (m_stats != null)
             {
                 m_log.Info(m_stats.Report());
-            }            
+            }
         }
 
         /// <summary>
@@ -131,10 +131,10 @@ namespace OpenSim.Framework.Servers
                     Notice("quit - equivalent to shutdown.");
 
                     Notice("show info - show server information (e.g. startup path).");
-                
+
                     if (m_stats != null)
                         Notice("show stats - show statistical information for this server");
-                    
+
                     Notice("show uptime - show server startup time and uptime.");
                     Notice("show version - show server version.");
                     Notice("shutdown - shutdown the server.\n");
@@ -165,9 +165,9 @@ namespace OpenSim.Framework.Servers
             {
                 case "info":
                     Notice("Version: " + m_version );
-                    Notice("Startup directory: " + m_startupDirectory);                    
+                    Notice("Startup directory: " + m_startupDirectory);
                     break;
-                
+
                 case "stats":
                     if (m_stats != null)
                     {
@@ -255,7 +255,7 @@ namespace OpenSim.Framework.Servers
             {
                 OSString = Util.ReadEtcIssue();
             }
-            
+
             if (OSString.Length > 45)
             {
                 OSString = OSString.Substring(0, 45);

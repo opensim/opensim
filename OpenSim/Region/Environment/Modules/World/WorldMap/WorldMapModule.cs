@@ -136,7 +136,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             {
                 bool lookup = false;
 
-                lock(cachedMapBlocks)
+                lock (cachedMapBlocks)
                 {
                     if (cachedMapBlocks.Count > 0 && ((cachedTime + 1800) > Util.UnixTimeSinceEpoch()))
                     {
@@ -157,7 +157,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                     mapBlocks = m_scene.CommsManager.GridService.RequestNeighbourMapBlocks((int)m_scene.RegionInfo.RegionLocX - 8, (int)m_scene.RegionInfo.RegionLocY - 8, (int)m_scene.RegionInfo.RegionLocX + 8, (int)m_scene.RegionInfo.RegionLocY + 8);
                     avatarPresence.ControllingClient.SendMapBlock(mapBlocks);
                     
-                    lock(cachedMapBlocks)
+                    lock (cachedMapBlocks)
                         cachedMapBlocks = mapBlocks;
 
                     cachedTime = Util.UnixTimeSinceEpoch();

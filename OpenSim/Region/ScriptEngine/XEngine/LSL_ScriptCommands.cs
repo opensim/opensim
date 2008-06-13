@@ -112,7 +112,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public void llSay(int channelID, string text)
         {
             m_host.AddScriptLPS(1);
-            
+
             if (text.Length > 1023)
                 text = text.Substring(0, 1023);
 
@@ -176,7 +176,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
 
         /// <summary>
-        /// accepts a valid LLUUID, -or- a name of an inventory item. 
+        /// accepts a valid LLUUID, -or- a name of an inventory item.
         /// Returns a valid LLUUID or LLUUID.Zero if key invalid and item not found
         /// in prim inventory.
         /// </summary>
@@ -430,7 +430,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public void llWhisper(int channelID, string text)
         {
             m_host.AddScriptLPS(1);
-            
+
             if (text.Length > 1023)
                 text = text.Substring(0, 1023);
 
@@ -444,7 +444,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public void llShout(int channelID, string text)
         {
             m_host.AddScriptLPS(1);
-            
+
             if (text.Length > 1023)
                 text = text.Substring(0, 1023);
 
@@ -920,7 +920,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
         }
 
-        private void SetFlexi(SceneObjectPart part, bool flexi, int softness, float gravity, float friction, 
+        private void SetFlexi(SceneObjectPart part, bool flexi, int softness, float gravity, float friction,
             float wind, float tension, LSL_Types.Vector3 Force)
         {
             if (part == null)
@@ -933,7 +933,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 {
                     needs_fakedelete = true;
                 }
-                part.Shape.FlexiEntry = true;   // this setting flexi true isn't working, but the below parameters do 
+                part.Shape.FlexiEntry = true;   // this setting flexi true isn't working, but the below parameters do
                                                 // work once the prim is already flexi
                 part.Shape.FlexiSoftness = softness;
                 part.Shape.FlexiGravity = gravity;
@@ -1482,7 +1482,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_host.Sound = LLUUID.Zero;
             m_host.SoundGain = 0;
             m_host.SoundFlags = 0;
-            m_host.SoundRadius = 0; 
+            m_host.SoundRadius = 0;
 
             m_host.ScheduleFullUpdate();
             m_host.SendFullUpdateToAllClients();
@@ -4542,7 +4542,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                         v=new LSL_Types.Vector3(rules.Data[idx++].ToString());
                         SetScale(part, v);
-                        
+
                         break;
                     case 8: // PRIM_ROTATION
                         if (remain < 1)
@@ -4605,7 +4605,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         float intensity = (float)Convert.ToDouble(rules.Data[idx++]);
                         float radius = (float)Convert.ToDouble(rules.Data[idx++]);
                         float falloff = (float)Convert.ToDouble(rules.Data[idx++]);
-                        
+
                         SetPointLight(part, (light == 1), lightcolor, intensity, radius, falloff);
 
                         break;
@@ -5514,7 +5514,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             IConfigSource config = new IniConfigSource(Application.iniFilePath);
             if (config.Configs["XEngine"] == null)
                 config.AddConfig("XEngine");
-            
+
             if (config.Configs["XEngine"].GetBoolean("AllowGodFunctions", false))
             {
                 if (World.ExternalChecks.ExternalChecksCanRunConsoleCommand(m_host.OwnerID))
@@ -5576,7 +5576,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             m_host.AddScriptLPS(1);
             NotImplemented("llSetInventoryPermMask");
-        }   
+        }
 
         public string llGetInventoryCreator(string item)
         {
@@ -6451,7 +6451,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         private static Dictionary<LLUUID, Notecard> m_Notecards =
                 new Dictionary<LLUUID, Notecard>();
-        
+
         public static void Cache(LLUUID assetID, string text)
         {
             CacheCheck();
@@ -6523,7 +6523,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             count += ln.Length + 1;
                             idx++;
                         }
-                            
+
                         return output.ToArray();
                     }
                     break;

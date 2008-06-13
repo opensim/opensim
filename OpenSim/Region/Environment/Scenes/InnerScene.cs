@@ -193,7 +193,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             sceneObject.RegionHandle = m_regInfo.RegionHandle;
             sceneObject.SetScene(m_parentScene);
-            
+
             foreach (SceneObjectPart part in sceneObject.Children.Values)
             {
                 part.LocalId = m_parentScene.PrimIDAllocate();
@@ -209,7 +209,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="sceneObject"></param>
         /// <param name="attachToBackup">
-        /// If true, the object is made persistent into the scene.  
+        /// If true, the object is made persistent into the scene.
         /// If false, the object will not persist over server restarts
         /// </param>
         /// <returns>true if the object was added, false if an object with the same uuid was already in the scene
@@ -223,9 +223,9 @@ namespace OpenSim.Region.Environment.Scenes
                     //  QuadTree.AddSceneObject(sceneObject);
                     Entities.Add(sceneObject.UUID, sceneObject);
                     m_numPrim += sceneObject.Children.Count;
-                    
+
                     if (attachToBackup)
-                        sceneObject.AttachToBackup();                        
+                        sceneObject.AttachToBackup();
 
                     return true;
                 }

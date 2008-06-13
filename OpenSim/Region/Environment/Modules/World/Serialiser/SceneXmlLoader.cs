@@ -193,8 +193,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="xmlData"></param>
         protected static void CreatePrimFromXml2(Scene scene, string xmlData)
         {
-            SceneObjectGroup obj = new SceneObjectGroup(xmlData);            
-            
+            SceneObjectGroup obj = new SceneObjectGroup(xmlData);
+
             LLVector3 receivedVelocity = obj.RootPart.Velocity;
             //System.Console.WriteLine(obj.RootPart.Velocity.ToString());
             scene.AddSceneObjectFromStorage(obj);

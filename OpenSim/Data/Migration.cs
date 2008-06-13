@@ -129,9 +129,12 @@ namespace OpenSim.Data
                 cmd.CommandText = kvp.Value;
                 cmd.ExecuteNonQuery();
                 
-                if (version == 0) {
+                if (version == 0)
+                {
                     InsertVersion(_type, newversion);
-                } else {
+                }
+                else
+                {
                     UpdateVersion(_type, newversion);
                 }
                 version = newversion;
@@ -149,7 +152,7 @@ namespace OpenSim.Data
                 if (m.Success) 
                 {
                     int MigrationVersion = int.Parse(m.Groups[1].ToString());
-                    if ( MigrationVersion > max )
+                    if (MigrationVersion > max)
                         max = MigrationVersion;
                 }
             }
@@ -160,9 +163,12 @@ namespace OpenSim.Data
         {
             get { return FindVersion(_type); }
             set { 
-                if (Version < 1) {
+                if (Version < 1)
+                {
                     InsertVersion(_type, value);
-                } else {
+                }
+                else
+                {
                     UpdateVersion(_type, value);
                 } 
             }
@@ -172,7 +178,8 @@ namespace OpenSim.Data
         {
             int version = 0;
             DbCommand cmd = _conn.CreateCommand();
-            try {
+            try
+            {
                 cmd.CommandText = "select version from migrations where name='" + type + "' limit 1";
                 using (IDataReader reader = cmd.ExecuteReader())
                 {
@@ -182,7 +189,9 @@ namespace OpenSim.Data
                     }
                     reader.Close();
                 }
-            } catch {
+            }
+            catch
+            {
                 // Something went wrong, so we're version 0
             }
             return version;

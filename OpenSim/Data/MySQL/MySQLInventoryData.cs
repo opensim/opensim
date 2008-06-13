@@ -132,7 +132,7 @@ namespace OpenSim.Data.MySQL
 
             // if there are no tables, get out of here and let
             // migrations do their job
-            if(
+            if (
                tableList["inventoryfolders"] == null &&
                tableList["inventoryitems"] == null
                )

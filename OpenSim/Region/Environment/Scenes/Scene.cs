@@ -998,7 +998,7 @@ namespace OpenSim.Region.Environment.Scenes
             // Cannot create a map for a nonexistant heightmap yet.
             if (Heightmap == null)
                 return;
-            
+
             if (terrain == null)
             {
                 int tc = System.Environment.TickCount;
@@ -1122,19 +1122,15 @@ namespace OpenSim.Region.Environment.Scenes
                                 mapbmp.SetPixel(x, (256 - y) - 1, black);
                             }
                         }
-                        
                     }
                     //}
 
-
-                
                     //tc = System.Environment.TickCount - tc;
                     //m_log.Info("[MAPTILE]: Completed One row in " + tc + " ms");
                 }
                 m_log.Info("[MAPTILE]: Generating Maptile Step 1: Done in " + (System.Environment.TickCount - tc) + " ms");
 
                 bool drawPrimVolume = true;
-
 
                 try
                 {
@@ -1145,7 +1141,6 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     m_log.Warn("Failed to load StarupConfg");
                 }
-               
 
                 if (drawPrimVolume)
                 {
@@ -1168,8 +1163,8 @@ namespace OpenSim.Region.Environment.Scenes
                                     // Draw if the object is at least 1 meter wide in any direction
                                     if (part.Scale.X > 1f || part.Scale.Y > 1f || part.Scale.Z > 1f)
                                     {
-                                        // Try to get the RGBA of the default texture entry..  
-                                        // 
+                                        // Try to get the RGBA of the default texture entry..
+                                        //
                                         try
                                         {
                                             LLColor texcolor = part.Shape.Textures.DefaultTexture.RGBA;
@@ -1177,9 +1172,7 @@ namespace OpenSim.Region.Environment.Scenes
                                             int colorg = 255 - (int)(texcolor.G * 255f);
                                             int colorb = 255 - (int)(texcolor.B * 255f);
 
-                                            if (colorr == 255 && colorg == 255 && colorb == 255)
-                                            { }
-                                            else
+                                            if (!(colorr == 255 && colorg == 255 && colorb == 255))
                                             {
                                                 //Try to set the map spot color
                                                 try
@@ -1248,10 +1241,9 @@ namespace OpenSim.Region.Environment.Scenes
                                                                   || mapdrawendY > 255)
                                                 continue;
 
-
                                             int wy = 0;
 
-                                            bool breakYN = false; // If we run into an error drawing, break out of the 
+                                            bool breakYN = false; // If we run into an error drawing, break out of the
                                             // loop so we don't lag to death on error handling
                                             for (int wx = mapdrawstartX; wx < mapdrawendX; wx++)
                                             {
@@ -1274,7 +1266,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                                                 if (breakYN)
                                                     break;
-                                            }  
+                                            }
                                         } // Object is within 256m Z of terrain
                                     } // object is at least a meter wide
                                 } // loop over group children
@@ -1304,7 +1296,6 @@ namespace OpenSim.Region.Environment.Scenes
                 asset.Type = 0;
                 asset.Temporary = temporary;
                 AssetCache.AddAsset(asset);
-
             }
             else
             {
@@ -1322,7 +1313,6 @@ namespace OpenSim.Region.Environment.Scenes
                     AssetCache.AddAsset(asset);
                 }
             }
-
         }
 
         #endregion
@@ -1442,9 +1432,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                         // Un-offset the prim (it gets offset later by the consumer method)
                         pos.Z -= 0.25F;
-
                     }
-
 
                     return pos;
                 }
@@ -1523,7 +1511,7 @@ namespace OpenSim.Region.Environment.Scenes
                 // case... other tree types
                 // tree.Scale = new LLVector3(?, ?, ?);
                 // break;
-                
+
                 default:
                     tree.Scale = new LLVector3(4, 4, 4);
                     break;
@@ -1557,7 +1545,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="sceneObject"></param>
         /// <param name="attachToBackup">
-        /// If true, the object is made persistent into the scene.  
+        /// If true, the object is made persistent into the scene.
         /// If false, the object will not persist over server restarts
         /// </param>
         public void AddSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
@@ -1889,11 +1877,9 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnObjectDuplicateOnRay += doObjectDuplicateOnRay;
             client.OnUpdatePrimFlags += m_innerScene.UpdatePrimFlags;
             client.OnRequestObjectPropertiesFamily += m_innerScene.RequestObjectPropertiesFamily;
-
             client.OnRequestGodlikePowers += handleRequestGodlikePowers;
             client.OnGodKickUser += HandleGodlikeKickUser;
             client.OnObjectPermissions += HandleObjectPermissionsUpdate;
-
             client.OnCreateNewInventoryItem += CreateNewInventoryItem;
             client.OnCreateNewInventoryFolder += CommsManager.UserProfileCacheService.HandleCreateInventoryFolder;
             client.OnUpdateInventoryFolder += CommsManager.UserProfileCacheService.HandleUpdateInventoryFolder;
@@ -1907,29 +1893,23 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnRemoveInventoryItem += RemoveInventoryItem;
             client.OnRemoveInventoryFolder += RemoveInventoryFolder;
             client.OnRezScript += RezScript;
-
             client.OnRequestTaskInventory += RequestTaskInventory;
             client.OnRemoveTaskItem += RemoveTaskInventory;
             client.OnUpdateTaskInventory += UpdateTaskInventory;
             client.OnMoveTaskItem += MoveTaskInventoryItem;
-
             client.OnGrabObject += ProcessObjectGrab;
             client.OnDeGrabObject += ProcessObjectDeGrab;
             client.OnMoneyTransferRequest += ProcessMoneyTransferRequest;
             client.OnParcelBuy += ProcessParcelBuy;
             client.OnAvatarPickerRequest += ProcessAvatarPickerRequest;
             client.OnPacketStats += AddPacketStats;
-
             client.OnObjectIncludeInSearch += m_innerScene.MakeObjectSearchable;
-
             client.OnTeleportHomeRequest += TeleportClientHome;
-
             client.OnSetStartLocationRequest += SetHomeRezPoint;
             client.OnUndo += m_innerScene.HandleUndo;
             client.OnObjectGroupRequest += m_innerScene.HandleObjectGroupUpdate;
             client.OnParcelReturnObjectsRequest += LandChannel.ReturnObjectsInParcel;
             client.OnScriptReset += ProcessScriptReset;
-            
 
             // EventManager.TriggerOnNewClient(client);
         }
@@ -1947,8 +1927,8 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         public void doObjectDuplicateOnRay(uint localID, uint dupeFlags, LLUUID AgentID, LLUUID GroupID,
-                                              LLUUID RayTargetObj, LLVector3 RayEnd, LLVector3 RayStart,
-                                              bool BypassRaycast, bool RayEndIsIntersection, bool CopyCenters, bool CopyRotates)
+                                           LLUUID RayTargetObj, LLVector3 RayEnd, LLVector3 RayStart,
+                                           bool BypassRaycast, bool RayEndIsIntersection, bool CopyCenters, bool CopyRotates)
         {
             LLVector3 pos;
             const bool frontFacesOnly = true;
@@ -1958,7 +1938,6 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (target != null && target2 != null)
             {
-
                 LLVector3 direction = LLVector3.Norm(RayEnd - RayStart);
                 Vector3 AXOrigin = new Vector3(RayStart.X, RayStart.Y, RayStart.Z);
                 Vector3 AXdirection = new Vector3(direction.X, direction.Y, direction.Z);
@@ -1991,10 +1970,9 @@ namespace OpenSim.Region.Environment.Scenes
                         ScaleOffset = Math.Abs(ScaleOffset);
                         LLVector3 intersectionpoint = new LLVector3(ei.ipoint.x, ei.ipoint.y, ei.ipoint.z);
                         LLVector3 normal = new LLVector3(ei.normal.x, ei.normal.y, ei.normal.z);
-                        LLVector3 offset = (normal * (ScaleOffset / 2f));
-                        pos = (intersectionpoint + offset);
+                        LLVector3 offset = normal * (ScaleOffset / 2f);
+                        pos = intersectionpoint + offset;
 
-                        
                         // stick in offset format from the original prim
                         pos = pos - target.ParentGroup.AbsolutePosition;
                         if (CopyRotates)

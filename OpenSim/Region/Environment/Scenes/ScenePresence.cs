@@ -418,7 +418,7 @@ namespace OpenSim.Region.Environment.Scenes
             RegisterToEvents();
             SetDirectionVectors();
 
-            
+
         }
 
         public ScenePresence(IClientAPI client, Scene world, RegionInfo reginfo, byte[] visualParams,
@@ -480,8 +480,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
             // }
         }
-
-        
 
         public uint GenerateClientFlags(LLUUID ObjectID)
         {
@@ -590,27 +588,27 @@ namespace OpenSim.Region.Environment.Scenes
 //            m_log.DebugFormat(
 //                 "[SCENE PRESENCE]: Upgrading child agent {0}, {1} to a root agent in {2} at pos {3}",
 //                 Name, UUID, m_scene.RegionInfo.RegionName, pos);
-            
+
             if (pos.X < 0 || pos.X > Constants.RegionSize || pos.Y < 0 || pos.Y > Constants.RegionSize || pos.Z < 0)
             {
                 LLVector3 emergencyPos = new LLVector3(128, 128, 128);
-                
+
                 m_log.WarnFormat(
-                    "[SCENE PRESENCE]: MakeRootAgent() was given an illegal position of {0} for avatar {1}, {2}.  Substituting {3}", 
+                    "[SCENE PRESENCE]: MakeRootAgent() was given an illegal position of {0} for avatar {1}, {2}.  Substituting {3}",
                     pos, Name, UUID, emergencyPos);
-                
+
                 pos = emergencyPos;
-            }            
+            }
 
             m_isChildAgent = false;
-           
+
             float localAVHeight = 1.56f;
             if (m_avHeight != 127.0f)
             {
                 localAVHeight = m_avHeight;
             }
 
-            float posZLimit = (float)m_scene.GetLandHeight((int)pos.X, (int)pos.Y);            
+            float posZLimit = (float)m_scene.GetLandHeight((int)pos.X, (int)pos.Y);
             float newPosZ = posZLimit + localAVHeight;
             if (posZLimit >= (pos.Z - (localAVHeight / 2)) && !(Single.IsInfinity(newPosZ) || Single.IsNaN(newPosZ)))
             {
@@ -789,7 +787,7 @@ namespace OpenSim.Region.Environment.Scenes
             // Must check for standing up even when PhysicsActor is null,
             // since sitting currently removes avatar from physical scene
             //m_log.Debug("agentPos:" + AbsolutePosition.ToString());
-            
+
             // This is irritating.  Really.
             if (!AbsolutePosition.IsFinite())
             {
@@ -969,8 +967,6 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
 
-            
-
             m_scene.EventManager.TriggerOnClientMovement(this);
 
             m_scene.AddAgentTime(System.Environment.TickCount - m_perfMonMS);
@@ -1006,7 +1002,6 @@ namespace OpenSim.Region.Environment.Scenes
             //m_log.Debug("[AUTOPILOT]: " + Util.GetDistanceTo(AbsolutePosition, m_autoPilotTarget).ToString());
             if (Util.GetDistanceTo(AbsolutePosition, m_autoPilotTarget) <= 1.5)
             {
-                
                 if (m_sitAtAutoTarget)
                 {
                     SceneObjectPart part = m_scene.GetSceneObjectPart(m_requestedSitTargetUUID);
@@ -2140,7 +2135,6 @@ namespace OpenSim.Region.Environment.Scenes
                         m_log.Info("[CLIENT]: Couldn't save attachments. :(");
                     }
                     m_attachments.Clear();
-                    
                 }
             }
             lock (m_knownPrimUUID)
@@ -2204,7 +2198,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_attachmentsTransported = true;
             lock (m_attachments)
             {
-                
                 foreach (SceneObjectGroup gobj in m_attachments)
                 {
                     // If the prim group is null then something must have happened to it!
