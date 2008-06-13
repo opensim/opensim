@@ -136,7 +136,10 @@ namespace OpenSim.Region.Communications.OGS1
             try
             {
                 XmlRpcRequest GridReq = new XmlRpcRequest("simulator_login", SendParams);
-                GridResp = GridReq.Send(serversInfo.GridURL, 30000);
+                
+                // The timeout should always be significantly larger than the timeout for the grid server to request
+                // the initial status of the region before confirming registration.
+                GridResp = GridReq.Send(serversInfo.GridURL, 60000);
             }
             catch (Exception e)
             {
