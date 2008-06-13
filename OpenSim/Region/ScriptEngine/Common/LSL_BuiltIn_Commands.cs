@@ -2820,8 +2820,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                 case (int)BuiltIn_Commands_BaseClass.LINK_SET:
 
-                    Console.WriteLine("LINK_SET");
-
                     foreach (SceneObjectPart partInst in m_host.ParentGroup.GetParts())
                     {
 
