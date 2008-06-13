@@ -110,7 +110,7 @@ namespace OpenSim.Framework.Communications
         /// <summary>
         /// Default time out period
         /// </summary>
-        private const int DefaultTimeout = 10*1000; // 10 seconds timeout
+        //private const int DefaultTimeout = 10*1000; // 10 seconds timeout
 
         /// <summary>
         /// Default Buffer size of a block requested from the web-server
