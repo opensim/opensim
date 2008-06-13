@@ -395,7 +395,11 @@ namespace OpenSim.Grid.GridServer
                 }
                 catch (LoginException e)
                 {
-                    m_log.WarnFormat("[LOGIN END]: {0}", e.Message);
+                    string logMsg = e.Message;
+                    if (e.InnerException != null)
+                        logMsg += ", " + e.InnerException.Message;
+                    
+                    m_log.WarnFormat("[LOGIN END]: {0}", logMsg);
 
                     return e.XmlRpcErrorResponse;
                 }
