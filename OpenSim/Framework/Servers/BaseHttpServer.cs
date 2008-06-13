@@ -558,7 +558,9 @@ namespace OpenSim.Framework.Servers
             Encoding encoding = Encoding.UTF8;
             StreamReader reader = new StreamReader(requestStream, encoding);
 
-            string requestBody = reader.ReadToEnd();
+            //string requestBody = reader.ReadToEnd();
+            // avoid warning for now
+            reader.ReadToEnd();
             reader.Close();
             requestStream.Close();
 

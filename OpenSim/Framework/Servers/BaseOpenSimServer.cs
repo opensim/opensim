@@ -28,6 +28,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Timers;
 using log4net;
 using OpenSim.Framework.Console;
@@ -46,7 +47,7 @@ namespace OpenSim.Framework.Servers
         /// This will control a periodic log printout of the current 'show stats' (if they are active) for this
         /// server.
         /// </summary>
-        private Timer m_periodicLogStatsTimer = new Timer(60 * 60 * 1000);
+        private Timer m_periodicDiagnosticsTimer = new Timer(60 * 60 * 1000);
 
         protected ConsoleBase m_console;
 
@@ -81,19 +82,37 @@ namespace OpenSim.Framework.Servers
             m_startuptime = DateTime.Now;
             m_version = VersionInfo.Version;
 
-            m_periodicLogStatsTimer.Elapsed += new ElapsedEventHandler(LogStats);
-            m_periodicLogStatsTimer.Enabled = true;
+            m_periodicDiagnosticsTimer.Elapsed += new ElapsedEventHandler(LogDiagnostics);
+            m_periodicDiagnosticsTimer.Enabled = true;
         }
 
         /// <summary>
         /// Print statistics to the logfile, if they are active
         /// </summary>
-        protected void LogStats(object source, ElapsedEventArgs e)
+        protected void LogDiagnostics(object source, ElapsedEventArgs e)
         {
+            StringBuilder sb = new StringBuilder("DIAGNOSTICS\n\n");
+            sb.Append(GetUptimeReport());
+            
             if (m_stats != null)
             {
-                m_log.Info(m_stats.Report());
+                sb.Append(m_stats.Report());
             }
+            
+            m_log.Debug(sb);
+        }
+        
+        /// <summary>
+        /// Return a report about the uptime of this server
+        /// </summary>
+        /// <returns></returns>
+        protected string GetUptimeReport()
+        {
+            StringBuilder sb = new StringBuilder(String.Format("Time now is {0}\n", DateTime.Now));
+            sb.Append(String.Format("Server has been running since {0}, {1}\n", m_startuptime.DayOfWeek, m_startuptime));
+            sb.Append(String.Format("That is an elapsed time of {0}\n", DateTime.Now - m_startuptime));
+            
+            return sb.ToString();
         }
 
         /// <summary>
@@ -176,9 +195,12 @@ namespace OpenSim.Framework.Servers
                     break;
 
                 case "uptime":
+                    Notice(GetUptimeReport());
+                    /*
                     Notice("Time now is " + DateTime.Now);
                     Notice("Server has been running since " + m_startuptime.DayOfWeek + ", " + m_startuptime.ToString());
                     Notice("That is an elapsed time of " + (DateTime.Now - m_startuptime).ToString());
+                    */
                     break;
 
                 case "version":
