@@ -1,3 +1,10 @@
 <Nini>
-
+  <Section Name="Handshake">
+    <Key Name="assetID" Value="ddc2400f-ecdb-b00e-aee7-442ff99d5fb7"/>
+    <Key Name="name" Value="Handshake"/>
+    <Key Name="description" Value="Created by Mo Hax"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="inventoryType" Value="19" />
+    <Key Name="fileName" Value="handshake_01.dat"/>
+  </Section>  
 </Nini>

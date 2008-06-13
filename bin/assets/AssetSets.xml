@@ -16,11 +16,10 @@
   </Section>
 -->
   
-  <!---->
+
   <Section Name="Animations AssetSet">
-    <Key Name="file" Value="AnimationsAssetSet/AnimationsAssetSet.xml"/>
+    <Key Name="file" Value="AnimationsAssetSet/index.xml"/>
   </Section>
-  <!---->
   
   <!---->
   <Section Name="BodyParts AssetSet">

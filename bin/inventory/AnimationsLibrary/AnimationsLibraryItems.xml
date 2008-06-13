@@ -1,4 +1,13 @@
 <Nini>
+  <Section Name="Handshake">
+    <Key Name="folderID" Value="f0908f10-b9bf-11dc-95ff-0800200c9a66"/>
+    <Key Name="inventoryID" Value="ddc2400f-ecdb-b00e-aee7-442ff99d5fb7"/>
+    <Key Name="assetID" Value="ddc2400f-ecdb-b00e-aee7-442ff99d5fb7"/>
+    <Key Name="name" Value="Handshake"/>
+    <Key Name="description" Value="Right handed handshake - Created by Mo Hax"/>
+    <Key Name="assetType" Value="20" />
+    <Key Name="inventoryType" Value="19" />
+  </Section>  
 
 <!--
   <Section Name="Example Library Item">
