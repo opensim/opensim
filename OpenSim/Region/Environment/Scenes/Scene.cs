@@ -1160,6 +1160,9 @@ namespace OpenSim.Region.Environment.Scenes
                                 // Loop over prim in group
                                 foreach (SceneObjectPart part in mapdot.Children.Values)
                                 {
+                                    if (part == null)
+                                        continue;
+
                                     // Draw if the object is at least 1 meter wide in any direction
                                     if (part.Scale.X > 1f || part.Scale.Y > 1f || part.Scale.Z > 1f)
                                     {
@@ -1168,6 +1171,23 @@ namespace OpenSim.Region.Environment.Scenes
                                         try
                                         {
                                             LLColor texcolor = part.Shape.Textures.DefaultTexture.RGBA;
+                                            
+                                            // Not sure why some of these are null, oh well. 
+
+                                            if (part == null)
+                                                continue;
+
+                                            if (part.Shape == null)
+                                                continue;
+
+                                            if (part.Shape.Textures == null)
+                                                continue;
+
+                                            if (part.Shape.Textures.DefaultTexture == null)
+                                                continue;
+
+
+
                                             int colorr = 255 - (int)(texcolor.R * 255f);
                                             int colorg = 255 - (int)(texcolor.G * 255f);
                                             int colorb = 255 - (int)(texcolor.B * 255f);
