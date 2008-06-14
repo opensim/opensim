@@ -31,6 +31,7 @@ using System.Threading;
 using libsecondlife;
 using log4net;
 using OpenSim.Framework.AssetLoader.Filesystem;
+using OpenSim.Framework.Statistics;
 
 namespace OpenSim.Framework.Communications.Cache
 {
@@ -80,6 +81,9 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 m_log.ErrorFormat("[ASSET]: Asset request for {0} threw exception {1}", req.AssetID, e);
                 
+                if (StatsManager.SimExtraStats != null)
+                    StatsManager.SimExtraStats.AddAssetServiceRequestFailure();
+                
                 m_receiver.AssetNotFound(req.AssetID, req.IsTexture);
                 
                 return;
@@ -87,13 +91,13 @@ namespace OpenSim.Framework.Communications.Cache
 
             if (asset != null)
             {
-                m_log.DebugFormat("[ASSET]: Asset {0} received from asset server", req.AssetID);
+                //m_log.DebugFormat("[ASSET]: Asset {0} received from asset server", req.AssetID);
 
                 m_receiver.AssetReceived(asset, req.IsTexture);
             }
             else
             {
-                m_log.WarnFormat("[ASSET]: Asset {0} not found by asset server", req.AssetID);
+                //m_log.WarnFormat("[ASSET]: Asset {0} not found by asset server", req.AssetID);
 
                 m_receiver.AssetNotFound(req.AssetID, req.IsTexture);
             }

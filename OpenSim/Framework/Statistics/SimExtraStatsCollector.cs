@@ -46,6 +46,7 @@ namespace OpenSim.Framework.Statistics
         private long textureCacheMemoryUsage;
         private long blockedMissingTextureRequests;
 
+        private long assetServiceRequestFailures;
         private long inventoryServiceRetrievalFailures;
         
         /// <summary>
@@ -71,6 +72,13 @@ namespace OpenSim.Framework.Statistics
         /// </summary>
         public long BlockedMissingTextureRequests { get { return blockedMissingTextureRequests; } }
 
+        /// <summary>
+        /// Record the number of times that an asset request has failed.  Failures are effectively exceptions, such as
+        /// request timeouts.  If an asset service replies that a particular asset cannot be found, this is not counted
+        /// as a failure
+        /// </summary>
+        public long AssetServiceRequestFailures { get { return assetServiceRequestFailures; } }
+        
         /// <summary>
         /// Number of known failures to retrieve avatar inventory from the inventory service.  This does not
         /// cover situations where the inventory service accepts the request but never returns any data, since
@@ -122,6 +130,11 @@ namespace OpenSim.Framework.Statistics
             blockedMissingTextureRequests++;
         }
 
+        public void AddAssetServiceRequestFailure()
+        {
+            assetServiceRequestFailures++;
+        }
+        
         public void AddInventoryServiceRetrievalFailure()
         {
             inventoryServiceRetrievalFailures++;
@@ -163,18 +176,14 @@ namespace OpenSim.Framework.Statistics
             sb.Append(Environment.NewLine);
             sb.Append(
                 string.Format(
-@"Asset   cache contains {0,6} assets   using {1,10} K" + Environment.NewLine,
-                    AssetsInCache, Math.Round(AssetCacheMemoryUsage / 1024.0)));
-
-            sb.Append(Environment.NewLine);
-            sb.Append("TEXTURE STATISTICS");
-            sb.Append(Environment.NewLine);
-            sb.Append(
-                string.Format(
-@"Texture cache contains {0,6} textures using {1,10} K
-Blocked requests for missing textures: {2}" + Environment.NewLine,
-                    TexturesInCache, Math.Round(TextureCacheMemoryUsage / 1024.0),
-                    BlockedMissingTextureRequests));
+@"Asset cache contains   {0,6} non-texture assets using {1,10} K
+Texture cache contains {2,6} texture     assets using {3,10} K
+Blocked client requests for missing textures: {4}
+Asset service request failures: {5}"+ Environment.NewLine,
+                    AssetsInCache, Math.Round(AssetCacheMemoryUsage / 1024.0),
+                    TexturesInCache, Math.Round(TextureCacheMemoryUsage / 1024.0), 
+                    BlockedMissingTextureRequests,
+                    AssetServiceRequestFailures));
             
             sb.Append(Environment.NewLine);
             sb.Append("CONNECTION STATISTICS");
