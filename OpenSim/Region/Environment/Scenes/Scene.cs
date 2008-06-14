@@ -1170,10 +1170,6 @@ namespace OpenSim.Region.Environment.Scenes
                                         //
                                         try
                                         {
-                                            LLColor texcolor = part.Shape.Textures.DefaultTexture.RGBA;
-                                            
-                                            // Not sure why some of these are null, oh well. 
-
                                             if (part == null)
                                                 continue;
 
@@ -1185,6 +1181,12 @@ namespace OpenSim.Region.Environment.Scenes
 
                                             if (part.Shape.Textures.DefaultTexture == null)
                                                 continue;
+
+                                            LLColor texcolor = part.Shape.Textures.DefaultTexture.RGBA;
+                                            
+                                            // Not sure why some of these are null, oh well. 
+
+                                            
 
 
 
