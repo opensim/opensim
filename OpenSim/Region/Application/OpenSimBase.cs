@@ -511,7 +511,7 @@ namespace OpenSim
 
             //moved these here as the terrain texture has to be created after the modules are initialized
             // and has to happen before the region is registered with the grid.
-            scene.CreateTerrainTexture(true);
+            scene.CreateTerrainTexture(false);
 
             try
             {

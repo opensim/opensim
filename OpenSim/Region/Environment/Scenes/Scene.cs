@@ -1287,12 +1287,51 @@ namespace OpenSim.Region.Environment.Scenes
                     return;
                 }
 
-                m_regInfo.EstateSettings.terrainImageID = LLUUID.Random();
+               
+
+                LLUUID lastMapRegionUUID = m_regInfo.lastMapUUID;
+
+                int lastMapRefresh = 0;
+                int twoDays = 172800;
+                int RefreshSeconds = twoDays;
+
+                try
+                {
+                    lastMapRefresh = Convert.ToInt32(m_regInfo.lastMapRefresh);
+                } catch (ArgumentException)
+                {}
+                catch (FormatException)
+                {}
+                catch (OverflowException)
+                {}
+
+                LLUUID TerrainImageLLUUID = LLUUID.Random();
+
+                if (lastMapRegionUUID == LLUUID.Zero || (lastMapRefresh + RefreshSeconds) < Util.UnixTimeSinceEpoch())
+                {
+
+                    m_regInfo.SaveLastMapUUID(TerrainImageLLUUID);
+
+                    m_log.Warn("[MAPTILE]: STORING MAPTILE IMAGE");
+                    //Extra protection..  probably not needed.
+
+                }
+                else
+                {
+                    TerrainImageLLUUID = lastMapRegionUUID;
+                    m_log.Warn("[MAPTILE]: REUSING OLD MAPTILE IMAGE ID");
+                }
+
+                
+
+                m_regInfo.EstateSettings.terrainImageID = TerrainImageLLUUID;
+                
                 AssetBase asset = new AssetBase();
                 asset.FullID = m_regInfo.EstateSettings.terrainImageID;
                 asset.Data = data;
-                asset.Name = "terrainImage";
+                asset.Name = "terrainImage_" + m_regInfo.RegionID.ToString() + "_" + lastMapRefresh.ToString();
                 asset.Description = RegionInfo.RegionName;
+                
                 asset.Type = 0;
                 asset.Temporary = temporary;
                 AssetCache.AddAsset(asset);
@@ -1302,11 +1341,45 @@ namespace OpenSim.Region.Environment.Scenes
                 byte[] data = terrain.WriteJpeg2000Image("defaultstripe.png");
                 if (data != null)
                 {
-                    m_regInfo.EstateSettings.terrainImageID = LLUUID.Random();
+                    LLUUID lastMapRegionUUID = m_regInfo.lastMapUUID;
+
+                    int lastMapRefresh = 0;
+                    int twoDays = 172800;
+                    int RefreshSeconds = twoDays;
+
+                    try
+                    {
+                        lastMapRefresh = Convert.ToInt32(m_regInfo.lastMapRefresh);
+                    }
+                    catch (ArgumentException)
+                    { }
+                    catch (FormatException)
+                    { }
+                    catch (OverflowException)
+                    { }
+
+                    LLUUID TerrainImageLLUUID = LLUUID.Random();
+
+                    if (lastMapRegionUUID == LLUUID.Zero || (lastMapRefresh + RefreshSeconds) < Util.UnixTimeSinceEpoch())
+                    {
+
+                        m_regInfo.SaveLastMapUUID(TerrainImageLLUUID);
+
+                        //m_log.Warn(terrainImageID);
+                        //Extra protection..  probably not needed.
+
+                    }
+                    else
+                    {
+                        TerrainImageLLUUID = lastMapRegionUUID;
+                    }
+
+                    m_regInfo.EstateSettings.terrainImageID = TerrainImageLLUUID;
+                    
                     AssetBase asset = new AssetBase();
                     asset.FullID = m_regInfo.EstateSettings.terrainImageID;
                     asset.Data = data;
-                    asset.Name = "terrainImage";
+                    asset.Name = "terrainImage_" + m_regInfo.RegionID.ToString() + "_" + lastMapRefresh.ToString();
                     asset.Description = RegionInfo.RegionName;
                     asset.Type = 0;
                     asset.Temporary = temporary;

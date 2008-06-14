@@ -208,6 +208,9 @@ namespace OpenSim.Framework
         public string RegionName = String.Empty;
         public string regionSecret = LLUUID.Random().ToString();
 
+        public LLUUID lastMapUUID = LLUUID.Zero;
+        public string lastMapRefresh = "0";
+
         // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
 
         public RegionInfo(string description, string filename, bool skipConsoleConfig)
@@ -384,6 +387,11 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("master_avatar_pass", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "(Sandbox Mode Only)Password for Master Avatar account",
                                                 MasterAvatarSandboxPassword, true);
+            configMember.addConfigurationOption("lastmap_uuid", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, 
+                                                "Last Map UUID", lastMapUUID.ToString(), true);
+            configMember.addConfigurationOption("lastmap_refresh", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, 
+                                                "Last Map Refresh", Util.UnixTimeSinceEpoch().ToString(), true);
+            
         }
 
         public void loadConfigurationOptions()
@@ -430,6 +438,12 @@ namespace OpenSim.Framework
                                                 "(Sandbox Mode Only)Password for Master Avatar account", "test", false,
                                                 (ConfigurationOption.ConfigurationOptionShouldBeAsked)
                                                 shouldMasterAvatarDetailsBeAsked);
+            configMember.addConfigurationOption("lastmap_uuid", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                                    "Last Map UUID", lastMapUUID.ToString(), true);
+            
+            configMember.addConfigurationOption("lastmap_refresh", ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, 
+                                                "Last Map Refresh", Util.UnixTimeSinceEpoch().ToString(), true);
+            
         }
 
         public bool shouldMasterAvatarDetailsBeAsked(string configuration_key)
@@ -498,6 +512,12 @@ namespace OpenSim.Framework
                     string tempMD5Passwd = (string) configuration_result;
                     MasterAvatarSandboxPassword = Util.Md5Hash(Util.Md5Hash(tempMD5Passwd) + ":" + String.Empty);
                     break;
+                case "lastmap_uuid":
+                    lastMapUUID = (LLUUID)configuration_result;
+                    break;
+                case "lastmap_refresh":
+                    lastMapRefresh = (string)configuration_result;
+                    break;
             }
 
             return true;
@@ -506,6 +526,14 @@ namespace OpenSim.Framework
         public void SaveEstatecovenantUUID(LLUUID notecard)
         {
             configMember.forceSetConfigurationOption("estate_covanant_uuid", notecard.ToString());
+        }
+        public void SaveLastMapUUID(LLUUID mapUUID)
+        {
+            lastMapUUID = mapUUID;
+            lastMapRefresh = Util.UnixTimeSinceEpoch().ToString();
+
+            configMember.forceSetConfigurationOption("lastmap_uuid", mapUUID.ToString());
+            configMember.forceSetConfigurationOption("lastmap_refresh", lastMapRefresh);
         }
     }
 }
