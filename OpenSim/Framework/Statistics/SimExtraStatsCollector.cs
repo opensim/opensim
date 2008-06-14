@@ -149,6 +149,8 @@ namespace OpenSim.Framework.Statistics
         {
             lock (packetQueueStatsCollectors)
             {
+                // FIXME: If the region service is providing more than one region, then the child and root agent
+                // queues are wrongly replacing each other here.
                 packetQueueStatsCollectors[uuid] = new PacketQueueStatsCollector(provider);
             }
         }

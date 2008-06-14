@@ -1139,7 +1139,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         }
 
         /// <summary>
-        ///
+        /// Tell the client that the given neighbour region is ready to receive a child agent. 
         /// </summary>
         /// <param name="neighbourHandle"></param>
         /// <param name="neighbourIP"></param>

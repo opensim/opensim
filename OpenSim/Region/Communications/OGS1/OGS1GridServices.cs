@@ -642,7 +642,7 @@ namespace OpenSim.Region.Communications.OGS1
         #region m_interRegion Comms
 
         /// <summary>
-        ///
+        /// Start listening for .net remoting calls from other regions.
         /// </summary>
         private void StartRemoting()
         {
@@ -789,7 +789,7 @@ namespace OpenSim.Region.Communications.OGS1
         }
 
         /// <summary>
-        ///
+        /// Inform a region that a child agent will be on the way from a client.
         /// </summary>
         /// <param name="regionHandle"></param>
         /// <param name="agentData"></param>
