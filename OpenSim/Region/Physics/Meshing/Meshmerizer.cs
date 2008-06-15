@@ -57,8 +57,11 @@ namespace OpenSim.Region.Physics.Meshing
 
         // Setting baseDir to a path will enable the dumping of raw files
         // raw files can be imported by blender so a visual inspection of the results can be done
-        //        const string baseDir = "rawFiles";
+#if SPAM
+        const string baseDir = "rawFiles";
+#else
         private const string baseDir = null; //"rawFiles";
+#endif
         private const float DEG_TO_RAD = 0.01745329238f;
 
 // TODO: unused
@@ -613,42 +616,46 @@ namespace OpenSim.Region.Physics.Meshing
                 }
             }
 
-            if (twistTop != 0)
-            {
-                extr.twistTop = 180 * ((float)twistTop / 100);
-                if (extr.twistTop > 0)
-                {
-                    extr.twistTop = 360 - (-1 * extr.twistTop);
+            //if (twistTop != 0)
+            //{
+            //    extr.twistTop = 180 * ((float)twistTop / 100);
+            //    if (extr.twistTop > 0)
+            //    {
+            //        extr.twistTop = 360 - (-1 * extr.twistTop);
 
-                }
+            //    }
 
 
-                extr.twistTop = (float)(extr.twistTop * DEG_TO_RAD);
-            }
+            //    extr.twistTop = (float)(extr.twistTop * DEG_TO_RAD);
+            //}
 
-            float twistMid = ((twistTop + twistBot) * 0.5f);
+            //float twistMid = ((twistTop + twistBot) * 0.5f);
 
-            if (twistMid != 0)
-            {
-                extr.twistMid = 180 * ((float)twistMid / 100);
-                if (extr.twistMid > 0)
-                {
-                    extr.twistMid = 360 - (-1 * extr.twistMid);
-                }
-                extr.twistMid = (float)(extr.twistMid * DEG_TO_RAD);
-            }
+            //if (twistMid != 0)
+            //{
+            //    extr.twistMid = 180 * ((float)twistMid / 100);
+            //    if (extr.twistMid > 0)
+            //    {
+            //        extr.twistMid = 360 - (-1 * extr.twistMid);
+            //    }
+            //    extr.twistMid = (float)(extr.twistMid * DEG_TO_RAD);
+            //}
 
-            if (twistBot != 0)
-            {
-                extr.twistBot = 180 * ((float)twistBot / 100);
-                if (extr.twistBot > 0)
-                {
-                    extr.twistBot = 360 - (-1 * extr.twistBot);
-                }
-                extr.twistBot = (float)(extr.twistBot * DEG_TO_RAD);
-            }
+            //if (twistBot != 0)
+            //{
+            //    extr.twistBot = 180 * ((float)twistBot / 100);
+            //    if (extr.twistBot > 0)
+            //    {
+            //        extr.twistBot = 360 - (-1 * extr.twistBot);
+            //    }
+            //    extr.twistBot = (float)(extr.twistBot * DEG_TO_RAD);
+            //}
 
-            Mesh result = extr.Extrude(m);
+            extr.twistTop = (float)primShape.PathTwist * (float)Math.PI * 0.01f;
+            extr.twistBot = (float)primShape.PathTwistBegin * (float)Math.PI * 0.01f;
+
+            //Mesh result = extr.Extrude(m);
+            Mesh result = extr.ExtrudeLinearPath(m);
             result.DumpRaw(baseDir, primName, "Z extruded");
             return result;
         }
@@ -953,43 +960,47 @@ namespace OpenSim.Region.Physics.Meshing
 
             }
 
-            if (twistTop != 0)
-            {
-                extr.twistTop = 180 * ((float)twistTop / 100);
-                if (extr.twistTop > 0)
-                {
-                    extr.twistTop = 360 - (-1 * extr.twistTop);
+            //if (twistTop != 0)
+            //{
+            //    extr.twistTop = 180 * ((float)twistTop / 100);
+            //    if (extr.twistTop > 0)
+            //    {
+            //        extr.twistTop = 360 - (-1 * extr.twistTop);
 
-                }
+            //    }
 
 
-                extr.twistTop = (float)(extr.twistTop * DEG_TO_RAD);
-            }
+            //    extr.twistTop = (float)(extr.twistTop * DEG_TO_RAD);
+            //}
 
-            float twistMid = ((twistTop + twistBot) * 0.5f);
+            //float twistMid = ((twistTop + twistBot) * 0.5f);
 
-            if (twistMid != 0)
-            {
-                extr.twistMid = 180 * ((float)twistMid / 100);
-                if (extr.twistMid > 0)
-                {
-                    extr.twistMid = 360 - (-1 * extr.twistMid);
-                }
-                extr.twistMid = (float)(extr.twistMid * DEG_TO_RAD);
-            }
+            //if (twistMid != 0)
+            //{
+            //    extr.twistMid = 180 * ((float)twistMid / 100);
+            //    if (extr.twistMid > 0)
+            //    {
+            //        extr.twistMid = 360 - (-1 * extr.twistMid);
+            //    }
+            //    extr.twistMid = (float)(extr.twistMid * DEG_TO_RAD);
+            //}
 
-            if (twistBot != 0)
-            {
-                extr.twistBot = 180 * ((float)twistBot / 100);
-                if (extr.twistBot > 0)
-                {
-                    extr.twistBot = 360 - (-1 * extr.twistBot);
-                }
-                extr.twistBot = (float)(extr.twistBot * DEG_TO_RAD);
-            }
+            //if (twistBot != 0)
+            //{
+            //    extr.twistBot = 180 * ((float)twistBot / 100);
+            //    if (extr.twistBot > 0)
+            //    {
+            //        extr.twistBot = 360 - (-1 * extr.twistBot);
+            //    }
+            //    extr.twistBot = (float)(extr.twistBot * DEG_TO_RAD);
+            //}
 
+            extr.twistTop = (float)primShape.PathTwist * (float)Math.PI * 0.01f;
+            extr.twistBot = (float)primShape.PathTwistBegin * (float)Math.PI * 0.01f;
+            
             //System.Console.WriteLine("[MESH]: twistTop = " + twistTop.ToString() + "|" + extr.twistTop.ToString() + ", twistMid = " + twistMid.ToString() + "|" + extr.twistMid.ToString() + ", twistbot = " + twistBot.ToString() + "|" + extr.twistBot.ToString());
-            Mesh result = extr.Extrude(m);
+            //Mesh result = extr.Extrude(m);
+            Mesh result = extr.ExtrudeLinearPath(m);
             result.DumpRaw(baseDir, primName, "Z extruded");
             return result;
         }
@@ -1185,42 +1196,47 @@ namespace OpenSim.Region.Physics.Meshing
                 }
             }
 
-            if (twistTop != 0)
-            {
-                extr.twistTop = 180 * ((float)twistTop / 100);
-                if (extr.twistTop > 0)
-                {
-                    extr.twistTop = 360 - (-1 * extr.twistTop);
+            //if (twistTop != 0)
+            //{
+            //    extr.twistTop = 180 * ((float)twistTop / 100);
+            //    if (extr.twistTop > 0)
+            //    {
+            //        extr.twistTop = 360 - (-1 * extr.twistTop);
 
-                }
+            //    }
 
 
-                extr.twistTop = (float)(extr.twistTop * DEG_TO_RAD);
-            }
+            //    extr.twistTop = (float)(extr.twistTop * DEG_TO_RAD);
+            //}
 
-            float twistMid = ((twistTop + twistBot) * 0.5f);
+            //float twistMid = ((twistTop + twistBot) * 0.5f);
 
-            if (twistMid != 0)
-            {
-                extr.twistMid = 180 * ((float)twistMid / 100);
-                if (extr.twistMid > 0)
-                {
-                    extr.twistMid = 360 - (-1 * extr.twistMid);
-                }
-                extr.twistMid = (float)(extr.twistMid * DEG_TO_RAD);
-            }
+            //if (twistMid != 0)
+            //{
+            //    extr.twistMid = 180 * ((float)twistMid / 100);
+            //    if (extr.twistMid > 0)
+            //    {
+            //        extr.twistMid = 360 - (-1 * extr.twistMid);
+            //    }
+            //    extr.twistMid = (float)(extr.twistMid * DEG_TO_RAD);
+            //}
 
-            if (twistBot != 0)
-            {
-                extr.twistBot = 180 * ((float)twistBot / 100);
-                if (extr.twistBot > 0)
-                {
-                    extr.twistBot = 360 - (-1 * extr.twistBot);
-                }
-                extr.twistBot = (float)(extr.twistBot * DEG_TO_RAD);
-            }
+            //if (twistBot != 0)
+            //{
+            //    extr.twistBot = 180 * ((float)twistBot / 100);
+            //    if (extr.twistBot > 0)
+            //    {
+            //        extr.twistBot = 360 - (-1 * extr.twistBot);
+            //    }
+            //    extr.twistBot = (float)(extr.twistBot * DEG_TO_RAD);
+            //}
 
-            Mesh result = extr.Extrude(m);
+            extr.twistTop = (float)primShape.PathTwist * (float)Math.PI * 0.01f;
+            extr.twistBot = (float)primShape.PathTwistBegin * (float)Math.PI * 0.01f;
+
+            //System.Console.WriteLine("[MESH]: twistTop = " + twistTop.ToString() + "|" + extr.twistTop.ToString() + ", twistMid = " + twistMid.ToString() + "|" + extr.twistMid.ToString() + ", twistbot = " + twistBot.ToString() + "|" + extr.twistBot.ToString());
+            //Mesh result = extr.Extrude(m);
+            Mesh result = extr.ExtrudeLinearPath(m);
             result.DumpRaw(baseDir, primName, "Z extruded");
             return result;
         }
