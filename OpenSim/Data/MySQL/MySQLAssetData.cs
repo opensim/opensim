@@ -125,8 +125,7 @@ namespace OpenSim.Data.MySQL
                     new MySqlCommand(
                         "SELECT name, description, assetType, invType, local, temporary, data FROM assets WHERE id=?id",
                         _dbConnection.Connection);
-                MySqlParameter p = cmd.Parameters.Add("?id", MySqlDbType.Binary, 16);
-                p.Value = assetID.GetBytes();
+                cmd.Parameters.AddWithValue("?id", assetID.ToString());
 
                 try
                 {
@@ -180,8 +179,7 @@ namespace OpenSim.Data.MySQL
                 {
                     using (cmd)
                     {
-                        MySqlParameter p = cmd.Parameters.Add("?id", MySqlDbType.Binary, 16);
-                        p.Value = asset.FullID.GetBytes();
+                        cmd.Parameters.AddWithValue("?id", asset.FullID.ToString());
                         cmd.Parameters.AddWithValue("?name", asset.Name);
                         cmd.Parameters.AddWithValue("?description", asset.Description);
                         cmd.Parameters.AddWithValue("?assetType", asset.Type);
@@ -219,8 +217,8 @@ namespace OpenSim.Data.MySQL
                     new MySqlCommand(
                         "SELECT id FROM assets WHERE id=?id",
                         _dbConnection.Connection);
-                MySqlParameter p = cmd.Parameters.Add("?id", MySqlDbType.Binary, 16);
-                p.Value = uuid.GetBytes();
+                
+                cmd.Parameters.AddWithValue("?id", uuid.ToString());
 
                 try
                 {

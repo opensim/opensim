@@ -222,6 +222,8 @@ namespace OpenSim.Data
         {
             string[] names = _assem.GetManifestResourceNames();
             SortedList<int, string> migrations = new SortedList<int, string>();
+            // because life is funny if we don't
+            Array.Sort(names);
 
             foreach (string s in names)
             {
