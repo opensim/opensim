@@ -97,6 +97,12 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                                 m_log.DebugFormat("[ARCHIVER]: Recording asset {0} in object {1}", tit.AssetID, part.UUID);
                                 assetUuids[tit.AssetID] = 1;
                             }
+                            else
+                            {
+                                // TODO: Need to unpack every tit and go through its textures & items, recursively
+                                // this will mean going through the 'assets' received multiple times so that we can
+                                // unpack objects within objects before recursively requesting the inner assets
+                            }
                         }
                     }
                 }
@@ -157,74 +163,6 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             serialization += "</scene>";
 
             return serialization;
-        }
-    }
-
-    /// <summary>
-    /// Encapsulate the asynchronous requests for the assets required for an archive operation
-    /// </summary>
-    class AssetsRequest
-    {
-        /// <summary>
-        /// Callback used when all the assets requested have been received.
-        /// </summary>
-        protected AssetsRequestCallback m_assetsRequestCallback;
-
-        /// <summary>
-        /// Assets retrieved in this request
-        /// </summary>
-        protected Dictionary<LLUUID, AssetBase> m_assets = new Dictionary<LLUUID, AssetBase>();
-
-        /// <summary>
-        /// Record the number of asset replies required so we know when we've finished
-        /// </summary>
-        private int m_repliesRequired;
-
-        /// <summary>
-        /// Asset cache used to request the assets
-        /// </summary>
-        protected AssetCache m_assetCache;
-
-        protected internal AssetsRequest(AssetsRequestCallback assetsRequestCallback, AssetCache assetCache, ICollection<LLUUID> uuids)
-        {
-            m_assetsRequestCallback = assetsRequestCallback;
-            m_assetCache = assetCache;
-            m_repliesRequired = uuids.Count;
-
-            // We can stop here if there are no assets to fetch
-            if (m_repliesRequired == 0)
-                m_assetsRequestCallback(m_assets);
-
-            foreach (LLUUID uuid in uuids)
-            {
-                m_assetCache.GetAsset(uuid, AssetRequestCallback, true);
-            }
-        }
-
-        /// <summary>
-        /// Called back by the asset cache when it has the asset
-        /// </summary>
-        /// <param name="assetID"></param>
-        /// <param name="asset"></param>
-        public void AssetRequestCallback(LLUUID assetID, AssetBase asset)
-        {
-            m_assets[assetID] = asset;
-
-            if (m_assets.Count == m_repliesRequired)
-            {
-                // We want to stop using the asset cache thread asap as we now need to do the actual work of producing the archive
-                Thread newThread = new Thread(PerformAssetsRequestCallback);
-                newThread.Name = "OpenSimulator archiving thread post assets receipt";
-                newThread.Start();
-            }
-        }
-
-        /// <summary>
-        /// Perform the callback on the original requester of the assets
-        /// </summary>
-        protected void PerformAssetsRequestCallback()
-        {
-            m_assetsRequestCallback(m_assets);
         }
     }
 }

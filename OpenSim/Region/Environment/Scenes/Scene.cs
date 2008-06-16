@@ -863,12 +863,12 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Backup the scene.  This acts as the main method of the backup thread.
         /// </summary>
         /// <returns></returns>
         public void Backup()
         {
-            EventManager.TriggerOnBackup(m_storageManager.DataStore);
+            EventManager.TriggerOnBackup(m_storageManager.DataStore);            
             m_backingup = false;
             //return true;
         }
