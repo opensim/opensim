@@ -41,6 +41,11 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     class AssetsRequest
     {
         /// <summary>
+        /// uuids to request
+        /// </summary>
+        protected ICollection<LLUUID> m_uuids;
+        
+        /// <summary>
         /// Callback used when all the assets requested have been received.
         /// </summary>
         protected AssetsRequestCallback m_assetsRequestCallback;
@@ -60,17 +65,21 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// </summary>
         protected AssetCache m_assetCache;
 
-        protected internal AssetsRequest(AssetsRequestCallback assetsRequestCallback, AssetCache assetCache, ICollection<LLUUID> uuids)
+        protected internal AssetsRequest(ICollection<LLUUID> uuids, AssetCache assetCache, AssetsRequestCallback assetsRequestCallback)
         {
+            m_uuids = uuids;
             m_assetsRequestCallback = assetsRequestCallback;
             m_assetCache = assetCache;
             m_repliesRequired = uuids.Count;
-
+        }
+        
+        protected internal void Execute()
+        {
             // We can stop here if there are no assets to fetch
             if (m_repliesRequired == 0)
                 m_assetsRequestCallback(m_assets);
 
-            foreach (LLUUID uuid in uuids)
+            foreach (LLUUID uuid in m_uuids)
             {
                 m_assetCache.GetAsset(uuid, AssetRequestCallback, true);
             }
