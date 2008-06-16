@@ -201,7 +201,7 @@ namespace OpenSim.Data
         {
             DbCommand cmd = _conn.CreateCommand();
             cmd.CommandText = "insert into migrations(name, version) values('" + type + "', " + version + ")";
-            m_log.InfoFormat("Creating {0} at version {1}", type, version);
+            m_log.InfoFormat("[MIGRATIONS] Creating {0} at version {1}", type, version);
             cmd.ExecuteNonQuery();
         }
         
@@ -209,7 +209,7 @@ namespace OpenSim.Data
         {
             DbCommand cmd = _conn.CreateCommand();
             cmd.CommandText = "update migrations set version=" + version + " where name='" + type + "'";
-            m_log.InfoFormat("Updating {0} to version {1}", type, version);
+            m_log.InfoFormat("[MIGRATIONS] Updating {0} to version {1}", type, version);
             cmd.ExecuteNonQuery();
         }
         
@@ -230,7 +230,7 @@ namespace OpenSim.Data
                 Match m = _match.Match(s);
                 if (m.Success)
                 {
-                    m_log.Info("MIGRATION: Match: " + m.Groups[1].ToString());
+                    // m_log.Info("MIGRATION: Match: " + m.Groups[1].ToString());
                     int version = int.Parse(m.Groups[1].ToString());
                     if (version > after) {
                         using (Stream resource = _assem.GetManifestResourceStream(s))
@@ -245,9 +245,8 @@ namespace OpenSim.Data
                 }
             }
 
-            // TODO: once this is working, get rid of this
             if (migrations.Count < 1) {
-                m_log.InfoFormat("Resource '{0}' was not found", _type);
+                m_log.InfoFormat("[MIGRATIONS] {0} up to date, no migrations to apply", _type);
             }
             return migrations;
         }
