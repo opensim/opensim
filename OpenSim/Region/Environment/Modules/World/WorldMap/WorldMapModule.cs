@@ -28,8 +28,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Reflection;
 using libsecondlife;
+using OpenJPEGNet;
 using log4net;
 using Nini.Config;
 using OpenSim.Framework;
@@ -55,6 +59,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         private Scene m_scene;
         private List<MapBlockData> cachedMapBlocks = new List<MapBlockData>();
         private int cachedTime = 0;
+        private byte[] myMapImageJPEG;
         
         //private int CacheRegionsDistance = 256;
 
@@ -62,8 +67,15 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
         public void Initialise(Scene scene, IConfigSource config)
         {
+            myMapImageJPEG = new byte[0];
+
             m_scene = scene;
-            
+            string regionimage = "regionImage" + scene.RegionInfo.RegionID.ToString();
+            regionimage = regionimage.Replace("-", "");
+            m_log.Warn("[WEBMAP]: JPEG Map location: http://" + m_scene.RegionInfo.ExternalEndPoint.Address.ToString() + ":" + m_scene.RegionInfo.HttpPort.ToString() + "/index.php?method=" + regionimage);
+
+
+            m_scene.AddHTTPHandler(regionimage, OnHTTPGetMapImage);
             //QuadTree.Subdivide();
             //QuadTree.Subdivide();
 
@@ -234,6 +246,73 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
             List<MapBlockData> mapBlocks;
             mapBlocks = m_scene.CommsManager.GridService.RequestNeighbourMapBlocks(minX - 4, minY - 4, minX + 4, minY + 4);
             remoteClient.SendMapBlock(mapBlocks);
+        }
+        public Hashtable OnHTTPGetMapImage(Hashtable keysvals)
+        {
+            m_log.Info("[WEBMAP]: Sending map image jpeg");
+            Hashtable reply = new Hashtable();
+            int statuscode = 200;
+
+            byte[] jpeg;
+
+
+            if (myMapImageJPEG.Length == 0)
+            {
+                MemoryStream imgstream = new MemoryStream();
+                Bitmap mapTexture = new Bitmap(1,1);
+                System.Drawing.Image image = (System.Drawing.Image)mapTexture;
+                
+                
+                try
+                {
+                    // Taking our jpeg2000 data, decoding it, then saving it to a byte array with regular jpeg data
+
+
+                    imgstream = new MemoryStream();
+                    
+                    // non-async because we know we have the asset immediately.
+                    AssetBase mapasset = m_scene.AssetCache.GetAsset(m_scene.RegionInfo.lastMapUUID, true);
+                    
+                    // Decode image to System.Drawing.Image
+                    image = OpenJPEG.DecodeToImage(mapasset.Data);
+
+                    // Save to bitmap
+                    mapTexture = new Bitmap(image);
+
+                    // Save bitmap to stream
+                    mapTexture.Save(imgstream, ImageFormat.Jpeg);
+
+                    // Write the stream to a byte array for output
+                    jpeg = imgstream.ToArray();
+                    myMapImageJPEG = jpeg;
+                }
+                catch (Exception)
+                {
+                    // Dummy!
+                    jpeg = new byte[0];
+                    m_log.Warn("[WEBMAP]: Unable to generate Map image");
+                }
+                finally
+                {
+                    // Reclaim memory, these are unmanaged resources
+                    mapTexture.Dispose();
+                    image.Dispose();
+                    imgstream.Close();
+                    imgstream.Dispose();
+                }
+            }
+            else
+            {
+                // Use cached version so we don't have to loose our mind
+                jpeg = myMapImageJPEG;
+            }
+            //jpeg = new byte[0];
+
+            reply["str_response_string"] = Convert.ToBase64String(jpeg);
+            reply["int_response_code"] = statuscode;
+            reply["content_type"] = "image/jpeg";
+
+            return reply;
         }
     }
 }

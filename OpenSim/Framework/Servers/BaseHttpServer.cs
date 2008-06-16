@@ -641,8 +641,17 @@ namespace OpenSim.Framework.Servers
             }
 
             response.AddHeader("Content-type", contentType);
+            
+            byte[] buffer;
 
-            byte[] buffer = Encoding.UTF8.GetBytes(responseString);
+            if (!contentType.Contains("image"))
+            {
+                buffer = Encoding.UTF8.GetBytes(responseString);
+            }
+            else
+            {
+                buffer = Convert.FromBase64String(responseString);
+            }
 
             response.SendChunked = false;
             response.ContentLength64 = buffer.Length;
