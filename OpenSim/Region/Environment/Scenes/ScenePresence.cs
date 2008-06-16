@@ -1596,7 +1596,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Do everything required once a client completes its movement into a region 
         /// </summary>
         public void SendInitialData()
         {

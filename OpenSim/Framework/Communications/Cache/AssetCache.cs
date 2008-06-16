@@ -270,7 +270,6 @@ namespace OpenSim.Framework.Communications.Cache
                 // m_log.DebugFormat("[ASSET CACHE]: Adding request for {0} {1}", isTexture ? "texture" : "asset", assetId);
 #endif
 
-
                 NewAssetRequest req = new NewAssetRequest(assetId, callback);
                 AssetRequestsList requestList;
 
@@ -291,28 +290,6 @@ namespace OpenSim.Framework.Communications.Cache
                         m_assetServer.RequestAsset(assetId, isTexture);
                     }
                 }
-
-
-                /*  Old code doesn't handle duplicate requests right
-                NewAssetRequest req = new NewAssetRequest(assetId, callback);
-
-                // Make sure we always have a request list to which to add the asset
-                AssetRequestsList requestList;
-                lock (RequestLists)
-                {
-                  //  m_log.Info("AssetCache: Lock taken on requestLists (GetAsset)");
-                    if (!RequestLists.TryGetValue(assetId, out requestList))
-                    {
-                        requestList = new AssetRequestsList(assetId);
-                        RequestLists.Add(assetId, requestList);
-                    }
-                }
-               // m_log.Info("AssetCache: Lock released on requestLists (GetAsset)");
-
-                requestList.Requests.Add(req);
-
-                m_assetServer.RequestAsset(assetId, isTexture);
-                */
             }
         }
 
