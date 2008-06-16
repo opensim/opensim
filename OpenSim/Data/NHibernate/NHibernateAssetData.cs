@@ -66,16 +66,20 @@ namespace OpenSim.Data.NHibernate
                 throw new Exception("Malformed Inventory connection string '" + connect + "'");
             }
 
+            string dialect = parts[0];
+
             // NHibernate setup
             cfg = new Configuration();
             cfg.SetProperty(Environment.ConnectionProvider,
                             "NHibernate.Connection.DriverConnectionProvider");
             cfg.SetProperty(Environment.Dialect,
-                            "NHibernate.Dialect." + parts[0]);
+                            "NHibernate.Dialect." + dialect);
             cfg.SetProperty(Environment.ConnectionDriver,
                             "NHibernate.Driver." + parts[1]);
             cfg.SetProperty(Environment.ConnectionString, parts[2]);
             cfg.AddAssembly("OpenSim.Data.NHibernate");
+
+
 
             HbmSerializer.Default.Validate = true;
             using (MemoryStream stream =
@@ -84,13 +88,12 @@ namespace OpenSim.Data.NHibernate
 
             factory  = cfg.BuildSessionFactory();
 
-            // If uncommented this will auto create tables, but it
-            // does drops of the old tables, so we need a smarter way
-            // to acturally manage this.
+            
+            // This actually does the roll forward assembly stuff
+            Assembly assem = GetType().Assembly;
+            Migration m = new Migration((System.Data.Common.DbConnection)factory.ConnectionProvider.GetConnection(), assem, dialect, "AssetStore");
+            m.Update();
 
-            // new SchemaExport(cfg).Create(true, true);
-
-            InitDB();
         }
 
         private void InitDB()
