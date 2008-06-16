@@ -122,6 +122,13 @@ namespace OpenSim.Data
             version = FindVersion(_type);
 
             SortedList<int, string> migrations = GetMigrationsAfter(version);
+            if (migrations.Count < 1)
+                return;
+
+            // to prevent people from killing long migrations.
+            m_log.InfoFormat("[MIGRATIONS] Upgrading {0} to latest revision.", _type);
+            m_log.Info("[MIGRATIONS] NOTE: this may take a while, don't interupt this process!");
+
             DbCommand cmd = _conn.CreateCommand();
             foreach (KeyValuePair<int, string> kvp in migrations) 
             {
