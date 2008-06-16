@@ -1339,6 +1339,9 @@
       <Files>
         <Match pattern="*.cs" recurse="true"/>
         <Match path="Resources" pattern="*.xml" buildAction="EmbeddedResource"/>
+        <!-- add more as you go -->
+        <Match path="Resources/SQLiteDialect" pattern="*.sql" buildAction="EmbeddedResource"/>
+        <Match path="Resources/MySQLDialect" pattern="*.sql" buildAction="EmbeddedResource"/>
       </Files>
     </Project>
 

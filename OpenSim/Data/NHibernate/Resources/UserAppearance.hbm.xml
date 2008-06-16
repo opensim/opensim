@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <hibernate-mapping xmlns="urn:nhibernate-mapping-2.2">
-  <class name="OpenSim.Framework.UserAppearance, OpenSim.Framework" table="UserAppearances" lazy="false">
-    <id name="User" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
+  <class name="OpenSim.Framework.AvatarAppearance, OpenSim.Framework" table="UserAppearances" lazy="false">
+    <id name="Owner" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
       <generator class="assigned" /> 
     </id>
     <property name="BodyItem" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />    

@@ -8,7 +8,7 @@ create table Assets(
        Description varchar(64),
        Local boolean,
        Temporary boolean,
-       Data blob,
+       Data blob
 );
 
 END;
