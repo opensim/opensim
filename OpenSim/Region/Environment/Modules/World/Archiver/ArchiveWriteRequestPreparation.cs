@@ -99,17 +99,22 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 m_log.DebugFormat(
                     "[ARCHIVER]: Getting part {0}, {1} for object {2}", part.Name, part.UUID, sceneObject.UUID);
                 
+                LLObject.TextureEntry textureEntry = part.Shape.Textures;
+                
+                // Get the prim's default texture.  This will be used for faces which don't have their own texture
+                assetUuids[textureEntry.DefaultTexture.TextureID] = 1;
+                
                 // XXX: Not a great way to iterate through face textures, but there's no
-                // other way to tell how many faces there actually are
+                // other method available to tell how many faces there actually are
                 int i = 0;
-                foreach (LLObject.TextureEntryFace texture in part.Shape.Textures.FaceTextures)
+                foreach (LLObject.TextureEntryFace texture in textureEntry.FaceTextures)
                 {
                     if (texture != null)
                     {
                         m_log.DebugFormat("[ARCHIVER]: Got face {0}", i++);
                         assetUuids[texture.TextureID] = 1;
                     }
-                }
+                }                                
 
                 foreach (TaskInventoryItem tii in part.TaskInventory.Values)
                 {

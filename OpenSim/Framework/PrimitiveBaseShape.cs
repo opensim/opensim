@@ -296,6 +296,7 @@ namespace OpenSim.Framework
             ProfileBegin = LLObject.PackBeginCut(profileRange.X);
             ProfileEnd = LLObject.PackEndCut(profileRange.Y);
         }
+        
         public byte[] ExtraParams
         {
             get
@@ -528,6 +529,7 @@ namespace OpenSim.Framework
 
             return data;
         }
+        
         public void ReadFlexiData(byte[] data, int pos)
         {
             if (data.Length-pos >= 5)
@@ -558,6 +560,7 @@ namespace OpenSim.Framework
                 FlexiForceZ = 0f;
             }
         }
+        
         public byte[] GetFlexiBytes()
         {
             byte[] data = new byte[16];
@@ -576,6 +579,7 @@ namespace OpenSim.Framework
 
             return data;
         }
+        
         public void ReadLightData(byte[] data, int pos)
         {
             if (data.Length - pos >= 16)
@@ -605,6 +609,7 @@ namespace OpenSim.Framework
                 LightIntensity = 0f;
             }
         }
+        
         public byte[] GetLightBytes()
         {
             byte[] data = new byte[16];
