@@ -242,7 +242,13 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
 
                 LastAssetID = asset.FullID;
 
-                part.Shape.Textures = new LLObject.TextureEntry(asset.FullID);
+                // mostly keep the values from before
+                LLObject.TextureEntry tmptex = part.Shape.Textures;
+                tmptex.DefaultTexture.TextureID = asset.FullID;
+                // I'm pretty sure we always want to force this to true
+                tmptex.DefaultTexture.Fullbright = true;
+
+                part.Shape.Textures = tmptex;
                 part.ScheduleFullUpdate();
             }
 
