@@ -79,7 +79,12 @@ namespace OpenSim.Region.Environment.Scenes
         private int m_timePhase = 24;
 
         private readonly Mutex updateLock;
+        
+        /// <summary>
+        /// Are we applying physics to any of the prims in this scene?
+        /// </summary>
         public bool m_physicalPrim;
+        
         public bool m_seeIntoRegionFromNeighbor;
         public int MaxUndoCount = 5;
         private int m_RestartTimerCounter;

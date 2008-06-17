@@ -1052,6 +1052,10 @@ namespace OpenSim.Region.Environment.Scenes
             m_rootPart.ScheduleFullUpdate();
         }
 
+        /// <summary>
+        /// Apply physics to this group
+        /// </summary>
+        /// <param name="m_physicalPrim"></param>
         public void ApplyPhysics(bool m_physicalPrim)
         {
             lock (m_parts)

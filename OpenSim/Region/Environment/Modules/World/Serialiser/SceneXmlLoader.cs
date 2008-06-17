@@ -195,33 +195,9 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SceneObjectGroup obj = new SceneObjectGroup(xmlData);
 
-            LLVector3 receivedVelocity = obj.RootPart.Velocity;
-            //System.Console.WriteLine(obj.RootPart.Velocity.ToString());
             scene.AddSceneObjectFromStorage(obj);
 
-            SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
-            bool UsePhysics = (((rootPart.GetEffectiveObjectFlags() & (uint) LLObject.ObjectFlags.Physics) > 0) &&
-                               scene.m_physicalPrim);
-            if ((rootPart.GetEffectiveObjectFlags() & (uint) LLObject.ObjectFlags.Phantom) == 0)
-            {
-                rootPart.PhysActor = scene.PhysicsScene.AddPrimShape(
-                    rootPart.Name,
-                    rootPart.Shape,
-                    new PhysicsVector(rootPart.AbsolutePosition.X, rootPart.AbsolutePosition.Y,
-                                      rootPart.AbsolutePosition.Z),
-                    new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
-                    new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
-                                   rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
-
-                // to quote from SceneObjectPart: Basic
-                // Physics returns null..  joy joy joy.
-                if (rootPart.PhysActor != null)
-                {
-                    rootPart.PhysActor.LocalID = rootPart.LocalId;
-                    rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
-                }
-                rootPart.Velocity = receivedVelocity;
-            }
+            obj.ApplyPhysics(scene.m_physicalPrim);
 
             obj.ScheduleGroupForFullUpdate();
         }

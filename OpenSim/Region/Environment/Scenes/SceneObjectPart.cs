@@ -494,8 +494,9 @@ namespace OpenSim.Region.Environment.Scenes
 
                 return m_velocity;
             }
-            set {
-
+            
+            set 
+            {
                 m_velocity = value;
                 if (PhysActor != null)
                 {
@@ -505,7 +506,6 @@ namespace OpenSim.Region.Environment.Scenes
                         m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
                     }
                 }
-
             }
         }
 
@@ -913,9 +913,13 @@ namespace OpenSim.Region.Environment.Scenes
             return newobject;
         }
 
+        /// <summary>
+        /// Apply physics to this part.
+        /// </summary>
+        /// <param name="rootObjectFlags"></param>
+        /// <param name="m_physicalPrim"></param>
         public void ApplyPhysics(uint rootObjectFlags, bool m_physicalPrim)
         {
-
             bool isPhysical = (((rootObjectFlags & (uint) LLObject.ObjectFlags.Physics) != 0) && m_physicalPrim);
             bool isPhantom = ((rootObjectFlags & (uint) LLObject.ObjectFlags.Phantom) != 0);
 
