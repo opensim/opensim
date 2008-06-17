@@ -350,10 +350,6 @@ namespace OpenSim.Region.Environment.Scenes
             SetPartAsRoot(part);
 
             RegionHandle = regionHandle;
-
-            ApplyPhysics(scene.m_physicalPrim);
-
-            ScheduleGroupForFullUpdate();
         }
 
         /// <summary>
@@ -412,10 +408,6 @@ namespace OpenSim.Region.Environment.Scenes
             m_rootPart.ParentID = 0;
             m_rootPart.RegionHandle = m_regionHandle;
             UpdateParentIDs();
-
-            ApplyPhysics(scene.m_physicalPrim);
-
-            ScheduleGroupForFullUpdate();
         }
 
         /// <summary>
@@ -854,7 +846,6 @@ namespace OpenSim.Region.Environment.Scenes
                     if (part.UUID != m_rootPart.UUID)
                     {
                         part.ParentID = m_rootPart.LocalId;
-
                     }
                 }
             }

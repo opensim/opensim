@@ -45,7 +45,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             XmlDocument doc = new XmlDocument();
             XmlNode rootNode;
-            int primCount = 0;
+
             if (fileName.StartsWith("http:") || File.Exists(fileName))
             {
                 XmlTextReader reader = new XmlTextReader(fileName);
@@ -65,33 +65,6 @@ namespace OpenSim.Region.Environment.Scenes
                     //obj.RegenerateFullIDs();
 
                     scene.AddSceneObject(obj, true);
-
-                    SceneObjectPart rootPart = obj.GetChildPart(obj.UUID);
-                    // Apply loadOffsets for load/import and move combinations
-                    rootPart.GroupPosition = rootPart.AbsolutePosition + loadOffset;
-                    bool UsePhysics = (((rootPart.GetEffectiveObjectFlags() & (uint) LLObject.ObjectFlags.Physics) > 0) &&
-                                       scene.m_physicalPrim);
-                    if ((rootPart.GetEffectiveObjectFlags() & (uint) LLObject.ObjectFlags.Phantom) == 0)
-                    {
-                        rootPart.PhysActor = scene.PhysicsScene.AddPrimShape(
-                            rootPart.Name,
-                            rootPart.Shape,
-                            new PhysicsVector(rootPart.AbsolutePosition.X + loadOffset.X,
-                                              rootPart.AbsolutePosition.Y + loadOffset.Y,
-                                              rootPart.AbsolutePosition.Z + loadOffset.Z),
-                            new PhysicsVector(rootPart.Scale.X, rootPart.Scale.Y, rootPart.Scale.Z),
-                            new Quaternion(rootPart.RotationOffset.W, rootPart.RotationOffset.X,
-                                           rootPart.RotationOffset.Y, rootPart.RotationOffset.Z), UsePhysics);
-
-                        // to quote from SceneObjectPart: Basic
-                        // Physics returns null..  joy joy joy.
-                        if (rootPart.PhysActor != null)
-                        {
-                            rootPart.PhysActor.LocalID = rootPart.LocalId;
-                            rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
-                        }
-                    }
-                    primCount++;
                 }
             }
             else
@@ -196,10 +169,6 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup obj = new SceneObjectGroup(xmlData);
 
             scene.AddSceneObjectFromStorage(obj);
-
-            obj.ApplyPhysics(scene.m_physicalPrim);
-
-            obj.ScheduleGroupForFullUpdate();
         }
 
         public static void SavePrimsToXml2(Scene scene, string fileName)

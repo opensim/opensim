@@ -1499,7 +1499,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             string xmlData = Helpers.FieldToUTF8String(rezAsset.Data);
                             SceneObjectGroup group = new SceneObjectGroup(this, m_regionHandle, xmlData);
-                            if (!ExternalChecks.ExternalChecksCanRezObject(group.Children.Count,remoteClient.AgentId, pos) && !attachment)
+                            if (!ExternalChecks.ExternalChecksCanRezObject(group.Children.Count, remoteClient.AgentId, pos) && !attachment)
                             {
                                 return null;
                             }
@@ -1513,8 +1513,8 @@ namespace OpenSim.Region.Environment.Scenes
                             if (!attachment)
                             {
                                 pos = GetNewRezLocation(
-                                            RayStart, RayEnd, RayTargetID, new LLQuaternion(0, 0, 0, 1),
-                                               BypassRayCast, bRayEndIsIntersection, true, group.GroupScale(), false);
+                                    RayStart, RayEnd, RayTargetID, new LLQuaternion(0, 0, 0, 1),
+                                    BypassRayCast, bRayEndIsIntersection, true, group.GroupScale(), false);
                                 group.AbsolutePosition = pos;
                             }
                             else

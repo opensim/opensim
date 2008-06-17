@@ -1460,7 +1460,6 @@ namespace OpenSim.Region.Environment.Scenes
                 rootPart.ObjectFlags &= ~(uint)LLObject.ObjectFlags.Scripted;
                 rootPart.TrimPermissions();
                 group.CheckSculptAndLoad();
-                group.ApplyPhysics(m_physicalPrim);
                 //rootPart.DoPhysicsPropertyUpdate(UsePhysics, true);
             }
 
@@ -1578,9 +1577,12 @@ namespace OpenSim.Region.Environment.Scenes
 
         public virtual SceneObjectGroup AddNewPrim(LLUUID ownerID, LLVector3 pos, LLQuaternion rot, PrimitiveBaseShape shape)
         {
+            //m_log.DebugFormat(
+            //    "[SCENE]: Scene.AddNewPrim() called for agent {0} in {1}", ownerID, RegionInfo.RegionName);
+            
             SceneObjectGroup sceneOb =
                 new SceneObjectGroup(this, m_regionHandle, ownerID, PrimIDAllocate(), pos, rot, shape);
-            AddSceneObject(sceneOb, true);
+            
             SceneObjectPart rootPart = sceneOb.GetChildPart(sceneOb.UUID);
             // if grass or tree, make phantom
             //rootPart.TrimPermissions();
@@ -1591,9 +1593,8 @@ namespace OpenSim.Region.Environment.Scenes
                 if (rootPart.Shape.PCode != (byte)PCode.Grass)
                     AdaptTree(ref shape);
             }
-            // if not phantom, add to physics
-            sceneOb.ApplyPhysics(m_physicalPrim);
-            m_innerScene.AddToUpdateList(sceneOb);
+
+            AddSceneObject(sceneOb, true);
 
             return sceneOb;
         }

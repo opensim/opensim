@@ -197,15 +197,16 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (SceneObjectPart part in sceneObject.Children.Values)
             {
                 part.LocalId = m_parentScene.PrimIDAllocate();
-
             }
+            
             sceneObject.UpdateParentIDs();
 
             AddSceneObject(sceneObject, true);
         }
 
         /// <summary>
-        /// Add an object to the scene.
+        /// Add an object to the scene.  This will both update the scene, and send information about the
+        /// new object to all clients interested in the scene.
         /// </summary>
         /// <param name="sceneObject"></param>
         /// <param name="attachToBackup">
@@ -216,6 +217,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// </returns>
         protected internal bool AddSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
         {
+            sceneObject.ApplyPhysics(m_parentScene.m_physicalPrim);
+            sceneObject.ScheduleGroupForFullUpdate();
+            
             lock (Entities)
             {
                 if (!Entities.ContainsKey(sceneObject.UUID))

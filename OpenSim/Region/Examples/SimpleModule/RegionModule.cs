@@ -77,7 +77,6 @@ namespace OpenSim.Region.Examples.SimpleModule
 
                 FileSystemObject fileObject = new FileSystemObject(m_scene, fileInfo, filePos);
                 m_scene.AddSceneObject(fileObject, true);
-                fileObject.ScheduleGroupForFullUpdate();
             }
         }
 
