@@ -279,8 +279,22 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                     // Save to bitmap
                     mapTexture = new Bitmap(image);
 
+                    ImageCodecInfo myImageCodecInfo;
+
+                    Encoder myEncoder;
+
+                    EncoderParameter myEncoderParameter;
+                    EncoderParameters myEncoderParameters = new EncoderParameters();
+
+                    myImageCodecInfo = GetEncoderInfo("image/jpeg");
+
+                    myEncoder = Encoder.Quality;
+
+                    myEncoderParameter = new EncoderParameter(myEncoder, 95L);
+                    myEncoderParameters.Param[0] = myEncoderParameter;
+                   
                     // Save bitmap to stream
-                    mapTexture.Save(imgstream, ImageFormat.Jpeg);
+                    mapTexture.Save(imgstream, myImageCodecInfo, myEncoderParameters);
 
                     // Write the stream to a byte array for output
                     jpeg = imgstream.ToArray();
@@ -314,5 +328,19 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
 
             return reply;
         }
+        // From msdn
+        private static ImageCodecInfo GetEncoderInfo(String mimeType)
+        {
+            int j;
+            ImageCodecInfo[] encoders;
+            encoders = ImageCodecInfo.GetImageEncoders();
+            for (j = 0; j < encoders.Length; ++j)
+            {
+                if (encoders[j].MimeType == mimeType)
+                    return encoders[j];
+            }
+            return null;
+        }
+
     }
 }
