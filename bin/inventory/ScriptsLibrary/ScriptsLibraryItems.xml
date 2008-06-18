@@ -286,4 +286,18 @@
 <!-- X == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba023"/> -->
 <!-- .Kan-ED Scripts == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba024"/> -->
 <!-- .Other testing scripts == <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba025"/> -->
+<!-- OpenSim Specific Scripts == <Key Name="folderID" Value="284858c8-9391-6bf1-ddf5-b936f73de853"/> -->
+  <Section Name="osTextBoard">
+    <Key Name="inventoryID" Value="3e4f2be4-4697-4697-15c8-5920140208c5"/>
+    <Key Name="assetID" Value="3e4f2be4-4697-4697-15c8-5920140208c5"/>
+    <Key Name="folderID" Value="284858c8-9391-6bf1-ddf5-b936f73de853"/>
+    <Key Name="description" Value="A dynamic text board - contributed by Neas Bade" />
+    <Key Name="name" Value="osTextBoard" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+    <Key Name="currentPermissions" Value="257487132" />
+    <Key Name="nextPermissions" Value="257487132" />
+    <Key Name="everyonePermissions" Value="257487132" />
+    <Key Name="basePermissions" Value="257487132" />
+  </Section>
 </Nini>

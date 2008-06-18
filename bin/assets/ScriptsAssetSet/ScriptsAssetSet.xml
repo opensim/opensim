@@ -132,4 +132,11 @@
     <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="llSetRot.lsl" />
   </Section>
+  <Section Name="osTextBoard">
+    <Key Name="assetID" Value="3e4f2be4-4697-4697-15c8-5920140208c5" />
+    <Key Name="name" Value="osTextBoard" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+    <Key Name="fileName" Value="osTextBoard.lsl" />
+  </Section>
 </Nini>

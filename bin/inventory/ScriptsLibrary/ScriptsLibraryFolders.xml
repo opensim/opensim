@@ -29,78 +29,6 @@
     <Key Name="name" Value="B"/>
     <Key Name="type" Value="10"/>
   </Section>
-  <Section Name="C">
-    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba005"/>
-    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
-    <Key Name="name" Value="C"/>
-    <Key Name="type" Value="10"/>
-  </Section>
-  <Section Name="D">
-    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba006"/>
-    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
-    <Key Name="name" Value="D"/>
-    <Key Name="type" Value="10"/>
-  </Section>
-  <Section Name="E">
-    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba007"/>
-    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
-    <Key Name="name" Value="E"/>
-    <Key Name="type" Value="10"/>
-  </Section>
-  <Section Name="F">
-    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba008"/>
-    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
-    <Key Name="name" Value="F"/>
-    <Key Name="type" Value="10"/>
-  </Section>
-  <Section Name="G">
-    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba009"/>
-    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
-    <Key Name="name" Value="G"/>
-    <Key Name="type" Value="10"/>
-  </Section>
-  <Section Name="H">
-    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba010"/>
-    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
-    <Key Name="name" Value="H"/>
-    <Key Name="type" Value="10"/>
-  </Section>
-  <Section Name="I">
-    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba011"/>
-    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
-    <Key Name="name" Value="I"/>
-    <Key Name="type" Value="10"/>
-  </Section>
-  <Section Name="K">
-    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba012"/>
-    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
-    <Key Name="name" Value="K"/>
-    <Key Name="type" Value="10"/>
-  </Section>
-  <Section Name="L">
-    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba013"/>
-    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
-    <Key Name="name" Value="L"/>
-    <Key Name="type" Value="10"/>
-  </Section>
-  <Section Name="M">
-    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba014"/>
-    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
-    <Key Name="name" Value="M"/>
-    <Key Name="type" Value="10"/>
-  </Section>
-  <Section Name="O">
-    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba015"/>
-    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
-    <Key Name="name" Value="O"/>
-    <Key Name="type" Value="10"/>
-  </Section>
-  <Section Name="P">
-    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba016"/>
-    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
-    <Key Name="name" Value="P"/>
-    <Key Name="type" Value="10"/>
-  </Section>
   <Section Name="R">
     <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba017"/>
     <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
@@ -113,34 +41,10 @@
     <Key Name="name" Value="S"/>
     <Key Name="type" Value="10"/>
   </Section>
-  <Section Name="T">
-    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba019"/>
+  <Section Name="OpenSim Specific Scripts"/>
+    <Key Name="folderID" Value="284858c8-9391-6bf1-ddf5-b936f73de853"/>
     <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
-    <Key Name="name" Value="T"/>
-    <Key Name="type" Value="10"/>
-  </Section>
-  <Section Name="U">
-    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba020"/>
-    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
-    <Key Name="name" Value="U"/>
-    <Key Name="type" Value="10"/>
-  </Section>
-  <Section Name="V">
-    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba021"/>
-    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
-    <Key Name="name" Value="V"/>
-    <Key Name="type" Value="10"/>
-  </Section>
-  <Section Name="W">
-    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba022"/>
-    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
-    <Key Name="name" Value="W"/>
-    <Key Name="type" Value="10"/>
-  </Section>
-  <Section Name="X">
-    <Key Name="folderID" Value="30000112-000f-0000-0000-000100bba023"/>
-    <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
-    <Key Name="name" Value="X"/>
+    <Key Name="name" Value="OpenSim Specific Scripts"/>
     <Key Name="type" Value="10"/>
   </Section>
   <Section Name=".Kan-ED Scripts">
