@@ -139,4 +139,11 @@
     <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="osTextBoard.lsl" />
   </Section>
+  <Section Name="osWeatherMap">
+    <Key Name="assetID" Value="b102e3a7-c907-e63e-b9f5-b3fd63e6851b" />
+    <Key Name="name" Value="osWeatherMap" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+    <Key Name="fileName" Value="osWeatherMap.lsl" />
+  </Section>
 </Nini>

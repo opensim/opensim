@@ -300,4 +300,17 @@
     <Key Name="everyonePermissions" Value="257487132" />
     <Key Name="basePermissions" Value="257487132" />
   </Section>
+  <Section Name="osWeatherMap">
+    <Key Name="inventoryID" Value="b102e3a7-c907-e63e-b9f5-b3fd63e6851b" />
+    <Key Name="assetID" Value="b102e3a7-c907-e63e-b9f5-b3fd63e6851b" />
+    <Key Name="folderID" Value="284858c8-9391-6bf1-ddf5-b936f73de853"/>
+    <Key Name="description" Value="A cycling US Weather Map - contributed by Neas Bade" />
+    <Key Name="name" Value="osWeatherMap" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+    <Key Name="currentPermissions" Value="257487132" />
+    <Key Name="nextPermissions" Value="257487132" />
+    <Key Name="everyonePermissions" Value="257487132" />
+    <Key Name="basePermissions" Value="257487132" />
+  </Section>
 </Nini>
