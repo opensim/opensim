@@ -217,7 +217,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
             Point startPoint = new Point(0, 0);
             Point endPoint = new Point(0, 0);
             Pen drawPen = new Pen(Color.Black, 7);
-            Font myFont = new Font("Times New Roman", 14);
+            string fontName = "Arial";
+            float fontSize = 14;
+            Font myFont = new Font(fontName, fontSize);
             SolidBrush myBrush = new SolidBrush(Color.Black);
             char[] lineDelimiter = {';'};
             char[] partsDelimiter = {','};
@@ -301,12 +303,18 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
                 {
                     nextLine = nextLine.Remove(0, 8);
                     nextLine = nextLine.Trim();
-                    float size = Convert.ToSingle(nextLine, CultureInfo.InvariantCulture);
-                    myFont = new Font("Times New Roman", size);
+                    fontSize = Convert.ToSingle(nextLine, CultureInfo.InvariantCulture);
+                    myFont = new Font(fontName, fontSize);
+                }
+                else if (nextLine.StartsWith("FontName"))
+                {
+                    nextLine = nextLine.Remove(0, 8);
+                    fontName = nextLine.Trim();
+                    myFont = new Font(fontName, fontSize);
                 }
                 else if (nextLine.StartsWith("PenSize"))
                 {
-                    nextLine = nextLine.Remove(0, 8);
+                    nextLine = nextLine.Remove(0, 7);
                     nextLine = nextLine.Trim();
                     float size = Convert.ToSingle(nextLine, CultureInfo.InvariantCulture);
                     drawPen.Width = size;
