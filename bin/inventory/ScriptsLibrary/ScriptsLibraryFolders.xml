@@ -41,7 +41,7 @@
     <Key Name="name" Value="S"/>
     <Key Name="type" Value="10"/>
   </Section>
-  <Section Name="OpenSim Specific Scripts"/>
+  <Section Name="OpenSim Specific Scripts">
     <Key Name="folderID" Value="284858c8-9391-6bf1-ddf5-b936f73de853"/>
     <Key Name="parentFolderID" Value="30000112-000f-0000-0000-000100bba002"/>
     <Key Name="name" Value="OpenSim Specific Scripts"/>
