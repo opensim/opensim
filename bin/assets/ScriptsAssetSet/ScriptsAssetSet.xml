@@ -146,4 +146,12 @@
     <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="osWeatherMap.lsl" />
   </Section>
+  <Section Name="GraffitiBoard">
+    <Key Name="assetID" Value="fdb637ae-e4fe-f220-62f0-9f9b5c0c2cdb" />
+    <Key Name="name" Value="GraffitiBoard" />
+    <Key Name="assetType" Value="10" />
+    <Key Name="inventoryType" Value="10" />
+    <Key Name="fileName" Value="GraffitiBoard.lsl" />
+  </Section>
+     
 </Nini>
