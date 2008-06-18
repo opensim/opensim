@@ -1163,6 +1163,7 @@ namespace OpenSim.Region.Environment.Scenes
                                     if (part == null)
                                         continue;
 
+                                    
                                     // Draw if the object is at least 1 meter wide in any direction
                                     if (part.Scale.X > 1f || part.Scale.Y > 1f || part.Scale.Z > 1f)
                                     {
@@ -1175,6 +1176,11 @@ namespace OpenSim.Region.Environment.Scenes
 
                                             if (part.Shape == null)
                                                 continue;
+
+                                            if (part.Shape.PCode == (byte)PCode.Tree || part.Shape.PCode == (byte)PCode.NewTree)
+                                                continue; // eliminates trees from this since we don't really have a good tree representation
+                                                // if you want tree blocks on the map comment the above line and uncomment the below line
+                                                //mapdotspot = Color.PaleGreen;
 
                                             if (part.Shape.Textures == null)
                                                 continue;
