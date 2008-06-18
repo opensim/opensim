@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -37,7 +37,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     /// Method called when all the necessary assets for an archive request have been received.
     /// </summary>
     public delegate void AssetsRequestCallback(IDictionary<LLUUID, AssetBase> assets);
-    
+
     /// <summary>
     /// Execute the write of an archive once we have received all the necessary data
     /// </summary>
@@ -46,14 +46,14 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected string m_savePath;
-        protected string m_serializedEntities;        
-        
+        protected string m_serializedEntities;
+
         public ArchiveWriteRequestExecution(string serializedEntities, string savePath)
         {
             m_serializedEntities = serializedEntities;
             m_savePath = savePath;
         }
-        
+
         protected internal void ReceivedAllAssets(IDictionary<LLUUID, AssetBase> assets)
         {
             m_log.DebugFormat("[ARCHIVER]: Received all {0} assets required", assets.Count);
@@ -61,13 +61,13 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             TarArchiveWriter archive = new TarArchiveWriter();
 
             archive.AddFile(ArchiveConstants.PRIMS_PATH, m_serializedEntities);
-            
+
             AssetsArchiver assetsArchiver = new AssetsArchiver(assets);
             assetsArchiver.Archive(archive);
 
             archive.WriteTar(m_savePath);
 
             m_log.InfoFormat("[ARCHIVER]: Wrote out OpenSimulator archive {0}", m_savePath);
-        }        
+        }
     }
 }

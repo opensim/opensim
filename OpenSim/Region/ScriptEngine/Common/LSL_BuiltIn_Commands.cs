@@ -765,8 +765,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             return new LSL_Types.Vector3(
                 SensedObject.AbsolutePosition.X,
                 SensedObject.AbsolutePosition.Y,
-                SensedObject.AbsolutePosition.Y );
-                      
+                SensedObject.AbsolutePosition.Y);
         }
 
         public LSL_Types.Quaternion llDetectedRot(int number)

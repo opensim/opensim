@@ -79,12 +79,12 @@ namespace OpenSim.Region.Environment.Scenes
         private int m_timePhase = 24;
 
         private readonly Mutex updateLock;
-        
+
         /// <summary>
         /// Are we applying physics to any of the prims in this scene?
         /// </summary>
         public bool m_physicalPrim;
-        
+
         public bool m_seeIntoRegionFromNeighbor;
         public int MaxUndoCount = 5;
         private int m_RestartTimerCounter;
@@ -410,7 +410,6 @@ namespace OpenSim.Region.Environment.Scenes
                 if (!CheckNeighborRegion(region))
                 {
                     m_neighbours.Add(region);
-
                 }
             }
         }
@@ -430,9 +429,8 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
             return found;
-
-
         }
+
         public virtual void Restart(float seconds)
         {
             // notifications are done in 15 second increments
@@ -779,17 +777,14 @@ namespace OpenSim.Region.Environment.Scenes
             catch (AccessViolationException e)
             {
                 m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
-
             }
             catch (NullReferenceException e)
             {
                 m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
-
             }
             catch (InvalidOperationException e)
             {
                 m_log.Error("[Scene]: Failed with exception " + e.ToString() + " On Region: " + RegionInfo.RegionName);
-
             }
             catch (Exception e)
             {
@@ -873,7 +868,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         public void Backup()
         {
-            EventManager.TriggerOnBackup(m_storageManager.DataStore);            
+            EventManager.TriggerOnBackup(m_storageManager.DataStore);
             m_backingup = false;
             //return true;
         }
@@ -1188,12 +1183,8 @@ namespace OpenSim.Region.Environment.Scenes
                                                 continue;
 
                                             LLColor texcolor = part.Shape.Textures.DefaultTexture.RGBA;
-                                            
-                                            // Not sure why some of these are null, oh well. 
 
-                                            
-
-
+                                            // Not sure why some of these are null, oh well.
 
                                             int colorr = 255 - (int)(texcolor.R * 255f);
                                             int colorg = 255 - (int)(texcolor.G * 255f);
@@ -1314,8 +1305,6 @@ namespace OpenSim.Region.Environment.Scenes
                     return;
                 }
 
-               
-
                 LLUUID lastMapRegionUUID = m_regInfo.lastMapUUID;
 
                 int lastMapRefresh = 0;
@@ -1325,23 +1314,25 @@ namespace OpenSim.Region.Environment.Scenes
                 try
                 {
                     lastMapRefresh = Convert.ToInt32(m_regInfo.lastMapRefresh);
-                } catch (ArgumentException)
-                {}
+                }
+                catch (ArgumentException)
+                {
+                }
                 catch (FormatException)
-                {}
+                {
+                }
                 catch (OverflowException)
-                {}
+                {
+                }
 
                 LLUUID TerrainImageLLUUID = LLUUID.Random();
 
                 if (lastMapRegionUUID == LLUUID.Zero || (lastMapRefresh + RefreshSeconds) < Util.UnixTimeSinceEpoch())
                 {
-
                     m_regInfo.SaveLastMapUUID(TerrainImageLLUUID);
 
                     m_log.Warn("[MAPTILE]: STORING MAPTILE IMAGE");
                     //Extra protection..  probably not needed.
-
                 }
                 else
                 {
@@ -1349,16 +1340,14 @@ namespace OpenSim.Region.Environment.Scenes
                     m_log.Warn("[MAPTILE]: REUSING OLD MAPTILE IMAGE ID");
                 }
 
-                
-
                 m_regInfo.EstateSettings.terrainImageID = TerrainImageLLUUID;
-                
+
                 AssetBase asset = new AssetBase();
                 asset.FullID = m_regInfo.EstateSettings.terrainImageID;
                 asset.Data = data;
                 asset.Name = "terrainImage_" + m_regInfo.RegionID.ToString() + "_" + lastMapRefresh.ToString();
                 asset.Description = RegionInfo.RegionName;
-                
+
                 asset.Type = 0;
                 asset.Temporary = temporary;
                 AssetCache.AddAsset(asset);
@@ -1379,22 +1368,23 @@ namespace OpenSim.Region.Environment.Scenes
                         lastMapRefresh = Convert.ToInt32(m_regInfo.lastMapRefresh);
                     }
                     catch (ArgumentException)
-                    { }
+                    {
+                    }
                     catch (FormatException)
-                    { }
+                    {
+                    }
                     catch (OverflowException)
-                    { }
+                    {
+                    }
 
                     LLUUID TerrainImageLLUUID = LLUUID.Random();
 
                     if (lastMapRegionUUID == LLUUID.Zero || (lastMapRefresh + RefreshSeconds) < Util.UnixTimeSinceEpoch())
                     {
-
                         m_regInfo.SaveLastMapUUID(TerrainImageLLUUID);
 
                         //m_log.Warn(terrainImageID);
                         //Extra protection..  probably not needed.
-
                     }
                     else
                     {
@@ -1402,7 +1392,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
 
                     m_regInfo.EstateSettings.terrainImageID = TerrainImageLLUUID;
-                    
+
                     AssetBase asset = new AssetBase();
                     asset.FullID = m_regInfo.EstateSettings.terrainImageID;
                     asset.Data = data;
@@ -1579,10 +1569,10 @@ namespace OpenSim.Region.Environment.Scenes
         {
             //m_log.DebugFormat(
             //    "[SCENE]: Scene.AddNewPrim() called for agent {0} in {1}", ownerID, RegionInfo.RegionName);
-            
+
             SceneObjectGroup sceneOb =
                 new SceneObjectGroup(this, m_regionHandle, ownerID, PrimIDAllocate(), pos, rot, shape);
-            
+
             SceneObjectPart rootPart = sceneOb.GetChildPart(sceneOb.UUID);
             // if grass or tree, make phantom
             //rootPart.TrimPermissions();
@@ -2980,9 +2970,6 @@ namespace OpenSim.Region.Environment.Scenes
                                                         {
                                                             if (controller.AgentId != godID)
                                                                 controller.Kick(Helpers.FieldToUTF8String(reason));
-
-
-
                                                         }
                                 );
 
@@ -3261,13 +3248,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void TriggerObjectChanged(uint localID, uint change)
         {
-
             m_eventManager.TriggerOnScriptChangedEvent(localID, change);
         }
 
         public void TriggerAtTargetEvent(uint localID, uint handle, LLVector3 targetpos, LLVector3 currentpos)
         {
-
             m_eventManager.TriggerAtTargetEvent(localID, handle, targetpos, currentpos);
         }
 
@@ -3331,6 +3316,7 @@ namespace OpenSim.Region.Environment.Scenes
                 return false;
             }
         }
+
         public bool scriptDanger(uint localID, LLVector3 pos)
         {
             SceneObjectPart part = GetSceneObjectPart(localID);
@@ -3351,7 +3337,6 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 LLVector3 pos = part.GetWorldPosition();
                 return scriptDanger(part, pos);
-
             }
             else
             {
@@ -3589,8 +3574,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             return visualParams;
         }
+
         #endregion
-
-
     }
 }

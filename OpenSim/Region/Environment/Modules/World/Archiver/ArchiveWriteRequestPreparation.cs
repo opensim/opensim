@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -47,14 +47,14 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected Scene m_scene;
-        protected string m_savePath;   
-        
+        protected string m_savePath;
+
         /// <summary>
         /// Used as a temporary store of an asset which represents an object.  This can be a null if no appropriate
         /// asset was found by the asset service.
         /// </summary>
         protected AssetBase m_requestedObjectAsset;
-        
+
         /// <summary>
         /// Signal whether we are currently waiting for the asset service to deliver an asset.
         /// </summary>
@@ -68,7 +68,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             m_scene = scene;
             m_savePath = savePath;
         }
-        
+
         /// <summary>
         /// The callback made when we request the asset for an object from the asset service.
         /// </summary>
@@ -81,7 +81,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 Monitor.Pulse(this);
             }
         }
-        
+
         /// <summary>
         /// Get all the asset uuids associated with a given object.  This includes both those directly associated with
         /// it (e.g. face textures) and recursively, those of items within it's inventory (e.g. objects contained
@@ -93,17 +93,17 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         {
             m_log.DebugFormat(
                 "[ARCHIVER]: Getting assets for object {0}, {1}", sceneObject.RootPart.Name, sceneObject.UUID);
-            
+
             foreach (SceneObjectPart part in sceneObject.GetParts())
             {
                 m_log.DebugFormat(
                     "[ARCHIVER]: Getting part {0}, {1} for object {2}", part.Name, part.UUID, sceneObject.UUID);
-                
+
                 LLObject.TextureEntry textureEntry = part.Shape.Textures;
-                
+
                 // Get the prim's default texture.  This will be used for faces which don't have their own texture
                 assetUuids[textureEntry.DefaultTexture.TextureID] = 1;
-                
+
                 // XXX: Not a great way to iterate through face textures, but there's no
                 // other method available to tell how many faces there actually are
                 int i = 0;
@@ -114,26 +114,26 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                         m_log.DebugFormat("[ARCHIVER]: Got face {0}", i++);
                         assetUuids[texture.TextureID] = 1;
                     }
-                }                                
+                }
 
                 foreach (TaskInventoryItem tii in part.TaskInventory.Values)
                 {
                     if (!assetUuids.ContainsKey(tii.AssetID))
                     {
                         assetUuids[tii.AssetID] = 1;
-                        
+
                         if (tii.Type != (int)InventoryType.Object)
                         {
-                            m_log.DebugFormat("[ARCHIVER]: Recording asset {0} in object {1}", tii.AssetID, part.UUID);                        
+                            m_log.DebugFormat("[ARCHIVER]: Recording asset {0} in object {1}", tii.AssetID, part.UUID);
                         }
                         else
                         {
                             m_waitingForObjectAsset = true;
                             m_scene.AssetCache.GetAsset(tii.AssetID, AssetRequestCallback, true);
-                            
-                            // The asset cache callback can either 
+
+                            // The asset cache callback can either
                             //
-                            // 1. Complete on the same thread (if the asset is already in the cache) or 
+                            // 1. Complete on the same thread (if the asset is already in the cache) or
                             // 2. Come in via a different thread (if we need to go fetch it).
                             //
                             // The code below handles both these alternatives.
@@ -141,11 +141,11 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                             {
                                 if (m_waitingForObjectAsset)
                                 {
-                                    Monitor.Wait(this);                            
+                                    Monitor.Wait(this);
                                     m_waitingForObjectAsset = false;
                                 }
                             }
-                            
+
                             if (null != m_requestedObjectAsset)
                             {
                                 string xml = Helpers.FieldToUTF8String(m_requestedObjectAsset.Data);
@@ -156,7 +156,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                     }
                 }
             }
-        }        
+        }
 
         public void ArchiveRegion()
         {
@@ -180,7 +180,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 m_log.DebugFormat("[ARCHIVER]: Requiring save of {0} assets", assetUuids.Count);
 
                 // Asynchronously request all the assets required to perform this archive operation
-                ArchiveWriteRequestExecution awre = new ArchiveWriteRequestExecution(serializedEntities, m_savePath);                
+                ArchiveWriteRequestExecution awre = new ArchiveWriteRequestExecution(serializedEntities, m_savePath);
                 new AssetsRequest(assetUuids.Keys, m_scene.AssetCache, awre.ReceivedAllAssets).Execute();
             }
         }

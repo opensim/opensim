@@ -183,7 +183,7 @@ namespace OpenSim.Framework.Servers
             switch (ShowWhat)
             {
                 case "info":
-                    Notice("Version: " + m_version );
+                    Notice("Version: " + m_version);
                     Notice("Startup directory: " + m_startupDirectory);
                     break;
 
