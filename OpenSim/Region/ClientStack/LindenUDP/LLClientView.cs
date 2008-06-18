@@ -6242,6 +6242,82 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(lsrp, ThrottleOutPacketType.Task);
         }
 
+        public void SendAsset(AssetRequestToClient req)
+        {
+            
+            //Console.WriteLine("sending asset " + req.RequestAssetID);
+            TransferInfoPacket Transfer = new TransferInfoPacket();
+            Transfer.TransferInfo.ChannelType = 2;
+            Transfer.TransferInfo.Status = 0;
+            Transfer.TransferInfo.TargetType = 0;
+            if (req.AssetRequestSource == 2)
+            {
+                Transfer.TransferInfo.Params = new byte[20];
+                Array.Copy(req.RequestAssetID.GetBytes(), 0, Transfer.TransferInfo.Params, 0, 16);
+                int assType = (int)req.AssetInf.Type;
+                Array.Copy(Helpers.IntToBytes(assType), 0, Transfer.TransferInfo.Params, 16, 4);
+            }
+            else if (req.AssetRequestSource == 3)
+            {
+                Transfer.TransferInfo.Params = req.Params;
+                // Transfer.TransferInfo.Params = new byte[100];
+                //Array.Copy(req.RequestUser.AgentId.GetBytes(), 0, Transfer.TransferInfo.Params, 0, 16);
+                //Array.Copy(req.RequestUser.SessionId.GetBytes(), 0, Transfer.TransferInfo.Params, 16, 16);
+            }
+            Transfer.TransferInfo.Size = (int)req.AssetInf.Data.Length;
+            Transfer.TransferInfo.TransferID = req.TransferRequestID;
+            Transfer.Header.Zerocoded = true;
+            OutPacket(Transfer, ThrottleOutPacketType.Asset);
+
+            if (req.NumPackets == 1)
+            {
+                TransferPacketPacket TransferPacket = new TransferPacketPacket();
+                TransferPacket.TransferData.Packet = 0;
+                TransferPacket.TransferData.ChannelType = 2;
+                TransferPacket.TransferData.TransferID = req.TransferRequestID;
+                TransferPacket.TransferData.Data = req.AssetInf.Data;
+                TransferPacket.TransferData.Status = 1;
+                TransferPacket.Header.Zerocoded = true;
+                OutPacket(TransferPacket, ThrottleOutPacketType.Asset);
+            }
+            else
+            {
+                int processedLength = 0;
+                // libsecondlife hardcodes 1500 as the maximum data chunk size
+                int maxChunkSize = 1250;
+                int packetNumber = 0;
+
+                while (processedLength < req.AssetInf.Data.Length)
+                {
+                    TransferPacketPacket TransferPacket = new TransferPacketPacket();
+                    TransferPacket.TransferData.Packet = packetNumber;
+                    TransferPacket.TransferData.ChannelType = 2;
+                    TransferPacket.TransferData.TransferID = req.TransferRequestID;
+
+                    int chunkSize = Math.Min(req.AssetInf.Data.Length - processedLength, maxChunkSize);
+                    byte[] chunk = new byte[chunkSize];
+                    Array.Copy(req.AssetInf.Data, processedLength, chunk, 0, chunk.Length);
+
+                    TransferPacket.TransferData.Data = chunk;
+
+                    // 0 indicates more packets to come, 1 indicates last packet
+                    if (req.AssetInf.Data.Length - processedLength > maxChunkSize)
+                    {
+                        TransferPacket.TransferData.Status = 0;
+                    }
+                    else
+                    {
+                        TransferPacket.TransferData.Status = 1;
+                    }
+                    TransferPacket.Header.Zerocoded = true;
+                    OutPacket(TransferPacket, ThrottleOutPacketType.Asset);
+
+                    processedLength += chunkSize;
+                    packetNumber++;
+                }
+            }
+        }
+
         public ClientInfo GetClientInfo()
         {
             //MainLog.Instance.Verbose("CLIENT", "GetClientInfo BGN");

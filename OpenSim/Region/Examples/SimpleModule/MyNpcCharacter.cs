@@ -767,7 +767,10 @@ namespace OpenSim.Region.Examples.SimpleModule
 
         public void SendLandStatReply(uint reportType, uint requestFlags, uint resultCount, LandStatReportItem[] lsrpia)
         {
+        }
 
+        public void SendAsset(AssetRequestToClient req)
+        {
         }
     }
 }

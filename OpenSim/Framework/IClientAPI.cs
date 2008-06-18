@@ -1011,6 +1011,8 @@ namespace OpenSim.Framework
 
         void SendLandStatReply(uint reportType, uint requestFlags, uint resultCount, LandStatReportItem[] lsrpia);
 
+        void SendAsset(AssetRequestToClient req);
+
         byte[] GetThrottlesPacked(float multiplier);
 
 

@@ -684,6 +684,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
+        public void SendAsset(AssetRequestToClient req)
+        {
+        }
+
         public void SetDebug(int newDebug)
         {
         }
