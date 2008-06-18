@@ -116,6 +116,7 @@ namespace OpenSim
             }
 
             PrintFileToConsole("startuplogo.txt");
+            RegisterCmd("echoTest", RunEchoTest, "this echos your command args to see how they are parsed");
         }
 
         protected ConsoleBase CreateConsole()
@@ -132,6 +133,14 @@ namespace OpenSim
         }
 
         #region Console Commands
+
+		private void RunEchoTest(string[] cmdparams)
+		{
+			for (int i = 0; i < cmdparams.Length; i++)
+			{
+				m_log.Info("[EchoTest]:  <arg" + i + ">"+cmdparams[i]+"</arg" + i + ">"); 
+			}
+		}
 
         /// <summary>
         ///
@@ -801,7 +810,7 @@ namespace OpenSim
             {
                 cmdParams = cmdParams.Substring(matchText.Length);
             }
-            m_commandDelegate(cmdParams.Split(new char[] { ' ' }));
+            m_commandDelegate(cmdParams.Trim().Split(new char[] { ' ' }));
         }
 
         /// <summary>
