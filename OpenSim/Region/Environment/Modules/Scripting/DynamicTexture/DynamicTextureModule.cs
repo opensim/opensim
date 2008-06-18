@@ -270,7 +270,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
                 Bitmap joint;
                 Graphics jG;
 
-                joint = new Bitmap(back.Width, back.Height, PixelFormat.Format32bppArgb);
+                joint = new Bitmap(back.Width, back.Height, PixelFormat.Format24bppRgb);
                 jG = Graphics.FromImage(joint);
 
                 jG.DrawImage(back, 0, 0, back.Width, back.Height);

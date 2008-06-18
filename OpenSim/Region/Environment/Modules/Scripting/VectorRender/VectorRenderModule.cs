@@ -144,7 +144,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.VectorRender
             if ((size < 128) || (size > 1024))
                 size = 256;
 
-            Bitmap bitmap = new Bitmap(size, size, PixelFormat.Format32bppArgb);
+            Bitmap bitmap = new Bitmap(size, size, PixelFormat.Format24bppRgb);
 
             Graphics graph = Graphics.FromImage(bitmap);
 
