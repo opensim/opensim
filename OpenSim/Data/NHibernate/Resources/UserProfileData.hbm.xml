@@ -9,16 +9,16 @@
         <property name="PasswordHash" type="String" length="32" />
         <property name="PasswordSalt" type="String" length="32" />
         <property name="WebLoginKey" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
-        <property name="HomeRegionX" type="UInt32" />
-        <property name="HomeRegionY" type="UInt32" />
+        <property name="HomeRegionX" type="Int32" />
+        <property name="HomeRegionY" type="Int32" />
         <property name="HomeLocationX" type="Single" />
         <property name="HomeLocationY" type="Single" />
         <property name="HomeLocationZ" type="Single" />
         <property name="HomeLookAtX" type="Single" />
         <property name="HomeLookAtY" type="Single" />
         <property name="HomeLookAtZ" type="Single" />
-        <property name="Created" type="int" />
-        <property name="LastLogin" type="int" />
+        <property name="Created" type="Int32" />
+        <property name="LastLogin" type="Int32" />
         <property name="RootInventoryFolderID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
         <property name="UserInventoryURI" type="String" length="255"/>
         <property name="UserAssetURI" type="String" length="255"/>

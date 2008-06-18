@@ -5,7 +5,7 @@
             <generator class="assigned" /> 
         </id>
         <property name="AgentIP" type="String" length="24" />
-        <property name="AgentPort" type="UInt32" />
+        <property name="AgentPort" type="Int32" />
         <property name="AgentOnline" type="boolean" />
         <property name="SessionID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
         <property name="SecureSessionID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
@@ -13,7 +13,7 @@
         <property name="Region" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
         <property name="LoginTime" type="Int32" />
         <property name="LogoutTime" type="Int32" />
-        <property name="Handle" type="UInt64" />
+        <property name="Handle" type="Int64" />
         <property name="PositionX" type="Single" />
         <property name="PositionY" type="Single" />
         <property name="PositionZ" type="Single" />

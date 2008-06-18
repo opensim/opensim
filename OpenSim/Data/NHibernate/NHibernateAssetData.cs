@@ -93,33 +93,6 @@ namespace OpenSim.Data.NHibernate
             Assembly assem = GetType().Assembly;
             Migration m = new Migration((System.Data.Common.DbConnection)factory.ConnectionProvider.GetConnection(), assem, dialect, "AssetStore");
             m.Update();
-
-        }
-
-        private void InitDB()
-        {
-            string regex = @"no such table: Assets";
-            Regex RE = new Regex(regex, RegexOptions.Multiline);
-            try
-            {
-                using (ISession session = factory.OpenSession())
-                {
-                    session.Load(typeof(AssetBase), LLUUID.Zero);
-                }
-            }
-            catch (ObjectNotFoundException)
-            {
-                // yes, we know it's not there, but that's ok
-            }
-            catch (ADOException e)
-            {
-                Match m = RE.Match(e.ToString());
-                if (m.Success)
-                {
-                    // We don't have this table, so create it.
-                    new SchemaExport(cfg).Create(true, true);
-                }
-            }
         }
 
         override public AssetBase FetchAsset(LLUUID uuid)

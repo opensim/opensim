@@ -62,6 +62,7 @@ namespace OpenSim.Data.NHibernate
                 // TODO: make this a real exception type
                 throw new Exception("Malformed Inventory connection string '" + connect + "'");
             }
+            string dialect = parts[0];
 
             // Establish NHibernate Connection
             cfg = new Configuration();
@@ -74,46 +75,13 @@ namespace OpenSim.Data.NHibernate
             cfg.SetProperty(Environment.ConnectionString, parts[2]);
             cfg.AddAssembly("OpenSim.Data.NHibernate");
 
-            HbmSerializer.Default.Validate = true;
-            using (MemoryStream stream =
-                   HbmSerializer.Default.Serialize(Assembly.GetExecutingAssembly()))
-                cfg.AddInputStream(stream);
-
-            // If uncommented this will auto create tables, but it
-            // does drops of the old tables, so we need a smarter way
-            // to acturally manage this.
-
-            // new SchemaExport(cfg).Create(true, true);
-
             factory  = cfg.BuildSessionFactory();
 
-            InitDB();
-        }
+            // This actually does the roll forward assembly stuff
+            Assembly assem = GetType().Assembly;
+            Migration m = new Migration((System.Data.Common.DbConnection)factory.ConnectionProvider.GetConnection(), assem, dialect, "AssetStore");
+            m.Update();
 
-        private void InitDB()
-        {
-            string regex = @"no such table: Inventory";
-            Regex RE = new Regex(regex, RegexOptions.Multiline);
-            try
-            {
-                using (ISession session = factory.OpenSession())
-                {
-                    session.Load(typeof(InventoryItemBase), LLUUID.Zero);
-                }
-            }
-            catch (ObjectNotFoundException)
-            {
-                // yes, we know it's not there, but that's ok
-            }
-            catch (ADOException e)
-            {
-                Match m = RE.Match(e.ToString());
-                if (m.Success)
-                {
-                    // We don't have this table, so create it.
-                    new SchemaExport(cfg).Create(true, true);
-                }
-            }
         }
 
         /*****************************************************************
