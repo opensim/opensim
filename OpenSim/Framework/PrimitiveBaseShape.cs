@@ -450,7 +450,11 @@ namespace OpenSim.Framework
             bool lGotSculpt = false;
 
             int i = 0;
-            byte extraParamCount = data[i++];
+            byte extraParamCount = 0;
+            if (data.Length > 0)
+            {
+                extraParamCount = data[i++];
+            }
 
 
             for (int k = 0; k < extraParamCount; k++)
