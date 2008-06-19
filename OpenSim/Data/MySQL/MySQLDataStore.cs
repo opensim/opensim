@@ -1670,6 +1670,10 @@ namespace OpenSim.Data.MySQL
 
         private bool TestTables(MySqlConnection conn, Migration m)
         {
+            // we already have migrations, get out of here
+            if (m.Version > 0)
+                return false;
+
             MySqlCommand primSelectCmd = new MySqlCommand(m_primSelect, conn);
             MySqlDataAdapter pDa = new MySqlDataAdapter(primSelectCmd);
             MySqlCommand shapeSelectCmd = new MySqlCommand(m_shapeSelect, conn);

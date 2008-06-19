@@ -72,7 +72,15 @@ namespace OpenSim.Data.MySQL
                                             settingPooling, settingPort);
             }
 
-            TestTables();
+            // This actually does the roll forward assembly stuff
+            Assembly assem = GetType().Assembly;
+            Migration m = new Migration(database.Connection, assem, "GridStore");
+
+            // TODO: After rev 6000, remove this.  People should have
+            // been rolled onto the new migration code by then.
+            TestTables(m);
+
+            m.Update();
         }
 
         #region Test and initialization code
@@ -80,14 +88,22 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Ensure that the user related tables exists and are at the latest version
         /// </summary>
-        private void TestTables()
+        private void TestTables(Migration m)
         {
+            // we already have migrations, get out of here
+            if (m.Version > 0)
+                return;
+
             Dictionary<string, string> tableList = new Dictionary<string, string>();
 
             tableList["regions"] = null;
             database.GetTableVersion(tableList);
 
             UpgradeRegionsTable(tableList["regions"]);
+
+            // we have tables, but not a migration model yet
+            if (m.Version == 0)
+                m.Version = 1;
         }
 
         /// <summary>
