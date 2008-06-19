@@ -281,6 +281,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event SetEstateTerrainTextureHeights OnSetEstateTerrainTextureHeights;
         public event CommitEstateTerrainTextureRequest OnCommitEstateTerrainTextureRequest;
         public event SetRegionTerrainSettings OnSetRegionTerrainSettings;
+        public event BakeTerrain OnBakeTerrain;
         public event EstateRestartSimRequest OnEstateRestartSimRequest;
         public event EstateChangeCovenantRequest OnEstateChangeCovenantRequest;
         public event UpdateEstateAccessDeltaRequest OnUpdateEstateAccessDeltaRequest;
@@ -776,5 +777,6 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
         #endregion
-    }
+
+     }
 }

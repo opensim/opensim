@@ -420,7 +420,7 @@ namespace OpenSim.Framework
                         case ConfigurationOption.ConfigurationTypes.TYPE_FLOAT:
                             float floatResult;
                             if (
-                                float.TryParse(console_result, NumberStyles.AllowDecimalPoint, Culture.NumberFormatInfo,
+                                float.TryParse(console_result, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, Culture.NumberFormatInfo,
                                                out floatResult))
                             {
                                 convertSuccess = true;
@@ -431,7 +431,7 @@ namespace OpenSim.Framework
                         case ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE:
                             double doubleResult;
                             if (
-                                Double.TryParse(console_result, NumberStyles.AllowDecimalPoint, Culture.NumberFormatInfo,
+                                Double.TryParse(console_result, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign, Culture.NumberFormatInfo,
                                                 out doubleResult))
                             {
                                 convertSuccess = true;

@@ -773,9 +773,9 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("sun_hour", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "0",
                                                 true);
             configMember.addConfigurationOption("terrain_raise_limit", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT,
-                                                String.Empty, "0", true);
+                                                String.Empty, "4.0", true); //4 is the LL default
             configMember.addConfigurationOption("terrain_lower_limit", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT,
-                                                String.Empty, "0", true);
+                                                String.Empty, "-4.0", true); //-4.0 is the LL default
             configMember.addConfigurationOption("use_fixed_sun", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN, String.Empty,
                                                 "false", true);
             configMember.addConfigurationOption("price_per_meter", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,

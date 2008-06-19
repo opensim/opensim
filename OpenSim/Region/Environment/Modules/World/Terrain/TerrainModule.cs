@@ -419,12 +419,27 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
         private void EventManager_OnNewClient(IClientAPI client)
         {
             client.OnModifyTerrain += client_OnModifyTerrain;
+            client.OnBakeTerrain += client_OnBakeTerrain;
         }
 
         /// <summary>
         /// Checks to see if the terrain has been modified since last check
+        /// but won't attempt to limit those changes to the limits specified in the estate settings
+        /// currently invoked by the command line operations in the region server only
         /// </summary>
         private void CheckForTerrainUpdates()
+        {
+            CheckForTerrainUpdates(false);
+        }
+
+        /// <summary>
+        /// Checks to see if the terrain has been modified since last check
+        /// if the call is asked to respect the estate settings for terrain_raise_limit and
+        /// terrain_lower_limit, it will clamp terrain updates between these values
+        /// currently invoked by client_OnModifyTerrain only and not the Commander interfaces
+        /// <param name="respectEstateSettings">should height map deltas be limited to the estate settings limits</param>
+        /// </summary>
+        private void CheckForTerrainUpdates(bool respectEstateSettings)
         {
             bool shouldTaint = false;
             float[] serialised = m_channel.GetFloatsSerialised();
@@ -436,6 +451,14 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                 {
                     if (m_channel.Tainted(x, y))
                     {
+                        // if we should respect the estate settings then
+                        // fixup and height deltas that don't respect them
+                        if (respectEstateSettings && LimitChannelChanges(x, y))
+                        {
+                            // this has been vetoed, so update 
+                            // what we are going to send to the client
+                            serialised = m_channel.GetFloatsSerialised();
+                        }
                         SendToClients(serialised, x, y);
                         shouldTaint = true;
                     }
@@ -446,6 +469,46 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                 m_tainted = true;
             }
         }
+
+
+        /// <summary>
+        /// Checks to see height deltas in the tainted terrain patch at xStart ,yStart
+        /// are all within the current estate limits
+        /// <returns>true if changes were limited, false otherwise</returns>
+        /// </summary>
+        private bool LimitChannelChanges(int xStart, int yStart)
+        {
+            bool changesLimited = false;
+            double minDelta = m_scene.RegionInfo.EstateSettings.terrainLowerLimit;
+            double maxDelta = m_scene.RegionInfo.EstateSettings.terrainRaiseLimit;
+
+            // loop through the height map for this patch and compare it against
+            // the revert map
+            for (int x = xStart; x < xStart + Constants.TerrainPatchSize; x++)
+            {
+                for (int y = yStart; y < yStart + Constants.TerrainPatchSize; y++)
+                {
+
+                    double requestedHeight = m_channel[x, y];
+                    double bakedHeight = m_revert[x, y];
+                    double requestedDelta = requestedHeight - bakedHeight;
+
+                    if (requestedDelta > maxDelta )
+                    {
+                        m_channel[x, y] = bakedHeight + maxDelta;
+                        changesLimited = true;
+                    }
+                    else if (requestedDelta < minDelta)
+                    {
+                        m_channel[x, y] = bakedHeight + minDelta; //as lower is a -ve delta
+                        changesLimited = true;
+                    }
+                }
+            }
+
+            return changesLimited;
+        }
+
 
         /// <summary>
         /// Sends a copy of the current terrain to the scenes clients
@@ -472,7 +535,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                         m_painteffects[(StandardTerrainEffects) action].PaintEffect(
                             m_channel, west, south, size, seconds);
 
-                        CheckForTerrainUpdates();
+                        CheckForTerrainUpdates(true); //revert changes outside estate limits
                     }
                     else
                     {
@@ -505,7 +568,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                         m_floodeffects[(StandardTerrainEffects) action].FloodEffect(
                             m_channel, fillArea, size);
 
-                        CheckForTerrainUpdates();
+                        CheckForTerrainUpdates(true); //revert changes outside estate limits
                     }
                     else
                     {
@@ -514,6 +577,18 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                 }
             }
         }
+
+        private void client_OnBakeTerrain(IClientAPI remoteClient)
+        {
+            // Not a good permissions check (see client_OnModifyTerrain above), need to check the entire area.
+            // for now check a point in the centre of the region
+            
+            if (m_scene.ExternalChecks.ExternalChecksCanTerraformLand(remoteClient.AgentId, new LLVector3(127, 127, 0)))
+            {
+                InterfaceBakeTerrain(null); //bake terrain does not use the passed in parameter
+            }
+        }
+
 
         #region Console Commands
 

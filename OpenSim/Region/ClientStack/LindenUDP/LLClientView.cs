@@ -159,6 +159,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private RezObject handlerRezObject = null; //OnRezObject;
         private GenericCall4 handlerDeRezObject = null; //OnDeRezObject;
         private ModifyTerrain handlerModifyTerrain = null;
+        private BakeTerrain handlerBakeTerrain = null;
         private Action<IClientAPI> handlerRegionHandShakeReply = null; //OnRegionHandShakeReply;
         private GenericCall2 handlerRequestWearables = null; //OnRequestWearables;
         private Action<IClientAPI> handlerRequestAvatarsData = null; //OnRequestAvatarsData;
@@ -893,6 +894,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event SetEstateTerrainTextureHeights OnSetEstateTerrainTextureHeights;
         public event CommitEstateTerrainTextureRequest OnCommitEstateTerrainTextureRequest;
         public event SetRegionTerrainSettings OnSetRegionTerrainSettings;
+        public event BakeTerrain OnBakeTerrain;
         public event EstateRestartSimRequest OnEstateRestartSimRequest;
         public event EstateChangeCovenantRequest OnEstateChangeCovenantRequest;
         public event UpdateEstateAccessDeltaRequest OnUpdateEstateAccessDeltaRequest;
@@ -5846,6 +5848,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     handlerLandStatRequest(0, 0, 0, "", this);
                                 }
                                 break;
+                            case "terrain":
+                                if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(this.AgentId))
+                                {
+                                    handlerBakeTerrain = OnBakeTerrain;
+                                    if (handlerBakeTerrain != null)
+                                    {
+                                        handlerBakeTerrain(this);
+                                    }
+                                }
+                                break;
+
                             default:
                                 m_log.Error("EstateOwnerMessage: Unknown method requested\n" + messagePacket.ToString());
                                 break;

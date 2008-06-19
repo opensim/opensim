@@ -410,7 +410,7 @@ namespace OpenSim.Framework
     public delegate void ModifyTerrain(
         float height, float seconds, byte size, byte action, float north, float west, float south, float east,
         IClientAPI remoteClient);
-
+    
     public delegate void SetAppearance(byte[] texture, List<byte> visualParamList);
 
     public delegate void StartAnim(IClientAPI remoteClient, LLUUID animID);
@@ -633,6 +633,7 @@ namespace OpenSim.Framework
     public delegate void SetEstateTerrainTextureHeights(IClientAPI remoteClient, int corner, float lowVal, float highVal);
     public delegate void CommitEstateTerrainTextureRequest(IClientAPI remoteClient);
     public delegate void SetRegionTerrainSettings(float waterHeight, float terrainRaiseLimit, float terrainLowerLimit, bool fixedSun, float sunHour);
+    public delegate void BakeTerrain(IClientAPI remoteClient );
     public delegate void EstateRestartSimRequest(IClientAPI remoteClient, int secondsTilReboot);
     public delegate void EstateChangeCovenantRequest(IClientAPI remoteClient, LLUUID newCovenantID);
     public delegate void UpdateEstateAccessDeltaRequest(IClientAPI remote_client, LLUUID invoice, int estateAccessType, LLUUID user);
@@ -693,6 +694,7 @@ namespace OpenSim.Framework
         event RezObject OnRezObject;
         [Obsolete("LLClientView Specific - Replace with more suitable arguments.")]
         event ModifyTerrain OnModifyTerrain;
+        event BakeTerrain OnBakeTerrain;
         [Obsolete("LLClientView Specific.")]
         event SetAppearance OnSetAppearance;
         [Obsolete("LLClientView Specific - Replace and rename OnAvatarUpdate. Difference from SetAppearance?")]
