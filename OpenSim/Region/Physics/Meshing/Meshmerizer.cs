@@ -657,6 +657,14 @@ namespace OpenSim.Region.Physics.Meshing
             //Mesh result = extr.Extrude(m);
             Mesh result = extr.ExtrudeLinearPath(m);
             result.DumpRaw(baseDir, primName, "Z extruded");
+#if SPAM
+            int vCount = 0;
+
+            foreach (Vertex v in result.vertices)
+                if (v != null)
+                    vCount++;
+            System.Console.WriteLine("Mesh vertex count: " + vCount.ToString());
+#endif
             return result;
         }
 
@@ -1002,6 +1010,14 @@ namespace OpenSim.Region.Physics.Meshing
             //Mesh result = extr.Extrude(m);
             Mesh result = extr.ExtrudeLinearPath(m);
             result.DumpRaw(baseDir, primName, "Z extruded");
+#if SPAM
+            int vCount = 0;
+
+            foreach (Vertex v in result.vertices)
+                if (v != null)
+                    vCount++;
+            System.Console.WriteLine("Mesh vertex count: " + vCount.ToString());
+#endif
             return result;
         }
 
@@ -1238,6 +1254,14 @@ namespace OpenSim.Region.Physics.Meshing
             //Mesh result = extr.Extrude(m);
             Mesh result = extr.ExtrudeLinearPath(m);
             result.DumpRaw(baseDir, primName, "Z extruded");
+#if SPAM
+            int vCount = 0;
+
+            foreach (Vertex v in result.vertices)
+                if (v != null)
+                    vCount++;
+            System.Console.WriteLine("Mesh vertex count: " + vCount.ToString());
+#endif
             return result;
         }
 
@@ -1330,6 +1354,14 @@ namespace OpenSim.Region.Physics.Meshing
             }
             // Dump the faces for visualization in blender.
             m.DumpRaw(baseDir, primName, "Icosahedron");
+#if SPAM
+            int vCount = 0;
+
+            foreach (Vertex v in m.vertices)
+                if (v != null)
+                    vCount++;
+            System.Console.WriteLine("Mesh vertex count: " + vCount.ToString());
+#endif
 
             return m;
         }
@@ -1386,9 +1418,6 @@ namespace OpenSim.Region.Physics.Meshing
             SimpleHull outerHull = new SimpleHull();
 
             if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle)
-
-            //if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Circle
-            //    || (primShape.ProfileCurve & 0x07) == (byte) ProfileShape.Square)
             {
 #if SPAM
                 Console.WriteLine("Meshmerizer thinks " + primName + " is a TORUS");
@@ -1458,11 +1487,46 @@ namespace OpenSim.Region.Physics.Meshing
 #if SPAM
                 Console.WriteLine("Meshmerizer thinks " + primName + " is a SPHERE");
 #endif
+
+                // sanity check here... some spheres have inverted normals which can trap avatars
+                // so for now if the shape parameters are such that this may happen, revert to the
+                // geodesic sphere mesh.. the threshold is arbitrary as it seems any twist on a sphere
+                // will create some inverted normals
+                if (
+                    (System.Math.Abs(primShape.PathTwist - primShape.PathTwistBegin) > 65)
+                    || (primShape.PathBegin == 0
+                        && primShape.PathEnd == 0
+                        && primShape.PathTwist == 0
+                        && primShape.PathTwistBegin == 0
+                        && primShape.ProfileBegin == 0
+                        && primShape.ProfileEnd == 0
+                        ) // simple sphere, revert to geodesic shape
+
+                )
+                {
+#if SPAM
+                    System.Console.WriteLine( "reverting to geodesic sphere for prim: " + primName );
+#endif
+                    return CreateSphereMesh(primName, primShape, size);
+                }
+
                 if (hollowShape == HollowShape.Same)
                     hollowShape = HollowShape.Circle;
 
-                // not implemented here, use old routine
-                return CreateSphereMesh(primName, primShape, size);
+                outerHull.AddVertex(new Vertex(0.250000f, 0.433013f, 0.0f)); // 60 degrees
+                outerHull.AddVertex(new Vertex(0.129410f, 0.482963f, 0.0f)); // 75 degrees
+                outerHull.AddVertex(new Vertex(0.000000f, 0.500000f, 0.0f)); // 90 degrees
+                outerHull.AddVertex(new Vertex(-0.129410f, 0.482963f, 0.0f)); // 105 degrees
+                outerHull.AddVertex(new Vertex(-0.250000f, 0.433013f, 0.0f)); // 120 degrees
+                outerHull.AddVertex(new Vertex(-0.353553f, 0.353553f, 0.0f)); // 135 degrees
+                outerHull.AddVertex(new Vertex(-0.433013f, 0.250000f, 0.0f)); // 150 degrees
+                outerHull.AddVertex(new Vertex(-0.482963f, 0.129410f, 0.0f)); // 165 degrees
+                outerHull.AddVertex(new Vertex(-0.500000f, 0.000000f, 0.0f)); // 180 degrees
+
+                outerHull.AddVertex(new Vertex(0.500000f, 0.000000f, 0.0f)); // 0 degrees
+                outerHull.AddVertex(new Vertex(0.482963f, 0.129410f, 0.0f)); // 15 degrees
+                outerHull.AddVertex(new Vertex(0.433013f, 0.250000f, 0.0f)); // 30 degrees
+                outerHull.AddVertex(new Vertex(0.353553f, 0.353553f, 0.0f)); // 45 degrees
             }
 
             // Deal with cuts now
@@ -1475,6 +1539,19 @@ namespace OpenSim.Region.Physics.Meshing
                 //fProfileEndAngle -= (90.0 + 45.0);
                 if (fProfileBeginAngle < fProfileEndAngle)
                     fProfileEndAngle -= 360.0;
+
+                if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
+                { // dimpled sphere uses profile cut but since it's a half circle the angles are smaller
+
+                    fProfileBeginAngle = 0.0036f * (float)primShape.ProfileBegin;
+                    fProfileEndAngle = 180.0f - 0.0036f * (float)primShape.ProfileEnd;
+                    if (fProfileBeginAngle < fProfileEndAngle)
+                        fProfileEndAngle -= 360.0f;
+
+#if SPAM
+                    Console.WriteLine("Sphere dimple: fProfileBeginAngle: " + fProfileBeginAngle.ToString() + " fProfileEndAngle: " + fProfileEndAngle.ToString());
+#endif
+                }
 
                 // Note, that we don't want to cut out a triangle, even if this is a
                 // good approximation for small cuts. Indeed we want to cut out an arc
@@ -1529,7 +1606,7 @@ namespace OpenSim.Region.Physics.Meshing
                 {
                     holeHull = new SimpleHull();
 
-                    float hollowFactorF = (float) hollowFactor / 50000.0f;
+                    float hollowFactorF = (float)hollowFactor * 2.0e-5f;
 
                     if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
                     {
@@ -1537,23 +1614,29 @@ namespace OpenSim.Region.Physics.Meshing
                         holeHull.AddVertex(new Vertex(-0.25f * hollowFactorF, -0f * hollowFactorF, 0.0f));
                         holeHull.AddVertex(new Vertex(+0.125f * hollowFactorF, +0.1875f * hollowFactorF, 0.0f));
                     }
+                    else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
+                    {
+                        holeHull.AddVertex(new Vertex(-0.500000f * hollowFactorF, 0.000000f * hollowFactorF, 0.0f)); // 180 degrees
+                        holeHull.AddVertex(new Vertex(-0.250000f * hollowFactorF, 0.433013f * hollowFactorF, 0.0f)); // 120 degrees
+                        holeHull.AddVertex(new Vertex(0.250000f * hollowFactorF, 0.433013f * hollowFactorF, 0.0f)); // 60 degrees
+                        holeHull.AddVertex(new Vertex(0.500000f * hollowFactorF, 0.000000f * hollowFactorF, 0.0f)); // 0 degrees
+                    }
                     else
                     {
                         holeHull.AddVertex(new Vertex(+0.25f * hollowFactorF, -0.45f * hollowFactorF, 0.0f));
                         holeHull.AddVertex(new Vertex(-0.5f * hollowFactorF, -0f * hollowFactorF, 0.0f));
                         holeHull.AddVertex(new Vertex(+0.25f * hollowFactorF, +0.45f * hollowFactorF, 0.0f));
-
-                        ////holeHull.AddVertex(new Vertex(-0.5f * hollowFactorF, -0f * hollowFactorF, 0.0f));
-
-                        ////holeHull.AddVertex(new Vertex(+0.25f * hollowFactorF, +0.45f * hollowFactorF, 0.0f));
-                        
-                        ////holeHull.AddVertex(new Vertex(+0.25f * hollowFactorF, -0.45f * hollowFactorF, 0.0f));
-
-                        //holeHull.AddVertex(new Vertex(-0.5f * hollowFactorF, +0f * hollowFactorF, 0.0f));
-                        //holeHull.AddVertex(new Vertex(+0.25f * hollowFactorF, -0.45f * hollowFactorF, 0.0f));
-                        //holeHull.AddVertex(new Vertex(+0.25f * hollowFactorF, +0.45f * hollowFactorF, 0.0f));
-                        ////holeHull.AddVertex(new Vertex(-0.5f * hollowFactorF, +0f * hollowFactorF, 0.0f));
                     }
+                }
+                else if (hollowShape == HollowShape.Square && (primShape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
+                {
+                    holeHull = new SimpleHull();
+
+                    float hollowFactorF = (float)hollowFactor * 2.0e-5f;
+
+                    holeHull.AddVertex(new Vertex(-0.707f * hollowFactorF, 0.0f, 0.0f)); // 180 degrees
+                    holeHull.AddVertex(new Vertex(0.0f, 0.707f * hollowFactorF, 0.0f)); // 120 degrees
+                    holeHull.AddVertex(new Vertex(0.707f * hollowFactorF, 0.0f, 0.0f)); // 60 degrees
                 }
                 else
                 {
@@ -1687,6 +1770,16 @@ namespace OpenSim.Region.Physics.Meshing
             //System.Console.WriteLine("[MESH]: twistTop = " + twistTop.ToString() + "|" + extr.twistTop.ToString() + ", twistMid = " + twistMid.ToString() + "|" + extr.twistMid.ToString() + ", twistbot = " + twistBot.ToString() + "|" + extr.twistBot.ToString());
             Mesh result = extr.ExtrudeCircularPath(m);
             result.DumpRaw(baseDir, primName, "Z extruded");
+
+#if SPAM
+            int vCount = 0;
+
+            foreach ( Vertex v in result.vertices )
+                if ( v != null )
+                    vCount++;
+            System.Console.WriteLine( "Mesh vertex count: " + vCount.ToString());
+#endif
+
             return result;
         }
 
@@ -1839,7 +1932,8 @@ namespace OpenSim.Region.Physics.Meshing
             {
                 if (primShape.PathCurve == (byte)Extrusion.Curve1 || primShape.PathCurve == (byte) Extrusion.Curve2)
                 {
-                    mesh = CreateSphereMesh(primName, primShape, size);
+                    //mesh = CreateSphereMesh(primName, primShape, size);
+                    mesh = CreateCircularPathMesh(primName, primShape, size);
                     CalcNormals(mesh);
                 }
             }
