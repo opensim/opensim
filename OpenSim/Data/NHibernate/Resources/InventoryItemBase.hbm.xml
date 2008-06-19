@@ -4,18 +4,18 @@
         <id name="ID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
             <generator class="assigned" /> 
         </id> 
-        <property name="InvType" type="Int16" />
-        <property name="AssetType" type="Int16" />
+        <property name="InvType" type="Int32" />
+        <property name="AssetType" type="Int32" />
         <property name="AssetID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
         <property name="Folder" index="item_folder_id" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
         <property name="Owner" index="item_owner_id" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
         <property name="Creator" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
         <property name="Name" type="String" length="64" />
         <property name="Description" type="String" length="64" />
-        <property name="NextPermissions" type="Int32" />
-        <property name="CurrentPermissions" type="Int32" />
-        <property name="BasePermissions" type="Int32" />
-        <property name="EveryOnePermissions" type="Int32" />
+        <property name="NextPermissions" type="System.UInt32" />
+        <property name="CurrentPermissions" type="System.UInt32" />
+        <property name="BasePermissions" type="System.UInt32" />
+        <property name="EveryOnePermissions" type="System.UInt32" />
         <property name="GroupID" index="item_group_id" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
         <property name="GroupOwned" type="boolean" />
         <property name="SalePrice" type="Int32" />
