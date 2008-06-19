@@ -26,6 +26,7 @@
  */
 using System;
 using System.Reflection;
+using System.Collections.Generic;
 using log4net;
 
 namespace OpenSim.Data.MySQL
