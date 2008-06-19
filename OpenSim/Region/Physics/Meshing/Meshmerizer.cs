@@ -1500,6 +1500,7 @@ namespace OpenSim.Region.Physics.Meshing
                         && primShape.PathTwistBegin == 0
                         && primShape.ProfileBegin == 0
                         && primShape.ProfileEnd == 0
+                        && primShape.ProfileHollow == 0
                         ) // simple sphere, revert to geodesic shape
 
                 )
@@ -1547,6 +1548,9 @@ namespace OpenSim.Region.Physics.Meshing
                     fProfileEndAngle = 180.0f - 0.0036f * (float)primShape.ProfileEnd;
                     if (fProfileBeginAngle < fProfileEndAngle)
                         fProfileEndAngle -= 360.0f;
+                    // a cut starting at 0 degrees with a hollow causes an infinite loop so move the start angle
+                    // past it into the empty part of the circle to avoid this condition
+                    if (fProfileBeginAngle == 0.0f) fProfileBeginAngle = -10.0f;
 
 #if SPAM
                     Console.WriteLine("Sphere dimple: fProfileBeginAngle: " + fProfileBeginAngle.ToString() + " fProfileEndAngle: " + fProfileEndAngle.ToString());
