@@ -65,6 +65,36 @@ namespace OpenSim.Data.MySQL
                 database = new MySQLManager(settingHostname, settingDatabase, settingUsername, settingPassword,
                                             settingPooling, settingPort);
             }
+
+            // This actually does the roll forward assembly stuff
+            Assembly assem = GetType().Assembly;
+            Migration m = new Migration(database.Connection, assem, "LogStore");
+
+            // TODO: After rev 6000, remove this.  People should have
+            // been rolled onto the new migration code by then.
+            TestTables(m);
+
+            m.Update();
+
+        }
+
+        private void TestTables(Migration m)
+        {
+            // under migrations, bail
+            if (m.Version > 0)
+                return;
+
+            Dictionary<string, string> tableList = new Dictionary<string, string>();
+            tableList["logs"] = null;
+            database.GetTableVersion(tableList);
+            
+            // migrations will handle it
+            if (tableList["logs"] == null)
+                return;
+
+            // we have the table, so pretend like we did the first migration in the past
+            if (m.Version == 0)
+                m.Version = 1;
         }
 
         /// <summary>

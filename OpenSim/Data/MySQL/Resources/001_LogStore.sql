@@ -7,4 +7,4 @@ CREATE TABLE `logs` (
   `priority` int(11) default NULL,
   `message` text,
   PRIMARY KEY  (`logID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
