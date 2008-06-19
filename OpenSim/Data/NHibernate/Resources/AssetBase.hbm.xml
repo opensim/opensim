@@ -4,8 +4,8 @@
         <id name="FullID" column="ID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
             <generator class="assigned" /> 
         </id> 
-        <property name="Type" type="Int16" />
-        <property name="InvType" type="Int16" />
+        <property name="Type" type="System.SByte" />
+        <property name="InvType" type="System.SByte" />
         <property name="Name" type="String" length="64" />
         <property name="Description" type="String" length="64" />
         <property name="Local" type="boolean" />

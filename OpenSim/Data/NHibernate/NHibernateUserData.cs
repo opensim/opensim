@@ -91,7 +91,6 @@ namespace OpenSim.Data.NHibernate
                 {
                     user = session.Load(typeof(UserProfileData), uuid) as UserProfileData;
                 }
-                // BUG: CATCHALL IS BAD.
             }
             catch (Exception) {}
 

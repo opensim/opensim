@@ -103,8 +103,9 @@ namespace OpenSim.Data.NHibernate
                 {
                     return session.Load(typeof(AssetBase), uuid) as AssetBase;
                 }
-                catch
+                catch (Exception e)
                 {
+                    m_log.Error("[NHIBERNATE] issue loading asset", e);
                     return null;
                 }
             }
@@ -114,6 +115,7 @@ namespace OpenSim.Data.NHibernate
         {
             if (!ExistsAsset(asset.FullID))
             {
+                m_log.InfoFormat("[NHIBERNATE] inserting asset {0}", asset.FullID);
                 using (ISession session = factory.OpenSession())
                 {
                     using (ITransaction transaction = session.BeginTransaction())
@@ -155,7 +157,8 @@ namespace OpenSim.Data.NHibernate
 
         override public bool ExistsAsset(LLUUID uuid)
         {
-            return (FetchAsset(uuid) != null) ? true : false;
+            m_log.InfoFormat("[NHIBERNATE] ExistsAsset: {0}", uuid);
+            return (FetchAsset(uuid) != null);
         }
 
         public void DeleteAsset(LLUUID uuid)
