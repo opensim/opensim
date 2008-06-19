@@ -78,7 +78,7 @@ namespace OpenSim.Data.NHibernate
 
             // This actually does the roll forward assembly stuff
             Assembly assem = GetType().Assembly;
-            Migration m = new Migration((System.Data.Common.DbConnection)factory.ConnectionProvider.GetConnection(), assem, dialect, "AssetStore");
+            Migration m = new Migration((System.Data.Common.DbConnection)factory.ConnectionProvider.GetConnection(), assem, dialect, "UserStore");
             m.Update();
         }
 
