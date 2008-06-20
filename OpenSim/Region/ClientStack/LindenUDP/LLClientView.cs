@@ -72,7 +72,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //                }
 
         /* static variables */
-        public static TerrainManager TerrainManager;
+        public static TerrainManager TerrainManager = new TerrainManager(new SecondLife());
 
         public delegate bool SynchronizeClientHandler(IScene scene, Packet packet, LLUUID agentID, ThrottleOutPacketType throttlePacketType);
         public static SynchronizeClientHandler SynchronizeClient = null;

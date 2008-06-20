@@ -121,6 +121,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public LLUDPServer(IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, AssetCache assetCache, AgentCircuitManager authenticateClass)
         {
+            Initialise(_listenIP, ref port, proxyPortOffset, allow_alternate_port, assetCache, authenticateClass);
+        }
+
+        public void Initialise(IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, AssetCache assetCache, AgentCircuitManager authenticateClass)
+        {
             this.proxyPortOffset = proxyPortOffset;
             listenPort = (uint) (port + proxyPortOffset);
             listenIP = _listenIP;

@@ -81,6 +81,7 @@ namespace OpenSim
         protected LocalLoginService m_loginService;
 
         protected string m_storageDll;
+        protected string m_clientstackDll;
 
         protected List<IClientNetworkServer> m_clientServers = new List<IClientNetworkServer>();
         protected List<RegionInfo> m_regionData = new List<RegionInfo>();
@@ -214,6 +215,7 @@ namespace OpenSim
                 config.Set("shutdown_console_commands_file", String.Empty);
                 config.Set("script_engine", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
                 config.Set("asset_database", "sqlite");
+                config.Set("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
             }
 
             if (DefaultConfig.Configs["StandAlone"] == null)
@@ -301,6 +303,7 @@ namespace OpenSim
 
                 m_scriptEngine = startupConfig.GetString("script_engine", "OpenSim.Region.ScriptEngine.DotNetEngine.dll");
                 m_assetStorage = startupConfig.GetString("asset_database", "local");
+                m_clientstackDll = startupConfig.GetString("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
             }
 
             IConfig standaloneConfig = m_config.Configs["StandAlone"];
@@ -551,6 +554,11 @@ namespace OpenSim
         protected override StorageManager CreateStorageManager(string connectionstring)
         {
             return new StorageManager(m_storageDll, connectionstring, m_storagePersistPrimInventories);
+        }
+
+        protected override ClientStackManager CreateClientStackManager()
+        {
+            return new ClientStackManager(m_clientstackDll);
         }
 
         protected override Scene CreateScene(RegionInfo regionInfo, StorageManager storageManager,

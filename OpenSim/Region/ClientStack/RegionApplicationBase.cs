@@ -35,7 +35,6 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Servers;
-using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Physics.Manager;
@@ -64,6 +63,8 @@ namespace OpenSim.Region.ClientStack
         protected StorageManager m_storageManager;
         protected string m_storageConnectionString;
 
+        protected ClientStackManager m_clientStackManager;
+
         // An attribute to indicate whether prim inventories should be persisted.
         // Probably will be temporary until this stops being experimental.
         protected bool m_storagePersistPrimInventories;
@@ -77,9 +78,9 @@ namespace OpenSim.Region.ClientStack
         {
             base.Startup();
             
-            LLClientView.TerrainManager = new TerrainManager(new SecondLife());
-
             m_storageManager = CreateStorageManager(m_storageConnectionString);
+
+            m_clientStackManager = CreateClientStackManager();
 
             Initialize();
 
@@ -101,6 +102,7 @@ namespace OpenSim.Region.ClientStack
         // protected abstract ConsoleBase CreateConsole();
         protected abstract PhysicsScene GetPhysicsScene();
         protected abstract StorageManager CreateStorageManager(string connectionstring);
+        protected abstract ClientStackManager CreateClientStackManager();
 
         protected PhysicsScene GetPhysicsScene(string engine, string meshEngine, IConfigSource config)
         {
@@ -123,7 +125,7 @@ namespace OpenSim.Region.ClientStack
             //    listenIP = IPAddress.Parse("0.0.0.0");
 
             uint port = (uint) regionInfo.InternalEndPoint.Port;
-            clientServer = new LLUDPServer(listenIP, ref port, proxyOffset, regionInfo.m_allow_alternate_ports, m_assetCache, circuitManager);
+            clientServer = m_clientStackManager.CreateServer(listenIP, ref port, proxyOffset, regionInfo.m_allow_alternate_ports, m_assetCache, circuitManager);
             regionInfo.InternalEndPoint.Port = (int)port;
 
             Scene scene = CreateScene(regionInfo, m_storageManager, circuitManager);

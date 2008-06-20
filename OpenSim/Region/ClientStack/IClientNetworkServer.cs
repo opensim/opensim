@@ -25,14 +25,19 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.Net;
 using System.Net.Sockets;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
+using OpenSim.Framework.Communications;
+using OpenSim.Framework.Communications.Cache;
 
 namespace OpenSim.Region.ClientStack
 {
     public interface IClientNetworkServer
     {
+        void Initialise(IPAddress _listenIP, ref uint port, int proxyPortOffset, bool allow_alternate_port, AssetCache assetCache, AgentCircuitManager authenticateClass);
+
         Socket Server { get; }
         bool HandlesRegion(Location x);
         void AddScene(Scene x);

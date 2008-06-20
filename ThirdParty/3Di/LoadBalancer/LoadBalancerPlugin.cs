@@ -43,6 +43,8 @@ using OpenSim.Region.ClientStack;
 using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Environment.Scenes;
 
+// TODO: remove LindenUDP dependency
+
 [assembly : Addin]
 [assembly : AddinDependency("OpenSim", "0.5")]
 [assembly : AddinDependency("RegionProxy", "0.1")]
