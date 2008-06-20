@@ -49,6 +49,7 @@ namespace OpenSim.Data.NHibernate
 
         private Configuration cfg;
         private ISessionFactory factory;
+        private ISession session;
 
         public override void Initialise()
         {
@@ -87,27 +88,25 @@ namespace OpenSim.Data.NHibernate
                 cfg.AddInputStream(stream);
 
             factory  = cfg.BuildSessionFactory();
-
+            session = factory.OpenSession();
             
             // This actually does the roll forward assembly stuff
             Assembly assem = GetType().Assembly;
             Migration m = new Migration((System.Data.Common.DbConnection)factory.ConnectionProvider.GetConnection(), assem, dialect, "AssetStore");
             m.Update();
+
         }
 
         override public AssetBase FetchAsset(LLUUID uuid)
         {
-            using (ISession session = factory.OpenSession())
+            try
             {
-                try
-                {
-                    return session.Load(typeof(AssetBase), uuid) as AssetBase;
-                }
-                catch (Exception e)
-                {
-                    m_log.Error("[NHIBERNATE] issue loading asset", e);
-                    return null;
-                }
+                return session.Load(typeof(AssetBase), uuid) as AssetBase;
+            }
+            catch (Exception e)
+            {
+                m_log.Error("[NHIBERNATE] issue loading asset", e);
+                return null;
             }
         }
 
@@ -116,13 +115,10 @@ namespace OpenSim.Data.NHibernate
             if (!ExistsAsset(asset.FullID))
             {
                 m_log.InfoFormat("[NHIBERNATE] inserting asset {0}", asset.FullID);
-                using (ISession session = factory.OpenSession())
+                using (ITransaction transaction = session.BeginTransaction())
                 {
-                    using (ITransaction transaction = session.BeginTransaction())
-                    {
-                        session.Save(asset);
-                        transaction.Commit();
-                    }
+                    session.Save(asset);
+                    transaction.Commit();
                 }
             }
         }
@@ -131,13 +127,10 @@ namespace OpenSim.Data.NHibernate
         {
             if (ExistsAsset(asset.FullID))
             {
-                using (ISession session = factory.OpenSession())
+                using (ITransaction transaction = session.BeginTransaction())
                 {
-                    using (ITransaction transaction = session.BeginTransaction())
-                    {
-                        session.Update(asset);
-                        transaction.Commit();
-                    }
+                    session.Update(asset);
+                    transaction.Commit();
                 }
             }
         }

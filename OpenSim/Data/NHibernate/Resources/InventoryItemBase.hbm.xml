@@ -18,9 +18,9 @@
         <property name="EveryOnePermissions" type="System.UInt32" />
         <property name="GroupID" index="item_group_id" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
         <property name="GroupOwned" type="boolean" />
-        <property name="SalePrice" type="Int32" />
-        <property name="SaleType" type="Int16" />
-        <property name="Flags" type="Int32" />
+        <property name="SalePrice" type="System.Int32" />
+        <property name="SaleType" type="System.Byte" />
+        <property name="Flags" type="Syste.UInt32" />
         <property name="CreationDate" type="Int32" />
     </class>
 </hibernate-mapping>
