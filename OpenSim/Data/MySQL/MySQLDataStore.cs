@@ -1025,13 +1025,22 @@ namespace OpenSim.Data.MySQL
 
             newData.authBuyerID = authedbuyer;
             newData.snapshotID = snapshotID;
-
-            newData.userLocation =
-                new LLVector3(Convert.ToSingle(row["UserLocationX"]), Convert.ToSingle(row["UserLocationY"]),
-                              Convert.ToSingle(row["UserLocationZ"]));
-            newData.userLookAt =
-                new LLVector3(Convert.ToSingle(row["UserLookAtX"]), Convert.ToSingle(row["UserLookAtY"]),
-                              Convert.ToSingle(row["UserLookAtZ"]));
+            try
+            {
+                newData.userLocation =
+                    new LLVector3(Convert.ToSingle(row["UserLocationX"]), Convert.ToSingle(row["UserLocationY"]),
+                                  Convert.ToSingle(row["UserLocationZ"]));
+                newData.userLookAt =
+                    new LLVector3(Convert.ToSingle(row["UserLookAtX"]), Convert.ToSingle(row["UserLookAtY"]),
+                                  Convert.ToSingle(row["UserLookAtZ"]));
+            }
+            catch (InvalidCastException)
+            {
+                newData.userLocation = LLVector3.Zero;
+                newData.userLookAt = LLVector3.Zero;
+                m_log.ErrorFormat("[PARCEL]: unable to get parcel telehub settings for {1}", newData.landName);
+            }
+                
             newData.parcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
 
             return newData;
