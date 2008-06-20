@@ -3894,7 +3894,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 {
                     int index = str.IndexOf(delimiters[i].ToString());
                     bool found = index != -1;
-                    if (found)
+                    if (found && String.Empty != delimiters[i])
                     {
                         if ((cindex > index) || (cindex == -1))
                         {
