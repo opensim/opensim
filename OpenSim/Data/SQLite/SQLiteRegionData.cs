@@ -972,13 +972,22 @@ namespace OpenSim.Data.SQLite
             newData.passHours = Convert.ToSingle(row["PassHours"]);
             newData.passPrice = Convert.ToInt32(row["PassPrice"]);
             newData.snapshotID = (String) row["SnapshotUUID"];
+            try
+            {
 
-            newData.userLocation =
-                new LLVector3(Convert.ToSingle(row["UserLocationX"]), Convert.ToSingle(row["UserLocationY"]),
-                              Convert.ToSingle(row["UserLocationZ"]));
-            newData.userLookAt =
-                new LLVector3(Convert.ToSingle(row["UserLookAtX"]), Convert.ToSingle(row["UserLookAtY"]),
-                              Convert.ToSingle(row["UserLookAtZ"]));
+                newData.userLocation =
+                    new LLVector3(Convert.ToSingle(row["UserLocationX"]), Convert.ToSingle(row["UserLocationY"]),
+                                  Convert.ToSingle(row["UserLocationZ"]));
+                newData.userLookAt =
+                    new LLVector3(Convert.ToSingle(row["UserLookAtX"]), Convert.ToSingle(row["UserLookAtY"]),
+                                  Convert.ToSingle(row["UserLookAtZ"]));
+                m_log.ErrorFormat("[PARCEL]: unable to get parcel telehub settings for {1}", newData.landName);
+            }
+            catch (InvalidCastException)
+            {
+                newData.userLocation = LLVector3.Zero;
+                newData.userLookAt = LLVector3.Zero;
+            }
             newData.parcelAccessList = new List<ParcelManager.ParcelAccessEntry>();
             LLUUID authBuyerID = LLUUID.Zero;
 
