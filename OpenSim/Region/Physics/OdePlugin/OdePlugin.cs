@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.IO;
 using Axiom.Math;
 using log4net;
 using Nini.Config;
@@ -247,6 +248,11 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private IConfigSource m_config;
 
+        public bool physics_logging = false;
+        public int physics_logging_interval = 0;
+        public bool physics_logging_append_existing_logfile = false;
+
+
         /// <summary>
         /// Initiailizes the scene
         /// Sets many properties that ODE requires to be stable
@@ -370,6 +376,10 @@ namespace OpenSim.Region.Physics.OdePlugin
                         avStandupTensor = physicsconfig.GetFloat("av_capsule_standup_tensor_win", 550000f);
                         bodyMotorJointMaxforceTensor = physicsconfig.GetFloat("body_motor_joint_maxforce_tensor_win", 5f);
                     }
+
+                    physics_logging = physicsconfig.GetBoolean("physics_logging", false);
+                    physics_logging_interval = physicsconfig.GetInt("physics_logging_interval", 0);
+                    physics_logging_append_existing_logfile = physicsconfig.GetBoolean("physics_logging_append_existing_logfile", false);
                 }
             }
 
@@ -1759,7 +1769,25 @@ namespace OpenSim.Region.Physics.OdePlugin
                         }
                     }
                 }
+
+		
+		// Finished with all sim stepping. If requested, dump world state to file for debugging.
+		// TODO: This call to the export function is already inside lock(OdeLock) - but is an extra lock needed?
+		// TODO: This overwrites all dump files in-place. Should this be a growing logfile, or separate snapshots?
+		if(physics_logging && (physics_logging_interval>0) && (framecount % physics_logging_interval == 0) ) {
+			string fname = "state-" + world.ToString() + ".DIF"; // give each physics world a separate filename
+			string prefix = "world" + world.ToString(); // prefix for variable names in exported .DIF file
+
+			if(physics_logging_append_existing_logfile) {
+				string header = "-------------- START OF PHYSICS FRAME " + framecount.ToString() + " --------------";
+				TextWriter fwriter = File.AppendText(fname);
+				fwriter.WriteLine(header);
+				fwriter.Close();
+			}
+			d.WorldExportDIF(world, fname, physics_logging_append_existing_logfile, prefix);
+		}
             }
+
             return fps;
         }
 

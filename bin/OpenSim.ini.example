@@ -309,6 +309,15 @@ mesh_lod = 32
 ; number^2 physical level of detail of the sculpt texture.  16x16 - 256 verticies
 mesh_physical_lod = 16
 
+; ##
+; ## Physics logging settings - logfiles are saved to *.DIF files
+; ##
+
+;physics_logging = true
+;; every n simulation iterations, the physics snapshot file is updated
+;physics_logging_interval = 50
+;; append to existing physics logfile, or overwrite existing logfiles?
+;physics_logging_append_existing_logfile = true
 
 [RemoteAdmin]
 enabled = false
