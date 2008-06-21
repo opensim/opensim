@@ -1036,6 +1036,23 @@ namespace OpenSim.Data.SQLite
             return entry;
         }
 
+
+        public List<RegionBanListItem> LoadRegionBanList(LLUUID regionUUID)
+        {
+            List<RegionBanListItem> regionbanlist = new List<RegionBanListItem>();
+            return regionbanlist;
+        }
+
+        public void AddToRegionBanlist(RegionBanListItem item)
+        {
+
+        }
+
+        public void RemoveFromRegionBanlist(RegionBanListItem item)
+        {
+
+        }
+
         private static Array serializeTerrain(double[,] val)
         {
             MemoryStream str = new MemoryStream(65536*sizeof (double));

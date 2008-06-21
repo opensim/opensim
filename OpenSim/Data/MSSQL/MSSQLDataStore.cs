@@ -492,6 +492,22 @@ namespace OpenSim.Data.MSSQL
             return landDataForRegion;
         }
 
+        public List<RegionBanListItem> LoadRegionBanList(LLUUID regionUUID)
+        {
+            List<RegionBanListItem> regionbanlist = new List<RegionBanListItem>();
+            return regionbanlist;
+        }
+
+        public void AddToRegionBanlist(RegionBanListItem item)
+        {
+
+        }
+
+        public void RemoveFromRegionBanlist(RegionBanListItem item)
+        {
+
+        }
+
         public void Commit()
         {
             if (m_connection.State != ConnectionState.Open)

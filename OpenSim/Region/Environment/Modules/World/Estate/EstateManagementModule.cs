@@ -51,6 +51,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         {
             remote_client.sendDetailedEstateData(invoice,m_scene.RegionInfo.EstateSettings.estateName,m_scene.RegionInfo.EstateSettings.estateID);
             remote_client.sendEstateManagersList(invoice,m_scene.RegionInfo.EstateSettings.estateManagers,m_scene.RegionInfo.EstateSettings.estateID);
+            remote_client.sendBannedUserList(invoice, m_scene.RegionInfo.regionBanlist, m_scene.RegionInfo.EstateSettings.estateID);
         }
 
         private void estateSetRegionInfoHandler(bool blockTerraform, bool noFly, bool allowDamage, bool blockLandResell, int maxAgents, float objectBonusFactor,
@@ -206,6 +207,89 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
             switch (estateAccessType)
             {
+                case 64:
+                    if (m_scene.ExternalChecks.ExternalChecksCanIssueEstateCommand(remote_client.AgentId) || m_scene.ExternalChecks.ExternalChecksBypassPermissions())
+                    {
+                        RegionBanListItem[] banlistcheck = m_scene.RegionInfo.regionBanlist.ToArray();
+                        
+                        bool alreadyInList = false;
+
+                        for (int i = 0; i < banlistcheck.Length; i++)
+                        {
+                            if (user == banlistcheck[i].bannedUUID)
+                            {
+                                alreadyInList = true;
+                                break;
+                            }
+
+                        }
+                        if (!alreadyInList)
+                        {
+
+                            RegionBanListItem item = new RegionBanListItem();
+
+                            item.bannedUUID = user;
+                            item.regionUUID = m_scene.RegionInfo.RegionID;
+                            item.bannedIP = "0.0.0.0";
+                            item.bannedIPHostMask = "0.0.0.0";
+
+                            m_scene.RegionInfo.regionBanlist.Add(item);
+                            m_scene.AddToRegionBanlist(item);
+
+                            ScenePresence s = m_scene.GetScenePresence(user);
+                            if (s != null)
+                            {
+                                m_scene.TeleportClientHome(user, s.ControllingClient);
+                            }
+
+                        }
+                        else
+                        {
+                            remote_client.SendAlertMessage("User is already on the region ban list");
+                        }
+                        //m_scene.RegionInfo.regionBanlist.Add(Manager(user);
+                        remote_client.sendBannedUserList(invoice, m_scene.RegionInfo.regionBanlist, m_scene.RegionInfo.EstateSettings.estateID);
+                    }
+                    else
+                    {
+                        remote_client.SendAlertMessage("Method EstateAccessDelta Failed, you don't have permissions");
+                    }
+                    break;
+                case 128:
+                    if (m_scene.ExternalChecks.ExternalChecksCanIssueEstateCommand(remote_client.AgentId) || m_scene.ExternalChecks.ExternalChecksBypassPermissions())
+                    {
+                        RegionBanListItem[] banlistcheck = m_scene.RegionInfo.regionBanlist.ToArray();
+
+                        bool alreadyInList = false;
+                        RegionBanListItem listitem = null;
+
+                        for (int i = 0; i < banlistcheck.Length; i++)
+                        {
+                            if (user == banlistcheck[i].bannedUUID)
+                            {
+                                alreadyInList = true;
+                                listitem = banlistcheck[i];
+                                break;
+                            }
+
+                        }
+                        if (alreadyInList && listitem != null)
+                        {
+                            m_scene.RegionInfo.regionBanlist.Remove(listitem);
+                            m_scene.RemoveFromRegionBanlist(listitem);
+                        }
+                        else
+                        {
+                            remote_client.SendAlertMessage("User is not on the region ban list");
+                        }
+                        //m_scene.RegionInfo.regionBanlist.Add(Manager(user);
+                        remote_client.sendBannedUserList(invoice, m_scene.RegionInfo.regionBanlist, m_scene.RegionInfo.EstateSettings.estateID);
+                    }
+                    else
+                    {
+                        remote_client.SendAlertMessage("Method EstateAccessDelta Failed, you don't have permissions");
+                    }
+                    break;
                 case 256:
 
                     // This needs to be updated for SuperEstateOwnerUser..   a non existing user in the estatesettings.xml
@@ -237,7 +321,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
                 default:
 
-                    m_log.Error("EstateOwnerMessage: Unknown EstateAccessType requested in estateAccessDelta");
+                    m_log.ErrorFormat("EstateOwnerMessage: Unknown EstateAccessType requested in estateAccessDelta: {0}", estateAccessType.ToString());
                     break;
             }
         }

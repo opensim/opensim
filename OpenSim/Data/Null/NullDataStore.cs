@@ -80,6 +80,22 @@ namespace OpenSim.Data.Null
             return new List<LandData>();
         }
 
+        public List<RegionBanListItem> LoadRegionBanList(LLUUID regionUUID)
+        {
+            List<RegionBanListItem> regionbanlist = new List<RegionBanListItem>();
+            return regionbanlist;
+        }
+
+        public void AddToRegionBanlist(RegionBanListItem item)
+        {
+
+        }
+
+        public void RemoveFromRegionBanlist(RegionBanListItem item)
+        {
+
+        }
+
         public void Shutdown()
         {
         }

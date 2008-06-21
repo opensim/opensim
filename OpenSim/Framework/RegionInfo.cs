@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Xml;
@@ -210,6 +211,7 @@ namespace OpenSim.Framework
 
         public LLUUID lastMapUUID = LLUUID.Zero;
         public string lastMapRefresh = "0";
+        public List<RegionBanListItem> regionBanlist = new List<RegionBanListItem>();
 
         // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
 
@@ -344,6 +346,28 @@ namespace OpenSim.Framework
             configMember = new ConfigurationMember(filename, description, loadConfigurationOptionsFromMe,
                                                    ignoreIncomingConfiguration, false);
             configMember.performConfigurationRetrieve();
+        }
+
+        public bool CheckIfUserBanned(LLUUID user)
+        {
+
+            RegionBanListItem[] bl = regionBanlist.ToArray();
+            
+            bool banned = false;
+
+            for (int i = 0; i < bl.Length; i++)
+            {
+                if (bl[i] == null)
+                    continue;
+            
+                if (bl[i].bannedUUID == user)
+                {
+                    banned = true;
+                    break;
+                }
+            }
+
+            return banned;
         }
 
         public void loadConfigurationOptionsFromMe()

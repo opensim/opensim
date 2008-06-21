@@ -2570,6 +2570,51 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             this.OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
+        public void sendBannedUserList(LLUUID invoice, List<RegionBanListItem> banlist, uint estateID)
+        {
+            RegionBanListItem[] bl = banlist.ToArray();
+
+            LLUUID[] BannedUsers = new LLUUID[bl.Length];
+
+
+            for (int i = 0; i < bl.Length; i++)
+            {
+                if (bl[i] == null)
+                    continue;
+                BannedUsers[i] = bl[i].bannedUUID;
+            }
+            
+            EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();
+            packet.AgentData.TransactionID = LLUUID.Random();
+            packet.AgentData.AgentID = this.AgentId;
+            packet.AgentData.SessionID = this.SessionId;
+            packet.MethodData.Invoice = invoice;
+            packet.MethodData.Method = Helpers.StringToField("setaccess");
+
+            EstateOwnerMessagePacket.ParamListBlock[] returnblock = new EstateOwnerMessagePacket.ParamListBlock[6 + BannedUsers.Length];
+
+            for (int i = 0; i < (6 + BannedUsers.Length); i++)
+            {
+                returnblock[i] = new EstateOwnerMessagePacket.ParamListBlock();
+            }
+            int j = 0;
+
+            returnblock[j].Parameter = Helpers.StringToField(estateID.ToString()); j++;
+            returnblock[j].Parameter = Helpers.StringToField(((int)Constants.EstateAccessCodex.EstateBans).ToString()); j++;
+            returnblock[j].Parameter = Helpers.StringToField("0"); j++;
+            returnblock[j].Parameter = Helpers.StringToField("0"); j++;
+            returnblock[j].Parameter = Helpers.StringToField(BannedUsers.Length.ToString()); j++;
+            returnblock[j].Parameter = Helpers.StringToField("0"); j++;
+
+            for (int i = 0; i < BannedUsers.Length; i++)
+            {
+                returnblock[j].Parameter = BannedUsers[i].GetBytes(); j++;
+            }
+            packet.ParamList = returnblock;
+            packet.Header.Reliable = false;
+            this.OutPacket(packet, ThrottleOutPacketType.Task);
+        }
+
         public void sendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args)
         {
             RegionInfoPacket rinfopack = new RegionInfoPacket();

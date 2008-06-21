@@ -736,6 +736,11 @@ namespace OpenSim.Region.Examples.SimpleModule
         public void sendEstateManagersList(LLUUID invoice, LLUUID[] EstateManagers, uint estateID)
         {
         }
+
+        public void sendBannedUserList(LLUUID invoice, List<RegionBanListItem> banlist, uint estateID)
+        {
+        }
+
         public void sendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args)
         {
         }

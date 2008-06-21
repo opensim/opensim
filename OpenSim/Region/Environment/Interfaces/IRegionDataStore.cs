@@ -72,6 +72,12 @@ namespace OpenSim.Region.Environment.Interfaces
         void RemoveLandObject(LLUUID globalID);
         List<LandData> LoadLandObjects(LLUUID regionUUID);
 
+        List<RegionBanListItem> LoadRegionBanList(LLUUID regionUUID);
+        void AddToRegionBanlist(RegionBanListItem item);
+        void RemoveFromRegionBanlist(RegionBanListItem item);
+
+
+
         void Shutdown();
     }
 }

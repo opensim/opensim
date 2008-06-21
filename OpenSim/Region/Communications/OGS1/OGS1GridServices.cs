@@ -55,10 +55,14 @@ namespace OpenSim.Region.Communications.OGS1
         private List<SimpleRegionInfo> m_knownRegions = new List<SimpleRegionInfo>();
         private Dictionary<ulong, int> m_deadRegionCache = new Dictionary<ulong, int>();
         private Dictionary<string, string> m_queuedGridSettings = new Dictionary<string, string>();
+        private List<RegionInfo> m_regionsOnInstance = new List<RegionInfo>();
+
+
 
         public BaseHttpServer httpListener;
         public NetworkServersInfo serversInfo;
         public BaseHttpServer httpServer;
+
         public string _gdebugRegionName = String.Empty;
 
         public string gdebugRegionName
@@ -95,6 +99,8 @@ namespace OpenSim.Region.Communications.OGS1
         // see IGridServices
         public RegionCommsListener RegisterRegion(RegionInfo regionInfo)
         {
+            m_regionsOnInstance.Add(regionInfo);
+
             m_log.InfoFormat(
                 "[OGS1 GRID SERVICES]: Attempting to register region {0} with grid at {1}",
                 regionInfo.RegionName, serversInfo.GridURL);
@@ -606,12 +612,47 @@ namespace OpenSim.Region.Communications.OGS1
 
             ulong regionHandle = Convert.ToUInt64((string) requestData["regionhandle"]);
 
-            m_log.Debug("[CONNECTION DEBUGGING]: Triggering welcome for " + agentData.AgentID.ToString() + " into " + regionHandle.ToString());
-            m_localBackend.TriggerExpectUser(regionHandle, agentData);
 
-            m_log.Info("[OGS1 GRID SERVICES]: Welcoming new user...");
+            RegionInfo[] regions = m_regionsOnInstance.ToArray();
+            bool banned = false;
 
-            return new XmlRpcResponse();
+            for (int i = 0; i < regions.Length; i++)
+            {
+                if (regions[i] != null)
+                {
+                    if (regions[i].RegionHandle == regionHandle)
+                    {
+                        if (regions[i].CheckIfUserBanned(agentData.AgentID))
+                        {
+                            banned = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            XmlRpcResponse resp = new XmlRpcResponse();
+            
+            if (banned)
+            {
+                m_log.InfoFormat("[OGS1 GRID SERVICES]: Denying access for user {0} {1} because user is banned",agentData.firstname,agentData.lastname);
+
+                Hashtable respdata = new Hashtable();
+                respdata["success"] = "FALSE";
+                respdata["reason"] = "banned";
+                resp.Value = respdata;
+            }
+            else
+            {
+                m_log.Debug("[CONNECTION DEBUGGING]: Triggering welcome for " + agentData.AgentID.ToString() + " into " + regionHandle.ToString());
+                m_localBackend.TriggerExpectUser(regionHandle, agentData);
+                m_log.Info("[OGS1 GRID SERVICES]: Welcoming new user...");
+                Hashtable respdata = new Hashtable();  
+                respdata["success"] = "TRUE";
+                resp.Value = respdata;
+
+            }
+            return resp;
         }
         // Grid Request Processing
         /// <summary>
@@ -1107,6 +1148,27 @@ namespace OpenSim.Region.Communications.OGS1
         /// <returns></returns>
         public bool ExpectAvatarCrossing(ulong regionHandle, LLUUID agentID, LLVector3 position, bool isFlying)
         {
+            RegionInfo[] regions = m_regionsOnInstance.ToArray();
+            bool banned = false;
+
+            for (int i = 0; i < regions.Length; i++)
+            {
+                if (regions[i] != null)
+                {
+                    if (regions[i].RegionHandle == regionHandle)
+                    {
+                        if (regions[i].CheckIfUserBanned(agentID))
+                        {
+                            banned = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (banned)
+                return false;
+
             RegionInfo regInfo = null;
             try
             {

@@ -1437,6 +1437,20 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void LoadRegionBanlist()
+        {
+            List<RegionBanListItem> regionbanlist = m_storageManager.DataStore.LoadRegionBanList(m_regInfo.RegionID);
+            m_regInfo.regionBanlist = regionbanlist;    
+        }
+        public void AddToRegionBanlist(RegionBanListItem item)
+        {
+            m_storageManager.DataStore.AddToRegionBanlist(item);
+        }
+
+        public void RemoveFromRegionBanlist(RegionBanListItem item)
+        {
+            m_storageManager.DataStore.RemoveFromRegionBanlist(item);
+        }
         #endregion
 
         #region Primitives Methods
@@ -1854,6 +1868,18 @@ namespace OpenSim.Region.Environment.Scenes
                 SceneObjectPart RootPrim = GetSceneObjectPart(primID);
                 if (RootPrim != null)
                 {
+                    if (m_regInfo.CheckIfUserBanned(RootPrim.OwnerID))
+                    {
+                        SceneObjectGroup grp = RootPrim.ParentGroup;
+                        if (grp != null)
+                        {
+                            DeleteSceneObject(grp);
+                        }
+                        
+                        m_log.Info("[INTERREGION]: Denied prim crossing for banned avatar");
+
+                        return false;
+                    }
                     if (RootPrim.Shape.PCode == (byte)PCode.Prim)
                     {
                         SceneObjectGroup grp = RootPrim.ParentGroup;
@@ -2333,6 +2359,13 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (regionHandle == m_regInfo.RegionHandle)
             {
+                if (m_regInfo.CheckIfUserBanned(agent.AgentID))
+                {
+                    m_log.WarnFormat(
+                   "[CONNECTION DEBUGGING]: Denied access to: {0} [{1}] at {2} because the user is on the region banlist",
+                   agent.AgentID, regionHandle, RegionInfo.RegionName);
+                }
+
                 capsPaths[agent.AgentID] = agent.CapsPath;
 
                 if (!agent.child)
@@ -3599,5 +3632,9 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         #endregion
+
+     
     }
 }
+        
+        

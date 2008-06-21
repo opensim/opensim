@@ -970,6 +970,9 @@ namespace OpenSim.Framework
 
 
         void sendEstateManagersList(LLUUID invoice, LLUUID[] EstateManagers, uint estateID);
+
+        void sendBannedUserList(LLUUID invoice, List<RegionBanListItem> banlist, uint estateID);
+
         void sendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args);
         void sendEstateCovenantInformation();
         void sendDetailedEstateData(LLUUID invoice,string estateName, uint estateID);

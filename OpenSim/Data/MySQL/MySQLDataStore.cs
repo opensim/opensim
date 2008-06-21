@@ -50,6 +50,7 @@ namespace OpenSim.Data.MySQL
         private const string m_terrainSelect = "select * from terrain limit 1";
         private const string m_landSelect = "select * from land";
         private const string m_landAccessListSelect = "select * from landaccesslist";
+        private const string m_regionBanListSelect = "select * from regionban";
 
 
         /// <summary>
@@ -65,6 +66,7 @@ namespace OpenSim.Data.MySQL
         private MySqlDataAdapter m_terrainDataAdapter;
         private MySqlDataAdapter m_landDataAdapter;
         private MySqlDataAdapter m_landAccessListDataAdapter;
+        private MySqlDataAdapter m_regionBanListDataAdapter;
 
         private DataTable m_primTable;
         private DataTable m_shapeTable;
@@ -72,6 +74,7 @@ namespace OpenSim.Data.MySQL
         private DataTable m_terrainTable;
         private DataTable m_landTable;
         private DataTable m_landAccessListTable;
+        private DataTable m_regionBanListTable;
 
         // Temporary attribute while this is experimental
         private bool persistPrimInventories;
@@ -121,6 +124,9 @@ namespace OpenSim.Data.MySQL
             MySqlCommand landAccessListSelectCmd = new MySqlCommand(m_landAccessListSelect, m_connection);
             m_landAccessListDataAdapter = new MySqlDataAdapter(landAccessListSelectCmd);
 
+            MySqlCommand regionBanListSelectCmd = new MySqlCommand(m_regionBanListSelect, m_connection);
+            m_regionBanListDataAdapter = new MySqlDataAdapter(regionBanListSelectCmd);
+
 
             lock (m_dataSet)
             {
@@ -133,6 +139,7 @@ namespace OpenSim.Data.MySQL
                 m_dataSet.Tables.Add(m_shapeTable);
                 SetupShapeCommands(m_shapeDataAdapter, m_connection);
                 m_shapeDataAdapter.Fill(m_shapeTable);
+                
 
                 if (persistPrimInventories)
                 {
@@ -156,6 +163,11 @@ namespace OpenSim.Data.MySQL
                 m_dataSet.Tables.Add(m_landAccessListTable);
                 setupLandAccessCommands(m_landAccessListDataAdapter, m_connection);
                 m_landAccessListDataAdapter.Fill(m_landAccessListTable);
+
+                m_regionBanListTable = createRegionBanTable();
+                m_dataSet.Tables.Add(m_regionBanListTable);
+                SetupRegionBanCommands(m_regionBanListDataAdapter, m_connection);
+                m_regionBanListDataAdapter.Fill(m_regionBanListTable);
             }
         }
         /// <summary>
@@ -577,6 +589,86 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        public List<RegionBanListItem> LoadRegionBanList(LLUUID regionUUID)
+        {
+            List<RegionBanListItem> regionbanlist = new List<RegionBanListItem>();
+            lock (m_dataSet)
+            {
+                DataTable regionban = m_regionBanListTable;
+                string searchExp = "regionUUID = '" + regionUUID.ToString() + "'";
+                DataRow[] rawbanlist = regionban.Select(searchExp);
+                foreach (DataRow rawbanrow in rawbanlist)
+                {
+                    RegionBanListItem rbli = new RegionBanListItem();
+                    LLUUID tmpvalue = LLUUID.Zero;
+
+                    rbli.regionUUID = regionUUID;
+
+                    if (Helpers.TryParse((string)rawbanrow["bannedUUID"], out tmpvalue))
+                        rbli.bannedUUID = tmpvalue;
+
+                    rbli.bannedIP = (string)rawbanrow["bannedIp"];
+                    rbli.bannedIPHostMask = (string)rawbanrow["bannedIpHostMask"];
+                    regionbanlist.Add(rbli);
+                }
+                return regionbanlist;
+            }
+        }
+
+        public void AddToRegionBanlist(RegionBanListItem item)
+        {
+            lock (m_dataSet)
+            {
+                DataTable regionban = m_regionBanListTable;
+                string searchExp = "regionUUID = '" + item.regionUUID.ToString() + "' AND bannedUUID = '" + item.bannedUUID.ToString() + "'";
+                DataRow[] rawbanlist = regionban.Select(searchExp);
+                if (rawbanlist.Length == 0)
+                {
+                    DataRow regionbanrow = regionban.NewRow();
+                    regionbanrow["regionUUID"] = item.regionUUID.ToString();
+                    regionbanrow["bannedUUID"] = item.bannedUUID.ToString();
+                    regionbanrow["bannedIp"] = item.bannedIP.ToString();
+                    regionbanrow["bannedIpHostMask"] = item.bannedIPHostMask.ToString();
+                    regionban.Rows.Add(regionbanrow);
+                }
+                Commit();
+            }
+        }
+
+        public void RemoveFromRegionBanlist(RegionBanListItem item)
+        {
+            lock (m_dataSet)
+            {
+                DataTable regionban = m_regionBanListTable;
+                string searchExp = "regionUUID = '" + item.regionUUID.ToString() + "' AND bannedUUID = '" + item.bannedUUID.ToString() + "'";
+                DataRow[] rawbanlist = regionban.Select(searchExp);
+                if (rawbanlist.Length > 0)
+                {
+                    foreach (DataRow rbli in rawbanlist)
+                    {
+                        regionban.Rows.Remove(rbli);
+                    }
+                }
+                Commit();
+            }
+            if (m_connection.State != ConnectionState.Open)
+            {
+                m_connection.Open();
+            }
+
+            using 
+            (
+                MySqlCommand cmd =
+                    new MySqlCommand("delete from regionban where regionUUID = ?regionUUID AND bannedUUID = ?bannedUUID", m_connection)
+            )
+            {
+                cmd.Parameters.Add(new MySqlParameter("?regionUUID", item.regionUUID.ToString()));
+                cmd.Parameters.Add(new MySqlParameter("?bannedUUID", item.bannedUUID.ToString()));
+                cmd.ExecuteNonQuery();
+            }
+
+        }
+
         public List<LandData> LoadLandObjects(LLUUID regionUUID)
         {
             List<LandData> landDataForRegion = new List<LandData>();
@@ -624,6 +716,7 @@ namespace OpenSim.Data.MySQL
                 m_terrainDataAdapter.Update(m_terrainTable);
                 m_landDataAdapter.Update(m_landTable);
                 m_landAccessListDataAdapter.Update(m_landAccessListTable);
+                m_regionBanListDataAdapter.Update(m_regionBanListTable);
 
                 m_dataSet.AcceptChanges();
             }
@@ -658,6 +751,17 @@ namespace OpenSim.Data.MySQL
             createCol(terrain, "Revision", typeof (Int32));
             createCol(terrain, "Heightfield", typeof (Byte[]));
             return terrain;
+        }
+
+        private static DataTable createRegionBanTable()
+        {
+            DataTable regionban = new DataTable("regionban");
+            createCol(regionban, "regionUUID", typeof(String));
+            createCol(regionban, "bannedUUID", typeof(String));
+            createCol(regionban, "bannedIp", typeof(String));
+            createCol(regionban, "bannedIpHostMask", typeof(String));
+            return regionban;
+
         }
 
         private static DataTable createPrimTable()
@@ -1553,7 +1657,20 @@ namespace OpenSim.Data.MySQL
             delete.Connection = conn;
             da.DeleteCommand = delete;
         }
+        private void SetupRegionBanCommands(MySqlDataAdapter da, MySqlConnection conn)
+        {
+            da.InsertCommand = createInsertCommand("regionban", m_regionBanListTable);
+            da.InsertCommand.Connection = conn;
 
+            da.UpdateCommand = createUpdateCommand("regionban", "regionUUID = ?regionUUID AND bannedUUID = ?bannedUUID", m_regionBanListTable);
+            da.UpdateCommand.Connection = conn;
+
+            MySqlCommand delete = new MySqlCommand("delete from regionban where regionUUID = ?regionUUID AND bannedUUID = ?bannedUUID");
+            delete.Parameters.Add(createMySqlParameter("regionUUID", typeof(String)));
+            delete.Parameters.Add(createMySqlParameter("bannedUUID", typeof(String)));
+            delete.Connection = conn;
+            da.DeleteCommand = delete;
+        }
         private void SetupTerrainCommands(MySqlDataAdapter da, MySqlConnection conn)
         {
             da.InsertCommand = createInsertCommand("terrain", m_dataSet.Tables["terrain"]);

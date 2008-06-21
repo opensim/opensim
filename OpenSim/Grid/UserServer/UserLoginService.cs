@@ -260,13 +260,37 @@ namespace OpenSim.Grid.UserServer
                         "[LOGIN]: XMLRPC request for {0} failed, fault code: {1}, reason: {2}",
                         SimInfo.httpServerURI, GridResp.FaultCode, GridResp.FaultString);
                 }
-                handlerUserLoggedInAtLocation = OnUserLoggedInAtLocation;
-                if (handlerUserLoggedInAtLocation != null)
+                if (!GridResp.IsFault)
                 {
-                    //m_log.Info("[LOGIN]: Letting other objects know about login");
-                    handlerUserLoggedInAtLocation(theUser.ID, theUser.CurrentAgent.SessionID, theUser.CurrentAgent.Region,
-                        theUser.CurrentAgent.Handle, theUser.CurrentAgent.Position.X,theUser.CurrentAgent.Position.Y,theUser.CurrentAgent.Position.Z,
-                        theUser.FirstName,theUser.SurName);
+                    bool responseSuccess = true;
+
+
+                    if (GridResp.Value != null)
+                    {
+                        Hashtable resp = (Hashtable)GridResp.Value;
+                        if (resp.ContainsKey("success"))
+                        {
+                            if ((string)resp["success"] == "FALSE")
+                            {
+                                responseSuccess = false;
+                                tryDefault = true;
+                            }
+                        }
+                    }
+
+                    if (responseSuccess)
+                    {
+                        handlerUserLoggedInAtLocation = OnUserLoggedInAtLocation;
+                        if (handlerUserLoggedInAtLocation != null)
+                        {
+                            //m_log.Info("[LOGIN]: Letting other objects know about login");
+                            handlerUserLoggedInAtLocation(theUser.ID, theUser.CurrentAgent.SessionID, theUser.CurrentAgent.Region,
+                                theUser.CurrentAgent.Handle, theUser.CurrentAgent.Position.X, theUser.CurrentAgent.Position.Y, theUser.CurrentAgent.Position.Z,
+                                theUser.FirstName, theUser.SurName);
+                        }
+                    }
+                
+
                 }
             }
             catch (Exception)
@@ -340,14 +364,50 @@ namespace OpenSim.Grid.UserServer
                     // Send
                     XmlRpcRequest GridReq = new XmlRpcRequest("expect_user", SendParams);
                     XmlRpcResponse GridResp = GridReq.Send(SimInfo.httpServerURI, 6000);
-                    handlerUserLoggedInAtLocation = OnUserLoggedInAtLocation;
-                    if (handlerUserLoggedInAtLocation != null)
+
+                    if (!GridResp.IsFault)
                     {
-                        m_log.Info("[LOGIN]: Letting other objects know about login");
-                        handlerUserLoggedInAtLocation(theUser.ID, theUser.CurrentAgent.SessionID, theUser.CurrentAgent.Region,
-                        theUser.CurrentAgent.Handle, theUser.CurrentAgent.Position.X, theUser.CurrentAgent.Position.Y, theUser.CurrentAgent.Position.Z,
-                        theUser.FirstName, theUser.SurName);
+                        bool responseSuccess = true;
+
+
+                        if (GridResp.Value != null)
+                        {
+                            Hashtable resp = (Hashtable) GridResp.Value;
+                            if (resp.ContainsKey("success"))
+                            {
+                                if ((string)resp["success"] == "FALSE")
+                                {
+                                    responseSuccess = false;
+                                    tryDefault = true;
+                                }
+                            }
+                        }
+
+                        if (responseSuccess)
+                        {
+                            handlerUserLoggedInAtLocation = OnUserLoggedInAtLocation;
+                            if (handlerUserLoggedInAtLocation != null)
+                            {
+                                m_log.Info("[LOGIN]: Letting other objects know about login");
+                                handlerUserLoggedInAtLocation(theUser.ID, theUser.CurrentAgent.SessionID, theUser.CurrentAgent.Region,
+                                theUser.CurrentAgent.Handle, theUser.CurrentAgent.Position.X, theUser.CurrentAgent.Position.Y, theUser.CurrentAgent.Position.Z,
+                                theUser.FirstName, theUser.SurName);
+                            }
+                        }
+                        else
+                        {
+                            response.CreateDeadRegionResponse();
+
+                        }
+
+
                     }
+                    else
+                    {
+                        response.CreateDeadRegionResponse();
+
+                    }
+                    
                 }
 
                 catch (Exception e)
