@@ -931,12 +931,14 @@ namespace OpenSim.Region.Environment.Scenes
             // code needs a redesign.            
             m_isDeleted = true;
             
-            DetachFromBackup(this);
+            DetachFromBackup(this);                       
 
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
+                    part.StopScripts();
+                
                     List<ScenePresence> avatars = Scene.GetScenePresences();
                     for (int i = 0; i < avatars.Count; i++)
                     {
@@ -948,6 +950,9 @@ namespace OpenSim.Region.Environment.Scenes
                         avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
                     }
                 }
+                
+                m_rootPart = null;
+                m_parts.Clear();                 
             }
         }
         
@@ -965,23 +970,6 @@ namespace OpenSim.Region.Environment.Scenes
 
                     avatars[i].ControllingClient.SendKillObject(m_regionHandle, part.LocalId);
                 }
-            }
-        }
-
-        /// <summary>
-        /// Delete all the parts in this group.
-        /// </summary>
-        public void DeleteParts()
-        {
-            lock (m_parts)
-            {
-                foreach (SceneObjectPart part in m_parts.Values)
-                {
-                    part.StopScripts();
-                }
-
-                m_rootPart = null;
-                m_parts.Clear();
             }
         }
 
@@ -1793,11 +1781,11 @@ namespace OpenSim.Region.Environment.Scenes
 
             m_scene.UnlinkSceneObject(objectGroup.UUID, true);
 
-            // TODO Deleting the parts may cause problems later on if they have already
+            // TODO Deleting the original group object may cause problems later on if they have already
             // made it into the update queue.  However, sending out updates for those parts is now
             // spurious, so it would be good not to send them at some point.
             // The traffic caused is always going to be pretty minor, so it's not high priority
-            //objectGroup.DeleteParts();
+            //objectGroup.DeleteGroup();
 
             ScheduleGroupForFullUpdate();
         }

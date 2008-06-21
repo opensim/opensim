@@ -1670,7 +1670,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="group"></param>
         public void DeleteSceneObject(SceneObjectGroup group)
         {
-            SceneObjectPart rootPart = (group).GetChildPart(group.UUID);
+            SceneObjectPart rootPart = group.GetChildPart(group.UUID);
 
             if (rootPart.PhysActor != null)
             {
@@ -1685,7 +1685,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             group.DeleteGroup();
-            group.DeleteParts();
         }
 
         /// <summary>
