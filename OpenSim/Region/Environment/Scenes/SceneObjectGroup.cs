@@ -116,6 +116,15 @@ namespace OpenSim.Region.Environment.Scenes
         private int m_startparameter = 0;
 
         #region Properties
+        
+        /// <summary>
+        /// The name of an object grouping is always the same as its root part
+        /// </summary>
+        public override string Name
+        {
+            get { return RootPart.Name; }
+            set { RootPart.Name = value; }
+        }        
 
         /// <summary>
         /// Added because the Parcel code seems to use it

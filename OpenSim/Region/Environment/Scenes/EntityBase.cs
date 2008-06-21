@@ -56,7 +56,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected string m_name;
 
         /// <summary>
-        ///
+        /// The name of this entity
         /// </summary>
         public virtual string Name
         {
