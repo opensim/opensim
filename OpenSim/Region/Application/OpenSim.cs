@@ -190,7 +190,7 @@ namespace OpenSim
         public override void RunCmd(string command, string[] cmdparams)
         {
             base.RunCmd(command, cmdparams);
-            RunPluginCommands(command + " " + CombineParams(cmdparams, 0));
+            RunPluginCommands(command , cmdparams);
             switch (command)
             {
                 case "clear-assets":
@@ -691,10 +691,11 @@ namespace OpenSim
         /// 
         /// returns true if a match was found, false otherwise.
         /// </summary>
-        public bool RunPluginCommands(string cmdWithParams)
+        public bool RunPluginCommands(string cmd, string[] withParams)
         {
             ConsolePluginCommand bestMatch = null;
             int bestLength = 0;
+            String cmdWithParams = cmd + " " + String.Join(" ",withParams);
             foreach (ConsolePluginCommand cmdinfo in m_PluginCommandInfos)
             {
                 int matchLen = cmdinfo.matchLength(cmdWithParams);
@@ -705,7 +706,7 @@ namespace OpenSim
                 }
             }
             if (bestMatch == null) return false;
-            bestMatch.Run(cmdWithParams.Substring(bestLength));
+            bestMatch.Run(cmd,withParams);//.Substring(bestLength));
             return true;
         }
 
@@ -759,7 +760,7 @@ namespace OpenSim
         /// <summary>
         /// command in the form of "showme new commands"
         /// </summary>
-        private string m_cmdText;
+        private string[] m_cmdText;
 
         /// <summary>
         /// Construct a new ConsolePluginCommand 
@@ -772,7 +773,7 @@ namespace OpenSim
         /// <param name="help">the text displayed in "help showme new commands"</param>
         public ConsolePluginCommand(string command, ConsoleCommand dlg, string help)
         {
-            m_cmdText = command;
+            m_cmdText = command.Split(new char[] { ' ' });
             m_commandDelegate = dlg;
             m_helpText = help;
         }
@@ -790,7 +791,7 @@ namespace OpenSim
         {
             // QUESTION: have a case insensitive flag?
             cmdWithParams = cmdWithParams.ToLower().Trim();
-            string matchText = m_cmdText.ToLower().Trim();
+            string matchText = String.Join(" ",m_cmdText).ToLower().Trim();
             if (cmdWithParams.StartsWith(matchText))
             {
                 // QUESTION Instead return cmdText.Length; ?
@@ -800,17 +801,33 @@ namespace OpenSim
         }
 
         /// <summary>
-        /// Run the delegate the incomming string may contain the command, if so, it is chopped off
+        /// Run the delegate the incomming string may contain the command, if so, it is chopped off the cmdParams[]
         /// </summary>
-        public void Run(string cmdParams)
+        public void Run(string cmd, string[] cmdParams)
         {
-            string targetText = m_cmdText.ToLower();
-            string matchText = cmdParams.ToLower();
-            if (targetText.StartsWith(matchText))
+            int skipParams = 0;
+            if (m_cmdText.Length > 1)
             {
-                cmdParams = cmdParams.Substring(matchText.Length);
+                int currentParam = 1;
+                while (currentParam < m_cmdText.Length)
+                {
+                    if (cmdParams[skipParams].ToLower().Equals(m_cmdText[currentParam].ToLower()))
+                    {
+                        skipParams++;
+                    }
+                    currentParam++;
+                }
+               
+            }           
+            string[] sendCmdParams = cmdParams;
+            if (skipParams > 0)
+            {
+                sendCmdParams = new string[cmdParams.Length-skipParams];
+                for (int i=0;i<sendCmdParams.Length;i++) {
+                    sendCmdParams[i] = cmdParams[skipParams++];
+                }
             }
-            m_commandDelegate(cmdParams.Trim().Split(new char[] { ' ' }));
+            m_commandDelegate(sendCmdParams);//.Trim().Split(new char[] { ' ' }));
         }
 
         /// <summary>
@@ -818,7 +835,7 @@ namespace OpenSim
         /// </summary>
         public void ShowHelp(ConsoleBase console)
         {
-            console.Notice(m_cmdText + " - " + m_helpText);
+            console.Notice(String.Join(" ", m_cmdText) + " - " + m_helpText);
         }
 
         /// <summary>
@@ -827,7 +844,7 @@ namespace OpenSim
         public bool IsHelpfull(string cmdWithParams)
         {
             cmdWithParams = cmdWithParams.ToLower();
-            return cmdWithParams.Contains(m_cmdText.ToLower()) || m_helpText.ToLower().Contains(cmdWithParams);
+            return cmdWithParams.Contains(String.Join(" ", m_cmdText).ToLower()) || m_helpText.ToLower().Contains(cmdWithParams);
         }
     }
     
