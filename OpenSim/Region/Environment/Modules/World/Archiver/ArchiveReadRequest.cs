@@ -29,6 +29,7 @@ using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Modules.World.Serialiser;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Xml;
@@ -62,9 +63,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             TarArchiveReader archive = new TarArchiveReader(m_loadPath);
             AssetsDearchiver dearchiver = new AssetsDearchiver(m_scene.AssetCache);
 
-            string serializedPrims = string.Empty;
-
-            // Just test for now by reading first file
+            List<string> serialisedSceneObjects = new List<string>();
             string filePath = "ERROR";
 
             byte[] data;
@@ -73,9 +72,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 m_log.DebugFormat(
                     "[ARCHIVER]: Successfully read {0} ({1} bytes) from archive {2}", filePath, data.Length, m_loadPath);
 
-                if (filePath.Equals(ArchiveConstants.PRIMS_PATH))
+                if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH))
                 {
-                    serializedPrims = m_asciiEncoding.GetString(data);
+                    serialisedSceneObjects.Add(m_asciiEncoding.GetString(data));
                 }
                 else if (filePath.Equals(ArchiveConstants.ASSETS_METADATA_PATH))
                 {
@@ -92,35 +91,17 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
             archive.Close();
 
-            if (serializedPrims.Equals(string.Empty))
-            {
-                m_log.ErrorFormat("[ARCHIVER]: Archive did not contain a {0} file", ArchiveConstants.PRIMS_PATH);
-                return;
-            }
-
             // Reload serialized prims
-            m_log.InfoFormat("[ARCHIVER]: Loading scene objects");
+            m_log.InfoFormat("[ARCHIVER]: Loading {0} scene objects", serialisedSceneObjects.Count);
 
             IRegionSerialiser serialiser = m_scene.RequestModuleInterface<IRegionSerialiser>();
-            
-            // Temporary code to read each sog in the file separately, pending actually having these in separate files
-            XmlTextReader xtr = new XmlTextReader(new StringReader(serializedPrims));            
-            XmlDocument doc = new XmlDocument();
-            xtr.WhitespaceHandling = WhitespaceHandling.None;
-            doc.Load(xtr);
-            xtr.Close();
-            XmlNode sceneNode = doc.FirstChild;
-            int count = 0;
 
-            foreach (XmlNode objectNode in sceneNode.ChildNodes)
+            foreach (string serialisedSceneObject in serialisedSceneObjects)
             {                
-                serialiser.LoadGroupFromXml2(m_scene, objectNode.OuterXml.ToString());
-                count++;
+                serialiser.LoadGroupFromXml2(m_scene, serialisedSceneObject);
             }
             
-            //serialiser.LoadPrimsFromXml2(m_scene, new StringReader(serializedPrims));
-            
-            m_log.DebugFormat("[ARCHIVER]: Loaded {0} scene objects", count);
+            m_log.InfoFormat("[ARCHIVER]: Successfully loaded archive");
         }
     }
 }

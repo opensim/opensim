@@ -146,7 +146,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Number of prims in this group
         /// </summary>
         public int PrimCount
         {
@@ -162,14 +162,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return m_rootPart.GroupID; }
             set { m_rootPart.GroupID = value; }
-        }
-
-        /// <summary>
-        ///
-        /// </summary>
-        public LLVector3 GroupCentrePoint
-        {
-            get { return new LLVector3(0, 0, 0); }
         }
 
         public Dictionary<LLUUID, SceneObjectPart> Children

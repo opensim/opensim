@@ -25,11 +25,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using libsecondlife;
 using log4net;
 using OpenSim.Framework;
+using OpenSim.Region.Environment.Interfaces;
+using OpenSim.Region.Environment.Modules.World.Serialiser;
+using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.World.Archiver
 {
@@ -45,12 +49,15 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        protected IRegionSerialiser m_serialiser;
+        protected List<EntityBase> m_sceneObjects;
         protected string m_savePath;
-        protected string m_serializedEntities;
 
-        public ArchiveWriteRequestExecution(string serializedEntities, string savePath)
+        public ArchiveWriteRequestExecution(
+             List<EntityBase> sceneObjects, IRegionSerialiser serialiser, string savePath)
         {
-            m_serializedEntities = serializedEntities;
+            m_sceneObjects = sceneObjects;
+            m_serialiser = serialiser;
             m_savePath = savePath;
         }
 
@@ -59,8 +66,23 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             m_log.DebugFormat("[ARCHIVER]: Received all {0} assets required", assets.Count);
 
             TarArchiveWriter archive = new TarArchiveWriter();
-
-            archive.AddFile(ArchiveConstants.PRIMS_PATH, m_serializedEntities);
+            
+            foreach (EntityBase entity in m_sceneObjects)
+            {
+                // FIXME: I'm fairly sure that all entities are in fact SceneObjectGroups...  must fix this
+                SceneObjectGroup sceneObject = (SceneObjectGroup)entity;
+                LLVector3 position = sceneObject.AbsolutePosition;
+                
+                string serializedObject = m_serialiser.SaveGroupToXml2(sceneObject);
+                string filename 
+                    = string.Format(
+                        "{0}{1}_{2:000}-{3:000}-{4:000}__{5}.xml",
+                        ArchiveConstants.OBJECTS_PATH, sceneObject.Name, 
+                        Math.Round(position.X), Math.Round(position.Y), Math.Round(position.Z), 
+                        sceneObject.UUID);
+                
+                archive.AddFile(filename, serializedObject);
+            }
 
             AssetsArchiver assetsArchiver = new AssetsArchiver(assets);
             assetsArchiver.Archive(archive);
@@ -68,6 +90,6 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             archive.WriteTar(m_savePath);
 
             m_log.InfoFormat("[ARCHIVER]: Wrote out OpenSimulator archive {0}", m_savePath);
-        }
+        }       
     }
 }

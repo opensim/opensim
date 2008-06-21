@@ -172,44 +172,17 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 }
             }
 
-            string serializedEntities = SerializeObjects(entities);
-
-            if (serializedEntities != null && serializedEntities.Length > 0)
+            if (entities.Count > 0)
             {
                 m_log.DebugFormat("[ARCHIVER]: Successfully got serialization for {0} entities", entities.Count);
                 m_log.DebugFormat("[ARCHIVER]: Requiring save of {0} assets", assetUuids.Count);
 
                 // Asynchronously request all the assets required to perform this archive operation
-                ArchiveWriteRequestExecution awre = new ArchiveWriteRequestExecution(serializedEntities, m_savePath);
+                ArchiveWriteRequestExecution awre 
+                    = new ArchiveWriteRequestExecution(
+                        entities, m_scene.RequestModuleInterface<IRegionSerialiser>(), m_savePath);
                 new AssetsRequest(assetUuids.Keys, m_scene.AssetCache, awre.ReceivedAllAssets).Execute();
             }
-        }
-
-        /// <summary>
-        /// Get an xml representation of the given scene objects.
-        /// </summary>
-        /// <param name="scene"></param>
-        /// <returns></returns>
-        protected static string SerializeObjects(List<EntityBase> entities)
-        {
-            string serialization = "<scene>";
-
-            List<string> serObjects = new List<string>();
-
-            foreach (EntityBase ent in entities)
-            {
-                if (ent is SceneObjectGroup)
-                {
-                    serObjects.Add(((SceneObjectGroup) ent).ToXmlString2());
-                }
-            }
-
-            foreach (string serObject in serObjects)
-                serialization += serObject;
-
-            serialization += "</scene>";
-
-            return serialization;
         }
     }
 }
