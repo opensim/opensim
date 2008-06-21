@@ -50,6 +50,6 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <summary>
         /// Path for the prims file
         /// </summary>
-        public static readonly string PRIMS_PATH = "prims.xml";
+        public static readonly string PRIMS_PATH = "objects/prims.xml";
     }
 }
