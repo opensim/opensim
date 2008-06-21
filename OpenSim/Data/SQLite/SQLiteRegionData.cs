@@ -50,6 +50,7 @@ namespace OpenSim.Data.SQLite
         private const string terrainSelect = "select * from terrain limit 1";
         private const string landSelect = "select * from land";
         private const string landAccessListSelect = "select distinct * from landaccesslist";
+        private const string regionbanListSelect = "select * from regionban";
 
         private DataSet ds;
         private SqliteDataAdapter primDa;
@@ -58,6 +59,7 @@ namespace OpenSim.Data.SQLite
         private SqliteDataAdapter terrainDa;
         private SqliteDataAdapter landDa;
         private SqliteDataAdapter landAccessListDa;
+        private SqliteDataAdapter regionBanListDa;
 
         private SqliteConnection m_conn;
 
@@ -106,6 +108,9 @@ namespace OpenSim.Data.SQLite
             SqliteCommand landAccessListSelectCmd = new SqliteCommand(landAccessListSelect, m_conn);
             landAccessListDa = new SqliteDataAdapter(landAccessListSelectCmd);
 
+            SqliteCommand regionBanListSelectCmd = new SqliteCommand(regionbanListSelect, m_conn);
+            regionBanListDa = new SqliteDataAdapter(regionBanListSelectCmd);
+
             // This actually does the roll forward assembly stuff
             Assembly assem = GetType().Assembly;
             Migration m = new Migration(m_conn, assem, "RegionStore");
@@ -140,6 +145,10 @@ namespace OpenSim.Data.SQLite
 
                 ds.Tables.Add(createLandAccessListTable());
                 setupLandAccessCommands(landAccessListDa, m_conn);
+
+                ds.Tables.Add(createRegionBanListTable());
+                setupRegionBanCommands(regionBanListDa, m_conn);
+
 
                 // WORKAROUND: This is a work around for sqlite on
                 // windows, which gets really unhappy with blob columns
@@ -180,6 +189,16 @@ namespace OpenSim.Data.SQLite
                 {
                     m_log.Info("[REGION DB]: Caught fill error on landaccesslist table");
                 }
+
+                try
+                {
+                    regionBanListDa.Fill(ds.Tables["regionban"]);
+                }
+                catch (Exception)
+                {
+                    m_log.Info("[REGION DB]: Caught fill error on regionban table");
+                }
+
                 return;
             }
         }
@@ -790,6 +809,17 @@ namespace OpenSim.Data.SQLite
             return landaccess;
         }
 
+        private static DataTable createRegionBanListTable()
+        {
+            DataTable regionbanlist = new DataTable("regionban");
+            createCol(regionbanlist, "regionUUID", typeof(String));
+            createCol(regionbanlist, "bannedUUID", typeof(String));
+            createCol(regionbanlist, "bannedIp", typeof(String));
+            createCol(regionbanlist, "bannedIpHostMask", typeof(String));
+
+            return regionbanlist;
+        }
+
         /***********************************************************************
          *
          *  Convert between ADO.NET <=> OpenSim Objects
@@ -1036,21 +1066,60 @@ namespace OpenSim.Data.SQLite
             return entry;
         }
 
-
+        
+        
         public List<RegionBanListItem> LoadRegionBanList(LLUUID regionUUID)
         {
             List<RegionBanListItem> regionbanlist = new List<RegionBanListItem>();
+            lock (ds)
+            {
+                DataTable regionban = ds.Tables["regionban"];
+                string searchExp = "regionUUID = '" + regionUUID.ToString() + "'";
+                DataRow[] rawbanlist = regionban.Select(searchExp);
+                foreach (DataRow rawbanrow in rawbanlist)
+                {
+                    RegionBanListItem rbli = new RegionBanListItem();
+                    LLUUID tmpvalue = LLUUID.Zero;
+
+                    rbli.regionUUID = regionUUID;
+
+                    if (Helpers.TryParse((string)rawbanrow["bannedUUID"], out tmpvalue))
+                        rbli.bannedUUID = tmpvalue;
+
+                    rbli.bannedIP = (string)rawbanrow["bannedIp"];
+                    rbli.bannedIPHostMask = (string)rawbanrow["bannedIpHostMask"];
+                    regionbanlist.Add(rbli);
+                }
+            }
             return regionbanlist;
         }
 
         public void AddToRegionBanlist(RegionBanListItem item)
         {
-
+            lock (ds)
+            {
+                using (SqliteCommand cmd = new SqliteCommand("insert into regionban (regionUUID, bannedUUID, bannedIp, bannedIpHostMask) values (:regionUUID,:bannedUUID,:bannedIp,:bannedIpHostMask)", m_conn))
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":regionUUID", item.regionUUID.ToString()));
+                    cmd.Parameters.Add(new SqliteParameter(":bannedUUID", item.bannedUUID.ToString()));
+                    cmd.Parameters.Add(new SqliteParameter(":bannedIp", item.bannedIP));
+                    cmd.Parameters.Add(new SqliteParameter(":bannedIpHostMask", item.bannedIPHostMask));
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
 
         public void RemoveFromRegionBanlist(RegionBanListItem item)
         {
-
+            lock (ds)
+            {
+                using (SqliteCommand cmd = new SqliteCommand("delete from regionban where regionUUID=:regionUUID AND bannedUUID=:bannedUUID", m_conn))
+                {
+                    cmd.Parameters.Add(new SqliteParameter(":regionUUID", item.regionUUID.ToString()));
+                    cmd.Parameters.Add(new SqliteParameter(":bannedUUID", item.bannedUUID.ToString()));
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
 
         private static Array serializeTerrain(double[,] val)
@@ -1535,6 +1604,16 @@ namespace OpenSim.Data.SQLite
             da.InsertCommand = createInsertCommand("landaccesslist", ds.Tables["landaccesslist"]);
             da.InsertCommand.Connection = conn;
         }
+
+        private void setupRegionBanCommands(SqliteDataAdapter da, SqliteConnection conn)
+        {
+            da.InsertCommand = createInsertCommand("regionban", ds.Tables["regionban"]);
+            da.InsertCommand.Connection = conn;
+
+            da.UpdateCommand = createUpdateCommand("regionban", "regionUUID=:regionUUID AND bannedUUID=:bannedUUID", ds.Tables["regionban"]);
+            da.UpdateCommand.Connection = conn;
+        }
+
 
         private void setupShapeCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
