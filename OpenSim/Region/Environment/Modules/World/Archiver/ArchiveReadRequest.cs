@@ -31,6 +31,7 @@ using OpenSim.Region.Environment.Modules.World.Serialiser;
 using System;
 using System.IO;
 using System.Reflection;
+using System.Xml;
 using libsecondlife;
 using log4net;
 
@@ -101,6 +102,20 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             m_log.InfoFormat("[ARCHIVER]: Loading prim data");
 
             IRegionSerialiser serialiser = m_scene.RequestModuleInterface<IRegionSerialiser>();
+            
+            // Temporary code to read each sog in the file separately, pending actually having these in separate files
+//            XmlTextReader xtr = new XmlTextReader(new StringReader(serializedPrims));            
+//            XmlDocument doc = new XmlDocument();
+//            reader.WhitespaceHandling = WhitespaceHandling.None;
+//            doc.Load(xtr);
+//            xtr.Close();
+//            XmlNode sceneNode = doc.FirstChild;
+//
+//            foreach (XmlNode objectNode in sceneNode.ChildNodes)
+//            {
+//                CreatePrimFromXml2(m_scene, objectNode.OuterXml);
+//            }
+            
             serialiser.LoadPrimsFromXml2(m_scene, new StringReader(serializedPrims));
         }
     }

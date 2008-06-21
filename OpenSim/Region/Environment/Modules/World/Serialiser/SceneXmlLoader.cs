@@ -114,6 +114,7 @@ namespace OpenSim.Region.Environment.Scenes
             doc.Load(reader);
             reader.Close();
             rootNode = doc.FirstChild;
+            
             foreach (XmlNode aPrimNode in rootNode.ChildNodes)
             {
                 CreatePrimFromXml2(scene, aPrimNode.OuterXml);

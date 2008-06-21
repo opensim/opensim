@@ -293,21 +293,23 @@ namespace OpenSim.Region.Environment.Scenes
                     // Don't abort the whole update if one entity happens to give us an exception.
                     try
                     {
-                        // A null name signals that this group was deleted before the scheduled update
+                        // Check that the group was not deleted before the scheduled update
                         // FIXME: This is merely a temporary measure to reduce the incidence of failure, when
                         // an object has been deleted from a scene before update was processed.
                         // A more fundamental overhaul of the update mechanism is required to eliminate all
                         // the race conditions.
-                        if (entity.Name != null)
+                        if (!entity.IsDeleted)
                         {
                             m_updateList[i].Update();
                         }
                     }
                     catch (Exception e)
                     {
-                        m_log.ErrorFormat("[INNER SCENE]: Failed to update {0}, - {1}", entity.Name, e);//entity.m_uuid
+                        m_log.ErrorFormat(
+                            "[INNER SCENE]: Failed to update {0}, {1} - {2}", entity.Name, entity.UUID, e);
                     }
                 }
+                
                 m_updateList.Clear();
             }
         }

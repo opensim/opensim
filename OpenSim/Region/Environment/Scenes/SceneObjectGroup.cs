@@ -124,7 +124,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return RootPart.Name; }
             set { RootPart.Name = value; }
-        }        
+        } 
 
         /// <summary>
         /// Added because the Parcel code seems to use it
@@ -921,10 +921,16 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Completely delete this group and tell all the scene presences about that deletion.
+        /// Delete this group from its scene and tell all the scene presences about that deletion.
         /// </summary>
         public void DeleteGroup()
         {
+            // We need to keep track of this state in case this group is still queued for backup.            
+            // FIXME: This is a poor temporary solution, since it still leaves plenty of scope for race
+            // conditions where a user deletes an entity while it is being stored.  Really, the update
+            // code needs a redesign.            
+            m_isDeleted = true;
+            
             DetachFromBackup(this);
 
             lock (m_parts)
@@ -944,6 +950,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+        
         public void FakeDeleteGroup()
         {
             foreach (SceneObjectPart part in m_parts.Values)
