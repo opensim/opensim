@@ -28,9 +28,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+//using System.Reflection;
 using System.Xml;
 using Axiom.Math;
 using libsecondlife;
+//using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Physics.Manager;
 
@@ -41,6 +43,8 @@ namespace OpenSim.Region.Environment.Scenes
     /// </summary>
     public class SceneXmlLoader
     {
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         public static void LoadPrimsFromXml(Scene scene, string fileName, bool newIDS, LLVector3 loadOffset)
         {
             XmlDocument doc = new XmlDocument();
@@ -97,11 +101,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public static string SavePrimGroupToXML2String(SceneObjectGroup grp)
         {
-            string returnstring = "";
-            returnstring += "<scene>\n";
-            returnstring += grp.ToXmlString2();
-            returnstring += "</scene>\n";
-            return returnstring;
+            return grp.ToXmlString2();
         }
 
         public static void LoadGroupFromXml2String(Scene scene, string xmlString)
@@ -115,9 +115,21 @@ namespace OpenSim.Region.Environment.Scenes
             reader.Close();
             rootNode = doc.FirstChild;
             
-            foreach (XmlNode aPrimNode in rootNode.ChildNodes)
+            // This is to deal with neighbouring regions that are still surrounding the group xml with the <scene>
+            // tag.  It should be possible to remove the first part of this if statement once we go past 0.5.9 (or
+            // when some other changes forces all regions to upgrade).
+            // This might seem rather pointless since prim crossing from this revision to an earlier revision remains
+            // broken.  But it isn't much work to accomodate the old format here.
+            if (rootNode.LocalName.Equals("scene"))
             {
-                CreatePrimFromXml2(scene, aPrimNode.OuterXml);
+                foreach (XmlNode aPrimNode in rootNode.ChildNodes)
+                {
+                    CreatePrimFromXml2(scene, aPrimNode.OuterXml);
+                }
+            }
+            else
+            {
+                CreatePrimFromXml2(scene, rootNode.OuterXml);
             }
         }
 
