@@ -1265,7 +1265,13 @@ namespace OpenSim.Region.Physics.Meshing
             return result;
         }
 
-
+        /// <summary>
+        /// builds an icosahedral geodesic sphere - used as default in place of problem meshes
+        /// </summary>
+        /// <param name="primName"></param>
+        /// <param name="primShape"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
         private static Mesh CreateSphereMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
         {
             // Builds an icosahedral geodesic sphere
@@ -1394,6 +1400,13 @@ namespace OpenSim.Region.Physics.Meshing
 
         }
 
+        /// <summary>
+        /// Creates a mesh for prim types torus, ring, tube, and sphere 
+        /// </summary>
+        /// <param name="primName"></param>
+        /// <param name="primShape"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
         private static Mesh CreateCircularPathMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
         {
 
