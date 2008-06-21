@@ -1821,7 +1821,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 successYN
                     = m_sceneGridService.PrimCrossToNeighboringRegion(
-                        newRegionHandle, grp.UUID, m_serialiser.SavePrimGroupToXML2String(grp), primcrossingXMLmethod);
+                        newRegionHandle, grp.UUID, m_serialiser.SaveGroupToXml2(grp), primcrossingXMLmethod);
 
                 if (successYN)
                 {
@@ -1854,7 +1854,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_log.Warn("{[INTERREGION]: A new prim arrived from a neighbor");
             if (XMLMethod == 0)
             {
-                m_serialiser.LoadGroupFromXml2String(this, objXMLData);
+                m_serialiser.LoadGroupFromXml2(this, objXMLData);
 
                 SceneObjectPart RootPrim = GetSceneObjectPart(primID);
                 if (RootPrim != null)

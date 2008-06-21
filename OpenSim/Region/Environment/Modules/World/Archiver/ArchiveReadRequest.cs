@@ -99,24 +99,28 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             }
 
             // Reload serialized prims
-            m_log.InfoFormat("[ARCHIVER]: Loading prim data");
+            m_log.InfoFormat("[ARCHIVER]: Loading scene objects");
 
             IRegionSerialiser serialiser = m_scene.RequestModuleInterface<IRegionSerialiser>();
             
             // Temporary code to read each sog in the file separately, pending actually having these in separate files
-//            XmlTextReader xtr = new XmlTextReader(new StringReader(serializedPrims));            
-//            XmlDocument doc = new XmlDocument();
-//            reader.WhitespaceHandling = WhitespaceHandling.None;
-//            doc.Load(xtr);
-//            xtr.Close();
-//            XmlNode sceneNode = doc.FirstChild;
-//
-//            foreach (XmlNode objectNode in sceneNode.ChildNodes)
-//            {
-//                CreatePrimFromXml2(m_scene, objectNode.OuterXml);
-//            }
+            XmlTextReader xtr = new XmlTextReader(new StringReader(serializedPrims));            
+            XmlDocument doc = new XmlDocument();
+            xtr.WhitespaceHandling = WhitespaceHandling.None;
+            doc.Load(xtr);
+            xtr.Close();
+            XmlNode sceneNode = doc.FirstChild;
+            int count = 0;
+
+            foreach (XmlNode objectNode in sceneNode.ChildNodes)
+            {                
+                serialiser.LoadGroupFromXml2(m_scene, objectNode.OuterXml.ToString());
+                count++;
+            }
             
-            serialiser.LoadPrimsFromXml2(m_scene, new StringReader(serializedPrims));
+            //serialiser.LoadPrimsFromXml2(m_scene, new StringReader(serializedPrims));
+            
+            m_log.DebugFormat("[ARCHIVER]: Loaded {0} scene objects", count);
         }
     }
 }

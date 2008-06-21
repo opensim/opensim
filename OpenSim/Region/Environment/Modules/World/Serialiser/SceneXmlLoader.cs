@@ -99,12 +99,12 @@ namespace OpenSim.Region.Environment.Scenes
             file.Close();
         }
 
-        public static string SavePrimGroupToXML2String(SceneObjectGroup grp)
+        public static string SaveGroupToXml2(SceneObjectGroup grp)
         {
             return grp.ToXmlString2();
         }
 
-        public static void LoadGroupFromXml2String(Scene scene, string xmlString)
+        public static void LoadGroupFromXml2(Scene scene, string xmlString)
         {
             XmlDocument doc = new XmlDocument();
             XmlNode rootNode;

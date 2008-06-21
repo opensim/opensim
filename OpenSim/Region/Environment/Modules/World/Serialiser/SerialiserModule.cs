@@ -112,14 +112,14 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
             SceneXmlLoader.SavePrimsToXml2(scene, fileName);
         }
 
-        public void LoadGroupFromXml2String(Scene scene, string xmlString)
+        public void LoadGroupFromXml2(Scene scene, string xmlString)
         {
-            SceneXmlLoader.LoadGroupFromXml2String(scene, xmlString);
+            SceneXmlLoader.LoadGroupFromXml2(scene, xmlString);
         }
 
-        public string SavePrimGroupToXML2String(SceneObjectGroup grp)
+        public string SaveGroupToXml2(SceneObjectGroup grp)
         {
-            return SceneXmlLoader.SavePrimGroupToXML2String(grp);
+            return SceneXmlLoader.SaveGroupToXml2(grp);
         }
 
         public List<string> SerialiseRegion(Scene scene, string saveDir)

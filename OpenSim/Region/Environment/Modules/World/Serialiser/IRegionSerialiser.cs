@@ -36,8 +36,20 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
     {
         List<string> SerialiseRegion(Scene scene, string saveDir);
 
+        /// <summary>
+        /// Load prims from the xml format
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="fileName"></param>
+        /// <param name="newIDS"></param>
+        /// <param name="loadOffset"></param>
         void LoadPrimsFromXml(Scene scene, string fileName, bool newIDS, LLVector3 loadOffset);
 
+        /// <summary>
+        /// Save prims in the xml format
+        /// </summary>
+        /// <param name="scene"> </param>
+        /// <param name="fileName"></param>
         void SavePrimsToXml(Scene scene, string fileName);
 
         /// <summary>
@@ -54,10 +66,25 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
         /// <param name="reader"></param>
         void LoadPrimsFromXml2(Scene scene, TextReader reader);
 
+        /// <summary>
+        /// Save prims in the xml2 format
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="fileName"></param>
         void SavePrimsToXml2(Scene scene, string fileName);
 
-        void LoadGroupFromXml2String(Scene scene, string xmlString);
+        /// <summary>
+        /// Load an individual scene object from the xml2 format
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="xmlString"></param>
+        void LoadGroupFromXml2(Scene scene, string xmlString);
 
-        string SavePrimGroupToXML2String(SceneObjectGroup grp);
+        /// <summary>
+        /// Serialize an individual scene object into the xml2 format
+        /// </summary>
+        /// <param name="grp"></param>
+        /// <returns></returns>
+        string SaveGroupToXml2(SceneObjectGroup grp);
     }
 }
