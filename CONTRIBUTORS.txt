@@ -27,6 +27,7 @@ OpenSim Developers
 * adjohn (Genkii)
 * Alondria
 * Dr Scofield (IBM)
+* dahlia
 
 
 Patches
@@ -55,7 +56,6 @@ Patches
 * John R Sohn(XenReborn)
 * Xantor
 * YZh
-* Dahlia
 * Grumly57
 
 

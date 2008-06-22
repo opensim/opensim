@@ -117,6 +117,8 @@ namespace OpenSim
 
             PrintFileToConsole("startuplogo.txt");
             RegisterCmd("echoTest", RunEchoTest, "this echos your command args to see how they are parsed");
+            RegisterCmd("kickuser", KickUserCommand, "kickuser [first] [last] - attempts to log off a user from any region we are serving");
+
         }
 
         protected ConsoleBase CreateConsole()
@@ -141,6 +143,37 @@ namespace OpenSim
 				m_log.Info("[EchoTest]:  <arg" + i + ">"+cmdparams[i]+"</arg" + i + ">"); 
 			}
 		}
+
+        private void KickUserCommand(string[] cmdparams)
+        {
+            if (cmdparams.Length < 2)
+                return;
+
+            string firstName = cmdparams[0];
+            string lastName = cmdparams[1];
+
+            IList agents = m_sceneManager.GetCurrentSceneAvatars();
+
+            foreach (ScenePresence presence in agents)
+            {
+                RegionInfo regionInfo = m_sceneManager.GetRegionInfo(presence.RegionHandle);
+
+                if (presence.Firstname.ToLower().Equals(firstName) && presence.Lastname.ToLower().Equals(lastName))
+                {
+                    m_console.Notice(
+                        String.Format(
+                             "Found user: {0,-16}{1,-16}{2,-37} in region: {3,-16}",
+                             presence.Firstname,
+                             presence.Lastname,
+                             presence.UUID,
+                             regionInfo.RegionName));
+
+                    presence.Scene.CloseConnection(regionInfo.RegionHandle, presence.UUID);
+                }
+            }
+            m_console.Notice("");
+
+        }
 
         /// <summary>
         ///
@@ -254,7 +287,6 @@ namespace OpenSim
                     m_console.Notice("edit-scale [prim name] [x] [y] [z] - resize given prim");
                     m_console.Notice("export-map [filename] - save image of world map");
                     m_console.Notice("force-update - force an update of prims in the scene");
-                    m_console.Notice("kickuser [first] [last] - attempts to log off a user from any region we are serving");
                     m_console.Notice("load-xml [filename] - load prims from XML (DEPRECATED)");
                     m_console.Notice("load-xml2 [filename] - load prims from XML using version 2 format");
                     m_console.Notice("restart - disconnects all clients and restarts the sims in the instance.");
@@ -535,36 +567,6 @@ namespace OpenSim
                         }
                     }
                     break;
-
-                case "kickuser": // attempts to log off a user from any region we are serving
-                    if (cmdparams.Length < 2 )
-                        break;
-
-                    string firstName = cmdparams[0];
-                    string lastName = cmdparams[1];
-
-                    IList agents = m_sceneManager.GetCurrentSceneAvatars();
-
-                    foreach (ScenePresence presence in agents)
-                    {
-                        RegionInfo regionInfo = m_sceneManager.GetRegionInfo(presence.RegionHandle);
-
-                        if ( presence.Firstname.ToLower().Equals(firstName) && presence.Lastname.ToLower().Equals(lastName))
-                        {
-                            m_console.Notice(
-                                String.Format(
-                                     "Found user: {0,-16}{1,-16}{2,-37} in region: {3,-16}",
-                                     presence.Firstname,
-                                     presence.Lastname,
-                                     presence.UUID,
-                                     regionInfo.RegionName));
-
-                            presence.Scene.CloseConnection(regionInfo.RegionHandle, presence.UUID);
-                        }
-                    }
-                    m_console.Notice("");
-                    break;
-
                 case "modules":
                     if (cmdparams.Length > 0)
                     {
