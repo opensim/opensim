@@ -149,20 +149,17 @@ namespace OpenSim
             if (cmdparams.Length < 2)
                 return;
 
-            string firstName = cmdparams[0];
-            string lastName = cmdparams[1];
-
             IList agents = m_sceneManager.GetCurrentSceneAvatars();
 
             foreach (ScenePresence presence in agents)
             {
                 RegionInfo regionInfo = m_sceneManager.GetRegionInfo(presence.RegionHandle);
 
-                if (presence.Firstname.ToLower().Equals(firstName) && presence.Lastname.ToLower().Equals(lastName))
+                if (presence.Firstname.ToLower().Contains(cmdparams[0].ToLower()) && presence.Lastname.ToLower().Contains(cmdparams[1].ToLower()))
                 {
                     m_console.Notice(
                         String.Format(
-                             "Found user: {0,-16}{1,-16}{2,-37} in region: {3,-16}",
+                             "Kicking user: {0,-16}{1,-16}{2,-37} in region: {3,-16}",
                              presence.Firstname,
                              presence.Lastname,
                              presence.UUID,
@@ -172,7 +169,6 @@ namespace OpenSim
                 }
             }
             m_console.Notice("");
-
         }
 
         /// <summary>
