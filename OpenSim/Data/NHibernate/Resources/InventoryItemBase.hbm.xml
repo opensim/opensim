@@ -4,8 +4,8 @@
         <id name="ID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
             <generator class="assigned" /> 
         </id> 
-        <property name="InvType" type="Int32" />
-        <property name="AssetType" type="Int32" />
+        <property name="InvType" type="System.Int32" />
+        <property name="AssetType" type="System.Int32" />
         <property name="AssetID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
         <property name="Folder" index="item_folder_id" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
         <property name="Owner" index="item_owner_id" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
@@ -20,7 +20,7 @@
         <property name="GroupOwned" type="boolean" />
         <property name="SalePrice" type="System.Int32" />
         <property name="SaleType" type="System.Byte" />
-        <property name="Flags" type="Syste.UInt32" />
-        <property name="CreationDate" type="Int32" />
+        <property name="Flags" type="System.UInt32" />
+        <property name="CreationDate" type="System.Int32" />
     </class>
 </hibernate-mapping>
