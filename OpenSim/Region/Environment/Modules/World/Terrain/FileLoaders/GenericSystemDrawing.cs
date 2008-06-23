@@ -67,7 +67,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
                 int y;
                 for (y = 0; y < file.Height; y++)
                 {
-                    retval[x, y] = file.GetPixel(x, y).GetBrightness() * 128;
+                    retval[x, y] = file.GetPixel(x, file.Height - y - 1).GetBrightness() * 128;
                 }
             }
 
