@@ -2696,7 +2696,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llGiveInventory(string destination, string inventory)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGiveInventory");
+            NotImplemented("llGiveInventory not yet oh no!");
         }
 
         public void llRemoveInventory(string item)

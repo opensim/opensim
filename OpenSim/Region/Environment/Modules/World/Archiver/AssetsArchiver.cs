@@ -96,7 +96,6 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                     xtw.WriteElementString("name", asset.Name);
                     xtw.WriteElementString("description", asset.Description);
                     xtw.WriteElementString("asset-type", asset.Type.ToString());
-                    xtw.WriteElementString("inventory-type", asset.InvType.ToString());
                     
                     xtw.WriteEndElement();
                 }

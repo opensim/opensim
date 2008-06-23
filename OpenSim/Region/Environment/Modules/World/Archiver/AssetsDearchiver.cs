@@ -109,7 +109,6 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 metadata.Name = reader.ReadElementString("name");
                 metadata.Description = reader.ReadElementString("description");
                 metadata.AssetType = Convert.ToSByte(reader.ReadElementString("asset-type"));
-                metadata.AssetType = Convert.ToSByte(reader.ReadElementString("inventory-type"));
                 
                 m_metadata[filename] = metadata;
                 
@@ -161,7 +160,6 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 AssetBase asset = new AssetBase(new LLUUID(filename), metadata.Name);
                 asset.Description = metadata.Description;
                 asset.Type = metadata.AssetType;
-                asset.InvType = metadata.InventoryType;
                 asset.Data = data;
 
                 m_cache.AddAsset(asset);
@@ -182,7 +180,6 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             public string Name;
             public string Description;
             public sbyte AssetType;
-            public sbyte InventoryType;
         }
     }
 }

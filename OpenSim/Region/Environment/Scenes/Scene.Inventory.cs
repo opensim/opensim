@@ -164,8 +164,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (item != null)
                     {
                         AssetBase asset =
-                            CreateAsset(item.Name, item.Description, (sbyte) item.InvType,
-                                        (sbyte) item.AssetType, data);
+                            CreateAsset(item.Name, item.Description, (sbyte)item.AssetType, data);
                         AssetCache.AddAsset(asset);
 
                         item.AssetID = asset.FullID;
@@ -241,10 +240,7 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
             }
 
-            // Create new asset
-            // XXX Hardcoding the numbers is a temporary measure - need an enumeration for this
-            // There may well be one in libsecondlife
-            AssetBase asset = CreateAsset(item.Name, item.Description, 10, 10, data);
+            AssetBase asset = CreateAsset(item.Name, item.Description, (sbyte)AssetType.LSLText, data);
             AssetCache.AddAsset(asset);
 
             // Update item with new asset
@@ -521,12 +517,14 @@ namespace OpenSim.Region.Environment.Scenes
                 if (remoteClient.AgentId == oldAgentID)
                 {
                     CreateNewInventoryItem(
-                        remoteClient, newFolderID, callbackID, asset, item.BasePermissions, item.CurrentPermissions, item.EveryOnePermissions, item.NextPermissions);
+                        remoteClient, newFolderID, callbackID, asset, (sbyte)item.InvType,
+                        item.BasePermissions, item.CurrentPermissions, item.EveryOnePermissions, item.NextPermissions);
                 }
                 else
                 {
                     CreateNewInventoryItem(
-                        remoteClient, newFolderID, callbackID, asset, item.NextPermissions, item.NextPermissions, item.EveryOnePermissions & item.NextPermissions, item.NextPermissions);
+                        remoteClient, newFolderID, callbackID, asset, (sbyte)item.InvType,
+                        item.NextPermissions, item.NextPermissions, item.EveryOnePermissions & item.NextPermissions, item.NextPermissions);
                 }
             }
             else
@@ -537,15 +535,24 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        private AssetBase CreateAsset(string name, string description, sbyte invType, sbyte assetType, byte[] data)
+        /// <summary>
+        /// Create a new asset data structure.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="description"></param>
+        /// <param name="invType"></param>
+        /// <param name="assetType"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        private AssetBase CreateAsset(string name, string description, sbyte assetType, byte[] data)
         {
             AssetBase asset = new AssetBase();
             asset.Name = name;
             asset.Description = description;
-            asset.InvType = invType;
             asset.Type = assetType;
             asset.FullID = LLUUID.Random();
             asset.Data = (data == null) ? new byte[1] : data;
+            
             return asset;
         }
 
@@ -603,10 +610,21 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Create a new inventory item.
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="folderID"></param>
+        /// <param name="callbackID"></param>
+        /// <param name="asset"></param>
+        /// <param name="invType"></param>
+        /// <param name="nextOwnerMask"></param>
         private void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID folderID, uint callbackID,
-                                            AssetBase asset, uint nextOwnerMask)
+                                            AssetBase asset, sbyte invType, uint nextOwnerMask)
         {
-            CreateNewInventoryItem(remoteClient, folderID, callbackID, asset, (uint)PermissionMask.All, (uint)PermissionMask.All, 0, nextOwnerMask);
+            CreateNewInventoryItem(
+                remoteClient, folderID, callbackID, asset, invType,
+                (uint)PermissionMask.All, (uint)PermissionMask.All, 0, nextOwnerMask);
         }
 
         /// <summary>
@@ -616,9 +634,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="folderID"></param>
         /// <param name="callbackID"></param>
         /// <param name="asset"></param>
+        /// <param name="invType"></param>
         /// <param name="nextOwnerMask"></param>
-        private void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID folderID, uint callbackID,
-                                            AssetBase asset, uint baseMask, uint currentMask, uint everyoneMask, uint nextOwnerMask)
+        private void CreateNewInventoryItem(
+            IClientAPI remoteClient, LLUUID folderID, uint callbackID, AssetBase asset, sbyte invType,
+            uint baseMask, uint currentMask, uint everyoneMask, uint nextOwnerMask)
         {
             CachedUserInfo userInfo
                 = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
@@ -633,7 +653,7 @@ namespace OpenSim.Region.Environment.Scenes
                 item.Description = asset.Description;
                 item.Name = asset.Name;
                 item.AssetType = asset.Type;
-                item.InvType = asset.InvType;
+                item.InvType = invType;
                 item.Folder = folderID;
                 item.CurrentPermissions = currentMask;
                 item.NextPermissions = nextOwnerMask;
@@ -692,10 +712,10 @@ namespace OpenSim.Region.Environment.Scenes
                         data=Encoding.ASCII.GetBytes(strdata);
                     }
 
-                    AssetBase asset = CreateAsset(name, description, invType, assetType, data);
+                    AssetBase asset = CreateAsset(name, description, assetType, data);
                     AssetCache.AddAsset(asset);
 
-                    CreateNewInventoryItem(remoteClient, folderID, callbackID, asset, nextOwnerMask);
+                    CreateNewInventoryItem(remoteClient, folderID, callbackID, asset, invType, nextOwnerMask);
                 }
                 else
                 {
@@ -926,8 +946,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void UpdateTaskInventory(IClientAPI remoteClient, LLUUID transactionID, TaskInventoryItem itemInfo,
                                         uint primLocalID)
         {
-            LLUUID itemID=itemInfo.ItemID;
-            LLUUID folderID=itemInfo.ParentID;
+            LLUUID itemID = itemInfo.ItemID;
 
             // Find the prim we're dealing with
             SceneObjectPart part = GetSceneObjectPart(primLocalID);
@@ -1057,7 +1076,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (part == null)
                     return;
 
-                AssetBase asset = CreateAsset(itemBase.Name, itemBase.Description, (sbyte)itemBase.InvType, (sbyte)itemBase.AssetType, Encoding.ASCII.GetBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}"));
+                AssetBase asset = CreateAsset(itemBase.Name, itemBase.Description, (sbyte)itemBase.AssetType, Encoding.ASCII.GetBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}"));
                 AssetCache.AddAsset(asset);
 
                 TaskInventoryItem taskItem=new TaskInventoryItem();
@@ -1084,6 +1103,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 part.AddInventoryItem(taskItem);
                 part.GetProperties(remoteClient);
+                
                 if (ExternalChecks.ExternalChecksCanRunScript(taskItem.AssetID, part.UUID, remoteClient.AgentId))
                 {
                     part.StartScript(taskItem);
@@ -1160,12 +1180,12 @@ namespace OpenSim.Region.Environment.Scenes
                             CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
                         if (userInfo != null)
                         {
-                            string searchFolder = "";
+//                            string searchFolder = "";
 
-                            if (DeRezPacket.AgentBlock.Destination == 6)
-                                searchFolder = "Trash";
-                            else if (DeRezPacket.AgentBlock.Destination == 9)
-                                searchFolder = "Lost And Found";
+//                            if (DeRezPacket.AgentBlock.Destination == 6)
+//                                searchFolder = "Trash";
+//                            else if (DeRezPacket.AgentBlock.Destination == 9)
+//                                searchFolder = "Lost And Found";
 
                             // If we're deleting someone else's item, it goes back to their deleted items folder
                             // If we're returning someone's item, it goes back to the owner's Lost And Found folder.
@@ -1196,8 +1216,7 @@ namespace OpenSim.Region.Environment.Scenes
                             AssetBase asset = CreateAsset(
                                 ((SceneObjectGroup) selectedEnt).GetPartName(selectedEnt.LocalId),
                                 ((SceneObjectGroup) selectedEnt).GetPartDescription(selectedEnt.LocalId),
-                                (sbyte) InventoryType.Object,
-                                (sbyte) AssetType.Object,
+                                (sbyte)AssetType.Object,
                                 Helpers.StringToField(sceneObjectXml));
                             AssetCache.AddAsset(asset);
 
@@ -1214,7 +1233,7 @@ namespace OpenSim.Region.Environment.Scenes
                             item.Description = asset.Description;
                             item.Name = asset.Name;
                             item.AssetType = asset.Type;
-                            item.InvType = asset.InvType;
+                            item.InvType = (int)InventoryType.Object;
                             item.Folder = folderID;
                             if ((remoteClient.AgentId != objectGroup.RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
                             {
@@ -1286,7 +1305,6 @@ namespace OpenSim.Region.Environment.Scenes
                     // search through folders to find the asset.
                     while (searchfolders.Count > 0)
                     {
-
                         InventoryFolderImpl fld = searchfolders.Dequeue();
                         lock (fld)
                         {
@@ -1308,10 +1326,10 @@ namespace OpenSim.Region.Environment.Scenes
                             }
                         }
                     }
+                    
                     AssetBase asset = CreateAsset(
                         objectGroup.GetPartName(objectGroup.LocalId),
                         objectGroup.GetPartDescription(objectGroup.LocalId),
-                        (sbyte)InventoryType.Object,
                         (sbyte)AssetType.Object,
                         Helpers.StringToField(sceneObjectXml));
                     AssetCache.AddAsset(asset);
@@ -1324,7 +1342,7 @@ namespace OpenSim.Region.Environment.Scenes
                     item.Description = asset.Description;
                     item.Name = asset.Name;
                     item.AssetType = asset.Type;
-                    item.InvType = asset.InvType;
+                    item.InvType = (int)InventoryType.Object;
 
                     // Sticking it in root folder for now..    objects folder later?
 
@@ -1369,7 +1387,6 @@ namespace OpenSim.Region.Environment.Scenes
                     AssetBase asset = CreateAsset(
                         objectGroup.GetPartName(objectGroup.LocalId),
                         objectGroup.GetPartDescription(objectGroup.LocalId),
-                        (sbyte)InventoryType.Object,
                         (sbyte)AssetType.Object,
                         Helpers.StringToField(sceneObjectXml));
                     AssetCache.AddAsset(asset);
@@ -1382,7 +1399,7 @@ namespace OpenSim.Region.Environment.Scenes
                     item.Description = asset.Description;
                     item.Name = asset.Name;
                     item.AssetType = asset.Type;
-                    item.InvType = asset.InvType;
+                    item.InvType = (int)InventoryType.Object;
 
                     // Sticking it in root folder for now..    objects folder later?
 
@@ -1748,7 +1765,6 @@ namespace OpenSim.Region.Environment.Scenes
                         AssetBase asset = CreateAsset(
                             returnobjects[i].GetPartName(returnobjects[i].LocalId),
                             returnobjects[i].GetPartDescription(returnobjects[i].LocalId),
-                            (sbyte)InventoryType.Object,
                             (sbyte)AssetType.Object,
                             Helpers.StringToField(sceneObjectXml));
                         AssetCache.AddAsset(asset);
@@ -1761,8 +1777,9 @@ namespace OpenSim.Region.Environment.Scenes
                         item.Description = asset.Description;
                         item.Name = asset.Name;
                         item.AssetType = asset.Type;
-                        item.InvType = asset.InvType;
+                        item.InvType = (int)InventoryType.Object;
                         item.Folder = folderID;
+                        
                         if ((AgentId != returnobjects[i].RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
                         {
                             uint perms = returnobjects[i].GetEffectivePermissions();

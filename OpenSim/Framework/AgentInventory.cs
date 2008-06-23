@@ -157,31 +157,32 @@ namespace OpenSim.Framework
             return true;
         }
 
-        public LLUUID AddToInventory(LLUUID folderID, AssetBase asset)
-        {
-            if (InventoryFolders.ContainsKey(folderID))
-            {
-                LLUUID NewItemID = LLUUID.Random();
-
-                InventoryItem Item = new InventoryItem();
-                Item.FolderID = folderID;
-                Item.OwnerID = AgentID;
-                Item.AssetID = asset.FullID;
-                Item.ItemID = NewItemID;
-                Item.Type = asset.Type;
-                Item.Name = asset.Name;
-                Item.Description = asset.Description;
-                Item.InvType = asset.InvType;
-                InventoryItems.Add(Item.ItemID, Item);
-                InventoryFolder Folder = InventoryFolders[Item.FolderID];
-                Folder.Items.Add(Item);
-                return (Item.ItemID);
-            }
-            else
-            {
-                return (null);
-            }
-        }
+        // FIXME: Unused, pending possible cleanup for this whole class.
+//        public LLUUID AddToInventory(LLUUID folderID, AssetBase asset)
+//        {
+//            if (InventoryFolders.ContainsKey(folderID))
+//            {
+//                LLUUID NewItemID = LLUUID.Random();
+//
+//                InventoryItem Item = new InventoryItem();
+//                Item.FolderID = folderID;
+//                Item.OwnerID = AgentID;
+//                Item.AssetID = asset.FullID;
+//                Item.ItemID = NewItemID;
+//                Item.Type = asset.Type;
+//                Item.Name = asset.Name;
+//                Item.Description = asset.Description;
+//                Item.InvType = asset.InvType;
+//                InventoryItems.Add(Item.ItemID, Item);
+//                InventoryFolder Folder = InventoryFolders[Item.FolderID];
+//                Folder.Items.Add(Item);
+//                return (Item.ItemID);
+//            }
+//            else
+//            {
+//                return (null);
+//            }
+//        }
 
         public bool DeleteFromInventory(LLUUID itemID)
         {

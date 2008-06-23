@@ -433,7 +433,7 @@ namespace OpenSim.Region.Environment.Scenes
                         SceneObjectGroup group = (SceneObjectGroup)obj;
                         group.DetachToInventoryPrep();
                         m_log.Debug("[DETACH]: Saving attachpoint: " + ((uint)group.GetAttachmentPoint()).ToString());
-                        m_parentScene.updateKnownAsset(remoteClient, group, group.GetFromAssetID(),group.OwnerID);
+                        m_parentScene.updateKnownAsset(remoteClient, group, group.GetFromAssetID(), group.OwnerID);
                         m_parentScene.DeleteSceneObject(group);
                     }
                 }

@@ -137,13 +137,11 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
                         string assetIdStr = source.Configs[i].GetString("assetID", LLUUID.Random().ToString());
                         string name = source.Configs[i].GetString("name", String.Empty);
                         sbyte type = (sbyte) source.Configs[i].GetInt("assetType", 0);
-                        sbyte invType = (sbyte) source.Configs[i].GetInt("inventoryType", 0);
                         string assetPath = Path.Combine(dir, source.Configs[i].GetString("fileName", String.Empty));
 
                         AssetBase newAsset = CreateAsset(assetIdStr, name, assetPath, false);
 
                         newAsset.Type = type;
-                        newAsset.InvType = invType;
                         assets.Add(newAsset);
                     }
                 }

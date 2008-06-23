@@ -42,7 +42,6 @@ namespace OpenSim.Framework
             Data = a.Data;
             FullID = a.FullID;
             Type = a.Type;
-            InvType = a.InvType;
             Name = a.Name;
             Description = a.Description;
             InternData();
