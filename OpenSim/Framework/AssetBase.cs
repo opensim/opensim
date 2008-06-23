@@ -76,6 +76,9 @@ namespace OpenSim.Framework
             set { _type = value; }
         }
 
+        /// <summary>
+        /// PLEASE DON'T USE ME.  I'm probably going away soon.
+        /// </summary>
         public virtual sbyte InvType
         {
             get { return _invtype; }
