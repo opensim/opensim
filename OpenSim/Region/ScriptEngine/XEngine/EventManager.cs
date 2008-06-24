@@ -33,7 +33,8 @@ using OpenSim.Framework;
 using OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.ScriptEngine.XEngine.Script;
+using OpenSim.Region.ScriptEngine.Shared;
+using OpenSim.Region.ScriptEngine.Interfaces;
 using Axiom.Math;
 
 namespace OpenSim.Region.ScriptEngine.XEngine
@@ -83,8 +84,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
-            XDetectParams[] det = new XDetectParams[1];
-            det[0] = new XDetectParams();
+            DetectParams[] det = new DetectParams[1];
+            det[0] = new DetectParams();
             det[0].Key = remoteClient.AgentId;
             det[0].Populate(myScriptEngine.World);
 
@@ -97,7 +98,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (part.ParentGroup.Children.Count > 0)
                 det[0].LinkNum = part.LinkNum + 1;
 
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "touch_start", new Object[] { new LSL_Types.LSLInteger(1) },
                     det));
         }
@@ -106,8 +107,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
-            XDetectParams[] det = new XDetectParams[1];
-            det[0] = new XDetectParams();
+            DetectParams[] det = new DetectParams[1];
+            det[0] = new DetectParams();
             det[0].Key = remoteClient.AgentId;
             det[0].Populate(myScriptEngine.World);
             det[0].OffsetPos = new LSL_Types.Vector3(offsetPos.X,
@@ -123,7 +124,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (part.ParentGroup.Children.Count > 0)
                 det[0].LinkNum = part.LinkNum + 1;
 
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "touch", new Object[] { new LSL_Types.LSLInteger(1) },
                     det));
         }
@@ -131,8 +132,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public void touch_end(uint localID, IClientAPI remoteClient)
         {
             // Add to queue for all scripts in ObjectID object
-            XDetectParams[] det = new XDetectParams[1];
-            det[0] = new XDetectParams();
+            DetectParams[] det = new DetectParams[1];
+            det[0] = new DetectParams();
             det[0].Key = remoteClient.AgentId;
             det[0].Populate(myScriptEngine.World);
 
@@ -145,7 +146,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (part.ParentGroup.Children.Count > 0)
                 det[0].LinkNum = part.LinkNum + 1;
 
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "touch_end", new Object[] { new LSL_Types.LSLInteger(1) },
                     det));
         }
@@ -153,9 +154,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public void changed(uint localID, uint change)
         {
             // Add to queue for all scripts in localID, Object pass change.
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "changed",new object[] { new LSL_Types.LSLInteger(change) },
-                    new XDetectParams[0]));
+                    new DetectParams[0]));
         }
 
         // state_entry: not processed here
@@ -163,27 +164,27 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void money(uint localID, LLUUID agentID, int amount)
         {
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "money", new object[] {
                     new LSL_Types.LSLString(agentID.ToString()),
                     new LSL_Types.LSLInteger(amount) },
-                    new XDetectParams[0]));
+                    new DetectParams[0]));
         }
 
         public void collision_start(uint localID, ColliderArgs col)
         {
             // Add to queue for all scripts in ObjectID object
-            List<XDetectParams> det = new List<XDetectParams>();
+            List<DetectParams> det = new List<DetectParams>();
 
             foreach (DetectedObject detobj in col.Colliders)
             {
-                XDetectParams d = new XDetectParams();
+                DetectParams d = new DetectParams();
                 d.Key =detobj.keyUUID;
                 d.Populate(myScriptEngine.World);
                 det.Add(d);
             }
 
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "collision_start",
                     new Object[] { new LSL_Types.LSLInteger(1) },
                     det.ToArray()));
@@ -192,17 +193,17 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public void collision(uint localID, ColliderArgs col)
         {
             // Add to queue for all scripts in ObjectID object
-            List<XDetectParams> det = new List<XDetectParams>();
+            List<DetectParams> det = new List<DetectParams>();
 
             foreach (DetectedObject detobj in col.Colliders)
             {
-                XDetectParams d = new XDetectParams();
+                DetectParams d = new DetectParams();
                 d.Key =detobj.keyUUID;
                 d.Populate(myScriptEngine.World);
                 det.Add(d);
             }
 
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "collision", new Object[] { new LSL_Types.LSLInteger(1) },
                     det.ToArray()));
         }
@@ -210,17 +211,17 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public void collision_end(uint localID, ColliderArgs col)
         {
             // Add to queue for all scripts in ObjectID object
-            List<XDetectParams> det = new List<XDetectParams>();
+            List<DetectParams> det = new List<DetectParams>();
 
             foreach (DetectedObject detobj in col.Colliders)
             {
-                XDetectParams d = new XDetectParams();
+                DetectParams d = new DetectParams();
                 d.Key =detobj.keyUUID;
                 d.Populate(myScriptEngine.World);
                 det.Add(d);
             }
 
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "collision_end",
                     new Object[] { new LSL_Types.LSLInteger(1) },
                     det.ToArray()));
@@ -228,26 +229,26 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void land_collision_start(uint localID, LLUUID itemID)
         {
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "land_collision_start",
                     new object[0],
-                    new XDetectParams[0]));
+                    new DetectParams[0]));
         }
 
         public void land_collision(uint localID, LLUUID itemID)
         {
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "land_collision",
                     new object[0],
-                    new XDetectParams[0]));
+                    new DetectParams[0]));
         }
 
         public void land_collision_end(uint localID, LLUUID itemID)
         {
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "land_collision_end",
                     new object[0],
-                    new XDetectParams[0]));
+                    new DetectParams[0]));
         }
 
         // timer: not handled here
@@ -255,75 +256,75 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void on_rez(uint localID, LLUUID itemID, int startParam)
         {
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "on_rez",new object[] {
                     new LSL_Types.LSLInteger(startParam)},
-                    new XDetectParams[0]));
+                    new DetectParams[0]));
         }
 
         public void control(uint localID, LLUUID itemID, LLUUID agentID, uint held, uint change)
         {
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "control",new object[] {
                     new LSL_Types.LSLString(agentID.ToString()),
                     new LSL_Types.LSLInteger(held),
                     new LSL_Types.LSLInteger(change)},
-                    new XDetectParams[0]));
+                    new DetectParams[0]));
         }
 
         public void email(uint localID, LLUUID itemID, string timeSent,
                 string address, string subject, string message, int numLeft)
         {
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "email",new object[] {
                     new LSL_Types.LSLString(timeSent),
                     new LSL_Types.LSLString(address),
                     new LSL_Types.LSLString(subject),
                     new LSL_Types.LSLString(message),
                     new LSL_Types.LSLInteger(numLeft)},
-                    new XDetectParams[0]));
+                    new DetectParams[0]));
         }
 
         public void at_target(uint localID, uint handle, LLVector3 targetpos,
                 LLVector3 atpos)
         {
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "at_target", new object[] {
                     new LSL_Types.LSLInteger(handle),
                     new LSL_Types.Vector3(targetpos.X,targetpos.Y,targetpos.Z),
                     new LSL_Types.Vector3(atpos.X,atpos.Y,atpos.Z) },
-                    new XDetectParams[0]));
+                    new DetectParams[0]));
         }
 
         public void not_at_target(uint localID)
         {
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "not_at_target",new object[0],
-                    new XDetectParams[0]));
+                    new DetectParams[0]));
         }
 
         public void at_rot_target(uint localID, LLUUID itemID)
         {
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "at_rot_target",new object[0],
-                    new XDetectParams[0]));
+                    new DetectParams[0]));
         }
 
         public void not_at_rot_target(uint localID, LLUUID itemID)
         {
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "not_at_rot_target",new object[0],
-                    new XDetectParams[0]));
+                    new DetectParams[0]));
         }
 
         // run_time_permissions: not handled here
 
         public void attach(uint localID, LLUUID itemID, LLUUID avatar)
         {
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "attach",new object[] {
                     new LSL_Types.LSLString(avatar.ToString()) },
-                    new XDetectParams[0]));
+                    new DetectParams[0]));
         }
 
         // dataserver: not handled here
@@ -331,16 +332,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void moving_start(uint localID, LLUUID itemID)
         {
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "moving_start",new object[0],
-                    new XDetectParams[0]));
+                    new DetectParams[0]));
         }
 
         public void moving_end(uint localID, LLUUID itemID)
         {
-            myScriptEngine.PostObjectEvent(localID, new XEventParams(
+            myScriptEngine.PostObjectEvent(localID, new EventParams(
                     "moving_end",new object[0],
-                    new XDetectParams[0]));
+                    new DetectParams[0]));
         }
 
         // object_rez: not handled here

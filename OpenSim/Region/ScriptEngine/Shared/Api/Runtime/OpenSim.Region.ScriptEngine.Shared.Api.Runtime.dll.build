@@ -1,0 +1,62 @@
+<?xml version="1.0" ?>
+<project name="OpenSim.Region.ScriptEngine.Shared.Api.Runtime" default="build">
+    <target name="build">
+        <echo message="Build Directory is ${project::get-base-directory()}/${build.dir}" />
+        <mkdir dir="${project::get-base-directory()}/${build.dir}" />
+        <copy todir="${project::get-base-directory()}/${build.dir}" flatten="true">
+            <fileset basedir="${project::get-base-directory()}">
+            </fileset>
+        </copy>
+        <copy todir="${project::get-base-directory()}/${build.dir}">
+            <fileset basedir=".">
+            </fileset>
+        </copy>
+        <csc target="library" debug="${build.debug}" unsafe="False" warnaserror="False" define="TRACE;DEBUG" main="" output="${project::get-base-directory()}/${build.dir}/${project::get-name()}.dll">
+            <resources prefix="OpenSim.Region.ScriptEngine.Shared.Api.Runtime" dynamicprefix="true" >
+            </resources>
+            <sources failonempty="true">
+                <include name="LSL_Constants.cs" />
+                <include name="LSL_Stub.cs" />
+                <include name="OSSL_Stub.cs" />
+                <include name="ScriptBase.cs" />
+            </sources>
+            <references basedir="${project::get-base-directory()}">
+                <lib>
+                    <include name="${project::get-base-directory()}" />
+                    <include name="${project::get-base-directory()}/${build.dir}" />
+                </lib>
+                <include name="../../../../../../bin/Axiom.MathLib.dll" />
+                <include name="../../../../../../bin/libsecondlife.dll" />
+                <include name="../../../../../../bin/log4net.dll" />
+                <include name="../../../../../../bin/Nini.dll" />
+                <include name="../../../../../../bin/Nini.dll" />
+                <include name="../../../../../../bin/OpenSim.exe" />
+                <include name="../../../../../../bin/OpenSim.Framework.dll" />
+                <include name="../../../../../../bin/OpenSim.Framework.Communications.dll" />
+                <include name="../../../../../../bin/OpenSim.Framework.Console.dll" />
+                <include name="../../../../../../bin/OpenSim.Region.Environment.dll" />
+                <include name="../../../../../../bin/OpenSim.Region.ScriptEngine.Shared.dll" />
+                <include name="../../../../../../bin/RAIL.dll" />
+                <include name="System.dll" />
+                <include name="System.Data.dll" />
+                <include name="System.Web.dll" />
+                <include name="System.Xml.dll" />
+            </references>
+        </csc>
+        <echo message="Copying from [${project::get-base-directory()}/${build.dir}/] to [${project::get-base-directory()}/../../../../../../bin/" />
+        <mkdir dir="${project::get-base-directory()}/../../../../../../bin/"/>
+        <copy todir="${project::get-base-directory()}/../../../../../../bin/">
+            <fileset basedir="${project::get-base-directory()}/${build.dir}/" >
+                <include name="*.dll"/>
+                <include name="*.exe"/>
+                <include name="*.mdb"/>
+            </fileset>
+        </copy>
+    </target>
+    <target name="clean">
+        <delete dir="${obj.dir}" failonerror="false" />
+        <delete dir="${bin.dir}" failonerror="false" />
+    </target>
+    <target name="doc" description="Creates documentation.">
+    </target>
+</project>

@@ -14,11 +14,15 @@ using OpenSim.Framework;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Interfaces;
-using OpenSim.Region.ScriptEngine.XEngine.Script;
+using OpenSim.Region.ScriptEngine.Shared;
+using OpenSim.Region.ScriptEngine.Shared.Api;
+using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
+using OpenSim.Region.ScriptEngine.Shared.CodeTools;
+using OpenSim.Region.ScriptEngine.Interfaces;
 
 namespace OpenSim.Region.ScriptEngine.XEngine
 {
-    public class XEngine : IRegionModule
+    public class XEngine : IRegionModule, IScriptEngine
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -30,10 +34,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private EventManager m_EventManager;
         private int m_EventLimit;
         private bool m_KillTimedOutScripts;
+        public AsyncCommandManager m_AsyncCommands;
 
         private static List<XEngine> m_ScriptEngines =
                 new List<XEngine>();
-        public AsyncCommandManager m_ASYNCLSLCommandManager;
 
         // Maps the local id to the script inventory items in it
 
@@ -87,9 +91,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             string Script;
         }
 
-        public IConfig ScriptConfigSource
+        public IConfig Config
         {
             get { return m_ScriptConfig; }
+        }
+
+        public Object AsyncCommands
+        {
+            get { return (Object)m_AsyncCommands; }
         }
 
         //
@@ -155,7 +164,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
 
             m_EventManager = new EventManager(this);
-            m_ASYNCLSLCommandManager = new AsyncCommandManager(this);
 
             StartEngine(minThreads, maxThreads, idleTimeout, prio,
                     maxScriptQueue, stackSize);
@@ -165,6 +173,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_Scene.EventManager.OnRezScript += OnRezScript;
             m_Scene.EventManager.OnRemoveScript += OnRemoveScript;
             m_Scene.EventManager.OnScriptReset += OnScriptReset;
+
+            m_AsyncCommands = new AsyncCommandManager(this);
 
             if (sleepTime > 0)
             {
@@ -418,7 +428,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if (!m_Scripts.ContainsKey(itemID))
                     return;
 
-                m_ASYNCLSLCommandManager.RemoveScript(localID, itemID);
+                m_AsyncCommands.RemoveScript(localID, itemID);
 
                 XScriptInstance instance=m_Scripts[itemID];
                 m_Scripts.Remove(itemID);
@@ -552,7 +562,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         //
         // Post event to an entire prim
         //
-        public bool PostObjectEvent(uint localID, XEventParams p)
+        public bool PostObjectEvent(uint localID, EventParams p)
         {
             bool result = false;
 
@@ -577,7 +587,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         //
         // Post an event to a single script
         //
-        public bool PostScriptEvent(LLUUID itemID, XEventParams p)
+        public bool PostScriptEvent(LLUUID itemID, EventParams p)
         {
             if (m_Scripts.ContainsKey(itemID))
             {
@@ -654,7 +664,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 instance.ResetScript();
         }
 
-        public XDetectParams GetDetectParams(LLUUID itemID, int idx)
+        public DetectParams GetDetectParams(LLUUID itemID, int idx)
         {
             XScriptInstance instance = GetInstance(itemID);
             if (instance != null)
@@ -669,115 +679,21 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return instance.GetDetectID(idx);
             return LLUUID.Zero;
         }
-    }
 
-    public class XDetectParams
-    {
-        public XDetectParams()
+        public void SetState(LLUUID itemID, string newState)
         {
-            Key = LLUUID.Zero;
-            OffsetPos = new LSL_Types.Vector3();
-            LinkNum = 0;
-            Group = LLUUID.Zero;
-            Name = String.Empty;
-            Owner = LLUUID.Zero;
-            Position = new LSL_Types.Vector3();
-            Rotation = new LSL_Types.Quaternion();
-            Type = 0;
-            Velocity = new LSL_Types.Vector3();
-        }
-
-        public LLUUID Key;
-        public LSL_Types.Vector3 OffsetPos;
-        public int LinkNum;
-        public LLUUID Group;
-        public string Name;
-        public LLUUID Owner;
-        public LSL_Types.Vector3 Position;
-        public LSL_Types.Quaternion Rotation;
-        public int Type;
-        public LSL_Types.Vector3 Velocity;
-
-        public void Populate(Scene scene)
-        {
-            SceneObjectPart part = scene.GetSceneObjectPart(Key);
-            if (part == null) // Avatar, maybe?
-            {
-                ScenePresence presence = scene.GetScenePresence(Key);
-                if (presence == null)
-                    return;
-
-                Name = presence.Firstname + " " + presence.Lastname;
-                Owner = Key;
-                Position = new LSL_Types.Vector3(
-                        presence.AbsolutePosition.X,
-                        presence.AbsolutePosition.X,
-                        presence.AbsolutePosition.Z);
-                Rotation = new LSL_Types.Quaternion(
-                        presence.Rotation.x,
-                        presence.Rotation.y,
-                        presence.Rotation.z,
-                        presence.Rotation.w);
-                Velocity = new LSL_Types.Vector3(
-                        presence.Velocity.X,
-                        presence.Velocity.X,
-                        presence.Velocity.Z);
-
-                Type = 0x01; // Avatar
-                if (presence.Velocity != LLVector3.Zero)
-                    Type |= 0x02; // Active
-
-                Group = presence.ControllingClient.ActiveGroupId;
-
+            XScriptInstance instance = GetInstance(itemID);
+            if (instance == null)
                 return;
-            }
-
-            part=part.ParentGroup.RootPart; // We detect objects only
-
-            LinkNum = 0; // Not relevant
-
-            Group = part.GroupID;
-            Name = part.Name;
-            Owner = part.OwnerID;
-            if (part.Velocity == LLVector3.Zero)
-                Type = 0x04; // Passive
-            else
-                Type = 0x02; // Passive
-
-            foreach (SceneObjectPart p in part.ParentGroup.Children.Values)
-            {
-                if (part.ContainsScripts())
-                {
-                    Type |= 0x08; // Scripted
-                    break;
-                }
-            }
-
-            Position = new LSL_Types.Vector3(part.AbsolutePosition.X,
-                                             part.AbsolutePosition.Y,
-                                             part.AbsolutePosition.Z);
-
-            LLQuaternion wr = part.GetWorldRotation();
-            Rotation = new LSL_Types.Quaternion(wr.X, wr.Y, wr.Z, wr.W);
-
-            Velocity = new LSL_Types.Vector3(part.Velocity.X,
-                                             part.Velocity.Y,
-                                             part.Velocity.Z);
+            instance.SetState(newState);
         }
-    }
-
-    public class XEventParams
-    {
-        public XEventParams(string eventName, Object[] eventParams, XDetectParams[] detectParams)
+        public string GetState(LLUUID itemID)
         {
-            EventName=eventName;
-            Params=eventParams;
-            DetectParams=detectParams;
+            XScriptInstance instance = GetInstance(itemID);
+            if (instance == null)
+                return "default";
+            return instance.State;
         }
-
-        public string EventName;
-        public Object[] Params;
-        public XDetectParams[] DetectParams;
     }
 
     public class XScriptInstance
@@ -791,17 +707,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private LLUUID m_ObjectID;
         private LLUUID m_AssetID;
         private IScript m_Script;
-        private LSL_ScriptCommands m_LSLCommands;
-        private OSSL_ScriptCommands m_OSSLCommands;
         private Executor m_Executor;
         private LLUUID m_AppDomain;
-        private XDetectParams[] m_DetectParams;
+        private DetectParams[] m_DetectParams;
         private bool m_TimerQueued;
         private DateTime m_EventStart;
         private bool m_InEvent;
         private string m_PrimName;
         private string m_ScriptName;
         private string m_Assembly;
+        private Dictionary<string,IScriptApi> m_Apis = new Dictionary<string,IScriptApi>();
 
         public enum StateSource
         {
@@ -893,6 +808,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_ScriptName = scriptName;
             m_Assembly = assembly;
 
+            ApiManager am = new ApiManager();
+
             SceneObjectPart part=engine.World.GetSceneObjectPart(localID);
             if (part == null)
             {
@@ -900,10 +817,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return;
             }
 
-            m_LSLCommands = new LSL_ScriptCommands(engine, this, part, localID,
-                                                   itemID);
-            m_OSSLCommands = new OSSL_ScriptCommands(engine, this, part,
-                                                     localID, itemID);
+            foreach (string api in am.GetApis())
+            {
+                m_Apis[api] = am.CreateApi(api);
+                m_Apis[api].Initialize(engine, part, localID, itemID);
+            }
 
             try
             {
@@ -918,14 +836,17 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             try
             {
-                m_Script.Start(m_LSLCommands, m_OSSLCommands);
+                foreach (KeyValuePair<string,IScriptApi> kv in m_Apis)
+                {
+                    m_Script.InitApi(kv.Key, kv.Value);
+                }
 
                 m_Executor = new Executor(m_Script);
 
 //                m_Engine.Log.Debug("[XEngine] Script instance created");
 
                 part.SetScriptEvents(m_ItemID,
-                                     (int)m_Executor.GetStateEventFlags());
+                                     (int)m_Executor.GetStateEventFlags(State));
             }
             catch (Exception e)
             {
@@ -958,7 +879,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                             ScriptSerializer.Deserialize(xml, this);
 
-                            m_Engine.m_ASYNCLSLCommandManager.CreateFromData(
+                            m_Engine.m_AsyncCommands.CreateFromData(
                                 m_LocalID, m_ItemID, m_ObjectID,
                                 PluginData);
 
@@ -976,32 +897,32 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             if (stateSource == StateSource.NewRez)
                             {
 //                                m_Engine.Log.Debug("[XEngine] Posted changed(CHANGED_REGION_RESTART) to script");
-                                PostEvent(new XEventParams("changed",
-                                    new Object[] {new LSL_Types.LSLInteger(256)}, new XDetectParams[0]));
+                                PostEvent(new EventParams("changed",
+                                    new Object[] {new LSL_Types.LSLInteger(256)}, new DetectParams[0]));
                             }
                         }
                     }
                     else
                     {
                         m_Engine.Log.Error("[XEngine] Unable to load script state: Memory limit exceeded");
-                        PostEvent(new XEventParams("state_entry",
-                                                   new Object[0], new XDetectParams[0]));
+                        PostEvent(new EventParams("state_entry",
+                                                   new Object[0], new DetectParams[0]));
                         Start();
                     }
                 }
                 catch (Exception e)
                 {
                     m_Engine.Log.ErrorFormat("[XEngine] Unable to load script state from xml: {0}\n"+e.ToString(), xml);
-                    PostEvent(new XEventParams("state_entry",
-                                               new Object[0], new XDetectParams[0]));
+                    PostEvent(new EventParams("state_entry",
+                                               new Object[0], new DetectParams[0]));
                     Start();
                 }
             }
             else
             {
                 m_Engine.Log.ErrorFormat("[XEngine] Unable to load script state, file not found");
-                PostEvent(new XEventParams("state_entry",
-                                           new Object[0], new XDetectParams[0]));
+                PostEvent(new EventParams("state_entry",
+                                           new Object[0], new DetectParams[0]));
                 Start();
             }
         }
@@ -1100,15 +1021,15 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void SetState(string state)
         {
-            PostEvent(new XEventParams("state_exit", new Object[0],
-                                       new XDetectParams[0]));
-            PostEvent(new XEventParams("state", new Object[] { state },
-                                       new XDetectParams[0]));
-            PostEvent(new XEventParams("state_entry", new Object[0],
-                                       new XDetectParams[0]));
+            PostEvent(new EventParams("state_exit", new Object[0],
+                                       new DetectParams[0]));
+            PostEvent(new EventParams("state", new Object[] { state },
+                                       new DetectParams[0]));
+            PostEvent(new EventParams("state_entry", new Object[0],
+                                       new DetectParams[0]));
         }
 
-        public void PostEvent(XEventParams data)
+        public void PostEvent(EventParams data)
         {
 //            m_Engine.Log.DebugFormat("[XEngine] Posted event {2} in state {3} to {0}.{1}",
 //                        m_PrimName, m_ScriptName, data.EventName, m_State);
@@ -1137,11 +1058,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public object EventProcessor()
         {
-            XEventParams data = null;
+            EventParams data = null;
 
             lock (m_EventQueue)
             {
-                data = (XEventParams) m_EventQueue.Dequeue();
+                data = (EventParams) m_EventQueue.Dequeue();
                 if (data == null) // Shouldn't happen
                 {
                     m_CurrentResult = null;
@@ -1158,7 +1079,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 //                m_Engine.Log.DebugFormat("[XEngine] Script {0}.{1} state set to {2}",
 //                        m_PrimName, m_ScriptName, data.Params[0].ToString());
                 m_State=data.Params[0].ToString();
-                m_Engine.m_ASYNCLSLCommandManager.RemoveScript(
+                m_Engine.m_AsyncCommands.RemoveScript(
                     m_LocalID, m_ItemID);
 
                 SceneObjectPart part = m_Engine.World.GetSceneObjectPart(
@@ -1166,7 +1087,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if (part != null)
                 {
                     part.SetScriptEvents(m_ItemID,
-                                         (int)m_Executor.GetStateEventFlags());
+                                         (int)m_Executor.GetStateEventFlags(State));
                 }
             }
             else
@@ -1181,7 +1102,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 {
                     m_EventStart = DateTime.Now;
                     m_InEvent = true;
-                    m_Executor.ExecuteEvent(data.EventName, data.Params);
+                    m_Executor.ExecuteEvent(State, data.EventName, data.Params);
                     m_InEvent = false;
                 }
                 catch (Exception e)
@@ -1259,14 +1180,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             bool running = Running;
 
             Stop(0);
-            m_Engine.m_ASYNCLSLCommandManager.RemoveScript(m_LocalID, m_ItemID);
+            m_Engine.m_AsyncCommands.RemoveScript(m_LocalID, m_ItemID);
             m_EventQueue.Clear();
             m_Script.ResetVars();
             m_State = "default";
             if (running)
                 Start();
-            PostEvent(new XEventParams("state_entry",
-                    new Object[0], new XDetectParams[0]));
+            PostEvent(new EventParams("state_entry",
+                    new Object[0], new DetectParams[0]));
         }
 
         public Dictionary<string, object> GetVars()
@@ -1279,7 +1200,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_Script.SetVars(vars);
         }
 
-        public XDetectParams GetDetectParams(int idx)
+        public DetectParams GetDetectParams(int idx)
         {
             if (idx < 0 || idx >= m_DetectParams.Length)
                 return null;
@@ -1298,7 +1219,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public void SaveState(string assembly)
         {
             PluginData =
-                m_Engine.m_ASYNCLSLCommandManager.GetSerializationData(
+                m_Engine.m_AsyncCommands.GetSerializationData(
                     m_ItemID);
 
             string xml = ScriptSerializer.Serialize(this);
@@ -1368,7 +1289,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             while (count > 0)
             {
-                XEventParams ep = (XEventParams)instance.EventQueue.Dequeue();
+                EventParams ep = (EventParams)instance.EventQueue.Dequeue();
                 instance.EventQueue.Enqueue(ep);
                 count--;
 
@@ -1387,7 +1308,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                 XmlElement detect = xmldoc.CreateElement("", "Detected", "");
 
-                foreach (XDetectParams det in ep.DetectParams)
+                foreach (DetectParams det in ep.DetectParams)
                 {
                     XmlElement objectElem = xmldoc.CreateElement("", "Object",
                                                                  "");
@@ -1449,9 +1370,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             rootElement.AppendChild(queue);
 
             XmlNode plugins = xmldoc.CreateElement("", "Plugins", "");
-            if (instance.PluginData.Length > 0)
-                DumpList(xmldoc, plugins,
-                         new LSL_Types.list(instance.PluginData));
+            DumpList(xmldoc, plugins,
+                     new LSL_Types.list(instance.PluginData));
 
             rootElement.AppendChild(plugins);
 
@@ -1510,8 +1430,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         foreach (XmlNode item in itemL)
                         {
                             List<Object> parms = new List<Object>();
-                            List<XDetectParams> detected =
-                                    new List<XDetectParams>();
+                            List<DetectParams> detected =
+                                    new List<DetectParams>();
 
                             string eventName =
                                     item.Attributes.GetNamedItem("event").Value;
@@ -1595,7 +1515,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                         LLUUID.TryParse(det.InnerText,
                                                 out uuid);
 
-                                        XDetectParams d = new XDetectParams();
+                                        DetectParams d = new DetectParams();
                                         d.Key = uuid;
                                         d.OffsetPos = v;
                                         d.LinkNum = d_linkNum;
@@ -1612,7 +1532,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                     break;
                                 }
                             }
-                            XEventParams ep = new XEventParams(
+                            EventParams ep = new EventParams(
                                     eventName, parms.ToArray(),
                                     detected.ToArray());
                             instance.EventQueue.Enqueue(ep);

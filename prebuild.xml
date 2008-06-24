@@ -1382,40 +1382,6 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Region.ScriptEngine.XEngine.Script" path="OpenSim/Region/ScriptEngine/XEngine/Script" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../../bin/</ReferencePath>      
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Web" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
-      <Reference name="libsecondlife.dll"/>
-      <Reference name="OpenSim" />
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Region.Environment" />
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
-      <Reference name="Nini.dll" />
-      <Reference name="RAIL.dll"/>
-      <Reference name="Nini.dll" />
-      <Reference name="log4net.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
     <Project name="SmartThreadPool" path="ThirdParty/SmartThreadPool" type="Library">
       <Configuration name="Debug">
         <Options>
@@ -1438,6 +1404,214 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Region.ScriptEngine.Shared" path="OpenSim/Region/ScriptEngine/Shared" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>      
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Data" localCopy="false"/>
+      <Reference name="System.Web" localCopy="false"/>
+      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenSim" />
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="Nini.dll" />
+      <Reference name="RAIL.dll"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="false"/>
+        <Match path="../Interfaces" pattern="*.cs" recurse="false"/>
+        <Match path="Api/Interface" pattern="*.cs" recurse="false"/>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.Region.ScriptEngine.Shared.Api.Runtime" path="OpenSim/Region/ScriptEngine/Shared/Api/Runtime" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../../../bin/</ReferencePath>      
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Data" localCopy="false"/>
+      <Reference name="System.Web" localCopy="false"/>
+      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenSim" />
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
+      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="Nini.dll" />
+      <Reference name="RAIL.dll"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="false"/>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.Region.ScriptEngine.Shared.YieldProlog" path="OpenSim/Region/ScriptEngine/Shared/Api/Runtime/YieldProlog/" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../../../../bin/</ReferencePath>      
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Data" localCopy="false"/>
+      <Reference name="System.Web" localCopy="false"/>
+      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenSim" />
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
+      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="Nini.dll" />
+      <Reference name="RAIL.dll"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="false"/>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.Region.ScriptEngine.Shared.Api" path="OpenSim/Region/ScriptEngine/Shared/Api/Implementation" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../../../bin/</ReferencePath>      
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Data" localCopy="false"/>
+      <Reference name="System.Web" localCopy="false"/>
+      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenSim" />
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
+      <Reference name="OpenSim.Region.ScriptEngine.Shared.Api.Runtime"/>
+      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="Nini.dll" />
+      <Reference name="RAIL.dll"/>
+      <Reference name="Nini.dll" />
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.Region.ScriptEngine.Shared.CodeTools" path="OpenSim/Region/ScriptEngine/Shared/CodeTools" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../../bin/</ReferencePath>      
+      <Reference name="System" localCopy="false"/>
+      <Reference name="Microsoft.JScript"/>
+      <Reference name="OpenSim.Framework" />
+      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
+      <Reference name="OpenSim.Region.ScriptEngine.Shared.YieldProlog"/>
+      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="Nini.dll" />
+      <Reference name="RAIL.dll"/>
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
+
+    <Project name="OpenSim.Region.ScriptEngine.XEngine" path="OpenSim/Region/ScriptEngine/XEngine" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../bin/ScriptEngines/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../bin/ScriptEngines/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../bin/</ReferencePath>      
+      <Reference name="System" localCopy="false"/>
+      <Reference name="System.Data" localCopy="false"/>
+      <Reference name="System.Web" localCopy="false"/>
+      <Reference name="System.Xml" localCopy="false"/>
+      <Reference name="libsecondlife.dll"/>
+      <Reference name="OpenSim" />
+      <Reference name="OpenSim.Framework"/>
+      <Reference name="OpenSim.Framework.Communications"/>
+      <Reference name="OpenSim.Region.Environment" />
+      <Reference name="OpenSim.Framework.Console"/>
+      <Reference name="OpenSim.Region.ScriptEngine.Shared"/>
+      <Reference name="OpenSim.Region.ScriptEngine.Shared.CodeTools"/>
+      <Reference name="OpenSim.Region.ScriptEngine.Shared.Api"/>
+      <Reference name="SmartThreadPool"/>
+      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
+      <Reference name="Nini.dll" />
+      <Reference name="RAIL.dll"/>
+      <Reference name="log4net.dll"/>
+
+      <Files>
+        <Match pattern="*.cs" recurse="true"/>
+      </Files>
+    </Project>
 
 
     <!-- OGS projects -->
@@ -1686,42 +1860,6 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.Region.ScriptEngine.XEngine" path="OpenSim/Region/ScriptEngine/XEngine" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/ScriptEngines/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/ScriptEngines/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>      
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Data" localCopy="false"/>
-      <Reference name="System.Xml" localCopy="false"/>
-      <Reference name="System.Runtime.Remoting" localCopy="false"/>
-      <Reference name="libsecondlife.dll"/>
-      <Reference name="RAIL.dll"/>
-      <Reference name="OpenSim"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="OpenSim.Framework.Communications"/>
-      <Reference name="OpenSim.Region.Environment" />
-      <Reference name="OpenSim.Region.ScriptEngine.XEngine.Script" />
-      <Reference name="Microsoft.JScript"/>
-      <Reference name="Axiom.MathLib.dll" localCopy="false"/>
-      <Reference name="Nini.dll" />
-      <Reference name="SmartThreadPool" />
-      <Reference name="log4net.dll"/>
-
-      <Files>
-        <Match path="AsyncCommandPlugins" pattern="*.cs" recurse="false"/>
-        <Match pattern="*.cs" recurse="false"/>
-      </Files>
-    </Project>
 
 
 
