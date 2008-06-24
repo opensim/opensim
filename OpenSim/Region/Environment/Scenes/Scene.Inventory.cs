@@ -869,21 +869,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="folderID"></param>
-        /// <param name="primLocalID"></param>
+        /// <param name="part"></param>
         /// <param name="itemID"></param>
-        public void MoveTaskInventoryItem(IClientAPI remoteClient, LLUUID folderId, uint primLocalId, LLUUID itemId)
+        public void MoveTaskInventoryItem(IClientAPI remoteClient, LLUUID folderId, SceneObjectPart part, LLUUID itemId)
         {
-            SceneObjectPart part = GetSceneObjectPart(primLocalId);
-
-            if (null == part)
-            {
-                m_log.WarnFormat(
-                    "[PRIM INVENTORY]: " +
-                    "Move of inventory item {0} from prim with local id {1} failed because the prim could not be found",
-                    itemId, primLocalId);
-
-                return;
-            }
 
             TaskInventoryItem taskItem = part.GetInventoryItem(itemId);
 
@@ -934,7 +923,106 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
         }
+		
+        /// <summary>
+        /// <see>MoveTaskInventoryItem</see>
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="folderID"></param>
+        /// <param name="primLocalID"></param>
+        /// <param name="itemID"></param>
+        public void MoveTaskInventoryItem(IClientAPI remoteClient, LLUUID folderId, uint primLocalId, LLUUID itemId)
+		{
+            SceneObjectPart part = GetSceneObjectPart(primLocalId);
 
+            if (null == part)
+            {
+                m_log.WarnFormat(
+                    "[PRIM INVENTORY]: " +
+                    "Move of inventory item {0} from prim with local id {1} failed because the prim could not be found",
+                    itemId, primLocalId);
+
+                return;
+            }
+			MoveTaskInventoryItem(remoteClient, folderId, part, itemId);
+		}
+		
+		/// <summary>
+		/// <see>MoveTaskInventoryItem</see>
+		/// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="folderID"></param>
+        /// <param name="part"></param>
+        /// <param name="itemID"></param>
+		public void MoveTaskInventoryItem(LLUUID avatarId, LLUUID folderId, SceneObjectPart part, LLUUID itemId)
+		{
+			ScenePresence avatar;
+
+            if (TryGetAvatar(avatarId, out avatar))
+            {
+                 MoveTaskInventoryItem(avatar.ControllingClient, folderId, part, itemId);
+            }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[PRIM INVENTORY]: " +
+                    "Avatar {0} cannot be found to update its prim item asset",
+                    avatarId);
+            }
+		}
+		
+		/// <summary>
+		/// Copy a task (prim) inventory item to another task (prim)
+		/// </summary>
+		/// <param name="destId"></param>
+		/// <param name="part"></param>
+		/// <param name="itemId"></param>
+		public void CopyTaskInventoryItem(LLUUID destId, SceneObjectPart part, LLUUID itemId)
+		{
+			TaskInventoryItem srcTaskItem = part.GetInventoryItem(itemId);
+
+			if(srcTaskItem == null)
+			{
+				// error was already logged
+				return;
+			}
+			
+			SceneObjectPart destPart = GetSceneObjectPart(destId);
+
+			if(destPart == null)
+			{
+				m_log.ErrorFormat(
+					    "[PRIM INVENTORY]: " +
+					    "Could not find prim for ID {0}",
+					    destId);
+				return;
+			}
+			
+			TaskInventoryItem destTaskItem = new TaskInventoryItem();
+			
+			destTaskItem.ItemID = LLUUID.Random();
+			destTaskItem.CreatorID = srcTaskItem.CreatorID;
+			destTaskItem.AssetID = srcTaskItem.AssetID;
+			destTaskItem.GroupID = srcTaskItem.GroupID;
+			destTaskItem.OwnerID = srcTaskItem.OwnerID;
+			destTaskItem.ParentID = srcTaskItem.ParentID;
+			destTaskItem.ParentPartID = srcTaskItem.ParentPartID;
+
+			destTaskItem.BaseMask = srcTaskItem.BaseMask;
+			destTaskItem.EveryoneMask = srcTaskItem.EveryoneMask;
+			destTaskItem.GroupMask = srcTaskItem.GroupMask;
+			destTaskItem.OwnerMask = srcTaskItem.OwnerMask;
+			destTaskItem.Flags = srcTaskItem.Flags;
+			
+			destTaskItem.Description = srcTaskItem.Description;
+			destTaskItem.Name = srcTaskItem.Name;
+			destTaskItem.InvType = srcTaskItem.InvType;
+			destTaskItem.Type = srcTaskItem.Type;
+			
+			destPart.AddInventoryItem(destTaskItem);
+			
+		}
+		
         /// <summary>
         /// Update an item in a prim (task) inventory.
         /// This method does not handle scripts, <see>RezScript(IClientAPI, LLUUID, unit)</see>
