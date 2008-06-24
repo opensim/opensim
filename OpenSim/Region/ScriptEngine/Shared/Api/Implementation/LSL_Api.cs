@@ -36,6 +36,7 @@ using Axiom.Math;
 using libsecondlife;
 using OpenSim;
 using OpenSim.Framework;
+using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney;
@@ -2549,7 +2550,43 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llGiveInventory(string destination, string inventory)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGiveInventory");
+            bool found = false;
+            LLUUID destId = LLUUID.Zero;
+            LLUUID objId = LLUUID.Zero;
+            
+            if(!LLUUID.TryParse(destination, out destId))
+            {
+                llSay(0, "Could not parse key " + destination);
+                return;
+            }
+            
+            // move the first object found with this inventory name
+            foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            {
+                if (inv.Value.Name == inventory)
+                {
+                    found = true;
+                    objId = inv.Key;
+                    break;
+                }
+            }
+            
+            // check if destination is an avatar
+            if (World.GetScenePresence(destId) != null)
+            {
+                // destination is an avatar
+                CachedUserInfo userInfo =
+                    World.CommsManager.UserProfileCacheService.GetUserDetails(destId);
+                World.MoveTaskInventoryItem(destId,userInfo.RootFolder.ID, m_host, objId);
+            }
+            else
+            {
+                // destination is an object
+                World.MoveTaskInventoryItem(destId, m_host, objId);
+            }
+
+            if (!found)
+                llSay(0, "Could not find object " + inventory);
         }
 
         public void llRemoveInventory(string item)

@@ -2729,7 +2729,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 			else
 			{
 				// destination is an object
-				World.CopyTaskInventoryItem(destId, m_host, objId);
+                World.MoveTaskInventoryItem(destId, m_host, objId);
 			}
 
 			if (!found)

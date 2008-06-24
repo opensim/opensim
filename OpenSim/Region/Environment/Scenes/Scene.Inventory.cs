@@ -882,12 +882,6 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
             }
 
-            // Only owner can copy
-            if (remoteClient.AgentId != taskItem.OwnerID)
-            {
-                return;
-            }
-
             InventoryItemBase agentItem = new InventoryItemBase();
 
             agentItem.ID = LLUUID.Random();
@@ -925,13 +919,13 @@ namespace OpenSim.Region.Environment.Scenes
         }
 		
         /// <summary>
-        /// <see>MoveTaskInventoryItem</see>
+        /// <see>ClientMoveTaskInventoryItem</see>
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="folderID"></param>
         /// <param name="primLocalID"></param>
         /// <param name="itemID"></param>
-        public void MoveTaskInventoryItem(IClientAPI remoteClient, LLUUID folderId, uint primLocalId, LLUUID itemId)
+        public void ClientMoveTaskInventoryItem(IClientAPI remoteClient, LLUUID folderId, uint primLocalId, LLUUID itemId)
 		{
             SceneObjectPart part = GetSceneObjectPart(primLocalId);
 
@@ -944,6 +938,15 @@ namespace OpenSim.Region.Environment.Scenes
 
                 return;
             }
+
+            TaskInventoryItem taskItem = part.GetInventoryItem(itemId);
+
+            // Only owner can copy
+            if (remoteClient.AgentId != taskItem.OwnerID)
+            {
+                return;
+            }
+
 			MoveTaskInventoryItem(remoteClient, folderId, part, itemId);
 		}
 		
@@ -977,7 +980,7 @@ namespace OpenSim.Region.Environment.Scenes
 		/// <param name="destId"></param>
 		/// <param name="part"></param>
 		/// <param name="itemId"></param>
-		public void CopyTaskInventoryItem(LLUUID destId, SceneObjectPart part, LLUUID itemId)
+        public void MoveTaskInventoryItem(LLUUID destId, SceneObjectPart part, LLUUID itemId)
 		{
 			TaskInventoryItem srcTaskItem = part.GetInventoryItem(itemId);
 
@@ -1003,23 +1006,43 @@ namespace OpenSim.Region.Environment.Scenes
 			destTaskItem.ItemID = LLUUID.Random();
 			destTaskItem.CreatorID = srcTaskItem.CreatorID;
 			destTaskItem.AssetID = srcTaskItem.AssetID;
-			destTaskItem.GroupID = srcTaskItem.GroupID;
-			destTaskItem.OwnerID = srcTaskItem.OwnerID;
-			destTaskItem.ParentID = srcTaskItem.ParentID;
-			destTaskItem.ParentPartID = srcTaskItem.ParentPartID;
+            destTaskItem.GroupID = destPart.GroupID;
+            destTaskItem.OwnerID = destPart.OwnerID;
+            destTaskItem.ParentID = destPart.UUID;
+            destTaskItem.ParentPartID = destPart.UUID;
 
 			destTaskItem.BaseMask = srcTaskItem.BaseMask;
 			destTaskItem.EveryoneMask = srcTaskItem.EveryoneMask;
 			destTaskItem.GroupMask = srcTaskItem.GroupMask;
 			destTaskItem.OwnerMask = srcTaskItem.OwnerMask;
+            destTaskItem.NextOwnerMask = srcTaskItem.NextOwnerMask;
 			destTaskItem.Flags = srcTaskItem.Flags;
 			
+            if(destPart.OwnerID != part.OwnerID)
+            {
+                if (ExternalChecks.ExternalChecksPropagatePermissions())
+                {
+                    destTaskItem.OwnerMask = srcTaskItem.OwnerMask &
+                            srcTaskItem.NextOwnerMask;
+                    destTaskItem.GroupMask = srcTaskItem.GroupMask &
+                            srcTaskItem.NextOwnerMask;
+                    destTaskItem.EveryoneMask = srcTaskItem.EveryoneMask &
+                            srcTaskItem.NextOwnerMask;
+                    destTaskItem.BaseMask = srcTaskItem.BaseMask &
+                            srcTaskItem.NextOwnerMask;
+                    destTaskItem.OwnerMask |= 8; // Slam!
+                }
+            }
+
 			destTaskItem.Description = srcTaskItem.Description;
 			destTaskItem.Name = srcTaskItem.Name;
 			destTaskItem.InvType = srcTaskItem.InvType;
 			destTaskItem.Type = srcTaskItem.Type;
 			
 			destPart.AddInventoryItem(destTaskItem);
+
+            if((srcTaskItem.OwnerMask & (uint)PermissionMask.Copy) == 0)
+                part.RemoveInventoryItem(itemId);
 			
 		}
 		
