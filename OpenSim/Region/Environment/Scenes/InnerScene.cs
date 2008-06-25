@@ -122,7 +122,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             //SceneObjects.Clear();
-            Entities.Clear();
+            lock (Entities)
+            {
+                Entities.Clear();
+            }
         }
 
         #region Update Methods
@@ -756,7 +759,8 @@ namespace OpenSim.Region.Environment.Scenes
             // Primitive Ray Tracing
             float closestDistance = 280f;
             EntityIntersection returnResult = new EntityIntersection();
-            foreach (EntityBase ent in Entities.Values)
+            List<EntityBase> EntityList = GetEntities();
+            foreach (EntityBase ent in EntityList)
             {
                 if (ent is SceneObjectGroup)
                 {
@@ -845,7 +849,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         protected internal List<EntityBase> GetEntities()
         {
-            return new List<EntityBase>(Entities.Values);
+            lock(Entities)
+            {
+                if (0 == Entities.Count) return null;
+                return new List<EntityBase>(Entities.Values);
+            }
         }
 
         protected internal Dictionary<uint, float> GetTopScripts()
