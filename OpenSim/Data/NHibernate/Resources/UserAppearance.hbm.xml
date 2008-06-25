@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <hibernate-mapping xmlns="urn:nhibernate-mapping-2.2">
-  <class name="OpenSim.Framework.AvatarAppearance, OpenSim.Framework" table="UserAppearances" lazy="true">
+  <class name="OpenSim.Framework.AvatarAppearance, OpenSim.Framework" table="UserAppearances" lazy="false">
     <id name="Owner" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
       <generator class="assigned" /> 
     </id>
@@ -30,8 +30,8 @@
     <property name="UnderPantsAsset" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
     <property name="SkirtItem" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />    
     <property name="SkirtAsset" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" />
-    <property name="Texture" type="binary" />
-    <property name="VisualParams" type="binary" />
-    <property name="Serial" type="int" />
+    <property name="Texture" type="Binary" />
+    <property name="VisualParams" type="Binary" />
+    <property name="Serial" type="Int32" />
   </class>
 </hibernate-mapping>

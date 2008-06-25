@@ -91,8 +91,9 @@ namespace OpenSim.Data.NHibernate
             {
                 user = session.Load(typeof(UserProfileData), uuid) as UserProfileData;
             }
-            catch (Exception)
+            catch (ObjectNotFoundException e) 
             {
+                user = null;
             }
 
             return (user != null);
@@ -102,8 +103,15 @@ namespace OpenSim.Data.NHibernate
         {
             UserProfileData user;
             // TODO: I'm sure I'll have to do something silly here
-            user = session.Load(typeof(UserProfileData), uuid) as UserProfileData;
-            user.CurrentAgent = GetAgentByUUID(uuid);
+            try 
+            {
+                user = session.Load(typeof(UserProfileData), uuid) as UserProfileData;
+                user.CurrentAgent = GetAgentByUUID(uuid);
+            } 
+            catch (ObjectNotFoundException e) 
+            {
+                user = null;
+            }
 
             return user;
         }
@@ -114,8 +122,6 @@ namespace OpenSim.Data.NHibernate
             {
                 session.Save(profile);
                 SetAgentData(profile.ID, profile.CurrentAgent);
-                // TODO: save agent
-                session.Transaction.Commit();
             }
             else
             {
@@ -132,12 +138,14 @@ namespace OpenSim.Data.NHibernate
             }
             else
             {
-                UserAgentData old = session.Load(typeof(UserAgentData), uuid) as UserAgentData;
-                if (old != null)
+                try 
                 {
+                    UserAgentData old = session.Load(typeof(UserAgentData), uuid) as UserAgentData;
                     session.Delete(old);
                 }
-                
+                catch (ObjectNotFoundException e) 
+                {
+                }
                 session.Save(agent);
             }
 
@@ -148,7 +156,6 @@ namespace OpenSim.Data.NHibernate
             {
                 session.Update(profile);
                 SetAgentData(profile.ID, profile.CurrentAgent);
-                session.Transaction.Commit();
                 return true;
             }
             else
@@ -161,23 +168,20 @@ namespace OpenSim.Data.NHibernate
 
         override public void AddNewUserAgent(UserAgentData agent)
         {
-            UserAgentData old = session.Load(typeof(UserAgentData), agent.ProfileID) as UserAgentData;
-           
-            if (old == null)
+            try 
             {
-                session.Save(agent);
-                session.Transaction.Commit();
+                UserAgentData old = session.Load(typeof(UserAgentData), agent.ProfileID) as UserAgentData;
+                session.Delete(old);
             }
-            else
+            catch (ObjectNotFoundException e) 
             {
-                UpdateUserAgent(agent);
             }
+            session.Save(agent);
         }
 
         public void UpdateUserAgent(UserAgentData agent)
         {
             session.Update(agent);
-            session.Transaction.Commit();
         }
 
         override public UserAgentData GetAgentByUUID(LLUUID uuid)
@@ -254,16 +258,22 @@ namespace OpenSim.Data.NHibernate
         {
             AvatarAppearance appearance;
             // TODO: I'm sure I'll have to do something silly here
-            appearance = session.Load(typeof(AvatarAppearance), user) as AvatarAppearance;
-
+            try {
+                appearance = session.Load(typeof(AvatarAppearance), user) as AvatarAppearance;
+            } catch (ObjectNotFoundException e) {
+                appearance = null;
+            }
             return appearance;
         }
 
         private bool ExistsAppearance(LLUUID uuid)
         {
             AvatarAppearance appearance;
-            
-            appearance = session.Load(typeof(AvatarAppearance), uuid) as AvatarAppearance;
+            try {
+                appearance = session.Load(typeof(AvatarAppearance), uuid) as AvatarAppearance;
+            } catch (ObjectNotFoundException e) {
+                appearance = null;
+            }
 
             return (appearance == null) ? false : true;
         }
@@ -271,19 +281,17 @@ namespace OpenSim.Data.NHibernate
 
         public override void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
         {
+            if (appearance == null) 
+                return;
+            
             bool exists = ExistsAppearance(user);
-
-            using (ITransaction transaction = session.BeginTransaction())
+            if (exists)
             {
-                if (exists)
-                {
-                    session.Update(appearance);
-                }
-                else
-                {
-                    session.Save(appearance);
-                }
-                transaction.Commit();
+                session.Update(appearance);
+            }
+            else
+            {
+                session.Save(appearance);
             }
         }
 
