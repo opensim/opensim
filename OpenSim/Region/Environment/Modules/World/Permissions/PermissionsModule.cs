@@ -950,8 +950,6 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
                 return true;
             }
-
-
     }
 
 }

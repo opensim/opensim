@@ -36,5 +36,7 @@ namespace OpenSim.Region.Environment.Interfaces
         double[,] GetDoubles();
         bool Tainted(int x, int y);
         ITerrainChannel MakeCopy();
+        string SaveToXmlString();
+        void LoadFromXmlString(string data);
     }
 }

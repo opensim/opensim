@@ -101,6 +101,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected SceneCommunicationService m_sceneGridService;
 
+        public SceneCommunicationService SceneGridService
+        {
+            get { return m_sceneGridService; }
+        }
+
         /// <summary>
         /// Each agent has its own capabilities handler.
         /// </summary>

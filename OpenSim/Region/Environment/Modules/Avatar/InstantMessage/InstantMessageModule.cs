@@ -523,7 +523,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             {
                 if (upd.AgentOnline)
                 {
-                    RegionInfo reginfo = m_scenes[0].CommsManager.GridService.RequestNeighbourInfo(upd.Handle);
+                    RegionInfo reginfo = m_scenes[0].SceneGridService.RequestNeighbouringRegionInfo(upd.Handle);
                     if (reginfo != null)
                     {
                         GridInstantMessage msg = new GridInstantMessage();

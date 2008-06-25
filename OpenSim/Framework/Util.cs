@@ -28,6 +28,7 @@
 using System;
 using System.Data;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
@@ -616,6 +617,47 @@ namespace OpenSim.Framework
             }
 
             return ret;
+        }
+
+        public static string Compress(string text)
+        {
+            byte[] buffer = Encoding.UTF8.GetBytes(text);
+            MemoryStream memory = new MemoryStream();
+            using (GZipStream compressor = new GZipStream(memory, CompressionMode.Compress, true))
+            {
+                compressor.Write(buffer, 0, buffer.Length);
+            }
+
+            memory.Position = 0;
+            MemoryStream outStream = new MemoryStream();
+
+            byte[] compressed = new byte[memory.Length];
+            memory.Read(compressed, 0, compressed.Length);
+
+            byte[] compressedBuffer = new byte[compressed.Length + 4];
+            System.Buffer.BlockCopy(compressed, 0, compressedBuffer, 4, compressed.Length);
+            System.Buffer.BlockCopy(BitConverter.GetBytes(buffer.Length), 0, compressedBuffer, 0, 4);
+            return Convert.ToBase64String(compressedBuffer);
+        }
+
+        public static string Decompress(string compressedText)
+        {
+            byte[] compressedBuffer = Convert.FromBase64String(compressedText);
+            using (MemoryStream memory = new MemoryStream())
+            {
+                int msgLength = BitConverter.ToInt32(compressedBuffer, 0);
+                memory.Write(compressedBuffer, 4, compressedBuffer.Length - 4);
+
+                byte[] buffer = new byte[msgLength];
+
+                memory.Position = 0;
+                using (GZipStream decompressor = new GZipStream(memory, CompressionMode.Decompress))
+                {
+                    decompressor.Read(buffer, 0, buffer.Length);
+                }
+
+                return Encoding.UTF8.GetString(buffer);
+            }
         }
 
         public static string[] ParseStartLocationRequest(string startLocationRequest)

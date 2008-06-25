@@ -166,7 +166,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
                 {
                     List<MapBlockData> mapBlocks;
 
-                    mapBlocks = m_scene.CommsManager.GridService.RequestNeighbourMapBlocks((int)m_scene.RegionInfo.RegionLocX - 8, (int)m_scene.RegionInfo.RegionLocY - 8, (int)m_scene.RegionInfo.RegionLocX + 8, (int)m_scene.RegionInfo.RegionLocY + 8);
+                    mapBlocks = m_scene.SceneGridService.RequestNeighbourMapBlocks((int)m_scene.RegionInfo.RegionLocX - 8, (int)m_scene.RegionInfo.RegionLocY - 8, (int)m_scene.RegionInfo.RegionLocX + 8, (int)m_scene.RegionInfo.RegionLocY + 8);
                     avatarPresence.ControllingClient.SendMapBlock(mapBlocks);
                     
                     lock (cachedMapBlocks)
@@ -244,7 +244,7 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         public virtual void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY)
         {
             List<MapBlockData> mapBlocks;
-            mapBlocks = m_scene.CommsManager.GridService.RequestNeighbourMapBlocks(minX - 4, minY - 4, minX + 4, minY + 4);
+            mapBlocks = m_scene.SceneGridService.RequestNeighbourMapBlocks(minX - 4, minY - 4, minX + 4, minY + 4);
             remoteClient.SendMapBlock(mapBlocks);
         }
         public Hashtable OnHTTPGetMapImage(Hashtable keysvals)

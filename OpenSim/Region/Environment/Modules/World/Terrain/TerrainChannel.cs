@@ -27,6 +27,11 @@
 
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
+using System;
+using System.Text;
+using System.Xml;
+using System.IO;
+using System.Xml.Serialization;
 
 namespace OpenSim.Region.Environment.Modules.World.Terrain
 {
@@ -150,6 +155,76 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
             copy.map = (double[,]) map.Clone();
 
             return copy;
+        }
+
+        public string SaveToXmlString()
+        {
+            XmlWriterSettings settings = new XmlWriterSettings();
+            settings.Encoding = Encoding.UTF8;
+            using (StringWriter sw = new StringWriter())
+            {
+                using (XmlWriter writer = XmlWriter.Create(sw, settings))
+                {
+                    WriteXml(writer);
+                }
+                string output = sw.ToString();
+                return output;
+            }
+        }
+
+        private void WriteXml(XmlWriter writer)
+        {
+            writer.WriteStartElement(String.Empty, "TerrainMap", String.Empty);
+            ToXml(writer);
+            writer.WriteEndElement();
+        }
+
+        public void LoadFromXmlString(string data)
+        {
+            StringReader sr = new StringReader(data);
+            XmlTextReader reader = new XmlTextReader(sr);
+            reader.Read();
+
+            ReadXml(reader);
+            reader.Close();
+            sr.Close();
+        }
+
+        private void ReadXml(XmlReader reader)
+        {
+            reader.ReadStartElement("TerrainMap");
+            FromXml(reader);
+        }
+
+        private void ToXml(XmlWriter xmlWriter)
+        {
+            float[] mapData = GetFloatsSerialised();
+            byte[] buffer = new byte[mapData.Length * 4];
+            for (int i = 0; i < mapData.Length; i++)
+            {
+                byte[] value = BitConverter.GetBytes(mapData[i]);
+                Array.Copy(value, 0, buffer, (i * 4), 4);
+            }
+            XmlSerializer serializer = new XmlSerializer(typeof(byte[]));
+            serializer.Serialize(xmlWriter, buffer);
+        }
+
+        private void FromXml(XmlReader xmlReader)
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(byte[]));
+            byte[] dataArray = (byte[])serializer.Deserialize(xmlReader);
+            int index = 0;
+
+            for (int y = 0; y < Height; y++)
+            {
+                for (int x = 0; x < Width; x++)
+                {
+                    float value;
+                    value = BitConverter.ToSingle(dataArray, index);
+                    index += 4;
+                    this[x, y] = (double)value;
+                }
+            }
         }
     }
 }
