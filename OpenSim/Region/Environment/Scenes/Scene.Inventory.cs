@@ -893,6 +893,7 @@ namespace OpenSim.Region.Environment.Scenes
             agentItem.AssetType = taskItem.Type;
             agentItem.InvType = taskItem.InvType;
             agentItem.Folder = folderId;
+            agentItem.Flags = taskItem.Flags;
 
             if ((remoteClient.AgentId != taskItem.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
             {
