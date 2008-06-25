@@ -26,36 +26,41 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Threading;
 using HttpServer;
 
 namespace OpenSim.Framework.Servers
 {
     /// <summary>
-    /// An OSHttpRequestPump fetches incoming OSHttpRequest objects
-    /// from the OSHttpRequestQueue and feeds them to all subscribed
-    /// parties. Each OSHttpRequestPump encapsulates one thread to do
-    /// the work and there is a fixed number of pumps for each
-    /// OSHttpServer object.
+    /// OSHttpRequestQueues are used to hand over incoming HTTP
+    /// requests to OSHttpRequestPump objects.
     /// </summary>
-    public class OSHttpRequestPump
+    public class OSHttpRequestQueue : Queue<OSHttpRequest>
     {
-        protected OSHttpServer _server;
-        protected OSHttpRequestQueue _queue;
-
-        public OSHttpRequestPump()
+        new public void Enqueue(OSHttpRequest req) 
         {
-        }
-
-        public static OSHttpRequestPump[] Pumps(OSHttpServer server, OSHttpRequestQueue queue, int poolSize)
-        {
-            OSHttpRequestPump[] pumps = new OSHttpRequestPump[poolSize];
-            for (int i = 0; i < pumps.Length; i++)
+            lock (this)
             {
-                pumps[i]._server = server;
-                pumps[i]._queue = queue;
+                base.Enqueue(req);
+                Monitor.Pulse(this);
+            }
+        }
+        
+        new public OSHttpRequest Dequeue()
+        {
+            OSHttpRequest req = null;
+
+            lock (this)
+            {
+                while (null == req)
+                {
+                    Monitor.Wait(this);
+                    if (0 != this.Count) req = base.Dequeue();
+                }
             }
 
-            return pumps;
+            return req;
         }
     }
 }

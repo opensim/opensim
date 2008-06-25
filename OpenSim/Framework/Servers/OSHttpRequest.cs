@@ -30,11 +30,15 @@ using System.Collections.Specialized;
 using System.Net;
 using System.IO;
 using System.Text;
+using HttpServer;
 
 namespace OpenSim.Framework.Servers
 {
     public class OSHttpRequest
     {
+        /// <remarks>
+        /// soon to be deprecated
+        /// </remarks>
         private string[] _acceptTypes;
         private Encoding _contentEncoding;
         private long _contentLength64;
@@ -51,6 +55,9 @@ namespace OpenSim.Framework.Servers
         private Uri _url;
         private NameValueCollection _queryString;
         private string _userAgent;
+
+        private HttpRequest _request;
+        private HttpClientContext _context;
 
         public string[] AcceptTypes
         {
@@ -159,6 +166,12 @@ namespace OpenSim.Framework.Servers
             _url = req.Url;
             _queryString = req.QueryString;
             _userAgent = req.UserAgent;
+        }
+
+        public OSHttpRequest(HttpClientContext context, HttpRequest req)
+        {
+            _context = context;
+            _request = req;
         }
     }
 }

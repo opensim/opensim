@@ -50,7 +50,11 @@ namespace OpenSim.Framework.Servers
 
         // underlying HttpServer.HttpListener
         protected HttpListener _listener;
+        // underlying core/engine thread
         protected Thread _engine;
+
+        // Queue containing (OS)HttpRequests
+        protected OSHttpRequestQueue _queue;
 
         // OSHttpRequestPumps "pumping" incoming OSHttpRequests
         // upwards
@@ -72,6 +76,11 @@ namespace OpenSim.Framework.Servers
             get { return _isSecure; }
         }
 
+        public int QueueSize 
+        {
+            get { return _pumps.Length; }
+        }
+
         /// <summary>
         /// Instantiate an HTTP server.
         /// </summary>
@@ -80,17 +89,37 @@ namespace OpenSim.Framework.Servers
             _engineId = String.Format("OSHttpServer [HTTP:{0}/ps:{1}]", port, poolSize);
             _isSecure = false;
 
-            _pumps = OSHttpRequestPump.Pumps(this, poolSize);
+            _listener = new HttpListener(address, port);
+            _queue = new OSHttpRequestQueue();
+            _pumps = OSHttpRequestPump.Pumps(this, _queue, poolSize);
         }
 
         /// <summary>
         /// Instantiate an HTTPS server.
         /// </summary>
-        public OSHttpServer(IPAddress address, int port, X509Certificate certificate, int poolSize) :
-        this(address, port, poolSize)
+        public OSHttpServer(IPAddress address, int port, X509Certificate certificate, int poolSize)
         {
             _engineId = String.Format("OSHttpServer [HTTPS:{0}/ps:{1}]", port, poolSize);
             _isSecure = true;
+
+            _listener = new HttpListener(address, port, certificate);
+            _queue = new OSHttpRequestQueue();
+            _pumps = OSHttpRequestPump.Pumps(this, _queue, poolSize);
+        }
+
+        /// <summary>
+        /// Turn an HttpRequest into an OSHttpRequestItem and place it
+        /// in the queue. The OSHttpRequestQueue object will pulse the
+        /// next available idle pump.
+        /// </summary>
+        protected void OnHttpRequest(HttpClientContext client, HttpRequest request)
+        {
+            // turn request into OSHttpRequest
+            OSHttpRequest req = new OSHttpRequest(client, request);
+
+            // place OSHttpRequest into _httpRequestQueue, will
+            // trigger Pulse to idle waiting pumps
+            _queue.Enqueue(req);
         }
 
         /// <summary>
@@ -102,6 +131,7 @@ namespace OpenSim.Framework.Servers
             _engine.Name = _engineId;
             _engine.IsBackground = true;
             _engine.Start();
+
             ThreadTracker.Add(_engine);
         }
 
@@ -111,9 +141,12 @@ namespace OpenSim.Framework.Servers
         {
             while (true)
             {
-                // do stuff
+                _listener.RequestHandler += OnHttpRequest;
+                _listener.Start(QueueSize);
             }
         }
 
+
+        
     }
 }
