@@ -421,7 +421,7 @@ namespace OpenSim.Framework
 
     public delegate void DelinkObjects(List<uint> primIds);
 
-    public delegate void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY);
+    public delegate void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag);
 
     public delegate void RequestMapName(IClientAPI remoteClient, string mapName);
 

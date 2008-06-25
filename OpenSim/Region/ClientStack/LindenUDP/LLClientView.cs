@@ -5420,7 +5420,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if (handlerRequestMapBlocks != null)
                         {
                             handlerRequestMapBlocks(this, MapRequest.PositionData.MinX, MapRequest.PositionData.MinY,
-                                                    MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY);
+                                                    MapRequest.PositionData.MaxX, MapRequest.PositionData.MaxY, MapRequest.AgentData.Flags);
                         }
                         break;
                     case PacketType.MapNameRequest:

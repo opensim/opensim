@@ -241,12 +241,13 @@ namespace OpenSim.Region.Environment.Modules.World.WorldMap
         /// <param name="minY"></param>
         /// <param name="maxX"></param>
         /// <param name="maxY"></param>
-        public virtual void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY)
+        public virtual void RequestMapBlocks(IClientAPI remoteClient, int minX, int minY, int maxX, int maxY, uint flag)
         {
             List<MapBlockData> mapBlocks;
             mapBlocks = m_scene.SceneGridService.RequestNeighbourMapBlocks(minX - 4, minY - 4, minX + 4, minY + 4);
             remoteClient.SendMapBlock(mapBlocks);
         }
+
         public Hashtable OnHTTPGetMapImage(Hashtable keysvals)
         {
             m_log.Info("[WEBMAP]: Sending map image jpeg");
