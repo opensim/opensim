@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <hibernate-mapping xmlns="urn:nhibernate-mapping-2.2">
-    <class name="OpenSim.Framework.UserProfileData, OpenSim.Framework" table="UserProfiles" lazy="false">
+    <class name="OpenSim.Framework.UserProfileData, OpenSim.Framework" table="UserProfiles" lazy="true">
         <id name="ID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
             <generator class="assigned" /> 
         </id>
