@@ -36,7 +36,6 @@ using Axiom.Math;
 using libsecondlife;
 using OpenSim;
 using OpenSim.Framework;
-using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Environment;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney;
@@ -2575,9 +2574,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (World.GetScenePresence(destId) != null)
             {
                 // destination is an avatar
-                CachedUserInfo userInfo =
-                    World.CommsManager.UserProfileCacheService.GetUserDetails(destId);
-                World.MoveTaskInventoryItem(destId,userInfo.RootFolder.ID, m_host, objId);
+                World.MoveTaskInventoryItem(destId, null, m_host, objId);
             }
             else
             {
