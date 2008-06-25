@@ -851,7 +851,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             lock (Entities)
             {
-                if (0 == Entities.Count) return null;
                 return new List<EntityBase>(Entities.Values);
             }
         }
