@@ -76,12 +76,12 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         public override void Initialise(IMesher meshmerizer, IConfigSource config)
         {
-            // Does nothing right now
         }
+
         public override void Dispose()
         {
-
         }
+
         public override PhysicsActor AddAvatar(string avName, PhysicsVector position, PhysicsVector size)
         {
             POSCharacter act = new POSCharacter();
@@ -92,7 +92,6 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         public override void SetWaterLevel(float baseheight)
         {
-
         }
 
         public override void RemovePrim(PhysicsActor prim)
@@ -145,20 +144,14 @@ namespace OpenSim.Region.Physics.POSPlugin
                 " sizeX: " + p.Size.X * 0.5 + 0.5);
              */
 
-            Vector3 rotatedPos = p.Orientation.Inverse()*
+            Vector3 rotatedPos = p.Orientation.Inverse() *
                                  new Vector3(c.Position.X - p.Position.X, c.Position.Y - p.Position.Y,
                                              c.Position.Z - p.Position.Z);
             Vector3 avatarSize = p.Orientation.Inverse()*new Vector3(c.Size.X, c.Size.Y, c.Size.Z);
 
-            if (Math.Abs(rotatedPos.x) >= (p.Size.X*0.5 + Math.Abs(avatarSize.x)))
-            {
-                return false;
-            }
-            if (Math.Abs(rotatedPos.y) >= (p.Size.Y*0.5 + Math.Abs(avatarSize.y)))
-            {
-                return false;
-            }
-            if (Math.Abs(rotatedPos.z) >= (p.Size.Z*0.5 + Math.Abs(avatarSize.z)))
+            if (Math.Abs(rotatedPos.x) >= (p.Size.X*0.5 + Math.Abs(avatarSize.x)) ||
+                Math.Abs(rotatedPos.y) >= (p.Size.Y*0.5 + Math.Abs(avatarSize.y)) ||
+                Math.Abs(rotatedPos.z) >= (p.Size.Z*0.5 + Math.Abs(avatarSize.z)))
             {
                 return false;
             }
@@ -171,10 +164,8 @@ namespace OpenSim.Region.Physics.POSPlugin
             {
                 if (check_collision(c, _prims[i]))
                 {
-
                     return true;
                 }
-
             }
 
             return false;
@@ -249,12 +240,12 @@ namespace OpenSim.Region.Physics.POSPlugin
                             character.Position.X = oldposX;
                             character.Position.Y = oldposY;
                             character.Position.Z = oldposZ;
-                            character.Position.X = character.Position.X + (character._target_velocity.X*timeStep);
+                            character.Position.X += character._target_velocity.X * timeStep;
                             if (check_all_prims(character))
                             {
                                 character.Position.X = oldposX;
                             }
-                            character.Position.Y = character.Position.Y + (character._target_velocity.Y*timeStep);
+                            character.Position.Y += character._target_velocity.Y * timeStep;
                             if (check_all_prims(character))
                             {
                                 character.Position.Y = oldposY;
@@ -314,8 +305,8 @@ namespace OpenSim.Region.Physics.POSPlugin
 
         public override bool IsThreaded
         {
-            get { return (false); // for now we won't be multithreaded
-            }
+            // for now we won't be multithreaded
+            get { return (false); }
         }
 
         public override void SetTerrain(float[] heightMap)
@@ -501,19 +492,17 @@ namespace OpenSim.Region.Physics.POSPlugin
             get { return true; }
             set { }
         }
+
         public override void link(PhysicsActor obj)
         {
-
         }
 
         public override void delink()
         {
-
         }
 
         public override void LockAngularMotion(PhysicsVector axis)
         {
-
         }
 
         public void SetAcceleration(PhysicsVector accel)
@@ -528,21 +517,34 @@ namespace OpenSim.Region.Physics.POSPlugin
         public override void SetMomentum(PhysicsVector momentum)
         {
         }
+
         public override void CrossingFailure()
         {
-
         }
-        public override PhysicsVector PIDTarget { set { return; } }
-        public override bool PIDActive { set { return; } }
-        public override float PIDTau { set { return; } }
+
+        public override PhysicsVector PIDTarget
+        {
+            set { return; }
+        }
+
+        public override bool PIDActive
+        {
+            set { return; }
+        }
+
+        public override float PIDTau
+        {
+            set { return; }
+        }
+
         public override void SubscribeEvents(int ms)
         {
-
         }
+
         public override void UnSubscribeEvents()
         {
-
         }
+
         public override bool SubscribedEvents()
         {
             return false;
@@ -746,17 +748,30 @@ namespace OpenSim.Region.Physics.POSPlugin
         public override void CrossingFailure()
         {
         }
-        public override PhysicsVector PIDTarget { set { return; } }
-        public override bool PIDActive { set { return; } }
-        public override float PIDTau { set { return; } }
+
+        public override PhysicsVector PIDTarget
+        {
+            set { return; }
+        }
+
+        public override bool PIDActive
+        {
+            set { return; }
+        }
+
+        public override float PIDTau
+        {
+            set { return; }
+        }
+
         public override void SubscribeEvents(int ms)
         {
-
         }
+
         public override void UnSubscribeEvents()
         {
-
         }
+
         public override bool SubscribedEvents()
         {
             return false;
