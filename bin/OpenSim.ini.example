@@ -337,6 +337,7 @@ enabled = false
 ; experimental, so if it breaks... keep both parts... yada yada
 ; also, not good error detection when it fails
 ;[IRC]
+;enabled = true ; you need to set this otherwise it won't connect
 ;server  = name.of.irc.server.on.the.net
 ;nick    = OpenSimBotNameProbablyMakeThisShorter
 ;channel = #the_irc_channel_you_want_to_connect_to
