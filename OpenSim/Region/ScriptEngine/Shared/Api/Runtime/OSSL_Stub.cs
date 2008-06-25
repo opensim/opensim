@@ -47,7 +47,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         public void ApiTypeOSSL(IScriptApi api)
         {
-            if(!(api is IOSSL_Api))
+            if (!(api is IOSSL_Api))
                 return;
 
             m_OSSL_Functions = (IOSSL_Api)api;

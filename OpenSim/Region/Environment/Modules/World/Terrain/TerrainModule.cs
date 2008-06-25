@@ -470,7 +470,6 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
             }
         }
 
-
         /// <summary>
         /// Checks to see height deltas in the tainted terrain patch at xStart ,yStart
         /// are all within the current estate limits
@@ -493,7 +492,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                     double bakedHeight = m_revert[x, y];
                     double requestedDelta = requestedHeight - bakedHeight;
 
-                    if (requestedDelta > maxDelta )
+                    if (requestedDelta > maxDelta)
                     {
                         m_channel[x, y] = bakedHeight + maxDelta;
                         changesLimited = true;
@@ -508,7 +507,6 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
 
             return changesLimited;
         }
-
 
         /// <summary>
         /// Sends a copy of the current terrain to the scenes clients
@@ -588,7 +586,6 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                 InterfaceBakeTerrain(null); //bake terrain does not use the passed in parameter
             }
         }
-
 
         #region Console Commands
 

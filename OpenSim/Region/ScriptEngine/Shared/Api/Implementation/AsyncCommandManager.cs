@@ -95,7 +95,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public AsyncCommandManager(IScriptEngine _ScriptEngine)
         {
             m_ScriptEngine = _ScriptEngine;
-            if(!m_Managers.Contains(this))
+            if (!m_Managers.Contains(this))
                 m_Managers.Add(this);
 
             ReadConfig();

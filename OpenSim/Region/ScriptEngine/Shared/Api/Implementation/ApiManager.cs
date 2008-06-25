@@ -39,7 +39,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string[] GetApis()
         {
-            if(m_Apis.Count > 0)
+            if (m_Apis.Count > 0)
             {
                 List<string> l = new List<string>(m_Apis.Keys);
                 return l.ToArray();
@@ -53,10 +53,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 string name = t.ToString();
                 int idx = name.LastIndexOf('.');
-                if(idx != -1)
+                if (idx != -1)
                     name = name.Substring(idx+1);
 
-                if(name.EndsWith("_Api"))
+                if (name.EndsWith("_Api"))
                 {
                     name = name.Substring(0, name.Length - 4);
                     m_Apis[name] = t;
@@ -69,7 +69,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public IScriptApi CreateApi(string api)
         {
-            if(!m_Apis.ContainsKey(api))
+            if (!m_Apis.ContainsKey(api))
                 return null;
 
             IScriptApi ret = (IScriptApi)(Activator.CreateInstance(m_Apis[api]));

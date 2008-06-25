@@ -1476,7 +1476,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public override bool Equals(Object o)
             {
-                if(!(o is LSLFloat))
+                if (!(o is LSLFloat))
                     return false;
 
                 return value == ((LSLFloat)o).value;

@@ -44,9 +44,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             MethodInfo[] myArrayMethodInfo = GetType().GetMethods(BindingFlags.Public|BindingFlags.Instance);
 
-            foreach(MethodInfo mi in myArrayMethodInfo)
+            foreach (MethodInfo mi in myArrayMethodInfo)
             {
-                if(mi.Name.Length > 7 && mi.Name.Substring(0, 7) == "ApiType")
+                if (mi.Name.Length > 7 && mi.Name.Substring(0, 7) == "ApiType")
                 {
                     string type=mi.Name.Substring(7);
                     inits[type]=mi;
@@ -63,7 +63,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         public void InitApi(string api, IScriptApi data)
         {
-            if(!inits.ContainsKey(api))
+            if (!inits.ContainsKey(api))
                 return;
 
             MethodInfo mi = inits[api];

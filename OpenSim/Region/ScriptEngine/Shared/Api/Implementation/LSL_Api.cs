@@ -2553,7 +2553,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             LLUUID destId = LLUUID.Zero;
             LLUUID objId = LLUUID.Zero;
             
-            if(!LLUUID.TryParse(destination, out destId))
+            if (!LLUUID.TryParse(destination, out destId))
             {
                 llSay(0, "Could not parse key " + destination);
                 return;

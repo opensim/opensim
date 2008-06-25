@@ -2697,40 +2697,40 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llGiveInventory(string destination, string inventory)
         {
             m_host.AddScriptLPS(1);
-			bool found = false;
-			LLUUID destId = LLUUID.Zero;
-			LLUUID objId = LLUUID.Zero;
-			
-			if(!LLUUID.TryParse(destination, out destId))
-			{
-				llSay(0, "Could not parse key " + destination);
-				return;
-			}
-			
-			// move the first object found with this inventory name
-			foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
-			{
-				if (inv.Value.Name == inventory)
-				{
-					found = true;
-					objId = inv.Key;
-					break;
-				}
-			}
-			
-			// check if destination is an avatar
-			if (World.GetScenePresence(destId) != null)
-			{
-				// destination is an avatar
+            bool found = false;
+            LLUUID destId = LLUUID.Zero;
+            LLUUID objId = LLUUID.Zero;
+            
+            if (!LLUUID.TryParse(destination, out destId))
+            {
+                llSay(0, "Could not parse key " + destination);
+                return;
+            }
+            
+            // move the first object found with this inventory name
+            foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            {
+                if (inv.Value.Name == inventory)
+                {
+                    found = true;
+                    objId = inv.Key;
+                    break;
+                }
+            }
+            
+            // check if destination is an avatar
+            if (World.GetScenePresence(destId) != null)
+            {
+                // destination is an avatar
                 World.MoveTaskInventoryItem(destId, null, m_host, objId);
-			}
-			else
-			{
-				// destination is an object
+            }
+            else
+            {
+                // destination is an object
                 World.MoveTaskInventoryItem(destId, m_host, objId);
-			}
+            }
 
-			if (!found)
+            if (!found)
                 llSay(0, "Could not find object " + inventory);
         }
 

@@ -1530,7 +1530,7 @@ namespace OpenSim.Region.Physics.Meshing
                 )
                 {
 #if SPAM
-                    System.Console.WriteLine( "reverting to geodesic sphere for prim: " + primName );
+                    System.Console.WriteLine("reverting to geodesic sphere for prim: " + primName);
 #endif
                     return CreateSphereMesh(primName, primShape, size);
                 }
@@ -1802,10 +1802,13 @@ namespace OpenSim.Region.Physics.Meshing
 #if SPAM
             int vCount = 0;
 
-            foreach ( Vertex v in result.vertices )
-                if ( v != null )
+            foreach (Vertex v in result.vertices)
+            {
+                if (v != null)
                     vCount++;
-            System.Console.WriteLine( "Mesh vertex count: " + vCount.ToString());
+            }
+
+            System.Console.WriteLine("Mesh vertex count: " + vCount.ToString());
 #endif
 
             return result;

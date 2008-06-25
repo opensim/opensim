@@ -1773,22 +1773,23 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                 }
 
-		
-		// Finished with all sim stepping. If requested, dump world state to file for debugging.
-		// TODO: This call to the export function is already inside lock(OdeLock) - but is an extra lock needed?
-		// TODO: This overwrites all dump files in-place. Should this be a growing logfile, or separate snapshots?
-		if(physics_logging && (physics_logging_interval>0) && (framecount % physics_logging_interval == 0) ) {
-			string fname = "state-" + world.ToString() + ".DIF"; // give each physics world a separate filename
-			string prefix = "world" + world.ToString(); // prefix for variable names in exported .DIF file
+                // Finished with all sim stepping. If requested, dump world state to file for debugging.
+                // TODO: This call to the export function is already inside lock (OdeLock) - but is an extra lock needed?
+                // TODO: This overwrites all dump files in-place. Should this be a growing logfile, or separate snapshots?
+                if (physics_logging && (physics_logging_interval>0) && (framecount % physics_logging_interval == 0))
+                {
+                    string fname = "state-" + world.ToString() + ".DIF"; // give each physics world a separate filename
+                    string prefix = "world" + world.ToString(); // prefix for variable names in exported .DIF file
 
-			if(physics_logging_append_existing_logfile) {
-				string header = "-------------- START OF PHYSICS FRAME " + framecount.ToString() + " --------------";
-				TextWriter fwriter = File.AppendText(fname);
-				fwriter.WriteLine(header);
-				fwriter.Close();
-			}
-			d.WorldExportDIF(world, fname, physics_logging_append_existing_logfile, prefix);
-		}
+                    if (physics_logging_append_existing_logfile)
+                    {
+                        string header = "-------------- START OF PHYSICS FRAME " + framecount.ToString() + " --------------";
+                        TextWriter fwriter = File.AppendText(fname);
+                        fwriter.WriteLine(header);
+                        fwriter.Close();
+                    }
+                    d.WorldExportDIF(world, fname, physics_logging_append_existing_logfile, prefix);
+                }
             }
 
             return fps;

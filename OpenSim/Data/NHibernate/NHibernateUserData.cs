@@ -91,7 +91,9 @@ namespace OpenSim.Data.NHibernate
             {
                 user = session.Load(typeof(UserProfileData), uuid) as UserProfileData;
             }
-            catch (Exception) {}
+            catch (Exception)
+            {
+            }
 
             return (user != null);
         }
@@ -161,10 +163,13 @@ namespace OpenSim.Data.NHibernate
         {
             UserAgentData old = session.Load(typeof(UserAgentData), agent.ProfileID) as UserAgentData;
            
-            if (old == null) {
+            if (old == null)
+            {
                 session.Save(agent);
                 session.Transaction.Commit();
-            } else {
+            }
+            else
+            {
                 UpdateUserAgent(agent);
             }
         }
@@ -235,13 +240,13 @@ namespace OpenSim.Data.NHibernate
 
         // TODO: actually implement these
         public override void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid, ulong regionhandle) { return; }
-        public override void StoreWebLoginKey(LLUUID agentID, LLUUID webLoginKey) {return;}
-        public override void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms) {return;}
-        public override void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend) {return;}
-        public override void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms) {return;}
-        public override List<FriendListItem> GetUserFriendList(LLUUID friendlistowner) {return new List<FriendListItem>();}
-        public override bool MoneyTransferRequest(LLUUID from, LLUUID to, uint amount) {return true;}
-        public override bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID inventory) {return true;}
+        public override void StoreWebLoginKey(LLUUID agentID, LLUUID webLoginKey) { return; }
+        public override void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms) { return; }
+        public override void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend) { return; }
+        public override void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms) { return; }
+        public override List<FriendListItem> GetUserFriendList(LLUUID friendlistowner) { return new List<FriendListItem>(); }
+        public override bool MoneyTransferRequest(LLUUID from, LLUUID to, uint amount) { return true; }
+        public override bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID inventory) { return true; }
 
         /// Appearance
         /// TODO: stubs for now to get us to a compiling state gently

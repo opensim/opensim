@@ -136,13 +136,13 @@ namespace OpenSim
 
         #region Console Commands
 
-		private void RunEchoTest(string[] cmdparams)
-		{
-			for (int i = 0; i < cmdparams.Length; i++)
-			{
-				m_log.Info("[EchoTest]:  <arg" + i + ">"+cmdparams[i]+"</arg" + i + ">"); 
-			}
-		}
+        private void RunEchoTest(string[] cmdparams)
+        {
+            for (int i = 0; i < cmdparams.Length; i++)
+            {
+                m_log.Info("[EchoTest]:  <arg" + i + ">"+cmdparams[i]+"</arg" + i + ">"); 
+            }
+        }
 
         private void KickUserCommand(string[] cmdparams)
         {

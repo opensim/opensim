@@ -849,7 +849,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns></returns>
         protected internal List<EntityBase> GetEntities()
         {
-            lock(Entities)
+            lock (Entities)
             {
                 if (0 == Entities.Count) return null;
                 return new List<EntityBase>(Entities.Values);
