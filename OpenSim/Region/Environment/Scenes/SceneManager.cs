@@ -232,6 +232,17 @@ namespace OpenSim.Region.Environment.Scenes
             CurrentOrFirstScene.LoadPrimsFromArchive(filename);
         }
 
+
+        public string SaveCurrentSceneMapToXmlString()
+        {
+            return CurrentOrFirstScene.Heightmap.SaveToXmlString();
+        }
+
+        public void LoadCurrenSceneMapFromXmlString(string mapData)
+        {
+            CurrentOrFirstScene.Heightmap.LoadFromXmlString(mapData);
+        }
+
         [Obsolete("TODO: Remove this warning by 0.7")]
         public bool RunTerrainCmdOnCurrentScene(string[] cmdparams, ref string result)
         {
