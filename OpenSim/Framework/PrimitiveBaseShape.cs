@@ -316,26 +316,26 @@ namespace OpenSim.Framework
             ushort SculptEP = 0x30;
 
             int i = 0;
-            uint TotalBytesLength = 5;
+            uint TotalBytesLength = 1; // ExtraParamsNum
 
             uint ExtraParamsNum = 0;
             if (FlexiEntry)
             {
                 ExtraParamsNum++;
                 TotalBytesLength += 16;// data
-                TotalBytesLength += 4; // type
+                TotalBytesLength += 2 + 4; // type
             }
             if (LightEntry)
             {
                 ExtraParamsNum++;
                 TotalBytesLength += 16;// data
-                TotalBytesLength += 4; // type
+                TotalBytesLength += 2 + 4; // type
             }
             if (SculptEntry)
             {
                 ExtraParamsNum++;
                 TotalBytesLength += 17;// data
-                TotalBytesLength += 4; // type
+                TotalBytesLength += 2 + 4; // type
             }
 
             byte[] returnbytes = new byte[TotalBytesLength];
@@ -469,16 +469,19 @@ namespace OpenSim.Framework
                 {
                     case FlexiEP:
                         ReadFlexiData(data, i);
+                        i += 16;
                         lGotFlexi = true;
                         break;
 
                     case LightEP:
                         ReadLightData(data, i);
+                        i += 16;
                         lGotLight = true;
                         break;
 
                     case SculptEP:
                         ReadSculptData(data, i);
+                        i += 17;
                         lGotSculpt = true;
                         break;
                 }
@@ -536,7 +539,7 @@ namespace OpenSim.Framework
         
         public void ReadFlexiData(byte[] data, int pos)
         {
-            if (data.Length-pos >= 5)
+            if (data.Length-pos >= 16)
             {
                 FlexiEntry = true;
                 FlexiSoftness = ((data[pos] & 0x80) >> 6) | ((data[pos + 1] & 0x80) >> 7);
