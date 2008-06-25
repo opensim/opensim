@@ -122,9 +122,9 @@ namespace OpenSim.Framework
         /// <summary>
         ///
         /// </summary>
-        public int _creationDate;
+        private int _creationDate;
 
-        public LLUUID ID {
+        public virtual LLUUID ID {
             get {
                 return _id;
             }
@@ -133,79 +133,79 @@ namespace OpenSim.Framework
             }
         }
 
-        public int InvType
+        public virtual int InvType
         {
             get { return _invType; }
             set { _invType = value; }
         }
 
-        public LLUUID Folder
+        public virtual LLUUID Folder
         {
             get { return _folder; }
             set { _folder = value; }
         }
 
-        public LLUUID Owner
+        public virtual LLUUID Owner
         {
             get { return _owner; }
             set { _owner = value; }
         }
 
-        public LLUUID Creator
+        public virtual LLUUID Creator
         {
             get { return _creator; }
             set { _creator = value; }
         }
 
-        public string Name
+        public virtual string Name
         {
             get { return _name; }
             set { _name = value; }
         }
 
-        public string Description
+        public virtual string Description
         {
             get { return _description; }
             set { _description = value; }
         }
 
-        public uint NextPermissions
+        public virtual uint NextPermissions
         {
             get { return _nextPermissions; }
             set { _nextPermissions = value; }
         }
 
-        public uint CurrentPermissions
+        public virtual uint CurrentPermissions
         {
             get { return _currentPermissions; }
             set { _currentPermissions = value; }
         }
 
-        public uint BasePermissions
+        public virtual uint BasePermissions
         {
             get { return _basePermissions; }
             set { _basePermissions = value; }
         }
 
-        public uint EveryOnePermissions
+        public virtual uint EveryOnePermissions
         {
             get { return _everyOnePermissions; }
             set { _everyOnePermissions = value; }
         }
 
-        public int AssetType
+        public virtual int AssetType
         {
             get { return _assetType; }
             set { _assetType = value; }
         }
 
-        public LLUUID AssetID
+        public virtual LLUUID AssetID
         {
             get { return _assetID; }
             set { _assetID = value; }
         }
 
-        public LLUUID GroupID
+        public virtual LLUUID GroupID
         {
             get
             {
@@ -217,7 +217,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public bool GroupOwned
+        public virtual bool GroupOwned
         {
             get
             {
@@ -229,7 +229,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public int SalePrice
+        public virtual int SalePrice
         {
             get
             {
@@ -241,7 +241,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public byte SaleType
+        public virtual byte SaleType
         {
             get
             {
@@ -253,7 +253,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public uint Flags
+        public virtual uint Flags
         {
             get
             {
@@ -265,7 +265,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public int CreationDate
+        public virtual int CreationDate
         {
             get
             {

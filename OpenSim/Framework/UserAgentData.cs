@@ -96,91 +96,91 @@ namespace OpenSim.Framework
         /// </summary>
         private LLUUID UUID;
 
-        public LLUUID ProfileID
+        public virtual LLUUID ProfileID
         {
             get { return UUID; }
             set { UUID = value; }
         }
 
-        public string AgentIP
+        public virtual string AgentIP
         {
             get { return agentIP; }
             set { agentIP = value; }
         }
 
-        public uint AgentPort
+        public virtual uint AgentPort
         {
             get { return agentPort; }
             set { agentPort = value; }
         }
 
-        public bool AgentOnline
+        public virtual bool AgentOnline
         {
             get { return agentOnline; }
             set { agentOnline = value; }
         }
 
-        public LLUUID SessionID
+        public virtual LLUUID SessionID
         {
             get { return sessionID; }
             set { sessionID = value; }
         }
 
-        public LLUUID SecureSessionID
+        public virtual LLUUID SecureSessionID
         {
             get { return secureSessionID; }
             set { secureSessionID = value; }
         }
 
-        public LLUUID InitialRegion
+        public virtual LLUUID InitialRegion
         {
             get { return regionID; }
             set { regionID = value; }
         }
 
-        public int LoginTime
+        public virtual int LoginTime
         {
             get { return loginTime; }
             set { loginTime = value; }
         }
 
-        public int LogoutTime
+        public virtual int LogoutTime
         {
             get { return logoutTime; }
             set { logoutTime = value; }
         }
 
-        public LLUUID Region
+        public virtual LLUUID Region
         {
             get { return currentRegion; }
             set { currentRegion = value; }
         }
 
-        public ulong Handle
+        public virtual ulong Handle
         {
             get { return currentHandle; }
             set { currentHandle = value; }
         }
 
-        public LLVector3 Position
+        public virtual LLVector3 Position
         {
             get { return currentPos; }
             set { currentPos = value; }
         }
 
-        public float PositionX
+        public virtual float PositionX
         {
             get { return currentPos.X; }
             set { currentPos.X = value; }
         }
 
-        public float PositionY
+        public virtual float PositionY
         {
             get { return currentPos.Y; }
             set { currentPos.Y = value; }
         }
 
-        public float PositionZ
+        public virtual float PositionZ
         {
             get { return currentPos.Z; }
             set { currentPos.Z = value; }

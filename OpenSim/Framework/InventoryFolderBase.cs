@@ -66,37 +66,37 @@ namespace OpenSim.Framework
         /// </summary>
         private ushort _version;
 
-        public string Name
+        public virtual string Name
         {
             get { return _name; }
             set { _name = value; }
         }
 
-        public LLUUID Owner
+        public virtual LLUUID Owner
         {
             get { return _owner; }
             set { _owner = value; }
         }
 
-        public LLUUID ParentID
+        public virtual LLUUID ParentID
         {
             get { return _parentID; }
             set { _parentID = value; }
         }
 
-        public LLUUID ID
+        public virtual LLUUID ID
         {
             get { return _id; }
             set { _id = value; }
         }
 
-        public short Type
+        public virtual short Type
         {
             get { return _type; }
             set { _type = value; }
         }
 
-        public ushort Version
+        public virtual ushort Version
         {
             get { return _version; }
             set { _version = value; }

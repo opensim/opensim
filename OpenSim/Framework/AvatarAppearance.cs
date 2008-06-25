@@ -71,14 +71,14 @@ namespace OpenSim.Framework
 
         protected LLUUID m_owner;
 
-        public LLUUID Owner
+        public virtual LLUUID Owner
         {
             get { return m_owner; }
             set { m_owner = value; }
         }
         protected int m_serial = 1;
 
-        public int Serial
+        public virtual int Serial
         {
             get { return m_serial; }
             set { m_serial = value; }
@@ -86,7 +86,7 @@ namespace OpenSim.Framework
 
         protected byte[] m_visualparams;
 
-        public byte[] VisualParams
+        public virtual byte[] VisualParams
         {
             get { return m_visualparams; }
             set { m_visualparams = value; }
@@ -94,118 +94,118 @@ namespace OpenSim.Framework
 
         protected AvatarWearable[] m_wearables;
 
-        public AvatarWearable[] Wearables
+        public virtual AvatarWearable[] Wearables
         {
             get { return m_wearables; }
             set { m_wearables = value; }
         }
 
-        public LLUUID BodyItem {
+        public virtual LLUUID BodyItem {
             get { return m_wearables[BODY].ItemID; }
             set { m_wearables[BODY].ItemID = value; }
         }
-        public LLUUID BodyAsset {
+        public virtual LLUUID BodyAsset {
             get { return m_wearables[BODY].AssetID; }
             set { m_wearables[BODY].AssetID = value; }
         }
-        public LLUUID SkinItem {
+        public virtual LLUUID SkinItem {
             get { return m_wearables[SKIN].ItemID; }
             set { m_wearables[SKIN].ItemID = value; }
         }
-        public LLUUID SkinAsset {
+        public virtual LLUUID SkinAsset {
             get { return m_wearables[SKIN].AssetID; }
             set { m_wearables[SKIN].AssetID = value; }
         }
-        public LLUUID HairItem {
+        public virtual LLUUID HairItem {
             get { return m_wearables[HAIR].ItemID; }
             set { m_wearables[HAIR].ItemID = value; }
         }
-        public LLUUID HairAsset {
+        public virtual LLUUID HairAsset {
             get { return m_wearables[HAIR].AssetID; }
             set { m_wearables[HAIR].AssetID = value; }
         }
-        public LLUUID EyesItem {
+        public virtual LLUUID EyesItem {
             get { return m_wearables[EYES].ItemID; }
             set { m_wearables[EYES].ItemID = value; }
         }
-        public LLUUID EyesAsset {
+        public virtual LLUUID EyesAsset {
             get { return m_wearables[EYES].AssetID; }
             set { m_wearables[EYES].AssetID = value; }
         }
-        public LLUUID ShirtItem {
+        public virtual LLUUID ShirtItem {
             get { return m_wearables[SHIRT].ItemID; }
             set { m_wearables[SHIRT].ItemID = value; }
         }
-        public LLUUID ShirtAsset {
+        public virtual LLUUID ShirtAsset {
             get { return m_wearables[SHIRT].AssetID; }
             set { m_wearables[SHIRT].AssetID = value; }
         }
-        public LLUUID PantsItem {
+        public virtual LLUUID PantsItem {
             get { return m_wearables[PANTS].ItemID; }
             set { m_wearables[PANTS].ItemID = value; }
         }
-        public LLUUID PantsAsset {
+        public virtual LLUUID PantsAsset {
             get { return m_wearables[PANTS].AssetID; }
             set { m_wearables[PANTS].AssetID = value; }
         }
-        public LLUUID ShoesItem {
+        public virtual LLUUID ShoesItem {
             get { return m_wearables[SHOES].ItemID; }
             set { m_wearables[SHOES].ItemID = value; }
         }
-        public LLUUID ShoesAsset {
+        public virtual LLUUID ShoesAsset {
             get { return m_wearables[SHOES].AssetID; }
             set { m_wearables[SHOES].AssetID = value; }
         }
-        public LLUUID SocksItem {
+        public virtual LLUUID SocksItem {
             get { return m_wearables[SOCKS].ItemID; }
             set { m_wearables[SOCKS].ItemID = value; }
         }
-        public LLUUID SocksAsset {
+        public virtual LLUUID SocksAsset {
             get { return m_wearables[SOCKS].AssetID; }
             set { m_wearables[SOCKS].AssetID = value; }
         }
-        public LLUUID JacketItem {
+        public virtual LLUUID JacketItem {
             get { return m_wearables[JACKET].ItemID; }
             set { m_wearables[JACKET].ItemID = value; }
         }
-        public LLUUID JacketAsset {
+        public virtual LLUUID JacketAsset {
             get { return m_wearables[JACKET].AssetID; }
             set { m_wearables[JACKET].AssetID = value; }
         }
-        public LLUUID GlovesItem {
+        public virtual LLUUID GlovesItem {
             get { return m_wearables[GLOVES].ItemID; }
             set { m_wearables[GLOVES].ItemID = value; }
         }
-        public LLUUID GlovesAsset {
+        public virtual LLUUID GlovesAsset {
             get { return m_wearables[GLOVES].AssetID; }
             set { m_wearables[GLOVES].AssetID = value; }
         }
-        public LLUUID UnderShirtItem {
+        public virtual LLUUID UnderShirtItem {
             get { return m_wearables[UNDERSHIRT].ItemID; }
             set { m_wearables[UNDERSHIRT].ItemID = value; }
         }
-        public LLUUID UnderShirtAsset {
+        public virtual LLUUID UnderShirtAsset {
             get { return m_wearables[UNDERSHIRT].AssetID; }
             set { m_wearables[UNDERSHIRT].AssetID = value; }
         }
-        public LLUUID UnderPantsItem {
+        public virtual LLUUID UnderPantsItem {
             get { return m_wearables[UNDERPANTS].ItemID; }
             set { m_wearables[UNDERPANTS].ItemID = value; }
         }
-        public LLUUID UnderPantsAsset {
+        public virtual LLUUID UnderPantsAsset {
             get { return m_wearables[UNDERPANTS].AssetID; }
             set { m_wearables[UNDERPANTS].AssetID = value; }
         }
-        public LLUUID SkirtItem {
+        public virtual LLUUID SkirtItem {
             get { return m_wearables[SKIRT].ItemID; }
             set { m_wearables[SKIRT].ItemID = value; }
         }
-        public LLUUID SkirtAsset {
+        public virtual LLUUID SkirtAsset {
             get { return m_wearables[SKIRT].AssetID; }
             set { m_wearables[SKIRT].AssetID = value; }
         }
 
-        public void SetDefaultWearables()
+        public virtual void SetDefaultWearables()
         {
             m_wearables[BODY].AssetID = BODY_ASSET;
             m_wearables[BODY].ItemID = BODY_ITEM;
@@ -219,7 +219,7 @@ namespace OpenSim.Framework
 
         protected LLObject.TextureEntry m_texture;
 
-        public LLObject.TextureEntry Texture
+        public virtual LLObject.TextureEntry Texture
         {
             get { return m_texture; }
             set { m_texture = value; }
@@ -227,7 +227,7 @@ namespace OpenSim.Framework
 
         protected float m_avatarHeight = 0;
 
-        public float AvatarHeight
+        public virtual float AvatarHeight
         {
             get { return m_avatarHeight; }
             set { m_avatarHeight = value; }
@@ -262,7 +262,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="texture"></param>
         /// <param name="visualParam"></param>
-        public void SetAppearance(byte[] texture, List<byte> visualParam)
+        public virtual void SetAppearance(byte[] texture, List<byte> visualParam)
         {
             LLObject.TextureEntry textureEnt = new LLObject.TextureEntry(texture, 0, texture.Length);
             m_texture = textureEnt;
@@ -276,7 +276,7 @@ namespace OpenSim.Framework
                 + (((float) m_visualparams[125]/255.0f)/1.5f);
         }
 
-        public void SetWearable(int wearableId, AvatarWearable wearable)
+        public virtual void SetWearable(int wearableId, AvatarWearable wearable)
         {
             m_wearables[wearableId] = wearable;
         }
@@ -327,7 +327,7 @@ namespace OpenSim.Framework
         }
 
         // this is used for OGS1
-        public Hashtable ToHashTable()
+        public virtual Hashtable ToHashTable()
         {
             Hashtable h = new Hashtable();
             h["owner"] = Owner.ToString();

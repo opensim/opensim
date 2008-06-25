@@ -139,7 +139,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// The regionhandle of the users preffered home region. If multiple sims occupy the same spot, the grid may decide which region the user logs into
         /// </summary>
-        public ulong HomeRegion
+        public virtual ulong HomeRegion
         {
             get { return Helpers.UIntsToLong((_homeRegionX * (uint) Constants.RegionSize), (_homeRegionY * (uint) Constants.RegionSize)); }
             set
@@ -150,172 +150,172 @@ namespace OpenSim.Framework
         }
 
         // Property wrappers
-        public LLUUID ID
+        public virtual LLUUID ID
         {
             get { return _id; }
             set { _id = value; }
         }
 
-        public LLUUID WebLoginKey
+        public virtual LLUUID WebLoginKey
         {
             get { return _webLoginKey; }
             set { _webLoginKey = value; }
         }
 
-        public string FirstName
+        public virtual string FirstName
         {
             get { return _firstname; }
             set { _firstname = value; }
         }
 
-        public string SurName
+        public virtual string SurName
         {
             get { return _surname; }
             set { _surname = value; }
         }
 
-        public string PasswordHash
+        public virtual string PasswordHash
         {
             get { return _passwordHash; }
             set { _passwordHash = value; }
         }
 
-        public string PasswordSalt
+        public virtual string PasswordSalt
         {
             get { return _passwordSalt; }
             set { _passwordSalt = value; }
         }
 
-        public uint HomeRegionX
+        public virtual uint HomeRegionX
         {
             get { return _homeRegionX; }
             set { _homeRegionX = value; }
         }
 
-        public uint HomeRegionY
+        public virtual uint HomeRegionY
         {
             get { return _homeRegionY; }
             set { _homeRegionY = value; }
         }
 
-        public LLVector3 HomeLocation
+        public virtual LLVector3 HomeLocation
         {
             get { return _homeLocation; }
             set { _homeLocation = value; }
         }
 
         // for handy serialization
-        public float HomeLocationX
+        public virtual float HomeLocationX
         {
             get { return _homeLocation.X; }
             set { _homeLocation.X = value; }
         }
 
-        public float HomeLocationY
+        public virtual float HomeLocationY
         {
             get { return _homeLocation.Y; }
             set { _homeLocation.Y = value; }
         }
 
-        public float HomeLocationZ
+        public virtual float HomeLocationZ
         {
             get { return _homeLocation.Z; }
             set { _homeLocation.Z = value; }
         }
 
 
-        public LLVector3 HomeLookAt
+        public virtual LLVector3 HomeLookAt
         {
             get { return _homeLookAt; }
             set { _homeLookAt = value; }
         }
 
         // for handy serialization
-        public float HomeLookAtX
+        public virtual float HomeLookAtX
         {
             get { return _homeLookAt.X; }
             set { _homeLookAt.X = value; }
         }
 
-        public float HomeLookAtY
+        public virtual float HomeLookAtY
         {
             get { return _homeLookAt.Y; }
             set { _homeLookAt.Y = value; }
         }
 
-        public float HomeLookAtZ
+        public virtual float HomeLookAtZ
         {
             get { return _homeLookAt.Z; }
             set { _homeLookAt.Z = value; }
         }
 
-        public int Created
+        public virtual int Created
         {
             get { return _created; }
             set { _created = value; }
         }
 
-        public int LastLogin
+        public virtual int LastLogin
         {
             get { return _lastLogin; }
             set { _lastLogin = value; }
         }
 
-        public LLUUID RootInventoryFolderID
+        public virtual LLUUID RootInventoryFolderID
         {
             get { return _rootInventoryFolderID; }
             set { _rootInventoryFolderID = value; }
         }
 
-        public string UserInventoryURI
+        public virtual string UserInventoryURI
         {
             get { return _userInventoryURI; }
             set { _userInventoryURI = value; }
         }
 
-        public string UserAssetURI
+        public virtual string UserAssetURI
         {
             get { return _userAssetURI; }
             set { _userAssetURI = value; }
         }
 
-        public uint CanDoMask
+        public virtual uint CanDoMask
         {
             get { return _profileCanDoMask; }
             set { _profileCanDoMask = value; }
         }
 
-        public uint WantDoMask
+        public virtual uint WantDoMask
         {
             get { return _profileWantDoMask; }
             set { _profileWantDoMask = value; }
         }
 
-        public string AboutText
+        public virtual string AboutText
         {
             get { return _profileAboutText; }
             set { _profileAboutText = value; }
         }
 
-        public string FirstLifeAboutText
+        public virtual string FirstLifeAboutText
         {
             get { return _profileFirstText; }
             set { _profileFirstText = value; }
         }
 
-        public LLUUID Image
+        public virtual LLUUID Image
         {
             get { return _profileImage; }
             set { _profileImage = value; }
         }
 
-        public LLUUID FirstLifeImage
+        public virtual LLUUID FirstLifeImage
         {
             get { return _profileFirstImage; }
             set { _profileFirstImage = value; }
         }
 
-        public UserAgentData CurrentAgent
+        public virtual UserAgentData CurrentAgent
         {
             get { return _currentAgent; }
             set { _currentAgent = value; }
