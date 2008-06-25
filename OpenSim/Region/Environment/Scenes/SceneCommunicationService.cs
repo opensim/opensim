@@ -542,7 +542,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             List<MapBlockData> mapBlocks;
             mapBlocks = m_commsProvider.GridService.RequestNeighbourMapBlocks(minX - 4, minY - 4, minX + 4, minY + 4);
-            remoteClient.SendMapBlock(mapBlocks);
+            remoteClient.SendMapBlock(mapBlocks, 0);
         }
 
         /// <summary>

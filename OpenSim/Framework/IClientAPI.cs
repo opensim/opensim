@@ -869,7 +869,7 @@ namespace OpenSim.Framework
         void CrossRegion(ulong newRegionHandle, LLVector3 pos, LLVector3 lookAt, IPEndPoint newRegionExternalEndPoint,
                          string capsURL);
 
-        void SendMapBlock(List<MapBlockData> mapBlocks);
+        void SendMapBlock(List<MapBlockData> mapBlocks, uint flag);
         void SendLocalTeleport(LLVector3 position, LLVector3 lookAt, uint flags);
 
         void SendRegionTeleport(ulong regionHandle, byte simAccess, IPEndPoint regionExternalEndPoint, uint locationID,

@@ -366,7 +366,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public virtual void SendMapBlock(List<MapBlockData> mapBlocks)
+        public virtual void SendMapBlock(List<MapBlockData> mapBlocks, uint flag)
         {
         }
 

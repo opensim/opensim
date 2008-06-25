@@ -1211,7 +1211,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(newSimPack, ThrottleOutPacketType.Unknown);
         }
 
-        internal void SendMapBlockSplit(List<MapBlockData> mapBlocks)
+        internal void SendMapBlockSplit(List<MapBlockData> mapBlocks, uint flag)
         {
             MapBlockReplyPacket mapReply = (MapBlockReplyPacket)PacketPool.Instance.GetPacket(PacketType.MapBlockReply);
             // TODO: don't create new blocks if recycling an old packet
@@ -1220,7 +1220,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             mapReply.AgentData.AgentID = AgentId;
             mapReply.Data = new MapBlockReplyPacket.DataBlock[mapBlocks2.Length];
-            mapReply.AgentData.Flags = 0;
+            mapReply.AgentData.Flags = flag;
 
             for (int i = 0; i < mapBlocks2.Length; i++)
             {
@@ -1238,7 +1238,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             OutPacket(mapReply, ThrottleOutPacketType.Land);
         }
 
-        public void SendMapBlock(List<MapBlockData> mapBlocks)
+        public void SendMapBlock(List<MapBlockData> mapBlocks, uint flag)
         {
            
             MapBlockData[] mapBlocks2 = mapBlocks.ToArray();
@@ -1254,7 +1254,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 sendingBlocks.Add(mapBlocks2[i]);
                 if (((i + 1) == mapBlocks2.Length) || ((i % maxsend) == 0))
                 {
-                    SendMapBlockSplit(sendingBlocks);
+                    SendMapBlockSplit(sendingBlocks, flag);
                     sendingBlocks = new List<MapBlockData>();
                 }
             }

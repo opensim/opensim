@@ -452,7 +452,7 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
-        public virtual void SendMapBlock(List<MapBlockData> mapBlocks)
+        public virtual void SendMapBlock(List<MapBlockData> mapBlocks, uint flag)
         {
         }
 
