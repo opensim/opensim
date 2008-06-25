@@ -475,8 +475,19 @@ namespace OpenSim.Region.Physics.Meshing
                 fProfileBeginAngle -= (90.0 + 45.0); // for some reasons, the SL client counts from the corner -X/-Y
                 double fProfileEndAngle = 360.0 - profileEnd/50000.0*360.0; // Pathend comes as complement to 1.0
                 fProfileEndAngle -= (90.0 + 45.0);
+
+                // avoid some problem angles until the hull subtraction routine is fixed
+                if ((fProfileBeginAngle + 45.0f) % 90.0f == 0.0f)
+                    fProfileBeginAngle += 5.0f;
+                if ((fProfileEndAngle + 45.0f) % 90.0f == 0.0f)
+                    fProfileEndAngle -= 5.0f;
+
                 if (fProfileBeginAngle < fProfileEndAngle)
                     fProfileEndAngle -= 360.0;
+
+#if SPAM
+                Console.WriteLine("Meshmerizer: fProfileBeginAngle: " + fProfileBeginAngle.ToString() + " fProfileEndAngle: " + fProfileEndAngle.ToString());
+#endif
 
                 // Note, that we don't want to cut out a triangle, even if this is a
                 // good approximation for small cuts. Indeed we want to cut out an arc
