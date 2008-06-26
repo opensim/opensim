@@ -130,6 +130,14 @@ namespace OpenSim.Framework
             return Helpers.UIntsToLong(X, Y);
         }
 
+        public static T Clamp<T>(T x, T min, T max)
+            where T : System.IComparable<T>
+        {
+            return x.CompareTo(max) > 0 ? max :
+                x.CompareTo(min) < 0 ? min :
+                x;
+        }
+
         public static uint GetNextXferID()
         {
             uint id = 0;

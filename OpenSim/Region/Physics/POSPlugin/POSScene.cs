@@ -107,14 +107,8 @@ namespace OpenSim.Region.Physics.POSPlugin
             return prim;
         }
 
-        private bool check_collision(POSCharacter c, POSPrim p)
+        private bool isColliding(POSCharacter c, POSPrim p)
         {
-            /*
-            Console.WriteLine("checking whether " + c + " collides with " + p +
-                " absX: " + Math.Abs(p.Position.X - c.Position.X) +
-                " sizeX: " + p.Size.X * 0.5 + 0.5);
-             */
-
             Vector3 rotatedPos = p.Orientation.Inverse() *
                                  new Vector3(c.Position.X - p.Position.X, c.Position.Y - p.Position.Y,
                                              c.Position.Z - p.Position.Z);
@@ -129,11 +123,11 @@ namespace OpenSim.Region.Physics.POSPlugin
             return true;
         }
 
-        private bool check_all_prims(POSCharacter c)
+        private bool isCollidingWithPrim(POSCharacter c)
         {
             for (int i = 0; i < _prims.Count; ++i)
             {
-                if (check_collision(c, _prims[i]))
+                if (isColliding(c, _prims[i]))
                 {
                     return true;
                 }
@@ -160,33 +154,19 @@ namespace OpenSim.Region.Physics.POSPlugin
 
                 if (!character.Flying)
                 {
-                    character._target_velocity.Z += gravity*timeStep;
+                    character._target_velocity.Z += gravity * timeStep;
                 }
+
+                character.Position.X += character._target_velocity.X * timeStep;
+                character.Position.Y += character._target_velocity.Y * timeStep;
+
+                character.Position.X = Util.Clamp(character.Position.X, 0.01f, Constants.RegionSize - 0.01f);
+                character.Position.Y = Util.Clamp(character.Position.Y, 0.01f, Constants.RegionSize - 0.01f);
 
                 bool forcedZ = false;
-                character.Position.X += character._target_velocity.X*timeStep;
-                character.Position.Y += character._target_velocity.Y*timeStep;
-
-                if (character.Position.Y < 0)
-                {
-                    character.Position.Y = 0.1F;
-                }
-                else if (character.Position.Y >= Constants.RegionSize)
-                {
-                    character.Position.Y = Constants.RegionSize - 0.1f;
-                }
-
-                if (character.Position.X < 0)
-                {
-                    character.Position.X = 0.1F;
-                }
-                else if (character.Position.X >= Constants.RegionSize)
-                {
-                    character.Position.X = Constants.RegionSize - 0.1f;
-                }
 
                 float terrainheight = _heightMap[(int)character.Position.Y * Constants.RegionSize + (int)character.Position.X];
-                if (character.Position.Z + (character._target_velocity.Z*timeStep) < terrainheight + 2)
+                if (character.Position.Z + (character._target_velocity.Z * timeStep) < terrainheight + 2)
                 {
                     character.Position.Z = terrainheight + 1.0f;
                     forcedZ = true;
@@ -200,24 +180,26 @@ namespace OpenSim.Region.Physics.POSPlugin
                 /// Completely Bogus Collision Detection!!!
                 /// better known as the CBCD algorithm
 
-                if (check_all_prims(character))
+                if (isCollidingWithPrim(character))
                 {
                     character.Position.Z = oldposZ; //  first try Z axis
-                    if (check_all_prims(character))
+                    if (isCollidingWithPrim(character))
                     {
                         character.Position.Z = oldposZ + 0.4f; // try harder
-                        if (check_all_prims(character))
+                        if (isCollidingWithPrim(character))
                         {
                             character.Position.X = oldposX;
                             character.Position.Y = oldposY;
                             character.Position.Z = oldposZ;
+
                             character.Position.X += character._target_velocity.X * timeStep;
-                            if (check_all_prims(character))
+                            if (isCollidingWithPrim(character))
                             {
                                 character.Position.X = oldposX;
                             }
+
                             character.Position.Y += character._target_velocity.Y * timeStep;
-                            if (check_all_prims(character))
+                            if (isCollidingWithPrim(character))
                             {
                                 character.Position.Y = oldposY;
                             }
@@ -233,23 +215,8 @@ namespace OpenSim.Region.Physics.POSPlugin
                     }
                 }
 
-                if (character.Position.Y < 0)
-                {
-                    character.Position.Y = 0.1F;
-                }
-                else if (character.Position.Y >= Constants.RegionSize)
-                {
-                    character.Position.Y = Constants.RegionSize - 0.1f;
-                }
-
-                if (character.Position.X < 0)
-                {
-                    character.Position.X = 0.1F;
-                }
-                else if (character.Position.X >= Constants.RegionSize)
-                {
-                    character.Position.X = Constants.RegionSize - 0.1f;
-                }
+                character.Position.X = Util.Clamp(character.Position.X, 0.01f, Constants.RegionSize - 0.01f);
+                character.Position.Y = Util.Clamp(character.Position.Y, 0.01f, Constants.RegionSize - 0.01f);
 
                 character._velocity.X = (character.Position.X - oldposX)/timeStep;
                 character._velocity.Y = (character.Position.Y - oldposY)/timeStep;
