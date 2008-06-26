@@ -49,12 +49,16 @@ namespace OpenSim.Data.MySQL
         private MySQLManager database;
 
         /// <summary>
-        /// Initialises User interface
-        /// Loads and initialises the MySQL storage plugin
-        /// warns and uses the obsolete mysql_connection.ini if connect string is empty.
-        /// Check for migration
+        /// <para>Initialises Inventory interface</para>
+        /// <para>
+        /// <list type="bullet">
+        /// <item>Loads and initialises the MySQL storage plugin</item>
+        /// <item>warns and uses the obsolete mysql_connection.ini if connect string is empty.</item>
+        /// <item>Check for migration</item>
+        /// </list>
+        /// </para>
         /// </summary>
-        /// <param name="connect">connect string.</param>
+        /// <param name="connect">connect string</param>
         public void Initialise(string connect)
         {
             if (connect != String.Empty)
@@ -90,6 +94,13 @@ namespace OpenSim.Data.MySQL
 
         #region Test and initialization code
 
+        /// <summary>
+        /// <list type="bullet">
+        /// <item>Execute CreateFoldersTable.sql if oldVersion == null</item>
+        /// <item>do nothing if oldVersion != null</item>
+        /// </list>
+        /// </summary>
+        /// <param name="oldVersion"></param>
         private void UpgradeFoldersTable(string oldVersion)
         {
             // null as the version, indicates that the table didn't exist
@@ -99,13 +110,19 @@ namespace OpenSim.Data.MySQL
                 return;
             }
 
-            // if the table is already at the current version, then we can exit immediately
-//             if (oldVersion == "Rev. 2")
-//                 return;
-
-//             database.ExecuteResourceSql("UpgradeFoldersTableToVersion2.sql");
+            //// if the table is already at the current version, then we can exit immediately
+            // if (oldVersion == "Rev. 2")
+            // return;
+            // database.ExecuteResourceSql("UpgradeFoldersTableToVersion2.sql");
         }
 
+        /// <summary>
+        /// <list type="bullet">
+        /// <item>Execute CreateItemsTable.sql if oldVersion == null</item>
+        /// <item>Execute "UpgradeItemsTableToVersion3.sql" if oldVersion start with "Rev. 2;"</item>
+        /// </list>
+        /// </summary>
+        /// <param name="oldVersion"></param>
         private void UpgradeItemsTable(string oldVersion)
         {
             // null as the version, indicates that the table didn't exist
@@ -123,6 +140,11 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="conn">MySQL connection handler</param>
+        /// <param name="m"></param>
         private void TestTables(MySqlConnection conn, Migration m)
         {
             Dictionary<string, string> tableList = new Dictionary<string, string>();
@@ -178,7 +200,7 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Returns the version of this DB provider
         /// </summary>
-        /// <returns>A string containing the DB provider</returns>
+        /// <returns>A string containing the DB provider version</returns>
         public string getVersion()
         {
             return database.getVersion();
@@ -260,9 +282,9 @@ namespace OpenSim.Data.MySQL
 
      
         /// <summary>
-        /// see InventoryItemBase.getUserRootFolder
+        /// see <see cref="InventoryItemBase.getUserRootFolder"/>
         /// </summary>
-        /// <param name="user"></param>
+        /// <param name="user">The user UUID</param>
         /// <returns></returns>
         public InventoryFolderBase getUserRootFolder(LLUUID user)
         {
@@ -545,9 +567,9 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        ///
+        /// Detele the specified inventory item
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">The inventory item UUID to delete</param>
         public void deleteInventoryItem(LLUUID itemID)
         {
             try
@@ -609,9 +631,10 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// Creates a new inventory folder
+        /// Move an inventory folder
         /// </summary>
-        /// <param name="folder">Folder to create</param>
+        /// <param name="folder">Folder to move</param>
+        /// <remarks>UPDATE inventoryfolders SET parentFolderID=?parentFolderID WHERE folderID=?folderID</remarks>
         public void moveInventoryFolder(InventoryFolderBase folder)
         {
             string sql =

@@ -40,6 +40,9 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Data.MySQL
 {
+    /// <summary>
+    /// A MySQL Interface for the Region Server
+    /// </summary>
     public class MySQLDataStore : IRegionDataStore
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -76,7 +79,7 @@ namespace OpenSim.Data.MySQL
         private DataTable m_landAccessListTable;
         private DataTable m_regionBanListTable;
 
-        // Temporary attribute while this is experimental
+        /// <value>Temporary attribute while this is experimental</value>
         private bool persistPrimInventories;
 
         /***********************************************************************
@@ -177,7 +180,8 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Given a list of tables, return the version of the tables, as seen in the database
         /// </summary>
-        /// <param name="tableList"></param>
+        /// <param name="tableList">The list of table</param>
+        /// <param name="dbcon">The database connection handler</param>
         public void GetTableVersion(Dictionary<string, string> tableList, MySqlConnection dbcon)
         {
             lock (dbcon)
@@ -226,6 +230,7 @@ namespace OpenSim.Data.MySQL
         /// Execute a SQL statement stored in a resource, as a string
         /// </summary>
         /// <param name="name">the ressource name</param>
+        /// <param name="dbcon">The database connection handler</param>
         public void ExecuteResourceSql(string name, MySqlConnection dbcon)
         {
             MySqlCommand cmd = new MySqlCommand(getResourceString(name), dbcon);
@@ -260,9 +265,13 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
+        /// <list type="bullet">
+        /// <item>Execute CreateLandTable.sql if oldVersion == null</item>
+        /// <item>Execute UpgradeLandTable.sqm if oldVersion contain "Rev."</item>
+        /// </list>
         /// </summary>
         /// <param name="oldVersion"></param>
-        /// <param name="dbconn"></param>
+        /// <param name="dbconn">The database connection handler</param>
         private void UpgradeLandTable(string oldVersion, MySqlConnection dbconn)
         {
             // null as the version, indicates that the table didn't exist
@@ -280,8 +289,8 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Adds an object into region storage
         /// </summary>
-        /// <param name="obj"></param>
-        /// <param name="regionUUID"></param>
+        /// <param name="obj">The object</param>
+        /// <param name="regionUUID">The region UUID</param>
         public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
             lock (m_dataSet)
@@ -307,8 +316,8 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// removes an object from region storage
         /// </summary>
-        /// <param name="obj"></param>
-        /// <param name="regionUUID"></param>
+        /// <param name="obj">The object</param>
+        /// <param name="regionUUID">The Region UUID</param>
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
             m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
@@ -362,6 +371,7 @@ namespace OpenSim.Data.MySQL
         /// Load persisted objects from region storage.
         /// </summary>
         /// <param name="regionUUID">the Region UUID</param>
+        /// <returns>List of loaded groups</returns>
         public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
         {
             Dictionary<LLUUID, SceneObjectGroup> createdObjects = new Dictionary<LLUUID, SceneObjectGroup>();
@@ -448,7 +458,7 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Load in a prim's persisted inventory.
         /// </summary>
-        /// <param name="prim"></param>
+        /// <param name="prim">The prim</param>
         private void LoadItems(SceneObjectPart prim)
         {
             lock (m_dataSet)
@@ -484,7 +494,7 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Store a terrain revision in region storage
         /// </summary>
-        /// <param name="ter">terrain data</param>
+        /// <param name="ter">HeightField data</param>
         /// <param name="regionID">region UUID</param>
         public void StoreTerrain(double[,] ter, LLUUID regionID)
         {
@@ -513,7 +523,7 @@ namespace OpenSim.Data.MySQL
         /// Load the latest terrain revision from region storage
         /// </summary>
         /// <param name="regionID">the region UUID</param>
-        /// <returns></returns>
+        /// <returns>Heightfield data</returns>
         public double[,] LoadTerrain(LLUUID regionID)
         {
             double[,] terret = new double[256,256];
@@ -563,8 +573,10 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// delete from land where UUID=globalID
-        /// delete from landaccesslist where LandUUID=globalID
+        /// <list type="bullet">
+        /// <item>delete from land where UUID=globalID</item>
+        /// <item>delete from landaccesslist where LandUUID=globalID</item>
+        /// </list>
         /// </summary>
         /// <param name="globalID"></param>
         public void RemoveLandObject(LLUUID globalID)
@@ -629,10 +641,10 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        /// Load (fetch?) a region banlist
         /// </summary>
-        /// <param name="regionUUID"></param>
-        /// <returns></returns>
+        /// <param name="regionUUID">The region UUID</param>
+        /// <returns>The Region banlist</returns>
         public List<RegionBanListItem> LoadRegionBanList(LLUUID regionUUID)
         {
             List<RegionBanListItem> regionbanlist = new List<RegionBanListItem>();
@@ -660,9 +672,9 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        /// Add an item to region banlist
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">The item</param>
         public void AddToRegionBanlist(RegionBanListItem item)
         {
             lock (m_dataSet)
@@ -684,9 +696,9 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        /// Remove an item from region banlist
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">The item</param>
         public void RemoveFromRegionBanlist(RegionBanListItem item)
         {
             lock (m_dataSet)
@@ -783,7 +795,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        /// See <see cref="Commit"/>
         /// </summary>
         public void Shutdown()
         {
@@ -798,6 +810,13 @@ namespace OpenSim.Data.MySQL
          *
          **********************************************************************/
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <param name="name"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
         private static DataColumn createCol(DataTable dt, string name, Type type)
         {
             DataColumn col = new DataColumn(name, type);
@@ -805,6 +824,10 @@ namespace OpenSim.Data.MySQL
             return col;
         }
 
+        /// <summary>
+        /// Create the "terrain" table
+        /// </summary>
+        /// <returns></returns>
         private static DataTable createTerrainTable()
         {
             DataTable terrain = new DataTable("terrain");
@@ -815,6 +838,10 @@ namespace OpenSim.Data.MySQL
             return terrain;
         }
 
+        /// <summary>
+        /// Create the "regionban" table
+        /// </summary>
+        /// <returns></returns>
         private static DataTable createRegionBanTable()
         {
             DataTable regionban = new DataTable("regionban");
@@ -826,6 +853,10 @@ namespace OpenSim.Data.MySQL
 
         }
 
+        /// <summary>
+        /// Create the "prims" table
+        /// </summary>
+        /// <returns></returns>
         private static DataTable createPrimTable()
         {
             DataTable prims = new DataTable("prims");
@@ -890,6 +921,10 @@ namespace OpenSim.Data.MySQL
             return prims;
         }
 
+        /// <summary>
+        /// Create the "land" table
+        /// </summary>
+        /// <returns></returns>
         private static DataTable createLandTable()
         {
             DataTable land = new DataTable("land");
@@ -934,6 +969,10 @@ namespace OpenSim.Data.MySQL
             return land;
         }
 
+        /// <summary>
+        /// Create the "landaccesslist" table
+        /// </summary>
+        /// <returns></returns>
         private static DataTable createLandAccessListTable()
         {
             DataTable landaccess = new DataTable("landaccesslist");
@@ -944,6 +983,10 @@ namespace OpenSim.Data.MySQL
             return landaccess;
         }
 
+        /// <summary>
+        /// Create the "primshapes" table
+        /// </summary>
+        /// <returns></returns>
         private static DataTable createShapeTable()
         {
             DataTable shapes = new DataTable("primshapes");
@@ -984,6 +1027,10 @@ namespace OpenSim.Data.MySQL
             return shapes;
         }
 
+        /// <summary>
+        /// Create the "primitems" table
+        /// </summary>
+        /// <returns></returns>
         private static DataTable createItemsTable()
         {
             DataTable items = new DataTable("primitems");
@@ -1025,6 +1072,11 @@ namespace OpenSim.Data.MySQL
          *
          **********************************************************************/
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
         private SceneObjectPart buildPrim(DataRow row)
         {
             SceneObjectPart prim = new SceneObjectPart();
@@ -1153,6 +1205,11 @@ namespace OpenSim.Data.MySQL
             return taskItem;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
         private static LandData buildLandData(DataRow row)
         {
             LandData newData = new LandData();
@@ -1214,6 +1271,11 @@ namespace OpenSim.Data.MySQL
             return newData;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
         private static ParcelManager.ParcelAccessEntry buildLandAccessData(DataRow row)
         {
             ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
@@ -1223,6 +1285,11 @@ namespace OpenSim.Data.MySQL
             return entry;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="val"></param>
+        /// <returns></returns>
         private static Array serializeTerrain(double[,] val)
         {
             MemoryStream str = new MemoryStream(65536*sizeof (double));
@@ -1242,6 +1309,13 @@ namespace OpenSim.Data.MySQL
             return str.ToArray();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="prim"></param>
+        /// <param name="sceneGroupID"></param>
+        /// <param name="regionUUID"></param>
         private void fillPrimRow(DataRow row, SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
         {
             row["UUID"] = Util.ToRawUuidString(prim.UUID);
@@ -1318,6 +1392,11 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="taskItem"></param>
         private static void fillItemRow(DataRow row, TaskInventoryItem taskItem)
         {
             row["itemID"] = taskItem.ItemID;
@@ -1343,6 +1422,12 @@ namespace OpenSim.Data.MySQL
             row["flags"] = taskItem.Flags;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="land"></param>
+        /// <param name="regionUUID"></param>
         private static void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
         {
             row["UUID"] = Util.ToRawUuidString(land.globalID);
@@ -1382,6 +1467,12 @@ namespace OpenSim.Data.MySQL
             row["AuthBuyerID"] = land.authBuyerID;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="entry"></param>
+        /// <param name="parcelID"></param>
         private static void fillLandAccessRow(DataRow row, ParcelManager.ParcelAccessEntry entry, LLUUID parcelID)
         {
             row["LandUUID"] = Util.ToRawUuidString(parcelID);
@@ -1389,6 +1480,11 @@ namespace OpenSim.Data.MySQL
             row["Flags"] = entry.Flags;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
         private PrimitiveBaseShape buildShape(DataRow row)
         {
             PrimitiveBaseShape s = new PrimitiveBaseShape();
@@ -1447,6 +1543,11 @@ namespace OpenSim.Data.MySQL
             return s;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="prim"></param>
         private void fillShapeRow(DataRow row, SceneObjectPart prim)
         {
             PrimitiveBaseShape s = prim.Shape;
@@ -1502,6 +1603,12 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="prim"></param>
+        /// <param name="sceneGroupID"></param>
+        /// <param name="regionUUID"></param>
         private void addPrim(SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
         {
             lock (m_dataSet)
@@ -1535,7 +1642,11 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        // see IRegionDatastore
+        /// <summary>
+        /// see IRegionDatastore
+        /// </summary>
+        /// <param name="primID"></param>
+        /// <param name="items"></param>
         public void StorePrimInventory(LLUUID primID, ICollection<TaskInventoryItem> items)
         {
             if (!persistPrimInventories)
@@ -1576,17 +1687,24 @@ namespace OpenSim.Data.MySQL
          *
          **********************************************************************/
 
+        /// <summary>
+        /// Create a MySQL insert command
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="dt"></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// This is subtle enough to deserve some commentary.
+        /// Instead of doing *lots* and *lots of hardcoded strings
+        /// for database definitions we'll use the fact that
+        /// realistically all insert statements look like "insert
+        /// into A(b, c) values(:b, :c) on the parameterized query
+        /// front.  If we just have a list of b, c, etc... we can
+        /// generate these strings instead of typing them out.
+        /// </remarks>
         private static MySqlCommand createInsertCommand(string table, DataTable dt)
         {
-            /**
-             *  This is subtle enough to deserve some commentary.
-             *  Instead of doing *lots* and *lots of hardcoded strings
-             *  for database definitions we'll use the fact that
-             *  realistically all insert statements look like "insert
-             *  into A(b, c) values(:b, :c) on the parameterized query
-             *  front.  If we just have a list of b, c, etc... we can
-             *  generate these strings instead of typing them out.
-             */
+
             string[] cols = new string[dt.Columns.Count];
             for (int i = 0; i < dt.Columns.Count; i++)
             {
@@ -1611,6 +1729,13 @@ namespace OpenSim.Data.MySQL
             return cmd;
         }
 
+        /// <summary>
+        /// Create a MySQL update command
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="pk"></param>
+        /// <param name="dt"></param>
+        /// <returns></returns>
         private static MySqlCommand createUpdateCommand(string table, string pk, DataTable dt)
         {
             string sql = "update " + table + " set ";
@@ -1638,6 +1763,11 @@ namespace OpenSim.Data.MySQL
             return cmd;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <returns></returns>
         private static string defineTable(DataTable dt)
         {
             string sql = "create table " + dt.TableName + "(";
@@ -1673,16 +1803,18 @@ namespace OpenSim.Data.MySQL
          **********************************************************************/
 
         ///<summary>
-        /// This is a convenience function that collapses 5 repetitive
+        /// <para>This is a convenience function that collapses 5 repetitive
         /// lines for defining MySqlParameters to 2 parameters:
         /// column name and database type.
-        ///
+        /// </para>
+        /// <para>
         /// It assumes certain conventions like ?param as the param
         /// name to replace in parametrized queries, and that source
         /// version is always current version, both of which are fine
         /// for us.
-        ///</summary>
-        ///<returns>a built MySql parameter</returns>
+        /// </para>
+        /// </summary>
+        /// <returns>a built MySql parameter</returns>
         private static MySqlParameter createMySqlParameter(string name, Type type)
         {
             MySqlParameter param = new MySqlParameter();
@@ -1693,6 +1825,11 @@ namespace OpenSim.Data.MySQL
             return param;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void SetupPrimCommands(MySqlDataAdapter da, MySqlConnection conn)
         {
             MySqlCommand insertCommand = createInsertCommand("prims", m_primTable);
@@ -1709,6 +1846,11 @@ namespace OpenSim.Data.MySQL
             da.DeleteCommand = delete;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void SetupItemsCommands(MySqlDataAdapter da, MySqlConnection conn)
         {
             da.InsertCommand = createInsertCommand("primitems", m_itemsTable);
@@ -1722,6 +1864,12 @@ namespace OpenSim.Data.MySQL
             delete.Connection = conn;
             da.DeleteCommand = delete;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void SetupRegionBanCommands(MySqlDataAdapter da, MySqlConnection conn)
         {
             da.InsertCommand = createInsertCommand("regionban", m_regionBanListTable);
@@ -1736,12 +1884,23 @@ namespace OpenSim.Data.MySQL
             delete.Connection = conn;
             da.DeleteCommand = delete;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void SetupTerrainCommands(MySqlDataAdapter da, MySqlConnection conn)
         {
             da.InsertCommand = createInsertCommand("terrain", m_dataSet.Tables["terrain"]);
             da.InsertCommand.Connection = conn;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void setupLandCommands(MySqlDataAdapter da, MySqlConnection conn)
         {
             da.InsertCommand = createInsertCommand("land", m_dataSet.Tables["land"]);
@@ -1751,12 +1910,22 @@ namespace OpenSim.Data.MySQL
             da.UpdateCommand.Connection = conn;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void setupLandAccessCommands(MySqlDataAdapter da, MySqlConnection conn)
         {
             da.InsertCommand = createInsertCommand("landaccesslist", m_dataSet.Tables["landaccesslist"]);
             da.InsertCommand.Connection = conn;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void SetupShapeCommands(MySqlDataAdapter da, MySqlConnection conn)
         {
             da.InsertCommand = createInsertCommand("primshapes", m_dataSet.Tables["primshapes"]);
@@ -1771,6 +1940,10 @@ namespace OpenSim.Data.MySQL
             da.DeleteCommand = delete;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="conn">MySQL connection handler</param>
         private static void InitDB(MySqlConnection conn)
         {
             string createPrims = defineTable(createPrimTable());
@@ -1859,6 +2032,12 @@ namespace OpenSim.Data.MySQL
             conn.Close();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="conn"></param>
+        /// <param name="m"></param>
+        /// <returns></returns>
         private bool TestTables(MySqlConnection conn, Migration m)
         {
             // we already have migrations, get out of here
@@ -1968,6 +2147,11 @@ namespace OpenSim.Data.MySQL
          *
          **********************************************************************/
 
+        /// <summary>
+        /// Type conversion functions
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         private static DbType dbtypeFromType(Type type)
         {
             if (type == typeof (String))
@@ -2000,8 +2184,11 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        // this is something we'll need to implement for each db
-        // slightly differently.
+        /// <summary>
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        /// <remarks>this is something we'll need to implement for each db slightly differently.</remarks>
         private static string MySqlType(Type type)
         {
             if (type == typeof (String))

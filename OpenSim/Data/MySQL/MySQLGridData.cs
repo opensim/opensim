@@ -49,10 +49,14 @@ namespace OpenSim.Data.MySQL
         private MySQLManager database;
 
         /// <summary>
-        /// Initialises Grid interface
-        /// Loads and initialises the MySQL storage plugin
-        /// Warns and uses the obsolete mysql_connection.ini if connect string is empty.
-        /// Check for migration
+        /// <para>Initialises Grid interface</para>
+        /// <para>
+        /// <list type="bullet">
+        /// <item>Loads and initialises the MySQL storage plugin</item>
+        /// <item>Warns and uses the obsolete mysql_connection.ini if connect string is empty.</item>
+        /// <item>Check for migration</item>
+        /// </list>
+        /// </para>
         /// </summary>
         /// <param name="connect">connect string.</param>
         override public void Initialise(string connect)
@@ -410,8 +414,8 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Adds a location reservation
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
+        /// <param name="x">x coordinate</param>
+        /// <param name="y">y coordinate</param>
         /// <returns></returns>
         override public ReservationData GetReservationAtPoint(uint x, uint y)
         {

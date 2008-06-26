@@ -36,6 +36,9 @@ using OpenSim.Framework;
 
 namespace OpenSim.Data.MySQL
 {
+    /// <summary>
+    /// A MySQL Interface for the Asset Server
+    /// </summary>
     internal class MySQLAssetData : AssetDataBase, IPlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -45,12 +48,16 @@ namespace OpenSim.Data.MySQL
         #region IPlugin Members
 
         /// <summary>
-        /// Initialises Asset interface
-        /// Loads and initialises the MySQL storage plugin
-        /// Warns and uses the obsolete mysql_connection.ini if connect string is empty.
-        /// Check for migration
+        /// <para>Initialises Asset interface</para>
+        /// <para>
+        /// <list type="bullet">
+        /// <item>Loads and initialises the MySQL storage plugin.</item>
+        /// <item>Warns and uses the obsolete mysql_connection.ini if connect string is empty.</item>
+        /// <item>Check for migration</item>
+        /// </list>
+        /// </para>
         /// </summary>
-        /// <param name="connect">connect string.</param>
+        /// <param name="connect">connect string</param>
         override public void Initialise(string connect)
         {
             // TODO: This will let you pass in the connect string in
@@ -78,10 +85,16 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// uses the obsolete mysql_connection.ini
+        /// <para>Initialises Asset interface</para>
+        /// <para>
+        /// <list type="bullet">
+        /// <item>Loads and initialises the MySQL storage plugin</item>
+        /// <item>uses the obsolete mysql_connection.ini</item>
+        /// </list>
+        /// </para>
         /// </summary>
-        /// <param name="connect">connect string.</param>
-        /// <remarks>Probably deprecated and shouldn't be used</remarks>
+        /// <param name="connect">connect string</param>
+        /// <remarks>Probably DEPRECATED and shouldn't be used</remarks>
         override public void Initialise()
         {
             IniFile GridDataMySqlFile = new IniFile("mysql_connection.ini");
@@ -98,6 +111,13 @@ namespace OpenSim.Data.MySQL
 
         #region IAssetProvider Members
 
+        /// <summary>
+        /// <list type="bullet">
+        /// <item>Execute CreateAssetsTable.sql if oldVersion == null</item>
+        /// <item>do nothing if oldVersion != null</item>
+        /// </list>
+        /// </summary>
+        /// <param name="oldVersion"></param>
         private void UpgradeAssetsTable(string oldVersion)
         {
             // null as the version, indicates that the table didn't exist
@@ -112,6 +132,7 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Ensure that the assets related tables exists and are at the latest version
         /// </summary>
+        /// <param name="m"></param>
         private void TestTables(Migration m)
         {
             Dictionary<string, string> tableList = new Dictionary<string, string>();
@@ -129,10 +150,11 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        /// Fetch Asset <paramref name="assetID"/> from database
         /// </summary>
-        /// <param name="assetID"></param>
-        /// <returns></returns>
+        /// <param name="assetID">Asset UUID to fetch</param>
+        /// <returns>Return the asset</returns>
+        /// <remarks>On failure : throw an exception and attempt to reconnect to database</remarks>
         override public AssetBase FetchAsset(LLUUID assetID)
         {
             AssetBase asset = null;
@@ -175,9 +197,10 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        /// Create an asset in database, or update it if existing.
         /// </summary>
-        /// <param name="asset"></param>
+        /// <param name="asset">Asset UUID to create</param>
+        /// <remarks>On failure : Throw an exception and attempt to reconnect to database</remarks>
         override public void CreateAsset(AssetBase asset)
         {
             lock (_dbConnection)
@@ -224,19 +247,19 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// 
+        /// Update a asset in database, see <see cref="CreateAsset"/>
         /// </summary>
-        /// <param name="asset"></param>
+        /// <param name="asset">Asset UUID to update</param>
         override public void UpdateAsset(AssetBase asset)
         {
             CreateAsset(asset);
         }
 
         /// <summary>
-        /// 
+        /// check if the asset UUID exist in database
         /// </summary>
-        /// <param name="uuid"></param>
-        /// <returns></returns>
+        /// <param name="uuid">The asset UUID</param>
+        /// <returns>true if exist.</returns>
         override public bool ExistsAsset(LLUUID uuid)
         {
             bool assetExists = false;
@@ -285,7 +308,7 @@ namespace OpenSim.Data.MySQL
         #endregion
 
         /// <summary>
-        /// database provider version
+        /// Database provider version
         /// </summary>
         override public string Version
         {
