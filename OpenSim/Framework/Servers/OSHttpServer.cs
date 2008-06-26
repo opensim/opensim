@@ -26,9 +26,11 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Security.Cryptography.X509Certificates;
 using log4net;
@@ -38,6 +40,39 @@ using HttpListener = HttpServer.HttpListener;
 
 namespace OpenSim.Framework.Servers
 {
+    /// <sumary>
+    /// Any OSHttpHandler must return one of the following results:
+    /// <list type = "table">
+    ///   <listheader>
+    ///     <term>result code</term>
+    ///     <description>meaning</description>
+    ///   </listheader>
+    ///   <item>
+    ///     <term>Pass</term>
+    ///     <description>handler did not process the request</request>
+    ///   </item>
+    ///   <item>
+    ///     <term>Handled</term>
+    ///     <description>handler did process the request, OSHttpServer
+    ///       can clean up and close the request</request>
+    ///   </item>
+    ///   <item>
+    ///     <term>Detached</term>
+    ///     <description>handler handles the request, OSHttpServer
+    ///       can forget about the request and should not touch it as
+    ///       the handler has taken control</request>
+    ///   </item>
+    /// </list>
+    /// </summary>
+    public enum OSHttpHandlerResult
+    {
+        Pass,
+        Handled,
+        Detached,
+    }
+
+    public delegate OSHttpHandlerResult OSHttpHandler(OSHttpRequest request);
+
     /// <summary>
     /// OSHttpServer provides an HTTP server bound to a specific
     /// port. When instantiated with just address and port it uses
@@ -136,6 +171,7 @@ namespace OpenSim.Framework.Servers
         }
 
         /// <summary>
+        /// Engine keeps the HTTP server running.
         /// </summary>
         private void Engine()
         {
@@ -146,7 +182,24 @@ namespace OpenSim.Framework.Servers
             }
         }
 
+        protected Dictionary<OSHttpHandler, Regex> Handler2Path = new Dictionary<OSHttpHandler, Regex>();
+        protected Dictionary<OSHttpHandler, Dictionary<string, Regex>> Handler2Headers = 
+            new Dictionary<OSHttpHandler, Dictionary<string, Regex>>();
 
+        /// <summary>
+        /// Add an HTTP request handler.
+        /// </summary>
+        /// <param name="handler">OSHttpHandler delegate</param>
+        /// <param name="path">regex object for path matching</parm>
+        /// <param name="headers">dictionary containing header names
+        /// and regular expressions to match against header values</param>
+        public void AddHandler(OSHttpHandler handler, Regex path, Dictionary<string, Regex> headers)
+        {
+            lock (Handler2Headers) 
+            {
+                
+            }
+        }
         
     }
 }
