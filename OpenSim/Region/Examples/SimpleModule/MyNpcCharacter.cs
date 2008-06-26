@@ -148,6 +148,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event ParcelJoinRequest OnParcelJoinRequest;
         public event ParcelPropertiesUpdateRequest OnParcelPropertiesUpdateRequest;
         public event ParcelAbandonRequest OnParcelAbandonRequest;
+        public event ParcelReclaim OnParcelReclaim;
         public event ParcelReturnObjectsRequest OnParcelReturnObjectsRequest;
         public event ParcelAccessListRequest OnParcelAccessListRequest;
         public event ParcelAccessListUpdateRequest OnParcelAccessListUpdateRequest;

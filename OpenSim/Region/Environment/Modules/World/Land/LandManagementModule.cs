@@ -94,6 +94,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             client.OnParcelAccessListRequest += new ParcelAccessListRequest(handleParcelAccessRequest);
             client.OnParcelAccessListUpdateRequest += new ParcelAccessListUpdateRequest(handleParcelAccessUpdateRequest);
             client.OnParcelAbandonRequest += new ParcelAbandonRequest(handleParcelAbandonRequest);
+            client.OnParcelReclaim += new ParcelReclaim(handleParcelReclaim);
 
             if (m_scene.Entities.ContainsKey(client.AgentId))
             {
@@ -932,6 +933,21 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 {
                     landList[local_id].landData.ownerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
                     m_scene.Broadcast(SendParcelOverlay);
+                    landList[local_id].sendLandUpdateToClient(remote_client);
+                }
+            }
+
+        }
+
+        public void handleParcelReclaim(int local_id, IClientAPI remote_client)
+        {
+            if (landList.ContainsKey(local_id))
+            {
+                if (m_scene.ExternalChecks.ExternalChecksCanReclaimParcel(remote_client.AgentId, landList[local_id]))
+                {
+                    landList[local_id].landData.ownerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+                    m_scene.Broadcast(SendParcelOverlay);
+                    landList[local_id].sendLandUpdateToClient(remote_client);
                 }
             }
 

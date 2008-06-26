@@ -235,6 +235,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private ParcelSelectObjects handlerParcelSelectObjects = null; //OnParcelSelectObjects;
         private ParcelObjectOwnerRequest handlerParcelObjectOwnerRequest = null; //OnParcelObjectOwnerRequest;
         private ParcelAbandonRequest handlerParcelAbandonRequest = null;
+        private ParcelReclaim handlerParcelReclaim = null;
         private ParcelReturnObjectsRequest handlerParcelReturnObjectsRequest = null;
         private RegionInfoRequest handlerRegionInfoRequest = null; //OnRegionInfoRequest;
         private EstateCovenantRequest handlerEstateCovenantRequest = null; //OnEstateCovenantRequest;
@@ -868,6 +869,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event ParcelSelectObjects OnParcelSelectObjects;
         public event ParcelObjectOwnerRequest OnParcelObjectOwnerRequest;
         public event ParcelAbandonRequest OnParcelAbandonRequest;
+        public event ParcelReclaim OnParcelReclaim;
         public event ParcelReturnObjectsRequest OnParcelReturnObjectsRequest;
         public event RegionInfoRequest OnRegionInfoRequest;
         public event EstateCovenantRequest OnEstateCovenantRequest;
@@ -5659,6 +5661,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         if (handlerParcelAbandonRequest != null)
                         {
                             handlerParcelAbandonRequest(releasePacket.Data.LocalID, this);
+                        }
+                        break;
+                    case PacketType.ParcelReclaim:
+                        ParcelReclaimPacket reclaimPacket = (ParcelReclaimPacket)Pack;
+
+                        handlerParcelReclaim = OnParcelReclaim;
+                        if (handlerParcelReclaim != null)
+                        {
+                            handlerParcelReclaim(reclaimPacket.Data.LocalID, this);
                         }
                         break;
                     case PacketType.ParcelReturnObjects:

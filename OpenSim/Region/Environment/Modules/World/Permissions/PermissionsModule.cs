@@ -143,6 +143,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             m_scene.ExternalChecks.addSetBypassPermissions(SetBypassPermissions); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addPropagatePermissions(PropagatePermissions); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckAbandonParcel(CanAbandonParcel); //FULLY IMPLEMENTED
+            m_scene.ExternalChecks.addCheckReclaimParcel(CanReclaimParcel); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addGenerateClientFlags(GenerateClientFlags); //NOT YET FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckBeGodLike(CanBeGodLike); //FULLY IMPLEMENTED
             m_scene.ExternalChecks.addCheckDuplicateObject(CanDuplicateObject); //FULLY IMPLEMENTED
@@ -524,6 +525,14 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         #region Permission Checks
             private bool CanAbandonParcel(LLUUID user, ILandObject parcel, Scene scene)
+            {
+                DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
+                if (m_bypassPermissions) return m_bypassPermissionsValue;
+
+                return GenericParcelPermission(user, parcel);
+            }
+
+            private bool CanReclaimParcel(LLUUID user, ILandObject parcel, Scene scene)
             {
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;

@@ -899,6 +899,31 @@ namespace OpenSim.Region.Environment.Scenes
             }
             #endregion
 
+            public delegate bool CanReclaimParcel(LLUUID user, ILandObject parcel, Scene scene);
+            private List<CanReclaimParcel> CanReclaimParcelCheckFunctions = new List<CanReclaimParcel>();
+
+            public void addCheckReclaimParcel(CanReclaimParcel delegateFunc)
+            {
+                if (!CanReclaimParcelCheckFunctions.Contains(delegateFunc))
+                    CanReclaimParcelCheckFunctions.Add(delegateFunc);
+            }
+            public void removeCheckReclaimParcel(CanReclaimParcel delegateFunc)
+            {
+                if (CanReclaimParcelCheckFunctions.Contains(delegateFunc))
+                    CanReclaimParcelCheckFunctions.Remove(delegateFunc);
+            }
+
+            public bool ExternalChecksCanReclaimParcel(LLUUID user, ILandObject parcel)
+            {
+                foreach (CanReclaimParcel check in CanReclaimParcelCheckFunctions)
+                {
+                    if (check(user, parcel, m_scene) == false)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
             public delegate bool CanBuyLand(LLUUID user, ILandObject parcel, Scene scene);
             private List<CanBuyLand> CanBuyLandCheckFunctions = new List<CanBuyLand>();
 
