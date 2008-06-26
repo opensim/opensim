@@ -39,9 +39,9 @@ namespace OpenSim.Framework.RegionLoader.Web
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IniConfigSource m_configSouce;
+        private IConfigSource m_configSouce;
 
-        public void SetIniConfigSource(IniConfigSource configSource)
+        public void SetIniConfigSource(IConfigSource configSource)
         {
             m_configSouce = configSource;
         }
@@ -55,7 +55,7 @@ namespace OpenSim.Framework.RegionLoader.Web
             }
             else
             {
-                IniConfig startupConfig = (IniConfig) m_configSouce.Configs["Startup"];
+                IConfig startupConfig = (IConfig) m_configSouce.Configs["Startup"];
                 string url = startupConfig.GetString("regionload_webserver_url", String.Empty).Trim();
                 if (url == String.Empty)
                 {

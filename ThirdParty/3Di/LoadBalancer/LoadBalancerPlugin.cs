@@ -79,7 +79,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
         {
             m_log.Info("[BALANCER] " + "Entering Initialize()");
 
-            proxyURL = openSim.ConfigSource.Configs["Network"].GetString("proxy_url", "");
+            proxyURL = openSim.ConfigSource.ConfigSource.Configs["Network"].GetString("proxy_url", "");
             if (proxyURL.Length == 0) return;
 
             StartTcpServer();
@@ -93,8 +93,8 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             simMain = openSim;
             commandServer = openSim.HttpServer;
 
-            proxyOffset = Int32.Parse(openSim.ConfigSource.Configs["Network"].GetString("proxy_offset", "0"));
-            serializeDir = openSim.ConfigSource.Configs["Network"].GetString("serialize_dir", "/tmp/");
+            proxyOffset = Int32.Parse(openSim.ConfigSource.ConfigSource.Configs["Network"].GetString("proxy_offset", "0"));
+            serializeDir = openSim.ConfigSource.ConfigSource.Configs["Network"].GetString("serialize_dir", "/tmp/");
 
             commandServer.AddXmlRPCHandler("SerializeRegion", SerializeRegion);
             commandServer.AddXmlRPCHandler("DeserializeRegion_Move", DeserializeRegion_Move);

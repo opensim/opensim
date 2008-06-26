@@ -51,7 +51,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             m_log.Info("[LOADREGIONS]: Load Regions addin being initialised");
 
             IRegionLoader regionLoader;
-            if (openSim.ConfigSource.Configs["Startup"].GetString("region_info_source", "filesystem") == "filesystem")
+            if (openSim.ConfigSource.ConfigSource.Configs["Startup"].GetString("region_info_source", "filesystem") == "filesystem")
             {
                 m_log.Info("[LOADREGIONS]: Loading Region Info from filesystem");
                 regionLoader = new RegionLoaderFileSystem();
@@ -62,7 +62,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 regionLoader = new RegionLoaderWebServer();
             }
 
-            regionLoader.SetIniConfigSource(openSim.ConfigSource);
+            regionLoader.SetIniConfigSource(openSim.ConfigSource.ConfigSource);
             RegionInfo[] regionsToLoad = regionLoader.LoadRegions();
 
             openSim.ModuleLoader.LoadDefaultSharedModules();
@@ -89,7 +89,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             m_log.Info("[LOADREGIONS]: Load Regions addin being initialised");
 
             IRegionLoader regionLoader;
-            if (openSim.ConfigSource.Configs["Startup"].GetString("region_info_source", "filesystem") == "filesystem")
+            if (openSim.ConfigSource.ConfigSource.Configs["Startup"].GetString("region_info_source", "filesystem") == "filesystem")
             {
                 m_log.Info("[LOADREGIONS]: Loading Region Info from filesystem");
                 regionLoader = new RegionLoaderFileSystem();
@@ -100,7 +100,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 regionLoader = new RegionLoaderWebServer();
             }
 
-            regionLoader.SetIniConfigSource(openSim.ConfigSource);
+            regionLoader.SetIniConfigSource(openSim.ConfigSource.ConfigSource);
             RegionInfo[] regionsToLoad = regionLoader.LoadRegions();
             for (int i = 0; i < regionsToLoad.Length; i++)
             {
