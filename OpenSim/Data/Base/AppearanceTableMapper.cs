@@ -32,6 +32,9 @@ using OpenSim.Framework;
 
 namespace OpenSim.Data.Base
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class AppearanceRowMapper : BaseRowMapper<AvatarAppearance>
     {
         public AppearanceRowMapper(BaseSchema schema, AvatarAppearance obj)
@@ -40,6 +43,9 @@ namespace OpenSim.Data.Base
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public class AppearanceTableMapper : BaseTableMapper<AppearanceRowMapper, Guid>
     {
         public AppearanceTableMapper(BaseDatabaseConnector database, string tableName)
@@ -186,28 +192,55 @@ namespace OpenSim.Data.Base
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="appearance"></param>
+        /// <returns></returns>
         public bool Add(Guid userID, AvatarAppearance appearance)
         {
             AppearanceRowMapper mapper = CreateRowMapper(appearance);
             return Add(mapper);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userID"></param>
+        /// <param name="appearance"></param>
+        /// <returns></returns>
         public bool Update(Guid userID, AvatarAppearance appearance)
         {
             AppearanceRowMapper mapper = CreateRowMapper(appearance);
             return Update(appearance.Owner.UUID, mapper);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="appearance"></param>
+        /// <returns></returns>
         protected AppearanceRowMapper CreateRowMapper(AvatarAppearance appearance)
         {
             return new AppearanceRowMapper(m_schema, appearance);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         protected AppearanceRowMapper CreateRowMapper()
         {
             return CreateRowMapper(new AvatarAppearance());
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <param name="appearance"></param>
+        /// <returns></returns>
         protected AppearanceRowMapper FromReader(BaseDataReader reader, AvatarAppearance appearance)
         {
             AppearanceRowMapper mapper = CreateRowMapper(appearance);
@@ -215,6 +248,11 @@ namespace OpenSim.Data.Base
             return mapper;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <returns></returns>
         public override AppearanceRowMapper FromReader(BaseDataReader reader)
         {
             AppearanceRowMapper mapper = CreateRowMapper();
@@ -222,6 +260,12 @@ namespace OpenSim.Data.Base
             return mapper;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="presenceID"></param>
+        /// <param name="val"></param>
+        /// <returns></returns>
         public bool TryGetValue(Guid presenceID, out AvatarAppearance val)
         {
             AppearanceRowMapper mapper;

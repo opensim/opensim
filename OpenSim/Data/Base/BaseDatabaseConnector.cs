@@ -32,10 +32,17 @@ using System.Data.Common;
 
 namespace OpenSim.Data.Base
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public abstract class BaseDatabaseConnector
     {
         protected string m_connectionString;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connectionString"></param>
         public BaseDatabaseConnector(string connectionString)
         {
             m_connectionString = connectionString;
@@ -44,6 +51,14 @@ namespace OpenSim.Data.Base
         public abstract DbConnection GetNewConnection();
         public abstract string CreateParamName(string fieldName);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="mapper"></param>
+        /// <param name="connection"></param>
+        /// <param name="fieldName"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
         public DbCommand CreateSelectCommand(BaseTableMapper mapper, DbConnection connection, string fieldName, object key)
         {
             string table = mapper.TableName;
@@ -61,6 +76,14 @@ namespace OpenSim.Data.Base
             return command;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="mapper"></param>
+        /// <param name="command"></param>
+        /// <param name="fieldName"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
         public string CreateCondition(BaseTableMapper mapper, DbCommand command, string fieldName, object key)
         {
             string keyFieldParamName = mapper.CreateParamName(fieldName);
@@ -73,6 +96,14 @@ namespace OpenSim.Data.Base
             return String.Format("{0}={1}", fieldName, keyFieldParamName);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="mapper"></param>
+        /// <param name="connection"></param>
+        /// <param name="rowMapper"></param>
+        /// <param name="primaryKey"></param>
+        /// <returns></returns>
         public DbCommand CreateUpdateCommand(BaseTableMapper mapper, DbConnection connection, object rowMapper, object primaryKey)
         {
             string table = mapper.TableName;
@@ -105,6 +136,13 @@ namespace OpenSim.Data.Base
             return command;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="mapper"></param>
+        /// <param name="connection"></param>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public DbCommand CreateInsertCommand(BaseTableMapper mapper, DbConnection connection, object obj)
         {
             string table = mapper.TableName;
@@ -132,6 +170,11 @@ namespace OpenSim.Data.Base
             return command;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public virtual object ConvertToDbType(object value)
         {
             return value;

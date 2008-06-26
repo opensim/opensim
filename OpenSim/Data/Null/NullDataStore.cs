@@ -33,6 +33,9 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Data.Null
 {
+    /// <summary>
+    /// NULL DataStore, do not store anything
+    /// </summary>
     public class NullDataStore : IRegionDataStore
     {
         public void Initialise(string dbfile, bool persistPrimInventories)

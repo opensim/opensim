@@ -29,16 +29,26 @@ using System.Collections.Generic;
 
 namespace OpenSim.Data.Base
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class BaseSchema
     {
         protected BaseTableMapper m_tableMapper;
         protected Dictionary<string, BaseFieldMapper> m_mappings;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public Dictionary<string, BaseFieldMapper> Fields
         {
             get { return m_mappings; }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tableMapper"></param>
         public BaseSchema(BaseTableMapper tableMapper)
         {
             m_mappings = new Dictionary<string, BaseFieldMapper>();
@@ -46,13 +56,29 @@ namespace OpenSim.Data.Base
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="TObj"></typeparam>
     public class BaseSchema<TObj> : BaseSchema
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tableMapper"></param>
         public BaseSchema(BaseTableMapper tableMapper)
             : base(tableMapper)
         {
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TField"></typeparam>
+        /// <param name="fieldName"></param>
+        /// <param name="rowMapperGetAccessor"></param>
+        /// <param name="rowMapperSetAccessor"></param>
+        /// <returns></returns>
         public ObjectField<TObj, TField> AddMapping<TField>(string fieldName,
                                                             ObjectGetAccessor<TObj, TField> rowMapperGetAccessor,
                                                             ObjectSetAccessor<TObj, TField> rowMapperSetAccessor)

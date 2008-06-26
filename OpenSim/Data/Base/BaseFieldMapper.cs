@@ -34,11 +34,17 @@ namespace OpenSim.Data.Base
     public delegate TField ObjectGetAccessor<TObj, TField>(TObj obj);
     public delegate void ObjectSetAccessor<TObj, TField>(TObj obj, TField value);
 
+    /// <summary>
+    /// 
+    /// </summary>
     public abstract class BaseFieldMapper
     {
         private readonly BaseTableMapper m_tableMapper;
         private readonly string m_fieldName;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public string FieldName
         {
             get { return m_fieldName; }
@@ -46,6 +52,9 @@ namespace OpenSim.Data.Base
 
         protected Type m_valueType;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public Type ValueType
         {
             get { return m_valueType; }
@@ -53,6 +62,12 @@ namespace OpenSim.Data.Base
 
         public abstract object GetParamValue(object obj);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tableMapper"></param>
+        /// <param name="fieldName"></param>
+        /// <param name="valueType"></param>
         public BaseFieldMapper(BaseTableMapper tableMapper, string fieldName, Type valueType)
         {
             m_fieldName = fieldName;
@@ -62,6 +77,13 @@ namespace OpenSim.Data.Base
 
         public abstract void SetPropertyFromReader(object mapper, BaseDataReader reader);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="fieldNames"></param>
+        /// <param name="fieldName"></param>
+        /// <param name="value"></param>
         public void RawAddParam(DbCommand command, List<string> fieldNames, string fieldName, object value)
         {
             string paramName = m_tableMapper.CreateParamName(fieldName);
@@ -74,6 +96,13 @@ namespace OpenSim.Data.Base
             command.Parameters.Add(param);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TObj"></typeparam>
+        /// <param name="obj"></param>
+        /// <param name="command"></param>
+        /// <param name="fieldNames"></param>
         public virtual void ExpandField<TObj>(TObj obj, DbCommand command, List<string> fieldNames)
         {
             string fieldName = FieldName;
@@ -82,6 +111,11 @@ namespace OpenSim.Data.Base
             RawAddParam(command, fieldNames, fieldName, m_tableMapper.ConvertToDbType(value));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <returns></returns>
         protected virtual object GetValue(BaseDataReader reader)
         {
             object value;
@@ -130,6 +164,11 @@ namespace OpenSim.Data.Base
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="TObject"></typeparam>
+    /// <typeparam name="TField"></typeparam>
     public class ObjectField<TObject, TField> : BaseFieldMapper
     {
         private readonly ObjectGetAccessor<TObject, TField> m_fieldGetAccessor;
@@ -157,6 +196,13 @@ namespace OpenSim.Data.Base
         }
 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="tableMapper"></param>
+        /// <param name="fieldName"></param>
+        /// <param name="rowMapperGetAccessor"></param>
+        /// <param name="rowMapperSetAccessor"></param>
         public ObjectField(BaseTableMapper tableMapper, string fieldName, ObjectGetAccessor<TObject, TField> rowMapperGetAccessor,
                            ObjectSetAccessor<TObject, TField> rowMapperSetAccessor)
             : base(tableMapper, fieldName, typeof(TField))

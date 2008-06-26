@@ -27,27 +27,46 @@
 
 namespace OpenSim.Data.Base
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public abstract class BaseRowMapper
     {
         public abstract void FillObject(BaseDataReader reader);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="TObj"></typeparam>
     public class BaseRowMapper<TObj> : BaseRowMapper
     {
         private readonly BaseSchema m_schema;
         private readonly TObj m_obj;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public TObj Object
         {
             get { return m_obj; }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="schema"></param>
+        /// <param name="obj"></param>
         public BaseRowMapper(BaseSchema schema, TObj obj)
         {
             m_schema = schema;
             m_obj = obj;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="reader"></param>
         public override void FillObject(BaseDataReader reader)
         {
             foreach (BaseFieldMapper fieldMapper in m_schema.Fields.Values)

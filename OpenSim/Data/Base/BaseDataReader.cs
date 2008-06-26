@@ -31,25 +31,47 @@ using System.IO;
 
 namespace OpenSim.Data.Base
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public abstract class BaseDataReader
     {
         private readonly IDataReader m_source;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="source"></param>
         public BaseDataReader(IDataReader source)
         {
             m_source = source;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public object Get(string name)
         {
             return m_source[name];
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public ushort GetUShort(string name)
         {
             return (ushort)m_source.GetInt32(m_source.GetOrdinal(name));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public byte GetByte(string name)
         {
             int ordinal = m_source.GetOrdinal(name);
@@ -57,16 +79,31 @@ namespace OpenSim.Data.Base
             return value;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public sbyte GetSByte(string name)
         {
             return (sbyte)m_source.GetInt16(m_source.GetOrdinal(name));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public float GetFloat(string name)
         {
             return m_source.GetFloat(m_source.GetOrdinal(name));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public byte[] GetBytes(string name)
         {
             int ordinal = m_source.GetOrdinal(name);
@@ -94,6 +131,11 @@ namespace OpenSim.Data.Base
             return memStream.ToArray();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public string GetString(string name)
         {
             int ordinal = m_source.GetOrdinal(name);
@@ -107,21 +149,40 @@ namespace OpenSim.Data.Base
             return (string)value;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public bool Read()
         {
             return m_source.Read();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public virtual Guid GetGuid(string name)
         {
             return m_source.GetGuid(m_source.GetOrdinal(name));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public UInt32 GetUInt32(string name)
         {
             return (UInt32)GetInt32(name);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         private Int32 GetInt32(string name)
         {
             int ordinal = m_source.GetOrdinal(name);
@@ -129,6 +190,11 @@ namespace OpenSim.Data.Base
             return int32;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public Int64 GetInt64(string name)
         {
             int ordinal = m_source.GetOrdinal(name);

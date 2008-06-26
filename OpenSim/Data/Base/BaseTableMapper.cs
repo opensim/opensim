@@ -31,11 +31,18 @@ using System.Data.Common;
 
 namespace OpenSim.Data.Base
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public abstract class BaseTableMapper
     {
         private readonly BaseDatabaseConnector m_database;
         private readonly object m_syncRoot = new object();
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="action"></param>
         protected void WithConnection(Action<DbConnection> action)
         {
             lock (m_syncRoot)
@@ -74,59 +81,124 @@ namespace OpenSim.Data.Base
             get { return m_keyFieldMapper; }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="database"></param>
+        /// <param name="tableName"></param>
         public BaseTableMapper(BaseDatabaseConnector database, string tableName)
         {
             m_database = database;
             m_tableName = tableName.ToLower(); // Stupid MySQL hack.
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fieldName"></param>
+        /// <returns></returns>
         public string CreateParamName(string fieldName)
         {
             return m_database.CreateParamName(fieldName);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="fieldName"></param>
+        /// <param name="primaryKey"></param>
+        /// <returns></returns>
         protected DbCommand CreateSelectCommand(DbConnection connection, string fieldName, object primaryKey)
         {
             return m_database.CreateSelectCommand(this, connection, fieldName, primaryKey);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="fieldName"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
         public string CreateCondition(DbCommand command, string fieldName, object key)
         {
             return m_database.CreateCondition(this, command, fieldName, key);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public DbCommand CreateInsertCommand(DbConnection connection, object obj)
         {
             return m_database.CreateInsertCommand(this, connection, obj);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="rowMapper"></param>
+        /// <param name="primaryKey"></param>
+        /// <returns></returns>
         public DbCommand CreateUpdateCommand(DbConnection connection, object rowMapper, object primaryKey)
         {
             return m_database.CreateUpdateCommand(this, connection, rowMapper, primaryKey);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public object ConvertToDbType(object value)
         {
             return m_database.ConvertToDbType(value);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <returns></returns>
         protected virtual BaseDataReader CreateReader(IDataReader reader)
         {
             return m_database.CreateReader(reader);
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="TRowMapper"></typeparam>
+    /// <typeparam name="TPrimaryKey"></typeparam>
     public abstract class BaseTableMapper<TRowMapper, TPrimaryKey> : BaseTableMapper
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="database"></param>
+        /// <param name="tableName"></param>
         public BaseTableMapper(BaseDatabaseConnector database, string tableName)
             : base(database, tableName)
         {
         }
 
-        // HACK: This is a temporary function used by TryGetValue().
-        // Due to a bug in mono 1.2.6, delegate blocks cannot contain
-        // a using block.  This has been fixed in SVN, so the next
-        // mono release should work.
+
+
+        /// <summary>
+        /// HACK: This is a temporary function used by TryGetValue().
+        /// Due to a bug in mono 1.2.6, delegate blocks cannot contain
+        /// a using block.  This has been fixed in SVN, so the next
+        /// mono release should work.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="primaryKey"></param>
+        /// <param name="result"></param>
+        /// <param name="success"></param>
         private void TryGetConnectionValue(DbConnection connection, TPrimaryKey primaryKey, ref TRowMapper result, ref bool success)
         {
             using (
@@ -148,6 +220,12 @@ namespace OpenSim.Data.Base
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="primaryKey"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public bool TryGetValue(TPrimaryKey primaryKey, out TRowMapper value)
         {
             TRowMapper result = default(TRowMapper);
@@ -163,10 +241,15 @@ namespace OpenSim.Data.Base
             return success;
         }
 
-        // HACK: This is a temporary function used by Remove().
-        // Due to a bug in mono 1.2.6, delegate blocks cannot contain
-        // a using block.  This has been fixed in SVN, so the next
-        // mono release should work.
+        /// <summary>
+        /// HACK: This is a temporary function used by Remove().
+        /// Due to a bug in mono 1.2.6, delegate blocks cannot contain
+        /// a using block.  This has been fixed in SVN, so the next
+        /// mono release should work.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="id"></param>
+        /// <param name="deleted"></param>
         protected virtual void TryDelete(DbConnection connection, TPrimaryKey id, ref int deleted)
         {
             using (
@@ -177,6 +260,11 @@ namespace OpenSim.Data.Base
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public virtual bool Remove(TPrimaryKey id)
         {
             int deleted = 0;
@@ -196,6 +284,13 @@ namespace OpenSim.Data.Base
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="fieldName"></param>
+        /// <param name="primaryKey"></param>
+        /// <returns></returns>
         public DbCommand CreateDeleteCommand(DbConnection connection, string fieldName, TPrimaryKey primaryKey)
         {
             string table = TableName;
@@ -213,10 +308,18 @@ namespace OpenSim.Data.Base
             return command;
         }
 
-        // HACK: This is a temporary function used by Update().
-        // Due to a bug in mono 1.2.6, delegate blocks cannot contain
-        // a using block.  This has been fixed in SVN, so the next
-        // mono release should work.
+
+
+        /// <summary>
+        /// HACK: This is a temporary function used by Update().
+        /// Due to a bug in mono 1.2.6, delegate blocks cannot contain
+        /// a using block.  This has been fixed in SVN, so the next
+        /// mono release should work.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="primaryKey"></param>
+        /// <param name="value"></param>
+        /// <param name="updated"></param>
         protected void TryUpdate(DbConnection connection, TPrimaryKey primaryKey, TRowMapper value, ref int updated)
         {
             using (DbCommand command = CreateUpdateCommand(connection, value, primaryKey))
@@ -225,6 +328,12 @@ namespace OpenSim.Data.Base
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="primaryKey"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public virtual bool Update(TPrimaryKey primaryKey, TRowMapper value)
         {
             int updated = 0;
@@ -244,10 +353,15 @@ namespace OpenSim.Data.Base
             }
         }
 
-        // HACK: This is a temporary function used by Add().
-        // Due to a bug in mono 1.2.6, delegate blocks cannot contain
-        // a using block.  This has been fixed in SVN, so the next
-        // mono release should work.
+        /// <summary>
+        /// HACK: This is a temporary function used by Add().
+        /// Due to a bug in mono 1.2.6, delegate blocks cannot contain
+        /// a using block.  This has been fixed in SVN, so the next
+        /// mono release should work.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="value"></param>
+        /// <param name="added"></param>
         protected void TryAdd(DbConnection connection, TRowMapper value, ref int added)
         {
             using (DbCommand command = CreateInsertCommand(connection, value))
@@ -256,6 +370,11 @@ namespace OpenSim.Data.Base
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public virtual bool Add(TRowMapper value)
         {
             int added = 0;
