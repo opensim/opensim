@@ -88,6 +88,36 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        public void AddInventoryItem(LLUUID AgentID, InventoryItemBase item)
+        {
+            CachedUserInfo userInfo
+                = CommsManager.UserProfileCacheService.GetUserDetails(AgentID);
+
+            if (userInfo != null)
+            {
+                userInfo.AddItem(item);
+
+                int userlevel = 0;
+                if (ExternalChecks.ExternalChecksCanBeGodLike(AgentID))
+                {
+                    userlevel = 1;
+                }
+                if (m_regInfo.MasterAvatarAssignedUUID == AgentID)
+                {
+                    userlevel = 2;
+                }
+                EventManager.TriggerOnNewInventoryItemUploadComplete(AgentID, item.AssetID, item.Name, userlevel);
+            }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[AGENT INVENTORY]: Agent {1} was not found for add of item {2} {3}",
+                    AgentID, item.Name, item.ID);
+
+                return;
+            }
+        }
+
         /// <summary>
         /// Add an inventory item to an avatar's inventory.
         /// </summary>
@@ -101,48 +131,9 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (userInfo != null)
             {
-                userInfo.AddItem(item);
+                AddInventoryItem(remoteClient.AgentId, item);
                 remoteClient.SendInventoryItemCreateUpdate(item);
-
-                int userlevel = 0;
-                if (ExternalChecks.ExternalChecksCanBeGodLike(remoteClient.AgentId))
-                {
-                    userlevel = 1;
-                }
-                if (m_regInfo.MasterAvatarAssignedUUID == remoteClient.AgentId)
-                {
-                    userlevel = 2;
-                }
-                EventManager.TriggerOnNewInventoryItemUploadComplete(remoteClient.AgentId, item.AssetID, item.Name, userlevel);
             }
-            else
-            {
-                m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Agent {0} {1} was not found for add of item {2} {3}",
-                    remoteClient.Name, remoteClient.AgentId, item.Name, item.ID);
-
-                return;
-            }
-        }
-
-        /// <summary>
-        /// <see>AddInventoryItem(LLUUID, InventoryItemBase)</see>
-        /// </summary>
-        /// <param name="avatarId">The ID of the avatar</param>
-        /// <param name="item">The item.  This structure contains all the item metadata, including the folder
-        /// in which the item is to be placed.</param>
-        public void AddInventoryItem(LLUUID avatarId, InventoryItemBase item)
-        {
-            ScenePresence avatar;
-
-            if (!TryGetAvatar(avatarId, out avatar))
-            {
-                m_log.ErrorFormat(
-                    "[AGENT INVENTORY]: Could not find avatar {0} to add inventory item", avatarId);
-                return;
-            }
-
-            AddInventoryItem(avatar.ControllingClient, item);
         }
 
         /// <summary>
@@ -517,13 +508,13 @@ namespace OpenSim.Region.Environment.Scenes
                 if (remoteClient.AgentId == oldAgentID)
                 {
                     CreateNewInventoryItem(
-                        remoteClient, newFolderID, callbackID, asset, (sbyte)item.InvType,
+                        remoteClient, newFolderID, item.Name, item.Flags, callbackID, asset, (sbyte)item.InvType,
                         item.BasePermissions, item.CurrentPermissions, item.EveryOnePermissions, item.NextPermissions);
                 }
                 else
                 {
                     CreateNewInventoryItem(
-                        remoteClient, newFolderID, callbackID, asset, (sbyte)item.InvType,
+                        remoteClient, newFolderID, item.Name, item.Flags, callbackID, asset, (sbyte)item.InvType,
                         item.NextPermissions, item.NextPermissions, item.EveryOnePermissions & item.NextPermissions, item.NextPermissions);
                 }
             }
@@ -619,11 +610,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="asset"></param>
         /// <param name="invType"></param>
         /// <param name="nextOwnerMask"></param>
-        private void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID folderID, uint callbackID,
+        private void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID folderID, string name, uint flags, uint callbackID,
                                             AssetBase asset, sbyte invType, uint nextOwnerMask)
         {
             CreateNewInventoryItem(
-                remoteClient, folderID, callbackID, asset, invType,
+                remoteClient, folderID, name, flags, callbackID, asset, invType,
                 (uint)PermissionMask.All, (uint)PermissionMask.All, 0, nextOwnerMask);
         }
 
@@ -637,7 +628,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="invType"></param>
         /// <param name="nextOwnerMask"></param>
         private void CreateNewInventoryItem(
-            IClientAPI remoteClient, LLUUID folderID, uint callbackID, AssetBase asset, sbyte invType,
+            IClientAPI remoteClient, LLUUID folderID, string name, uint flags, uint callbackID, AssetBase asset, sbyte invType,
             uint baseMask, uint currentMask, uint everyoneMask, uint nextOwnerMask)
         {
             CachedUserInfo userInfo
@@ -651,7 +642,8 @@ namespace OpenSim.Region.Environment.Scenes
                 item.ID = LLUUID.Random();
                 item.AssetID = asset.FullID;
                 item.Description = asset.Description;
-                item.Name = asset.Name;
+                item.Name = name;
+                item.Flags = flags;
                 item.AssetType = asset.Type;
                 item.InvType = invType;
                 item.Folder = folderID;
@@ -715,7 +707,7 @@ namespace OpenSim.Region.Environment.Scenes
                     AssetBase asset = CreateAsset(name, description, assetType, data);
                     AssetCache.AddAsset(asset);
 
-                    CreateNewInventoryItem(remoteClient, folderID, callbackID, asset, invType, nextOwnerMask);
+                    CreateNewInventoryItem(remoteClient, folderID, asset.Name, 0, callbackID, asset, invType, nextOwnerMask);
                 }
                 else
                 {
@@ -864,38 +856,29 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        /// <summary>
-        /// Move the given item in the given prim to a folder in the client's inventory
-        /// </summary>
-        /// <param name="remoteClient"></param>
-        /// <param name="folderID"></param>
-        /// <param name="part"></param>
-        /// <param name="itemID"></param>
-        public void MoveTaskInventoryItem(IClientAPI remoteClient, LLUUID folderId, SceneObjectPart part, LLUUID itemId)
+        private InventoryItemBase CreateAgentInventoryItemFromTask(LLUUID destAgent, SceneObjectPart part, LLUUID itemId)
         {
-
             TaskInventoryItem taskItem = part.GetInventoryItem(itemId);
 
             if (null == taskItem)
             {
                 // Console already notified of error in GetInventoryItem
-                return;
+                return null;
             }
 
             InventoryItemBase agentItem = new InventoryItemBase();
 
             agentItem.ID = LLUUID.Random();
             agentItem.Creator = taskItem.CreatorID;
-            agentItem.Owner = remoteClient.AgentId;
+            agentItem.Owner = destAgent;
             agentItem.AssetID = taskItem.AssetID;
             agentItem.Description = taskItem.Description;
             agentItem.Name = taskItem.Name;
             agentItem.AssetType = taskItem.Type;
             agentItem.InvType = taskItem.InvType;
-            agentItem.Folder = folderId;
             agentItem.Flags = taskItem.Flags;
 
-            if ((remoteClient.AgentId != taskItem.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
+            if ((destAgent != taskItem.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
             {
                 agentItem.BasePermissions = taskItem.NextOwnerMask;
                 agentItem.CurrentPermissions = taskItem.NextOwnerMask;
@@ -910,13 +893,29 @@ namespace OpenSim.Region.Environment.Scenes
                 agentItem.EveryOnePermissions = taskItem.EveryoneMask;
             }
 
-            AddInventoryItem(remoteClient, agentItem);
             if (!ExternalChecks.ExternalChecksBypassPermissions())
             {
                 if ((taskItem.OwnerMask & (uint)PermissionMask.Copy) == 0)
                     part.RemoveInventoryItem(itemId);
             }
 
+            return agentItem;
+        }
+
+        /// <summary>
+        /// Move the given item in the given prim to a folder in the client's inventory
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="folderID"></param>
+        /// <param name="part"></param>
+        /// <param name="itemID"></param>
+        public void MoveTaskInventoryItem(IClientAPI remoteClient, LLUUID folderId, SceneObjectPart part, LLUUID itemId)
+        {
+
+            InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(remoteClient.AgentId, part, itemId);
+
+            agentItem.Folder = folderId;
+            AddInventoryItem(remoteClient, agentItem);
         }
         
         /// <summary>
@@ -964,14 +963,22 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (TryGetAvatar(avatarId, out avatar))
             {
-                 MoveTaskInventoryItem(avatar.ControllingClient, folderId, part, itemId);
+                MoveTaskInventoryItem(avatar.ControllingClient, folderId, part, itemId);
             }
             else
             {
-                m_log.ErrorFormat(
-                    "[PRIM INVENTORY]: " +
-                    "Avatar {0} cannot be found to update its prim item asset",
-                    avatarId);
+                CachedUserInfo profile = CommsManager.UserProfileCacheService.GetUserDetails(avatarId);
+                if(profile == null || profile.RootFolder == null)
+                {
+                    m_log.ErrorFormat(
+                        "[PRIM INVENTORY]: " +
+                        "Avatar {0} cannot be found to add item",
+                        avatarId);
+                }
+                InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(avatarId, part, itemId);
+                agentItem.Folder = folderId;
+
+                AddInventoryItem(avatarId, agentItem);
             }
         }
         
@@ -1047,6 +1054,41 @@ namespace OpenSim.Region.Environment.Scenes
             
         }
         
+        public void MoveTaskInventoryItems(LLUUID destID, string category, SceneObjectPart host, List<LLUUID> items)
+        {
+            CachedUserInfo profile = CommsManager.UserProfileCacheService.GetUserDetails(destID);
+            if(profile == null || profile.RootFolder == null)
+            {
+                m_log.ErrorFormat(
+                    "[PRIM INVENTORY]: " +
+                    "Avatar {0} cannot be found to add items",
+                    destID);
+                return;
+            }
+
+            LLUUID newFolderID = LLUUID.Random();
+            
+            profile.CreateFolder(category, newFolderID, 0xffff, profile.RootFolder.ID);
+
+            foreach (LLUUID itemID in items)
+            {
+                InventoryItemBase agentItem = CreateAgentInventoryItemFromTask(destID, host, itemID);
+                agentItem.Folder = newFolderID;
+
+                AddInventoryItem(destID, agentItem);
+            }
+
+            ScenePresence avatar;
+
+            if (TryGetAvatar(destID, out avatar))
+            {
+                profile.SendInventoryDecendents(avatar.ControllingClient,
+                        profile.RootFolder.ID, true, false);
+                profile.SendInventoryDecendents(avatar.ControllingClient,
+                        newFolderID, false, true);
+            }
+        }
+
         /// <summary>
         /// Update an item in a prim (task) inventory.
         /// This method does not handle scripts, <see>RezScript(IClientAPI, LLUUID, unit)</see>

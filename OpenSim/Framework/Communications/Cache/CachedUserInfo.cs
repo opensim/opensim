@@ -380,6 +380,13 @@ namespace OpenSim.Framework.Communications.Cache
                 baseFolder.Version = RootFolder.Version;
 
                 m_commsManager.InventoryService.UpdateFolder(baseFolder);
+
+                InventoryFolderImpl folder=RootFolder.FindFolder(folderID);
+                if(folder != null)
+                {
+                    folder.Name = name;
+                    folder.ParentID = parentID;
+                }
             }
             else
             {
@@ -415,6 +422,10 @@ namespace OpenSim.Framework.Communications.Cache
                 baseFolder.ParentID = parentID;
 
                 m_commsManager.InventoryService.MoveFolder(baseFolder);
+
+                InventoryFolderImpl folder=RootFolder.FindFolder(folderID);
+                if(folder != null)
+                    folder.ParentID = parentID;
 
                 return true;
             }

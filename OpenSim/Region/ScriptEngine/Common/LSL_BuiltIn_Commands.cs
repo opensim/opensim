@@ -4374,10 +4374,45 @@ namespace OpenSim.Region.ScriptEngine.Common
             NotImplemented("llGroundRepel");
         }
 
+        private LLUUID GetTaskInventoryItem(string name)
+        {
+            foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            {
+                if(inv.Value.Name == name)
+                    return inv.Key;
+            }
+            return LLUUID.Zero;
+        }
+
         public void llGiveInventoryList(string destination, string category, LSL_Types.list inventory)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGiveInventoryList");
+
+            LLUUID destID;
+            if(!LLUUID.TryParse(destination, out destID))
+                return;
+
+            List<LLUUID> itemList = new List<LLUUID>();
+
+            foreach (Object item in inventory.Data)
+            {
+                LLUUID itemID;
+                if(LLUUID.TryParse(item.ToString(), out itemID))
+                {
+                    itemList.Add(itemID);
+                }
+                else
+                {
+                    itemID = GetTaskInventoryItem(item.ToString());
+                    if(itemID != LLUUID.Zero)
+                        itemList.Add(itemID);
+                }
+            }
+            
+            if(itemList.Count == 0)
+                return;
+
+            m_ScriptEngine.World.MoveTaskInventoryItems(destID, category, m_host, itemList);
         }
 
         public void llSetVehicleType(int type)
