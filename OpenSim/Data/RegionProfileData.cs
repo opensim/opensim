@@ -130,13 +130,16 @@ namespace OpenSim.Data
         /// </summary>
         public LLUUID originUUID;
 
+
         /// <summary>
-        /// Get Sim profile data from grid server when in grid mode
+        /// Request sim profile information from a grid server, by Region UUID
         /// </summary>
-        /// <param name="region_uuid"></param>
+        /// <param name="region_uuid">The region UUID to look for</param>
         /// <param name="gridserver_url"></param>
-        /// <param name="?"></param>
-        /// <returns></returns>
+        /// <param name="gridserver_sendkey"></param>
+        /// <param name="gridserver_recvkey"></param>
+        /// <returns>The sim profile.  Null if there was a request failure</returns>
+        /// <remarks>This method should be statics</remarks>
         public RegionProfileData RequestSimProfileData(LLUUID region_uuid, string gridserver_url,
                                                        string gridserver_sendkey, string gridserver_recvkey)
         {
@@ -172,9 +175,9 @@ namespace OpenSim.Data
         }
 
         /// <summary>
-        /// Request sim profile information from a grid server
+        /// Request sim profile information from a grid server, by Region Handle
         /// </summary>
-        /// <param name="region_handle"></param>
+        /// <param name="region_handle">the region handle to look for</param>
         /// <param name="gridserver_url"></param>
         /// <param name="gridserver_sendkey"></param>
         /// <param name="gridserver_recvkey"></param>
@@ -214,9 +217,9 @@ namespace OpenSim.Data
         }
 
         /// <summary>
-        /// Request sim profile information from a grid server
+        /// Request sim profile information from a grid server, by Region Name
         /// </summary>
-        /// <param name="region_handle"></param>
+        /// <param name="region_handle">the region name to look for</param>
         /// <param name="gridserver_url"></param>
         /// <param name="gridserver_sendkey"></param>
         /// <param name="gridserver_recvkey"></param>

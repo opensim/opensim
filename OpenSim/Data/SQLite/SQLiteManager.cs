@@ -35,6 +35,9 @@ using log4net;
 
 namespace OpenSim.Data.SQLite
 {
+    /// <summary>
+    /// SQLite Manager
+    /// </summary>
     internal class SQLiteManager : SQLiteUtil
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -42,13 +45,12 @@ namespace OpenSim.Data.SQLite
         private IDbConnection dbcon;
 
         /// <summary>
-        /// Initialises and creates a new SQLite connection and maintains it.
+        /// <list type="bullet">
+        /// <item>Initialises and creates a new SQLite connection and maintains it.</item>
+        /// <item>use default URI if connect string is empty.</item>
+        /// </list>
         /// </summary>
-        /// <param name="hostname">The SQLite server being connected to</param>
-        /// <param name="database">The name of the SQLite database being used</param>
-        /// <param name="username">The username logging into the database</param>
-        /// <param name="password">The password for the user logging in</param>
-        /// <param name="cpooling">Whether to use connection pooling or not, can be one of the following: 'yes', 'true', 'no' or 'false', if unsure use 'false'.</param>
+        /// <param name="connect">connect string</param>
         public SQLiteManager(string connect)
         {
             try

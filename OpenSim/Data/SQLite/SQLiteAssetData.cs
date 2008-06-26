@@ -56,6 +56,14 @@ namespace OpenSim.Data.SQLite
 
         private SqliteConnection m_conn;
 
+        /// <summary>
+        /// <list type="bullet">
+        /// <item>Initialises AssetData interface</item>
+        /// <item>Loads and initialises a new SQLite connection and maintains it.</item>
+        /// <item>use default URI if connect string is empty.</item>
+        /// </list>
+        /// </summary>
+        /// <param name="dbconnect">connect string</param>
         override public void Initialise(string dbconnect)
         {
             if (dbconnect == string.Empty)
@@ -64,9 +72,6 @@ namespace OpenSim.Data.SQLite
             }
             m_conn = new SqliteConnection(dbconnect);
             m_conn.Open();
-
-
-
 
             Assembly assem = GetType().Assembly;
             Migration m = new Migration(m_conn, assem, "AssetStore");
@@ -80,6 +85,11 @@ namespace OpenSim.Data.SQLite
             return;
         }
 
+        /// <summary>
+        /// Fetch Asset
+        /// </summary>
+        /// <param name="uuid">UUID of ... ?</param>
+        /// <returns>Asset base</returns>
         override public AssetBase FetchAsset(LLUUID uuid)
         {
 
@@ -103,6 +113,10 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// Create an asset
+        /// </summary>
+        /// <param name="asset">Asset Base</param>
         override public void CreateAsset(AssetBase asset)
         {
             m_log.Info("[ASSET DB]: Creating Asset " + Util.ToRawUuidString(asset.FullID));
@@ -128,6 +142,10 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// Update an asset
+        /// </summary>
+        /// <param name="asset"></param>
         override public void UpdateAsset(AssetBase asset)
         {
             LogAssetLoad(asset);
@@ -148,6 +166,10 @@ namespace OpenSim.Data.SQLite
 
         }
 
+        /// <summary>
+        /// Some... logging functionnality
+        /// </summary>
+        /// <param name="asset"></param>
         private static void LogAssetLoad(AssetBase asset)
         {
             string temporary = asset.Temporary ? "Temporary" : "Stored";
@@ -161,6 +183,11 @@ namespace OpenSim.Data.SQLite
                                                    asset.InvType, temporary, local, assetLength));
         }
 
+        /// <summary>
+        /// Check if an asset exist in database
+        /// </summary>
+        /// <param name="uuid">The asset UUID</param>
+        /// <returns>True if exist, or false.</returns>
         override public bool ExistsAsset(LLUUID uuid)
         {
             using (SqliteCommand cmd = new SqliteCommand(SelectAssetSQL, m_conn))
@@ -182,6 +209,10 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// Delete an asset from database
+        /// </summary>
+        /// <param name="uuid"></param>
         public void DeleteAsset(LLUUID uuid)
         {
             using (SqliteCommand cmd = new SqliteCommand(DeleteAssetSQL, m_conn))
@@ -192,6 +223,9 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// commit
+        /// </summary>
         override public void CommitAssets() // force a sync to the database
         {
             m_log.Info("[ASSET DB]: Attempting commit");
@@ -210,6 +244,10 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
+        /// <summary>
+        /// Create the "assets" table
+        /// </summary>
+        /// <returns></returns>
         private static DataTable createAssetsTable()
         {
             DataTable assets = new DataTable("assets");
@@ -235,6 +273,11 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
         private static AssetBase buildAsset(IDataReader row)
         {
             // TODO: this doesn't work yet because something more
@@ -263,6 +306,10 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="conn"></param>
         private static void InitDB(SqliteConnection conn)
         {
             string createAssets = SQLiteUtil.defineTable(createAssetsTable());
@@ -270,6 +317,12 @@ namespace OpenSim.Data.SQLite
             pcmd.ExecuteNonQuery();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="conn"></param>
+        /// <param name="m"></param>
+        /// <returns></returns>
         private static bool TestTables(SqliteConnection conn, Migration m)
         {
             SqliteCommand cmd = new SqliteCommand(assetSelect, conn);
@@ -295,6 +348,9 @@ namespace OpenSim.Data.SQLite
 
         #region IPlugin interface
 
+        /// <summary>
+        /// 
+        /// </summary>
         override public string Version
         {
             get
@@ -309,11 +365,17 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// Initialise the AssetData interface using default URI
+        /// </summary>
         override public void Initialise()
         {
             Initialise("URI=file:AssetStorage.db,version=3");
         }
 
+        /// <summary>
+        /// Name of this DB provider
+        /// </summary>
         override public string Name
         {
             get { return "SQLite Asset storage engine"; }

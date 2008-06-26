@@ -41,13 +41,18 @@ namespace OpenSim.Data.SQLite
     public class SQLiteGridData : GridDataBase
     {
         /// <summary>
-        /// A database manager
+        /// SQLite database manager
         /// </summary>
         private SQLiteManager database;
 
         /// <summary>
-        /// Initialises the Grid Interface
+        /// <list type="bullet">
+        /// <item>Initialises Inventory interface</item>
+        /// <item>Loads and initialises a new SQLite connection and maintains it.</item>
+        /// <item>use default URI if connect string is empty.</item>
+        /// </list>
         /// </summary>
+        /// <param name="dbconnect">connect string</param>
         override public void Initialise(string connect)
         {
             database = new SQLiteManager(connect);
@@ -87,13 +92,14 @@ namespace OpenSim.Data.SQLite
         /// <param name="c">maximum X coordinate</param>
         /// <param name="d">maximum Y coordinate</param>
         /// <returns>An array of region profiles</returns>
+        /// <remarks>NOT IMPLEMENTED ? always return null</remarks>
         override public RegionProfileData[] GetProfilesInRange(uint a, uint b, uint c, uint d)
         {
             return null;
         }
 
         /// <summary>
-        /// Returns a sim profile from it's location
+        /// Returns a sim profile from it's handle
         /// </summary>
         /// <param name="handle">Region location handle</param>
         /// <returns>Sim profile</returns>
@@ -162,8 +168,9 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        /// // Returns a list of avatar and UUIDs that match the query
+        /// Returns a list of avatar and UUIDs that match the query
         /// </summary>
+        /// <remarks>do nothing yet</remarks>
         public List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
             //Do nothing yet
@@ -232,6 +239,12 @@ namespace OpenSim.Data.SQLite
             return false;
         }
 
+        /// <summary>
+        /// NOT IMPLEMENTED
+        /// </summary>
+        /// <param name="x">x coordinate</param>
+        /// <param name="y">y coordinate</param>
+        /// <returns>always return null</returns>
         override public ReservationData GetReservationAtPoint(uint x, uint y)
         {
             return null;

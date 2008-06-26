@@ -36,6 +36,9 @@ using OpenSim.Framework;
 
 namespace OpenSim.Data.SQLite
 {
+    /// <summary>
+    /// An Inventory Interface to the SQLite database
+    /// </summary>
     public class SQLiteInventoryStore : SQLiteUtil, IInventoryData
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -48,8 +51,13 @@ namespace OpenSim.Data.SQLite
         private SqliteDataAdapter invFoldersDa;
 
         /// <summary>
-        /// Initialises the interface
+        /// <list type="bullet">
+        /// <item>Initialises Inventory interface</item>
+        /// <item>Loads and initialises a new SQLite connection and maintains it.</item>
+        /// <item>use default URI if connect string string is empty.</item>
+        /// </list>
         /// </summary>
+        /// <param name="dbconnect">connect string</param>
         public void Initialise(string dbconnect)
         {
             if (dbconnect == string.Empty)
@@ -90,6 +98,11 @@ namespace OpenSim.Data.SQLite
             ds.AcceptChanges();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
         public InventoryItemBase buildItem(DataRow row)
         {
             InventoryItemBase item = new InventoryItemBase();
@@ -130,6 +143,11 @@ namespace OpenSim.Data.SQLite
             return item;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="item"></param>
         private static void fillItemRow(DataRow row, InventoryItemBase item)
         {
             row["UUID"] = Util.ToRawUuidString(item.ID);
@@ -156,6 +174,12 @@ namespace OpenSim.Data.SQLite
             row["flags"] = item.Flags;
         }
 
+        /// <summary>
+        /// Add inventory folder
+        /// </summary>
+        /// <param name="folder">Folder base</param>
+        /// <param name="add">true=create folder. false=update existing folder</param>
+        /// <remarks>nasty</remarks>
         private void addFolder(InventoryFolderBase folder, bool add)
         {
             lock (ds)
@@ -184,6 +208,10 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// Move an inventory folder
+        /// </summary>
+        /// <param name="folder">folder base</param>
         private void moveFolder(InventoryFolderBase folder)
         {
             lock (ds)
@@ -206,6 +234,11 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// add an item in inventory
+        /// </summary>
+        /// <param name="item">the item</param>
+        /// <param name="add">true=add item ; false=update existing item</param>
         private void addItem(InventoryItemBase item, bool add)
         {
             lock (ds)
@@ -233,31 +266,34 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// TODO : DataSet commit
+        /// </summary>
         public void Shutdown()
         {
             // TODO: DataSet commit
         }
 
         /// <summary>
-        /// Closes the interface
+        /// Closes the inventory interface
         /// </summary>
         public void Close()
         {
         }
 
         /// <summary>
-        /// The plugin being loaded
+        /// The name of this DB provider
         /// </summary>
-        /// <returns>A string containing the plugin name</returns>
+        /// <returns>Name of DB provider</returns>
         public string getName()
         {
             return "SQLite Inventory Data Interface";
         }
 
         /// <summary>
-        /// The plugins version
+        /// Returns the version of this DB provider
         /// </summary>
-        /// <returns>A string containing the plugin version</returns>
+        /// <returns>A string containing the DB provider version</returns>
         public string getVersion()
         {
             Module module = GetType().Module;
@@ -362,7 +398,11 @@ namespace OpenSim.Data.SQLite
             return folders;
         }
 
-        // See IInventoryData
+        /// <summary>
+        /// See IInventoryData
+        /// </summary>
+        /// <param name="parentID"></param>
+        /// <returns></returns>
         public List<InventoryFolderBase> getFolderHierarchy(LLUUID parentID)
         {
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
@@ -440,9 +480,9 @@ namespace OpenSim.Data.SQLite
         }
 
         /// <summary>
-        ///
+        /// Delete an inventory item
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">The item UUID</param>
         public void deleteInventoryItem(LLUUID itemID)
         {
             lock (ds)
@@ -463,7 +503,7 @@ namespace OpenSim.Data.SQLite
         /// Delete all items in the specified folder
         /// </summary>
         /// <param name="folderId">id of the folder, whose item content should be deleted</param>
-        //!TODO, this is horribly inefficient, but I don't want to ruin the overall structure of this implementation
+        /// <todo>this is horribly inefficient, but I don't want to ruin the overall structure of this implementation</todo> 
         private void deleteItemsInFolder(LLUUID folderId)
         {
             List<InventoryItemBase> items = getInventoryInFolder(Util.ToRawUuidString(folderId));
@@ -505,7 +545,7 @@ namespace OpenSim.Data.SQLite
         /// <remarks>
         /// This will clean-up any child folders and child items as well
         /// </remarks>
-        /// <param name="item"></param>
+        /// <param name="folderID">the folder UUID</param>
         public void deleteInventoryFolder(LLUUID folderID)
         {
             lock (ds)
@@ -544,6 +584,9 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
+        /// <summary>
+        /// Create the "inventoryitems" table
+        /// </summary>
         private static DataTable createInventoryItemsTable()
         {
             DataTable inv = new DataTable("inventoryitems");
@@ -582,6 +625,10 @@ namespace OpenSim.Data.SQLite
             return inv;
         }
 
+        /// <summary>
+        /// Creates the "inventoryfolders" table
+        /// </summary>
+        /// <returns></returns>
         private static DataTable createInventoryFoldersTable()
         {
             DataTable fol = new DataTable("inventoryfolders");
@@ -597,6 +644,11 @@ namespace OpenSim.Data.SQLite
             return fol;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void setupItemsCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
             lock (ds)
@@ -614,6 +666,11 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void setupFoldersCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
             lock (ds)
@@ -631,6 +688,11 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
         private static InventoryFolderBase buildFolder(DataRow row)
         {
             InventoryFolderBase folder = new InventoryFolderBase();
@@ -643,6 +705,11 @@ namespace OpenSim.Data.SQLite
             return folder;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="folder"></param>
         private static void fillFolderRow(DataRow row, InventoryFolderBase folder)
         {
             row["UUID"] = Util.ToRawUuidString(folder.ID);
@@ -653,6 +720,11 @@ namespace OpenSim.Data.SQLite
             row["version"] = folder.Version;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="folder"></param>
         private static void moveFolderRow(DataRow row, InventoryFolderBase folder)
         {
             row["UUID"] = Util.ToRawUuidString(folder.ID);
@@ -665,6 +737,10 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="conn"></param>
         private static void InitDB(SqliteConnection conn)
         {
             string createInventoryItems = defineTable(createInventoryItemsTable());
@@ -677,6 +753,12 @@ namespace OpenSim.Data.SQLite
             scmd.ExecuteNonQuery();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="conn"></param>
+        /// <param name="m"></param>
+        /// <returns></returns>
         private static bool TestTables(SqliteConnection conn, Migration m)
         {
             SqliteCommand invItemsSelectCmd = new SqliteCommand(invItemsSelect, conn);

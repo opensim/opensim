@@ -40,6 +40,9 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Data.SQLite
 {
+    /// <summary>
+    /// A RegionData Interface to the SQLite database
+    /// </summary>
     public class SQLiteRegionData : IRegionDataStore
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -74,7 +77,15 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
-        // see IRegionDataStore
+        /// <summary>
+        /// See IRegionDataStore
+        /// <list type="bullet">
+        /// <item>Initialises RegionData Interface</item>
+        /// <item>Loads and initialises a new SQLite connection and maintains it.</item>
+        /// </list>
+        /// </summary>
+        /// <param name="connectionString">the connection string</param>
+        /// <param name="persistPrimInventories">?</param>
         public void Initialise(string connectionString, bool persistPrimInventories)
         {
             m_connectionString = connectionString;
@@ -203,6 +214,11 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// Adds an object into region storage
+        /// </summary>
+        /// <param name="obj">the object</param>
+        /// <param name="regionUUID">the region UUID</param>
         public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
             lock (ds)
@@ -233,6 +249,11 @@ namespace OpenSim.Data.SQLite
             // m_log.Info("[Dump of prims]: " + ds.GetXml());
         }
 
+        /// <summary>
+        /// Removes an object from region storage
+        /// </summary>
+        /// <param name="obj">the object</param>
+        /// <param name="regionUUID">the region UUID</param>
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
             m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
@@ -271,6 +292,7 @@ namespace OpenSim.Data.SQLite
         /// Remove all persisted items of the given prim.
         /// The caller must acquire the necessrary synchronization locks and commit or rollback changes.
         /// </summary>
+        /// <param name="uuid">The item UUID</param>
         private void RemoveItems(LLUUID uuid)
         {
             DataTable items = ds.Tables["primitems"];
@@ -287,7 +309,7 @@ namespace OpenSim.Data.SQLite
         /// <summary>
         /// Load persisted objects from region storage.
         /// </summary>
-        /// <param name="regionUUID"></param>
+        /// <param name="regionUUID">The region UUID</param>
         /// <returns>List of loaded groups</returns>
         public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
         {
@@ -375,7 +397,7 @@ namespace OpenSim.Data.SQLite
         /// <summary>
         /// Load in a prim's persisted inventory.
         /// </summary>
-        /// <param name="prim"></param>
+        /// <param name="prim">the prim</param>
         private void LoadItems(SceneObjectPart prim)
         {
             //m_log.DebugFormat("[DATASTORE]: Loading inventory for {0}, {1}", prim.Name, prim.UUID);
@@ -405,6 +427,11 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// Store a terrain revision in region storage
+        /// </summary>
+        /// <param name="ter">terrain heightfield</param>
+        /// <param name="regionID">region UUID</param>
         public void StoreTerrain(double[,] ter, LLUUID regionID)
         {
             lock (ds)
@@ -444,6 +471,11 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// Load the latest terrain revision from region storage
+        /// </summary>
+        /// <param name="regionID">the region UUID</param>
+        /// <returns>Heightfield data</returns>
         public double[,] LoadTerrain(LLUUID regionID)
         {
             lock (ds)
@@ -488,6 +520,10 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="globalID"></param>
         public void RemoveLandObject(LLUUID globalID)
         {
             lock (ds)
@@ -506,6 +542,10 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="parcel"></param>
         public void StoreLandObject(ILandObject parcel)
         {
             lock (ds)
@@ -543,6 +583,11 @@ namespace OpenSim.Data.SQLite
             Commit();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionUUID"></param>
+        /// <returns></returns>
         public List<LandData> LoadLandObjects(LLUUID regionUUID)
         {
             List<LandData> landDataForRegion = new List<LandData>();
@@ -568,6 +613,9 @@ namespace OpenSim.Data.SQLite
             return landDataForRegion;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void Commit()
         {
             lock (ds)
@@ -587,6 +635,9 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// See <see cref="Commit"/>
+        /// </summary>
         public void Shutdown()
         {
             Commit();
@@ -600,12 +651,22 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <param name="name"></param>
+        /// <param name="type"></param>
         private static void createCol(DataTable dt, string name, Type type)
         {
             DataColumn col = new DataColumn(name, type);
             dt.Columns.Add(col);
         }
 
+        /// <summary>
+        /// Creates the "terrain" table
+        /// </summary>
+        /// <returns>terrain table DataTable</returns>
         private static DataTable createTerrainTable()
         {
             DataTable terrain = new DataTable("terrain");
@@ -617,6 +678,10 @@ namespace OpenSim.Data.SQLite
             return terrain;
         }
 
+        /// <summary>
+        /// Creates the "prims" table
+        /// </summary>
+        /// <returns>prim table DataTable</returns>
         private static DataTable createPrimTable()
         {
             DataTable prims = new DataTable("prims");
@@ -681,6 +746,10 @@ namespace OpenSim.Data.SQLite
             return prims;
         }
 
+        /// <summary>
+        /// Creates "primshapes" table
+        /// </summary>
+        /// <returns>shape table DataTable</returns>
         private static DataTable createShapeTable()
         {
             DataTable shapes = new DataTable("primshapes");
@@ -723,6 +792,10 @@ namespace OpenSim.Data.SQLite
             return shapes;
         }
 
+        /// <summary>
+        /// creates "primitems" table
+        /// </summary>
+        /// <returns>item table DataTable</returns>
         private static DataTable createItemsTable()
         {
             DataTable items = new DataTable("primitems");
@@ -756,6 +829,10 @@ namespace OpenSim.Data.SQLite
             return items;
         }
 
+        /// <summary>
+        /// Creates "land" table
+        /// </summary>
+        /// <returns>land table DataTable</returns>
         private static DataTable createLandTable()
         {
             DataTable land = new DataTable("land");
@@ -800,6 +877,10 @@ namespace OpenSim.Data.SQLite
             return land;
         }
 
+        /// <summary>
+        /// create "landaccesslist" table
+        /// </summary>
+        /// <returns>Landacceslist DataTable</returns>
         private static DataTable createLandAccessListTable()
         {
             DataTable landaccess = new DataTable("landaccesslist");
@@ -810,6 +891,10 @@ namespace OpenSim.Data.SQLite
             return landaccess;
         }
 
+        /// <summary>
+        /// create "regionban" table
+        /// </summary>
+        /// <returns>regionban datatable</returns>
         private static DataTable createRegionBanListTable()
         {
             DataTable regionbanlist = new DataTable("regionban");
@@ -829,6 +914,11 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
         private SceneObjectPart buildPrim(DataRow row)
         {
             // TODO: this doesn't work yet because something more
@@ -971,6 +1061,11 @@ namespace OpenSim.Data.SQLite
             return taskItem;
         }
 
+        /// <summary>
+        /// Build a Land Data from the persisted data.
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
         private LandData buildLandData(DataRow row)
         {
             LandData newData = new LandData();
@@ -1059,6 +1154,11 @@ namespace OpenSim.Data.SQLite
             return newData;
         }
 
+        /// <summary>
+        /// Build a land access entry from the persisted data.
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
         private static ParcelManager.ParcelAccessEntry buildLandAccessData(DataRow row)
         {
             ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
@@ -1069,7 +1169,11 @@ namespace OpenSim.Data.SQLite
         }
 
         
-        
+        /// <summary>
+        /// Load a region banlist
+        /// </summary>
+        /// <param name="regionUUID">the region UUID</param>
+        /// <returns>The banlist</returns>
         public List<RegionBanListItem> LoadRegionBanList(LLUUID regionUUID)
         {
             List<RegionBanListItem> regionbanlist = new List<RegionBanListItem>();
@@ -1096,6 +1200,10 @@ namespace OpenSim.Data.SQLite
             return regionbanlist;
         }
 
+        /// <summary>
+        /// Add en entry into region banlist
+        /// </summary>
+        /// <param name="item"></param>
         public void AddToRegionBanlist(RegionBanListItem item)
         {
             lock (ds)
@@ -1111,6 +1219,10 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// remove an entry from the region banlist
+        /// </summary>
+        /// <param name="item"></param>
         public void RemoveFromRegionBanlist(RegionBanListItem item)
         {
             lock (ds)
@@ -1124,6 +1236,11 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="val"></param>
+        /// <returns></returns>
         private static Array serializeTerrain(double[,] val)
         {
             MemoryStream str = new MemoryStream(65536*sizeof (double));
@@ -1153,6 +1270,13 @@ namespace OpenSim.Data.SQLite
 //             row["Heightfield"] = str.ToArray();
 //         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="prim"></param>
+        /// <param name="sceneGroupID"></param>
+        /// <param name="regionUUID"></param>
         private static void fillPrimRow(DataRow row, SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
         {
             row["UUID"] = Util.ToRawUuidString(prim.UUID);
@@ -1213,6 +1337,11 @@ namespace OpenSim.Data.SQLite
             row["SitTargetOrientZ"] = sitTargetOrient.Z;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="taskItem"></param>
         private static void fillItemRow(DataRow row, TaskInventoryItem taskItem)
         {
             row["itemID"] = taskItem.ItemID;
@@ -1238,6 +1367,12 @@ namespace OpenSim.Data.SQLite
             row["flags"] = taskItem.Flags;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="land"></param>
+        /// <param name="regionUUID"></param>
         private static void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
         {
             row["UUID"] = Util.ToRawUuidString(land.globalID);
@@ -1277,6 +1412,12 @@ namespace OpenSim.Data.SQLite
             row["AuthbuyerID"] = Util.ToRawUuidString(land.authBuyerID);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="entry"></param>
+        /// <param name="parcelID"></param>
         private static void fillLandAccessRow(DataRow row, ParcelManager.ParcelAccessEntry entry, LLUUID parcelID)
         {
             row["LandUUID"] = Util.ToRawUuidString(parcelID);
@@ -1284,6 +1425,11 @@ namespace OpenSim.Data.SQLite
             row["Flags"] = entry.Flags;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
         private PrimitiveBaseShape buildShape(DataRow row)
         {
             PrimitiveBaseShape s = new PrimitiveBaseShape();
@@ -1334,6 +1480,11 @@ namespace OpenSim.Data.SQLite
             return s;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="prim"></param>
         private static void fillShapeRow(DataRow row, SceneObjectPart prim)
         {
             PrimitiveBaseShape s = prim.Shape;
@@ -1371,6 +1522,12 @@ namespace OpenSim.Data.SQLite
             row["ExtraParams"] = s.ExtraParams;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="prim"></param>
+        /// <param name="sceneGroupID"></param>
+        /// <param name="regionUUID"></param>
         private void addPrim(SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
         {
             DataTable prims = ds.Tables["prims"];
@@ -1401,7 +1558,11 @@ namespace OpenSim.Data.SQLite
             }
         }
 
-        // see IRegionDatastore
+        /// <summary>
+        /// see IRegionDatastore
+        /// </summary>
+        /// <param name="primID"></param>
+        /// <param name="items"></param>
         public void StorePrimInventory(LLUUID primID, ICollection<TaskInventoryItem> items)
         {
             if (!persistPrimInventories)
@@ -1444,17 +1605,23 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
+        /// <summary>
+        /// Create an insert command
+        /// </summary>
+        /// <param name="table">table name</param>
+        /// <param name="dt">data table</param>
+        /// <returns>the created command</returns>
+        /// <remarks>
+        /// This is subtle enough to deserve some commentary.
+        /// Instead of doing *lots* and *lots of hardcoded strings
+        /// for database definitions we'll use the fact that
+        /// realistically all insert statements look like "insert
+        /// into A(b, c) values(:b, :c) on the parameterized query
+        /// front.  If we just have a list of b, c, etc... we can
+        /// generate these strings instead of typing them out.
+        /// </remarks>
         private static SqliteCommand createInsertCommand(string table, DataTable dt)
         {
-            /**
-             *  This is subtle enough to deserve some commentary.
-             *  Instead of doing *lots* and *lots of hardcoded strings
-             *  for database definitions we'll use the fact that
-             *  realistically all insert statements look like "insert
-             *  into A(b, c) values(:b, :c) on the parameterized query
-             *  front.  If we just have a list of b, c, etc... we can
-             *  generate these strings instead of typing them out.
-             */
             string[] cols = new string[dt.Columns.Count];
             for (int i = 0; i < dt.Columns.Count; i++)
             {
@@ -1479,6 +1646,14 @@ namespace OpenSim.Data.SQLite
             return cmd;
         }
 
+
+        /// <summary>
+        /// create an update command
+        /// </summary>
+        /// <param name="table">table name</param>
+        /// <param name="pk"></param>
+        /// <param name="dt"></param>
+        /// <returns>the created command</returns>
         private static SqliteCommand createUpdateCommand(string table, string pk, DataTable dt)
         {
             string sql = "update " + table + " set ";
@@ -1506,7 +1681,11 @@ namespace OpenSim.Data.SQLite
             return cmd;
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dt">Data Table</param>
+        /// <returns></returns>
         private static string defineTable(DataTable dt)
         {
             string sql = "create table " + dt.TableName + "(";
@@ -1559,6 +1738,11 @@ namespace OpenSim.Data.SQLite
             return param;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void setupPrimCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
             da.InsertCommand = createInsertCommand("prims", ds.Tables["prims"]);
@@ -1573,6 +1757,11 @@ namespace OpenSim.Data.SQLite
             da.DeleteCommand = delete;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void setupItemsCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
             da.InsertCommand = createInsertCommand("primitems", ds.Tables["primitems"]);
@@ -1587,12 +1776,22 @@ namespace OpenSim.Data.SQLite
             da.DeleteCommand = delete;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void setupTerrainCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
             da.InsertCommand = createInsertCommand("terrain", ds.Tables["terrain"]);
             da.InsertCommand.Connection = conn;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void setupLandCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
             da.InsertCommand = createInsertCommand("land", ds.Tables["land"]);
@@ -1602,12 +1801,22 @@ namespace OpenSim.Data.SQLite
             da.UpdateCommand.Connection = conn;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void setupLandAccessCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
             da.InsertCommand = createInsertCommand("landaccesslist", ds.Tables["landaccesslist"]);
             da.InsertCommand.Connection = conn;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void setupRegionBanCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
             da.InsertCommand = createInsertCommand("regionban", ds.Tables["regionban"]);
@@ -1617,7 +1826,11 @@ namespace OpenSim.Data.SQLite
             da.UpdateCommand.Connection = conn;
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void setupShapeCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
             da.InsertCommand = createInsertCommand("primshapes", ds.Tables["primshapes"]);
@@ -1710,6 +1923,12 @@ namespace OpenSim.Data.SQLite
         //     }
         // }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="conn"></param>
+        /// <param name="m"></param>
+        /// <returns></returns>
         private bool TestTables(SqliteConnection conn, Migration m)
         {
             SqliteCommand primSelectCmd = new SqliteCommand(primSelect, conn);
@@ -1822,6 +2041,11 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
+        /// <summary>
+        /// Type conversion function
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         private static DbType dbtypeFromType(Type type)
         {
             if (type == typeof (String))
@@ -1854,8 +2078,11 @@ namespace OpenSim.Data.SQLite
             }
         }
 
-        // this is something we'll need to implement for each db
-        // slightly differently.
+        /// <summary>
+        /// </summary>
+        /// <param name="type">a Type</param>
+        /// <returns>an sqliteType</returns>
+        /// <remarks>this is something we'll need to implement for each db slightly differently.</remarks>
         private static string sqliteType(Type type)
         {
             if (type == typeof (String))

@@ -65,6 +65,14 @@ namespace OpenSim.Data.SQLite
         private SqliteDataAdapter daf;
         SqliteConnection g_conn;
 
+        /// <summary>
+        /// <list type="bullet">
+        /// <item>Initialises User Interface</item>
+        /// <item>Loads and initialises a new SQLite connection and maintains it.</item>
+        /// <item>use default URI if connect string string is empty.</item>
+        /// </list>
+        /// </summary>
+        /// <param name="connect">connect string</param>
         override public void Initialise(string connect)
         {
             // default to something sensible
@@ -116,7 +124,12 @@ namespace OpenSim.Data.SQLite
             return;
         }
 
-        // see IUserData
+        /// <summary>
+        /// see IUserData, 
+        /// Get user data profile by UUID
+        /// </summary>
+        /// <param name="uuid">User UUID</param>
+        /// <returns>user profile data</returns>
         override public UserProfileData GetUserByUUID(LLUUID uuid)
         {
             lock (ds)
@@ -139,7 +152,13 @@ namespace OpenSim.Data.SQLite
             }
         }
 
-        // see IUserData
+        /// <summary>
+        /// see IUserData, 
+        /// Get user data profile by name
+        /// </summary>
+        /// <param name="fname">first name</param>
+        /// <param name="lname">last name</param>
+        /// <returns>user profile data</returns>
         override public UserProfileData GetUserByName(string fname, string lname)
         {
             string select = "surname = '" + lname + "' and username = '" + fname + "'";
@@ -165,6 +184,12 @@ namespace OpenSim.Data.SQLite
 
         #region User Friends List Data
 
+        /// <summary>
+        /// Add a new friend in the friendlist
+        /// </summary>
+        /// <param name="friendlistowner">UUID of the friendlist owner</param>
+        /// <param name="friend">UUID of the friend to add</param>
+        /// <param name="perms">permission flag</param>
         override public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
             string InsertFriends = "insert into userfriends(ownerID, friendID, friendPerms) values(:ownerID, :friendID, :perms)";
@@ -185,6 +210,11 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// Remove a user from the friendlist
+        /// </summary>
+        /// <param name="friendlistowner">UUID of the friendlist owner</param>
+        /// <param name="friend">UUID of the friend to remove</param>
         override public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
         {
             string DeletePerms = "delete from friendlist where (ownerID=:ownerID and friendID=:friendID) or (ownerID=:friendID and friendID=:ownerID)";
@@ -196,6 +226,12 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// Update the friendlist permission
+        /// </summary>
+        /// <param name="friendlistowner">UUID of the friendlist owner</param>
+        /// <param name="friend">UUID of the friend to modify</param>
+        /// <param name="perms">updated permission flag</param>
         override public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
             string UpdatePerms = "update friendlist set perms=:perms where ownerID=:ownerID and friendID=:friendID";
@@ -208,6 +244,11 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// Get (fetch?) the friendlist for a user
+        /// </summary>
+        /// <param name="friendlistowner">UUID of the friendlist owner</param>
+        /// <returns>The friendlist list</returns>
         override public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
         {
             List<FriendListItem> returnlist = new List<FriendListItem>();
@@ -246,12 +287,24 @@ namespace OpenSim.Data.SQLite
 
         #endregion
 
+        /// <summary>
+        /// STUB, Update the user's current region
+        /// </summary>
+        /// <param name="avatarid">UUID of the user</param>
+        /// <param name="regionuuid">UUID of the region</param>
+        /// <param name="regionhandle">region handle</param>
+        /// <remarks>DO NOTHING</remarks>
         override public void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid, ulong regionhandle)
         {
             //m_log.Info("[USER DB]: Stub UpdateUserCUrrentRegion called");
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="queryID"></param>
+        /// <param name="query"></param>
+        /// <returns></returns>
         override public List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
             List<AvatarPickerAvatar> returnlist = new List<AvatarPickerAvatar>();
@@ -347,7 +400,11 @@ namespace OpenSim.Data.SQLite
             }
         }
 
-
+        /// <summary>
+        /// DEPRECATED? Store the weblogin key
+        /// </summary>
+        /// <param name="AgentID">UUID of the user</param>
+        /// <param name="WebLoginKey">UUID of the weblogin</param>
         override public void StoreWebLoginKey(LLUUID AgentID, LLUUID WebLoginKey)
         {
             DataTable users = ds.Tables["users"];
@@ -487,8 +544,13 @@ namespace OpenSim.Data.SQLite
             return true;
         }
 
-        /// Appearance
+
+        /// <summary>
+        /// Appearance.
         /// TODO: stubs for now to do in memory appearance.
+        /// </summary>
+        /// <param name="user">The user UUID</param>
+        /// <returns>Avatar Appearence</returns>
         override public AvatarAppearance GetUserAppearance(LLUUID user)
         {
             AvatarAppearance aa = null;
@@ -501,22 +563,45 @@ namespace OpenSim.Data.SQLite
             return aa;
         }
         
+        /// <summary>
+        /// Update a user appearence
+        /// </summary>
+        /// <param name="user">the user UUID</param>
+        /// <param name="appearance">appearence</param>
         override public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
         {
             appearance.Owner = user;
             aplist[user] = appearance;
         }
 
+        /// <summary>
+        /// Add an attachment item to an avatar
+        /// </summary>
+        /// <param name="user">the user UUID</param>
+        /// <param name="item">the item UUID</param>
+        /// <remarks>DO NOTHING ?</remarks>
         override public void AddAttachment(LLUUID user, LLUUID item)
         {
             return;
         }
 
+        /// <summary>
+        /// Remove an attachement item from an avatar
+        /// </summary>
+        /// <param name="user">the user UUID</param>
+        /// <param name="item">the item UUID</param>
+        /// <remarks>DO NOTHING ?</remarks>
         override public void RemoveAttachment(LLUUID user, LLUUID item)
         {
             return;
         }
 
+        /// <summary>
+        /// Get list of attached item
+        /// </summary>
+        /// <param name="user">the user UUID</param>
+        /// <returns>List of attached item</returns>
+        /// <remarks>DO NOTHING ?</remarks>
         override public List<LLUUID> GetAttachments(LLUUID user)
         {
             return new List<LLUUID>();
@@ -553,6 +638,10 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
+        /// <summary>
+        /// Create the "users" table
+        /// </summary>
+        /// <returns>DataTable</returns>
         private static DataTable createUsersTable()
         {
             DataTable users = new DataTable("users");
@@ -588,6 +677,10 @@ namespace OpenSim.Data.SQLite
             return users;
         }
 
+        /// <summary>
+        /// Create the "useragents" table
+        /// </summary>
+        /// <returns>Data Table</returns>
         private static DataTable createUserAgentsTable()
         {
             DataTable ua = new DataTable("useragents");
@@ -613,6 +706,10 @@ namespace OpenSim.Data.SQLite
             return ua;
         }
 
+        /// <summary>
+        /// Create the "userfriends" table
+        /// </summary>
+        /// <returns>Data Table</returns>
         private static DataTable createUserFriendsTable()
         {
             DataTable ua = new DataTable("userfriends");
@@ -634,11 +731,15 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
+        /// <summary>
+        /// TODO: this doesn't work yet because something more
+        /// interesting has to be done to actually get these values
+        /// back out.  Not enough time to figure it out yet.
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
         private static UserProfileData buildUserProfile(DataRow row)
         {
-            // TODO: this doesn't work yet because something more
-            // interesting has to be done to actually get these values
-            // back out.  Not enough time to figure it out yet.
             UserProfileData user = new UserProfileData();
             LLUUID tmp;
             LLUUID.TryParse((String)row["UUID"], out tmp);
@@ -678,6 +779,11 @@ namespace OpenSim.Data.SQLite
             return user;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="user"></param>
         private void fillUserRow(DataRow row, UserProfileData user)
         {
             row["UUID"] = Util.ToRawUuidString(user.ID);
@@ -719,6 +825,11 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
         private static UserAgentData buildUserAgent(DataRow row)
         {
             UserAgentData ua = new UserAgentData();
@@ -742,6 +853,11 @@ namespace OpenSim.Data.SQLite
             return ua;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="ua"></param>
         private static void fillUserAgentRow(DataRow row, UserAgentData ua)
         {
             row["UUID"] = ua.ProfileID;
@@ -770,6 +886,11 @@ namespace OpenSim.Data.SQLite
          *
          **********************************************************************/
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void setupUserCommands(SqliteDataAdapter da, SqliteConnection conn)
         {
             da.InsertCommand = SQLiteUtil.createInsertCommand("users", ds.Tables["users"]);
@@ -784,6 +905,11 @@ namespace OpenSim.Data.SQLite
             da.DeleteCommand = delete;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="daf"></param>
+        /// <param name="conn"></param>
         private void setupUserFriendsCommands(SqliteDataAdapter daf, SqliteConnection conn)
         {
             daf.InsertCommand = SQLiteUtil.createInsertCommand("userfriends", ds.Tables["userfriends"]);
@@ -800,6 +926,10 @@ namespace OpenSim.Data.SQLite
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="conn"></param>
         private static void InitDB(SqliteConnection conn)
         {
             string createUsers = SQLiteUtil.defineTable(createUsersTable());
@@ -832,6 +962,12 @@ namespace OpenSim.Data.SQLite
             conn.Close();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="conn"></param>
+        /// <param name="m"></param>
+        /// <returns></returns>
         private static bool TestTables(SqliteConnection conn, Migration m)
         {
             SqliteCommand cmd = new SqliteCommand(userSelect, conn);
