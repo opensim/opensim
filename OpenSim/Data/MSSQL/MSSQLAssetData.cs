@@ -36,6 +36,9 @@ using OpenSim.Framework;
 
 namespace OpenSim.Data.MSSQL
 {
+    /// <summary>
+    /// A MSSQL Interface for the Asset server
+    /// </summary>
     internal class MSSQLAssetData : AssetDataBase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -44,6 +47,13 @@ namespace OpenSim.Data.MSSQL
 
         #region IAssetProvider Members
 
+        /// <summary>
+        /// Migration method
+        /// <list type="bullet">
+        /// <item>Execute "CreateAssetsTable.sql" if tableName == null</item>
+        /// </list>
+        /// </summary>
+        /// <param name="tableName">Name of table</param>
         private void UpgradeAssetsTable(string tableName)
         {
             // null as the version, indicates that the table didn't exist
@@ -68,6 +78,11 @@ namespace OpenSim.Data.MSSQL
             UpgradeAssetsTable(tableList["assets"]);
         }
 
+        /// <summary>
+        /// Fetch Asset from database
+        /// </summary>
+        /// <param name="assetID">the asset UUID</param>
+        /// <returns></returns>
         override public AssetBase FetchAsset(LLUUID assetID)
         {
             AssetBase asset = null;
@@ -85,6 +100,10 @@ namespace OpenSim.Data.MSSQL
             return asset;
         }
 
+        /// <summary>
+        /// Create asset in database
+        /// </summary>
+        /// <param name="asset">the asset</param>
         override public void CreateAsset(AssetBase asset)
         {
             if (ExistsAsset((LLUUID) asset.FullID))
@@ -130,7 +149,10 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
-
+        /// <summary>
+        /// Update asset in database
+        /// </summary>
+        /// <param name="asset">the asset</param>
         override public void UpdateAsset(AssetBase asset)
         {
             SqlCommand command = new SqlCommand("UPDATE assets set id = @id, " +
@@ -171,6 +193,11 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        /// <summary>
+        /// Check if asset exist in database
+        /// </summary>
+        /// <param name="uuid"></param>
+        /// <returns>true if exist.</returns>
         override public bool ExistsAsset(LLUUID uuid)
         {
             if (FetchAsset(uuid) != null)
@@ -191,13 +218,23 @@ namespace OpenSim.Data.MSSQL
 
         #region IPlugin Members
 
+        /// <summary>
+        /// <para>Initialises asset interface</para>
+        /// <para>
+        /// TODO: this would allow you to pass in connnect info as
+        /// a string instead of file, if someone writes the support
+        /// </para>
+        /// </summary>
+        /// <param name="connect">connect string</param>
         override public void Initialise(string connect)
         {
-            // TODO: this would allow you to pass in connnect info as
-            // a string instead of file, if someone writes the support
             Initialise();
         }
 
+        /// <summary>
+        /// Initialises asset interface
+        /// </summary>
+        /// <remarks>it use mssql_connection.ini</remarks>
         override public void Initialise()
         {
             IniFile GridDataMySqlFile = new IniFile("mssql_connection.ini");
@@ -214,12 +251,17 @@ namespace OpenSim.Data.MSSQL
             TestTables();
         }
 
+        /// <summary>
+        /// Database provider version. 
+        /// </summary>
         override public string Version
         {
-//            get { return database.getVersion(); }
             get { return database.getVersion(); }
         }
 
+        /// <summary>
+        /// The name of this DB provider. 
+        /// </summary>
         override public string Name
         {
             get { return "MSSQL Asset storage engine"; }

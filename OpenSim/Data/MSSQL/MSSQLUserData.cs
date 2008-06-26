@@ -53,8 +53,10 @@ namespace OpenSim.Data.MSSQL
         private string m_userFriendsTableName;
 
         /// <summary>
-        /// Loads and initialises the MySQL storage plugin
+        /// Loads and initialises the MSSQL storage plugin
         /// </summary>
+        /// <param name="connect">TODO: do something with the connect string instead of ignoring it.</param>
+        /// <remarks>use mssql_connection.ini</remarks>
         override public void Initialise(string connect)
         {
             // TODO: do something with the connect string instead of
@@ -92,6 +94,10 @@ namespace OpenSim.Data.MSSQL
             TestTables();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         private bool TestTables()
         {
             IDbCommand cmd;
@@ -128,6 +134,7 @@ namespace OpenSim.Data.MSSQL
 
             return true;
         }
+
         /// <summary>
         /// Searches the database for a specified user profile by name components
         /// </summary>
@@ -166,6 +173,12 @@ namespace OpenSim.Data.MSSQL
 
         #region User Friends List Data
 
+        /// <summary>
+        /// Add a new friend in the friendlist
+        /// </summary>
+        /// <param name="friendlistowner">UUID of the friendlist owner</param>
+        /// <param name="friend">Friend's UUID</param>
+        /// <param name="perms">Permission flag</param>
         override public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
             int dtvalue = Util.UnixTimeSinceEpoch();
@@ -209,6 +222,11 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        /// <summary>
+        /// Remove an friend from the friendlist
+        /// </summary>
+        /// <param name="friendlistowner">UUID of the friendlist owner</param>
+        /// <param name="friend">UUID of the not-so-friendly user to remove from the list</param>
         override public void RemoveUserFriend(LLUUID friendlistowner, LLUUID friend)
         {
             Dictionary<string, string> param = new Dictionary<string, string>();
@@ -242,6 +260,12 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        /// <summary>
+        /// Update friendlist permission flag for a friend
+        /// </summary>
+        /// <param name="friendlistowner">UUID of the friendlist owner</param>
+        /// <param name="friend">UUID of the friend</param>
+        /// <param name="perms">new permission flag</param>
         override public void UpdateUserFriendPerms(LLUUID friendlistowner, LLUUID friend, uint perms)
         {
             Dictionary<string, string> param = new Dictionary<string, string>();
@@ -272,7 +296,11 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
-
+        /// <summary>
+        /// Get (fetch?) the user's friendlist
+        /// </summary>
+        /// <param name="friendlistowner">UUID of the friendlist owner</param>
+        /// <returns>Friendlist list</returns>
         override public List<FriendListItem> GetUserFriendList(LLUUID friendlistowner)
         {
             List<FriendListItem> Lfli = new List<FriendListItem>();
@@ -321,13 +349,23 @@ namespace OpenSim.Data.MSSQL
 
         #endregion
 
+        /// <summary>
+        /// STUB ! Update current region
+        /// </summary>
+        /// <param name="avatarid">avatar uuid</param>
+        /// <param name="regionuuid">region uuid</param>
+        /// <param name="regionhandle">region handle</param>
         override public void UpdateUserCurrentRegion(LLUUID avatarid, LLUUID regionuuid, ulong regionhandle)
         {
             //m_log.Info("[USER]: Stub UpdateUserCUrrentRegion called");
         }
 
-
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="queryID"></param>
+        /// <param name="query"></param>
+        /// <returns></returns>
         override public List<AvatarPickerAvatar> GeneratePickerResults(LLUUID queryID, string query)
         {
             List<AvatarPickerAvatar> returnlist = new List<AvatarPickerAvatar>();
@@ -407,7 +445,11 @@ namespace OpenSim.Data.MSSQL
             return returnlist;
         }
 
-        // See IUserData
+        /// <summary>
+        /// See IUserData
+        /// </summary>
+        /// <param name="uuid"></param>
+        /// <returns></returns>
         override public UserProfileData GetUserByUUID(LLUUID uuid)
         {
             try
@@ -490,6 +532,13 @@ namespace OpenSim.Data.MSSQL
                 return null;
             }
         }
+
+        /// <summary>
+        /// Store a weblogin key
+        /// </summary>
+        /// <param name="AgentID">The agent UUID</param>
+        /// <param name="WebLoginKey">the WebLogin Key</param>
+        /// <remarks>unused ?</remarks>
         override public void StoreWebLoginKey(LLUUID AgentID, LLUUID WebLoginKey)
         {
             UserProfileData user = GetUserByUUID(AgentID);
@@ -626,7 +675,11 @@ namespace OpenSim.Data.MSSQL
             // Do nothing.
         }
 
-
+        /// <summary>
+        /// update a user profile
+        /// </summary>
+        /// <param name="user">the profile to update</param>
+        /// <returns></returns>
         override public bool UpdateUserProfile(UserProfileData user)
         {
             SqlCommand command = new SqlCommand("UPDATE " + m_usersTableName + " set UUID = @uuid, " +
@@ -726,7 +779,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="from">The senders account ID</param>
         /// <param name="to">The receivers account ID</param>
         /// <param name="amount">The amount to transfer</param>
-        /// <returns>Success?</returns>
+        /// <returns>false</returns>
         override public bool MoneyTransferRequest(LLUUID from, LLUUID to, uint amount)
         {
             return false;
@@ -739,7 +792,7 @@ namespace OpenSim.Data.MSSQL
         /// <param name="from">The senders account ID</param>
         /// <param name="to">The receivers account ID</param>
         /// <param name="item">The item to transfer</param>
-        /// <returns>Success?</returns>
+        /// <returns>false</returns>
         override public bool InventoryTransferRequest(LLUUID from, LLUUID to, LLUUID item)
         {
             return false;
@@ -832,6 +885,11 @@ namespace OpenSim.Data.MSSQL
             return null;
         }
 
+        /// <summary>
+        /// Update a user appearence into database
+        /// </summary>
+        /// <param name="user">the used UUID</param>
+        /// <param name="appearance">the appearence</param>
         override public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
         {
             string sql = String.Empty;
@@ -893,16 +951,32 @@ namespace OpenSim.Data.MSSQL
             return;
         }
 
+        /// <summary>
+        /// add an attachement to an avatar
+        /// </summary>
+        /// <param name="user">the avatar UUID</param>
+        /// <param name="item">the item UUID</param>
         override public void AddAttachment(LLUUID user, LLUUID item)
         {
             return;
         }
 
+        /// <summary>
+        /// Remove an attachement from an avatar
+        /// </summary>
+        /// <param name="user">the avatar UUID</param>
+        /// <param name="item">the item UUID</param>
         override public void RemoveAttachment(LLUUID user, LLUUID item)
         {
             return;
         }
 
+        /// <summary>
+        /// get (fetch?) all attached item to an avatar
+        /// </summary>
+        /// <param name="user">the avatar UUID</param>
+        /// <returns>List of attached item</returns>
+        /// <remarks>return an empty list</remarks>
         override public List<LLUUID> GetAttachments(LLUUID user)
         {
             return new List<LLUUID>();

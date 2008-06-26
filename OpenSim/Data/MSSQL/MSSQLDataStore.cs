@@ -39,6 +39,9 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Data.MSSQL
 {
+    /// <summary>
+    /// A MSSQL Interface for the Region Server.
+    /// </summary>
     public class MSSQLDataStore : IRegionDataStore
     {
         // private static FileSystemDataStore Instance = new FileSystemDataStore();
@@ -67,7 +70,7 @@ namespace OpenSim.Data.MSSQL
         private DataTable m_landTable;
         private DataTable m_landAccessListTable;
 
-        // Temporary attribute while this is experimental
+        /// <summary>Temporary attribute while this is experimental</summary>
         private bool persistPrimInventories;
 
         /***********************************************************************
@@ -76,7 +79,11 @@ namespace OpenSim.Data.MSSQL
          *
          **********************************************************************/
 
-        // see IRegionDataStore
+        /// <summary>
+        /// see IRegionDataStore
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="persistPrimInventories"></param>
         public void Initialise(string connectionString, bool persistPrimInventories)
         {
             // Instance.Initialise("", true);
@@ -144,6 +151,11 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="regionUUID"></param>
         public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
             // Instance.StoreObject(obj, regionUUID);
@@ -169,6 +181,11 @@ namespace OpenSim.Data.MSSQL
             Commit();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="regionUUID"></param>
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
             // Instance.RemoveObject(obj, regionUUID);
@@ -209,6 +226,7 @@ namespace OpenSim.Data.MSSQL
         /// Remove all persisted items of the given prim.
         /// The caller must acquire the necessrary synchronization locks and commit or rollback changes.
         /// </summary>
+        /// <param name="uuid">The item UUID</param>
         private void RemoveItems(LLUUID uuid)
         {
             String sql = String.Format("primID = '{0}'", uuid);
@@ -223,6 +241,7 @@ namespace OpenSim.Data.MSSQL
         /// <summary>
         /// Load persisted objects from region storage.
         /// </summary>
+        /// <param name="regionUUID">The region UUID</param>
         public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
         {
             // return Instance.LoadObjects(regionUUID);
@@ -341,6 +360,11 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        /// <summary>
+        /// Store a terrain revision in region storage. 
+        /// </summary>
+        /// <param name="ter">HeightField data</param>
+        /// <param name="regionID">Region UUID</param>
         public void StoreTerrain(double[,] ter, LLUUID regionID)
         {
             int revision = Util.UnixTimeSinceEpoch();
@@ -361,6 +385,11 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        /// <summary>
+        /// Load the latest terrain revision from region storage. 
+        /// </summary>
+        /// <param name="regionID">The Region UUID</param>
+        /// <returns>HeightField Data</returns>
         public double[,] LoadTerrain(LLUUID regionID)
         {
             double[,] terret = new double[256, 256];
@@ -407,6 +436,10 @@ namespace OpenSim.Data.MSSQL
             return terret;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="globalID"></param>
         public void RemoveLandObject(LLUUID globalID)
         {
             // Instance.RemoveLandObject(globalID);
@@ -429,6 +462,10 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="parcel"></param>
         public void StoreLandObject(ILandObject parcel)
         {
             lock (m_dataSet)
@@ -467,6 +504,11 @@ namespace OpenSim.Data.MSSQL
             Commit();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionUUID">The region UUID</param>
+        /// <returns></returns>
         public List<LandData> LoadLandObjects(LLUUID regionUUID)
         {
             List<LandData> landDataForRegion = new List<LandData>();
@@ -492,22 +534,38 @@ namespace OpenSim.Data.MSSQL
             return landDataForRegion;
         }
 
+        /// <summary>
+        /// Load (fetch?) the region banlist
+        /// </summary>
+        /// <param name="regionUUID">the region UUID</param>
+        /// <returns>the banlist list</returns>
         public List<RegionBanListItem> LoadRegionBanList(LLUUID regionUUID)
         {
             List<RegionBanListItem> regionbanlist = new List<RegionBanListItem>();
             return regionbanlist;
         }
 
+        /// <summary>
+        /// STUB, add an item into region banlist
+        /// </summary>
+        /// <param name="item">the item</param>
         public void AddToRegionBanlist(RegionBanListItem item)
         {
 
         }
 
+        /// <summary>
+        /// STUB, remove an item from region banlist
+        /// </summary>
+        /// <param name="item"></param>
         public void RemoveFromRegionBanlist(RegionBanListItem item)
         {
 
         }
 
+        /// <summary>
+        /// Commit
+        /// </summary>
         public void Commit()
         {
             if (m_connection.State != ConnectionState.Open)
@@ -535,6 +593,9 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        /// <summary>
+        /// See <see cref="Commit"/>
+        /// </summary>
         public void Shutdown()
         {
             Commit();
@@ -548,6 +609,13 @@ namespace OpenSim.Data.MSSQL
          *
          **********************************************************************/
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <param name="name"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
         private static DataColumn createCol(DataTable dt, string name, Type type)
         {
             DataColumn col = new DataColumn(name, type);
@@ -555,6 +623,10 @@ namespace OpenSim.Data.MSSQL
             return col;
         }
 
+        /// <summary>
+        /// Create the "terrain" table
+        /// </summary>
+        /// <returns>the datatable</returns>
         private static DataTable createTerrainTable()
         {
             DataTable terrain = new DataTable("terrain");
@@ -566,6 +638,10 @@ namespace OpenSim.Data.MSSQL
             return terrain;
         }
 
+        /// <summary>
+        /// Create the "prims" table
+        /// </summary>
+        /// <returns>the datatable</returns>
         private static DataTable createPrimTable()
         {
             DataTable prims = new DataTable("prims");
@@ -630,6 +706,10 @@ namespace OpenSim.Data.MSSQL
             return prims;
         }
 
+        /// <summary>
+        /// Create the "land" table
+        /// </summary>
+        /// <returns>the datatable</returns>
         private static DataTable createLandTable()
         {
             DataTable land = new DataTable("land");
@@ -673,6 +753,10 @@ namespace OpenSim.Data.MSSQL
             return land;
         }
 
+        /// <summary>
+        /// Create "landacceslist" table
+        /// </summary>
+        /// <returns>the datatable</returns>
         private static DataTable createLandAccessListTable()
         {
             DataTable landaccess = new DataTable("landaccesslist");
@@ -683,6 +767,10 @@ namespace OpenSim.Data.MSSQL
             return landaccess;
         }
 
+        /// <summary>
+        /// Create "primsshapes" table
+        /// </summary>
+        /// <returns>the datatable</returns>
         private static DataTable createShapeTable()
         {
             DataTable shapes = new DataTable("primshapes");
@@ -725,6 +813,10 @@ namespace OpenSim.Data.MSSQL
             return shapes;
         }
 
+        /// <summary>
+        /// Create "primitems" table
+        /// </summary>
+        /// <returns>the datatable</returns>
         private static DataTable createItemsTable()
         {
             DataTable items = new DataTable("primitems");
@@ -766,6 +858,11 @@ namespace OpenSim.Data.MSSQL
          *
          **********************************************************************/
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
         private SceneObjectPart buildPrim(DataRow row)
         {
             SceneObjectPart prim = new SceneObjectPart();
@@ -891,6 +988,11 @@ namespace OpenSim.Data.MSSQL
             return taskItem;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
         private static LandData buildLandData(DataRow row)
         {
             LandData newData = new LandData();
@@ -936,6 +1038,11 @@ namespace OpenSim.Data.MSSQL
             return newData;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
         private static ParcelManager.ParcelAccessEntry buildLandAccessData(DataRow row)
         {
             ParcelManager.ParcelAccessEntry entry = new ParcelManager.ParcelAccessEntry();
@@ -945,6 +1052,11 @@ namespace OpenSim.Data.MSSQL
             return entry;
         }
 
+        /// <summary>
+        /// Serialize terrain HeightField
+        /// </summary>
+        /// <param name="val">the terrain heightfield</param>
+        /// <returns></returns>
         private static Array serializeTerrain(double[,] val)
         {
             MemoryStream str = new MemoryStream(65536 * sizeof(double));
@@ -958,6 +1070,13 @@ namespace OpenSim.Data.MSSQL
             return str.ToArray();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="prim"></param>
+        /// <param name="sceneGroupID"></param>
+        /// <param name="regionUUID"></param>
         private void fillPrimRow(DataRow row, SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
         {
             row["UUID"]                 = prim.UUID;
@@ -1034,6 +1153,11 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="taskItem"></param>
         private static void fillItemRow(DataRow row, TaskInventoryItem taskItem)
         {
             row["itemID"] = taskItem.ItemID;
@@ -1059,6 +1183,12 @@ namespace OpenSim.Data.MSSQL
 //            row["flags"] = taskItem.Flags;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="land"></param>
+        /// <param name="regionUUID"></param>
         private static void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
         {
             row["UUID"] = land.globalID.UUID;
@@ -1097,6 +1227,12 @@ namespace OpenSim.Data.MSSQL
             row["UserLookAtZ"] = land.userLookAt.Z;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="entry"></param>
+        /// <param name="parcelID"></param>
         private static void fillLandAccessRow(DataRow row, ParcelManager.ParcelAccessEntry entry, LLUUID parcelID)
         {
             row["LandUUID"] = parcelID.UUID;
@@ -1104,6 +1240,11 @@ namespace OpenSim.Data.MSSQL
             row["Flags"] = entry.Flags;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
         private static PrimitiveBaseShape buildShape(DataRow row)
         {
             PrimitiveBaseShape s = new PrimitiveBaseShape();
@@ -1143,6 +1284,11 @@ namespace OpenSim.Data.MSSQL
             return s;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="prim"></param>
         private static void fillShapeRow(DataRow row, SceneObjectPart prim)
         {
             PrimitiveBaseShape s = prim.Shape;
@@ -1179,6 +1325,12 @@ namespace OpenSim.Data.MSSQL
             row["ExtraParams"] = s.ExtraParams;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="prim"></param>
+        /// <param name="sceneGroupID"></param>
+        /// <param name="regionUUID"></param>
         private void addPrim(SceneObjectPart prim, LLUUID sceneGroupID, LLUUID regionUUID)
         {
             DataTable prims = m_dataSet.Tables["prims"];
@@ -1209,7 +1361,11 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
-        // see IRegionDatastore
+        /// <summary>
+        /// See <see cref="IRegionDatastore"/>
+        /// </summary>
+        /// <param name="primID"></param>
+        /// <param name="items"></param>
         public void StorePrimInventory(LLUUID primID, ICollection<TaskInventoryItem> items)
         {
             if (!persistPrimInventories)
@@ -1250,6 +1406,12 @@ namespace OpenSim.Data.MSSQL
          *
          **********************************************************************/
 
+        /// <summary>
+        /// Create an Insert command
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="dt"></param>
+        /// <returns>the sql command</returns>
         private static SqlCommand createInsertCommand(string table, DataTable dt)
         {
             /**
@@ -1285,6 +1447,13 @@ namespace OpenSim.Data.MSSQL
             return cmd;
         }
 
+        /// <summary>
+        /// Create an update command
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="pk"></param>
+        /// <param name="dt"></param>
+        /// <returns>the sql command</returns>
         private static SqlCommand createUpdateCommand(string table, string pk, DataTable dt)
         {
             string sql = "update " + table + " set ";
@@ -1312,6 +1481,11 @@ namespace OpenSim.Data.MSSQL
             return cmd;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <returns></returns>
         private static string defineTable(DataTable dt)
         {
             string sql = "create table " + dt.TableName + "(";
@@ -1345,14 +1519,18 @@ namespace OpenSim.Data.MSSQL
          **********************************************************************/
 
         ///<summary>
+        /// <para>
         /// This is a convenience function that collapses 5 repetitive
         /// lines for defining SqlParameters to 2 parameters:
         /// column name and database type.
-        ///
+        /// </para>
+        /// 
+        /// <para>
         /// It assumes certain conventions like :param as the param
         /// name to replace in parametrized queries, and that source
         /// version is always current version, both of which are fine
         /// for us.
+        /// </para>
         ///</summary>
         ///<returns>a built Sql parameter</returns>
         private static SqlParameter createSqlParameter(string name, Type type)
@@ -1365,6 +1543,11 @@ namespace OpenSim.Data.MSSQL
             return param;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void setupPrimCommands(SqlDataAdapter da, SqlConnection conn)
         {
             da.InsertCommand = createInsertCommand("prims", m_dataSet.Tables["prims"]);
@@ -1379,6 +1562,11 @@ namespace OpenSim.Data.MSSQL
             da.DeleteCommand = delete;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void SetupItemsCommands(SqlDataAdapter da, SqlConnection conn)
         {
             da.InsertCommand = createInsertCommand("primitems", m_itemsTable);
@@ -1393,12 +1581,22 @@ namespace OpenSim.Data.MSSQL
             da.DeleteCommand = delete;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void setupTerrainCommands(SqlDataAdapter da, SqlConnection conn)
         {
             da.InsertCommand = createInsertCommand("terrain", m_dataSet.Tables["terrain"]);
             da.InsertCommand.Connection = conn;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void setupLandCommands(SqlDataAdapter da, SqlConnection conn)
         {
             da.InsertCommand = createInsertCommand("land", m_dataSet.Tables["land"]);
@@ -1408,12 +1606,22 @@ namespace OpenSim.Data.MSSQL
             da.UpdateCommand.Connection = conn;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void setupLandAccessCommands(SqlDataAdapter da, SqlConnection conn)
         {
             da.InsertCommand = createInsertCommand("landaccesslist", m_dataSet.Tables["landaccesslist"]);
             da.InsertCommand.Connection = conn;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="da"></param>
+        /// <param name="conn"></param>
         private void setupShapeCommands(SqlDataAdapter da, SqlConnection conn)
         {
             da.InsertCommand = createInsertCommand("primshapes", m_dataSet.Tables["primshapes"]);
@@ -1428,6 +1636,10 @@ namespace OpenSim.Data.MSSQL
             da.DeleteCommand = delete;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="conn"></param>
         private static void InitDB(SqlConnection conn)
         {
             string createPrims = defineTable(createPrimTable());
@@ -1501,6 +1713,11 @@ namespace OpenSim.Data.MSSQL
             conn.Close();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="conn"></param>
+        /// <returns></returns>
         private bool TestTables(SqlConnection conn)
         {
             SqlCommand primSelectCmd = new SqlCommand(m_primSelect, conn);
@@ -1601,6 +1818,11 @@ namespace OpenSim.Data.MSSQL
          *
          **********************************************************************/
 
+        /// <summary>
+        /// Type conversion function
+        /// </summary>
+        /// <param name="type">a Type</param>
+        /// <returns>a DbType</returns>
         private static DbType dbtypeFromType(Type type)
         {
             if (type == typeof(String))

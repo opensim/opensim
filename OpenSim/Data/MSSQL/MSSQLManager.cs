@@ -108,12 +108,23 @@ namespace OpenSim.Data.MSSQL
         //    return regions;
         //}
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <param name="name"></param>
+        /// <param name="type"></param>
         protected static void createCol(DataTable dt, string name, Type type)
         {
             DataColumn col = new DataColumn(name, type);
             dt.Columns.Add(col);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <returns></returns>
         protected static string defineTable(DataTable dt)
         {
             string sql = "create table " + dt.TableName + "(";
@@ -137,9 +148,12 @@ namespace OpenSim.Data.MSSQL
             return sql;
         }
 
-
-        // this is something we'll need to implement for each db
-        // slightly differently.
+        /// <summary>
+        /// Type conversion function
+        /// </summary>
+        /// <param name="type">a type</param>
+        /// <returns>a sqltype</returns>
+        /// <remarks>this is something we'll need to implement for each db slightly differently.</remarks>
         public static string SqlType(Type type)
         {
             if (type == typeof(String))
@@ -375,6 +389,11 @@ namespace OpenSim.Data.MSSQL
             return retval;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <returns></returns>
         public AssetBase getAssetRow(IDataReader reader)
         {
             AssetBase asset = new AssetBase();
@@ -446,7 +465,7 @@ namespace OpenSim.Data.MSSQL
         /// <summary>
         /// Execute a SQL statement stored in a resource, as a string
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">the ressource string</param>
         public void ExecuteResourceSql(string name)
         {
             SqlCommand cmd = new SqlCommand(getResourceString(name), (SqlConnection)dbcon);
@@ -454,6 +473,10 @@ namespace OpenSim.Data.MSSQL
             cmd.Dispose();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>The actual SqlConnection</returns>
         public SqlConnection getConnection()
         {
             return (SqlConnection)dbcon;
@@ -491,6 +514,11 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         private string getResourceString(string name)
         {
             Assembly assem = GetType().Assembly;

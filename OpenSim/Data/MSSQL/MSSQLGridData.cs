@@ -37,7 +37,7 @@ using log4net;
 namespace OpenSim.Data.MSSQL
 {
     /// <summary>
-    /// A grid data interface for Microsoft SQL Server
+    /// A grid data interface for MSSQL Server
     /// </summary>
     public class MSSQLGridData : GridDataBase
     {
@@ -53,6 +53,8 @@ namespace OpenSim.Data.MSSQL
         /// <summary>
         /// Initialises the Grid Interface
         /// </summary>
+        /// <param name="connect">connect string</param>
+        /// <remarks>use mssql_connection.ini</remarks>
         override public void Initialise(string connect)
         {
             // TODO: make the connect string actually do something
@@ -77,6 +79,9 @@ namespace OpenSim.Data.MSSQL
             TestTables();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void TestTables()
         {
             IDbCommand cmd = database.Query("SELECT TOP 1 * FROM "+m_regionsTableName, new Dictionary<string, string>());
@@ -102,7 +107,7 @@ namespace OpenSim.Data.MSSQL
         }
 
         /// <summary>
-        /// Returns the storage system name
+        /// The name of this DB provider. 
         /// </summary>
         /// <returns>A string containing the storage system name</returns>
         override public string getName()
@@ -111,7 +116,7 @@ namespace OpenSim.Data.MSSQL
         }
 
         /// <summary>
-        /// Returns the storage system version
+        /// Database provider version. 
         /// </summary>
         /// <returns>A string containing the storage system version</returns>
         override public string getVersion()
@@ -120,13 +125,15 @@ namespace OpenSim.Data.MSSQL
         }
 
         /// <summary>
+        /// NOT IMPLEMENTED,
         /// Returns a list of regions within the specified ranges
         /// </summary>
         /// <param name="a">minimum X coordinate</param>
         /// <param name="b">minimum Y coordinate</param>
         /// <param name="c">maximum X coordinate</param>
         /// <param name="d">maximum Y coordinate</param>
-        /// <returns>An array of region profiles</returns>
+        /// <returns>null</returns>
+        /// <remarks>always return null</remarks>
         override public RegionProfileData[] GetProfilesInRange(uint a, uint b, uint c, uint d)
         {
             return null;
@@ -240,6 +247,11 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        /// <summary>
+        /// Update the specified region in the database
+        /// </summary>
+        /// <param name="profile">The profile to update</param>
+        /// <returns>A dataresponse enum indicating success</returns>
         public override DataResponse UpdateProfile(RegionProfileData profile)
         {
             if (updateRegionRow(profile))
@@ -252,6 +264,11 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        /// <summary>
+        /// Update the specified region in the database
+        /// </summary>
+        /// <param name="profile">The profile to update</param>
+        /// <returns>success ?</returns>
         public bool updateRegionRow(RegionProfileData profile)
         {
             //Insert new region
@@ -425,6 +442,12 @@ namespace OpenSim.Data.MSSQL
             return false;
         }
 
+        /// <summary>
+        /// NOT IMPLEMENTED
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns>null</returns>
         override public ReservationData GetReservationAtPoint(uint x, uint y)
         {
             return null;

@@ -37,7 +37,7 @@ using OpenSim.Framework;
 namespace OpenSim.Data.MSSQL
 {
     /// <summary>
-    /// A MySQL interface for the inventory server
+    /// A MSSQL interface for the inventory server
     /// </summary>
     public class MSSQLInventoryData : IInventoryData
     {
@@ -59,6 +59,11 @@ namespace OpenSim.Data.MSSQL
         /// </summary>
         private MSSQLManager database;
 
+        /// <summary>
+        /// Loads and initialises the MSSQL inventory storage interface
+        /// </summary>
+        /// <param name="connect">connect string</param>
+        /// <remarks>use mssql_connection.ini</remarks>
         public void Initialise(string connect)
         {
             // TODO: actually use the provided connect string
@@ -77,6 +82,10 @@ namespace OpenSim.Data.MSSQL
 
         #region Test and initialization code
 
+        /// <summary>
+        /// Execute "CreateFoldersTable.sql" if tableName == null
+        /// </summary>
+        /// <param name="tableName">the table name</param>
         private void UpgradeFoldersTable(string tableName)
         {
             // null as the version, indicates that the table didn't exist
@@ -88,6 +97,10 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        /// <summary>
+        /// Execute "CreateItemsTable.sql" if tableName = null
+        /// </summary>
+        /// <param name="tableName">the table name</param>
         private void UpgradeItemsTable(string tableName)
         {
             // null as the version, indicates that the table didn't exist
@@ -99,6 +112,9 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private void TestTables()
         {
             Dictionary<string, string> tableList = new Dictionary<string, string>();
@@ -117,7 +133,7 @@ namespace OpenSim.Data.MSSQL
         /// <summary>
         /// The name of this DB provider
         /// </summary>
-        /// <returns>Name of DB provider</returns>
+        /// <returns>A string containing the name of the DB provider</returns>
         public string getName()
         {
             return "MSSQL Inventory Data Interface";
@@ -215,7 +231,11 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
-        // see InventoryItemBase.getUserRootFolder
+        /// <summary>
+        /// see InventoryItemBase.getUserRootFolder
+        /// </summary>
+        /// <param name="user">the User UUID</param>
+        /// <returns></returns>
         public InventoryFolderBase getUserRootFolder(LLUUID user)
         {
             try
@@ -549,9 +569,9 @@ namespace OpenSim.Data.MSSQL
         }
 
         /// <summary>
-        ///
+        /// Delete an item in inventory database
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">the item UUID</param>
         public void deleteInventoryItem(LLUUID itemID)
         {
             try
@@ -690,6 +710,10 @@ namespace OpenSim.Data.MSSQL
             return folders;
         }
 
+        /// <summary>
+        /// Delete a folder in inventory databasae
+        /// </summary>
+        /// <param name="folderID">the folder UUID</param>
         protected void deleteOneFolder(LLUUID folderID)
         {
             try
@@ -708,6 +732,10 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        /// <summary>
+        /// Delete an item in inventory database
+        /// </summary>
+        /// <param name="folderID">the item ID</param>
         protected void deleteItemsInFolder(LLUUID folderID)
         {
             try
