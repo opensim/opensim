@@ -355,7 +355,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             sourceCode.Append(@"
 using System;
 using System.Collections.Generic;
-using YieldProlog;
+using OpenSim.Region.ScriptEngine.Shared.YieldProlog;
 
 namespace Temporary {
   public class Temporary : YP.IClause {

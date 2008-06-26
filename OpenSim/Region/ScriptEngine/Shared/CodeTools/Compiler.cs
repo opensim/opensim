@@ -55,7 +55,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             lsl = 0,
             cs = 1,
             vb = 2,
-            js = 3
+            js = 3,
+            yp = 4
         }
 
         /// <summary>
@@ -75,6 +76,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         private static CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
         private static VBCodeProvider VBcodeProvider = new VBCodeProvider();
         private static JScriptCodeProvider JScodeProvider = new JScriptCodeProvider();
+        private static CSharpCodeProvider YPcodeProvider = new CSharpCodeProvider(); // YP is translated into CSharp
+        private static YP2CSConverter YP_Converter = new YP2CSConverter();
 
         private static int instanceID = new Random().Next(0, int.MaxValue);                 // Unique number to use on our compiled files
         private static UInt64 scriptCompileCounter = 0;                                     // And a counter
@@ -112,9 +115,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             LanguageMapping.Add(enumCompileType.vb.ToString(), enumCompileType.vb);
             LanguageMapping.Add(enumCompileType.lsl.ToString(), enumCompileType.lsl);
             LanguageMapping.Add(enumCompileType.js.ToString(), enumCompileType.js);
+            LanguageMapping.Add(enumCompileType.yp.ToString(), enumCompileType.yp);
 
             // Allowed compilers
-            string allowComp = m_scriptEngine.Config.GetString("AllowedCompilers", "lsl,cs,vb,js");
+            string allowComp = m_scriptEngine.Config.GetString("AllowedCompilers", "lsl,cs,vb,js,yp");
             AllowedCompilers.Clear();
 
 #if DEBUG
@@ -303,6 +307,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             if (Script.StartsWith("//js", true, CultureInfo.InvariantCulture))
                 l = enumCompileType.js;
 
+            if (Script.StartsWith("//yp", true, CultureInfo.InvariantCulture))
+                l = enumCompileType.yp;
+
             if (!AllowedCompilers.ContainsKey(l.ToString()))
             {
                 // Not allowed to compile to this language!
@@ -320,12 +327,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 l = enumCompileType.cs;
             }
 
+            if (l == enumCompileType.yp)
+            {
+                // Its YP, convert it to C#
+                compileScript = YP_Converter.Convert(Script);
+                // We have our own processor now
+                //l = enumCompileType.cs;
+            }
+
             // Insert additional assemblies here
 
             //ADAM: Disabled for the moment until it's working right.
             bool enableCommanderLSL = false;
 
-            if (enableCommanderLSL == true && l == enumCompileType.cs)
+            if (enableCommanderLSL == true && ((l == enumCompileType.cs) || (l == enumCompileType.yp)))
             {
                 foreach (KeyValuePair<string,
                     ICommander> com
@@ -347,6 +362,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                     break;
                 case enumCompileType.js:
                     compileScript = CreateJSCompilerScript(compileScript);
+                    break;
+                case enumCompileType.yp:
+                    compileScript = CreateYPCompilerScript(compileScript);
                     break;
             }
 
@@ -377,6 +395,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 @"public Script() { } " +
                 compileScript +
                 "} }\r\n";
+            return compileScript;
+        }
+
+        private static string CreateYPCompilerScript(string compileScript)
+        {
+            
+
+            compileScript = String.Empty +
+                       "using OpenSim.Region.ScriptEngine.Shared.YieldProlog; " +
+                        "using OpenSim.Region.ScriptEngine.Shared; using System.Collections.Generic;\r\n" +
+                        String.Empty + "namespace SecondLife { " +
+                        String.Empty + "public class Script : OpenSim.Region.ScriptEngine.Shared.ScriptBase.ScriptBaseClass  { \r\n" +
+                        //@"public Script() { } " +
+                        @"static OpenSim.Region.ScriptEngine.Shared.YieldProlog.YP YP=null; " +
+                        @"public Script() {  YP= new OpenSim.Region.ScriptEngine.Shared.YieldProlog.YP(); } " +
+
+                        compileScript +
+                        "} }\r\n";
             return compileScript;
         }
 
@@ -455,6 +491,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             parameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.Shared.dll"));
             parameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.Shared.Api.Runtime.dll"));
 
+            if (lang == enumCompileType.yp)
+            {
+                parameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.Shared.YieldProlog.dll"));
+            }
+
             parameters.GenerateExecutable = false;
             parameters.OutputAssembly = OutFile;
             parameters.IncludeDebugInformation = CompileWithDebugInformation;
@@ -473,6 +514,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                     break;
                 case enumCompileType.js:
                     results = JScodeProvider.CompileAssemblyFromSource(parameters, Script);
+                    break;
+                case enumCompileType.yp:
+                    results = YPcodeProvider.CompileAssemblyFromSource(parameters, Script);
                     break;
                 default:
                     throw new Exception("Compiler is not able to recongnize language type \"" + lang.ToString() + "\"");
