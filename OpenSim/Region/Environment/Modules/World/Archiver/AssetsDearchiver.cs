@@ -148,11 +148,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             {
                 AssetMetadata metadata = m_metadata[filename];
                 
-                string extension = String.Empty;
-                
-                if ((sbyte)AssetType.Texture == metadata.AssetType)
+                if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.ContainsKey(metadata.AssetType))
                 {
-                    filename = filename.Remove(filename.Length - ArchiveConstants.TEXTURE_EXTENSION.Length);
+                    string extension = ArchiveConstants.ASSET_TYPE_TO_EXTENSION[metadata.AssetType];
+                    filename = filename.Remove(filename.Length - extension.Length);
                 }
 
                 m_log.DebugFormat("[ARCHIVER]: Importing asset {0}", filename);

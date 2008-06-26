@@ -86,10 +86,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                     
                     string extension = string.Empty;
                     
-                    if ((sbyte)AssetType.Texture == asset.Type)
+                    if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.ContainsKey(asset.Type))
                     {
-                        extension = ArchiveConstants.TEXTURE_EXTENSION;
-                    }
+                        extension = ArchiveConstants.ASSET_TYPE_TO_EXTENSION[asset.Type];
+                    }                    
                     
                     xtw.WriteElementString("filename", uuid.ToString() + extension);
                     
@@ -125,9 +125,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 {
                     string extension = string.Empty;
                     
-                    if ((sbyte)AssetType.Texture == asset.Type)
+                    if (ArchiveConstants.ASSET_TYPE_TO_EXTENSION.ContainsKey(asset.Type))
                     {
-                        extension = ArchiveConstants.TEXTURE_EXTENSION;
+                        extension = ArchiveConstants.ASSET_TYPE_TO_EXTENSION[asset.Type];
                     }
                     
                     archive.AddFile(
