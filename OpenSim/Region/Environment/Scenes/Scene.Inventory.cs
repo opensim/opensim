@@ -1009,8 +1009,7 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
             }
             
-            // todo: also check llAllowInventoryDrop when implemented
-            if(part.OwnerID != destPart.OwnerID)
+			if(part.OwnerID != destPart.OwnerID && (part.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.AllowInventoryDrop) == 0)
             {
                 // object cannot copy items to an object owned by a different owner
                 // unless llAllowInventoryDrop has been called

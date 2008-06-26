@@ -97,6 +97,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         // TODO: This needs to be persisted in next XML version update!
         [XmlIgnore] public int[] PayPrice = {-2,-2,-2,-2,-2};
+        [XmlIgnore] public bool AllowedDrop = false;
         [XmlIgnore] private Dictionary<LLUUID, scriptEvents> m_scriptEvents = new Dictionary<LLUUID, scriptEvents>();
         [XmlIgnore] public scriptEvents m_aggregateScriptEvents=0;
         [XmlIgnore] private LLObject.ObjectFlags LocalFlags = LLObject.ObjectFlags.None;
@@ -2784,6 +2785,11 @@ namespace OpenSim.Region.Environment.Scenes
             if ((m_aggregateScriptEvents & scriptEvents.money) != 0)
             {
                 objectflagupdate |= (uint) LLObject.ObjectFlags.Money;
+            }
+
+            if (AllowedDrop)
+            {
+                objectflagupdate |= (uint) LLObject.ObjectFlags.AllowInventoryDrop;
             }
 
             if (

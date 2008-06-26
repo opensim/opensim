@@ -3114,7 +3114,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llAllowInventoryDrop(int add)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llAllowInventoryDrop");
+
+            if(add != 0)
+                m_host.ParentGroup.RootPart.AllowedDrop = true;
+            else
+                m_host.ParentGroup.RootPart.AllowedDrop = false;
         }
 
         public LSL_Types.Vector3 llGetSunDirection()
