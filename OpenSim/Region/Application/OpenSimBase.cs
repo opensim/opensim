@@ -170,22 +170,22 @@ namespace OpenSim
             Application.iniFilePath = startupConfig.GetString("inifile", "OpenSim.ini");
 
             m_config = new OpenSimConfigSource();
-            m_config.ConfigSource = new IniConfigSource();
+            m_config.Source = new IniConfigSource();
             IConfigSource icong;
             
             //check for .INI file (either default or name passed in command line)
             if (File.Exists(Application.iniFilePath))
             {
-                m_config.ConfigSource.Merge(new IniConfigSource(Application.iniFilePath));
-                m_config.ConfigSource.Merge(configSource);
+                m_config.Source.Merge(new IniConfigSource(Application.iniFilePath));
+                m_config.Source.Merge(configSource);
             }
             else
             {
                 Application.iniFilePath = Path.Combine(Util.configDir(), Application.iniFilePath);
                 if (File.Exists(Application.iniFilePath))
                 {
-                    m_config.ConfigSource.Merge(new IniConfigSource(Application.iniFilePath));
-                    m_config.ConfigSource.Merge(configSource);
+                    m_config.Source.Merge(new IniConfigSource(Application.iniFilePath));
+                    m_config.Source.Merge(configSource);
                 }
                 else
                 {
@@ -193,17 +193,17 @@ namespace OpenSim
                     {
                         //chech for a xml config file
                         Application.iniFilePath = "OpenSim.xml";
-                        m_config.ConfigSource = new XmlConfigSource();
-                        m_config.ConfigSource.Merge(new XmlConfigSource(Application.iniFilePath));
-                        m_config.ConfigSource.Merge(configSource);
+                        m_config.Source = new XmlConfigSource();
+                        m_config.Source.Merge(new XmlConfigSource(Application.iniFilePath));
+                        m_config.Source.Merge(configSource);
                     }
                     else
                     {
                         //Application.iniFilePath = "OpenSim.xml";
                        // m_config.ConfigSource = new XmlConfigSource();
                         // no default config files, so set default values, and save it
-                        m_config.ConfigSource.Merge(DefaultConfig());
-                        m_config.ConfigSource.Merge(configSource);
+                        m_config.Source.Merge(DefaultConfig());
+                        m_config.Source.Merge(configSource);
                         m_config.Save(Application.iniFilePath);
                     }
                 }
@@ -294,7 +294,7 @@ namespace OpenSim
         {
             m_networkServersInfo = new NetworkServersInfo();
 
-            IConfig startupConfig = m_config.ConfigSource.Configs["Startup"];
+            IConfig startupConfig = m_config.Source.Configs["Startup"];
 
             if (startupConfig != null)
             {
@@ -323,7 +323,7 @@ namespace OpenSim
                 m_clientstackDll = startupConfig.GetString("clientstack_plugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
             }
 
-            IConfig standaloneConfig = m_config.ConfigSource.Configs["StandAlone"];
+            IConfig standaloneConfig = m_config.Source.Configs["StandAlone"];
             if (standaloneConfig != null)
             {
                 m_standaloneAuthenticate = standaloneConfig.GetBoolean("accounts_authenticate", false);
@@ -344,7 +344,7 @@ namespace OpenSim
                 m_dumpAssetsToFile = standaloneConfig.GetBoolean("dump_assets_to_file", false);
             }
 
-            m_networkServersInfo.loadFromConfiguration(m_config.ConfigSource);
+            m_networkServersInfo.loadFromConfiguration(m_config.Source);
         }
 
         /// <summary>
@@ -397,11 +397,11 @@ namespace OpenSim
                 m_httpServer.AddStreamHandler(new SimStatusHandler());
             }
 
-            proxyUrl = ConfigSource.ConfigSource.Configs["Network"].GetString("proxy_url", "");
-            proxyOffset = Int32.Parse(ConfigSource.ConfigSource.Configs["Network"].GetString("proxy_offset", "0"));
+            proxyUrl = ConfigSource.Source.Configs["Network"].GetString("proxy_url", "");
+            proxyOffset = Int32.Parse(ConfigSource.Source.Configs["Network"].GetString("proxy_offset", "0"));
 
             // Create a ModuleLoader instance
-            m_moduleLoader = new ModuleLoader(m_config.ConfigSource);
+            m_moduleLoader = new ModuleLoader(m_config.Source);
 
             ExtensionNodeList nodes = AddinManager.GetExtensionNodes("/OpenSim/Startup");
             foreach (TypeExtensionNode node in nodes)
@@ -586,7 +586,7 @@ namespace OpenSim
             return
                 new Scene(regionInfo, circuitManager, m_commsManager, sceneGridService, m_assetCache,
                           storageManager, m_httpServer,
-                          m_moduleLoader, m_dumpAssetsToFile, m_physicalPrim, m_see_into_region_from_neighbor, m_config.ConfigSource,
+                          m_moduleLoader, m_dumpAssetsToFile, m_physicalPrim, m_see_into_region_from_neighbor, m_config.Source,
                           m_version);
 
         }
@@ -635,7 +635,7 @@ namespace OpenSim
 
         protected override PhysicsScene GetPhysicsScene()
         {
-            return GetPhysicsScene(m_physicsEngine, m_meshEngineName, m_config.ConfigSource);
+            return GetPhysicsScene(m_physicsEngine, m_meshEngineName, m_config.Source);
         }
 
         /// <summary>
@@ -722,18 +722,18 @@ namespace OpenSim
 
     public class OpenSimConfigSource
     {
-        public IConfigSource ConfigSource;
+        public IConfigSource Source;
 
         public void Save(string path)
         {
-            if (ConfigSource is IniConfigSource)
+            if (Source is IniConfigSource)
             {
-                IniConfigSource iniCon = (IniConfigSource)ConfigSource;
+                IniConfigSource iniCon = (IniConfigSource)Source;
                 iniCon.Save(path);
             }
-            else if (ConfigSource is XmlConfigSource)
+            else if (Source is XmlConfigSource)
             {
-                XmlConfigSource xmlCon = (XmlConfigSource)ConfigSource;
+                XmlConfigSource xmlCon = (XmlConfigSource)Source;
                 xmlCon.Save(path);
             }
         }

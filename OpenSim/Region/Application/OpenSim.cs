@@ -69,7 +69,7 @@ namespace OpenSim
 
         protected override void ReadConfigSettings()
         {
-            IConfig startupConfig = m_config.ConfigSource.Configs["Startup"];
+            IConfig startupConfig = m_config.Source.Configs["Startup"];
 
             if (startupConfig != null)
             {
@@ -528,7 +528,7 @@ namespace OpenSim
                                         c = DefaultConfig().AddConfig(cmdparams[1]);
                                     string _value = String.Join(" ", cmdparams, 3, cmdparams.Length - 3);
                                     c.Set(cmdparams[2], _value);
-                                    m_config.ConfigSource.Merge(c.ConfigSource);
+                                    m_config.Source.Merge(c.ConfigSource);
 
                                     m_console.Error(n, n + " " + n + " " + cmdparams[1] + " " + cmdparams[2] + " " +
                                                     _value);

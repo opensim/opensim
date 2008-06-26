@@ -203,7 +203,7 @@ namespace OpenSim.ApplicationPlugins.Rest
 
             try
             {
-                if ((_config = openSim.ConfigSource.ConfigSource.Configs["RestPlugins"]) == null)
+                if ((_config = openSim.ConfigSource.Source.Configs["RestPlugins"]) == null)
                 {
                     m_log.WarnFormat("{0} Rest Plugins not configured", MsgID);
                     return;
@@ -225,7 +225,7 @@ namespace OpenSim.ApplicationPlugins.Rest
                 _prefix = _config.GetString("prefix", "/admin");
 
                 // Get plugin specific config
-                _pluginConfig = openSim.ConfigSource.ConfigSource.Configs[ConfigName];
+                _pluginConfig = openSim.ConfigSource.Source.Configs[ConfigName];
 
 
                 m_log.InfoFormat("{0} Rest Plugins Enabled", MsgID);
