@@ -1661,7 +1661,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 Object[] args =
                     new Object[] { tag.InnerText };
 
-                assembly = itemType+", OpenSim.Region.ScriptEngine.XEngine.Script";
+                assembly = itemType+", OpenSim.Region.ScriptEngine.Shared";
                 itemT = Type.GetType(assembly);
                 if (itemT == null)
                     return null;
