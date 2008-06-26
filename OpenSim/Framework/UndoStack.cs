@@ -50,7 +50,6 @@ namespace OpenSim.Framework
             get { return m_new == m_old; }
         }
 
-
         public int Capacity
         {
             get { return m_Undos.Length - 1; }
@@ -66,7 +65,6 @@ namespace OpenSim.Framework
                 return count;
             }
         }
-
 
         public void Push(T item)
         {
@@ -95,12 +93,10 @@ namespace OpenSim.Framework
                 throw new InvalidOperationException("Cannot pop from emtpy stack");
         }
 
-
         public T Peek()
         {
             return m_Undos[m_new];
         }
-
 
         public void Clear()
         {

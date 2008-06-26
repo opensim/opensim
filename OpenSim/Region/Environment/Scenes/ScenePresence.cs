@@ -164,7 +164,6 @@ namespace OpenSim.Region.Environment.Scenes
         //neighbouring regions we have enabled a child agent in
         private readonly List<ulong> m_knownChildRegions = new List<ulong>();
 
-
         /// <summary>
         /// Implemented Control Flags
         /// </summary>
@@ -214,12 +213,12 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-
         public bool Updated
         {
             set { m_updateflag = value; }
             get { return m_updateflag; }
         }
+
         public bool Invulnerable
         {
             set { m_invulnerable = value; }

@@ -37,10 +37,8 @@ namespace OpenSim.Framework
     public interface IEventArgs
     {
         IScene Scene { get; set; }
-
         IClientAPI Sender { get; set; }
     }
-
 
     public delegate void ViewerEffectEventHandler(IClientAPI sender, List<ViewerEffectEventHandlerArg> args);
 
@@ -281,6 +279,7 @@ namespace OpenSim.Framework
         public LLVector3 UserLocation;
         public LLVector3 UserLookAt;
     }
+
     public class RegionHandshakeArgs : EventArgs
     {
         public bool isEstateManager;
@@ -358,6 +357,7 @@ namespace OpenSim.Framework
         public int SourceType;
         public LLUUID TransferID;
     }
+
     public class AgentUpdateArgs : EventArgs
     {
         public LLUUID AgentID;
@@ -644,7 +644,6 @@ namespace OpenSim.Framework
     public delegate void EstateTeleportOneUserHomeRequest(IClientAPI remoteClient, LLUUID invoice, LLUUID senderID, LLUUID prey);
     public delegate void ScriptReset(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID);
 
-
     public interface IClientAPI
     {
         LLVector3 StartPos { get; set; }
@@ -680,8 +679,6 @@ namespace OpenSim.Framework
             get;
             set;
         }
-
-
 
         [Obsolete("LLClientView Specific - Circuits are unique to LLClientView")]
         uint CircuitCode { get; }
