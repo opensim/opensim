@@ -1009,6 +1009,21 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
             }
             
+            // todo: also check llAllowInventoryDrop when implemented
+            if(part.OwnerID != destPart.OwnerID)
+            {
+                // object cannot copy items to an object owned by a different owner
+                // unless llAllowInventoryDrop has been called
+
+                return;
+            }
+
+            // must have both move and modify permission to put an item in an object
+            if((part.OwnerMask & ((uint)PermissionMask.Move | (uint)PermissionMask.Modify)) == 0 )
+            {
+                return;
+            }
+
             TaskInventoryItem destTaskItem = new TaskInventoryItem();
             
             destTaskItem.ItemID = LLUUID.Random();
@@ -1051,7 +1066,13 @@ namespace OpenSim.Region.Environment.Scenes
 
             if ((srcTaskItem.OwnerMask & (uint)PermissionMask.Copy) == 0)
                 part.RemoveInventoryItem(itemId);
+
+            ScenePresence avatar;
             
+            if(TryGetAvatar(srcTaskItem.OwnerID, out avatar))
+            {
+                destPart.GetProperties(avatar.ControllingClient);
+            }
         }
         
         public void MoveTaskInventoryItems(LLUUID destID, string category, SceneObjectPart host, List<LLUUID> items)
