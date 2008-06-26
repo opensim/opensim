@@ -749,6 +749,7 @@ namespace OpenSim.Data.SQLite
             createCol(items, "basePermissions", typeof (UInt32));
             createCol(items, "everyonePermissions", typeof (UInt32));
             createCol(items, "groupPermissions", typeof (UInt32));
+            createCol(items, "flags", typeof (UInt32));
 
             items.PrimaryKey = new DataColumn[] { items.Columns["itemID"] };
 
@@ -965,6 +966,7 @@ namespace OpenSim.Data.SQLite
             taskItem.BaseMask      = Convert.ToUInt32(row["basePermissions"]);
             taskItem.EveryoneMask  = Convert.ToUInt32(row["everyonePermissions"]);
             taskItem.GroupMask     = Convert.ToUInt32(row["groupPermissions"]);
+            taskItem.Flags         = Convert.ToUInt32(row["flags"]);
 
             return taskItem;
         }
@@ -1233,6 +1235,7 @@ namespace OpenSim.Data.SQLite
             row["basePermissions"] = taskItem.BaseMask;
             row["everyonePermissions"] = taskItem.EveryoneMask;
             row["groupPermissions"] = taskItem.GroupMask;
+            row["flags"] = taskItem.Flags;
         }
 
         private static void fillLandRow(DataRow row, LandData land, LLUUID regionUUID)
