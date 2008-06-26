@@ -48,6 +48,13 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         private MySQLManager database;
 
+        /// <summary>
+        /// Initialises User interface
+        /// Loads and initialises the MySQL storage plugin
+        /// warns and uses the obsolete mysql_connection.ini if connect string is empty.
+        /// Check for migration
+        /// </summary>
+        /// <param name="connect">connect string.</param>
         public void Initialise(string connect)
         {
             if (connect != String.Empty)
@@ -162,6 +169,7 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Closes this DB provider
         /// </summary>
+        /// <remarks>do nothing</remarks>
         public void Close()
         {
             // Do nothing.
@@ -250,7 +258,12 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        // see InventoryItemBase.getUserRootFolder
+     
+        /// <summary>
+        /// see InventoryItemBase.getUserRootFolder
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
         public InventoryFolderBase getUserRootFolder(LLUUID user)
         {
             try
@@ -595,6 +608,7 @@ namespace OpenSim.Data.MySQL
             addInventoryFolder(folder);
         }
 
+        /// <summary>
         /// Creates a new inventory folder
         /// </summary>
         /// <param name="folder">Folder to create</param>
@@ -633,7 +647,12 @@ namespace OpenSim.Data.MySQL
                 folders.Add(f);
         }
 
-        // See IInventoryData
+
+        /// <summary>
+        /// See IInventoryData
+        /// </summary>
+        /// <param name="parentID"></param>
+        /// <returns></returns>
         public List<InventoryFolderBase> getFolderHierarchy(LLUUID parentID)
         {
             List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
@@ -645,6 +664,10 @@ namespace OpenSim.Data.MySQL
             return folders;
         }
 
+        /// <summary>
+        /// Delete a folder from database
+        /// </summary>
+        /// <param name="folderID">the folder UUID</param>
         protected void deleteOneFolder(LLUUID folderID)
         {
             try
@@ -665,6 +688,10 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// Delete all item in a folder
+        /// </summary>
+        /// <param name="folderID">the folder UUID</param>
         protected void deleteItemsInFolder(LLUUID folderID)
         {
             try

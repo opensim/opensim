@@ -62,6 +62,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="username">The username logging into the database</param>
         /// <param name="password">The password for the user logging in</param>
         /// <param name="cpooling">Whether to use connection pooling or not, can be one of the following: 'yes', 'true', 'no' or 'false', if unsure use 'false'.</param>
+        /// <param name="port">The MySQL server port</param>
         public MySQLManager(string hostname, string database, string username, string password, string cpooling,
                             string port)
         {
@@ -71,11 +72,19 @@ namespace OpenSim.Data.MySQL
             Initialise(s);
         }
 
+        /// <summary>
+        /// Initialises and creates a new MySQL connection and maintains it.
+        /// </summary>
+        /// <param name="connect">connectionString</param>
         public MySQLManager(String connect)
         {
             Initialise(connect);
         }
 
+        /// <summary>
+        /// Initialises and creates a new MySQL connection and maintains it.
+        /// </summary>
+        /// <param name="connect">connectionString</param>
         public void Initialise(String connect)
         {
             try
@@ -103,6 +112,7 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Get the connection being used
         /// </summary>
+        /// <returns>MySqlConnection Object</returns>
         public MySqlConnection Connection
         {
             get { return dbcon; }
@@ -184,13 +194,17 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Execute a SQL statement stored in a resource, as a string
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">name of embedded resource</param>
         public void ExecuteResourceSql(string name)
         {
             MySqlCommand cmd = new MySqlCommand(getResourceString(name), dbcon);
             cmd.ExecuteNonQuery();
         }
 
+        /// <summary>
+        /// Execute a MySqlCommand
+        /// </summary>
+        /// <param name="sql">sql string to execute</param>
         public void ExecuteSql(string sql)
         {
             MySqlCommand cmd = new MySqlCommand(sql, dbcon);
@@ -536,6 +550,11 @@ namespace OpenSim.Data.MySQL
             return retval;
         }
 
+        /// <summary>
+        /// Reads an avatar appearence from an active data reader
+        /// </summary>
+        /// <param name="reader">An active database reader</param>
+        /// <returns>An avatar appearence</returns>
         public AvatarAppearance readAppearanceRow(IDataReader reader)
         {
             AvatarAppearance appearance = null;
@@ -647,6 +666,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="firstText">Firstlife text</param>
         /// <param name="profileImage">UUID for profile image</param>
         /// <param name="firstImage">UUID for firstlife image</param>
+        /// <param name="webLoginKey">Ignored</param>
         /// <returns>Success?</returns>
         public bool insertUserRow(LLUUID uuid, string username, string lastname, string passwordHash,
                                   string passwordSalt, UInt64 homeRegion, float homeLocX, float homeLocY, float homeLocZ,
@@ -718,7 +738,7 @@ namespace OpenSim.Data.MySQL
         }
 
         /// <summary>
-        /// Creates a new user and inserts it into the database
+        /// Update user data into the database where User ID = uuid
         /// </summary>
         /// <param name="uuid">User ID</param>
         /// <param name="username">First part of the login</param>
@@ -742,6 +762,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="firstText">Firstlife text</param>
         /// <param name="profileImage">UUID for profile image</param>
         /// <param name="firstImage">UUID for firstlife image</param>
+        /// <param name="webLoginKey">UUID for weblogin Key</param>
         /// <returns>Success?</returns>
         public bool updateUserRow(LLUUID uuid, string username, string lastname, string passwordHash,
                                   string passwordSalt, UInt64 homeRegion, float homeLocX, float homeLocY, float homeLocZ,
@@ -810,7 +831,7 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Inserts a new region into the database
         /// </summary>
-        /// <param name="profile">The region to insert</param>
+        /// <param name="regiondata">The region to insert</param>
         /// <returns>Success?</returns>
         public bool insertRegion(RegionProfileData regiondata)
         {
@@ -914,7 +935,7 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Delete a region from the database
         /// </summary>
-        /// <param name="profile">The region to insert</param>
+        /// <param name="uuid">The region to delete</param>
         /// <returns>Success?</returns>
         //public bool deleteRegion(RegionProfileData regiondata)
         public bool deleteRegion(string uuid)
@@ -995,6 +1016,11 @@ namespace OpenSim.Data.MySQL
             return returnval;
         }
 
+        /// <summary>
+        /// Create (or replace if existing) an avatar appearence
+        /// </summary>
+        /// <param name="appearance"></param>
+        /// <returns>Succes?</returns>
         public bool insertAppearanceRow(AvatarAppearance appearance)
         {
             string sql = String.Empty;

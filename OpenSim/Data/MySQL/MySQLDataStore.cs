@@ -85,7 +85,11 @@ namespace OpenSim.Data.MySQL
          *
          **********************************************************************/
 
-        // see IRegionDataStore
+        /// <summary>
+        /// see IRegionDataStore
+        /// </summary>
+        /// <param name="connectionstring"></param>
+        /// <param name="persistPrimInventories"></param>
         public void Initialise(string connectionstring, bool persistPrimInventories)
         {
             m_dataSet = new DataSet();
@@ -221,7 +225,7 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Execute a SQL statement stored in a resource, as a string
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">the ressource name</param>
         public void ExecuteResourceSql(string name, MySqlConnection dbcon)
         {
             MySqlCommand cmd = new MySqlCommand(getResourceString(name), dbcon);
@@ -255,6 +259,10 @@ namespace OpenSim.Data.MySQL
             throw new Exception(string.Format("Resource '{0}' was not found", name));
         }
 
+        /// <summary>
+        /// </summary>
+        /// <param name="oldVersion"></param>
+        /// <param name="dbconn"></param>
         private void UpgradeLandTable(string oldVersion, MySqlConnection dbconn)
         {
             // null as the version, indicates that the table didn't exist
@@ -268,6 +276,12 @@ namespace OpenSim.Data.MySQL
                 ExecuteResourceSql("UpgradeLandTableToVersion2.sql", dbconn);
             }
         }
+
+        /// <summary>
+        /// Adds an object into region storage
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="regionUUID"></param>
         public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
             lock (m_dataSet)
@@ -290,6 +304,11 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// removes an object from region storage
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="regionUUID"></param>
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
             m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
@@ -327,6 +346,7 @@ namespace OpenSim.Data.MySQL
         /// Remove all persisted items of the given prim.
         /// The caller must acquire the necessrary synchronization locks and commit or rollback changes.
         /// </summary>
+        /// <param name="uuid">the Item UUID</param>
         private void RemoveItems(LLUUID uuid)
         {
             String sql = String.Format("primID = '{0}'", uuid);
@@ -341,6 +361,7 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Load persisted objects from region storage.
         /// </summary>
+        /// <param name="regionUUID">the Region UUID</param>
         public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
         {
             Dictionary<LLUUID, SceneObjectGroup> createdObjects = new Dictionary<LLUUID, SceneObjectGroup>();
@@ -460,6 +481,11 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// Store a terrain revision in region storage
+        /// </summary>
+        /// <param name="ter">terrain data</param>
+        /// <param name="regionID">region UUID</param>
         public void StoreTerrain(double[,] ter, LLUUID regionID)
         {
             int revision = 1;
@@ -483,6 +509,11 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// Load the latest terrain revision from region storage
+        /// </summary>
+        /// <param name="regionID">the region UUID</param>
+        /// <returns></returns>
         public double[,] LoadTerrain(LLUUID regionID)
         {
             double[,] terret = new double[256,256];
@@ -531,6 +562,11 @@ namespace OpenSim.Data.MySQL
             return terret;
         }
 
+        /// <summary>
+        /// delete from land where UUID=globalID
+        /// delete from landaccesslist where LandUUID=globalID
+        /// </summary>
+        /// <param name="globalID"></param>
         public void RemoveLandObject(LLUUID globalID)
         {
             lock (m_dataSet)
@@ -551,6 +587,9 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// </summary>
+        /// <param name="parcel"></param>
         public void StoreLandObject(ILandObject parcel)
         {
             lock (m_dataSet)
@@ -589,6 +628,11 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionUUID"></param>
+        /// <returns></returns>
         public List<RegionBanListItem> LoadRegionBanList(LLUUID regionUUID)
         {
             List<RegionBanListItem> regionbanlist = new List<RegionBanListItem>();
@@ -615,6 +659,10 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="item"></param>
         public void AddToRegionBanlist(RegionBanListItem item)
         {
             lock (m_dataSet)
@@ -635,6 +683,10 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="item"></param>
         public void RemoveFromRegionBanlist(RegionBanListItem item)
         {
             lock (m_dataSet)
@@ -669,6 +721,11 @@ namespace OpenSim.Data.MySQL
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="regionUUID"></param>
+        /// <returns></returns>
         public List<LandData> LoadLandObjects(LLUUID regionUUID)
         {
             List<LandData> landDataForRegion = new List<LandData>();
@@ -694,6 +751,9 @@ namespace OpenSim.Data.MySQL
             return landDataForRegion;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void Commit()
         {
             if (m_connection.State != ConnectionState.Open)
@@ -722,7 +782,9 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
         public void Shutdown()
         {
             Commit();

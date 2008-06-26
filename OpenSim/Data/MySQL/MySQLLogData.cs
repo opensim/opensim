@@ -44,7 +44,9 @@ namespace OpenSim.Data.MySQL
 
         /// <summary>
         /// Artificial constructor called when the plugin is loaded
+        /// Uses the obsolete mysql_connection.ini if connect string is empty.
         /// </summary>
+        /// <param name="connect">connect string</param>
         public void Initialise(string connect)
         {
             if (connect != String.Empty)
@@ -79,6 +81,8 @@ namespace OpenSim.Data.MySQL
 
         }
 
+        /// <summary></summary>
+        /// <param name="m"></param>
         private void TestTables(Migration m)
         {
             // under migrations, bail
@@ -132,6 +136,7 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Closes the database provider
         /// </summary>
+        /// <remarks>do nothing</remarks>
         public void Close()
         {
             // Do nothing.

@@ -56,8 +56,12 @@ namespace OpenSim.Data.MySQL
         private string m_connectString;
 
         /// <summary>
+        /// Initialise User Interface
         /// Loads and initialises the MySQL storage plugin
+        /// Warns and uses the obsolete mysql_connection.ini if connect string is empty.
+        /// Checks for migration
         /// </summary>
+        /// <param name="connect">connect string.</param>
         override public void Initialise(string connect)
         {
             if (connect == String.Empty) {
@@ -494,7 +498,11 @@ namespace OpenSim.Data.MySQL
             return returnlist;
         }
 
-        // see IUserData
+        /// <summary>
+        /// See IUserData
+        /// </summary>
+        /// <param name="uuid">User UUID</param>
+        /// <returns>User profile data</returns>
         override public UserProfileData GetUserByUUID(LLUUID uuid)
         {
             try
@@ -526,7 +534,7 @@ namespace OpenSim.Data.MySQL
         /// <summary>
         /// Returns a user session searching by name
         /// </summary>
-        /// <param name="name">The account name</param>
+        /// <param name="name">The account name : "Username Lastname"</param>
         /// <returns>The users session</returns>
         override public UserAgentData GetAgentByName(string name)
         {
@@ -545,6 +553,11 @@ namespace OpenSim.Data.MySQL
             return GetAgentByUUID(profile.ID);
         }
 
+        /// <summary>
+        /// </summary>
+        /// <param name="AgentID"></param>
+        /// <param name="WebLoginKey"></param>
+        /// <remarks>is it still used ?</remarks>
         override public void StoreWebLoginKey(LLUUID AgentID, LLUUID WebLoginKey)
         {
             Dictionary<string, string> param = new Dictionary<string, string>();
@@ -694,9 +707,11 @@ namespace OpenSim.Data.MySQL
             return false;
         }
 
+        /// <summary>
         /// Appearance
         /// TODO: stubs for now to get us to a compiling state gently
-        // override
+        /// override
+        /// </summary>
         override public AvatarAppearance GetUserAppearance(LLUUID user)
         {
             try {
@@ -723,6 +738,12 @@ namespace OpenSim.Data.MySQL
                 return null;
             }
         }
+
+        /// <summary>
+        /// Updates an avatar appearence
+        /// </summary>
+        /// <param name="user">The user UUID</param>
+        /// <param name="appearance">The avatar appearance</param>
         // override
         override public void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance)
         {
@@ -741,16 +762,31 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// Adds an attachment item to a user
+        /// </summary>
+        /// <param name="user">the user UUID</param>
+        /// <param name="item">the item UUID</param>
         override public void AddAttachment(LLUUID user, LLUUID item)
         {
             return;
         }
 
+        /// <summary>
+        /// Removes an attachment from a user
+        /// </summary>
+        /// <param name="user">the user UUID</param>
+        /// <param name="item">the item UUID</param>
         override public void RemoveAttachment(LLUUID user, LLUUID item)
         {
             return;
         }
 
+        /// <summary>
+        /// Get the list of item attached to a user
+        /// </summary>
+        /// <param name="user">the user UUID</param>
+        /// <returns>UUID list of attached item</returns>
         override public List<LLUUID> GetAttachments(LLUUID user)
         {
             return new List<LLUUID>();

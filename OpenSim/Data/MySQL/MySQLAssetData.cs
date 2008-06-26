@@ -44,6 +44,13 @@ namespace OpenSim.Data.MySQL
 
         #region IPlugin Members
 
+        /// <summary>
+        /// Initialises Asset interface
+        /// Loads and initialises the MySQL storage plugin
+        /// Warns and uses the obsolete mysql_connection.ini if connect string is empty.
+        /// Check for migration
+        /// </summary>
+        /// <param name="connect">connect string.</param>
         override public void Initialise(string connect)
         {
             // TODO: This will let you pass in the connect string in
@@ -70,6 +77,11 @@ namespace OpenSim.Data.MySQL
             m.Update();
         }
 
+        /// <summary>
+        /// uses the obsolete mysql_connection.ini
+        /// </summary>
+        /// <param name="connect">connect string.</param>
+        /// <remarks>Probably deprecated and shouldn't be used</remarks>
         override public void Initialise()
         {
             IniFile GridDataMySqlFile = new IniFile("mysql_connection.ini");
@@ -116,6 +128,11 @@ namespace OpenSim.Data.MySQL
                 m.Version = 1;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="assetID"></param>
+        /// <returns></returns>
         override public AssetBase FetchAsset(LLUUID assetID)
         {
             AssetBase asset = null;
@@ -157,6 +174,10 @@ namespace OpenSim.Data.MySQL
             return asset;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="asset"></param>
         override public void CreateAsset(AssetBase asset)
         {
             lock (_dbConnection)
@@ -202,11 +223,20 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="asset"></param>
         override public void UpdateAsset(AssetBase asset)
         {
             CreateAsset(asset);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="uuid"></param>
+        /// <returns></returns>
         override public bool ExistsAsset(LLUUID uuid)
         {
             bool assetExists = false;
@@ -254,12 +284,17 @@ namespace OpenSim.Data.MySQL
 
         #endregion
 
-
+        /// <summary>
+        /// database provider version
+        /// </summary>
         override public string Version
         {
             get { return _dbConnection.getVersion(); }
         }
 
+        /// <summary>
+        /// The name of this DB provider
+        /// </summary>
         override public string Name
         {
             get { return "MySQL Asset storage engine"; }

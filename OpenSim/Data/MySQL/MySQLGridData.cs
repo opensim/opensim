@@ -49,8 +49,12 @@ namespace OpenSim.Data.MySQL
         private MySQLManager database;
 
         /// <summary>
-        /// Initialises the Grid Interface
+        /// Initialises Grid interface
+        /// Loads and initialises the MySQL storage plugin
+        /// Warns and uses the obsolete mysql_connection.ini if connect string is empty.
+        /// Check for migration
         /// </summary>
+        /// <param name="connect">connect string.</param>
         override public void Initialise(string connect)
         {
             if (connect != String.Empty)
@@ -166,7 +170,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="ymin">Minimum Y coordinate</param>
         /// <param name="xmax">Maximum X coordinate</param>
         /// <param name="ymax">Maximum Y coordinate</param>
-        /// <returns></returns>
+        /// <returns>Array of sim profiles</returns>
         override public RegionProfileData[] GetProfilesInRange(uint xmin, uint ymin, uint xmax, uint ymax)
         {
             try
@@ -332,15 +336,21 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// Update a sim profile
+        /// </summary>
+        /// <param name="profile">The profile to update</param>
+        /// <returns>Sucessful?</returns>
+        /// <remarks>Same as AddProfile</remarks>
         override public DataResponse UpdateProfile(RegionProfileData profile)
         {
             return AddProfile(profile);
         }
 
         /// <summary>
-        /// Deletes a profile from the database
+        /// Deletes a sim profile from the database
         /// </summary>
-        /// <param name="profile">The profile to delete</param>
+        /// <param name="uuid">the sim UUID</param>
         /// <returns>Successful?</returns>
         //public DataResponse DeleteProfile(RegionProfileData profile)
         public DataResponse DeleteProfile(string uuid)
@@ -397,6 +407,12 @@ namespace OpenSim.Data.MySQL
             return false;
         }
 
+        /// <summary>
+        /// Adds a location reservation
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         override public ReservationData GetReservationAtPoint(uint x, uint y)
         {
             try
