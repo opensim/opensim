@@ -1660,7 +1660,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             if (m_parentGroup != null)
             {
-                m_parentGroup.HasGroupChanged = true;
                 m_parentGroup.QueueForUpdateCheck();
             }
 
@@ -1766,7 +1765,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Shape
 
         /// <summary>
-        ///
+        /// Update the shape of this part.
         /// </summary>
         /// <param name="shapeBlock"></param>
         public void UpdateShape(ObjectShapePacket.ObjectDataBlock shapeBlock)
@@ -1793,6 +1792,8 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 PhysActor.Shape = m_shape;
             }
+            
+            ParentGroup.HasGroupChanged = true;
             ScheduleFullUpdate();
         }
 
@@ -2012,6 +2013,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
             
+            ParentGroup.HasGroupChanged = true;
             ScheduleFullUpdate();
         }
         
@@ -2066,13 +2068,15 @@ namespace OpenSim.Region.Environment.Scenes
         #region Texture
 
         /// <summary>
-        ///
+        /// Update the texture entry for this part.
         /// </summary>
         /// <param name="textureEntry"></param>
         public void UpdateTextureEntry(byte[] textureEntry)
         {
             m_shape.TextureEntry = textureEntry;
             TriggerScriptChangedEvent(Changed.TEXTURE);
+            
+            ParentGroup.HasGroupChanged = true;
             ScheduleFullUpdate();
         }
 
@@ -2301,7 +2305,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Resizing/Scale
 
         /// <summary>
-        ///
+        /// Resize this part.
         /// </summary>
         /// <param name="scale"></param>
         public void Resize(LLVector3 scale)
@@ -2309,6 +2313,7 @@ namespace OpenSim.Region.Environment.Scenes
             StoreUndoState();
             m_shape.Scale = scale;
 
+            ParentGroup.HasGroupChanged = true;
             ScheduleFullUpdate();
         }
 
@@ -2576,12 +2581,24 @@ namespace OpenSim.Region.Environment.Scenes
         {
         }
 
+        /// <summary>
+        /// Set the text displayed for this part.
+        /// </summary>
+        /// <param name="text"></param>
         public void SetText(string text)
         {
             Text = text;
+            
+            ParentGroup.HasGroupChanged = true;
             ScheduleFullUpdate();
         }
 
+        /// <summary>
+        /// Set the text displayed for this part.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="color"></param>
+        /// <param name="alpha"></param>
         public void SetText(string text, Vector3 color, double alpha)
         {
             Color = Color.FromArgb(0xff - (int) (alpha*0xff),

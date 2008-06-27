@@ -477,6 +477,7 @@ namespace OpenSim.Region.Environment.Scenes
             newPart.LinkNum = m_parts.Count;
             m_parts.Add(newPart.UUID, newPart);
             SetPartAsRoot(newPart);
+            
             // one of these is a proxy.
             if (shape.PCode != (byte)PCode.None && shape.PCode != (byte)PCode.ParticleSystem)
                 AttachToBackup();
@@ -686,7 +687,12 @@ namespace OpenSim.Region.Environment.Scenes
             m_rootPart = part;
         }
 
-
+        /// <summary>
+        /// Attach this scene object to the given avatar.
+        /// </summary>
+        /// <param name="agentID"></param>
+        /// <param name="attachmentpoint"></param>
+        /// <param name="AttachOffset"></param>
         public void AttachToAgent(LLUUID agentID, uint attachmentpoint, LLVector3 AttachOffset)
         {
             ScenePresence avatar = m_scene.GetScenePresence(agentID);
@@ -752,6 +758,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_rootPart.SetAttachmentPoint((byte)0);
             m_rootPart.m_IsAttachment = false;
             m_rootPart.ApplyPhysics(m_rootPart.GetEffectiveObjectFlags(), m_scene.m_physicalPrim);
+            HasGroupChanged = true;
             AttachToBackup();
             m_rootPart.ScheduleFullUpdate();
             m_rootPart.ClearUndoState();
@@ -1026,6 +1033,7 @@ namespace OpenSim.Region.Environment.Scenes
                 lock (m_targets)
                     m_targets.Clear();
             }
+            
             ScheduleGroupForFullUpdate();
         }
 
@@ -1037,6 +1045,7 @@ namespace OpenSim.Region.Environment.Scenes
                                    (int) (color.z * 0xff));
             Text = text;
 
+            HasGroupChanged = true;
             m_rootPart.ScheduleFullUpdate();
         }
 
@@ -1229,6 +1238,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 dupe.RootPart.DoPhysicsPropertyUpdate(dupe.RootPart.PhysActor.IsPhysical, true);
             }
+            
             // Now we've made a copy that replaces this one, we need to
             // switch the owner to the person who did the copying
             // Second Life copies an object and duplicates the first one in it's place
@@ -1257,8 +1267,9 @@ namespace OpenSim.Region.Environment.Scenes
             if (userExposed)
             {
                 dupe.UpdateParentIDs();
-
+                dupe.HasGroupChanged = true;
                 dupe.AttachToBackup();
+                
                 ScheduleGroupForFullUpdate();
             }
 
@@ -1385,7 +1396,6 @@ namespace OpenSim.Region.Environment.Scenes
             part.LastOwnerID = part.OwnerID;
             part.OwnerID = cAgentID;
             part.GroupID = cGroupID;
-
 
             if (part.OwnerID != cAgentID)
             {
@@ -1535,7 +1545,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void ScheduleGroupForFullUpdate()
         {
-            HasGroupChanged = true;
             checkAtTargets();
             lock (m_parts)
             {
@@ -1774,6 +1783,7 @@ namespace OpenSim.Region.Environment.Scenes
             // The traffic caused is always going to be pretty minor, so it's not high priority
             //objectGroup.DeleteGroup();
 
+            HasGroupChanged = true;
             ScheduleGroupForFullUpdate();
         }
 
@@ -1834,6 +1844,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                 m_scene.AddNewSceneObject(objectGroup, true);
 
+                HasGroupChanged = true;
                 ScheduleGroupForFullUpdate();
             }
             else
@@ -2112,6 +2123,8 @@ namespace OpenSim.Region.Environment.Scenes
                     m_scene.PhysicsScene.AddPhysicsActorTaint(part.PhysActor);
                 }
                 //if (part.UUID != m_rootPart.UUID)
+                
+                HasGroupChanged = true;
                 ScheduleGroupForFullUpdate();
 
                 //if (part.UUID == m_rootPart.UUID)
@@ -2552,6 +2565,8 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     part.SetGroup(GroupID, client);
                 }
+                
+                HasGroupChanged = true;
             }
             
             ScheduleGroupForFullUpdate();

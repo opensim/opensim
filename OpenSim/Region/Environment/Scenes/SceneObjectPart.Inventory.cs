@@ -454,11 +454,12 @@ namespace OpenSim.Region.Environment.Scenes
                         }
 
                     }
+                    
                     if (scriptcount <= 0)
                     {
                         RemFlag(LLObject.ObjectFlags.Scripted);
-                        ScheduleFullUpdate();
                     }
+                    
                     ScheduleFullUpdate();
 
                     return type;

@@ -911,6 +911,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
         }
 
+        /// <summary>
+        /// Set flexi parameters of a part.
+        /// 
+        /// FIXME: Much of this code should probably be within the part itself.
+        /// </summary>
+        /// <param name="part"></param>
+        /// <param name="flexi"></param>
+        /// <param name="softness"></param>
+        /// <param name="gravity"></param>
+        /// <param name="friction"></param>
+        /// <param name="wind"></param>
+        /// <param name="tension"></param>
+        /// <param name="Force"></param>        
         private void SetFlexi(SceneObjectPart part, bool flexi, int softness, float gravity, float friction,
             float wind, float tension, LSL_Types.Vector3 Force)
         {
@@ -955,9 +968,21 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
 
+            part.ParentGroup.HasGroupChanged = true;
             part.ScheduleFullUpdate();
         }
 
+        /// <summary>
+        /// Set a light point on a part
+        /// 
+        /// FIXME: Much of this code should probably be in SceneObjectGroup
+        /// </summary>
+        /// <param name="part"></param>
+        /// <param name="light"></param>
+        /// <param name="color"></param>
+        /// <param name="intensity"></param>
+        /// <param name="radius"></param>
+        /// <param name="falloff"></param>        
         private void SetPointLight(SceneObjectPart part, bool light, LSL_Types.Vector3 color, float intensity, float radius, float falloff)
         {
             if (part == null)
@@ -978,10 +1003,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 part.Shape.LightEntry = false;
             }
 
+            part.ParentGroup.HasGroupChanged = true;
             part.ScheduleFullUpdate();
         }
-
-
 
         public LSL_Types.Vector3 llGetColor(int face)
         {

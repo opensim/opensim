@@ -1522,6 +1522,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
 
                     copy.StartScripts();
+                    copy.HasGroupChanged = true;
                     copy.ScheduleGroupForFullUpdate();
                     return copy;
                 }
