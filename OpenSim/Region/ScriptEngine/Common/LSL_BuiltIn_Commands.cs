@@ -4660,13 +4660,54 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSetRemoteScriptAccessPin(int pin)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSetRemoteScriptAccessPin");
+            
+			m_host.ScriptAccessPin = pin;
         }
 
         public void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRemoteLoadScriptPin");
+            bool found = false;
+            LLUUID destId = LLUUID.Zero;
+            LLUUID srcId = LLUUID.Zero;
+            
+            if (!LLUUID.TryParse(target, out destId))
+            {
+                llSay(0, "Could not parse key " + target);
+                return;
+            }
+			
+			// target must be a different prim than the one containing the script
+			if (m_host.UUID == destId)
+			{
+				return;
+			}
+			
+            // copy the first script found with this inventory name
+            foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
+            {
+                if (inv.Value.Name == name)
+                {
+					// make sure the object is a script
+					if(10 == inv.Value.Type)
+					{
+						found = true;
+						srcId = inv.Key;
+						break;
+					}
+                }
+            }
+			
+			if (!found)
+			{
+				llSay(0, "Could not find script " + name);
+				return;
+			}
+			
+			// the rest of the permission checks are done in RezScript, so check the pin there as well
+            World.RezScript(srcId, m_host, destId, pin, running, start_param);
+			// this will cause the delay even if the script pin or permissions were wrong - seems ok
+			System.Threading.Thread.Sleep(3000);
         }
 
         //  remote_data(integer type, key channel, key message_id, string sender, integer ival, string sval)

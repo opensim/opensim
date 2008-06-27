@@ -102,6 +102,7 @@ namespace OpenSim.Region.Environment.Scenes
         [XmlIgnore] public scriptEvents m_aggregateScriptEvents=0;
         [XmlIgnore] private LLObject.ObjectFlags LocalFlags = LLObject.ObjectFlags.None;
         [XmlIgnore] public bool DIE_AT_EDGE = false;
+		[XmlIgnore] private int m_scriptAccessPin = 0;
 
         [XmlIgnore] public bool m_IsAttachment = false;
         [XmlIgnore] public uint m_attachmentPoint = (byte)0;
@@ -211,6 +212,12 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_regionHandle; }
             set { m_regionHandle = value; }
         }
+		
+		public int ScriptAccessPin
+		{
+			get { return m_scriptAccessPin; }
+			set	{ m_scriptAccessPin = (int)value; }
+		}
 
         public uint GetEffectiveObjectFlags()
         {

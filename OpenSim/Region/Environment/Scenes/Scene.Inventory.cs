@@ -1285,7 +1285,105 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Rez a script into a prim's inventory from another prim
+        /// </summary>
+        /// <param name="remoteClient"></param>
+        /// <param name="itemID"> </param>
+        /// <param name="localID"></param>
+        public void RezScript(LLUUID srcId, SceneObjectPart srcPart, LLUUID destId, int pin, int running, int start_param)
+		{
+			TaskInventoryItem srcTaskItem = srcPart.GetInventoryItem(srcId);
 
+            if (srcTaskItem == null)
+            {
+                // error was already logged
+                return;
+            }
+            
+            SceneObjectPart destPart = GetSceneObjectPart(destId);
+
+            if (destPart == null)
+            {
+                m_log.ErrorFormat(
+                        "[PRIM INVENTORY]: " +
+                        "Could not find script for ID {0}",
+                        destId);
+                return;
+            }
+			
+			if (destPart.ScriptAccessPin != pin)
+			{
+				m_log.WarnFormat(
+				        "[PRIM INVENTORY]: " +
+				        "Script in object {0} : {1}, attempted to load script {2} : {3} into object {4} : {5} with invalid pin {6}",
+				        srcPart.Name, srcId, srcTaskItem.Name, srcTaskItem.ItemID, destPart.Name, destId, pin);
+				// the LSL Wiki says we are supposed to shout on the DEBUG_CHANNEL - 
+				//   "Object: Task Object trying to illegally load script onto task Other_Object!"
+				// How do we should from in here?
+				return;
+			}
+			
+			TaskInventoryItem destTaskItem = new TaskInventoryItem();
+			
+			destTaskItem.ItemID = LLUUID.Random();
+            destTaskItem.CreatorID = srcTaskItem.CreatorID;
+            destTaskItem.AssetID = srcTaskItem.AssetID;
+            destTaskItem.GroupID = destPart.GroupID;
+            destTaskItem.OwnerID = destPart.OwnerID;
+            destTaskItem.ParentID = destPart.UUID;
+            destTaskItem.ParentPartID = destPart.UUID;
+
+            destTaskItem.BaseMask = srcTaskItem.BaseMask;
+            destTaskItem.EveryoneMask = srcTaskItem.EveryoneMask;
+            destTaskItem.GroupMask = srcTaskItem.GroupMask;
+            destTaskItem.OwnerMask = srcTaskItem.OwnerMask;
+            destTaskItem.NextOwnerMask = srcTaskItem.NextOwnerMask;
+            destTaskItem.Flags = srcTaskItem.Flags;
+            
+            if (destPart.OwnerID != srcPart.OwnerID)
+            {
+                if (ExternalChecks.ExternalChecksPropagatePermissions())
+                {
+                    destTaskItem.OwnerMask = srcTaskItem.OwnerMask &
+                            srcTaskItem.NextOwnerMask;
+                    destTaskItem.GroupMask = srcTaskItem.GroupMask &
+                            srcTaskItem.NextOwnerMask;
+                    destTaskItem.EveryoneMask = srcTaskItem.EveryoneMask &
+                            srcTaskItem.NextOwnerMask;
+                    destTaskItem.BaseMask = srcTaskItem.BaseMask &
+                            srcTaskItem.NextOwnerMask;
+                    destTaskItem.OwnerMask |= 8; // Slam!
+                }
+            }
+
+            destTaskItem.Description = srcTaskItem.Description;
+            destTaskItem.Name = srcTaskItem.Name;
+            destTaskItem.InvType = srcTaskItem.InvType;
+            destTaskItem.Type = srcTaskItem.Type;
+			
+			// need something like destPart.AddInventoryItemExclusive(destTaskItem);
+			// this function is supposed to silently overwrite an existing script with the same name
+
+			destPart.AddInventoryItem(destTaskItem);
+
+			if ( running > 0 )
+			{
+				if (ExternalChecks.ExternalChecksCanRunScript(destTaskItem.AssetID, destPart.UUID, destPart.OwnerID))
+				{
+					// why doesn't the start_param propogate?
+					destPart.StartScript(destTaskItem, start_param);
+				}
+			}
+			
+			ScenePresence avatar;
+			
+			if(TryGetAvatar(srcTaskItem.OwnerID, out avatar))
+            {
+                destPart.GetProperties(avatar.ControllingClient);
+            }
+		}
+		
         /// <summary>
         /// Called when an object is removed from the environment into inventory.
         /// </summary>
