@@ -144,6 +144,11 @@ namespace OpenSim.Framework.Servers
             get { return _queryString; }
         }
 
+        public HttpRequest HttpRequest
+        {
+            get { return _request; }
+        }
+
         public OSHttpRequest()
         {
         }

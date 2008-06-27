@@ -151,6 +151,10 @@ namespace OpenSim.Framework.Servers
             _engine.Start();
 
             ThreadTracker.Add(_engine);
+
+            // start the pumps...
+            for (int i = 0; i < _pumps.Length; i++)
+                _pumps[i].Start();
         }
 
         /// <summary>
