@@ -259,8 +259,8 @@ namespace OpenSim.Region.Physics.Meshing
         {
             Mesh result = new Mesh();
 
-            Quaternion tt = new Quaternion();
-            Vertex v2 = new Vertex(0, 0, 0);
+            // Quaternion tt = new Quaternion();
+            // Vertex v2 = new Vertex(0, 0, 0);
 
             Mesh newLayer;
             Mesh lastLayer = null;
@@ -441,8 +441,8 @@ namespace OpenSim.Region.Physics.Meshing
         {
             Mesh result = new Mesh();
 
-            Quaternion tt = new Quaternion();
-            Vertex v2 = new Vertex(0, 0, 0);
+            // Quaternion tt = new Quaternion();
+            // Vertex v2 = new Vertex(0, 0, 0);
 
             Mesh newLayer;
             Mesh lastLayer = null;
@@ -457,8 +457,8 @@ namespace OpenSim.Region.Physics.Meshing
             if (System.Math.Abs(twistTotal) > (float)System.Math.PI * 1.5f) steps *= 2;
             if (System.Math.Abs(twistTotal) > (float)System.Math.PI * 3.0f) steps *= 2;
 
-            double percentOfPathMultiplier = 1.0 / steps;
-            double angleStepMultiplier = System.Math.PI * 2.0 / steps;
+            // double percentOfPathMultiplier = 1.0 / steps;
+            // double angleStepMultiplier = System.Math.PI * 2.0 / steps;
 
             float yPathScale = pathScaleY * 0.5f;
             float pathLength = pathCutEnd - pathCutBegin;

@@ -221,6 +221,7 @@ public class Vertex : PhysicsVector, IComparable<Vertex>
         v1.Z += am;
         return v1;
     }
+
     public static Vertex operator -(Vertex v1, float am)
     {
         v1.X -= am;
@@ -228,6 +229,7 @@ public class Vertex : PhysicsVector, IComparable<Vertex>
         v1.Z -= am;
         return v1;
     }
+
     public static Vertex operator *(Vertex v1, float am)
     {
         v1.X *= am;
@@ -235,6 +237,7 @@ public class Vertex : PhysicsVector, IComparable<Vertex>
         v1.Z *= am;
         return v1;
     }
+
     public static Vertex operator /(Vertex v1, float am)
     {
         if (am == 0f)

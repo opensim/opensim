@@ -117,7 +117,7 @@ namespace OpenSim.Region.Physics.OdePlugin
     public class OdeScene : PhysicsScene
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private Dictionary<string, sCollisionData> m_storedCollisions = new Dictionary<string, sCollisionData>();
+        // private Dictionary<string, sCollisionData> m_storedCollisions = new Dictionary<string, sCollisionData>();
 
         CollisionLocker ode;
 
@@ -196,7 +196,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private float[] _watermap;
 
-        private float[] _origheightmap;
+        // private float[] _origheightmap;
 
         private d.NearCallback nearCallback;
         public d.TriCallback triCallback;
@@ -226,7 +226,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 //Ckrinke        private int ms = 0;
         public IntPtr world;
         //private bool returncollisions = false;
-        private uint obj1LocalID = 0;
+        // private uint obj1LocalID = 0;
         private uint obj2LocalID = 0;
         //private int ctype = 0;
         private OdeCharacter cc1;
@@ -501,7 +501,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             IntPtr b1 = d.GeomGetBody(g1);
             IntPtr b2 = d.GeomGetBody(g2);
 
-            d.GeomClassID id = d.GeomGetClass(g1);
+            // d.GeomClassID id = d.GeomGetClass(g1);
 
             String name1 = null;
             String name2 = null;
@@ -837,7 +837,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private void collision_accounting_events(PhysicsActor p1, PhysicsActor p2, float collisiondepth)
         {
-            obj1LocalID = 0;
+            // obj1LocalID = 0;
             //returncollisions = false;
             obj2LocalID = 0;
             //ctype = 0;
@@ -850,7 +850,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 case ActorTypes.Agent:
                     cc2 = (OdeCharacter)p2;
 
-                        obj1LocalID = cc2.m_localID;
+                        // obj1LocalID = cc2.m_localID;
                         switch ((ActorTypes)p1.PhysicsActorType)
                         {
                             case ActorTypes.Agent:
@@ -893,7 +893,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                 case ActorTypes.Prim:
                     cp2 = (OdePrim)p2;
 
-                        obj1LocalID = cp2.m_localID;
+                        // obj1LocalID = cp2.m_localID;
                         switch ((ActorTypes)p1.PhysicsActorType)
                         {
                             case ActorTypes.Agent:
@@ -2084,7 +2084,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         {
             // this._heightmap[i] = (double)heightMap[i];
             // dbm (danx0r) -- creating a buffer zone of one extra sample all around
-            _origheightmap = heightMap;
+            // _origheightmap = heightMap;
             const uint heightmapWidth = m_regionWidth + 2;
             const uint heightmapHeight = m_regionHeight + 2;
             const uint heightmapWidthSamples = 2*m_regionWidth + 2;

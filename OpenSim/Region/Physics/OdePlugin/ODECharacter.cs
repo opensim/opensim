@@ -59,7 +59,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private PhysicsVector _position;
         private d.Vector3 _zeroPosition;
-        private d.Matrix3 m_StandUpRotation;
+        // private d.Matrix3 m_StandUpRotation;
         private bool _zeroFlag = false;
         private bool m_lastUpdateSent = false;
         private PhysicsVector _velocity;
@@ -92,7 +92,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         private float m_buoyancy = 0f;
 
-        private CollisionLocker ode;
+        // private CollisionLocker ode;
 
         private string m_name = String.Empty;
 
@@ -120,7 +120,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
         public OdeCharacter(String avName, OdeScene parent_scene, PhysicsVector pos, CollisionLocker dode, PhysicsVector size, float pid_d, float pid_p, float capsule_radius, float tensor, float density, float height_fudge_factor, float walk_divisor, float rundivisor)
         {
-            ode = dode;
+            // ode = dode;
             _velocity = new PhysicsVector();
             _target_velocity = new PhysicsVector();
             _position = pos;
@@ -137,9 +137,9 @@ namespace OpenSim.Region.Physics.OdePlugin
             runDivisor = rundivisor;
 
 
-            m_StandUpRotation =
-                new d.Matrix3(0.5f, 0.7071068f, 0.5f, -0.7071068f, 0f, 0.7071068f, 0.5f, -0.7071068f,
-                              0.5f);
+            // m_StandUpRotation =
+            //     new d.Matrix3(0.5f, 0.7071068f, 0.5f, -0.7071068f, 0f, 0.7071068f, 0.5f, -0.7071068f,
+            //                   0.5f);
 
             for (int i = 0; i < 11; i++)
             {
@@ -392,7 +392,7 @@ namespace OpenSim.Region.Physics.OdePlugin
 
                     PhysicsVector SetSize = value;
                     float prevCapsule = CAPSULE_LENGTH;
-                    float capsuleradius = CAPSULE_RADIUS;
+                    // float capsuleradius = CAPSULE_RADIUS;
                     //capsuleradius = 0.2f;
 
                     CAPSULE_LENGTH = (SetSize.Z - ((SetSize.Z * heightFudgeFactor))); // subtract 43% of the size
@@ -747,7 +747,8 @@ namespace OpenSim.Region.Physics.OdePlugin
                 {
                     // we're not colliding and we're not flying so that means we're falling!
                     // m_iscolliding includes collisions with the ground.
-                    d.Vector3 pos = d.BodyGetPosition(Body);
+
+                    // d.Vector3 pos = d.BodyGetPosition(Body);
                     if (_target_velocity.X > 0)
                     {
                         vec.X = ((_target_velocity.X - vel.X)/1.2f)*PID_D;

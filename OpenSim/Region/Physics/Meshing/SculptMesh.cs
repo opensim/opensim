@@ -223,7 +223,7 @@ namespace OpenSim.Region.Physics.Meshing
                     Vertex v1 = new Vertex(0,0,0);
 
                     // Create a vertex position from the RGB channels in the current pixel
-                    int ypos = y * bLOD.Width;
+                    // int ypos = y * bLOD.Width;
 
                     
                     if (y == 0)

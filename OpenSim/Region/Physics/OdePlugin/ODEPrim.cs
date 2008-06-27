@@ -53,7 +53,7 @@ namespace OpenSim.Region.Physics.OdePlugin
         private PhysicsVector m_rotationalVelocity;
         private PhysicsVector _size;
         private PhysicsVector _acceleration;
-        private d.Vector3 _zeroPosition = new d.Vector3(0.0f, 0.0f, 0.0f);
+        // private d.Vector3 _zeroPosition = new d.Vector3(0.0f, 0.0f, 0.0f);
         private Quaternion _orientation;
         private PhysicsVector m_taintposition;
         private PhysicsVector m_taintsize;
@@ -1067,8 +1067,8 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             else
             {
-                string primScenAvatarIn = _parent_scene.whichspaceamIin(_position);
-                int[] arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
+                // string primScenAvatarIn = _parent_scene.whichspaceamIin(_position);
+                // int[] arrayitem = _parent_scene.calculateSpaceArrayItemFromPos(_position);
                 _parent_scene.waitForSpaceUnlock(m_targetSpace);
 
                 IntPtr tempspace = _parent_scene.recalculateSpaceForGeom(prim_geom, _position, m_targetSpace);
@@ -1141,7 +1141,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     }
                     //PidStatus = true;
 
-                    PhysicsVector vec = new PhysicsVector();
+                    // PhysicsVector vec = new PhysicsVector();
                     d.Vector3 vel = d.BodyGetLinearVel(Body);
 
                     d.Vector3 pos = d.BodyGetPosition(Body);
@@ -1201,7 +1201,7 @@ namespace OpenSim.Region.Physics.OdePlugin
             }
             else
             {
-                _zeroPosition = d.BodyGetPosition(Body);
+                // _zeroPosition = d.BodyGetPosition(Body);
                 return;
             }
         }

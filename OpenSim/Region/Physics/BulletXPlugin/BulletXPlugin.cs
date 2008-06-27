@@ -319,7 +319,10 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         {
             int[] indexBase;
             Vector3[] vertexBase;
-            Vector3 vNormal, vP1, vP2, vP3;
+            Vector3 vNormal;
+            // Vector3 vP1;
+            // Vector3 vP2;
+            // Vector3 vP3;
             IMesh mesh = primB.GetMesh();
 
             float fdistance;
@@ -484,7 +487,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         internal Dictionary<RigidBody, BulletXPrim> _prims = new Dictionary<RigidBody, BulletXPrim>();
 
         public IMesher mesher;
-        private IConfigSource m_config;
+        // private IConfigSource m_config;
 
 
         public static float Gravity
@@ -541,7 +544,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
         public override void Initialise(IMesher meshmerizer, IConfigSource config)
         {
             mesher = meshmerizer;
-            m_config = config;
+            // m_config = config;
         }
 
         public override void Dispose()
@@ -1685,7 +1688,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 //         private PhysicsVector _staticVelocity;
 //         private AxiomQuaternion _staticOrientation;
         private float _mass;
-        private BulletXScene _parentscene;
+        // private BulletXScene _parentscene;
         internal float[] _heightField;
         private RigidBody _flatPlanet;
 
@@ -1700,7 +1703,7 @@ namespace OpenSim.Region.Physics.BulletXPlugin
 //             _staticVelocity = new PhysicsVector();
 //             _staticOrientation = AxiomQuaternion.Identity;
             _mass = 0; //No active
-            _parentscene = parent_scene;
+            // _parentscene = parent_scene;
             _heightField = heightField;
 
             float _linearDamping = 0.0f;
