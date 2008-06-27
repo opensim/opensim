@@ -48,6 +48,7 @@ namespace OpenSim.Framework
         {
             suppress_console_output_ (true);
             AddinManager.Initialize (dir);
+            AddinManager.Registry.Update (null);            
             suppress_console_output_ (false);
         }
 
@@ -60,9 +61,7 @@ namespace OpenSim.Framework
         }
 
         public void Load (string extpoint, Initialiser initialize)
-        {
-            AddinManager.Registry.Update (null);
-
+        {            
             ExtensionNodeList ns = AddinManager.GetExtensionNodes(extpoint);
             foreach (TypeExtensionNode n in ns)
             {
@@ -96,7 +95,7 @@ namespace OpenSim.Framework
                 Directory.Delete("addin-db-001", true);
         }
 
-        private static TextWriter prev_console_;
+        private static TextWriter prev_console_;        
         public void suppress_console_output_ (bool save)
         {
             if (save)
