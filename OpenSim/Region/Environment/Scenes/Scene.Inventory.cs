@@ -1320,7 +1320,7 @@ namespace OpenSim.Region.Environment.Scenes
 				        srcPart.Name, srcId, srcTaskItem.Name, srcTaskItem.ItemID, destPart.Name, destId, pin);
 				// the LSL Wiki says we are supposed to shout on the DEBUG_CHANNEL - 
 				//   "Object: Task Object trying to illegally load script onto task Other_Object!"
-				// How do we should from in here?
+				// How do we shout from in here?
 				return;
 			}
 			

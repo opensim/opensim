@@ -1940,25 +1940,25 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llMakeExplosion()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llMakeExplosion");
+            Deprecated("llMakeExplosion");
         }
 
         public void llMakeFountain()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llMakeFountain");
+            Deprecated("llMakeFountain");
         }
 
         public void llMakeSmoke()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llMakeSmoke");
+            Deprecated("llMakeSmoke");
         }
 
         public void llMakeFire()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llMakeFire");
+            Deprecated("llMakeFire");
         }
 
         public void llRezObject(string inventory, LSL_Types.Vector3 pos, LSL_Types.Vector3 vel, LSL_Types.Quaternion rot, int param)
@@ -2236,7 +2236,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llSoundPreload()
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llSoundPreload");
+            Deprecated("llSoundPreload");
         }
 
         public void llRotLookAt(LSL_Types.Quaternion target, double strength, double damping)
