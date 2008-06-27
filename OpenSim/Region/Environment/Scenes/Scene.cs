@@ -72,7 +72,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public InnerScene m_innerScene;
 
-        private Random Rand = new Random();
+        // private Random Rand = new Random();
         private uint _primCount = 720000;
         private readonly Mutex _primAllocateMutex = new Mutex(false);
 

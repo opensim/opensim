@@ -272,19 +272,19 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="oldVersion"></param>
         /// <param name="dbconn">The database connection handler</param>
-        private void UpgradeLandTable(string oldVersion, MySqlConnection dbconn)
-        {
-            // null as the version, indicates that the table didn't exist
-            if (oldVersion == null)
-            {
-                ExecuteResourceSql("CreateLandTable.sql",dbconn);
-                oldVersion = "Rev. 2; InnoDB free: 0 kB";
-            }
-            if (!oldVersion.Contains("Rev."))
-            {
-                ExecuteResourceSql("UpgradeLandTableToVersion2.sql", dbconn);
-            }
-        }
+        // private void UpgradeLandTable(string oldVersion, MySqlConnection dbconn)
+        // {
+        //     // null as the version, indicates that the table didn't exist
+        //     if (oldVersion == null)
+        //     {
+        //         ExecuteResourceSql("CreateLandTable.sql",dbconn);
+        //         oldVersion = "Rev. 2; InnoDB free: 0 kB";
+        //     }
+        //     if (!oldVersion.Contains("Rev."))
+        //     {
+        //         ExecuteResourceSql("UpgradeLandTableToVersion2.sql", dbconn);
+        //     }
+        // }
 
         /// <summary>
         /// Adds an object into region storage
@@ -534,7 +534,7 @@ namespace OpenSim.Data.MySQL
                 where RegionUUID=?RegionUUID order by Revision desc limit 1"
                 , m_connection);
 
-            MySqlParameter param = new MySqlParameter();
+            // MySqlParameter param = new MySqlParameter();
             cmd.Parameters.Add(new MySqlParameter("?RegionUUID", Util.ToRawUuidString(regionID)));
 
             if (m_connection.State != ConnectionState.Open)
@@ -1768,30 +1768,30 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="dt"></param>
         /// <returns></returns>
-        private static string defineTable(DataTable dt)
-        {
-            string sql = "create table " + dt.TableName + "(";
-            string subsql = String.Empty;
-            foreach (DataColumn col in dt.Columns)
-            {
-                if (subsql.Length > 0)
-                {
-                    // a map function would rock so much here
-                    subsql += ",\n";
-                }
-                subsql += col.ColumnName + " " + MySqlType(col.DataType);
-                if (dt.PrimaryKey.Length > 0 && col == dt.PrimaryKey[0])
-                {
-                    subsql += " primary key";
-                }
-            }
-            sql += subsql;
-            sql += ")";
+        // private static string defineTable(DataTable dt)
+        // {
+        //     string sql = "create table " + dt.TableName + "(";
+        //     string subsql = String.Empty;
+        //     foreach (DataColumn col in dt.Columns)
+        //     {
+        //         if (subsql.Length > 0)
+        //         {
+        //             // a map function would rock so much here
+        //             subsql += ",\n";
+        //         }
+        //         subsql += col.ColumnName + " " + MySqlType(col.DataType);
+        //         if (dt.PrimaryKey.Length > 0 && col == dt.PrimaryKey[0])
+        //         {
+        //             subsql += " primary key";
+        //         }
+        //     }
+        //     sql += subsql;
+        //     sql += ")";
 
-            //m_log.InfoFormat("[DATASTORE]: defineTable() sql {0}", sql);
+        //     //m_log.InfoFormat("[DATASTORE]: defineTable() sql {0}", sql);
 
-            return sql;
-        }
+        //     return sql;
+        // }
 
         /***********************************************************************
          *
@@ -1944,93 +1944,93 @@ namespace OpenSim.Data.MySQL
         /// 
         /// </summary>
         /// <param name="conn">MySQL connection handler</param>
-        private static void InitDB(MySqlConnection conn)
-        {
-            string createPrims = defineTable(createPrimTable());
-            string createShapes = defineTable(createShapeTable());
-            string createItems = defineTable(createItemsTable());
-            string createTerrain = defineTable(createTerrainTable());
+        // private static void InitDB(MySqlConnection conn)
+        // {
+        //     string createPrims = defineTable(createPrimTable());
+        //     string createShapes = defineTable(createShapeTable());
+        //     string createItems = defineTable(createItemsTable());
+        //     string createTerrain = defineTable(createTerrainTable());
 
-            // Land table is created from the Versionable Test Table routine now.
-            //string createLand = defineTable(createLandTable());
-            string createLandAccessList = defineTable(createLandAccessListTable());
+        //     // Land table is created from the Versionable Test Table routine now.
+        //     //string createLand = defineTable(createLandTable());
+        //     string createLandAccessList = defineTable(createLandAccessListTable());
 
-            MySqlCommand pcmd = new MySqlCommand(createPrims, conn);
-            MySqlCommand scmd = new MySqlCommand(createShapes, conn);
-            MySqlCommand icmd = new MySqlCommand(createItems, conn);
-            MySqlCommand tcmd = new MySqlCommand(createTerrain, conn);
-            //MySqlCommand lcmd = new MySqlCommand(createLand, conn);
-            MySqlCommand lalcmd = new MySqlCommand(createLandAccessList, conn);
+        //     MySqlCommand pcmd = new MySqlCommand(createPrims, conn);
+        //     MySqlCommand scmd = new MySqlCommand(createShapes, conn);
+        //     MySqlCommand icmd = new MySqlCommand(createItems, conn);
+        //     MySqlCommand tcmd = new MySqlCommand(createTerrain, conn);
+        //     //MySqlCommand lcmd = new MySqlCommand(createLand, conn);
+        //     MySqlCommand lalcmd = new MySqlCommand(createLandAccessList, conn);
 
-            if (conn.State != ConnectionState.Open)
-            {
-                try
-                {
-                    conn.Open();
-                }
-                catch (Exception ex)
-                {
-                    m_log.Error("[REGION DB]: Error connecting to MySQL server: " + ex.Message);
-                    m_log.Error("[REGION DB]: Application is terminating!");
-                    Thread.CurrentThread.Abort();
-                }
-            }
+        //     if (conn.State != ConnectionState.Open)
+        //     {
+        //         try
+        //         {
+        //             conn.Open();
+        //         }
+        //         catch (Exception ex)
+        //         {
+        //             m_log.Error("[REGION DB]: Error connecting to MySQL server: " + ex.Message);
+        //             m_log.Error("[REGION DB]: Application is terminating!");
+        //             Thread.CurrentThread.Abort();
+        //         }
+        //     }
 
-            try
-            {
-                pcmd.ExecuteNonQuery();
-            }
-            catch (MySqlException e)
-            {
-                m_log.WarnFormat("[REGION DB]: Primitives Table Already Exists: {0}", e);
-            }
+        //     try
+        //     {
+        //         pcmd.ExecuteNonQuery();
+        //     }
+        //     catch (MySqlException e)
+        //     {
+        //         m_log.WarnFormat("[REGION DB]: Primitives Table Already Exists: {0}", e);
+        //     }
 
-            try
-            {
-                scmd.ExecuteNonQuery();
-            }
-            catch (MySqlException e)
-            {
-                m_log.WarnFormat("[REGION DB]: Shapes Table Already Exists: {0}", e);
-            }
+        //     try
+        //     {
+        //         scmd.ExecuteNonQuery();
+        //     }
+        //     catch (MySqlException e)
+        //     {
+        //         m_log.WarnFormat("[REGION DB]: Shapes Table Already Exists: {0}", e);
+        //     }
 
-            try
-            {
-                icmd.ExecuteNonQuery();
-            }
-            catch (MySqlException e)
-            {
-                m_log.WarnFormat("[REGION DB]: Items Table Already Exists: {0}", e);
-            }
+        //     try
+        //     {
+        //         icmd.ExecuteNonQuery();
+        //     }
+        //     catch (MySqlException e)
+        //     {
+        //         m_log.WarnFormat("[REGION DB]: Items Table Already Exists: {0}", e);
+        //     }
 
-            try
-            {
-                tcmd.ExecuteNonQuery();
-            }
-            catch (MySqlException e)
-            {
-                m_log.WarnFormat("[REGION DB]: Terrain Table Already Exists: {0}", e);
-            }
+        //     try
+        //     {
+        //         tcmd.ExecuteNonQuery();
+        //     }
+        //     catch (MySqlException e)
+        //     {
+        //         m_log.WarnFormat("[REGION DB]: Terrain Table Already Exists: {0}", e);
+        //     }
 
-            //try
-            //{
-                //lcmd.ExecuteNonQuery();
-            //}
-            //catch (MySqlException e)
-            //{
-                //m_log.WarnFormat("[MySql]: Land Table Already Exists: {0}", e);
-            //}
+        //     //try
+        //     //{
+        //         //lcmd.ExecuteNonQuery();
+        //     //}
+        //     //catch (MySqlException e)
+        //     //{
+        //         //m_log.WarnFormat("[MySql]: Land Table Already Exists: {0}", e);
+        //     //}
 
-            try
-            {
-                lalcmd.ExecuteNonQuery();
-            }
-            catch (MySqlException e)
-            {
-                m_log.WarnFormat("[REGION DB]: LandAccessList Table Already Exists: {0}", e);
-            }
-            conn.Close();
-        }
+        //     try
+        //     {
+        //         lalcmd.ExecuteNonQuery();
+        //     }
+        //     catch (MySqlException e)
+        //     {
+        //         m_log.WarnFormat("[REGION DB]: LandAccessList Table Already Exists: {0}", e);
+        //     }
+        //     conn.Close();
+        // }
 
         /// <summary>
         /// 
@@ -2189,32 +2189,32 @@ namespace OpenSim.Data.MySQL
         /// <param name="type"></param>
         /// <returns></returns>
         /// <remarks>this is something we'll need to implement for each db slightly differently.</remarks>
-        private static string MySqlType(Type type)
-        {
-            if (type == typeof (String))
-            {
-                return "varchar(255)";
-            }
-            else if (type == typeof (Int32))
-            {
-                return "integer";
-            }
-            else if (type == typeof (Int64))
-            {
-                return "bigint";
-            }
-            else if (type == typeof (Double))
-            {
-                return "float";
-            }
-            else if (type == typeof (Byte[]))
-            {
-                return "longblob";
-            }
-            else
-            {
-                return "string";
-            }
-        }
+        // private static string MySqlType(Type type)
+        // {
+        //     if (type == typeof (String))
+        //     {
+        //         return "varchar(255)";
+        //     }
+        //     else if (type == typeof (Int32))
+        //     {
+        //         return "integer";
+        //     }
+        //     else if (type == typeof (Int64))
+        //     {
+        //         return "bigint";
+        //     }
+        //     else if (type == typeof (Double))
+        //     {
+        //         return "float";
+        //     }
+        //     else if (type == typeof (Byte[]))
+        //     {
+        //         return "longblob";
+        //     }
+        //     else
+        //     {
+        //         return "string";
+        //     }
+        // }
     }
 }

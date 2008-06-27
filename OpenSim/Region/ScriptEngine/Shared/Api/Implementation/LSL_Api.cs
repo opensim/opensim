@@ -2776,7 +2776,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             m_host.AddScriptLPS(1);
 
-            uint partLocalID;
+            // uint partLocalID;
             LLUUID partItemID;
 
             switch ((int)linknum)
@@ -2790,7 +2790,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                     {
                         if (item.Type == 10)
                         {
-                            partLocalID = part.LocalId;
+                            // partLocalID = part.LocalId;
                             partItemID = item.ItemID;
 
                             object[] resobj = new object[]
@@ -2815,7 +2815,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         {
                             if (item.Type == 10)
                             {
-                                partLocalID = partInst.LocalId;
+                                // partLocalID = partInst.LocalId;
                                 partItemID = item.ItemID;
                                 Object[] resobj = new object[]
                                 {
@@ -2843,7 +2843,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             {
                                 if (item.Type == 10)
                                 {
-                                    partLocalID = partInst.LocalId;
+                                    // partLocalID = partInst.LocalId;
                                     partItemID = item.ItemID;
                                     Object[] resobj = new object[]
                                     {
@@ -2873,7 +2873,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             {
                                 if (item.Type == 10)
                                 {
-                                    partLocalID = partInst.LocalId;
+                                    // partLocalID = partInst.LocalId;
                                     partItemID = item.ItemID;
                                     Object[] resobj = new object[]
                                     {
@@ -2924,7 +2924,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                             {
                                 if (item.Type == 10)
                                 {
-                                    partLocalID = partInst.LocalId;
+                                    // partLocalID = partInst.LocalId;
                                     partItemID = item.ItemID;
                                     Object[] resObjDef = new object[]
                                     {
@@ -3049,7 +3049,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             }
 
-            double angle = 2 * Math.Acos(rot.s);
+            // double angle = 2 * Math.Acos(rot.s);
             double s = Math.Sqrt(1 - rot.s * rot.s);
             if (s < 0.001)
             {
@@ -6592,7 +6592,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                         while (count < len)
                         {
-                            int l = input[idx].Length;
+                            // int l = input[idx].Length;
                             string ln = input[idx];
 
                             int need = len-count-1;

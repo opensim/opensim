@@ -120,16 +120,16 @@ namespace OpenSim.Data.MySQL
         /// </list>
         /// </summary>
         /// <param name="oldVersion"></param>
-        private void UpgradeAssetsTable(string oldVersion)
-        {
-            // null as the version, indicates that the table didn't exist
-            if (oldVersion == null)
-            {
-                m_log.Info("[ASSETS DB]: Creating new database tables");
-                _dbConnection.ExecuteResourceSql("CreateAssetsTable.sql");
-                return;
-            }
-        }
+        // private void UpgradeAssetsTable(string oldVersion)
+        // {
+        //     // null as the version, indicates that the table didn't exist
+        //     if (oldVersion == null)
+        //     {
+        //         m_log.Info("[ASSETS DB]: Creating new database tables");
+        //         _dbConnection.ExecuteResourceSql("CreateAssetsTable.sql");
+        //         return;
+        //     }
+        // }
 
         /// <summary>
         /// Ensure that the assets related tables exists and are at the latest version

@@ -202,6 +202,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 return YP.unify(Symbol, Atom.a(Base.ToString() + ++((CompilerState)State)._gensymCounter));
             }
 
+            // disable warning on l1, don't see how we can
+            // code this differently
+            #pragma warning disable 0168
             public static bool isDetNoneOut(object State, object Term)
             {
                 State = YP.getValue(State);
@@ -239,6 +242,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
 
                 return false;
             }
+            #pragma warning restore 0168
 
             /// <summary>
             /// Return false if any of args is out, otherwise true.
@@ -274,6 +278,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 return false;
             }
         }
+
+        // disable warning on l1, don't see how we can
+        // code this differently
+        #pragma warning disable 0168, 0219
 
         /// <summary>
         /// Use makeFunctionPseudoCode, convertFunctionCSharp and compileAnonymousFunction
@@ -395,7 +403,7 @@ namespace Temporary {
         public static void repeatWrite(object arg1, object N)
         {
             {
-                object _Value = arg1;
+                // object _Value = arg1;
                 if (YP.termEqual(N, 0))
                 {
                     return;
@@ -470,7 +478,7 @@ namespace Temporary {
         public static void processCompilerDirectives(object arg1, object arg2)
         {
             {
-                object _State = arg2;
+                // object _State = arg2;
                 foreach (bool l2 in YP.unify(arg1, Atom.NIL))
                 {
                     return;
@@ -3939,12 +3947,12 @@ namespace Temporary {
                         YP.nl();
                         convertStatementListCSharp(RestStatements, Level);
                         return;
-                        goto cutIf1;
+                        // goto cutIf1;
                     }
                     convertStatementListCSharp(RestStatements, Level);
                     return;
-                cutIf1:
-                    { }
+                // cutIf1:
+                //     { }
                 }
             }
             {
@@ -4111,12 +4119,12 @@ namespace Temporary {
                         YP.write(Atom.a(@", "));
                         convertArgListCSharp(Tail);
                         return;
-                        goto cutIf1;
+                        // goto cutIf1;
                     }
                     convertArgListCSharp(Tail);
                     return;
-                cutIf1:
-                    { }
+                // cutIf1:
+                //     { }
                 }
             }
         }
@@ -4266,13 +4274,13 @@ namespace Temporary {
                         YP.put_code(Code);
                         convertStringCodesCSharp(RestCodes);
                         return;
-                        goto cutIf1;
+                        // goto cutIf1;
                     }
                     YP.put_code(Code);
                     convertStringCodesCSharp(RestCodes);
                     return;
-                cutIf1:
-                    { }
+                // cutIf1:
+                //     { }
                 }
             }
         }
@@ -4623,12 +4631,12 @@ namespace Temporary {
                         YP.write(Atom.a(@", "));
                         convertArgListJavascript(Tail);
                         return;
-                        goto cutIf1;
+                        // goto cutIf1;
                     }
                     convertArgListJavascript(Tail);
                     return;
-                cutIf1:
-                    { }
+                // cutIf1:
+                //     { }
                 }
             }
         }
@@ -4777,7 +4785,7 @@ namespace Temporary {
                         YP.put_code(Code);
                         convertStringCodesJavascript(RestCodes);
                         return;
-                        goto cutIf1;
+                        // goto cutIf1;
                     }
                     if (YP.termEqual(Code, 92))
                     {
@@ -4785,13 +4793,13 @@ namespace Temporary {
                         YP.put_code(Code);
                         convertStringCodesJavascript(RestCodes);
                         return;
-                        goto cutIf1;
+                        // goto cutIf1;
                     }
                     YP.put_code(Code);
                     convertStringCodesJavascript(RestCodes);
                     return;
-                cutIf1:
-                    { }
+                // cutIf1:
+                //     { }
                 }
             }
         }
@@ -5420,12 +5428,12 @@ namespace Temporary {
                         YP.write(Atom.a(@", "));
                         convertArgListPython(Tail);
                         return;
-                        goto cutIf1;
+                        // goto cutIf1;
                     }
                     convertArgListPython(Tail);
                     return;
-                cutIf1:
-                    { }
+                // cutIf1:
+                //     { }
                 }
             }
         }
@@ -5573,7 +5581,7 @@ namespace Temporary {
                         YP.put_code(Code);
                         convertStringCodesPython(RestCodes);
                         return;
-                        goto cutIf1;
+                        // goto cutIf1;
                     }
                     if (YP.termEqual(Code, 92))
                     {
@@ -5581,13 +5589,13 @@ namespace Temporary {
                         YP.put_code(Code);
                         convertStringCodesPython(RestCodes);
                         return;
-                        goto cutIf1;
+                        // goto cutIf1;
                     }
                     YP.put_code(Code);
                     convertStringCodesPython(RestCodes);
                     return;
-                cutIf1:
-                    { }
+                // cutIf1:
+                //     { }
                 }
             }
         }
@@ -5646,6 +5654,6 @@ namespace Temporary {
                 }
             }
         }
-
+        #pragma warning restore 0168, 0219
     }
 }

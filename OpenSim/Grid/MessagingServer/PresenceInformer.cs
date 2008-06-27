@@ -118,7 +118,8 @@ namespace OpenSim.Grid.MessagingServer
                 try
                 {
 
-                    XmlRpcResponse RegionResp = RegionReq.Send(whichRegion.httpServerURI, 6000);
+                    // XmlRpcResponse RegionResp = RegionReq.Send(whichRegion.httpServerURI, 6000);
+                    RegionReq.Send(whichRegion.httpServerURI, 6000);
                 }
                 catch (WebException)
                 {

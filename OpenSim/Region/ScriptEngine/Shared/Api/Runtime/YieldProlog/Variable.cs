@@ -92,8 +92,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             }
             else
             {
+                // disable warning on l1, don't see how we can
+                // code this differently
+                #pragma warning disable 0168
                 foreach (bool l1 in YP.unify(this, arg))
                     yield return false;
+                #pragma warning restore 0168
             }
         }
 

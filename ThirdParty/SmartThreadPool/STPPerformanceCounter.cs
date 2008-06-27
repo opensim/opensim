@@ -131,13 +131,15 @@ namespace Amib.Threading.Internal
                 // *********** Remark for .NET 2.0 ***********
                 // If you are here, it means you got the warning that this overload
                 // of the method is deprecated in .NET 2.0. To use the correct 
-                // method overload, uncomment the third argument of the method.
+                // method overload, uncomment the third argument of
+                // the method.
+                #pragma warning disable 0618
                 PerformanceCounterCategory.Create(
                     _stpCategoryName, 
                     _stpCategoryHelp, 
                     //PerformanceCounterCategoryType.MultiInstance,
                     counters);
-                    
+                #pragma warning restore 0618
             }
         }
  
@@ -245,7 +247,7 @@ namespace Amib.Threading.Internal
         public STPInstancePerformanceCounters(string instance)
         {
             _pcs = new STPInstancePerformanceCounter[(int)STPPerformanceCounterType.LastCounter];
-            STPPerformanceCounters counters = STPPerformanceCounters.Instance;
+            // STPPerformanceCounters counters = STPPerformanceCounters.Instance;
             for (int i = 0; i < _pcs.Length; i++)
             {
                 if (instance != null)

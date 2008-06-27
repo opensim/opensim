@@ -53,6 +53,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         {
         }
 
+        // disable warning on l1, don't see how we can
+        // code this differently
+        #pragma warning disable 0168
         public IEnumerable<bool> unify(object arg)
         {
             arg = YP.getValue(arg);
@@ -77,6 +80,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                     yield return false;
             }
         }
+        #pragma warning restore 0168
 
         public override string ToString()
         {

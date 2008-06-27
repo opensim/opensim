@@ -297,7 +297,7 @@ namespace OpenSim.Data.SQLite
         public string getVersion()
         {
             Module module = GetType().Module;
-            string dllName = module.Assembly.ManifestModule.Name;
+            // string dllName = module.Assembly.ManifestModule.Name;
             Version dllVersion = module.Assembly.GetName().Version;
 
 
@@ -741,17 +741,17 @@ namespace OpenSim.Data.SQLite
         /// 
         /// </summary>
         /// <param name="conn"></param>
-        private static void InitDB(SqliteConnection conn)
-        {
-            string createInventoryItems = defineTable(createInventoryItemsTable());
-            string createInventoryFolders = defineTable(createInventoryFoldersTable());
+        // private static void InitDB(SqliteConnection conn)
+        // {
+        //     string createInventoryItems = defineTable(createInventoryItemsTable());
+        //     string createInventoryFolders = defineTable(createInventoryFoldersTable());
 
-            SqliteCommand pcmd = new SqliteCommand(createInventoryItems, conn);
-            SqliteCommand scmd = new SqliteCommand(createInventoryFolders, conn);
+        //     SqliteCommand pcmd = new SqliteCommand(createInventoryItems, conn);
+        //     SqliteCommand scmd = new SqliteCommand(createInventoryFolders, conn);
 
-            pcmd.ExecuteNonQuery();
-            scmd.ExecuteNonQuery();
-        }
+        //     pcmd.ExecuteNonQuery();
+        //     scmd.ExecuteNonQuery();
+        // }
 
         /// <summary>
         /// 

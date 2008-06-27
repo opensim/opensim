@@ -48,7 +48,7 @@ namespace OpenSim.Grid.MessagingServer
         private MessageServerConfig Cfg;
         private MessageService msgsvc;
 
-        private LLUUID m_lastCreatedUser = LLUUID.Random();
+        // private LLUUID m_lastCreatedUser = LLUUID.Random();
 
         [STAThread]
         public static void Main(string[] args)

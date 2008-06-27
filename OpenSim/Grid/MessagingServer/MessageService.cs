@@ -58,7 +58,7 @@ namespace OpenSim.Grid.MessagingServer
         private Hashtable m_presence_BackReferences = new Hashtable();
 
         // Hashtable containing work units that need to be processed
-        private Hashtable m_unProcessedWorkUnits = new Hashtable();
+        // private Hashtable m_unProcessedWorkUnits = new Hashtable();
 
         public MessageService(MessageServerConfig cfg)
         {
@@ -588,9 +588,9 @@ namespace OpenSim.Grid.MessagingServer
                 uint regX = Convert.ToUInt32((string)responseData["region_locx"]);
                 uint regY = Convert.ToUInt32((string)responseData["region_locy"]);
                 string internalIpStr = (string)responseData["sim_ip"];
-                uint port = Convert.ToUInt32(responseData["sim_port"]);
-                string externalUri = (string)responseData["sim_uri"];
-                string neighbourExternalUri = externalUri;
+                // uint port = Convert.ToUInt32(responseData["sim_port"]);
+                // string externalUri = (string)responseData["sim_uri"];
+                // string neighbourExternalUri = externalUri;
 
                 regionProfile = new RegionProfileData();
                 regionProfile.httpPort = (uint)Convert.ToInt32((string)responseData["http_port"]);
@@ -655,7 +655,7 @@ namespace OpenSim.Grid.MessagingServer
                 throw(ex);
             }
             Hashtable GridRespData = (Hashtable)UserResp.Value;
-            Hashtable griddatahash = GridRespData;
+            // Hashtable griddatahash = GridRespData;
 
             // Process Response
             if (GridRespData.ContainsKey("responsestring"))
@@ -704,7 +704,7 @@ namespace OpenSim.Grid.MessagingServer
                 throw (ex);
             }
             Hashtable UserRespData = (Hashtable)UserResp.Value;
-            Hashtable userdatahash = UserRespData;
+            // Hashtable userdatahash = UserRespData;
 
             // Process Response
             if (UserRespData.ContainsKey("responsestring"))

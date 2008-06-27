@@ -132,7 +132,7 @@ namespace OpenSim.Region.Modules.AvatarFactory
                     }
                     else
                     {
-                        LLUUID assetId;
+                        // LLUUID assetId;
 
                         InventoryItemBase baseItem = profile.RootFolder.FindItem(appearance.Wearables[i].ItemID);
 

@@ -544,7 +544,7 @@ namespace OpenSim.Data.MSSQL
         public string getVersion()
         {
             Module module = GetType().Module;
-            string dllName = module.Assembly.ManifestModule.Name;
+            // string dllName = module.Assembly.ManifestModule.Name;
             Version dllVersion = module.Assembly.GetName().Version;
 
 

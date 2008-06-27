@@ -79,7 +79,7 @@ namespace OpenSim.Region.DataSnapshot
 
         //Program objects
         private SnapshotStore m_snapStore = null;
-        private DataRequestHandler m_requests = null;
+        // private DataRequestHandler m_requests = null;
 
         #endregion
 
@@ -144,7 +144,7 @@ namespace OpenSim.Region.DataSnapshot
                     m_passedCheck.Start();
 
                     //Hand it the first scene, assuming that all scenes have the same BaseHTTPServer
-                    m_requests = new DataRequestHandler(scene, this);
+                    // m_requests = new DataRequestHandler(scene, this);
 
                     m_hostname = scene.RegionInfo.ExternalHostName;
                     m_snapStore = new SnapshotStore(m_snapsDir, m_gridinfo, m_listener_port, m_hostname);
@@ -325,17 +325,18 @@ namespace OpenSim.Region.DataSnapshot
                     m_log.Warn("[DATASNAPSHOT] Ignoring unknown exception " + e.ToString());
                 }
                 byte[] response = new byte[1024];
-                int n = 0;
+                // int n = 0;
                 try
                 {
-                    n = reply.Read(response, 0, 1024);
+                    // n = reply.Read(response, 0, 1024);
+                    reply.Read(response, 0, 1024);
                 }
                 catch (Exception e)
                 {
-                    m_log.Warn("[DATASNAPSHOT] Unable to decode reply from data service. Ignoring. " + e.StackTrace);
+                    m_log.WarnFormat("[DATASNAPSHOT] Unable to decode reply from data service. Ignoring. {0}", e.StackTrace);
                 }
                 // This is not quite working, so...
-                string responseStr = Encoding.UTF8.GetString(response);
+                // string responseStr = Encoding.UTF8.GetString(response);
                 m_log.Info("[DATASNAPSHOT] data service notified: " + url);
             }
 

@@ -113,6 +113,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             }
         }
 
+        // disable warning on l1, don't see how we can
+        // code this differently
+        #pragma warning disable 0168
+
         /// <summary>
         /// For each result, unify the _freeVariables and unify bagArrayVariable with the associated bag.
         /// </summary>
@@ -204,6 +208,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 bagOfAnswers.add();
             return bagOfAnswers.resultSet(Bag);
         }
+        #pragma warning restore 0168
 
         /// <summary>
         /// A TermArrayEqualityComparer implements IEqualityComparer to compare two object arrays using YP.termEqual.

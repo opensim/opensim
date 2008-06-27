@@ -140,12 +140,12 @@ namespace OpenSim.Grid.UserServer
 
             if (requestData.Contains("fromuri"))
             {
-                string sURI = (string)requestData["fromuri"];
-                string sagentID = (string)requestData["agentid"];
-                string ssessionID = (string)requestData["sessionid"];
-                string scurrentRegionID = (string)requestData["regionid"];
-                string sregionhandle = (string)requestData["regionhandle"];
-                string scurrentpos = (string)requestData["currentpos"];
+                // string sURI = (string)requestData["fromuri"];
+                // string sagentID = (string)requestData["agentid"];
+                // string ssessionID = (string)requestData["sessionid"];
+                // string scurrentRegionID = (string)requestData["regionid"];
+                // string sregionhandle = (string)requestData["regionhandle"];
+                // string scurrentpos = (string)requestData["currentpos"];
                 //LLVector3.TryParse((string)reader["currentPos"], out retval.currentPos);
                 // TODO: Okay now raise event so the user server can pass this data to the Usermanager
 

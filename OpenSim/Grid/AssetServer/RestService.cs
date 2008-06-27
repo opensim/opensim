@@ -44,7 +44,7 @@ namespace OpenSim.Grid.AssetServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private OpenAsset_Main m_assetManager;
+        // private OpenAsset_Main m_assetManager;
         private IAssetProvider m_assetProvider;
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace OpenSim.Grid.AssetServer
             : base("GET", "/assets")
         {
             m_log.Info("[REST]: In Get Request");
-            m_assetManager = assetManager;
+            // m_assetManager = assetManager;
             m_assetProvider = assetProvider;
         }
 
@@ -120,7 +120,7 @@ namespace OpenSim.Grid.AssetServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private OpenAsset_Main m_assetManager;
+        // private OpenAsset_Main m_assetManager;
         private IAssetProvider m_assetProvider;
 
         public override byte[] Handle(string path, Stream request,
@@ -131,7 +131,7 @@ namespace OpenSim.Grid.AssetServer
             LLUUID assetId;
             if (param.Length > 0)
                 LLUUID.TryParse(param, out assetId);
-            byte[] txBuffer = new byte[4096];
+            // byte[] txBuffer = new byte[4096];
 
             XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
             AssetBase asset = (AssetBase) xs.Deserialize(request);
@@ -146,7 +146,7 @@ namespace OpenSim.Grid.AssetServer
         public PostAssetStreamHandler(OpenAsset_Main assetManager, IAssetProvider assetProvider)
             : base("POST", "/assets")
         {
-            m_assetManager = assetManager;
+            // m_assetManager = assetManager;
             m_assetProvider = assetProvider;
         }
     }

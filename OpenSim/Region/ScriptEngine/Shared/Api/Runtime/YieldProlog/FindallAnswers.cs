@@ -81,8 +81,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
         public static IEnumerable<bool> findall(object Template, IEnumerable<bool> goal, object Bag)
         {
             FindallAnswers findallAnswers = new FindallAnswers(Template);
+            // disable warning on l1, don't see how we can
+            // code this differently
+            #pragma warning disable 0168
             foreach (bool l1 in goal)
                 findallAnswers.add();
+            #pragma warning restore 0168
             return findallAnswers.result(Bag);
         }
 
@@ -95,8 +99,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
         public static List<object> findallArray(object Template, IEnumerable<bool> goal)
         {
             FindallAnswers findallAnswers = new FindallAnswers(Template);
+            // disable warning on l1, don't see how we can
+            // code this differently
+            #pragma warning disable 0168
             foreach (bool l1 in goal)
                 findallAnswers.add();
+            #pragma warning restore 0168
             return findallAnswers.resultArray();
         }
     }

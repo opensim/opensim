@@ -72,7 +72,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Notecard]            = ".ncd";            
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Object]              = ".oob";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.RootFolder]          = ".rfd";   // Not sure if we'll ever see this
+            #pragma warning disable 0612
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Script]              = ".spt";       // Not sure if we'll ever see this
+            #pragma warning restore 0612
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Simstate]            = ".sst";       // Not sure if we'll ever see this
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.SnapshotFolder]      = ".sfd";   // Not sure if we'll ever see this
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Sound]               = ".ogg";
@@ -95,7 +97,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             EXTENSION_TO_ASSET_TYPE[".ncd"] = (sbyte)AssetType.Notecard;
             EXTENSION_TO_ASSET_TYPE[".oob"] = (sbyte)AssetType.Object;
             EXTENSION_TO_ASSET_TYPE[".rfd"] = (sbyte)AssetType.RootFolder;
+            #pragma warning disable 0612
             EXTENSION_TO_ASSET_TYPE[".spt"]     = (sbyte)AssetType.Script;
+            #pragma warning restore 0612
             EXTENSION_TO_ASSET_TYPE[".sst"]     = (sbyte)AssetType.Simstate;
             EXTENSION_TO_ASSET_TYPE[".sfd"] = (sbyte)AssetType.SnapshotFolder;
             EXTENSION_TO_ASSET_TYPE[".ogg"]     = (sbyte)AssetType.Sound;

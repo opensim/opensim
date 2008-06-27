@@ -57,16 +57,16 @@ namespace OpenSim.Region.Environment.Modules
         private double m_day_length     = 0;
         private int    m_year_length    = 0;
         private double m_day_night      = 0;
-        private double m_longitude      = 0;
-        private double m_latitude       = 0;
+        // private double m_longitude      = 0;
+        // private double m_latitude       = 0;
         // Configurable defaults                     Defaults close to SL
         private string d_mode           = "SL";
         private int    d_frame_mod      = 100;    // Every 10 seconds (actually less)
         private double d_day_length     = 4;      // A VW day is 4 RW hours long
         private int    d_year_length    = 60;     // There are 60 VW days in a VW year
         private double d_day_night      = 0.45;   // axis offset: ratio of light-to-dark, approx 1:3
-        private double d_longitude      = -73.53;
-        private double d_latitude       = 41.29;
+        // private double d_longitude      = -73.53;
+        // private double d_latitude       = 41.29;
 
         // Frame counter
         private uint   m_frame          = 0;
@@ -80,7 +80,7 @@ namespace OpenSim.Region.Environment.Modules
         private uint   SecondsPerYear;            // Length of a virtual year in RW seconds
         private double SunSpeed;                  // Rate of passage in radians/second
         private double SeasonSpeed;               // Rate of change for seasonal effects
-        private double HoursToRadians;            // Rate of change for seasonal effects
+        // private double HoursToRadians;            // Rate of change for seasonal effects
         private long TicksOffset = 0;                // seconds offset from UTC
         // Calculated every update
         private float  OrbitalPosition;           // Orbital placement at a point in time
@@ -88,7 +88,7 @@ namespace OpenSim.Region.Environment.Modules
         private double TotalDistanceTravelled;    // Distance since beginning of time (in radians)
         private double SeasonalOffset;            // Seaonal variation of tilt
         private float  Magnitude;                 // Normal tilt
-        private double VWTimeRatio;               // VW time as a ratio of real time
+        // private double VWTimeRatio;               // VW time as a ratio of real time
 
         // Working values
         private LLVector3 Position = new LLVector3(0,0,0);
@@ -173,9 +173,9 @@ namespace OpenSim.Region.Environment.Modules
                 // Mode: determines how the sun is handled
                 m_mode = config.Configs["Sun"].GetString("mode", d_mode);
                 // Mode: determines how the sun is handled
-                m_latitude = config.Configs["Sun"].GetDouble("latitude", d_latitude);
+                // m_latitude = config.Configs["Sun"].GetDouble("latitude", d_latitude);
                 // Mode: determines how the sun is handled
-                m_longitude = config.Configs["Sun"].GetDouble("longitude", d_longitude);
+                // m_longitude = config.Configs["Sun"].GetDouble("longitude", d_longitude);
                 // Day length in decimal hours
                 m_year_length = config.Configs["Sun"].GetInt("year_length", d_year_length);
                 // Day length in decimal hours
@@ -193,8 +193,8 @@ namespace OpenSim.Region.Environment.Modules
                 m_day_length  = d_day_length;
                 m_day_night   = d_day_night;
                 m_frame_mod   = d_frame_mod;
-                m_latitude    = d_latitude;
-                m_longitude   = d_longitude;
+                // m_latitude    = d_latitude;
+                // m_longitude   = d_longitude;
             }
 
             switch (m_mode)
@@ -209,7 +209,7 @@ namespace OpenSim.Region.Environment.Modules
 
                     // Ration of real-to-virtual time
 
-                    VWTimeRatio        = 24/m_day_length;
+                    // VWTimeRatio        = 24/m_day_length;
 
                     // Speed of rotation needed to complete a cycle in the
                     // designated period (day and season)
@@ -220,7 +220,7 @@ namespace OpenSim.Region.Environment.Modules
                     // Horizon translation
 
                     HorizonShift      = m_day_night; // Z axis translation
-                    HoursToRadians    = (SunCycle/24)*VWTimeRatio;
+                    // HoursToRadians    = (SunCycle/24)*VWTimeRatio;
 
                     //  Insert our event handling hooks
 

@@ -418,9 +418,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             m_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             m_socket.Bind(ServerIncoming);
             // Add flags to the UDP socket to prevent "Socket forcibly closed by host"
-            uint IOC_IN = 0x80000000;
-            uint IOC_VENDOR = 0x18000000;
-            uint SIO_UDP_CONNRESET = IOC_IN | IOC_VENDOR | 12;
+            // uint IOC_IN = 0x80000000;
+            // uint IOC_VENDOR = 0x18000000;
+            // uint SIO_UDP_CONNRESET = IOC_IN | IOC_VENDOR | 12;
             // TODO: this apparently works in .NET but not in Mono, need to sort out the right flags here.
             // m_socket.IOControl((int)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
 

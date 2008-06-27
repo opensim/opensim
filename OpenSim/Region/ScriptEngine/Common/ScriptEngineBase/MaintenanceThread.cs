@@ -125,7 +125,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             }
         }
 
-        private ScriptEngine lastScriptEngine; // Keep track of what ScriptEngine instance we are at so we can give exception
+        // private ScriptEngine lastScriptEngine; // Keep track of what ScriptEngine instance we are at so we can give exception
         /// <summary>
         /// A thread should run in this loop and check all running scripts
         /// </summary>
@@ -171,7 +171,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                         //{
                             foreach (ScriptEngine m_ScriptEngine in new ArrayList(ScriptEngine.ScriptEngines))
                             {
-                                lastScriptEngine = m_ScriptEngine;
+                                // lastScriptEngine = m_ScriptEngine;
                                 // Re-reading config every x seconds
                                 if (MaintenanceLoopTicks_Other_Count >= MaintenanceLoopTicks_Other)
                                 {

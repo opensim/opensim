@@ -69,11 +69,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             YP.tell(myCS_SW);
 
             //Console.WriteLine("Mycode\n ===================================\n" + myCode+"\n");
+            // disable warning on l1, don't see how we can
+            // code this differently
+            #pragma warning disable 0168
             foreach (bool l1 in Parser.parseInput(TermList))
             {
                 foreach (bool l2 in YPCompiler.makeFunctionPseudoCode(TermList, FunctionCode))
                 {
-                    ListPair VFC = new ListPair(FunctionCode, new Variable());
+                    // ListPair VFC = new ListPair(FunctionCode, new Variable());
                     //Console.WriteLine("-------------------------")
                     //Console.WriteLine(FunctionCode.ToString())
                     //Console.WriteLine("-------------------------")
@@ -81,6 +84,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                     //YPCompiler.convertStringCodesCSharp(VFC);
                 }
             }
+            #pragma warning restore 0168
             YP.seen();
             myCS_SW.Close();
             YP.told();

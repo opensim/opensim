@@ -561,6 +561,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             return _repeat;
         }
 
+        // disable warning on l1, don't see how we can
+        // code this differently
+        #pragma warning disable 0168
         public static IEnumerable<bool> univ(object Term, object List)
         {
             Term = YP.getValue(Term);
@@ -1414,7 +1417,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         /// <returns></returns>
         public static void script_event(object script_event, object script_params)
         {
-            string function = ((Atom)YP.getValue(script_event))._name;
+            // string function = ((Atom)YP.getValue(script_event))._name;
             object[] array = ListPair.toArray(script_params);
             if (array == null)
                 return; // YP.fail();
@@ -1640,5 +1643,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 throw new NotImplementedException();
             }
         }
+        #pragma warning restore 0168
     }
 }

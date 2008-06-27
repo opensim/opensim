@@ -43,7 +43,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
     public class LandSnapshot : IDataSnapshotProvider
     {
         private Scene m_scene = null;
-        private DataSnapshotManager m_parent = null;
+        // private DataSnapshotManager m_parent = null;
         //private Dictionary<int, Land> m_landIndexed = new Dictionary<int, Land>();
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private bool m_stale = true;
@@ -106,7 +106,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
         public void Initialize(Scene scene, DataSnapshotManager parent)
         {
             m_scene = scene;
-            m_parent = parent;
+            // m_parent = parent;
 
             //Brought back from the dead for staleness checks.
             m_scene.EventManager.OnNewClient += OnNewClient;

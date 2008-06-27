@@ -59,7 +59,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         private Thread scriptLoadUnloadThread;
         private static Thread staticScriptLoadUnloadThread;
-        private int scriptLoadUnloadThread_IdleSleepms;
+        // private int scriptLoadUnloadThread_IdleSleepms;
         private Queue<LUStruct> LUQueue = new Queue<LUStruct>();
         private static bool PrivateThread;
         private int LoadUnloadMaxQueueSize;
@@ -100,7 +100,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void ReadConfig()
         {
-            scriptLoadUnloadThread_IdleSleepms = m_scriptEngine.ScriptConfigSource.GetInt("ScriptLoadUnloadLoopms", 30);
+            // scriptLoadUnloadThread_IdleSleepms = m_scriptEngine.ScriptConfigSource.GetInt("ScriptLoadUnloadLoopms", 30);
             // TODO: Requires sharing of all ScriptManagers to single thread
             PrivateThread = true; // m_scriptEngine.ScriptConfigSource.GetBoolean("PrivateScriptLoadUnloadThread", false);
             LoadUnloadMaxQueueSize = m_scriptEngine.ScriptConfigSource.GetInt("LoadUnloadMaxQueueSize", 100);
@@ -245,7 +245,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         #region Start/Stop/Reset script
 
-        private readonly Object startStopLock = new Object();
+        // private readonly Object startStopLock = new Object();
 
         /// <summary>
         /// Fetches, loads and hooks up a script to an objects events

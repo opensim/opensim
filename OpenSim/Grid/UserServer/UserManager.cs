@@ -164,7 +164,7 @@ namespace OpenSim.Grid.UserServer
 
         public XmlRpcResponse XmlRPCGetAvatarPickerAvatar(XmlRpcRequest request)
         {
-            XmlRpcResponse response = new XmlRpcResponse();
+            // XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable) request.Params[0];
             List<AvatarPickerAvatar> returnAvatar = new List<AvatarPickerAvatar>();
             LLUUID queryID = new LLUUID(LLUUID.Zero.ToString());
@@ -188,25 +188,25 @@ namespace OpenSim.Grid.UserServer
 
             if (requestData.Contains("avatar_id") && requestData.Contains("region_handle") && requestData.Contains("region_uuid"))
             {
-                ulong cregionhandle = 0;
+                // ulong cregionhandle = 0;
                 LLUUID regionUUID = LLUUID.Zero;
                 LLUUID AvatarID = LLUUID.Zero;
 
                 Helpers.TryParse((string)requestData["avatar_id"], out AvatarID);
                 Helpers.TryParse((string)requestData["region_uuid"], out regionUUID);
-                try
-                {
-                    cregionhandle = (ulong)Convert.ToInt64((string)requestData["region_handle"]);
-                }
-                catch (ArgumentException)
-                {
-                }
-                catch (OverflowException)
-                {
-                }
-                catch (FormatException)
-                {
-                }
+                // try
+                // {
+                //     cregionhandle = (ulong)Convert.ToInt64((string)requestData["region_handle"]);
+                // }
+                // catch (ArgumentException)
+                // {
+                // }
+                // catch (OverflowException)
+                // {
+                // }
+                // catch (FormatException)
+                // {
+                // }
 
                 if (AvatarID != LLUUID.Zero)
                 {
@@ -285,9 +285,9 @@ namespace OpenSim.Grid.UserServer
 
         public XmlRpcResponse XmlRpcResponseXmlRPCGetUserFriendList(XmlRpcRequest request)
         {
-            XmlRpcResponse response = new XmlRpcResponse();
+            // XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable)request.Params[0];
-            Hashtable responseData = new Hashtable();
+            // Hashtable responseData = new Hashtable();
 
             List<FriendListItem> returndata = new List<FriendListItem>();
 
@@ -354,14 +354,14 @@ namespace OpenSim.Grid.UserServer
 
         public XmlRpcResponse XmlRPCGetUserMethodName(XmlRpcRequest request)
         {
-            XmlRpcResponse response = new XmlRpcResponse();
+            // XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable) request.Params[0];
             UserProfileData userProfile;
             if (requestData.Contains("avatar_name"))
             {
                 string query = (string) requestData["avatar_name"];
 
-                Regex objAlphaNumericPattern = new Regex("[^a-zA-Z0-9]");
+                // Regex objAlphaNumericPattern = new Regex("[^a-zA-Z0-9]");
 
                 string[] querysplit;
                 querysplit = query.Split(' ');
@@ -389,7 +389,7 @@ namespace OpenSim.Grid.UserServer
 
         public XmlRpcResponse XmlRPCGetUserMethodUUID(XmlRpcRequest request)
         {
-            XmlRpcResponse response = new XmlRpcResponse();
+            // XmlRpcResponse response = new XmlRpcResponse();
             Hashtable requestData = (Hashtable) request.Params[0];
             UserProfileData userProfile;
             //CFK: this clogs the UserServer log and is not necessary at this time.

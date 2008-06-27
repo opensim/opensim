@@ -253,9 +253,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private UpdateVector handlerUpdatePrimGroupScale = null; //OnUpdateGroupScale;
         private UpdateVector handlerUpdateVector = null; //OnUpdatePrimGroupPosition;
         private UpdatePrimRotation handlerUpdatePrimRotation = null; //OnUpdatePrimGroupRotation;
-        private UpdatePrimGroupRotation handlerUpdatePrimGroupRotation = null; //OnUpdatePrimGroupMouseRotation;
+        // private UpdatePrimGroupRotation handlerUpdatePrimGroupRotation = null; //OnUpdatePrimGroupMouseRotation;
         private PacketStats handlerPacketStats = null; // OnPacketStats;#
-        private RequestAsset handlerRequestAsset = null; // OnRequestAsset;
+        // private RequestAsset handlerRequestAsset = null; // OnRequestAsset;
         private UUIDNameRequest handlerTeleportHomeRequest = null;
 
         private ScriptAnswer handlerScriptAnswer = null;
@@ -3467,7 +3467,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     else
                     {
-                        LLUUID partId = part.UUID;
+                        // LLUUID partId = part.UUID;
                         UpdatePrimRotation handlerUpdatePrimRotation = OnUpdatePrimGroupRotation;
                         UpdatePrimGroupRotation handlerUpdatePrimGroupRotation = OnUpdatePrimGroupMouseRotation;
 
@@ -4135,7 +4135,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         byte[] message = inchatpack.ChatData.Message;
                         byte type = inchatpack.ChatData.Type;
                         LLVector3 fromPos = new LLVector3(); // ClientAvatar.Pos;
-                        LLUUID fromAgentID = AgentId;
+                        // LLUUID fromAgentID = AgentId;
 
                         int channel = inchatpack.ChatData.Channel;
 
@@ -4388,7 +4388,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             DetachAttachmentIntoInvPacket detachtoInv = (DetachAttachmentIntoInvPacket)Pack;
 
                             LLUUID itemID = detachtoInv.ObjectData.ItemID;
-                            LLUUID ATTACH_agentID = detachtoInv.ObjectData.AgentID;
+                            // LLUUID ATTACH_agentID = detachtoInv.ObjectData.AgentID;
 
                             handlerDetachAttachmentIntoInv(itemID, this);
                         }
@@ -5938,7 +5938,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         break;
 
                     case PacketType.RequestRegionInfo:
-                        RequestRegionInfoPacket.AgentDataBlock mPacket = ((RequestRegionInfoPacket)Pack).AgentData;
+                        // RequestRegionInfoPacket.AgentDataBlock mPacket = ((RequestRegionInfoPacket)Pack).AgentData;
 
                         handlerRegionInfoRequest = OnRegionInfoRequest;
                         if (handlerRegionInfoRequest != null)
@@ -5948,8 +5948,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         break;
                     case PacketType.EstateCovenantRequest:
 
-                        EstateCovenantRequestPacket.AgentDataBlock epack =
-                            ((EstateCovenantRequestPacket)Pack).AgentData;
+                        // EstateCovenantRequestPacket.AgentDataBlock epack =
+                        //     ((EstateCovenantRequestPacket)Pack).AgentData;
 
                         handlerEstateCovenantRequest = OnEstateCovenantRequest;
                         if (handlerEstateCovenantRequest != null)
@@ -6287,7 +6287,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendLandStatReply(uint reportType, uint requestFlags, uint resultCount, LandStatReportItem[] lsrpia)
         {
             LandStatReplyPacket lsrp = new LandStatReplyPacket();
-            LandStatReplyPacket.RequestDataBlock lsreqdpb = new LandStatReplyPacket.RequestDataBlock();
+            // LandStatReplyPacket.RequestDataBlock lsreqdpb = new LandStatReplyPacket.RequestDataBlock();
             LandStatReplyPacket.ReportDataBlock[] lsrepdba = new LandStatReplyPacket.ReportDataBlock[lsrpia.Length];
             //LandStatReplyPacket.ReportDataBlock lsrepdb = new LandStatReplyPacket.ReportDataBlock();
             // lsrepdb.

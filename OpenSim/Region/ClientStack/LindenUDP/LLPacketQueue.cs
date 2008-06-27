@@ -57,8 +57,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private Queue<LLQueItem> TextureOutgoingPacketQueue;
         private Queue<LLQueItem> AssetOutgoingPacketQueue;
 
-        private Dictionary<uint, uint> PendingAcks = new Dictionary<uint, uint>();
-        private Dictionary<uint, Packet> NeedAck = new Dictionary<uint, Packet>();
+        // private Dictionary<uint, uint> PendingAcks = new Dictionary<uint, uint>();
+        // private Dictionary<uint, Packet> NeedAck = new Dictionary<uint, Packet>();
 
         // All throttle times and number of bytes are calculated by dividing by this value
         // This value also determines how many times per throttletimems the timer will run

@@ -153,7 +153,7 @@ namespace OpenSim
 
             m_config = new OpenSimConfigSource();
             m_config.Source = new IniConfigSource();
-            IConfigSource icong;
+            // IConfigSource icong;
             
             //check for .INI file (either default or name passed in command line)
             if (File.Exists(Application.iniFilePath))

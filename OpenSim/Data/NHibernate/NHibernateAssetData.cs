@@ -137,18 +137,18 @@ namespace OpenSim.Data.NHibernate
             }
         }
 
-        private void LogAssetLoad(AssetBase asset)
-        {
-            string temporary = asset.Temporary ? "Temporary" : "Stored";
-            string local = asset.Local ? "Local" : "Remote";
+        // private void LogAssetLoad(AssetBase asset)
+        // {
+        //     string temporary = asset.Temporary ? "Temporary" : "Stored";
+        //     string local = asset.Local ? "Local" : "Remote";
 
-            int assetLength = (asset.Data != null) ? asset.Data.Length : 0;
+        //     int assetLength = (asset.Data != null) ? asset.Data.Length : 0;
 
-            m_log.Info("[SQLITE]: " +
-                                     string.Format("Loaded {6} {5} Asset: [{0}][{3}/{4}] \"{1}\":{2} ({7} bytes)",
-                                                   asset.FullID, asset.Name, asset.Description, asset.Type,
-                                                   asset.InvType, temporary, local, assetLength));
-        }
+        //     m_log.Info("[SQLITE]: " +
+        //                              string.Format("Loaded {6} {5} Asset: [{0}][{3}/{4}] \"{1}\":{2} ({7} bytes)",
+        //                                            asset.FullID, asset.Name, asset.Description, asset.Type,
+        //                                            asset.InvType, temporary, local, assetLength));
+        // }
 
         override public bool ExistsAsset(LLUUID uuid)
         {

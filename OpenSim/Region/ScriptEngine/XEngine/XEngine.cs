@@ -58,7 +58,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private Scene m_Scene;
         private IConfig m_ScriptConfig;
         private Compiler m_Compiler;
-        private EventManager m_EventManager;
+        // private EventManager m_EventManager;
         private int m_EventLimit;
         private bool m_KillTimedOutScripts;
         public AsyncCommandManager m_AsyncCommands;
@@ -111,12 +111,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             get { return m_ScriptEngines; }
         }
 
-        private struct RezScriptParms
-        {
-            uint LocalID;
-            LLUUID ItemID;
-            string Script;
-        }
+        // private struct RezScriptParms
+        // {
+        //     uint LocalID;
+        //     LLUUID ItemID;
+        //     string Script;
+        // }
 
         public IConfig Config
         {
@@ -190,7 +190,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 m_ScriptEngines.Add(this);
             }
 
-            m_EventManager = new EventManager(this);
+            // m_EventManager = new EventManager(this);
 
             StartEngine(minThreads, maxThreads, idleTimeout, prio,
                     maxScriptQueue, stackSize);
@@ -527,7 +527,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     if (File.Exists(m_Assemblies[assetID]+".mdb"))
                         File.Delete(m_Assemblies[assetID]+".mdb");
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                 }
                 m_Assemblies.Remove(assetID);

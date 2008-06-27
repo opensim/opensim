@@ -250,22 +250,22 @@ namespace OpenSim.Data.SQLite
         /// Create the "assets" table
         /// </summary>
         /// <returns></returns>
-        private static DataTable createAssetsTable()
-        {
-            DataTable assets = new DataTable("assets");
+        // private static DataTable createAssetsTable()
+        // {
+        //     DataTable assets = new DataTable("assets");
 
-            SQLiteUtil.createCol(assets, "UUID", typeof (String));
-            SQLiteUtil.createCol(assets, "Name", typeof (String));
-            SQLiteUtil.createCol(assets, "Description", typeof (String));
-            SQLiteUtil.createCol(assets, "Type", typeof (Int32));
-            SQLiteUtil.createCol(assets, "InvType", typeof (Int32));
-            SQLiteUtil.createCol(assets, "Local", typeof (Boolean));
-            SQLiteUtil.createCol(assets, "Temporary", typeof (Boolean));
-            SQLiteUtil.createCol(assets, "Data", typeof (Byte[]));
-            // Add in contraints
-            assets.PrimaryKey = new DataColumn[] {assets.Columns["UUID"]};
-            return assets;
-        }
+        //     SQLiteUtil.createCol(assets, "UUID", typeof (String));
+        //     SQLiteUtil.createCol(assets, "Name", typeof (String));
+        //     SQLiteUtil.createCol(assets, "Description", typeof (String));
+        //     SQLiteUtil.createCol(assets, "Type", typeof (Int32));
+        //     SQLiteUtil.createCol(assets, "InvType", typeof (Int32));
+        //     SQLiteUtil.createCol(assets, "Local", typeof (Boolean));
+        //     SQLiteUtil.createCol(assets, "Temporary", typeof (Boolean));
+        //     SQLiteUtil.createCol(assets, "Data", typeof (Byte[]));
+        //     // Add in contraints
+        //     assets.PrimaryKey = new DataColumn[] {assets.Columns["UUID"]};
+        //     return assets;
+        // }
 
         /***********************************************************************
          *
@@ -312,12 +312,12 @@ namespace OpenSim.Data.SQLite
         /// 
         /// </summary>
         /// <param name="conn"></param>
-        private static void InitDB(SqliteConnection conn)
-        {
-            string createAssets = SQLiteUtil.defineTable(createAssetsTable());
-            SqliteCommand pcmd = new SqliteCommand(createAssets, conn);
-            pcmd.ExecuteNonQuery();
-        }
+        // private static void InitDB(SqliteConnection conn)
+        // {
+        //     string createAssets = SQLiteUtil.defineTable(createAssetsTable());
+        //     SqliteCommand pcmd = new SqliteCommand(createAssets, conn);
+        //     pcmd.ExecuteNonQuery();
+        // }
 
         /// <summary>
         /// 
@@ -358,7 +358,7 @@ namespace OpenSim.Data.SQLite
             get
             {
                 Module module = GetType().Module;
-                string dllName = module.Assembly.ManifestModule.Name;
+                // string dllName = module.Assembly.ManifestModule.Name;
                 Version dllVersion = module.Assembly.GetName().Version;
 
                 return

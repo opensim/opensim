@@ -370,7 +370,7 @@ namespace OpenSim.Data.MSSQL
             int revision = Util.UnixTimeSinceEpoch();
             m_log.Info("[REGION DB]: Storing terrain revision r" + revision.ToString());
 
-            DataTable terrain = m_dataSet.Tables["terrain"];
+            // DataTable terrain = m_dataSet.Tables["terrain"];
             lock (m_dataSet)
             {
                 SqlCommand cmd = new SqlCommand("insert into terrain(RegionUUID, Revision, Heightfield)" +
@@ -400,7 +400,7 @@ namespace OpenSim.Data.MSSQL
                 where RegionUUID=@RegionUUID order by Revision desc"
                 , m_connection);
 
-            SqlParameter param = new SqlParameter();
+            // SqlParameter param = new SqlParameter();
             cmd.Parameters.Add(new SqlParameter("@RegionUUID", regionID.UUID));
 
             if (m_connection.State != ConnectionState.Open)

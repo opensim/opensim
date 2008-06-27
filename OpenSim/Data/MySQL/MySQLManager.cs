@@ -156,7 +156,7 @@ namespace OpenSim.Data.MySQL
         public string getVersion()
         {
             Module module = GetType().Module;
-            string dllName = module.Assembly.ManifestModule.Name;
+            // string dllName = module.Assembly.ManifestModule.Name;
             Version dllVersion = module.Assembly.GetName().Version;
 
             return
@@ -916,8 +916,12 @@ namespace OpenSim.Data.MySQL
                 IDbCommand result = Query(sql, parameters);
 
                 //Console.WriteLine(result.CommandText);
-                int x;
-                if ((x = result.ExecuteNonQuery()) > 0)
+                // int x;
+                // if ((x = result.ExecuteNonQuery()) > 0)
+                // {
+                //     returnval = true;
+                // }
+                if (result.ExecuteNonQuery() > 0)
                 {
                     returnval = true;
                 }
@@ -952,8 +956,12 @@ namespace OpenSim.Data.MySQL
 
                 IDbCommand result = Query(sql, parameters);
 
-                int x;
-                if ((x = result.ExecuteNonQuery()) > 0)
+                // int x;
+                // if ((x = result.ExecuteNonQuery()) > 0)
+                // {
+                //     returnval = true;
+                // }
+                if (result.ExecuteNonQuery() > 0)
                 {
                     returnval = true;
                 }
@@ -1000,8 +1008,12 @@ namespace OpenSim.Data.MySQL
                 IDbCommand result = Query(sql, parameters);
 
                 //Console.WriteLine(result.CommandText);
-                int x;
-                if ((x = result.ExecuteNonQuery()) > 0)
+                // int x;
+                // if ((x = result.ExecuteNonQuery()) > 0)
+                // {
+                //     returnval = true;
+                // }
+                if (result.ExecuteNonQuery() > 0)
                 {
                     returnval = true;
                 }

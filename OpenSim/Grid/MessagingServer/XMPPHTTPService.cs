@@ -84,7 +84,7 @@ namespace OpenSim.Grid.MessagingServer
 
     public class PostXMPPStreamHandler : BaseStreamHandler
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public override byte[] Handle(string path, Stream request,
                                       OSHttpRequest httpRequest, OSHttpResponse httpResponse)
@@ -94,7 +94,7 @@ namespace OpenSim.Grid.MessagingServer
             LLUUID assetId;
             if (param.Length > 0)
                 LLUUID.TryParse(param, out assetId);
-            byte[] txBuffer = new byte[4096];
+            // byte[] txBuffer = new byte[4096];
 
             // TODO: Read POST serialize XMPP stanzas
 

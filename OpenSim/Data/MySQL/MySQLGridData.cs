@@ -402,11 +402,11 @@ namespace OpenSim.Data.MySQL
         /// <returns></returns>
         public bool AuthenticateSim(LLUUID uuid, ulong handle, string authhash, string challenge)
         {
-            SHA512Managed HashProvider = new SHA512Managed();
-            Encoding TextProvider = new UTF8Encoding();
+            // SHA512Managed HashProvider = new SHA512Managed();
+            // Encoding TextProvider = new UTF8Encoding();
 
-            byte[] stream = TextProvider.GetBytes(uuid.ToString() + ":" + handle.ToString() + ":" + challenge);
-            byte[] hash = HashProvider.ComputeHash(stream);
+            // byte[] stream = TextProvider.GetBytes(uuid.ToString() + ":" + handle.ToString() + ":" + challenge);
+            // byte[] hash = HashProvider.ComputeHash(stream);
 
             return false;
         }

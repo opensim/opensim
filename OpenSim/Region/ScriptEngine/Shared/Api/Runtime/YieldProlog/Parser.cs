@@ -44,6 +44,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             yield return false;
         }
 
+        // disable warning about unused variables: the following code
+        // is infested with it.
+        #pragma warning disable 0168, 0219
+
         // Debug: Hand-modify this central predicate to do tail recursion.
         public static IEnumerable<bool> read_tokens(object arg1, object arg2, object arg3)
         {
@@ -188,7 +192,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
         // Compiler output follows.
 
         class YPInnerClass { }
-        static Type getDeclaringClass() { return typeof(YPInnerClass).DeclaringType; }
+        // static Type getDeclaringClass() { return typeof(YPInnerClass).DeclaringType; }
 
         public static IEnumerable<bool> parseInput(object TermList)
         {
@@ -224,10 +228,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                                 if (YP.termEqual(Term, Atom.a(@"end_of_file")))
                                 {
                                     yield break;
-                                    goto cutIf1;
+                                    // unreachable code:
+                                    // goto cutIf1;
                                 }
                                 yield return false;
-                            cutIf1:
+                            // cutIf1:
                                 { }
                             }
                         }
@@ -4452,6 +4457,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 { }
             }
         }
-
+        #pragma warning restore 0168
     }
 }

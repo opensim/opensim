@@ -169,7 +169,7 @@ namespace OpenSim.Region.Environment.Scenes
         private Color m_color = Color.Black;
         private string m_description = String.Empty;
         private List<uint> m_lastColliders = new List<uint>();
-        private PhysicsVector m_lastRotationalVelocity = PhysicsVector.Zero;
+        // private PhysicsVector m_lastRotationalVelocity = PhysicsVector.Zero;
         private int m_linkNum = 0;
         [XmlIgnore]
         private int m_scriptAccessPin = 0;

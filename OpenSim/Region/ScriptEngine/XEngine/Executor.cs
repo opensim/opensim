@@ -73,7 +73,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         eventFlags |= kvp.Value;
                     }
                 }
-                catch(Exception e)
+                catch(Exception)
                 {
                     //Console.WriteLine("Exeption in GetMethod:\n"+e.ToString());
                 }

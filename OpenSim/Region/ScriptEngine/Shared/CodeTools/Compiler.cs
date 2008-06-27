@@ -40,8 +40,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 {
     public class Compiler
     {
-        private static readonly log4net.ILog m_log
-            = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly log4net.ILog m_log
+        //     = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         // * Uses "LSL2Converter" to convert LSL to C# if necessary.
         // * Compiles C#-code into an assembly
@@ -79,7 +79,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         private static CSharpCodeProvider YPcodeProvider = new CSharpCodeProvider(); // YP is translated into CSharp
         private static YP2CSConverter YP_Converter = new YP2CSConverter();
 
-        private static int instanceID = new Random().Next(0, int.MaxValue);                 // Unique number to use on our compiled files
+        // private static int instanceID = new Random().Next(0, int.MaxValue);                 // Unique number to use on our compiled files
         private static UInt64 scriptCompileCounter = 0;                                     // And a counter
 
         public IScriptEngine m_scriptEngine;
@@ -273,7 +273,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 {
                     Directory.CreateDirectory(ScriptEnginesPath);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                 }
             }
@@ -285,7 +285,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                 {
                     Directory.CreateDirectory(ScriptEnginesPath);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                 }
             }
@@ -486,7 +486,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 //             }
 
             string rootPath = Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory);
-            string rootPathSE = Path.GetDirectoryName(GetType().Assembly.Location);
+            // string rootPathSE = Path.GetDirectoryName(GetType().Assembly.Location);
             //Console.WriteLine("Assembly location: " + rootPath);
             parameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.Shared.dll"));
             parameters.ReferencedAssemblies.Add(Path.Combine(rootPath, "OpenSim.Region.ScriptEngine.Shared.Api.Runtime.dll"));

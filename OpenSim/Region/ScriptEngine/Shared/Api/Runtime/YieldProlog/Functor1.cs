@@ -57,14 +57,23 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 Functor1 argFunctor = (Functor1)arg;
                 if (_name.Equals(argFunctor._name))
                 {
+                    // disable warning on l1, don't see how we can
+                    // code this differently
+                    #pragma warning disable 0168
                     foreach (bool l1 in YP.unify(_arg1, argFunctor._arg1))
                         yield return false;
+                    #pragma warning restore 0168
                 }
             }
             else if (arg is Variable)
             {
+                // disable warning on l1, don't see how we can
+                // code this differently
+                #pragma warning disable 0168
                 foreach (bool l1 in ((Variable)arg).unify(this))
                     yield return false;
+                #pragma warning restore 0168
+
             }
         }
 

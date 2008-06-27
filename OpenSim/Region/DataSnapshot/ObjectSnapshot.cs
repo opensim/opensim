@@ -40,14 +40,14 @@ namespace OpenSim.Region.DataSnapshot.Providers
     public class ObjectSnapshot : IDataSnapshotProvider
     {
         private Scene m_scene = null;
-        private DataSnapshotManager m_parent = null;
+        // private DataSnapshotManager m_parent = null;
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private bool m_stale = true;
 
         public void Initialize(Scene scene, DataSnapshotManager parent)
         {
             m_scene = scene;
-            m_parent = parent;
+            // m_parent = parent;
 
             //To check for staleness, we must catch all incoming client packets.
             m_scene.EventManager.OnNewClient += OnNewClient;

@@ -65,7 +65,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         private enumCompileType DefaultCompileLanguage;
         private bool WriteScriptSourceToDebugFile;
         private bool CompileWithDebugInformation;
-        private bool CleanUpOldScriptsOnStartup;
+        // private bool CleanUpOldScriptsOnStartup;
         private Dictionary<string, bool> AllowedCompilers = new Dictionary<string, bool>(StringComparer.CurrentCultureIgnoreCase);
         private Dictionary<string, enumCompileType> LanguageMapping = new Dictionary<string, enumCompileType>(StringComparer.CurrentCultureIgnoreCase);
 
@@ -95,7 +95,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             // Get some config
             WriteScriptSourceToDebugFile = m_scriptEngine.ScriptConfigSource.GetBoolean("WriteScriptSourceToDebugFile", true);
             CompileWithDebugInformation = m_scriptEngine.ScriptConfigSource.GetBoolean("CompileWithDebugInformation", true);
-            CleanUpOldScriptsOnStartup = m_scriptEngine.ScriptConfigSource.GetBoolean("CleanUpOldScriptsOnStartup", true);
+            // CleanUpOldScriptsOnStartup = m_scriptEngine.ScriptConfigSource.GetBoolean("CleanUpOldScriptsOnStartup", true);
 
             // Get file prefix from scriptengine name and make it file system safe:
             FilePrefix = m_scriptEngine.ScriptEngineName;

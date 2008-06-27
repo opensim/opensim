@@ -1686,27 +1686,27 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         /// <param name="dt">Data Table</param>
         /// <returns></returns>
-        private static string defineTable(DataTable dt)
-        {
-            string sql = "create table " + dt.TableName + "(";
-            string subsql = String.Empty;
-            foreach (DataColumn col in dt.Columns)
-            {
-                if (subsql.Length > 0)
-                {
-                    // a map function would rock so much here
-                    subsql += ",\n";
-                }
-                subsql += col.ColumnName + " " + sqliteType(col.DataType);
-                if (dt.PrimaryKey.Length > 0 && col == dt.PrimaryKey[0])
-                {
-                    subsql += " primary key";
-                }
-            }
-            sql += subsql;
-            sql += ")";
-            return sql;
-        }
+        // private static string defineTable(DataTable dt)
+        // {
+        //     string sql = "create table " + dt.TableName + "(";
+        //     string subsql = String.Empty;
+        //     foreach (DataColumn col in dt.Columns)
+        //     {
+        //         if (subsql.Length > 0)
+        //         {
+        //             // a map function would rock so much here
+        //             subsql += ",\n";
+        //         }
+        //         subsql += col.ColumnName + " " + sqliteType(col.DataType);
+        //         if (dt.PrimaryKey.Length > 0 && col == dt.PrimaryKey[0])
+        //         {
+        //             subsql += " primary key";
+        //         }
+        //     }
+        //     sql += subsql;
+        //     sql += ")";
+        //     return sql;
+        // }
 
         /***********************************************************************
          *
@@ -2083,32 +2083,32 @@ namespace OpenSim.Data.SQLite
         /// <param name="type">a Type</param>
         /// <returns>an sqliteType</returns>
         /// <remarks>this is something we'll need to implement for each db slightly differently.</remarks>
-        private static string sqliteType(Type type)
-        {
-            if (type == typeof (String))
-            {
-                return "varchar(255)";
-            }
-            else if (type == typeof (Int32))
-            {
-                return "integer";
-            }
-            else if (type == typeof (Int64))
-            {
-                return "integer";
-            }
-            else if (type == typeof (Double))
-            {
-                return "float";
-            }
-            else if (type == typeof (Byte[]))
-            {
-                return "blob";
-            }
-            else
-            {
-                return "string";
-            }
-        }
+        // private static string sqliteType(Type type)
+        // {
+        //     if (type == typeof (String))
+        //     {
+        //         return "varchar(255)";
+        //     }
+        //     else if (type == typeof (Int32))
+        //     {
+        //         return "integer";
+        //     }
+        //     else if (type == typeof (Int64))
+        //     {
+        //         return "integer";
+        //     }
+        //     else if (type == typeof (Double))
+        //     {
+        //         return "float";
+        //     }
+        //     else if (type == typeof (Byte[]))
+        //     {
+        //         return "blob";
+        //     }
+        //     else
+        //     {
+        //         return "string";
+        //     }
+        // }
     }
 }

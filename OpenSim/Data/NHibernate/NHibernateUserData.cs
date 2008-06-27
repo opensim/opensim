@@ -91,7 +91,7 @@ namespace OpenSim.Data.NHibernate
             {
                 user = session.Load(typeof(UserProfileData), uuid) as UserProfileData;
             }
-            catch (ObjectNotFoundException e) 
+            catch (ObjectNotFoundException) 
             {
                 user = null;
             }
@@ -108,7 +108,7 @@ namespace OpenSim.Data.NHibernate
                 user = session.Load(typeof(UserProfileData), uuid) as UserProfileData;
                 user.CurrentAgent = GetAgentByUUID(uuid);
             } 
-            catch (ObjectNotFoundException e) 
+            catch (ObjectNotFoundException) 
             {
                 user = null;
             }
@@ -143,7 +143,7 @@ namespace OpenSim.Data.NHibernate
                     UserAgentData old = session.Load(typeof(UserAgentData), uuid) as UserAgentData;
                     session.Delete(old);
                 }
-                catch (ObjectNotFoundException e) 
+                catch (ObjectNotFoundException) 
                 {
                 }
                 session.Save(agent);
@@ -173,7 +173,7 @@ namespace OpenSim.Data.NHibernate
                 UserAgentData old = session.Load(typeof(UserAgentData), agent.ProfileID) as UserAgentData;
                 session.Delete(old);
             }
-            catch (ObjectNotFoundException e) 
+            catch (ObjectNotFoundException) 
             {
             }
             session.Save(agent);
@@ -260,7 +260,7 @@ namespace OpenSim.Data.NHibernate
             // TODO: I'm sure I'll have to do something silly here
             try {
                 appearance = session.Load(typeof(AvatarAppearance), user) as AvatarAppearance;
-            } catch (ObjectNotFoundException e) {
+            } catch (ObjectNotFoundException) {
                 appearance = null;
             }
             return appearance;
@@ -271,7 +271,7 @@ namespace OpenSim.Data.NHibernate
             AvatarAppearance appearance;
             try {
                 appearance = session.Load(typeof(AvatarAppearance), uuid) as AvatarAppearance;
-            } catch (ObjectNotFoundException e) {
+            } catch (ObjectNotFoundException) {
                 appearance = null;
             }
 

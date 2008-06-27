@@ -87,7 +87,7 @@ namespace OpenSim.Region.Environment.Scenes
     /// </summary>
     public partial class SceneObjectGroup : EntityBase
     {
-        private PrimCountTaintedDelegate handlerPrimCountTainted = null;
+        // private PrimCountTaintedDelegate handlerPrimCountTainted = null;
 
         /// <summary>
         /// Signal whether the non-inventory attributes of any prims in the group have changed
@@ -107,7 +107,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         protected ulong m_regionHandle;
         protected SceneObjectPart m_rootPart;
-        private Dictionary<LLUUID, scriptEvents> m_scriptEvents = new Dictionary<LLUUID, scriptEvents>();
+        // private Dictionary<LLUUID, scriptEvents> m_scriptEvents = new Dictionary<LLUUID, scriptEvents>();
 
         private Dictionary<uint, scriptPosTarget> m_targets = new Dictionary<uint, scriptPosTarget>();
 

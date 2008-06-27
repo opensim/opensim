@@ -3122,7 +3122,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             }
 
-            double angle = 2 * Math.Acos(rot.s);
+            // double angle = 2 * Math.Acos(rot.s);
             double s = Math.Sqrt(1 - rot.s * rot.s);
             if (s < 0.001)
             {
@@ -3960,7 +3960,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                 {
                     int index = str.IndexOf(delimiters[i].ToString());
                     bool found = index != -1;
-                    if (found && String.Empty != delimiters[i])
+                    if (found && String.Empty != (string)delimiters[i])
                     {
                         if ((cindex > index) || (cindex == -1))
                         {
@@ -4049,7 +4049,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         private String[] GetNotecardLines(string name)
         {
-            bool found = false;
+            // bool found = false;
             int notecardIndex = 0;
             String[] notecardLines = { "0" };
             notecardLines[0] = String.Empty;

@@ -192,7 +192,10 @@ public class Vertex : PhysicsVector, IComparable<Vertex>
     {
         return new Vertex(Y * v.Z - Z * v.Y, Z * v.X - X * v.Z, X * v.Y - Y * v.X);
     }
-
+    
+    // mono compiler moans about overloading operators hiding base
+    // operator but should not according to C# language spec
+    #pragma warning disable 0108
     public static Vertex operator *(Vertex v, Quaternion q)
     {
         Matrix4 tm = q.computeMatrix();
@@ -250,6 +253,7 @@ public class Vertex : PhysicsVector, IComparable<Vertex>
         v1.Z *= mul;
         return v1;
     }
+    #pragma warning restore 0108
 
 
     public float dot(Vertex v)

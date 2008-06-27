@@ -33,11 +33,11 @@ namespace OpenSim.Data.NHibernate
 {
     internal class NHibernateManager
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private ISessionFactory factory;
-        private ISession session;
-        private ITransaction transaction;
+        // private ISessionFactory factory;
+        // private ISession session;
+        // private ITransaction transaction;
 
         public NHibernateManager()
         {

@@ -557,8 +557,8 @@ namespace OpenSim.Data.SQLite
             try {
                 aa = aplist[user];
                 m_log.Info("[APPEARANCE] Found appearance for " + user.ToString() + aa.ToString());
-            } catch (System.Collections.Generic.KeyNotFoundException e) {
-                m_log.Info("[APPEARANCE] No appearance found for " + user.ToString());
+            } catch (System.Collections.Generic.KeyNotFoundException) {
+                m_log.InfoFormat("[APPEARANCE] No appearance found for {0}", user.ToString());
             }
             return aa;
         }
@@ -971,7 +971,7 @@ namespace OpenSim.Data.SQLite
         private static bool TestTables(SqliteConnection conn, Migration m)
         {
             SqliteCommand cmd = new SqliteCommand(userSelect, conn);
-            SqliteCommand fcmd = new SqliteCommand(userFriendsSelect, conn);
+            // SqliteCommand fcmd = new SqliteCommand(userFriendsSelect, conn);
             SqliteDataAdapter pDa = new SqliteDataAdapter(cmd);
             SqliteDataAdapter fDa = new SqliteDataAdapter(cmd);
 

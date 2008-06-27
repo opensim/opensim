@@ -133,21 +133,21 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             m_svnClient.Checkout2(m_svnurl, m_svndir, revision, revision, true, false);
         }
 
-        private void CheckoutSvnPartial(string subdir)
-        {
-            if (!Directory.Exists(m_svndir + Slash.DirectorySeparatorChar + subdir))
-                Directory.CreateDirectory(m_svndir + Slash.DirectorySeparatorChar + subdir);
+        // private void CheckoutSvnPartial(string subdir)
+        // {
+        //     if (!Directory.Exists(m_svndir + Slash.DirectorySeparatorChar + subdir))
+        //         Directory.CreateDirectory(m_svndir + Slash.DirectorySeparatorChar + subdir);
 
-            m_svnClient.Checkout2(m_svnurl + "/" + subdir, m_svndir, Svn.Revision.Head, Svn.Revision.Head, true, false);
-        }
+        //     m_svnClient.Checkout2(m_svnurl + "/" + subdir, m_svndir, Svn.Revision.Head, Svn.Revision.Head, true, false);
+        // }
 
-        private void CheckoutSvnPartial(string subdir, SvnRevision revision)
-        {
-            if (!Directory.Exists(m_svndir + Slash.DirectorySeparatorChar + subdir))
-                Directory.CreateDirectory(m_svndir + Slash.DirectorySeparatorChar + subdir);
+        // private void CheckoutSvnPartial(string subdir, SvnRevision revision)
+        // {
+        //     if (!Directory.Exists(m_svndir + Slash.DirectorySeparatorChar + subdir))
+        //         Directory.CreateDirectory(m_svndir + Slash.DirectorySeparatorChar + subdir);
 
-            m_svnClient.Checkout2(m_svnurl + "/" + subdir, m_svndir, revision, revision, true, false);
-        }
+        //     m_svnClient.Checkout2(m_svnurl + "/" + subdir, m_svndir, revision, revision, true, false);
+        // }
 
         #endregion
 

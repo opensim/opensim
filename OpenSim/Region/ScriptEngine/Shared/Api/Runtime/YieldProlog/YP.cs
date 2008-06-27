@@ -572,6 +572,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
 
             Variable Name = new Variable();
             Variable ArgList = new Variable();
+            // disable warning on l1, don't see how we can
+            // code this differently
+            #pragma warning disable 0168
             foreach (bool l1 in new ListPair(Name, ArgList).unify(List))
             {
                 object[] args = ListPair.toArray(ArgList);
@@ -585,6 +588,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
 
                 return YP.unify(Term, Functor.make((Atom)YP.getValue(Name), args));
             }
+            #pragma warning restore 0168
 
             return YP.fail();
         }
@@ -597,11 +601,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
 
             if (!(Term is Variable))
             {
+                // disable warning on l1, don't see how we can
+                // code this differently
+                #pragma warning disable 0168
                 foreach (bool l1 in YP.unify(FunctorName, getFunctorName(Term)))
                 {
                     foreach (bool l2 in YP.unify(Arity, getFunctorArgs(Term).Length))
                         yield return false;
                 }
+                #pragma warning restore 0168
             }
             else
                 throw new NotImplementedException("Debug: must finish functor/3");
@@ -621,8 +629,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 if (argNumberInt >= 1 && argNumberInt <= termArgs.Length)
                 {
                     // The first ArgNumber is at 1, not 0.
+                    // disable warning on l1, don't see how we can
+                    // code this differently
+                    #pragma warning disable 0168
                     foreach (bool l1 in YP.unify(Value, termArgs[argNumberInt - 1]))
                         yield return false;
+                    #pragma warning restore 0168
                 }
             }
         }
@@ -814,8 +826,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             object[] args = new object[] { Priority, Specifier, Operator };
             foreach (object[] answer in _operatorTable)
             {
+                // disable warning on l1, don't see how we can
+                // code this differently
+                #pragma warning disable 0168
                 foreach (bool l1 in YP.unifyArrays(args, answer))
                     yield return false;
+                #pragma warning restore 0168
             }
         }
 
@@ -847,12 +863,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             int afterInt = atomAtom._name.Length - (beforeInt + lengthInt);
             if (afterInt >= 0)
             {
+                // disable warning on l1, don't see how we can
+                // code this differently
+                #pragma warning disable 0168
                 foreach (bool l1 in YP.unify(After, afterInt))
                 {
                     foreach (bool l2 in YP.unify
                         (Sub_atom, Atom.a(atomAtom._name.Substring(beforeInt, lengthInt))))
                         yield return false;
                 }
+                #pragma warning restore 0168
             }
         }
 
@@ -1201,9 +1221,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             if (arity == 2 && (name == Atom.a(",") || name == Atom.a(";") || name == Atom.DOT))
                 return false;
             // Use the same mapping to static predicates in YP as the compiler.
+            // disable warning on l1, don't see how we can
+            // code this differently
+            #pragma warning disable 0168
             foreach (bool l1 in YPCompiler.functorCallYPFunctionName(name, arity, new Variable()))
                 return false;
             // Debug: Do we need to check if name._module is null?
+            #pragma warning restore 0168
             return true;
         }
 
@@ -1342,9 +1366,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
 
             foreach (NameArity key in _predicatesStore.Keys)
             {
+                // disable warning on l1, don't see how we can
+                // code this differently
+                #pragma warning disable 0168
                 foreach (bool l1 in YP.unify
                     (new Functor2(Atom.SLASH, key._name, key._arity), NameSlashArity))
                     yield return false;
+                #pragma warning restore 0168
             }
         }
 
@@ -1414,7 +1442,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
         /// <returns></returns>
         public static void script_event(object script_event, object script_params)
         {
-            string function = ((Atom)YP.getValue(script_event))._name;
+            // string function = ((Atom)YP.getValue(script_event))._name;
             object[] array = ListPair.toArray(script_params);
             if (array == null)
                 return; // YP.fail();
@@ -1600,11 +1628,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 if (_exception != null)
                 {
                     bool didUnify = false;
+                    // disable warning on l1, don't see how we can
+                    // code this differently
+                    #pragma warning disable 0168
                     foreach (bool l1 in YP.unify(_exception._term, Catcher))
                     {
                         didUnify = true;
                         yield return false;
                     }
+                    #pragma warning restore 0168
+
                     if (!didUnify)
                         throw _exception;
                 }
