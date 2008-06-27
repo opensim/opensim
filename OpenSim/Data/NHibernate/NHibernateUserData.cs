@@ -284,6 +284,8 @@ namespace OpenSim.Data.NHibernate
             if (appearance == null) 
                 return;
             
+            appearance.Owner = user;
+
             bool exists = ExistsAppearance(user);
             if (exists)
             {
