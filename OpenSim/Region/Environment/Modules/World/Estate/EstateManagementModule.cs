@@ -500,7 +500,8 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
             for (int i = 0; i < uuidarr.Length; i++)
             {
-                string lookupname = m_scene.CommsManager.UUIDNameRequestString(uuidarr[i]);
+                // string lookupname = m_scene.CommsManager.UUIDNameRequestString(uuidarr[i]);
+                m_scene.CommsManager.UUIDNameRequestString(uuidarr[i]);
                 // we drop it.  It gets cached though...  so we're ready for the next request.
             }
         }

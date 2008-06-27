@@ -266,8 +266,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void RequestNeighbors(RegionInfo region)
         {
-            List<SimpleRegionInfo> neighbours =
-                m_commsProvider.GridService.RequestNeighbours(m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
+            // List<SimpleRegionInfo> neighbours =
+            m_commsProvider.GridService.RequestNeighbours(m_regionInfo.RegionLocX, m_regionInfo.RegionLocY);
             //IPEndPoint blah = new IPEndPoint();
 
             //blah.Address = region.RemotingAddress;

@@ -177,7 +177,8 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
             {
                 if (region.RegionInfo.RegionName == (string) args[0])
                 {
-                    List<string> results = SerialiseRegion(region, m_savedir + region.RegionInfo.RegionID.ToString() + "/");
+                    // List<string> results = SerialiseRegion(region, m_savedir + region.RegionInfo.RegionID.ToString() + "/");
+                    SerialiseRegion(region, m_savedir + region.RegionInfo.RegionID.ToString() + "/");
                 }
             }
         }
@@ -186,7 +187,8 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
         {
             foreach (Scene region in m_regions)
             {
-                List<string> results = SerialiseRegion(region, m_savedir + region.RegionInfo.RegionID.ToString() + "/");
+                // List<string> results = SerialiseRegion(region, m_savedir + region.RegionInfo.RegionID.ToString() + "/");
+                SerialiseRegion(region, m_savedir + region.RegionInfo.RegionID.ToString() + "/");
             }
         }
 

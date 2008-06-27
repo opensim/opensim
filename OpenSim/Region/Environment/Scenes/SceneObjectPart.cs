@@ -823,7 +823,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void AddFlag(LLObject.ObjectFlags flag)
         {
-            LLObject.ObjectFlags prevflag = Flags;
+            // LLObject.ObjectFlags prevflag = Flags;
             //uint objflags = Flags;
             if ((ObjectFlags & (uint) flag) == 0)
             {
@@ -1678,7 +1678,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void PreloadSound(string sound)
         {
-            LLUUID ownerID = OwnerID;
+            // LLUUID ownerID = OwnerID;
             LLUUID objectID = UUID;
             LLUUID soundID = LLUUID.Zero;
 
@@ -1708,7 +1708,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void RemFlag(LLObject.ObjectFlags flag)
         {
-            LLObject.ObjectFlags prevflag = Flags;
+            // LLObject.ObjectFlags prevflag = Flags;
             if ((ObjectFlags & (uint) flag) != 0)
             {
                 //Console.WriteLine("Removing flag: " + ((LLObject.ObjectFlags)flag).ToString());
@@ -2153,12 +2153,12 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetScriptEvents(LLUUID scriptid, int events)
         {
-            scriptEvents oldparts;
+            // scriptEvents oldparts;
             lock (m_scriptEvents)
             {
                 if (m_scriptEvents.ContainsKey(scriptid))
                 {
-                    oldparts = m_scriptEvents[scriptid];
+                    // oldparts = m_scriptEvents[scriptid];
 
                     // remove values from aggregated script events
                     m_scriptEvents[scriptid] = (scriptEvents) events;
@@ -2259,8 +2259,8 @@ namespace OpenSim.Region.Environment.Scenes
             Vector3 vAbsolutePosition = new Vector3(AbsolutePosition.X, AbsolutePosition.Y, AbsolutePosition.Z);
 
             Vector3 vScale = new Vector3(Scale.X, Scale.Y, Scale.Z);
-            Quaternion qRotation =
-                new Quaternion(RotationOffset.W, RotationOffset.X, RotationOffset.Y, RotationOffset.Z);
+            // Quaternion qRotation =
+            //     new Quaternion(RotationOffset.W, RotationOffset.X, RotationOffset.Y, RotationOffset.Z);
 
 
             //Quaternion worldRotation = (qRotation*parentrot);
@@ -2366,7 +2366,7 @@ namespace OpenSim.Region.Environment.Scenes
             // TODO: Change to take shape into account
             Vector3[] vertexes = new Vector3[8];
 
-            float[] distance = new float[6];
+            // float[] distance = new float[6];
             Vector3[] FaceA = new Vector3[6]; // vertex A for Facei
             Vector3[] FaceB = new Vector3[6]; // vertex B for Facei
             Vector3[] FaceC = new Vector3[6]; // vertex C for Facei
@@ -2830,7 +2830,7 @@ namespace OpenSim.Region.Environment.Scenes
             bool usePhysics = false;
             bool IsTemporary = false;
             bool IsPhantom = false;
-            bool castsShadows = false;
+            // bool castsShadows = false;
             bool wasUsingPhysics = ((ObjectFlags & (uint) LLObject.ObjectFlags.Physics) != 0);
             //bool IsLocked = false;
             int i = 0;
@@ -2843,7 +2843,7 @@ namespace OpenSim.Region.Environment.Scenes
                 //System.Console.WriteLine("U" + packet.ToBytes().Length.ToString());
                 IsTemporary = (data[i++] != 0) ? true : false;
                 IsPhantom = (data[i++] != 0) ? true : false;
-                castsShadows = (data[i++] != 0) ? true : false;
+                // castsShadows = (data[i++] != 0) ? true : false;
             }
             catch (Exception)
             {

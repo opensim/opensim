@@ -2098,7 +2098,8 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             LLQuaternion worldRot = target2.GetWorldRotation();
 
-                            SceneObjectGroup obj = m_innerScene.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, new Quaternion(worldRot.W,worldRot.X,worldRot.Y,worldRot.Z));
+                            // SceneObjectGroup obj = m_innerScene.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, new Quaternion(worldRot.W,worldRot.X,worldRot.Y,worldRot.Z));
+                            m_innerScene.DuplicateObject(localID, pos, target.GetEffectiveObjectFlags(), AgentID, GroupID, new Quaternion(worldRot.W,worldRot.X,worldRot.Y,worldRot.Z));
                             //obj.Rotation = new Quaternion(worldRot.W, worldRot.X, worldRot.Y, worldRot.Z);
                             //obj.UpdateGroupRotation(worldRot);
                         }

@@ -1096,7 +1096,7 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectGroup group = GetGroupByPrim(localID);
             if (group != null)
             {
-                LLVector3 oldPos = group.AbsolutePosition;
+                // LLVector3 oldPos = group.AbsolutePosition;
                 if (!m_parentScene.ExternalChecks.ExternalChecksCanObjectEntry(group.UUID,pos) && !group.RootPart.m_IsAttachment)
                 {
                     group.SendGroupTerseUpdate();
@@ -1122,7 +1122,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (group != null)
             {
 
-                LLVector3 oldPos = group.AbsolutePosition;
+                // LLVector3 oldPos = group.AbsolutePosition;
                 if (group.RootPart.m_IsAttachment)
                 {
                     group.UpdateGroupPosition(pos);
@@ -1467,7 +1467,8 @@ namespace OpenSim.Region.Environment.Scenes
         {
             //m_log.DebugFormat("[SCENE]: Duplication of object {0} at offset {1} requested by agent {2}", originalPrim, offset, AgentID);
 
-            SceneObjectGroup dupe = DuplicateObject(originalPrim, offset, flags, AgentID, GroupID, Quaternion.Zero);
+            // SceneObjectGroup dupe = DuplicateObject(originalPrim, offset, flags, AgentID, GroupID, Quaternion.Zero);
+            DuplicateObject(originalPrim, offset, flags, AgentID, GroupID, Quaternion.Zero);
         }
         /// <summary>
         /// Duplicate the given object.

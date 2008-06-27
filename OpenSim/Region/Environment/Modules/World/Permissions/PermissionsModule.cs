@@ -310,7 +310,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             objectOwnerMask |= (uint)LLObject.ObjectFlags.ObjectYouOwner | (uint)LLObject.ObjectFlags.ObjectOwnerModify;
 
             // Customize the GroupMask
-            uint objectGroupMask = ApplyObjectModifyMasks(task.GroupMask, objflags);
+            // uint objectGroupMask = ApplyObjectModifyMasks(task.GroupMask, objflags);
 
             // Customize the EveryoneMask
             uint objectEveryoneMask = ApplyObjectModifyMasks(task.EveryoneMask, objflags);
@@ -655,10 +655,10 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                     SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objectID];
 
 
-                    LLUUID taskOwner = null;
+                    // LLUUID taskOwner = null;
                     // Added this because at this point in time it wouldn't be wise for
                     // the administrator object permissions to take effect.
-                    LLUUID objectOwner = task.OwnerID;
+                    // LLUUID objectOwner = task.OwnerID;
 
                     // Anyone can move
                     if ((task.RootPart.EveryoneMask & PERM_MOVE) != 0)
@@ -842,10 +842,10 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                     }
 
                     SceneObjectGroup task = (SceneObjectGroup)m_scene.Entities[objectID];
-                    LLUUID taskOwner = null;
+                    // LLUUID taskOwner = null;
                     // Added this because at this point in time it wouldn't be wise for
                     // the administrator object permissions to take effect.
-                    LLUUID objectOwner = task.OwnerID;
+                    // LLUUID objectOwner = task.OwnerID;
 
 
                     if ((task.RootPart.EveryoneMask & PERM_COPY) != 0)
