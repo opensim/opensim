@@ -60,7 +60,7 @@ namespace OpenSim.Framework.Communications.XMPP
             Text = message;
         }
 
-        public string ToString()
+        new public string ToString()
         {
             return Text;
         }

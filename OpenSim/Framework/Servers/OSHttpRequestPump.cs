@@ -147,8 +147,6 @@ namespace OpenSim.Framework.Servers
                 Dictionary<string, Regex> headerRegexs = h.Headers;
                 Regex endPointsRegex = h.IPEndPointWhitelist;
 
-                int pathMatch = 0;
-                int headersMatch = 0;
 
                 // first, check whether IPEndPointWhitelist applies
                 // and, if it does, whether client is on that white
@@ -175,6 +173,8 @@ namespace OpenSim.Framework.Servers
                 // whitelist & path ok, now check headers
                 if (null != headerRegexs)
                 {
+                    int headersMatch = 0;
+
                     // go through all header Regexs and evaluate
                     // match: 
                     //     if header field not present or does not match: 

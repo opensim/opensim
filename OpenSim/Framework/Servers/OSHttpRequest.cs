@@ -57,7 +57,7 @@ namespace OpenSim.Framework.Servers
         private string _userAgent;
 
         private HttpRequest _request;
-        private HttpClientContext _context;
+        // private HttpClientContext _context;
 
         public string[] AcceptTypes
         {
@@ -175,7 +175,7 @@ namespace OpenSim.Framework.Servers
 
         public OSHttpRequest(HttpClientContext context, HttpRequest req)
         {
-            _context = context;
+            // _context = context;
             _request = req;
         }
     }
