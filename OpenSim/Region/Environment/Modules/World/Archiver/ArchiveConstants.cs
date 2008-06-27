@@ -59,50 +59,50 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         static ArchiveConstants()
         {
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Animation]           = ".bvh";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Bodypart]            = ".bpt.txt";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.CallingCard]         = ".ccd.txt";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Clothing]            = ".clo.txt";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Folder]              = ".fld.txt";   // Not sure if we'll ever see this
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Gesture]             = ".gst.txt";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Bodypart]            = ".bpt";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.CallingCard]         = ".ccd";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Clothing]            = ".clo";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Folder]              = ".fld";   // Not sure if we'll ever see this
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Gesture]             = ".gst";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.ImageJPEG]           = ".jpg";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.ImageTGA]            = ".img.tga";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.LostAndFoundFolder]  = ".lff.txt";   // Not sure if we'll ever see this
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.ImageTGA]            = ".imgtga";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.LostAndFoundFolder]  = ".lfd";   // Not sure if we'll ever see this
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.LSLBytecode]         = ".lso";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.LSLText]             = ".lsl";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Notecard]            = ".ncd.txt";            
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Object]              = ".obj.xml";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.RootFolder]          = ".rof.txt";   // Not sure if we'll ever see this
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Notecard]            = ".ncd";            
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Object]              = ".oob";
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.RootFolder]          = ".rfd";   // Not sure if we'll ever see this
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Script]              = ".spt";       // Not sure if we'll ever see this
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Simstate]            = ".sst";       // Not sure if we'll ever see this
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.SnapshotFolder]      = ".ssf.txt";   // Not sure if we'll ever see this
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.SnapshotFolder]      = ".sfd";   // Not sure if we'll ever see this
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Sound]               = ".ogg";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.SoundWAV]            = ".wav";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.Texture]             = ".jp2";
             ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.TextureTGA]          = ".tga";
-            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.TrashFolder]         = ".trf.txt";   // Not sure if we'll ever see this                                                            
+            ASSET_TYPE_TO_EXTENSION[(sbyte)AssetType.TrashFolder]         = ".tfd";   // Not sure if we'll ever see this                                                            
             
             EXTENSION_TO_ASSET_TYPE[".bvh"]     = (sbyte)AssetType.Animation;
-            EXTENSION_TO_ASSET_TYPE[".bpt.txt"] = (sbyte)AssetType.Bodypart;
-            EXTENSION_TO_ASSET_TYPE[".ccd.txt"] = (sbyte)AssetType.CallingCard;
-            EXTENSION_TO_ASSET_TYPE[".clo.txt"] = (sbyte)AssetType.Clothing;
-            EXTENSION_TO_ASSET_TYPE[".fld.txt"] = (sbyte)AssetType.Folder;
-            EXTENSION_TO_ASSET_TYPE[".gst.txt"] = (sbyte)AssetType.Gesture;
+            EXTENSION_TO_ASSET_TYPE[".bpt"] = (sbyte)AssetType.Bodypart;
+            EXTENSION_TO_ASSET_TYPE[".ccd"] = (sbyte)AssetType.CallingCard;
+            EXTENSION_TO_ASSET_TYPE[".clo"] = (sbyte)AssetType.Clothing;
+            EXTENSION_TO_ASSET_TYPE[".fld"] = (sbyte)AssetType.Folder;
+            EXTENSION_TO_ASSET_TYPE[".gst"] = (sbyte)AssetType.Gesture;
             EXTENSION_TO_ASSET_TYPE[".jpg"]     = (sbyte)AssetType.ImageJPEG;
-            EXTENSION_TO_ASSET_TYPE[".img.tga"] = (sbyte)AssetType.ImageTGA;
-            EXTENSION_TO_ASSET_TYPE[".lff.txt"] = (sbyte)AssetType.LostAndFoundFolder;
+            EXTENSION_TO_ASSET_TYPE[".imgtga"] = (sbyte)AssetType.ImageTGA;
+            EXTENSION_TO_ASSET_TYPE[".lfd"] = (sbyte)AssetType.LostAndFoundFolder;
             EXTENSION_TO_ASSET_TYPE[".lso"]     = (sbyte)AssetType.LSLBytecode;
             EXTENSION_TO_ASSET_TYPE[".lsl"]     = (sbyte)AssetType.LSLText;
-            EXTENSION_TO_ASSET_TYPE[".ncd.txt"] = (sbyte)AssetType.Notecard;
-            EXTENSION_TO_ASSET_TYPE[".obj.xml"] = (sbyte)AssetType.Object;
-            EXTENSION_TO_ASSET_TYPE[".rof.txt"] = (sbyte)AssetType.RootFolder;
+            EXTENSION_TO_ASSET_TYPE[".ncd"] = (sbyte)AssetType.Notecard;
+            EXTENSION_TO_ASSET_TYPE[".oob"] = (sbyte)AssetType.Object;
+            EXTENSION_TO_ASSET_TYPE[".rfd"] = (sbyte)AssetType.RootFolder;
             EXTENSION_TO_ASSET_TYPE[".spt"]     = (sbyte)AssetType.Script;
             EXTENSION_TO_ASSET_TYPE[".sst"]     = (sbyte)AssetType.Simstate;
-            EXTENSION_TO_ASSET_TYPE[".ssf.txt"] = (sbyte)AssetType.SnapshotFolder;
+            EXTENSION_TO_ASSET_TYPE[".sfd"] = (sbyte)AssetType.SnapshotFolder;
             EXTENSION_TO_ASSET_TYPE[".ogg"]     = (sbyte)AssetType.Sound;
             EXTENSION_TO_ASSET_TYPE[".wav"]     = (sbyte)AssetType.SoundWAV;
             EXTENSION_TO_ASSET_TYPE[".jp2"]     = (sbyte)AssetType.Texture;
             EXTENSION_TO_ASSET_TYPE[".tga"]     = (sbyte)AssetType.TextureTGA;
-            EXTENSION_TO_ASSET_TYPE[".trf.txt"] = (sbyte)AssetType.TrashFolder;
+            EXTENSION_TO_ASSET_TYPE[".tfd"] = (sbyte)AssetType.TrashFolder;
         }
     }
 }

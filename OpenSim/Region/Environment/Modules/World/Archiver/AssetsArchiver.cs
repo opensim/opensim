@@ -58,7 +58,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <param name="archive"></param>
         public void Archive(TarArchiveWriter archive)
         {
-            WriteMetadata(archive);
+            //WriteMetadata(archive);
             WriteData(archive);
         }
 

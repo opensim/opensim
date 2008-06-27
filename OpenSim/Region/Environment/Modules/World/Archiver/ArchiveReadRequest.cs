@@ -61,7 +61,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         protected void DearchiveRegion()
         {
             TarArchiveReader archive = new TarArchiveReader(m_loadPath);
-            AssetsDearchiver dearchiver = new AssetsDearchiver(m_scene.AssetCache);
+            //AssetsDearchiver dearchiver = new AssetsDearchiver(m_scene.AssetCache);
 
             List<string> serialisedSceneObjects = new List<string>();
             string filePath = "ERROR";
@@ -76,14 +76,14 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 {
                     serialisedSceneObjects.Add(m_asciiEncoding.GetString(data));
                 }
-                else if (filePath.Equals(ArchiveConstants.ASSETS_METADATA_PATH))
-                {
-                    string xml = m_asciiEncoding.GetString(data);
-                    dearchiver.AddAssetMetadata(xml);
-                }
+//                else if (filePath.Equals(ArchiveConstants.ASSETS_METADATA_PATH))
+//                {
+//                    string xml = m_asciiEncoding.GetString(data);
+//                    dearchiver.AddAssetMetadata(xml);
+//                }
                 else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
                 {
-                    dearchiver.AddAssetData(filePath, data);
+                    ResolveAssetData(filePath, data);
                 }
             }
 
@@ -103,5 +103,42 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             
             m_log.InfoFormat("[ARCHIVER]: Successfully loaded archive");
         }
+    
+        /// <summary>
+        /// Resolve a new piece of asset data against stored metadata
+        /// </summary>
+        /// <param name="assetFilename"></param>
+        /// <param name="data"></param>
+        /// <returns>true if asset was successfully loaded, false otherwise</returns>
+        protected bool ResolveAssetData(string assetPath, byte[] data)
+        {
+            // Right now we're nastily obtaining the lluuid from the filename
+            string filename = assetPath.Remove(0, ArchiveConstants.ASSETS_PATH.Length);
+            string extension = filename.Substring(filename.LastIndexOf("."));
+            string uuid = filename.Remove(filename.Length - extension.Length);        
+                    
+            if (ArchiveConstants.EXTENSION_TO_ASSET_TYPE.ContainsKey(extension))
+            {
+                sbyte assetType = ArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension];
+    
+                m_log.DebugFormat("[ARCHIVER]: Importing asset {0}", filename);
+    
+                AssetBase asset = new AssetBase(new LLUUID(uuid), String.Empty);
+                asset.Type = assetType;
+                asset.Data = data;
+    
+                m_scene.AssetCache.AddAsset(asset);
+                
+                return true;
+            }
+            else
+            {
+                m_log.ErrorFormat(
+                    "[DEARCHIVER]: Tried to dearchive data with path {0} with an unknown type extension {1}",
+                    assetPath, extension);
+                
+                return false;
+            }
+        }    
     }
 }
