@@ -52,7 +52,7 @@ namespace OpenSim.Region.Communications.OGS1
 
         private LocalBackEndServices m_localBackend = new LocalBackEndServices();
         private Dictionary<ulong, RegionInfo> m_remoteRegionInfoCache = new Dictionary<ulong, RegionInfo>();
-        private List<SimpleRegionInfo> m_knownRegions = new List<SimpleRegionInfo>();
+        // private List<SimpleRegionInfo> m_knownRegions = new List<SimpleRegionInfo>();
         private Dictionary<ulong, int> m_deadRegionCache = new Dictionary<ulong, int>();
         private Dictionary<string, string> m_queuedGridSettings = new Dictionary<string, string>();
         private List<RegionInfo> m_regionsOnInstance = new List<RegionInfo>();
@@ -158,7 +158,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
 
             Hashtable GridRespData = (Hashtable)GridResp.Value;
-            Hashtable griddatahash = GridRespData;
+            // Hashtable griddatahash = GridRespData;
 
             // Process Response
             if (GridRespData.ContainsKey("error"))
@@ -171,7 +171,7 @@ namespace OpenSim.Region.Communications.OGS1
             }
             else
             {
-                m_knownRegions = RequestNeighbours(regionInfo.RegionLocX, regionInfo.RegionLocY);
+                // m_knownRegions = RequestNeighbours(regionInfo.RegionLocX, regionInfo.RegionLocY);
                 if (GridRespData.ContainsKey("allow_forceful_banlines"))
                 {
                     if ((string) GridRespData["allow_forceful_banlines"] != "TRUE")
@@ -203,7 +203,7 @@ namespace OpenSim.Region.Communications.OGS1
             XmlRpcResponse GridResp = GridReq.Send(serversInfo.GridURL, 10000);
             Hashtable GridRespData = (Hashtable) GridResp.Value;
 
-            Hashtable griddatahash = GridRespData;
+            // Hashtable griddatahash = GridRespData;
 
             // Process Response
             if (GridRespData.ContainsKey("error"))
@@ -251,12 +251,13 @@ namespace OpenSim.Region.Communications.OGS1
                         string simIp = (string) neighbourData["sim_ip"];
 
                         uint port = Convert.ToUInt32(neighbourData["sim_port"]);
-                        string externalUri = (string) neighbourData["sim_uri"];
+                        // string externalUri = (string) neighbourData["sim_uri"];
 
-                        string externalIpStr = String.Empty;
+                        // string externalIpStr = String.Empty;
                         try
                         {
-                            externalIpStr = Util.GetHostFromDNS(simIp).ToString();
+                            // externalIpStr = Util.GetHostFromDNS(simIp).ToString();
+                            Util.GetHostFromDNS(simIp).ToString();
                         }
                         catch (SocketException e)
                         {
@@ -311,10 +312,10 @@ namespace OpenSim.Region.Communications.OGS1
             uint regY = Convert.ToUInt32((string) responseData["region_locy"]);
             string internalIpStr = (string) responseData["sim_ip"];
             uint port = Convert.ToUInt32(responseData["sim_port"]);
-            string externalUri = (string) responseData["sim_uri"];
+            // string externalUri = (string) responseData["sim_uri"];
 
             IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), (int) port);
-            string neighbourExternalUri = externalUri;
+            // string neighbourExternalUri = externalUri;
             regionInfo = new RegionInfo(regX, regY, neighbourInternalEndPoint, internalIpStr);
 
             regionInfo.RemotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
@@ -374,10 +375,10 @@ namespace OpenSim.Region.Communications.OGS1
                     uint regY = Convert.ToUInt32((string) responseData["region_locy"]);
                     string internalIpStr = (string) responseData["sim_ip"];
                     uint port = Convert.ToUInt32(responseData["sim_port"]);
-                    string externalUri = (string) responseData["sim_uri"];
+                    // string externalUri = (string) responseData["sim_uri"];
 
                     IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), (int) port);
-                    string neighbourExternalUri = externalUri;
+                    // string neighbourExternalUri = externalUri;
                     regionInfo = new RegionInfo(regX, regY, neighbourInternalEndPoint, internalIpStr);
 
                     regionInfo.RemotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
@@ -442,10 +443,10 @@ namespace OpenSim.Region.Communications.OGS1
                 uint regY = Convert.ToUInt32((string) responseData["region_locy"]);
                 string internalIpStr = (string) responseData["sim_ip"];
                 uint port = Convert.ToUInt32(responseData["sim_port"]);
-                string externalUri = (string) responseData["sim_uri"];
+                // string externalUri = (string) responseData["sim_uri"];
 
                 IPEndPoint neighbourInternalEndPoint = new IPEndPoint(IPAddress.Parse(internalIpStr), (int) port);
-                string neighbourExternalUri = externalUri;
+                // string neighbourExternalUri = externalUri;
                 regionInfo = new RegionInfo(regX, regY, neighbourInternalEndPoint, internalIpStr);
 
                 regionInfo.RemotingPort = Convert.ToUInt32((string) responseData["remoting_port"]);
@@ -1313,7 +1314,7 @@ namespace OpenSim.Region.Communications.OGS1
                 regInfo = RequestNeighbourInfo(regionHandle);
                 if (regInfo != null)
                 {
-                    bool retValue = false;
+                    // bool retValue = false;
                     OGS1InterRegionRemoting remObject = (OGS1InterRegionRemoting)Activator.GetObject(
                         typeof(OGS1InterRegionRemoting),
                         "tcp://" + regInfo.RemotingAddress +
@@ -1322,8 +1323,8 @@ namespace OpenSim.Region.Communications.OGS1
 
                     if (remObject != null)
                     {
-                        retValue =
-                            remObject.TellRegionToCloseChildConnection(regionHandle, agentID.UUID);
+                        // retValue =
+                        remObject.TellRegionToCloseChildConnection(regionHandle, agentID.UUID);
                     }
                     else
                     {

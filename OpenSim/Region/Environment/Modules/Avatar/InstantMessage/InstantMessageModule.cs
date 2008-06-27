@@ -636,7 +636,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.InstantMessage
             }
             catch (WebException e)
             {
-                m_log.ErrorFormat("[GRID INSTANT MESSAGE]: Error sending message to {0} the host didn't respond", "http://" + reginfo.ExternalHostName + ":" + reginfo.HttpPort);
+                m_log.ErrorFormat("[GRID INSTANT MESSAGE]: Error sending message to http://{0}:{1} the host didn't respond ({2})", 
+                                  reginfo.ExternalHostName, reginfo.HttpPort, e.Message);
             }
 
             return false;

@@ -376,7 +376,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Friends
                         m_log.Info("[FRIEND]: Claiming " + avatar.Firstname + " " + avatar.Lastname + " in region:" + avatar.RegionHandle + ".");
                         if (avatar.JID.Length > 0)
                         {
-                            JId avatarID = new JId(avatar.JID);
+                            // JId avatarID = new JId(avatar.JID);
                             // REST Post XMPP Stanzas!
                         }
                         // Claim User! my user!  Mine mine mine!
