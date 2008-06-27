@@ -223,7 +223,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <returns>true if the object was added, false if an object with the same uuid was already in the scene
         /// </returns>        
         protected internal void AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
-        {            
+        {   
+            // Ensure that we persist this new scene object
+            sceneObject.HasGroupChanged = true;
+            
             AddSceneObject(sceneObject, attachToBackup);
         }
 

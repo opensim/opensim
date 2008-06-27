@@ -1567,8 +1567,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendGroupFullUpdate()
         {
-            HasGroupChanged = true;
-
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
