@@ -1609,7 +1609,7 @@ namespace OpenSim.Region.Environment.Scenes
                     AdaptTree(ref shape);
             }
 
-            AddSceneObject(sceneOb, true);
+            AddNewSceneObject(sceneOb, true);
 
             return sceneOb;
         }
@@ -1657,16 +1657,16 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Add an object to the scene
+        /// Add a newly created object to the scene
         /// </summary>
         /// <param name="sceneObject"></param>
         /// <param name="attachToBackup">
         /// If true, the object is made persistent into the scene.
         /// If false, the object will not persist over server restarts
         /// </param>
-        public void AddSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
+        public void AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
         {
-            m_innerScene.AddSceneObject(sceneObject, attachToBackup);
+            m_innerScene.AddNewSceneObject(sceneObject, attachToBackup);
         }
 
         /// <summary>

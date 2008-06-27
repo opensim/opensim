@@ -210,6 +210,22 @@ namespace OpenSim.Region.Environment.Scenes
 
             AddSceneObject(sceneObject, attachToBackup);
         }
+        
+        /// <summary>
+        /// Add a newly created object to the scene.  This will both update the scene, and send information about the
+        /// new object to all clients interested in the scene.
+        /// </summary>
+        /// <param name="sceneObject"></param>
+        /// <param name="attachToBackup">
+        /// If true, the object is made persistent into the scene.
+        /// If false, the object will not persist over server restarts
+        /// </param>
+        /// <returns>true if the object was added, false if an object with the same uuid was already in the scene
+        /// </returns>        
+        protected internal void AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
+        {            
+            AddSceneObject(sceneObject, attachToBackup);
+        }
 
         /// <summary>
         /// Add an object to the scene.  This will both update the scene, and send information about the
@@ -222,7 +238,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </param>
         /// <returns>true if the object was added, false if an object with the same uuid was already in the scene
         /// </returns>
-        protected internal bool AddSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
+        protected bool AddSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
         {
             sceneObject.ApplyPhysics(m_parentScene.m_physicalPrim);
             sceneObject.ScheduleGroupForFullUpdate();

@@ -1795,7 +1795,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                             group.ResetIDs();
 
-                            AddSceneObject(group, true);
+                            AddNewSceneObject(group, true);
 
                             // if attachment we set it's asset id so object updates can reflect that
                             // if not, we set it's position in world.
@@ -1917,7 +1917,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                     group.ResetIDs();
 
-                    AddSceneObject(group, true);
+                    AddNewSceneObject(group, true);
 
                     // Set the startup parameter for on_rez event and llGetStartParameter() function
                     group.StartParameter = param;

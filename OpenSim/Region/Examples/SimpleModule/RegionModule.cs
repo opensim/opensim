@@ -76,7 +76,7 @@ namespace OpenSim.Region.Examples.SimpleModule
                 }
 
                 FileSystemObject fileObject = new FileSystemObject(m_scene, fileInfo, filePos);
-                m_scene.AddSceneObject(fileObject, true);
+                m_scene.AddNewSceneObject(fileObject, true);
             }
         }
 
@@ -106,7 +106,7 @@ namespace OpenSim.Region.Examples.SimpleModule
                 ComplexObject complexObject =
                     new ComplexObject(m_scene, regionInfo.RegionHandle, LLUUID.Zero, m_scene.PrimIDAllocate(),
                                       pos + posOffset);
-                m_scene.AddSceneObject(complexObject, true);
+                m_scene.AddNewSceneObject(complexObject, true);
             }
         }
 
@@ -115,7 +115,7 @@ namespace OpenSim.Region.Examples.SimpleModule
             SceneObjectGroup sceneObject =
                 new CpuCounterObject(m_scene, regionInfo.RegionHandle, LLUUID.Zero, m_scene.PrimIDAllocate(),
                                      pos + new LLVector3(1f, 1f, 1f));
-            m_scene.AddSceneObject(sceneObject, true);
+            m_scene.AddNewSceneObject(sceneObject, true);
         }
 
         public void Close()
