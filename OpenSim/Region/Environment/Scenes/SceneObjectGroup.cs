@@ -1551,8 +1551,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void ScheduleGroupForTerseUpdate()
         {
-            HasGroupChanged = true;
-
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
@@ -2165,7 +2163,7 @@ namespace OpenSim.Region.Environment.Scenes
                     m_scene.PhysicsScene.AddPhysicsActorTaint(part.PhysActor);
                 }
 
-
+                HasGroupChanged = true;
                 ScheduleGroupForTerseUpdate();
             }
         }
@@ -2254,6 +2252,8 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             AbsolutePosition = newPos;
+            
+            HasGroupChanged = true;
             ScheduleGroupForTerseUpdate();
         }
 
@@ -2280,6 +2280,8 @@ namespace OpenSim.Region.Environment.Scenes
                                    m_rootPart.RotationOffset.Z);
                 m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
             }
+            
+            HasGroupChanged = true;
             ScheduleGroupForTerseUpdate();
         }
 
@@ -2299,6 +2301,8 @@ namespace OpenSim.Region.Environment.Scenes
                 m_scene.PhysicsScene.AddPhysicsActorTaint(m_rootPart.PhysActor);
             }
             AbsolutePosition = pos;
+            
+            HasGroupChanged = true;
             ScheduleGroupForTerseUpdate();
         }
 

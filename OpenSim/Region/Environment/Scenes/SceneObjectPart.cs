@@ -2190,6 +2190,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 //StoreUndoState();
                 RotationOffset = new LLQuaternion(rot.X, rot.Y, rot.Z, rot.W);
+                ParentGroup.HasGroupChanged = true;
                 ScheduleTerseUpdate();
             }
         }
