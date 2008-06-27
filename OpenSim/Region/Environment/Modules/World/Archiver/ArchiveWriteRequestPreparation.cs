@@ -163,24 +163,31 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             Dictionary<LLUUID, int> assetUuids = new Dictionary<LLUUID, int>();
 
             List<EntityBase> entities = m_scene.GetEntities();
+            List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
 
+            // Filter entities so that we only have scene objects.
+            // FIXME: Would be nicer to have this as a proper list in InnerScene, since lots of methods
+            // end up having to do this
             foreach (EntityBase entity in entities)
             {
                 if (entity is SceneObjectGroup)
-                {
-                    GetSceneObjectAssetUuids((SceneObjectGroup)entity, assetUuids);
-                }
+                    sceneObjects.Add((SceneObjectGroup)entity);
+            }
+            
+            foreach (SceneObjectGroup sceneObject in sceneObjects)
+            {
+                GetSceneObjectAssetUuids(sceneObject, assetUuids);
             }
 
-            if (entities.Count > 0)
+            if (sceneObjects.Count > 0)
             {
-                m_log.DebugFormat("[ARCHIVER]: Successfully got serialization for {0} entities", entities.Count);
+                m_log.DebugFormat("[ARCHIVER]: Successfully got serialization for {0} scene objects", sceneObjects.Count);
                 m_log.DebugFormat("[ARCHIVER]: Requiring save of {0} assets", assetUuids.Count);
 
                 // Asynchronously request all the assets required to perform this archive operation
                 ArchiveWriteRequestExecution awre 
                     = new ArchiveWriteRequestExecution(
-                        entities, m_scene.RequestModuleInterface<IRegionSerialiser>(), m_savePath);
+                        sceneObjects, m_scene.RequestModuleInterface<IRegionSerialiser>(), m_savePath);
                 new AssetsRequest(assetUuids.Keys, m_scene.AssetCache, awre.ReceivedAllAssets).Execute();
             }
         }

@@ -50,11 +50,11 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected IRegionSerialiser m_serialiser;
-        protected List<EntityBase> m_sceneObjects;
+        protected List<SceneObjectGroup> m_sceneObjects;
         protected string m_savePath;
 
         public ArchiveWriteRequestExecution(
-             List<EntityBase> sceneObjects, IRegionSerialiser serialiser, string savePath)
+             List<SceneObjectGroup> sceneObjects, IRegionSerialiser serialiser, string savePath)
         {
             m_sceneObjects = sceneObjects;
             m_serialiser = serialiser;
@@ -67,10 +67,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
             TarArchiveWriter archive = new TarArchiveWriter();
             
-            foreach (EntityBase entity in m_sceneObjects)
+            foreach (SceneObjectGroup sceneObject in m_sceneObjects)
             {
-                // FIXME: I'm fairly sure that all entities are in fact SceneObjectGroups...  must fix this
-                SceneObjectGroup sceneObject = (SceneObjectGroup)entity;
+                //m_log.DebugFormat("[ARCHIVER]: Saving {0} {1}, {2}", entity.Name, entity.UUID, entity.GetType());
+                
                 LLVector3 position = sceneObject.AbsolutePosition;
                 
                 string serializedObject = m_serialiser.SaveGroupToXml2(sceneObject);
