@@ -1082,6 +1082,12 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Update the position of the given part
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <param name="pos"></param>
+        /// <param name="remoteClient"></param>
         protected internal void UpdatePrimSinglePosition(uint localID, LLVector3 pos, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
@@ -1093,6 +1099,7 @@ namespace OpenSim.Region.Environment.Scenes
                     group.SendGroupTerseUpdate();
                     return;
                 }
+                
                 if (m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(group.UUID, remoteClient.AgentId) || group.RootPart.m_IsAttachment)
                 {
                     group.UpdateSinglePosition(pos, localID);
@@ -1101,7 +1108,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Update the position of the given part
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="pos"></param>
@@ -1122,6 +1129,7 @@ namespace OpenSim.Region.Environment.Scenes
                     if (!m_parentScene.ExternalChecks.ExternalChecksCanObjectEntry(group.UUID,pos) && !group.RootPart.m_IsAttachment)
                     {
                         group.SendGroupTerseUpdate();
+                        
                         return;
                     }
                         if (m_parentScene.ExternalChecks.ExternalChecksCanMoveObject(group.UUID, remoteClient.AgentId) || group.RootPart.m_IsAttachment)
@@ -1168,6 +1176,13 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Move the given object
+        /// </summary>
+        /// <param name="objectID"></param>
+        /// <param name="offset"></param>
+        /// <param name="pos"></param>
+        /// <param name="remoteClient"></param>
         protected internal void MoveObject(LLUUID objectID, LLVector3 offset, LLVector3 pos, IClientAPI remoteClient)
         {
             SceneObjectGroup group = GetGroupByPrim(objectID);

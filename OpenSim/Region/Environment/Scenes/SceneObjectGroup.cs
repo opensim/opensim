@@ -1588,8 +1588,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         public void SendGroupTerseUpdate()
         {
-            HasGroupChanged = true;
-
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
@@ -2179,7 +2177,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Position
 
         /// <summary>
-        ///
+        /// Move this scene object
         /// </summary>
         /// <param name="pos"></param>
         public void UpdateGroupPosition(LLVector3 pos)
@@ -2192,20 +2190,24 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
                 AbsolutePosition = pos;
+                
+                HasGroupChanged = true;
             }
+            
             //we need to do a terse update even if the move wasn't allowed
             // so that the position is reset in the client (the object snaps back)
             ScheduleGroupForTerseUpdate();
         }
 
         /// <summary>
-        ///
+        /// Update the position of a single part of this scene object
         /// </summary>
         /// <param name="pos"></param>
         /// <param name="localID"></param>
         public void UpdateSinglePosition(LLVector3 pos, uint localID)
         {
             SceneObjectPart part = GetChildPart(localID);
+            
             if (part != null)
             {
                 if (part.UUID == m_rootPart.UUID)
@@ -2216,6 +2218,8 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     part.UpdateOffSet(pos);
                 }
+                
+                HasGroupChanged = true;
             }
         }
 
