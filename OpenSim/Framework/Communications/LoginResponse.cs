@@ -95,7 +95,7 @@ namespace OpenSim.Framework.Communications
 
         // Response
         private XmlRpcResponse xmlRpcResponse;
-        private XmlRpcResponse defaultXmlRpcResponse;
+        // private XmlRpcResponse defaultXmlRpcResponse;
 
         private string welcomeMessage;
         private string startLocation;
@@ -117,7 +117,7 @@ namespace OpenSim.Framework.Communications
             loginError = new Hashtable();
             uiConfigHash = new Hashtable();
 
-            defaultXmlRpcResponse = new XmlRpcResponse();
+            // defaultXmlRpcResponse = new XmlRpcResponse();
             userProfile = new UserInfo();
             inventoryRoot = new ArrayList();
             initialOutfit = new ArrayList();
@@ -126,7 +126,7 @@ namespace OpenSim.Framework.Communications
             inventoryLibraryOwner = new ArrayList();
 
             xmlRpcResponse = new XmlRpcResponse();
-            defaultXmlRpcResponse = new XmlRpcResponse();
+            // defaultXmlRpcResponse = new XmlRpcResponse();
 
             SetDefaultValues();
         }

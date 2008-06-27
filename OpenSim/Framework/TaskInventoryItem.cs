@@ -44,7 +44,7 @@ namespace OpenSim.Framework
     public class TaskInventoryDictionary : Dictionary<LLUUID, TaskInventoryItem>,
                                            ICloneable, IXmlSerializable
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static XmlSerializer tiiSerializer = new XmlSerializer(typeof (TaskInventoryItem));
 

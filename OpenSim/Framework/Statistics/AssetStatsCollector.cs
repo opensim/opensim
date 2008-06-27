@@ -86,7 +86,7 @@ namespace OpenSim.Framework.Statistics
         /// Report back collected statistical information.
         /// </summary>
         /// <returns></returns>
-        public string Report()
+        override public string Report()
         {
             double elapsedHours = (DateTime.Now - startTime).TotalHours;
             if (elapsedHours <= 0) { elapsedHours = 1; }  // prevent divide by zero

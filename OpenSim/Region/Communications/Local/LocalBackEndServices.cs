@@ -45,7 +45,7 @@ namespace OpenSim.Region.Communications.Local
         protected Dictionary<ulong, RegionCommsListener> m_regionListeners =
             new Dictionary<ulong, RegionCommsListener>();
 
-        private Dictionary<ulong, RegionInfo> m_remoteRegionInfoCache = new Dictionary<ulong, RegionInfo>();
+        // private Dictionary<ulong, RegionInfo> m_remoteRegionInfoCache = new Dictionary<ulong, RegionInfo>();
 
         private Dictionary<string, string> m_queuedGridSettings = new Dictionary<string, string>();
 

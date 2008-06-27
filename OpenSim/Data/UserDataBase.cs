@@ -35,9 +35,9 @@ namespace OpenSim.Data
 {
     public abstract class UserDataBase : IUserData
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<LLUUID, AvatarAppearance> aplist = new Dictionary<LLUUID, AvatarAppearance>();
+        // private Dictionary<LLUUID, AvatarAppearance> aplist = new Dictionary<LLUUID, AvatarAppearance>();
 
         public abstract UserProfileData GetUserByUUID(LLUUID user);
         public abstract UserProfileData GetUserByName(string fname, string lname);

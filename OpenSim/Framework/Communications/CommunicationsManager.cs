@@ -282,7 +282,7 @@ namespace OpenSim.Framework.Communications
                 if (profileData != null)
                 {
                     returnstring = new string[2];
-                    LLUUID profileId = profileData.ID;
+                    // LLUUID profileId = profileData.ID;
                     returnstring[0] = profileData.FirstName;
                     returnstring[1] = profileData.SurName;
                     lock (m_nameRequestCache)

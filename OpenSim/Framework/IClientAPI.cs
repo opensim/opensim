@@ -664,7 +664,7 @@ namespace OpenSim.Framework
         
         string LastName { get; }
 
-        [Obsolete("LLClientView Specific - Replace with ???")]
+        // [Obsolete("LLClientView Specific - Replace with ???")]
         int NextAnimationSequenceNumber { get; }
 
         /// <summary>
@@ -680,22 +680,22 @@ namespace OpenSim.Framework
             set;
         }
 
-        [Obsolete("LLClientView Specific - Circuits are unique to LLClientView")]
+        // [Obsolete("LLClientView Specific - Circuits are unique to LLClientView")]
         uint CircuitCode { get; }
-        [Obsolete("LLClientView Specific - Replace with more bare-bones arguments.")]
+        // [Obsolete("LLClientView Specific - Replace with more bare-bones arguments.")]
         event ImprovedInstantMessage OnInstantMessage;
-        [Obsolete("LLClientView Specific - Replace with more bare-bones arguments. Rename OnChat.")]
+        // [Obsolete("LLClientView Specific - Replace with more bare-bones arguments. Rename OnChat.")]
         event ChatFromViewer OnChatFromViewer;
-        [Obsolete("LLClientView Specific - Replace with more bare-bones arguments.")]
+        // [Obsolete("LLClientView Specific - Replace with more bare-bones arguments.")]
         event TextureRequest OnRequestTexture;
-        [Obsolete("LLClientView Specific - Remove bitbuckets. Adam, can you be more specific here..  as I don't see any bit buckets.")]
+        // [Obsolete("LLClientView Specific - Remove bitbuckets. Adam, can you be more specific here..  as I don't see any bit buckets.")]
         event RezObject OnRezObject;
-        [Obsolete("LLClientView Specific - Replace with more suitable arguments.")]
+        // [Obsolete("LLClientView Specific - Replace with more suitable arguments.")]
         event ModifyTerrain OnModifyTerrain;
         event BakeTerrain OnBakeTerrain;
-        [Obsolete("LLClientView Specific.")]
+        // [Obsolete("LLClientView Specific.")]
         event SetAppearance OnSetAppearance;
-        [Obsolete("LLClientView Specific - Replace and rename OnAvatarUpdate. Difference from SetAppearance?")]
+        // [Obsolete("LLClientView Specific - Replace and rename OnAvatarUpdate. Difference from SetAppearance?")]
         event AvatarNowWearing OnAvatarNowWearing;
         event RezSingleAttachmentFromInv OnRezSingleAttachmentFromInv;
         event UUIDNameRequest OnDetachAttachmentIntoInv;
@@ -841,7 +841,7 @@ namespace OpenSim.Framework
         event ScriptReset OnScriptReset;
         event UpdateVector OnAutoPilotGo;
 
-        [Obsolete("IClientAPI.OutPacket SHOULD NOT EXIST outside of LLClientView please refactor appropriately.")]
+        // [Obsolete("IClientAPI.OutPacket SHOULD NOT EXIST outside of LLClientView please refactor appropriately.")]
         void OutPacket(Packet newPack, ThrottleOutPacketType packType);
         void SendWearables(AvatarWearable[] wearables, int serial);
         void SendAppearance(LLUUID agentID, byte[] visualParams, byte[] textureEntry);

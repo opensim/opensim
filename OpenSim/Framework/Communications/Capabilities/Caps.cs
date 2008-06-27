@@ -79,17 +79,17 @@ namespace OpenSim.Framework.Communications.Capabilities
         private CapsHandlers m_capsHandlers;
 
         private static readonly string m_requestPath = "0000/";
-        private static readonly string m_mapLayerPath = "0001/";
+        // private static readonly string m_mapLayerPath = "0001/";
         private static readonly string m_newInventory = "0002/";
         //private static readonly string m_requestTexture = "0003/";
         private static readonly string m_notecardUpdatePath = "0004/";
         private static readonly string m_notecardTaskUpdatePath = "0005/";
-        private static readonly string m_fetchInventoryPath = "0006/";
+        // private static readonly string m_fetchInventoryPath = "0006/";
 
         // The following two entries are in a module, however, there also here so that we don't re-assign
         // the path to another cap by mistake.
-        private static readonly string m_parcelVoiceInfoRequestPath = "0007/"; // This is in a module.
-        private static readonly string m_provisionVoiceAccountRequestPath = "0008/";// This is in a module.
+        // private static readonly string m_parcelVoiceInfoRequestPath = "0007/"; // This is in a module.
+        // private static readonly string m_provisionVoiceAccountRequestPath = "0008/";// This is in a module.
 
         //private string eventQueue = "0100/";
         private BaseHttpServer m_httpListener;
@@ -246,7 +246,7 @@ namespace OpenSim.Framework.Communications.Capabilities
         // multiple fetch-folder maps are allowed within the larger folders map.
         public string FetchInventoryRequest(string request, string path, string param)
         {
-            string unmodifiedRequest = request.ToString();
+            // string unmodifiedRequest = request.ToString();
 
             //m_log.DebugFormat("[AGENT INVENTORY]: Received CAPS fetch inventory request {0}", unmodifiedRequest);
             m_log.Debug("[CAPS]: Inventory Request in region: " + m_regionName);

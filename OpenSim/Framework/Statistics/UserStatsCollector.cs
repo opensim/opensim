@@ -81,7 +81,7 @@ namespace OpenSim.Framework.Statistics
         /// Report back collected statistical information.
         /// </summary>
         /// <returns></returns>
-        public string Report()
+        override public string Report()
         {
             return string.Format(
 @"Successful logins total : {0}, today : {1}, yesterday : {2}

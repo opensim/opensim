@@ -209,7 +209,7 @@ namespace OpenSim.Region.Communications.Local
                 theUser.CurrentAgent.Region = reg.RegionID;
                 theUser.CurrentAgent.Handle = reg.RegionHandle;
 
-                LoginResponse.BuddyList buddyList = new LoginResponse.BuddyList();
+                // LoginResponse.BuddyList buddyList = new LoginResponse.BuddyList();
 
                 response.BuddList = ConvertFriendListItem(m_userManager.GetUserFriendList(theUser.ID));
 

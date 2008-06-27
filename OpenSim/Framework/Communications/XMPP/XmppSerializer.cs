@@ -38,8 +38,8 @@ namespace OpenSim.Framework.Communications.XMPP
 {
     public class XmppSerializer
     {
-        private static readonly ILog _log = 
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        // private static readonly ILog _log = 
+        //     LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // need to do it this way, as XmlSerializer(type, extratypes)
         // does not work on mono (at least).

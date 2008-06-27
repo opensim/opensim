@@ -341,7 +341,7 @@ namespace OpenSim.Framework
             byte[] returnbytes = new byte[TotalBytesLength];
 
 
-            uint paramlength = ExtraParamsNum;
+            // uint paramlength = ExtraParamsNum;
 
             // Stick in the number of parameters
             returnbytes[i++] = (byte)ExtraParamsNum;
@@ -462,7 +462,7 @@ namespace OpenSim.Framework
                 ushort epType = Helpers.BytesToUInt16(data, i);
 
                 i += 2;
-                uint paramLength = Helpers.BytesToUIntBig(data, i);
+                // uint paramLength = Helpers.BytesToUIntBig(data, i);
 
                 i += 4;
                 switch (epType)

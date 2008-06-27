@@ -76,7 +76,8 @@ namespace OpenSim.Framework.Servers
 
             Stream requestStream = request.GetRequestStream();
             requestStream.Write(buffer.ToArray(), 0, length);
-            IAsyncResult result = request.BeginGetResponse(AsyncCallback, request);
+            // IAsyncResult result = request.BeginGetResponse(AsyncCallback, request);
+            request.BeginGetResponse(AsyncCallback, request);
         }
 
         private void AsyncCallback(IAsyncResult result)

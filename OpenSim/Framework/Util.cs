@@ -637,7 +637,7 @@ namespace OpenSim.Framework
             }
 
             memory.Position = 0;
-            MemoryStream outStream = new MemoryStream();
+            // MemoryStream outStream = new MemoryStream();
 
             byte[] compressed = new byte[memory.Length];
             memory.Read(compressed, 0, compressed.Length);

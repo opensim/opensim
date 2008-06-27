@@ -74,13 +74,13 @@ namespace OpenSim.Data
 
         private string _type;
         private DbConnection _conn;
-        private string _subtype;
+        // private string _subtype;
         private Assembly _assem;
         private Regex _match;
         
         private static readonly string _migrations_create = "create table migrations(name varchar(100), version int)";
-        private static readonly string _migrations_init = "insert into migrations values('migrations', 1)";
-        private static readonly string _migrations_find = "select version from migrations where name='migrations'";
+        // private static readonly string _migrations_init = "insert into migrations values('migrations', 1)";
+        // private static readonly string _migrations_find = "select version from migrations where name='migrations'";
         
         public Migration(DbConnection conn, Assembly assem, string type)
         {
@@ -150,23 +150,23 @@ namespace OpenSim.Data
             }
         }
 
-        private int MaxVersion()
-        {
-            int max = 0;
-            string[] names = _assem.GetManifestResourceNames();
+        // private int MaxVersion()
+        // {
+        //     int max = 0;
+        //     string[] names = _assem.GetManifestResourceNames();
 
-            foreach (string s in names)
-            {
-                Match m = _match.Match(s);
-                if (m.Success) 
-                {
-                    int MigrationVersion = int.Parse(m.Groups[1].ToString());
-                    if (MigrationVersion > max)
-                        max = MigrationVersion;
-                }
-            }
-            return max;
-        }
+        //     foreach (string s in names)
+        //     {
+        //         Match m = _match.Match(s);
+        //         if (m.Success) 
+        //         {
+        //             int MigrationVersion = int.Parse(m.Groups[1].ToString());
+        //             if (MigrationVersion > max)
+        //                 max = MigrationVersion;
+        //         }
+        //     }
+        //     return max;
+        // }
 
         public int Version 
         {
@@ -222,10 +222,10 @@ namespace OpenSim.Data
             cmd.ExecuteNonQuery();
         }
         
-        private SortedList<int, string> GetAllMigrations()
-        {
-            return GetMigrationsAfter(0);
-        }
+        // private SortedList<int, string> GetAllMigrations()
+        // {
+        //     return GetMigrationsAfter(0);
+        // }
 
         private SortedList<int, string> GetMigrationsAfter(int after)
         {

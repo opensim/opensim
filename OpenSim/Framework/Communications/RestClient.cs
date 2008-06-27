@@ -58,7 +58,7 @@ namespace OpenSim.Framework.Communications
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string realuri;
+        // private string realuri;
 
         #region member variables
 
@@ -229,7 +229,7 @@ namespace OpenSim.Framework.Communications
                     sb.Append(kv.Value);
                 }
             }
-            realuri = sb.ToString();
+            // realuri = sb.ToString();
             //m_log.InfoFormat("[REST CLIENT]: RestURL: {0}", realuri);
             return new Uri(sb.ToString());
         }
@@ -250,8 +250,9 @@ namespace OpenSim.Framework.Communications
                 if (read > 0)
                 {
                     _resource.Write(_readbuf, 0, read);
-                    IAsyncResult asynchronousResult =
-                        s.BeginRead(_readbuf, 0, BufferSize, new AsyncCallback(StreamIsReadyDelegate), s);
+                    // IAsyncResult asynchronousResult =
+                    //     s.BeginRead(_readbuf, 0, BufferSize, new AsyncCallback(StreamIsReadyDelegate), s);
+                    s.BeginRead(_readbuf, 0, BufferSize, new AsyncCallback(StreamIsReadyDelegate), s);
 
                     // TODO! Implement timeout, without killing the server
                     //ThreadPool.RegisterWaitForSingleObject(asynchronousResult.AsyncWaitHandle, new WaitOrTimerCallback(TimeoutCallback), _request, DefaultTimeout, true);
