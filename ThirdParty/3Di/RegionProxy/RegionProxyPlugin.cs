@@ -68,6 +68,18 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
         private ProxyServer proxy;
 
         #region IApplicationPlugin Members
+        // TODO: required by IPlugin, but likely not at all right
+        string m_name = "RegionProxyPlugin";
+        string m_version = "0.0";
+
+        public string Version { get { return m_version; } }
+        public string Name { get { return m_name; } }
+
+        public void Initialise() 
+        { 
+            m_log.Info("[PROXY]: " + Name + " cannot be default-initialized!");
+            throw new PluginNotInitialisedException (Name);
+        }
 
         public void Initialise(OpenSimBase openSim)
         {
@@ -89,7 +101,7 @@ namespace OpenSim.ApplicationPlugins.RegionProxy
             proxy = new ProxyServer(m_log);
         }
 
-        public void Close()
+        public void Dispose()
         {
         }
 

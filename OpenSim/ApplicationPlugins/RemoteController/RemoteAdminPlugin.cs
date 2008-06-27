@@ -54,6 +54,19 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         private BaseHttpServer m_httpd;
         private string requiredPassword = String.Empty;
 
+        // TODO: required by IPlugin, but likely not at all right
+        string m_name = "RemoteAdminPlugin";
+        string m_version = "0.0";
+
+        public string Version { get { return m_version; } }
+        public string Name { get { return m_name; } }
+
+        public void Initialise() 
+        { 
+            m_log.Info("[RADMIN]: " + Name + " cannot be default-initialized!");
+            throw new PluginNotInitialisedException (Name);
+        }
+
         public void Initialise(OpenSimBase openSim)
         {
             try
@@ -607,7 +620,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
             return response;
         }
 
-        public void Close()
+        public void Dispose()
         {
         }
     }

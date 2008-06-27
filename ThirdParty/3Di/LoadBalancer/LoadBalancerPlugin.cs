@@ -74,6 +74,18 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
         private List<IClientNetworkServer> m_clientServers;
 
         #region IApplicationPlugin Members
+        // TODO: required by IPlugin, but likely not at all right
+        string m_name = "LoadBalancerPlugin";
+        string m_version = "0.0";
+
+        public string Version { get { return m_version; } }
+        public string Name { get { return m_name; } }
+
+        public void Initialise() 
+        { 
+            m_log.Info("[BALANCER]: " + Name + " cannot be default-initialized!");
+            throw new PluginNotInitialisedException (Name);
+        }
 
         public void Initialise(OpenSimBase openSim)
         {
@@ -109,7 +121,7 @@ namespace OpenSim.ApplicationPlugins.LoadBalancer
             m_log.Info("[BALANCER] " + "Exiting Initialize()");
         }
 
-        public void Close()
+        public void Dispose()
         {
         }
 

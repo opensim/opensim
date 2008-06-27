@@ -188,6 +188,17 @@ namespace OpenSim.ApplicationPlugins.Rest
 
 
         #region methods
+        // TODO: required by IPlugin, but likely not at all right
+        string m_version = "0.0";
+
+        public string Version { get { return m_version; } }
+
+        public void Initialise() 
+        { 
+            m_log.Info("[RESTPLUGIN]: " + Name + " cannot be default-initialized!");
+            throw new PluginNotInitialisedException (Name);
+        }
+
         /// <summary>
         /// This method is called by OpenSimMain immediately after loading the
         /// plugin and after basic server setup,  but before running any server commands.
@@ -355,6 +366,11 @@ namespace OpenSim.ApplicationPlugins.Rest
                 _httpd.RemoveAgentHandler(h.Key,h.Value);
             }
             _agents   = null;
+        }
+
+        public virtual void Dispose()
+        {
+            Close();
         }
 
         /// <summary>

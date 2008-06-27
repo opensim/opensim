@@ -116,26 +116,17 @@ namespace OpenSim.Grid.GridServer
             m_httpServer.AddStreamHandler(new RestStreamHandler("POST", "/regions/", m_gridManager.RestSetRegionMethod));
         }
 
+        protected void grid_plugin_initialiser_ (IPlugin plugin)
+        {
+            IGridPlugin p = plugin as IGridPlugin;
+            p.Initialise (this);
+        }
+
         protected void LoadGridPlugins()
         {
-            // Temporary hack to stop mono-addins scanning warnings from coming out on the console
-            TextWriter oldOutput = Console.Out;
-            Console.SetOut(new StreamWriter(Stream.Null));
-
-            AddinManager.Initialize(".");
-            AddinManager.Registry.Update(null);
-
-            // Returns the console.writelines back to the console's stream
-            Console.SetOut(oldOutput);
-
-            ExtensionNodeList nodes = AddinManager.GetExtensionNodes("/OpenSim/GridServer");
-            foreach (TypeExtensionNode node in nodes)
-            {
-                m_log.Info("[GRID PLUGINS]: Loading OpenSim plugin " + node.Path);
-                IGridPlugin plugin = (IGridPlugin)node.CreateInstance();
-                plugin.Initialise(this);
-                m_plugins.Add(plugin);
-            }
+            PluginLoader<IGridPlugin> loader = new PluginLoader<IGridPlugin> (".");
+            loader.Load ("/OpenSim/GridServer", grid_plugin_initialiser_);
+            m_plugins = loader.Plugins;
         }
 
         protected virtual void SetupGridManager()

@@ -218,6 +218,8 @@ namespace OpenSim.Data.MSSQL
 
         #region IPlugin Members
 
+        override public void Dispose() { }
+
         /// <summary>
         /// <para>Initialises asset interface</para>
         /// <para>

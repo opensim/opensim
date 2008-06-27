@@ -149,24 +149,6 @@ namespace OpenSim
         {
             IConfig startupConfig = configSource.Configs["Startup"];
 
-            // The Mono addin manager (in Mono.Addins.dll version 0.2.0.0) occasionally seems to corrupt its addin cache
-            // Hence, as a temporary solution we'll remove it before each startup
-            if (Directory.Exists("addin-db-000"))
-                Directory.Delete("addin-db-000", true);
-
-            if (Directory.Exists("addin-db-001"))
-                Directory.Delete("addin-db-001", true);
-
-            // This blocks the scanning warnings from outputing to the console.
-            TextWriter oldOutput = Console.Out;
-            Console.SetOut(new StreamWriter(Stream.Null));
-
-            AddinManager.Initialize(".");
-            AddinManager.Registry.Update(null);
-
-            // Returns the console.writelines back to the console's stream
-            Console.SetOut(oldOutput);
-
             Application.iniFilePath = startupConfig.GetString("inifile", "OpenSim.ini");
 
             m_config = new OpenSimConfigSource();
@@ -347,6 +329,19 @@ namespace OpenSim
             m_networkServersInfo.loadFromConfiguration(m_config.Source);
         }
 
+        protected void plugin_initialiser_ (IPlugin plugin)
+        {
+            IApplicationPlugin p = plugin as IApplicationPlugin;
+            p.Initialise (this);
+        }
+
+        protected void LoadPlugins()
+        {
+            PluginLoader<IApplicationPlugin> loader = new PluginLoader<IApplicationPlugin> (".");
+            loader.Load ("/OpenSim/Startup", plugin_initialiser_);
+            m_plugins = loader.Plugins;
+        }
+
         /// <summary>
         /// Performs initialisation of the scene, such as loading configuration from disk.
         /// </summary>
@@ -403,14 +398,7 @@ namespace OpenSim
             // Create a ModuleLoader instance
             m_moduleLoader = new ModuleLoader(m_config.Source);
 
-            ExtensionNodeList nodes = AddinManager.GetExtensionNodes("/OpenSim/Startup");
-            foreach (TypeExtensionNode node in nodes)
-            {
-                m_log.InfoFormat("[PLUGINS]: Loading OpenSim application plugin {0}", node.Path);
-                IApplicationPlugin plugin = (IApplicationPlugin)node.CreateInstance();
-                plugin.Initialise(this);
-                m_plugins.Add(plugin);
-            }
+            LoadPlugins();
         }
 
         protected override void Initialize()
@@ -739,4 +727,5 @@ namespace OpenSim
         }
     }
 }
+
 

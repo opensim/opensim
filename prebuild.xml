@@ -95,6 +95,7 @@
       <Reference name="OpenSim.Framework.Console"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
+      <Reference name="Mono.Addins.dll" />
       <Files>
         <Match pattern="*.cs" recurse="false"/>
       </Files>

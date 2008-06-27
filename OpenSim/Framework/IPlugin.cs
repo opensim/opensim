@@ -25,12 +25,24 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
+
 namespace OpenSim.Framework
 {
     /// <summary>
+    /// Exception thrown if Initialise has been called, but failed.
+    /// </summary>
+    public class PluginNotInitialisedException : Exception
+    {
+        public PluginNotInitialisedException () : base() {}
+        public PluginNotInitialisedException (string msg) : base(msg) {}
+        public PluginNotInitialisedException (string msg, Exception e) : base(msg, e) {}
+    }
+
+    /// <summary>
     /// This interface, describes a generic plugin
     /// </summary>
-    public interface IPlugin
+    public interface IPlugin : System.IDisposable
     {
         /// <summary>
         /// Returns the plugin version
@@ -45,7 +57,7 @@ namespace OpenSim.Framework
         string Name { get; }
 
         /// <summary>
-        /// Initialises the plugin (artificial constructor)
+        /// Default-initialises the plugin
         /// </summary>
         void Initialise();
     }

@@ -39,7 +39,7 @@ namespace OpenSim.Data.MySQL
     /// <summary>
     /// A MySQL Interface for the Asset Server
     /// </summary>
-    internal class MySQLAssetData : AssetDataBase, IPlugin
+    internal class MySQLAssetData : AssetDataBase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -108,6 +108,8 @@ namespace OpenSim.Data.MySQL
             _dbConnection = new MySQLManager(hostname, database, username, password, pooling, port);
 
         }
+
+        override public void Dispose() { }
 
         #region IAssetProvider Members
 

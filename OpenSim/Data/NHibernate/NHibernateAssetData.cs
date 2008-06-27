@@ -43,13 +43,15 @@ namespace OpenSim.Data.NHibernate
     /// <summary>
     /// A User storage interface for the DB4o database system
     /// </summary>
-    public class NHibernateAssetData : AssetDataBase, IDisposable
+    public class NHibernateAssetData : AssetDataBase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Configuration cfg;
         private ISessionFactory factory;
         private ISession session;
+
+        override public void Dispose() { }
 
         public override void Initialise()
         {
@@ -173,9 +175,5 @@ namespace OpenSim.Data.NHibernate
             get { return "0.1"; }
         }
 
-        public void Dispose()
-        {
-
-        }
     }
 }

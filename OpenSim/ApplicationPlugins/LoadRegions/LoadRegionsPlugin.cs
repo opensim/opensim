@@ -46,6 +46,19 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
         #region IApplicationPlugin Members
 
+        // TODO: required by IPlugin, but likely not at all right
+        string m_name = "LoadRegionsPlugin";
+        string m_version = "0.0";
+
+        public string Version { get { return m_version; } }
+        public string Name { get { return m_name; } }
+
+        public void Initialise() 
+        { 
+            m_log.Info("[LOADREGIONS]: " + Name + " cannot be default-initialized!");
+            throw new PluginNotInitialisedException (Name);
+        }
+
         public void Initialise(OpenSimBase openSim)
         {
             m_log.Info("[LOADREGIONS]: Load Regions addin being initialised");
@@ -78,7 +91,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             openSim.ModuleLoader.ClearCache();
         }
 
-        public void Close()
+        public void Dispose()
         {
         }
 

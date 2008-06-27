@@ -56,6 +56,8 @@ namespace OpenSim.Data.SQLite
 
         private SqliteConnection m_conn;
 
+        override public void Dispose() { }
+
         /// <summary>
         /// <list type="bullet">
         /// <item>Initialises AssetData interface</item>
