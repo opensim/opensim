@@ -61,7 +61,7 @@ namespace OpenSim.Region.Environment.Modules.Grid.Interregion
 
         private readonly Dictionary<Location, string[]> m_neighbourInterfaces = new Dictionary<Location, string[]>();
         private readonly Dictionary<Location, RemotingObject> m_neighbourRemote = new Dictionary<Location, RemotingObject>();
-        private IConfigSource m_config;
+        // private IConfigSource m_config;
         private const bool m_enabled = false;
 
         private RemotingObject m_myRemote;
@@ -145,7 +145,7 @@ namespace OpenSim.Region.Environment.Modules.Grid.Interregion
         {
             m_myLocations.Add(new Location((int) scene.RegionInfo.RegionLocX,
                                            (int) scene.RegionInfo.RegionLocY));
-            m_config = source;
+            // m_config = source;
 
             scene.RegisterModuleInterface<IInterregionModule>(this);
         }

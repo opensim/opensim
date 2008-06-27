@@ -40,19 +40,19 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         //private static readonly log4net.ILog m_log
         //    = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private bool m_cancel = false;
-        private IClientAPI m_client;
+        // private bool m_cancel = false;
+        // private IClientAPI m_client;
 
         // See ITextureSender
 
-        private bool m_sending = false;
+        // private bool m_sending = false;
         private LLUUID m_textureId;
 
         // See ITextureSender
 
         public TextureNotFoundSender(IClientAPI client, LLUUID textureID)
         {
-            m_client = client;
+            // // m_client = client;
             m_textureId = textureID;
         }
 
@@ -61,13 +61,19 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureDownload
         public bool Sending
         {
             get { return false; }
-            set { m_sending = value; }
+            set 
+            { 
+                // m_sending = value; 
+            }
         }
 
         public bool Cancel
         {
             get { return false; }
-            set { m_cancel = value; }
+            set 
+            { 
+                // m_cancel = value; 
+            }
         }
 
         // See ITextureSender

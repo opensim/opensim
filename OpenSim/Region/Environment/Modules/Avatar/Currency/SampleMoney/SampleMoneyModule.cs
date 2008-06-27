@@ -60,18 +60,18 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         /// <summary>
         /// Where Stipends come from and Fees go to.
         /// </summary>
-        private LLUUID EconomyBaseAccount = LLUUID.Zero;
+        // private LLUUID EconomyBaseAccount = LLUUID.Zero;
 
         private float EnergyEfficiency = 0f;
         private bool gridmode = false;
-        private ObjectPaid handerOnObjectPaid;
+        // private ObjectPaid handerOnObjectPaid;
         private bool m_enabled = true;
 
         private IConfigSource m_gConfig;
 
         private bool m_keepMoneyAcrossLogins = true;
         private Dictionary<LLUUID, int> m_KnownClientFunds = new Dictionary<LLUUID, int>();
-        private string m_LandAddress = String.Empty;
+        // private string m_LandAddress = String.Empty;
 
         private int m_minFundsBeforeRefresh = 100;
         private string m_MoneyAddress = String.Empty;
@@ -105,8 +105,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
         private int TeleportMinPrice = 0;
 
         private float TeleportPriceExponent = 0f;
-        private int UserLevelPaysFees = 2;
-        private Scene XMLRPCHandler;
+        // private int UserLevelPaysFees = 2;
+        // private Scene XMLRPCHandler;
 
         #region IMoneyModule Members
 
@@ -136,7 +136,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                 {
                     if (m_scenel.Count == 0)
                     {
-                        XMLRPCHandler = scene;
+                        // XMLRPCHandler = scene;
 
                         // To use the following you need to add:
                         // -helperuri <ADDRESS TO HERE OR grid MONEY SERVER>
@@ -250,15 +250,15 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Currency.SampleMoney
                 PriceObjectScaleFactor = startupConfig.GetFloat("PriceObjectScaleFactor", 10);
                 PriceParcelRent = startupConfig.GetInt("PriceParcelRent", 1);
                 PriceGroupCreate = startupConfig.GetInt("PriceGroupCreate", -1);
-                string EBA = startupConfig.GetString("EconomyBaseAccount", LLUUID.Zero.ToString());
-                Helpers.TryParse(EBA, out EconomyBaseAccount);
+                // string EBA = startupConfig.GetString("EconomyBaseAccount", LLUUID.Zero.ToString());
+                // Helpers.TryParse(EBA, out EconomyBaseAccount);
 
-                UserLevelPaysFees = startupConfig.GetInt("UserLevelPaysFees", -1);
+                // UserLevelPaysFees = startupConfig.GetInt("UserLevelPaysFees", -1);
                 m_stipend = startupConfig.GetInt("UserStipend", 500);
                 m_minFundsBeforeRefresh = startupConfig.GetInt("IssueStipendWhenClientIsBelowAmount", 10);
                 m_keepMoneyAcrossLogins = startupConfig.GetBoolean("KeepMoneyAcrossLogins", true);
                 m_MoneyAddress = startupConfig.GetString("CurrencyServer", String.Empty);
-                m_LandAddress = startupConfig.GetString("LandServer", String.Empty);
+                // m_LandAddress = startupConfig.GetString("LandServer", String.Empty);
             }
 
             // Send ObjectCapacity to Scene..  Which sends it to the SimStatsReporter.

@@ -92,7 +92,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
         // <request id, HttpRequestClass>
         private Dictionary<LLUUID, HttpRequestClass> m_pendingRequests;
         private Scene m_scene;
-        private Queue<HttpRequestClass> rpcQueue = new Queue<HttpRequestClass>();
+        // private Queue<HttpRequestClass> rpcQueue = new Queue<HttpRequestClass>();
 
         public HttpRequestModule()
         {

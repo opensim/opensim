@@ -57,11 +57,11 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
 
         //public LLUUID assetID { get { return m_asset.FullID; } }
 
-        private bool m_cancel = false;
+        // private bool m_cancel = false;
 
         // See ITextureSender
 
-        private bool m_sending = false;
+        // private bool m_sending = false;
 
         /// <summary>
         /// This is actually the number of extra packets required to send the texture data!  We always assume
@@ -91,13 +91,19 @@ namespace OpenSim.Region.Environment.Modules.Agent.TextureSender
         public bool Cancel
         {
             get { return false; }
-            set { m_cancel = value; }
+            set 
+            { 
+                // m_cancel = value; 
+            }
         }
 
         public bool Sending
         {
             get { return false; }
-            set { m_sending = value; }
+            set 
+            { 
+                // m_sending = value; 
+            }
         }
 
         // See ITextureSender
