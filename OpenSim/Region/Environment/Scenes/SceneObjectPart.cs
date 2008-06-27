@@ -1,4 +1,4 @@
-﻿#region Header
+#region Header
 
 /*
  * Copyright (c) Contributors, http://opensimulator.org/
@@ -104,7 +104,7 @@ namespace OpenSim.Region.Environment.Scenes
         public uint BaseMask = (uint)PermissionMask.All;
         public uint Category;
         public Int32 CreationDate;
-        public LLUUID CreatorID;
+        private LLUUID _creatorID;
         [XmlIgnore]
         public bool DIE_AT_EDGE = false;
         public uint EveryoneMask = (uint)PermissionMask.None;
@@ -250,7 +250,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             CreationDate = (Int32) (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
             OwnerID = ownerID;
-            CreatorID = OwnerID;
+            _creatorID = OwnerID;
             LastOwnerID = LLUUID.Zero;
             UUID = LLUUID.Random();
             LocalId = (uint) (localID);
@@ -260,7 +260,7 @@ namespace OpenSim.Region.Environment.Scenes
             ObjectSaleType = (byte) 0;
             SalePrice = 0;
             Category = (uint) 0;
-            LastOwnerID = CreatorID;
+            LastOwnerID = _creatorID;
             // End Todo: ///
             GroupPosition = groupPosition;
             OffsetPosition = offsetPosition;
@@ -303,7 +303,7 @@ namespace OpenSim.Region.Environment.Scenes
             TimeStampTerse = (uint) Util.UnixTimeSinceEpoch();
             CreationDate = creationDate;
             OwnerID = ownerID;
-            CreatorID = creatorID;
+            _creatorID = creatorID;
             LastOwnerID = lastOwnerID;
             UUID = LLUUID.Random();
             LocalId = (uint) (localID);
@@ -312,7 +312,7 @@ namespace OpenSim.Region.Environment.Scenes
             ObjectSaleType = (byte) 0;
             SalePrice = 0;
             Category = (uint) 0;
-            LastOwnerID = CreatorID;
+            LastOwnerID = _creatorID;
             OffsetPosition = position;
             RotationOffset = rotation;
             ObjectFlags = flags;
@@ -377,6 +377,17 @@ namespace OpenSim.Region.Environment.Scenes
             set
             {
                 m_clickAction = value;
+            }
+        }
+        
+        public LLUUID CreatorID {
+            get 
+            {
+                return _creatorID;
+            }
+            set 
+            {
+                _creatorID = value;
             }
         }
 
@@ -494,7 +505,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public LLUUID ObjectCreator
         {
-            get { return CreatorID; }
+            get { return _creatorID; }
         }
 
         public uint ObjectFlags
@@ -1229,7 +1240,7 @@ namespace OpenSim.Region.Environment.Scenes
             info.AddValue("TimeStampLastActivity", TimeStampLastActivity);
 
             info.AddValue("m_updateFlag", m_updateFlag);
-            info.AddValue("CreatorID", CreatorID.UUID);
+            info.AddValue("CreatorID", _creatorID.UUID);
 
             info.AddValue("m_inventorySerial", m_inventorySerial);
             info.AddValue("m_uuid", m_uuid.UUID);
@@ -1281,7 +1292,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void GetProperties(IClientAPI client)
         {
-            client.SendObjectPropertiesReply(LLUUID.Zero, (ulong)CreationDate, CreatorID, LLUUID.Zero, LLUUID.Zero,
+            client.SendObjectPropertiesReply(LLUUID.Zero, (ulong)CreationDate, _creatorID, LLUUID.Zero, LLUUID.Zero,
                                                GroupID, (short)InventorySerial, LastOwnerID, UUID, OwnerID,
                                                ParentGroup.RootPart.TouchName, new byte[0], ParentGroup.RootPart.SitName, Name, Description,
                                                ParentGroup.RootPart.OwnerMask, ParentGroup.RootPart.NextOwnerMask, ParentGroup.RootPart.GroupMask, ParentGroup.RootPart.EveryoneMask,
