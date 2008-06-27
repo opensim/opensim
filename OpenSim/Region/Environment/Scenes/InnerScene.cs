@@ -192,7 +192,11 @@ namespace OpenSim.Region.Environment.Scenes
         /// Add an object into the scene that has come from storage
         /// </summary>
         /// <param name="sceneObject"></param>
-        protected internal void AddSceneObjectFromStorage(SceneObjectGroup sceneObject)
+        /// <param name="attachToBackup">
+        /// If true, changes to the object will be reflected in its persisted data
+        /// If false, the persisted data will not be changed even if the object in the scene is changed
+        /// </param>
+        protected internal void AddRestoredSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
         {
             sceneObject.RegionHandle = m_regInfo.RegionHandle;
             sceneObject.SetScene(m_parentScene);
@@ -204,7 +208,7 @@ namespace OpenSim.Region.Environment.Scenes
             
             sceneObject.UpdateParentIDs();
 
-            AddSceneObject(sceneObject, true);
+            AddSceneObject(sceneObject, attachToBackup);
         }
 
         /// <summary>

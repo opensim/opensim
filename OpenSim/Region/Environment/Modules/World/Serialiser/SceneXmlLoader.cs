@@ -181,7 +181,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SceneObjectGroup obj = new SceneObjectGroup(xmlData);
 
-            scene.AddSceneObjectFromStorage(obj);
+            scene.AddRestoredSceneObject(obj, true);
         }
 
         public static void SavePrimsToXml2(Scene scene, string fileName)

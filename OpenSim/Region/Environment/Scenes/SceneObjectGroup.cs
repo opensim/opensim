@@ -94,6 +94,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// since the group's last persistent backup
         /// </summary>
         public bool HasGroupChanged = false;
+        
         public float scriptScore = 0f;
 
         private LLVector3 lastPhysGroupPos;
@@ -1530,7 +1531,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Schedule a full update for every part in this object
+        /// Schedule a full update for this scene object
         /// </summary>
         public void ScheduleGroupForFullUpdate()
         {
@@ -1546,7 +1547,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Schedule a terse update for this scene object
         /// </summary>
         public void ScheduleGroupForTerseUpdate()
         {
@@ -1562,7 +1563,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Immediately send a full update for this scene object.
         /// </summary>
         public void SendGroupFullUpdate()
         {
@@ -1583,7 +1584,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Immediately send a terse update for this scene object.
         /// </summary>
         public void SendGroupTerseUpdate()
         {
@@ -2100,7 +2101,7 @@ namespace OpenSim.Region.Environment.Scenes
         #region Resize
 
         /// <summary>
-        ///
+        /// Resize the given part
         /// </summary>
         /// <param name="scale"></param>
         /// <param name="localID"></param>
@@ -2531,6 +2532,12 @@ namespace OpenSim.Region.Environment.Scenes
                 }
             }
         }
+        
+        /// <summary>
+        /// Set the user group to which this scene object belongs.
+        /// </summary>
+        /// <param name="GroupID"></param>
+        /// <param name="client"></param>
         public void SetGroup(LLUUID GroupID, IClientAPI client)
         {
             lock (m_parts)
@@ -2540,6 +2547,7 @@ namespace OpenSim.Region.Environment.Scenes
                     part.SetGroup(GroupID, client);
                 }
             }
+            
             ScheduleGroupForFullUpdate();
         }
     }

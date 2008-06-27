@@ -1470,7 +1470,7 @@ namespace OpenSim.Region.Environment.Scenes
             List<SceneObjectGroup> PrimsFromDB = m_storageManager.DataStore.LoadObjects(regionID);
             foreach (SceneObjectGroup group in PrimsFromDB)
             {
-                AddSceneObjectFromStorage(group);
+                AddRestoredSceneObject(group, true);
                 SceneObjectPart rootPart = group.GetChildPart(group.UUID);
                 rootPart.ObjectFlags &= ~(uint)LLObject.ObjectFlags.Scripted;
                 rootPart.TrimPermissions();
@@ -1651,9 +1651,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// Add an object into the scene that has come from storage
         /// </summary>
         /// <param name="sceneObject"></param>
-        public void AddSceneObjectFromStorage(SceneObjectGroup sceneObject)
+        public void AddRestoredSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
         {
-            m_innerScene.AddSceneObjectFromStorage(sceneObject);
+            m_innerScene.AddRestoredSceneObject(sceneObject, attachToBackup);
         }
 
         /// <summary>

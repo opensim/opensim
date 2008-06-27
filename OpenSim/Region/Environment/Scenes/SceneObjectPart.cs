@@ -3125,12 +3125,14 @@ namespace OpenSim.Region.Environment.Scenes
                                                ParentGroup.RootPart.BaseMask);
 
         }
+        
         public void SetGroup(LLUUID groupID, IClientAPI client)
         {
             GroupID = groupID;
             GetProperties(client);
             m_updateFlag = 2;
         }
+        
         private void handleTimerAccounting(uint localID, double interval)
         {
             if (localID == LocalId)
