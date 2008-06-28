@@ -424,7 +424,7 @@ namespace OpenSim.Grid.UserServer
             string invUrl = m_config.InventoryUrl;
             if (serverUrl != String.Empty)
             {
-                invUrl = serverUrl;
+                invUrl = serverUrl+"/";
             }
             
             m_log.DebugFormat(
