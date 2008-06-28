@@ -77,6 +77,13 @@ namespace OpenSim.Framework.Communications
       //      get { return m_transactionsManager; }
       //  }
 
+        protected IAvatarService m_avatarService;
+
+        public IAvatarService AvatarService
+        {
+            get { return m_avatarService; }
+        }
+
         protected AssetCache m_assetCache;
 
         public AssetCache AssetCache

@@ -1661,7 +1661,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_log.Info("[APPEARANCE] Setting Appearance");
             m_appearance.SetAppearance(texture, visualParam);
             SetHeight(m_appearance.AvatarHeight);
-            m_scene.CommsManager.UserService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
+            m_scene.CommsManager.AvatarService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
 
             SendAppearanceToAllOtherAgents();
             SendOwnAppearance();
@@ -1671,7 +1671,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             m_log.Info("[APPEARANCE] Setting Wearable");
             m_appearance.SetWearable(wearableId, wearable);
-            m_scene.CommsManager.UserService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
+            m_scene.CommsManager.AvatarService.UpdateUserAppearance(m_controllingClient.AgentId, m_appearance);
             m_controllingClient.SendWearables(m_appearance.Wearables, m_appearance.Serial++);
         }
 

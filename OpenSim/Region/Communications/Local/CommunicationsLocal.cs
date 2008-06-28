@@ -47,6 +47,7 @@ namespace OpenSim.Region.Communications.Local
             AddInventoryService( inventoryService);
             m_defaultInventoryHost = inventoryService.Host;
             m_userService = userService;
+            m_avatarService = (IAvatarService)userService;
             m_gridService = gridService;
             m_interRegion = interRegionService;
         }

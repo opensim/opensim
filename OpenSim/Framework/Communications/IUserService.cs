@@ -120,14 +120,14 @@ namespace OpenSim.Framework.Communications
 
         /// <summary>
         /// Get's the User Appearance
-        AvatarAppearance GetUserAppearance(LLUUID user);
+       // AvatarAppearance GetUserAppearance(LLUUID user);
 
-        void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance);
+       // void UpdateUserAppearance(LLUUID user, AvatarAppearance appearance);
 
-        void AddAttachment(LLUUID user, LLUUID attach);
+       // void AddAttachment(LLUUID user, LLUUID attach);
 
-        void RemoveAttachment(LLUUID user, LLUUID attach);
+       // void RemoveAttachment(LLUUID user, LLUUID attach);
 
-        List<LLUUID> GetAttachments(LLUUID user);
+       // List<LLUUID> GetAttachments(LLUUID user);
     }
 }

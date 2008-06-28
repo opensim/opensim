@@ -46,6 +46,7 @@ namespace OpenSim.Region.Communications.OGS1
             m_defaultInventoryHost = invService.Host;
 
             m_userService = new OGS1UserServices(this);
+            m_avatarService = (IAvatarService)m_userService;
         }
 
         public override void AddInventoryService(string hostUrl)
