@@ -1975,16 +1975,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             NotImplemented("llDetachFromAvatar");
         }
 
-        public void llTakeCamera()
+        public void llTakeCamera(string avatar)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llTakeCamera");
+            Deprecated("llTakeCamera");
         }
 
-        public void llReleaseCamera()
+        public void llReleaseCamera(string avatar)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llReleaseCamera");
+            Deprecated("llReleaseCamera");
         }
 
         public string llGetOwner()

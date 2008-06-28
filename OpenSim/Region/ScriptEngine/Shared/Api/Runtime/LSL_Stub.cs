@@ -640,14 +640,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
             m_LSL_Functions.llDetachFromAvatar();
         }
 
-        public void llTakeCamera()
+        public void llTakeCamera(string avatar)
         {
-            m_LSL_Functions.llTakeCamera();
+            m_LSL_Functions.llTakeCamera(avatar);
         }
 
-        public void llReleaseCamera()
+        public void llReleaseCamera(string avatar)
         {
-            m_LSL_Functions.llReleaseCamera();
+            m_LSL_Functions.llReleaseCamera(avatar);
         }
 
         public string llGetOwner()

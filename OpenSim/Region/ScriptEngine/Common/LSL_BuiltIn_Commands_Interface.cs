@@ -211,10 +211,10 @@ namespace OpenSim.Region.ScriptEngine.Common
         void llAttachToAvatar(int attachment);
         //wiki: llDetachFromAvatar()
         void llDetachFromAvatar();
-        //wiki: (deprecated) llTakeCamera()
-        void llTakeCamera();
-        //wiki: (deprecated) llReleaseCamera()
-        void llReleaseCamera();
+        //wiki: (deprecated) llTakeCamera(key avatar)
+        void llTakeCamera(string avatar);
+        //wiki: (deprecated) llReleaseCamera(key avatar)
+        void llReleaseCamera(string avatar);
         //wiki: key llGetOwner()
         string llGetOwner();
         //wiki: llInstantMessage(key user, string message)
