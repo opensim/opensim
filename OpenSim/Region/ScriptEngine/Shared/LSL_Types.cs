@@ -989,22 +989,22 @@ namespace OpenSim.Region.ScriptEngine.Shared
         // BELOW IS WORK IN PROGRESS... IT WILL CHANGE, SO DON'T USE YET! :)
         //
 
-        public struct StringTest
-        {
-            // Our own little string
-            internal string actualString;
-            public static implicit operator bool(StringTest mString)
-            {
-                if (mString.actualString.Length == 0)
-                    return true;
-                return false;
-            }
-            public override string ToString()
-            {
-                return actualString;
-            }
-
-        }
+//        public struct StringTest
+//        {
+//            // Our own little string
+//            internal string actualString;
+//            public static implicit operator bool(StringTest mString)
+//            {
+//                if (mString.actualString.Length == 0)
+//                    return true;
+//                return false;
+//            }
+//            public override string ToString()
+//            {
+//                return actualString;
+//            }
+//
+//        }
 
         [Serializable]
         public struct key
