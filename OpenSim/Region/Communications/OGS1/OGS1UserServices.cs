@@ -39,7 +39,7 @@ using OpenSim.Framework.Communications;
 
 namespace OpenSim.Region.Communications.OGS1
 {
-    public class OGS1UserServices : IUserService
+    public class OGS1UserServices : IUserService, IAvatarService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
