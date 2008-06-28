@@ -95,6 +95,12 @@ namespace OpenSim.Region.ScriptEngine.Common
             set { _Source = value; }
         }
 
+        private int m_StartParam = 0;
+        public int StartParam
+        {
+            get { return m_StartParam; }
+            set { m_StartParam = value; }
+        }
 
         public BuiltIn_Commands_BaseClass()
         {
@@ -860,7 +866,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.LSLInteger llGetStartParameter()
         {
-            return m_LSL_Functions.llGetStartParameter();
+            return m_StartParam;
         }
 
         public void llGodLikeRezObject(string inventory, vector pos)

@@ -62,7 +62,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
         // PROVIDE SCRIPT WITH ITS INTERFACE TO OpenSim
 
 
-        public override void _StartScript(uint localID, LLUUID itemID, string Script)
+        public override void _StartScript(uint localID, LLUUID itemID, string Script, int startParam, bool postOnRez)
         {
             m_scriptEngine.Log.Debug("[" + m_scriptEngine.ScriptEngineName + "]: ScriptManager StartScript: localID: " + localID + ", itemID: " + itemID);
 
@@ -114,6 +114,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 //#endif
 
                 CompiledScript.Source = Script;
+                CompiledScript.StartParam = startParam;
+
                 // Add it to our script memstruct
                 m_scriptEngine.m_ScriptManager.SetScript(localID, itemID, CompiledScript);
 
@@ -130,6 +132,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 int eventFlags = m_scriptEngine.m_ScriptManager.GetStateEventFlags(localID, itemID);
                 m_host.SetScriptEvents(itemID, eventFlags);
                 m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "state_entry", EventQueueManager.llDetectNull, new object[] { });
+                if(postOnRez)
+                {
+                    m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "on_rez", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(startParam) });
+                }
             }
             catch (Exception e) // LEGIT: User Scripting
             {

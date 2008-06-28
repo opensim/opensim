@@ -190,7 +190,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         {
             Console.WriteLine("OnRezScript localID: " + localID + " LLUID: " + itemID.ToString() + " Size: " +
                               script.Length);
-            myScriptEngine.m_ScriptManager.StartScript(localID, itemID, script);
+            myScriptEngine.m_ScriptManager.StartScript(localID, itemID, script, startParam, postOnRez);
         }
 
         public void OnRemoveScript(uint localID, LLUUID itemID)

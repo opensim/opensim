@@ -72,6 +72,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             public LLUUID itemID;
             public string script;
             public LUType Action;
+            public int startParam;
+            public bool postOnRez;
         }
 
         private enum LUType
@@ -223,7 +225,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                     }
                     else if (item.Action == LUType.Load)
                     {
-                        _StartScript(item.localID, item.itemID, item.script);
+                        _StartScript(item.localID, item.itemID, item.script, item.startParam, item.postOnRez);
                     }
                 }
             }
@@ -252,7 +254,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         /// </summary>
         /// <param name="itemID"></param>
         /// <param name="localID"></param>
-        public void StartScript(uint localID, LLUUID itemID, string Script)
+        public void StartScript(uint localID, LLUUID itemID, string Script, int startParam, bool postOnRez)
         {
             lock (LUQueue)
             {
@@ -267,6 +269,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
                 ls.itemID = itemID;
                 ls.script = Script;
                 ls.Action = LUType.Load;
+                ls.startParam = startParam;
+                ls.postOnRez = postOnRez;
                 LUQueue.Enqueue(ls);
             }
         }
@@ -282,6 +286,8 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             ls.localID = localID;
             ls.itemID = itemID;
             ls.Action = LUType.Unload;
+            ls.startParam = 0;
+            ls.postOnRez = false;
             lock (LUQueue)
             {
                 LUQueue.Enqueue(ls);
@@ -291,7 +297,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
         // Create a new instance of the compiler (reuse)
         //private Compiler.LSL.Compiler LSLCompiler = new Compiler.LSL.Compiler();
 
-        public abstract void _StartScript(uint localID, LLUUID itemID, string Script);
+        public abstract void _StartScript(uint localID, LLUUID itemID, string Script, int startParam, bool postOnRez);
         public abstract void _StopScript(uint localID, LLUUID itemID);
 
 
@@ -423,9 +429,10 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
 
         public void ResetScript(uint localID, LLUUID itemID)
         {
-            string script = GetScript(localID, itemID).Source;
+            IScript s = GetScript(localID, itemID);
+            string script = s.Source;
             StopScript(localID, itemID);
-            StartScript(localID, itemID, script);
+            StartScript(localID, itemID, script, s.StartParam, false);
         }
 
 

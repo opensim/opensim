@@ -1293,6 +1293,18 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return ret;
             }
 
+            public override bool Equals(Object o)
+            {
+                if(!(o is LSLInteger))
+                    return false;
+                return value == ((LSLInteger)o).value;
+            }
+
+            public override int GetHashCode()
+            {
+                return value;
+            }
+
             static public LSLInteger operator &(LSLInteger i1, LSLInteger i2)
             {
                 int ret = i1.value & i2.value;
@@ -1437,6 +1449,19 @@ namespace OpenSim.Region.ScriptEngine.Common
             {
                 return String.Format("{0:0.000000}", this.value);
             }
+
+            public override bool Equals(Object o)
+            {
+                if(!(o is LSLFloat))
+                    return false;
+                return value == ((LSLFloat)o).value;
+            }
+
+            public override int GetHashCode()
+            {
+                return Convert.ToInt32(value);
+            }
+
 
             #endregion
         }

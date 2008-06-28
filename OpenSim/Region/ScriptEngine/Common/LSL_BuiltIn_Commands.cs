@@ -2343,8 +2343,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.LSLInteger llGetStartParameter()
         {
-            m_host.AddScriptLPS(1);
-            NotImplemented("llGetStartParameter");
+            // This is not handled here
             return 0;
         }
 

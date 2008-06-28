@@ -32,6 +32,7 @@ namespace OpenSim.Region.ScriptEngine.Common
     public interface IScript
     {
         string State { get; set; }
+        int StartParam { get; set; }
         ExecutorBase Exec { get; }
         string Source { get; set; }
         void Start(BuilIn_Commands BuiltIn_Commands);
