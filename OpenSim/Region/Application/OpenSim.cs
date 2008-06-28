@@ -602,6 +602,13 @@ namespace OpenSim
                     }
 
                     break;
+
+                case "Add-InventoryHost":
+                    if (cmdparams.Length > 0)
+                    {
+                        m_commsManager.AddInventoryService(cmdparams[0]);
+                    }
+                    break;
                 default:
                     string[] tmpPluginArgs = new string[cmdparams.Length + 1];
                     cmdparams.CopyTo(tmpPluginArgs, 1);

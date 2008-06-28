@@ -94,7 +94,7 @@ namespace OpenSim.Framework.Communications
         /// <param name="userID"></param>
         /// <returns></returns>
         /// <exception cref='System.Exception'>This will be thrown if there is a problem with the inventory service</exception>
-        protected abstract InventoryData GetInventorySkeleton(LLUUID userID);
+        protected abstract InventoryData GetInventorySkeleton(LLUUID userID, string inventoryServerUrl);
 
         /// <summary>
         /// Called when we receive the client's initial XMLRPC login_to_simulator request message
@@ -230,7 +230,7 @@ namespace OpenSim.Framework.Communications
 
                         try
                         {
-                            inventData = GetInventorySkeleton(agentID);
+                            inventData = GetInventorySkeleton(agentID, userProfile.UserInventoryURI);
                         }
                         catch (Exception e)
                         {
@@ -386,7 +386,7 @@ namespace OpenSim.Framework.Communications
                         LLUUID agentID = userProfile.ID;
 
                         // Inventory Library Section
-                        InventoryData inventData = GetInventorySkeleton(agentID);
+                        InventoryData inventData = GetInventorySkeleton(agentID, userProfile.UserInventoryURI);
                         ArrayList AgentInventoryArray = inventData.InventoryArray;
 
                         Hashtable InventoryRootHash = new Hashtable();

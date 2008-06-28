@@ -419,15 +419,21 @@ namespace OpenSim.Grid.UserServer
         }
 
         // See LoginService
-        protected override InventoryData GetInventorySkeleton(LLUUID userID)
+        protected override InventoryData GetInventorySkeleton(LLUUID userID, string serverUrl)
         {
+            string invUrl = m_config.InventoryUrl;
+            if (serverUrl != String.Empty)
+            {
+                invUrl = serverUrl;
+            }
+            
             m_log.DebugFormat(
                  "[LOGIN]: Contacting inventory service at {0} for inventory skeleton of user {1}",
                  m_config.InventoryUrl, userID);
 
             List<InventoryFolderBase> folders
                 = SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(
-                    "POST", m_config.InventoryUrl + "RootFolders/", userID.UUID);
+                    "POST", invUrl + "RootFolders/", userID.UUID);
 
             if (null == folders || folders.Count == 0)
             {
@@ -440,7 +446,7 @@ namespace OpenSim.Grid.UserServer
                 // exist.
                 bool created =
                     SynchronousRestObjectPoster.BeginPostObject<Guid, bool>(
-                        "POST", m_config.InventoryUrl + "CreateInventory/", userID.UUID);
+                        "POST", invUrl + "CreateInventory/", userID.UUID);
 
                 if (!created)
                 {
@@ -456,7 +462,7 @@ namespace OpenSim.Grid.UserServer
                 }
 
                 folders = SynchronousRestObjectPoster.BeginPostObject<Guid, List<InventoryFolderBase>>(
-                    "POST", m_config.InventoryUrl + "RootFolders/", userID.UUID);
+                    "POST", invUrl + "RootFolders/", userID.UUID);
             }
 
             if (folders != null && folders.Count > 0)
