@@ -690,6 +690,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         {
         }
 
+        public void SendTexture(AssetBase TextureAsset)
+        {
+        }
+
         public void SetDebug(int newDebug)
         {
         }

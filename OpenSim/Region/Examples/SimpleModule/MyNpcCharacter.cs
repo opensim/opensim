@@ -779,5 +779,10 @@ namespace OpenSim.Region.Examples.SimpleModule
         public void SendAsset(AssetRequestToClient req)
         {
         }
+
+        public void SendTexture(AssetBase TextureAsset)
+        {
+
+        }
     }
 }

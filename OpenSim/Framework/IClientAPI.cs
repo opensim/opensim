@@ -1017,6 +1017,8 @@ namespace OpenSim.Framework
 
         void SendAsset(AssetRequestToClient req);
 
+        void SendTexture(AssetBase TextureAsset);
+
         byte[] GetThrottlesPacked(float multiplier);
 
 

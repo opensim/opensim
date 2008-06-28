@@ -47,7 +47,12 @@ using Timer=System.Timers.Timer;
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
     public delegate bool PacketMethod(IClientAPI simClient, Packet packet);
+    
 
+    /// <summary>
+    /// Class that keeps track of past packets so that they don't get 
+    /// duplicated when the client doesn't get back an ack
+    /// </summary>
     public class PacketDupeLimiter
     {
         public PacketType pktype;
@@ -88,6 +93,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool m_clientBlocked = false;
 
+        // for sim stats
         private int m_packetsReceived = 0;
         private int m_lastPacketsReceivedSentToScene = 0;
         private int m_unAckedBytes = 0;
@@ -645,6 +651,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         # endregion
 
+        /// <summary>
+        /// Event handler for check client timer
+        /// checks to ensure that the client is still connected
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         protected void CheckClientConnectivity(object sender, ElapsedEventArgs e)
         {
             if (m_packetsReceived == m_lastPacketsReceived)
@@ -675,6 +687,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         # region Setup
 
+        /// <summary>
+        /// Starts up the timers to check the client and resend unacked packets
+        /// Adds the client to the OpenSim.Region.Environment.Scenes.Scene
+        /// </summary>
         protected virtual void InitNewClient()
         {
             //this.UploadAssets = new AgentAssetUpload(this, m_assetCache, m_inventoryCache);
@@ -3235,6 +3251,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #endregion
 
+        /// <summary>
+        /// This is a different way of processing packets then ProcessInPacket
+        /// </summary>
         protected virtual void RegisterLocalPacketHandlers()
         {
             AddLocalPacketHandler(PacketType.LogoutRequest, Logout);
@@ -3663,11 +3682,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
              */
         }
 
+        /// <summary>
+        /// returns a byte array of the client set throttles Gets multiplied by the multiplier
+        /// 
+        /// </summary>
+        /// <param name="multiplier">non 1 multiplier for subdividing the throttles between individual regions</param>
+        /// <returns></returns>
         public byte[] GetThrottlesPacked(float multiplier)
         {
             return m_packetQueue.GetThrottlesPacked(multiplier);
         }
-
+        /// <summary>
+        /// sets the throttles from values supplied by the client 
+        /// </summary>
+        /// <param name="throttles"></param>
         public void SetChildAgentThrottle(byte[] throttles)
         {
             m_packetQueue.SetThrottleFromClient(throttles);
@@ -3723,10 +3751,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
         }
-
+        /// <summary>
+        /// Append any ACKs that need to be sent out to this packet
+        /// </summary>
+        /// <param name="Pack"></param>
         protected virtual void SetPendingAcks(ref Packet Pack)
         {
-            // Append any ACKs that need to be sent out to this packet
+            
             lock (m_pendingAcks)
             {
                 // TODO: If we are over MAX_APPENDED_ACKS we should drain off some of these
@@ -3747,6 +3778,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        /// <summary>
+        /// Helper routine to prepare the packet for sending to UDP client
+        /// This converts it to bytes and puts it on the outgoing buffer
+        /// </summary>
+        /// <param name="Pack"></param>
         protected virtual void ProcessOutPacket(Packet Pack)
         {
             // Keep track of when this packet was sent out
@@ -3795,6 +3831,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        /// <summary>
+        /// method gets called when a new packet has arrived from the UDP server.  This happens after it's been decoded into a libsl object
+        /// </summary>
+        /// <param name="NewPack"></param>
         public virtual void InPacket(Packet NewPack)
         {
             if (!m_packetProcessingEnabled && NewPack.Type != PacketType.LogoutRequest)
@@ -3859,7 +3899,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
         }
-
+        
+        /// <summary>
+        /// The dreaded OutPacket.   This should only be called from withink the ClientStack itself right now
+        /// This is the entry point for simulator packets to go out to the client.
+        /// </summary>
+        /// <param name="NewPack"></param>
+        /// <param name="throttlePacketType">Corresponds to the type of data that is going out.  Enum</param>
         public virtual void OutPacket(Packet NewPack, ThrottleOutPacketType throttlePacketType)
         {
             if ((SynchronizeClient != null) && (!IsActive))
@@ -3967,6 +4013,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             SendPacketStats();
         }
 
+        /// <summary>
+        /// Keeps track of the packet stats for the simulator stats reporter
+        /// </summary>
         protected void SendPacketStats()
         {
             handlerPacketStats = OnPacketStats;
@@ -3978,6 +4027,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
+        /// <summary>
+        /// Emties out the old packets in the packet duplication tracking table.
+        /// </summary>
         protected void ClearOldPacketDupeTracking()
         {
             lock (m_dupeLimiter)
@@ -4004,7 +4056,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 // remove the dupe packets that we detected in the loop above.
                 uint[] seqsToRemove = toEliminate.ToArray();
-                for (int i = 0; i<seqsToRemove.Length; i++)
+                for (int i = 0; i < seqsToRemove.Length; i++)
                 {
                     if (m_dupeLimiter.ContainsKey(seqsToRemove[i]))
                         m_dupeLimiter.Remove(seqsToRemove[i]);
@@ -4037,6 +4089,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             get { return m_packetProcessingEnabled; }
             set { m_packetProcessingEnabled = value; }
         }
+
+        /// <summary>
+        /// Breaks down the genericMessagePacket into specific events
+        /// </summary>
+        /// <param name="gmMethod"></param>
+        /// <param name="gmInvoice"></param>
+        /// <param name="gmParams"></param>
         public void DecipherGenericMessage(string gmMethod, LLUUID gmInvoice, GenericMessagePacket.ParamListBlock[] gmParams)
         {
             switch (gmMethod)
@@ -4081,9 +4140,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             }
         }
+
+        /// <summary>
+        /// Entryway from the client to the simulator
+        /// all UDP packets from the client will end up here
+        /// </summary>
+        /// <param name="Pack">libsecondlife.packet</param>
         protected void ProcessInPacket(Packet Pack)
         {
+            // always ack the packet!
             ack_pack(Pack);
+            
+            // check for duplicate packets..    packets that the client is 
+            // resending because it didn't receive our ack
+
             lock (m_dupeLimiter)
             {
                 if (m_dupeLimiter.ContainsKey(Pack.Header.Sequence))
@@ -4100,7 +4170,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_dupeLimiter.Add(Pack.Header.Sequence, pkdedupe);
                 }
             }
-            //m_log.Info("Sequence"
+            
+            // check if we've got a local packet handler for this packet.type.   See RegisterLocalPacketHandlers()
             if (ProcessPacketMethod(Pack))
             {
                 //there is a handler registered that handled this packet type
@@ -4108,6 +4179,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             else
             {
+                // Main packet processing conditional
                 switch (Pack.Type)
                 {
                     #region Scene/Avatar
@@ -6159,6 +6231,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return shape;
         }
 
+        /// <summary>
+        /// Send the client an Estate message blue box pop-down with a single OK button
+        /// </summary>
+        /// <param name="FromAvatarID"></param>
+        /// <param name="fromSessionID"></param>
+        /// <param name="FromAvatarName"></param>
+        /// <param name="Message"></param>
         public void SendBlueBoxMessage(LLUUID FromAvatarID, LLUUID fromSessionID, String FromAvatarName, String Message)
         {
             if (!ChildAgentStatus())
@@ -6385,6 +6464,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     packetNumber++;
                 }
             }
+        }
+
+        public void SendTexture(AssetBase TextureAsset)
+        {
+            
         }
 
         public ClientInfo GetClientInfo()
