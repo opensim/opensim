@@ -32,6 +32,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Security.Policy;
 using System.Reflection;
+using System.Globalization;
 using System.Xml;
 using libsecondlife;
 using log4net;
@@ -669,6 +670,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         //
         private object ProcessEventHandler(object parms)
         {
+            CultureInfo USCulture = new CultureInfo("en-US");
+            Thread.CurrentThread.CurrentCulture = USCulture;
+
             XScriptInstance instance = (XScriptInstance) parms;
 
             return instance.EventProcessor();
