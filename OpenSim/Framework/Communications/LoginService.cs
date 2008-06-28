@@ -230,7 +230,7 @@ namespace OpenSim.Framework.Communications
 
                         try
                         {
-                            inventData = GetInventorySkeleton(agentID, userProfile.UserInventoryURI);
+                            inventData = GetInventorySkeleton(agentID, "");
                         }
                         catch (Exception e)
                         {
@@ -386,7 +386,7 @@ namespace OpenSim.Framework.Communications
                         LLUUID agentID = userProfile.ID;
 
                         // Inventory Library Section
-                        InventoryData inventData = GetInventorySkeleton(agentID, userProfile.UserInventoryURI);
+                        InventoryData inventData = GetInventorySkeleton(agentID, "");
                         ArrayList AgentInventoryArray = inventData.InventoryArray;
 
                         Hashtable InventoryRootHash = new Hashtable();
