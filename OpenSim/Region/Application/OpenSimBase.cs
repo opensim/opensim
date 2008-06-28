@@ -173,7 +173,7 @@ namespace OpenSim
                 {
                     if (File.Exists("OpenSim.xml"))
                     {
-                        //chech for a xml config file
+                        //check for a xml config file
                         Application.iniFilePath = "OpenSim.xml";
                         m_config.Source = new XmlConfigSource();
                         m_config.Source.Merge(new XmlConfigSource(Application.iniFilePath));

@@ -55,12 +55,6 @@ namespace OpenSim.Framework.Communications
             get { return m_gridService; }
         }
 
-        protected IInventoryServices m_inventoryService;
-
-        public IInventoryServices InventoryService
-        {
-            get { return m_inventoryService; }
-        }
 
         protected IInterRegionCommunications m_interRegion;
 
@@ -105,6 +99,70 @@ namespace OpenSim.Framework.Communications
             m_userProfileCacheService = new UserProfileCacheService(this);
          //   m_transactionsManager = new AgentAssetTransactionsManager(this, dumpAssetsToFile);
         }
+
+        #region Inventory
+        protected string m_defaultInventoryHost = "default";
+
+        protected List<IInventoryServices> m_inventoryServices = new List<IInventoryServices>();
+        // protected IInventoryServices m_inventoryService;
+
+        public IInventoryServices InventoryService
+        {
+            get
+            {
+                if (m_inventoryServices.Count > 0)
+                {
+                    // return m_inventoryServices[0];
+                    IInventoryServices invService;
+                    if (TryGetInventoryService(m_defaultInventoryHost, out invService))
+                    {
+                        return invService;
+                    }
+
+                }
+
+                return null;
+            }
+        }
+
+        public bool TryGetInventoryService(string host, out IInventoryServices inventoryService)
+        {
+            if ((host == string.Empty) | (host == "default"))
+            {
+                host = m_defaultInventoryHost;
+            }
+
+
+            lock (m_inventoryServices)
+            {
+                foreach (IInventoryServices service in m_inventoryServices)
+                {
+                    if (service.Host == host)
+                    {
+                        inventoryService = service;
+                        return true;
+                    }
+                }
+            }
+
+            inventoryService = null;
+            return false;
+        }
+
+        public virtual void AddInventoryService(string hostUrl)
+        {
+
+        }
+
+        public virtual void AddInventoryService(IInventoryServices service)
+        {
+            lock (m_inventoryServices)
+            {
+                m_inventoryServices.Add(service);
+            }
+        }
+
+        #endregion
 
         public void doCreate(string[] cmmdParams)
         {
@@ -167,7 +225,7 @@ namespace OpenSim.Framework.Communications
             }
             else
             {
-                m_inventoryService.CreateNewUserInventory(userProf.ID);
+                InventoryService.CreateNewUserInventory(userProf.ID);
                 m_log.Info("[USERS]: Created new inventory set for " + firstName + " " + lastName);
                 return userProf.ID;
             }

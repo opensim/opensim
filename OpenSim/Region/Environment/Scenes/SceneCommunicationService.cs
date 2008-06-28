@@ -696,5 +696,6 @@ namespace OpenSim.Region.Environment.Scenes
         {
             return m_commsProvider.GenerateAgentPickerRequestResponse(queryID, query);
         }
+
     }
 }

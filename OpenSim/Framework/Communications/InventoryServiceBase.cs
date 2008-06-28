@@ -81,6 +81,11 @@ namespace OpenSim.Framework.Communications
 
         #region IInventoryServices methods
 
+        public string Host
+        {
+            get { return "default"; }
+        }
+
         // See IInventoryServices
         public List<InventoryFolderBase> GetInventorySkeleton(LLUUID userId)
         {

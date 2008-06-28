@@ -42,6 +42,10 @@ namespace OpenSim.Framework.Communications
     /// </summary>
     public interface IInventoryServices
     {
+        string Host
+        {
+            get;
+        }
         /// <summary>
         /// Request the inventory for a user.  This is an asynchronous operation that will call the callback when the
         /// inventory has been received

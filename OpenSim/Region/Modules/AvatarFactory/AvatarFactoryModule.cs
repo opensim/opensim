@@ -66,6 +66,7 @@ namespace OpenSim.Region.Modules.AvatarFactory
             appearance = CreateDefault(avatarId);
             m_log.InfoFormat("[APPEARANCE] appearance not found for {0}, creating default", avatarId.ToString());
             return false;
+
         }
 
         private AvatarAppearance CreateDefault(LLUUID avatarId)

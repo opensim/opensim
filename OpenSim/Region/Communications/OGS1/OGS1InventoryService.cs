@@ -45,15 +45,22 @@ namespace OpenSim.Region.Communications.OGS1
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string _inventoryServerUrl;
+        private Uri m_Uri;
         private Dictionary<LLUUID, InventoryReceiptCallback> m_RequestingInventory
             = new Dictionary<LLUUID, InventoryReceiptCallback>();
 
         public OGS1InventoryService(string inventoryServerUrl)
         {
             _inventoryServerUrl = inventoryServerUrl;
+            m_Uri = new Uri(_inventoryServerUrl);
         }
 
         #region IInventoryServices Members
+
+        public string Host
+        {
+            get { return m_Uri.Host; }
+        }
 
         /// <summary>
         /// <see cref="OpenSim.Framework.Communications.IInventoryServices"></see>
