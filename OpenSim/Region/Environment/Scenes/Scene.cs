@@ -553,7 +553,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             if (ent is SceneObjectGroup)
                             {
-                                ((SceneObjectGroup)ent).StopScripts();
+                                ((SceneObjectGroup)ent).RemoveScriptInstances();
                             }
                         }
                     }
@@ -567,7 +567,7 @@ namespace OpenSim.Region.Environment.Scenes
                         {
                             if (ent is SceneObjectGroup)
                             {
-                                ((SceneObjectGroup)ent).StartScripts();
+                                ((SceneObjectGroup)ent).CreateScriptInstances(0, false);
                             }
                         }
                     }
@@ -2029,6 +2029,8 @@ namespace OpenSim.Region.Environment.Scenes
             client.OnObjectGroupRequest += m_innerScene.HandleObjectGroupUpdate;
             client.OnParcelReturnObjectsRequest += LandChannel.ReturnObjectsInParcel;
             client.OnScriptReset += ProcessScriptReset;
+            client.OnGetScriptRunning += GetScriptRunning;
+            client.OnSetScriptRunning += SetScriptRunning;
 
             // EventManager.TriggerOnNewClient(client);
         }

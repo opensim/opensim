@@ -196,6 +196,8 @@ namespace OpenSim.Region.Examples.SimpleModule
         public event EstateDebugRegionRequest OnEstateDebugRegionRequest;
         public event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
         public event ScriptReset OnScriptReset;
+        public event GetScriptRunning OnGetScriptRunning;
+        public event SetScriptRunning OnSetScriptRunning;
         public event UpdateVector OnAutoPilotGo;
 
 #pragma warning restore 67
@@ -773,6 +775,10 @@ namespace OpenSim.Region.Examples.SimpleModule
         }
 
         public void SendLandStatReply(uint reportType, uint requestFlags, uint resultCount, LandStatReportItem[] lsrpia)
+        {
+        }
+
+        public void SendScriptRunningReply(LLUUID objectID, LLUUID itemID, bool running)
         {
         }
 

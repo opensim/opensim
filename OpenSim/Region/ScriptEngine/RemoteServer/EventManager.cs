@@ -77,7 +77,7 @@ namespace OpenSim.Region.ScriptEngine.RemoteServer
             }
         }
 
-        public void OnRezScript(uint localID, LLUUID itemID, string script)
+        public void OnRezScript(uint localID, LLUUID itemID, string script, int startParam, bool postOnRez)
         {
             // WE ARE CREATING A NEW SCRIPT ... CREATE SCRIPT, GET A REMOTEID THAT WE MAP FROM LOCALID
             myScriptEngine.Log.Info("[RemoteEngine]: Creating new script (with connection)");

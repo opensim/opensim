@@ -39,7 +39,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public interface RemoteEvents
         {
             void touch_start(uint localID, LLVector3 offsetPos, IClientAPI remoteClient);
-            void OnRezScript(uint localID, LLUUID itemID, string script);
+            void OnRezScript(uint localID, LLUUID itemID, string script, int startParam, bool postOnRez);
             void OnRemoveScript(uint localID, LLUUID itemID);
             void state_exit(uint localID);
             void touch(uint localID, LLUUID itemID);

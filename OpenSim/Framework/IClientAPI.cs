@@ -643,6 +643,8 @@ namespace OpenSim.Framework
     public delegate void EstateDebugRegionRequest(IClientAPI remoteClient, LLUUID invoice, LLUUID senderID, bool scripted, bool collisionEvents, bool physics);
     public delegate void EstateTeleportOneUserHomeRequest(IClientAPI remoteClient, LLUUID invoice, LLUUID senderID, LLUUID prey);
     public delegate void ScriptReset(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID);
+    public delegate void GetScriptRunning(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID);
+    public delegate void SetScriptRunning(IClientAPI remoteClient, LLUUID objectID, LLUUID itemID, bool running);
 
     public interface IClientAPI
     {
@@ -839,6 +841,8 @@ namespace OpenSim.Framework
 
         event RequestObjectPropertiesFamily OnObjectGroupRequest;
         event ScriptReset OnScriptReset;
+        event GetScriptRunning OnGetScriptRunning;
+        event SetScriptRunning OnSetScriptRunning;
         event UpdateVector OnAutoPilotGo;
 
         // [Obsolete("IClientAPI.OutPacket SHOULD NOT EXIST outside of LLClientView please refactor appropriately.")]
@@ -1014,6 +1018,8 @@ namespace OpenSim.Framework
         void SendGroupNameReply(LLUUID groupLLUID, string GroupName);
 
         void SendLandStatReply(uint reportType, uint requestFlags, uint resultCount, LandStatReportItem[] lsrpia);
+
+        void SendScriptRunningReply(LLUUID objectID, LLUUID itemID, bool running);
 
         void SendAsset(AssetRequestToClient req);
 

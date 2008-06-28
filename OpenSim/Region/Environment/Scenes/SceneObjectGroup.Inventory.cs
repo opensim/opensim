@@ -39,111 +39,28 @@ namespace OpenSim.Region.Environment.Scenes
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// Start a given script.
-        /// </summary>
-        /// <param name="localID">
-        /// A <see cref="System.UInt32"/>
-        /// </param>
-        public void StartScript(uint localID, LLUUID itemID)
-        {
-            SceneObjectPart part = GetChildPart(localID);
-            if (part != null)
-            {
-
-                part.StartScript(itemID);
-
-            }
-            else
-            {
-                m_log.ErrorFormat(
-                    "[PRIM INVENTORY]: " +
-                    "Couldn't find part {0} in object group {1}, {2} to start script with ID {3}",
-                    localID, Name, UUID, itemID);
-            }
-        }
-
-//        /// Start a given script.
-//        /// </summary>
-//        /// <param name="localID">
-//        /// A <see cref="System.UInt32"/>
-//        /// </param>
-//        public void StartScript(LLUUID partID, LLUUID itemID)
-//        {
-//            SceneObjectPart part = GetChildPart(partID);
-//            if (part != null)
-//            {
-//                part.StartScript(itemID);
-//            }
-//            else
-//            {
-//                m_log.ErrorFormat(
-//                    "[PRIM INVENTORY]: " +
-//                    "Couldn't find part {0} in object group {1}, {2} to start script with ID {3}",
-//                    localID, Name, UUID, itemID);
-//            }
-//        }
-
-        /// <summary>
         /// Start the scripts contained in all the prims in this group.
         /// </summary>
-        public void StartScripts()
+        public void CreateScriptInstances(int startParam, bool postOnRez)
         {
             // Don't start scripts if they're turned off in the region!
             if (!((m_scene.RegionInfo.EstateSettings.regionFlags & Simulator.RegionFlags.SkipScripts) == Simulator.RegionFlags.SkipScripts))
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    part.StartScripts();
+                    part.CreateScriptInstances(startParam, postOnRez);
                 }
             }
         }
 
-        /// <summary>
-        /// Start the scripts contained in all the prims in this group.
-        /// </summary>
-        public void StartScripts(int param)
-        {
-            // Don't start scripts if they're turned off in the region!
-            if (!((m_scene.RegionInfo.EstateSettings.regionFlags & Simulator.RegionFlags.SkipScripts) == Simulator.RegionFlags.SkipScripts))
-            {
-                foreach (SceneObjectPart part in m_parts.Values)
-                {
-                    part.StartScripts(param);
-                }
-            }
-        }
-
-        public void StopScripts()
+        public void RemoveScriptInstances()
         {
             lock (m_parts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    part.StopScripts();
+                    part.RemoveScriptInstances();
                 }
-            }
-        }
-
-        /// <summary>
-        /// Start a given script.
-        /// </summary>
-        /// <param name="localID">
-        /// A <see cref="System.UInt32"/>
-        /// </param>
-        public void StopScript(uint partID, LLUUID itemID)
-        {
-            SceneObjectPart part = GetChildPart(partID);
-            if (part != null)
-            {
-                part.StopScript(itemID);
-                part.RemoveScriptEvents(itemID);
-            }
-            else
-            {
-                m_log.ErrorFormat(
-                    "[PRIM INVENTORY]: " +
-                    "Couldn't find part {0} in object group {1}, {2} to stop script with ID {3}",
-                    partID, Name, UUID, itemID);
             }
         }
 

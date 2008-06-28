@@ -300,6 +300,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                   LLObject.ObjectFlags.ObjectMove |   // tells client that you can move the object (only, no mod)
                   LLObject.ObjectFlags.ObjectTransfer | // tells the client that you can /take/ the object if you don't own it
                   LLObject.ObjectFlags.ObjectYouOwner | // Tells client that you're the owner of the object
+                  LLObject.ObjectFlags.ObjectAnyOwner | // Tells client that someone owns the object
                   LLObject.ObjectFlags.ObjectOwnerModify | // Tells client that you're the owner of the object
                   LLObject.ObjectFlags.ObjectYouOfficer // Tells client that you've got group object editing permission. Used when ObjectGroupOwned is set
                     );
@@ -307,7 +308,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
             // Creating the three ObjectFlags options for this method to choose from.
             // Customize the OwnerMask
             uint objectOwnerMask = ApplyObjectModifyMasks(task.OwnerMask, objflags);
-            objectOwnerMask |= (uint)LLObject.ObjectFlags.ObjectYouOwner | (uint)LLObject.ObjectFlags.ObjectOwnerModify;
+            objectOwnerMask |= (uint)LLObject.ObjectFlags.ObjectYouOwner | (uint)LLObject.ObjectFlags.ObjectAnyOwner | (uint)LLObject.ObjectFlags.ObjectOwnerModify;
 
             // Customize the GroupMask
             // uint objectGroupMask = ApplyObjectModifyMasks(task.GroupMask, objflags);

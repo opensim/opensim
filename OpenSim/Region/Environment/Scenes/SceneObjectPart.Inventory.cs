@@ -137,7 +137,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Start all the scripts contained in this prim's inventory
         /// </summary>
-        public void StartScripts()
+        public void CreateScriptInstances(int startParam, bool postOnRez)
         {
             lock (m_taskInventory)
             {
@@ -146,25 +146,7 @@ namespace OpenSim.Region.Environment.Scenes
                     // XXX more hardcoding badness.  Should be an enum in TaskInventoryItem
                     if (10 == item.Type)
                     {
-                        StartScript(item);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Start all the scripts contained in this prim's inventory
-        /// </summary>
-        public void StartScripts(int param)
-        {
-            lock (m_taskInventory)
-            {
-                foreach (TaskInventoryItem item in m_taskInventory.Values)
-                {
-                    // XXX more hardcoding badness.  Should be an enum in TaskInventoryItem
-                    if (10 == item.Type)
-                    {
-                        StartScript(item, param);
+                        CreateScriptInstance(item, startParam, postOnRez);
                     }
                 }
             }
@@ -173,7 +155,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Stop all the scripts in this prim.
         /// </summary>
-        public void StopScripts()
+        public void RemoveScriptInstances()
         {
             lock (m_taskInventory)
             {
@@ -181,7 +163,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (10 == item.Type)
                     {
-                        StopScript(item.ItemID);
+                        RemoveScriptInstance(item.ItemID);
                         RemoveScriptEvents(item.ItemID);
                     }
                 }
@@ -193,13 +175,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        public void StartScript(TaskInventoryItem item, int param)
-        {
-            StartScript(item);
-            m_parentGroup.Scene.EventManager.TriggerOnRezEvent(LocalId, item.ItemID, param);
-        }
 
-        public void StartScript(TaskInventoryItem item)
+        public void CreateScriptInstance(TaskInventoryItem item, int startParam, bool postOnRez)
         {
             //            m_log.InfoFormat(
             //                "[PRIM INVENTORY]: " +
@@ -223,7 +200,7 @@ namespace OpenSim.Region.Environment.Scenes
                        else
                        {
                            string script = Helpers.FieldToUTF8String(asset.Data);
-                           m_parentGroup.Scene.EventManager.TriggerRezScript(LocalId,item.ItemID,script);
+                           m_parentGroup.Scene.EventManager.TriggerRezScript(LocalId,item.ItemID,script, startParam, postOnRez);
                            m_parentGroup.AddActiveScriptCount(1);
                            ScheduleFullUpdate();
                        }
@@ -237,13 +214,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="itemId">
         /// A <see cref="LLUUID"/>
         /// </param>
-        public void StartScript(LLUUID itemId)
+        public void CreateScriptInstance(LLUUID itemId, int startParam, bool postOnRez)
         {
             lock (m_taskInventory)
             {
                 if (m_taskInventory.ContainsKey(itemId))
                 {
-                    StartScript(m_taskInventory[itemId]);
+                    CreateScriptInstance(m_taskInventory[itemId], startParam, postOnRez);
 
                 }
                 else
@@ -260,7 +237,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Stop a script which is in this prim's inventory.
         /// </summary>
         /// <param name="itemId"></param>
-        public void StopScript(LLUUID itemId)
+        public void RemoveScriptInstance(LLUUID itemId)
         {
             if (m_taskInventory.ContainsKey(itemId))
             {
@@ -317,6 +294,35 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
 
             item.Name=name;
+
+            lock (m_taskInventory)
+            {
+                m_taskInventory.Add(item.ItemID, item);
+                TriggerScriptChangedEvent(Changed.INVENTORY);
+            }
+
+            m_inventorySerial++;
+            //m_inventorySerial += 2;
+            HasInventoryChanged = true;
+            ParentGroup.HasGroupChanged = true;
+        }
+
+        public void AddInventoryItemExclusive(TaskInventoryItem item)
+        {
+            item.ParentID = UUID;
+            item.ParentPartID = UUID;
+
+            List<TaskInventoryItem> il = new List<TaskInventoryItem>(m_taskInventory.Values);
+            foreach(TaskInventoryItem i in il)
+            {
+                if(i.Name == item.Name)
+                {
+                    if(i.Type == 10)
+                        RemoveScriptInstance(i.ItemID);
+                    RemoveInventoryItem(i.ItemID);
+                    break;
+                }
+            }
 
             lock (m_taskInventory)
             {

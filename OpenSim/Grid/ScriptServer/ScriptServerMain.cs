@@ -93,7 +93,7 @@ namespace OpenSim.Grid.ScriptServer
 
             if (Command == "OnRezScript")
             {
-                Engine.EventManager().OnRezScript((uint)p[0], new LLUUID((string)p[1]), (string)p[2]);
+                Engine.EventManager().OnRezScript((uint)p[0], new LLUUID((string)p[1]), (string)p[2], 0, false);
             }
         }
 

@@ -49,7 +49,7 @@ using OpenSim.Region.ScriptEngine.Interfaces;
 
 namespace OpenSim.Region.ScriptEngine.XEngine
 {
-    public class XEngine : IRegionModule, IScriptEngine
+    public class XEngine : IScriptModule, IScriptEngine
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -64,6 +64,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private int m_EventLimit;
         private bool m_KillTimedOutScripts;
         public AsyncCommandManager m_AsyncCommands;
+        bool m_firstStart = true;
 
         private static List<XEngine> m_ScriptEngines =
                 new List<XEngine>();
@@ -92,6 +93,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         private Dictionary<LLUUID, List<LLUUID> > m_DomainScripts =
                 new Dictionary<LLUUID, List<LLUUID> >();
+
+        private Queue m_CompileQueue = new Queue(100);
+        IWorkItemResult m_CurrentCompile = null;
 
         public string ScriptEngineName
         {
@@ -202,6 +206,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_Scene.EventManager.OnRezScript += OnRezScript;
             m_Scene.EventManager.OnRemoveScript += OnRemoveScript;
             m_Scene.EventManager.OnScriptReset += OnScriptReset;
+            m_Scene.EventManager.OnStartScript += OnStartScript;
+            m_Scene.EventManager.OnStopScript += OnStopScript;
 
             m_AsyncCommands = new AsyncCommandManager(this);
 
@@ -217,6 +223,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 m_ThreadPool.QueueWorkItem(new WorkItemCallback(
                                                this.DoBackup), new Object[] { saveTime });
             }
+
+            scene.RegisterModuleInterface<IScriptModule>(this);
         }
 
         public void PostInitialise()
@@ -314,23 +322,90 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             get { return m_MaxScriptQueue; }
         }
 
-        //
-        // Hooks
-        //
-        public void OnRezScript(uint localID, LLUUID itemID, string script)
+        public void OnRezScript(uint localID, LLUUID itemID, string script, int startParam, bool postOnRez)
         {
-//            m_ThreadPool.QueueWorkItem(new WorkItemCallback(
-//                    this.DoOnRezScript), new Object[]
-//                    { localID, itemID, script});
-            DoOnRezScript(new Object[] { localID, itemID, script});
+            Object[] parms = new Object[]
+                    { localID, itemID, script, startParam, postOnRez};
+
+            lock(m_CompileQueue)
+            {
+                m_CompileQueue.Enqueue(parms);
+                if(m_CurrentCompile == null)
+                {
+                    if(m_firstStart)
+                    {
+                        m_firstStart = false;
+                        m_CurrentCompile = m_ThreadPool.QueueWorkItem(
+                                new WorkItemCallback(
+                                this.DoScriptWait), new Object[0]);
+                        return;
+                    }
+                    m_CurrentCompile = m_ThreadPool.QueueWorkItem(
+                            new WorkItemCallback(
+                            this.DoOnRezScriptQueue), new Object[0]);
+                }
+            }
         }
 
-        private object DoOnRezScript(object parm)
+        public Object DoScriptWait(Object dummy)
+        {
+            Thread.Sleep(30000);
+
+            lock(m_CompileQueue)
+            {
+                if(m_CompileQueue.Count > 0)
+                {
+                    m_CurrentCompile = m_ThreadPool.QueueWorkItem(
+                            new WorkItemCallback(
+                            this.DoOnRezScriptQueue), new Object[0]);
+                }
+                else 
+                {
+                    m_CurrentCompile = null;
+                }
+            }
+            return null;
+        }
+
+        public Object DoOnRezScriptQueue(Object dummy)
+        {
+            Object o;
+            lock(m_CompileQueue)
+            {
+                o = m_CompileQueue.Dequeue();
+                if(o == null)
+                {
+                    m_CurrentCompile = null;
+                    return null;
+                }
+            }
+
+            DoOnRezScript(o);
+
+            lock(m_CompileQueue)
+            {
+                if(m_CompileQueue.Count > 0)
+                {
+                    m_CurrentCompile = m_ThreadPool.QueueWorkItem(
+                            new WorkItemCallback(
+                            this.DoOnRezScriptQueue), new Object[0]);
+                }
+                else 
+                {
+                    m_CurrentCompile = null;
+                }
+            }
+            return null;
+        }
+
+        private bool DoOnRezScript(object parm)
         {
             Object[] p = (Object[])parm;
             uint localID = (uint)p[0];
             LLUUID itemID = (LLUUID)p[1];
             string script =(string)p[2];
+            int startParam = (int)p[3];
+            bool postOnRez = (bool)p[4];
 
             // Get the asset ID of the script, so we can check if we
             // already have it.
@@ -427,7 +502,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                            part.UUID, itemID, assetID, assembly,
                            m_AppDomains[appDomain],
                            part.ParentGroup.RootPart.Name,
-                           item.Name, XScriptInstance.StateSource.NewRez);
+                           item.Name, startParam, postOnRez,
+                           XScriptInstance.StateSource.NewRez);
 
                     m_log.DebugFormat("[XEngine] Loaded script {0}.{1}",
                             part.ParentGroup.RootPart.Name, item.Name);
@@ -503,6 +579,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public void OnScriptReset(uint localID, LLUUID itemID)
         {
             ResetScript(itemID);
+        }
+
+        public void OnStartScript(uint localID, LLUUID itemID)
+        {
+            StartScript(itemID);
+        }
+
+        public void OnStopScript(uint localID, LLUUID itemID)
+        {
+            StopScript(itemID);
         }
 
         private void CleanAssemblies()
@@ -674,7 +760,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 if (running)
                     instance.Start();
                 else
-                    instance.Stop(500);
+                    instance.Stop(100);
             }
         }
 
@@ -691,6 +777,20 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             XScriptInstance instance = GetInstance(itemID);
             if (instance != null)
                 instance.ResetScript();
+        }
+
+        public void StartScript(LLUUID itemID)
+        {
+            XScriptInstance instance = GetInstance(itemID);
+            if (instance != null)
+                instance.Start();
+        }
+
+        public void StopScript(LLUUID itemID)
+        {
+            XScriptInstance instance = GetInstance(itemID);
+            if (instance != null)
+                instance.Stop(0);
         }
 
         public DetectParams GetDetectParams(LLUUID itemID, int idx)
@@ -723,6 +823,19 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 return "default";
             return instance.State;
         }
+
+        public int GetStartParameter(LLUUID itemID)
+        {
+            XScriptInstance instance = GetInstance(itemID);
+            if (instance == null)
+                return 0;
+            return instance.StartParam;
+        }
+
+        public bool GetScriptRunning(LLUUID objectID, LLUUID itemID)
+        {
+            return GetScriptState(itemID);
+        }
     }
 
     public class XScriptInstance
@@ -745,6 +858,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private string m_PrimName;
         private string m_ScriptName;
         private string m_Assembly;
+        private int m_StartParam = 0;
+
         private Dictionary<string,IScriptApi> m_Apis = new Dictionary<string,IScriptApi>();
 
         public enum StateSource
@@ -823,9 +938,16 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_EventQueue.Clear();
         }
 
+        public int StartParam
+        {
+            get { return m_StartParam; }
+            set { m_StartParam = value; }
+        }
+
         public XScriptInstance(XEngine engine, uint localID, LLUUID objectID,
                 LLUUID itemID, LLUUID assetID, string assembly, AppDomain dom,
-                string primName, string scriptName, StateSource stateSource)
+                string primName, string scriptName, int startParam,
+                bool postOnRez, StateSource stateSource)
         {
             m_Engine = engine;
 
@@ -836,6 +958,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_PrimName = primName;
             m_ScriptName = scriptName;
             m_Assembly = assembly;
+            m_StartParam = startParam;
 
             ApiManager am = new ApiManager();
 
@@ -918,6 +1041,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             {
                                 m_RunEvents = false;
                                 Start();
+                                if(postOnRez)
+                                    PostEvent(new EventParams("on_rez",
+                                        new Object[] {new LSL_Types.LSLInteger(startParam)}, new DetectParams[0]));
                             }
 
                             // we get new rez events on sim restart, too
@@ -934,25 +1060,36 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     else
                     {
                         m_Engine.Log.Error("[XEngine] Unable to load script state: Memory limit exceeded");
+                        Start();
                         PostEvent(new EventParams("state_entry",
                                                    new Object[0], new DetectParams[0]));
-                        Start();
+                        if(postOnRez)
+                            PostEvent(new EventParams("on_rez",
+                                new Object[] {new LSL_Types.LSLInteger(startParam)}, new DetectParams[0]));
+
                     }
                 }
                 catch (Exception e)
                 {
                     m_Engine.Log.ErrorFormat("[XEngine] Unable to load script state from xml: {0}\n"+e.ToString(), xml);
+                    Start();
                     PostEvent(new EventParams("state_entry",
                                                new Object[0], new DetectParams[0]));
-                    Start();
+                    if(postOnRez)
+                        PostEvent(new EventParams("on_rez",
+                                new Object[] {new LSL_Types.LSLInteger(startParam)}, new DetectParams[0]));
                 }
             }
             else
             {
-                m_Engine.Log.ErrorFormat("[XEngine] Unable to load script state, file not found");
+//                m_Engine.Log.ErrorFormat("[XEngine] Unable to load script state, file not found");
+                Start();
                 PostEvent(new EventParams("state_entry",
                                            new Object[0], new DetectParams[0]));
-                Start();
+
+                if(postOnRez)
+                    PostEvent(new EventParams("on_rez",
+                            new Object[] {new LSL_Types.LSLInteger(startParam)}, new DetectParams[0]));
             }
         }
 
@@ -1062,6 +1199,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
 //            m_Engine.Log.DebugFormat("[XEngine] Posted event {2} in state {3} to {0}.{1}",
 //                        m_PrimName, m_ScriptName, data.EventName, m_State);
+
+            if(!Running)
+                return;
+
             lock (m_EventQueue)
             {
                 if (m_EventQueue.Count >= m_Engine.MaxScriptQueue)

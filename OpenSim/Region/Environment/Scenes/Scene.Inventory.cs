@@ -46,7 +46,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Start all the scripts in the scene which should be started.
         /// </summary>
-        public void StartScripts()
+        public void CreateScriptInstances()
         {
             m_log.Info("[PRIM INVENTORY]: Starting scripts in scene");
 
@@ -54,7 +54,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 if (group is SceneObjectGroup)
                 {
-                    ((SceneObjectGroup) group).StartScripts();
+                    ((SceneObjectGroup) group).CreateScriptInstances(0, false);
                 }
             }
         }
@@ -234,6 +234,10 @@ namespace OpenSim.Region.Environment.Scenes
             AssetBase asset = CreateAsset(item.Name, item.Description, (sbyte)AssetType.LSLText, data);
             AssetCache.AddAsset(asset);
 
+            if (isScriptRunning)
+            {
+                part.RemoveScriptInstance(item.ItemID);
+            }
             // Update item with new asset
             item.AssetID = asset.FullID;
             group.UpdateInventoryItem(item);
@@ -242,8 +246,7 @@ namespace OpenSim.Region.Environment.Scenes
             // Trigger rerunning of script (use TriggerRezScript event, see RezScript)
             if (isScriptRunning)
             {
-                group.StopScript(part.LocalId, item.ItemID);
-                group.StartScript(part.LocalId, item.ItemID);
+                part.CreateScriptInstance(item.ItemID, 0, false);
             }
         }
 
@@ -1219,7 +1222,8 @@ namespace OpenSim.Region.Environment.Scenes
                             if (ExternalChecks.ExternalChecksCanRunScript(item.ID, part.UUID, remoteClient.AgentId))
                             {
                                 part.ParentGroup.AddInventoryItem(remoteClient, localID, item, copyID);
-                                part.ParentGroup.StartScript(localID, copyID);
+                                // TODO: set this to "true" when scripts in inventory have persistent state to fire on_rez
+                                part.CreateScriptInstance(copyID, 0, false);
                                 part.GetProperties(remoteClient);
 
                                 //                        m_log.InfoFormat("[PRIMINVENTORY]: " +
@@ -1280,7 +1284,7 @@ namespace OpenSim.Region.Environment.Scenes
                 
                 if (ExternalChecks.ExternalChecksCanRunScript(taskItem.AssetID, part.UUID, remoteClient.AgentId))
                 {
-                    part.StartScript(taskItem);
+                    part.CreateScriptInstance(taskItem, 0, false);
                 }
             }
         }
@@ -1312,6 +1316,13 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
             }
 			
+            // Must own the object, and have modify rights
+            if(srcPart.OwnerID != destPart.OwnerID)
+                return;
+
+            if((destPart.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                return;
+
 			if (destPart.ScriptAccessPin != pin)
 			{
 				m_log.WarnFormat(
@@ -1362,17 +1373,13 @@ namespace OpenSim.Region.Environment.Scenes
             destTaskItem.InvType = srcTaskItem.InvType;
             destTaskItem.Type = srcTaskItem.Type;
 			
-			// need something like destPart.AddInventoryItemExclusive(destTaskItem);
-			// this function is supposed to silently overwrite an existing script with the same name
-
-			destPart.AddInventoryItem(destTaskItem);
+            destPart.AddInventoryItemExclusive(destTaskItem);
 
 			if ( running > 0 )
 			{
 				if (ExternalChecks.ExternalChecksCanRunScript(destTaskItem.AssetID, destPart.UUID, destPart.OwnerID))
 				{
-					// why doesn't the start_param propogate?
-					destPart.StartScript(destTaskItem, start_param);
+                    destPart.CreateScriptInstance(destTaskItem, 0, false);
 				}
 			}
 			
@@ -1874,7 +1881,8 @@ namespace OpenSim.Region.Environment.Scenes
                                 //group.ApplyPhysics(m_physicalPrim);
                             }
 
-                            group.StartScripts();
+                            // TODO: make this true to fire on_rez when scripts have state while in inventory
+                            group.CreateScriptInstances(0, false);
 
                             if (!attachment)
                                 rootPart.ScheduleFullUpdate();
@@ -1918,9 +1926,6 @@ namespace OpenSim.Region.Environment.Scenes
                     group.ResetIDs();
 
                     AddNewSceneObject(group, true);
-
-                    // Set the startup parameter for on_rez event and llGetStartParameter() function
-                    group.StartParameter = param;
 
                     // we set it's position in world.
                     group.AbsolutePosition = pos;
@@ -1970,7 +1975,7 @@ namespace OpenSim.Region.Environment.Scenes
                     group.UpdateGroupRotation(rot);
                     group.ApplyPhysics(m_physicalPrim);
                     group.Velocity = vel;
-                    group.StartScripts(param);
+                    group.CreateScriptInstances(param, true);
                     rootPart.ScheduleFullUpdate();
                     return rootPart.ParentGroup;
                 }
@@ -2120,5 +2125,26 @@ namespace OpenSim.Region.Environment.Scenes
 
         }
 
+        public void GetScriptRunning(IClientAPI controllingClient, LLUUID objectID, LLUUID itemID)
+        {
+            IScriptModule scriptModule = RequestModuleInterface<IScriptModule>();
+            if(scriptModule == null)
+                return;
+
+            controllingClient.SendScriptRunningReply(objectID, itemID,
+                    scriptModule.GetScriptRunning(objectID, itemID));
+        }
+
+        public void SetScriptRunning(IClientAPI controllingClient, LLUUID objectID, LLUUID itemID, bool running)
+        {
+            SceneObjectPart part = GetSceneObjectPart(objectID);
+            if(part == null)
+                return;
+
+            if(running)
+                EventManager.TriggerStartScript(part.LocalId, itemID);
+            else
+                EventManager.TriggerStopScript(part.LocalId, itemID);
+        }
     }
 }

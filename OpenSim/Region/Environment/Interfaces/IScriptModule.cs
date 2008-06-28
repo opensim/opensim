@@ -25,36 +25,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using log4net;
 using System;
-using OpenSim.Region.ScriptEngine.Shared;
-using OpenSim.Region.Environment.Scenes;
+using OpenSim.Framework;
 using libsecondlife;
-using Nini.Config;
-using OpenSim.Region.ScriptEngine.Interfaces;
 
-namespace OpenSim.Region.ScriptEngine.Interfaces
+namespace OpenSim.Region.Environment.Interfaces
 {
-    public interface IScriptEngine
+    public interface IScriptModule : IRegionModule
     {
-        //
-        // An interface for a script API module to communicate with
-        // the engine it's running under
-        //
-
-        Scene World { get; }
-        IConfig Config { get; }
-        Object AsyncCommands { get; }
-        ILog Log { get; }
-
-        bool PostScriptEvent(LLUUID itemID, EventParams parms);
-        bool PostObjectEvent(uint localID, EventParams parms);
-        void ResetScript(LLUUID itemID);
-        void SetScriptState(LLUUID itemID, bool state);
-        bool GetScriptState(LLUUID itemID);
-        void SetState(LLUUID itemID, string newState);
-        int GetStartParameter(LLUUID itemID);
-
-        DetectParams GetDetectParams(LLUUID item, int number);
+		bool GetScriptRunning(LLUUID objectID, LLUUID itemID);
     }
 }

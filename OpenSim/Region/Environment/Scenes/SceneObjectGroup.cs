@@ -114,8 +114,6 @@ namespace OpenSim.Region.Environment.Scenes
         private bool m_scriptListens_atTarget = false;
         private bool m_scriptListens_notAtTarget = false;
 
-        private int m_startparameter = 0;
-
         #region Properties
         
         /// <summary>
@@ -135,16 +133,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// saying what prim(s) that user has selected.
         /// </summary>
         protected bool m_isSelected = false;
-
-        /// <summary>
-        /// Set start parameter for on_rez event and llGetStartParameter()
-        /// </summary>
-        [XmlIgnore]
-        public int StartParameter
-        {
-            get { return m_startparameter; }
-            set { m_startparameter = value; }
-        }
 
         /// <summary>
         /// Number of prims in this group
@@ -937,7 +925,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {
-                    part.StopScripts();
+                    part.RemoveScriptInstances();
                 
                     List<ScenePresence> avatars = Scene.GetScenePresences();
                     for (int i = 0; i < avatars.Count; i++)

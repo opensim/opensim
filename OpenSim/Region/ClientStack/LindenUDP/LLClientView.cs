@@ -277,6 +277,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private RequestObjectPropertiesFamily handlerObjectGroupRequest = null;
         private ScriptReset handlerScriptReset = null;
+        private GetScriptRunning handlerGetScriptRunning = null;
+        private SetScriptRunning handlerSetScriptRunning = null;
         private UpdateVector handlerAutoPilotGo = null;
 
         /* Properties */
@@ -921,6 +923,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public event EstateDebugRegionRequest OnEstateDebugRegionRequest;
         public event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
         public event ScriptReset OnScriptReset;
+        public event GetScriptRunning OnGetScriptRunning;
+        public event SetScriptRunning OnSetScriptRunning;
         public event UpdateVector OnAutoPilotGo;
 
         #region Scene/Avatar to Client
@@ -6187,7 +6191,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         m_log.Warn("[CLIENT]: unhandled InventoryDescent packet");
                         break;
                     case PacketType.GetScriptRunning:
-                        m_log.Warn("[CLIENT]: unhandled GetScriptRunning packet");
+                        GetScriptRunningPacket scriptRunning = (GetScriptRunningPacket)Pack;
+                        handlerGetScriptRunning = OnGetScriptRunning;
+                        if (handlerGetScriptRunning != null)
+                        {
+                            handlerGetScriptRunning(this, scriptRunning.Script.ObjectID, scriptRunning.Script.ItemID);
+                        }
+                        break;
+                    case PacketType.SetScriptRunning:
+                        SetScriptRunningPacket setScriptRunning = (SetScriptRunningPacket)Pack;
+                        handlerSetScriptRunning = OnSetScriptRunning;
+                        if (handlerSetScriptRunning != null)
+                        {
+                            handlerSetScriptRunning(this, setScriptRunning.Script.ObjectID, setScriptRunning.Script.ItemID, setScriptRunning.Script.Running);
+                        }
                         break;
                     default:
                         m_log.Warn("[CLIENT]: unhandled packet " + Pack.ToString());
@@ -6388,6 +6405,16 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             lsrp.ReportData = lsrepdba;
             OutPacket(lsrp, ThrottleOutPacketType.Task);
+        }
+
+        public void SendScriptRunningReply(LLUUID objectID, LLUUID itemID, bool running)
+        {
+            ScriptRunningReplyPacket scriptRunningReply = new ScriptRunningReplyPacket();
+            scriptRunningReply.Script.ObjectID = objectID;
+            scriptRunningReply.Script.ItemID = itemID;
+            scriptRunningReply.Script.Running = running;
+
+            OutPacket(scriptRunningReply, ThrottleOutPacketType.Task);
         }
 
         public void SendAsset(AssetRequestToClient req)

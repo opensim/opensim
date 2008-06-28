@@ -95,16 +95,21 @@ namespace OpenSim.Region.Environment.Scenes
 
         public event OnPermissionErrorDelegate OnPermissionError;
 
-        public delegate void NewRezScript(uint localID, LLUUID itemID, string script);
-        public delegate void RezEvent(uint localID, LLUUID itemID, int param);
+        public delegate void NewRezScript(uint localID, LLUUID itemID, string script, int startParam, bool postOnRez);
 
         public event NewRezScript OnRezScript;
-
-        public event RezEvent OnRezEvent;
 
         public delegate void RemoveScript(uint localID, LLUUID itemID);
 
         public event RemoveScript OnRemoveScript;
+
+        public delegate void StartScript(uint localID, LLUUID itemID);
+
+        public event StartScript OnStartScript;
+
+        public delegate void StopScript(uint localID, LLUUID itemID);
+
+        public event StopScript OnStopScript;
 
         public delegate bool SceneGroupMoved(LLUUID groupID, LLVector3 delta);
 
@@ -332,8 +337,9 @@ namespace OpenSim.Region.Environment.Scenes
         private ObjectDeGrabDelegate handlerObjectDeGrab = null; //OnObjectDeGrab;
         private ScriptResetDelegate handlerScriptReset = null; // OnScriptReset
         private NewRezScript handlerRezScript = null; //OnRezScript;
-        private RezEvent handlerOnRezEvent = null; //OnRezEvent;
         private RemoveScript handlerRemoveScript = null; //OnRemoveScript;
+        private StartScript handlerStartScript = null; //OnStartScript;
+        private StopScript handlerStopScript = null; //OnStopScript;
         private SceneGroupMoved handlerSceneGroupMove = null; //OnSceneGroupMove;
         private SceneGroupGrabed handlerSceneGroupGrab = null; //OnSceneGroupGrab;
         private LandObjectAdded handlerLandObjectAdded = null; //OnLandObjectAdded;
@@ -523,21 +529,30 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public void TriggerRezScript(uint localID, LLUUID itemID, string script)
+        public void TriggerRezScript(uint localID, LLUUID itemID, string script, int startParam, bool postOnRez)
         {
             handlerRezScript = OnRezScript;
             if (handlerRezScript != null)
             {
-                handlerRezScript(localID, itemID, script);
+                handlerRezScript(localID, itemID, script, startParam, postOnRez);
             }
         }
 
-        public void TriggerOnRezEvent(uint localID, LLUUID itemID, int param)
+        public void TriggerStartScript(uint localID, LLUUID itemID)
         {
-            handlerOnRezEvent = OnRezEvent;
-            if (handlerOnRezEvent != null)
+            handlerStartScript = OnStartScript;
+            if (handlerStartScript != null)
             {
-                handlerOnRezEvent(localID, itemID, param);
+                handlerStartScript(localID, itemID);
+            }
+        }
+
+        public void TriggerStopScript(uint localID, LLUUID itemID)
+        {
+            handlerStopScript = OnStopScript;
+            if (handlerStopScript != null)
+            {
+                handlerStopScript(localID, itemID);
             }
         }
 

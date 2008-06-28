@@ -186,7 +186,7 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             myScriptEngine.m_EventQueueManager.AddToObjectQueue(localID, "touch_end", detstruct, new object[] { new LSL_Types.LSLInteger(1) });
         }
 
-        public void OnRezScript(uint localID, LLUUID itemID, string script)
+        public void OnRezScript(uint localID, LLUUID itemID, string script, int startParam, bool postOnRez)
         {
             Console.WriteLine("OnRezScript localID: " + localID + " LLUID: " + itemID.ToString() + " Size: " +
                               script.Length);

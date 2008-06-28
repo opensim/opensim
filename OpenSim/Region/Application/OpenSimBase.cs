@@ -535,7 +535,7 @@ namespace OpenSim
             }
 
             // We need to do this after we've initialized the scripting engines.
-            scene.StartScripts();
+            scene.CreateScriptInstances();
 
             scene.loadAllLandObjectsFromStorage(regionInfo.originRegionID);
             scene.EventManager.TriggerParcelPrimCountUpdate();
@@ -727,5 +727,6 @@ namespace OpenSim
         }
     }
 }
+
 
 

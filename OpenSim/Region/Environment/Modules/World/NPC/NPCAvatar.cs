@@ -291,6 +291,8 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event EstateDebugRegionRequest OnEstateDebugRegionRequest;
         public event EstateTeleportOneUserHomeRequest OnEstateTeleportOneUserHomeRequest;
         public event ScriptReset OnScriptReset;
+        public event GetScriptRunning OnGetScriptRunning;
+        public event SetScriptRunning OnSetScriptRunning;
         public event UpdateVector OnAutoPilotGo;
 
 #pragma warning restore 67
@@ -780,6 +782,10 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         }
 
         public void SendGroupNameReply(LLUUID groupLLUID, string GroupName)
+        {
+        }
+
+        public void SendScriptRunningReply(LLUUID objectID, LLUUID itemID, bool running)
         {
         }
 

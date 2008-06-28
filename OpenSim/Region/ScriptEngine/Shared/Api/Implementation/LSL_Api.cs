@@ -2200,8 +2200,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Types.LSLInteger llGetStartParameter()
         {
             m_host.AddScriptLPS(1);
-            // NotImplemented("llGetStartParameter");
-            return m_host.ParentGroup.StartParameter;
+            return m_ScriptEngine.GetStartParameter(m_itemID);
         }
 
         public void llGodLikeRezObject(string inventory, LSL_Types.Vector3 pos)

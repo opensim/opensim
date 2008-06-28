@@ -1522,7 +1522,7 @@ namespace OpenSim.Region.Environment.Scenes
                         copy.UpdateGroupRotation(new LLQuaternion(rot.x, rot.y, rot.z, rot.w));
                     }
 
-                    copy.StartScripts();
+                    copy.CreateScriptInstances(0, false);
                     copy.HasGroupChanged = true;
                     copy.ScheduleGroupForFullUpdate();
                     return copy;
