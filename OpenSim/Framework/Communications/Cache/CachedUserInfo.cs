@@ -93,7 +93,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 if (m_userProfile != null)
                 {
-                    if (m_userProfile.UserInventoryURI != String.Empty)
+                    if (! String.IsNullOrEmpty(m_userProfile.UserAssetURI))
                     {
                         Uri uri = new Uri(m_userProfile.UserInventoryURI);
                         return uri.Host;
