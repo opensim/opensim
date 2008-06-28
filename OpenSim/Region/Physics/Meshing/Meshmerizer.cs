@@ -2038,38 +2038,38 @@ namespace OpenSim.Region.Physics.Meshing
             return mesh;
         }
 
-// Commented to kill a warning
-//        private static void reportPrimParams(string name, PrimitiveBaseShape primShape)
-//        {
-//            ;
-//#if SPAM
-//            float pathShearX = primShape.PathShearX < 128 ? (float)primShape.PathShearX * 0.01f : (float)(primShape.PathShearX - 256) * 0.01f;
-//            float pathShearY = primShape.PathShearY < 128 ? (float)primShape.PathShearY * 0.01f : (float)(primShape.PathShearY - 256) * 0.01f;
-//
-//            Console.WriteLine("********************* PrimitiveBaseShape Parameters *******************\n"
-//                + "Name.............: " + name.ToString() + "\n"
-//                + "HollowShape......: " + primShape.HollowShape.ToString() + "\n"
-//                + "PathBegin........: " + primShape.PathBegin.ToString() + "\n"
-//                + "PathCurve........: " + primShape.PathCurve.ToString() + "\n"
-//                + "PathEnd..........: " + primShape.PathEnd.ToString() + "\n"
-//                + "PathRadiusOffset.: " + primShape.PathRadiusOffset.ToString() + "\n"
-//                + "PathRevolutions..: " + primShape.PathRevolutions.ToString() + "\n"
-//                + "PathScaleX.......: " + primShape.PathScaleX.ToString() + "\n"
-//                + "PathScaleY.......: " + primShape.PathScaleY.ToString() + "\n"
-//                + "PathShearX.......: " + primShape.PathShearX.ToString() + " (" + pathShearX.ToString() + ")\n"
-//                + "PathShearY.......: " + primShape.PathShearY.ToString() + " (" + pathShearY.ToString() + ")\n"
-//                + "PathSkew.........: " + primShape.PathSkew.ToString() + "\n"
-//                + "PathTaperX.......: " + primShape.PathTaperX.ToString() + "\n"
-//                + "PathTaperY.......: " + primShape.PathTaperY.ToString() + "\n"
-//                + "PathTwist........: " + primShape.PathTwist.ToString() + "\n"
-//                + "PathTwistBegin...: " + primShape.PathTwistBegin.ToString() + "\n"
-//                + "ProfileBegin.....: " + primShape.ProfileBegin.ToString() + "\n"
-//                + "ProfileCurve.....: " + primShape.ProfileCurve.ToString() + "\n"
-//                + "ProfileEnd.......: " + primShape.ProfileEnd.ToString() + "\n"
-//                + "ProfileHollow....: " + primShape.ProfileHollow.ToString() + "\n"
-//                + "ProfileShape.....: " + primShape.ProfileShape.ToString() + "\n"
-//                );
-//#endif
-//        }
+#if SPAM
+        // please dont comment this out until I'm done with this module - dahlia
+        private static void reportPrimParams(string name, PrimitiveBaseShape primShape)
+        {
+
+            float pathShearX = primShape.PathShearX < 128 ? (float)primShape.PathShearX * 0.01f : (float)(primShape.PathShearX - 256) * 0.01f;
+            float pathShearY = primShape.PathShearY < 128 ? (float)primShape.PathShearY * 0.01f : (float)(primShape.PathShearY - 256) * 0.01f;
+
+            Console.WriteLine("********************* PrimitiveBaseShape Parameters *******************\n"
+                + "Name.............: " + name.ToString() + "\n"
+                + "HollowShape......: " + primShape.HollowShape.ToString() + "\n"
+                + "PathBegin........: " + primShape.PathBegin.ToString() + "\n"
+                + "PathCurve........: " + primShape.PathCurve.ToString() + "\n"
+                + "PathEnd..........: " + primShape.PathEnd.ToString() + "\n"
+                + "PathRadiusOffset.: " + primShape.PathRadiusOffset.ToString() + "\n"
+                + "PathRevolutions..: " + primShape.PathRevolutions.ToString() + "\n"
+                + "PathScaleX.......: " + primShape.PathScaleX.ToString() + "\n"
+                + "PathScaleY.......: " + primShape.PathScaleY.ToString() + "\n"
+                + "PathShearX.......: " + primShape.PathShearX.ToString() + " (" + pathShearX.ToString() + ")\n"
+                + "PathShearY.......: " + primShape.PathShearY.ToString() + " (" + pathShearY.ToString() + ")\n"
+                + "PathSkew.........: " + primShape.PathSkew.ToString() + "\n"
+                + "PathTaperX.......: " + primShape.PathTaperX.ToString() + "\n"
+                + "PathTaperY.......: " + primShape.PathTaperY.ToString() + "\n"
+                + "PathTwist........: " + primShape.PathTwist.ToString() + "\n"
+                + "PathTwistBegin...: " + primShape.PathTwistBegin.ToString() + "\n"
+                + "ProfileBegin.....: " + primShape.ProfileBegin.ToString() + "\n"
+                + "ProfileCurve.....: " + primShape.ProfileCurve.ToString() + "\n"
+                + "ProfileEnd.......: " + primShape.ProfileEnd.ToString() + "\n"
+                + "ProfileHollow....: " + primShape.ProfileHollow.ToString() + "\n"
+                + "ProfileShape.....: " + primShape.ProfileShape.ToString() + "\n"
+                );
+        }
+#endif
     }
 }
