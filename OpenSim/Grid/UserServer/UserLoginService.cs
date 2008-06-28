@@ -422,10 +422,10 @@ namespace OpenSim.Grid.UserServer
         protected override InventoryData GetInventorySkeleton(LLUUID userID, string serverUrl)
         {
             string invUrl = m_config.InventoryUrl;
-            if (serverUrl != String.Empty)
-            {
-                invUrl = serverUrl+"/";
-            }
+            //if (serverUrl != String.Empty)
+            //{
+            //    invUrl = serverUrl+"/";
+            //}
             
             m_log.DebugFormat(
                  "[LOGIN]: Contacting inventory service at {0} for inventory skeleton of user {1}",
