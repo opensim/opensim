@@ -131,7 +131,7 @@ namespace OpenSim
             get { return m_httpServer; }
         }
 
-        public new uint HttpServerPort
+        public uint HttpServerPort
         {
             get { return m_httpServerPort; }
         }
