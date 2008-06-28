@@ -58,7 +58,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private Scene m_Scene;
         private IConfig m_ScriptConfig;
         private Compiler m_Compiler;
-        // private EventManager m_EventManager;
+#pragma warning disable 414
+        private EventManager m_EventManager;
+#pragma warning restore 414
         private int m_EventLimit;
         private bool m_KillTimedOutScripts;
         public AsyncCommandManager m_AsyncCommands;
@@ -190,7 +192,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 m_ScriptEngines.Add(this);
             }
 
-            // m_EventManager = new EventManager(this);
+            m_EventManager = new EventManager(this);
 
             StartEngine(minThreads, maxThreads, idleTimeout, prio,
                     maxScriptQueue, stackSize);
