@@ -28,6 +28,7 @@
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.Region.Environment.Modules.World.Serialiser;
+using OpenSim.Region.Environment.Modules.World.Terrain;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -83,7 +84,11 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 //                }
                 else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
                 {
-                    ResolveAssetData(filePath, data);
+                    LoadAsset(filePath, data);
+                }
+                else if (filePath.StartsWith(ArchiveConstants.TERRAINS_PATH))
+                {
+                    LoadTerrain(filePath, data);
                 }
             }
 
@@ -105,12 +110,12 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         }
     
         /// <summary>
-        /// Resolve a new piece of asset data against stored metadata
+        /// Load an asset
         /// </summary>
         /// <param name="assetFilename"></param>
         /// <param name="data"></param>
         /// <returns>true if asset was successfully loaded, false otherwise</returns>
-        protected bool ResolveAssetData(string assetPath, byte[] data)
+        protected bool LoadAsset(string assetPath, byte[] data)
         {
             // Right now we're nastily obtaining the lluuid from the filename
             string filename = assetPath.Remove(0, ArchiveConstants.ASSETS_PATH.Length);
@@ -134,11 +139,32 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             else
             {
                 m_log.ErrorFormat(
-                    "[DEARCHIVER]: Tried to dearchive data with path {0} with an unknown type extension {1}",
+                    "[ARCHIVER]: Tried to dearchive data with path {0} with an unknown type extension {1}",
                     assetPath, extension);
                 
                 return false;
             }
-        }    
+        }
+        
+        /// <summary>
+        /// Load terrain data
+        /// </summary>
+        /// <param name="terrainPath"></param>
+        /// <param name="data"></param>
+        /// <returns>
+        /// true if terrain was resolved successfully, false otherwise.
+        /// </returns>
+        protected bool LoadTerrain(string terrainPath, byte[] data)
+        {
+            ITerrainModule terrainModule = m_scene.RequestModuleInterface<ITerrainModule>();
+            
+            MemoryStream ms = new MemoryStream(data);
+            terrainModule.LoadFromStream(terrainPath, ms);
+            ms.Close();
+            
+            m_log.DebugFormat("[ARCHIVER]: Successfully loaded terrain {0}", terrainPath);
+            
+            return true;
+        }
     }
 }
