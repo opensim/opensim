@@ -1843,15 +1843,18 @@ namespace OpenSim.Region.Environment.Scenes
 
                             if (rootPart.OwnerID != item.Owner)
                             {
-                                if ((item.CurrentPermissions & 8) != 0)
+                                if (ExternalChecks.ExternalChecksPropagatePermissions())
                                 {
-                                    foreach (SceneObjectPart part in partList)
+                                    if ((item.CurrentPermissions & 8) != 0)
                                     {
-                                        part.EveryoneMask = item.EveryOnePermissions;
-                                        part.NextOwnerMask = item.NextPermissions;
+                                        foreach (SceneObjectPart part in partList)
+                                        {
+                                            part.EveryoneMask = item.EveryOnePermissions;
+                                            part.NextOwnerMask = item.NextPermissions;
+                                        }
                                     }
+                                    group.ApplyNextOwnerPermissions();
                                 }
-                                group.ApplyNextOwnerPermissions();
                             }
 
                             foreach (SceneObjectPart part in partList)
@@ -1886,6 +1889,12 @@ namespace OpenSim.Region.Environment.Scenes
 
                             if (!attachment)
                                 rootPart.ScheduleFullUpdate();
+
+                            if (!ExternalChecks.ExternalChecksBypassPermissions())
+                            {
+                                if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
+                                    userInfo.DeleteItem(item.ID);
+                            }
 
                             return rootPart.ParentGroup;
                         }
