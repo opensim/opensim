@@ -191,7 +191,7 @@ namespace OpenSim.Data.MySQL
                 {
                     m_log.ErrorFormat(
                         "[ASSETS DB]: MySql failure fetching asset {0}" + Environment.NewLine + e.ToString()
-                        + Environment.NewLine + "Attempting reconnection", assetID);
+                        + Environment.NewLine + "Reconnecting", assetID);
                     _dbConnection.Reconnect();
                 }
             }

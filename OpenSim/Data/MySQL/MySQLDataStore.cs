@@ -54,19 +54,32 @@ namespace OpenSim.Data.MySQL
         private const string m_landSelect = "select * from land";
         private const string m_landAccessListSelect = "select * from landaccesslist";
         private const string m_regionBanListSelect = "select * from regionban";
-        private const string m_regionSettingsSelect = "select * from regionsettings";
+        private const string m_regionSettingsSelect = "select * from regionsettings";        
+        private const string m_waitTimeoutSelect = "select @@wait_timeout";
 
-
+        private MySqlConnection m_connection;
+        private string m_connectionString;
+        
         /// <summary>
-        /// We're only using this to version the table!
+        /// Wait timeout for our connection in ticks.
         /// </summary>
-
+        private long m_waitTimeout;
+        
+        /// <summary>
+        /// Make our storage of the timeout this amount smaller than it actually is, to give us a margin on long
+        /// running database operations.
+        /// </summary>
+        private long m_waitTimeoutLeeway = 60 * TimeSpan.TicksPerSecond;
+        
+        /// <summary>
+        /// Holds the last tick time that the connection was used.
+        /// </summary>
+        private long m_lastConnectionUse;        
 
         private DataSet m_dataSet;
         private MySqlDataAdapter m_primDataAdapter;
         private MySqlDataAdapter m_shapeDataAdapter;
         private MySqlDataAdapter m_itemsDataAdapter;
-        private MySqlConnection m_connection;
         private MySqlDataAdapter m_terrainDataAdapter;
         private MySqlDataAdapter m_landDataAdapter;
         private MySqlDataAdapter m_landAccessListDataAdapter;
@@ -96,14 +109,18 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         /// <param name="connectionstring"></param>
         /// <param name="persistPrimInventories"></param>
-        public void Initialise(string connectionstring, bool persistPrimInventories)
+        public void Initialise(string connectionString, bool persistPrimInventories)
         {
+            m_connectionString = connectionString;
+            
             m_dataSet = new DataSet();
             this.persistPrimInventories = persistPrimInventories;
 
-            m_log.Info("[REGION DB]: MySql - connecting: " + connectionstring);
-            m_connection = new MySqlConnection(connectionstring);
+            m_log.Info("[REGION DB]: MySql - connecting: " + m_connectionString);
+            m_connection = new MySqlConnection(m_connectionString);
             m_connection.Open();
+            
+            GetWaitTimeout();             
 
             // This actually does the roll forward assembly stuff
             Assembly assem = GetType().Assembly;
@@ -114,7 +131,6 @@ namespace OpenSim.Data.MySQL
             TestTables(m_connection, m);
 
             m.Update();
-
 
             MySqlCommand primSelectCmd = new MySqlCommand(m_primSelect, m_connection);
             m_primDataAdapter = new MySqlDataAdapter(primSelectCmd);
@@ -187,6 +203,58 @@ namespace OpenSim.Data.MySQL
                 m_regionSettingsDataAdapter.Fill(m_regionSettingsTable);
             }
         }
+        
+        /// <summary>
+        /// Get the wait_timeout value for our connection
+        /// </summary>
+        protected void GetWaitTimeout()
+        {
+            MySqlCommand cmd = new MySqlCommand(m_waitTimeoutSelect, m_connection);
+            
+            using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+            {
+                if (dbReader.Read())
+                {
+                    m_waitTimeout 
+                        = Convert.ToInt32(dbReader["@@wait_timeout"]) * TimeSpan.TicksPerSecond + m_waitTimeoutLeeway;
+                }       
+                
+                dbReader.Close();
+                cmd.Dispose();
+            }   
+            
+            m_lastConnectionUse = System.DateTime.Now.Ticks;
+            
+            m_log.DebugFormat(
+                "[REGION DB]: Connection wait timeout {0} seconds", m_waitTimeout / TimeSpan.TicksPerSecond);            
+        }
+                
+        /// <summary>
+        /// Should be called before any db operation.  This checks to see if the connection has not timed out
+        /// </summary>
+        protected void CheckConnection()
+        {
+            //m_log.Debug("[REGION DB]: Checking connection");
+            
+            long timeNow = System.DateTime.Now.Ticks;
+            if (timeNow - m_lastConnectionUse > m_waitTimeout || m_connection.State != ConnectionState.Open)
+            {
+                m_log.DebugFormat("[REGION DB]: Database connection has gone away - reconnecting");
+                
+                lock (m_connection)
+                {
+                    m_connection.Close();
+                    m_connection = new MySqlConnection(m_connectionString);
+                    m_connection.Open();                    
+                }
+            }
+            
+            // Strictly, we should set this after the actual db operation.  But it's more convenient to set here rather
+            // than require the code to call another method - the timeout leeway should be large enough to cover the
+            // inaccuracy.
+            m_lastConnectionUse = timeNow;            
+        }        
+        
         /// <summary>
         /// Given a list of tables, return the version of the tables, as seen in the database
         /// </summary>
@@ -201,6 +269,8 @@ namespace OpenSim.Data.MySQL
                         "SELECT TABLE_NAME, TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=?dbname",
                         dbcon);
                 tablesCmd.Parameters.AddWithValue("?dbname", dbcon.Database);
+                
+                CheckConnection();
                 using (MySqlDataReader tables = tablesCmd.ExecuteReader())
                 {
                     while (tables.Read())
@@ -396,6 +466,7 @@ namespace OpenSim.Data.MySQL
 
             lock (m_dataSet)
             {
+                CheckConnection();                
                 DataRow[] primsForRegion = prims.Select(byRegion, orderByParent);
                 m_log.Info("[REGION DB]: " +
                                          "Loaded " + primsForRegion.Length + " prims for region: " + regionUUID);
@@ -473,6 +544,7 @@ namespace OpenSim.Data.MySQL
         {
             lock (m_dataSet)
             {
+                CheckConnection();
                 //m_log.InfoFormat("[DATASTORE]: Loading inventory for {0}, {1}", prim.Name, prim.UUID);
 
                 DataTable dbItems = m_itemsTable;
@@ -519,6 +591,8 @@ namespace OpenSim.Data.MySQL
                 using (cmd)
                 {
                     delete.Parameters.Add(new MySqlParameter("?RegionUUID", Util.ToRawUuidString(regionID)));
+                    
+                    CheckConnection();
                     delete.ExecuteNonQuery();
                     
                     cmd.Parameters.Add(new MySqlParameter("?RegionUUID", Util.ToRawUuidString(regionID)));
@@ -554,6 +628,7 @@ namespace OpenSim.Data.MySQL
 
             lock (m_dataSet)
             {
+                CheckConnection();
                 using (MySqlDataReader row = cmd.ExecuteReader())
                 {
                     int rev = 0;
@@ -593,6 +668,7 @@ namespace OpenSim.Data.MySQL
         {
             lock (m_dataSet)
             {
+                CheckConnection();
                 using (MySqlCommand cmd = new MySqlCommand("delete from land where UUID=?UUID", m_connection))
                 {
                     cmd.Parameters.Add(new MySqlParameter("?UUID", Util.ToRawUuidString(globalID)));
@@ -616,6 +692,7 @@ namespace OpenSim.Data.MySQL
         {
             lock (m_dataSet)
             {
+                CheckConnection();
                 DataTable land = m_landTable;
                 DataTable landaccesslist = m_landAccessListTable;
 
@@ -654,6 +731,7 @@ namespace OpenSim.Data.MySQL
         {
             lock(m_dataSet)
             {
+                CheckConnection();
                 DataTable regionsettings = m_regionSettingsTable;
                 string searchExp = "regionUUID = '" + regionUUID.ToString() + "'";
                 DataRow[] rawsettings = regionsettings.Select(searchExp);
@@ -669,6 +747,7 @@ namespace OpenSim.Data.MySQL
         {
             lock (m_dataSet)
             {
+                CheckConnection();
                 DataTable regionsettings = m_dataSet.Tables["regionsettings"];
 
                 DataRow settingsRow = regionsettings.Rows.Find(rs.RegionUUID.ToString());
@@ -695,6 +774,7 @@ namespace OpenSim.Data.MySQL
             List<RegionBanListItem> regionbanlist = new List<RegionBanListItem>();
             lock (m_dataSet)
             {
+                CheckConnection();
                 DataTable regionban = m_regionBanListTable;
                 string searchExp = "regionUUID = '" + regionUUID.ToString() + "'";
                 DataRow[] rawbanlist = regionban.Select(searchExp);
@@ -724,6 +804,7 @@ namespace OpenSim.Data.MySQL
         {
             lock (m_dataSet)
             {
+                CheckConnection();
                 DataTable regionban = m_regionBanListTable;
                 string searchExp = "regionUUID = '" + item.regionUUID.ToString() + "' AND bannedUUID = '" + item.bannedUUID.ToString() + "'";
                 DataRow[] rawbanlist = regionban.Select(searchExp);
@@ -748,6 +829,7 @@ namespace OpenSim.Data.MySQL
         {
             lock (m_dataSet)
             {
+                CheckConnection();
                 DataTable regionban = m_regionBanListTable;
                 string searchExp = "regionUUID = '" + item.regionUUID.ToString() + "' AND bannedUUID = '" + item.bannedUUID.ToString() + "'";
                 DataRow[] rawbanlist = regionban.Select(searchExp);
@@ -760,10 +842,6 @@ namespace OpenSim.Data.MySQL
                 }
                 Commit();
             }
-            if (m_connection.State != ConnectionState.Open)
-            {
-                m_connection.Open();
-            }
 
             using 
             (
@@ -773,6 +851,7 @@ namespace OpenSim.Data.MySQL
             {
                 cmd.Parameters.Add(new MySqlParameter("?regionUUID", item.regionUUID.ToString()));
                 cmd.Parameters.Add(new MySqlParameter("?bannedUUID", item.bannedUUID.ToString()));
+                CheckConnection();
                 cmd.ExecuteNonQuery();
             }
 
@@ -788,6 +867,7 @@ namespace OpenSim.Data.MySQL
             List<LandData> landDataForRegion = new List<LandData>();
             lock (m_dataSet)
             {
+                CheckConnection();
                 DataTable land = m_landTable;
                 DataTable landaccesslist = m_landAccessListTable;
                 string searchExp = "RegionUUID = '" + Util.ToRawUuidString(regionUUID) + "'";
@@ -813,13 +893,9 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         public void Commit()
         {
-            if (m_connection.State != ConnectionState.Open)
-            {
-                m_connection.Open();
-            }
-
             lock (m_dataSet)
             {
+                CheckConnection();
                 // DisplayDataSet(m_dataSet, "Region DataSet");
 
                 m_primDataAdapter.Update(m_primTable);
