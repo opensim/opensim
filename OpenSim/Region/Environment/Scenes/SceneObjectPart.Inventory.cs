@@ -44,15 +44,7 @@ namespace OpenSim.Region.Environment.Scenes
         private string m_inventoryFileName = String.Empty;
         private int m_inventoryFileNameSerial = 0;
 
-        /// <summary>
-        /// Exposing this is not particularly good, but it's one of the least evils at the moment to see
-        /// folder id from prim inventory item data, since it's not (yet) actually stored with the prim.
-        /// </summary>
-        public LLUUID FolderID
-        {
-            get { return UUID; }
-            set {  } // Don't allow assignment, or legacy prims wil b0rk
-        }
+        
 
         /// <summary>
         /// Serial count for inventory file , used to tell if inventory has changed
@@ -60,22 +52,13 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         protected uint m_inventorySerial = 0;
 
-        public uint InventorySerial
-        {
-            get { return m_inventorySerial; }
-            set { m_inventorySerial = value; }
-        }
 
         /// <summary>
         /// Holds in memory prim inventory
         /// </summary>
         protected TaskInventoryDictionary m_taskInventory = new TaskInventoryDictionary();
 
-        public TaskInventoryDictionary TaskInventory
-        {
-            get { return m_taskInventory; }
-            set { m_taskInventory = value; }
-        }
+        
 
         /// <summary>
         /// Tracks whether inventory has changed since the last persistent backup

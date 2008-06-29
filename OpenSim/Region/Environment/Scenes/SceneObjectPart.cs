@@ -101,30 +101,17 @@ namespace OpenSim.Region.Environment.Scenes
 
         [XmlIgnore]
         public bool AllowedDrop = false;
-        public uint BaseMask = (uint)PermissionMask.All;
-        public uint Category;
-        public Int32 CreationDate;
-        private LLUUID _creatorID;
+
         [XmlIgnore]
         public bool DIE_AT_EDGE = false;
-        public uint EveryoneMask = (uint)PermissionMask.None;
-        public LLObject.ObjectFlags Flags = LLObject.ObjectFlags.None;
-        public LLUUID GroupID;
-        public uint GroupMask = (uint)PermissionMask.None;
-        public LLUUID LastOwnerID;
-        public uint NextOwnerMask = (uint)PermissionMask.All;
-        public byte ObjectSaleType;
-        public LLUUID OwnerID;
-        public uint OwnerMask = (uint)PermissionMask.All;
-        public int OwnershipCost;
-        public uint ParentID = 0;
 
         // TODO: This needs to be persisted in next XML version update!
         [XmlIgnore]
         public int[] PayPrice = {-2,-2,-2,-2,-2};
         [XmlIgnore]
         public PhysicsActor PhysActor = null;
-        public int SalePrice;
+
+
 
         //Xantor 20080528 Sound stuff:
         //  Note: This isn't persisted in the database right now, as the fields for that aren't just there yet.
@@ -158,7 +145,8 @@ namespace OpenSim.Region.Environment.Scenes
         public uint m_attachmentPoint = (byte)0;
         [XmlIgnore]
         public PhysicsVector m_rotationAxis = new PhysicsVector(1f,1f,1f);
-        public LLUUID m_sitTargetAvatar = LLUUID.Zero;
+
+        
         [XmlIgnore]
         public bool m_undoing = false;
 
@@ -181,6 +169,7 @@ namespace OpenSim.Region.Environment.Scenes
         private string m_text = String.Empty;
         private string m_touchName = String.Empty;
         private UndoStack<UndoState> m_undo = new UndoStack<UndoState>(5);
+        private LLUUID _creatorID;
 
         /// <summary>
         /// Only used internally to schedule client updates.
@@ -346,39 +335,24 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion Constructors
 
-        #region Public Properties
+        #region XML Schema
 
-        public LLVector3 AbsolutePosition
-        {
-            get {
-                if (m_IsAttachment)
-                    return GroupPosition;
-
-                return m_offsetPosition + m_groupPosition; }
-        }
-
-        /// <summary></summary>
-        public LLVector3 Acceleration
-        {
-            get { return m_acceleration; }
-            set { m_acceleration = value; }
-        }
-
-        /// <summary></summary>
-        public LLVector3 AngularVelocity
-        {
-            get { return m_angularVelocity; }
-            set { m_angularVelocity = value; }
-        }
-
-        public byte ClickAction
-        {
-            get { return m_clickAction; }
-            set
-            {
-                m_clickAction = value;
-            }
-        }
+        public LLUUID LastOwnerID;
+        public LLUUID OwnerID;
+        public LLUUID GroupID;
+        public int OwnershipCost;
+        public byte ObjectSaleType;
+        public int SalePrice;
+        public uint Category;
+        public Int32 CreationDate;
+        public uint ParentID = 0;
+        public LLUUID m_sitTargetAvatar = LLUUID.Zero;
+        public uint BaseMask = (uint)PermissionMask.All;
+        public uint OwnerMask = (uint)PermissionMask.All;
+        public uint GroupMask = (uint)PermissionMask.None;
+        public uint EveryoneMask = (uint)PermissionMask.None;
+        public uint NextOwnerMask = (uint)PermissionMask.All;
+        public LLObject.ObjectFlags Flags = LLObject.ObjectFlags.None;
         
         public LLUUID CreatorID {
             get 
@@ -391,25 +365,68 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public Color Color
+        /// <summary>
+        /// Exposing this is not particularly good, but it's one of the least evils at the moment to see
+        /// folder id from prim inventory item data, since it's not (yet) actually stored with the prim.
+        /// </summary>
+        public LLUUID FolderID
         {
-            get { return m_color; }
-            set
-            {
-                m_color = value;
-                TriggerScriptChangedEvent(Changed.COLOR);
-
-                /* ScheduleFullUpdate() need not be called b/c after
-                 * setting the color, the text will be set, so then
-                 * ScheduleFullUpdate() will be called. */
-                //ScheduleFullUpdate();
-            }
+            get { return UUID; }
+            set { } // Don't allow assignment, or legacy prims wil b0rk
         }
 
-        public string Description
+        public uint InventorySerial
         {
-            get { return m_description; }
-            set { m_description = value; }
+            get { return m_inventorySerial; }
+            set { m_inventorySerial = value; }
+        }
+
+        public TaskInventoryDictionary TaskInventory
+        {
+            get { return m_taskInventory; }
+            set { m_taskInventory = value; }
+        }
+
+        public uint ObjectFlags
+        {
+            get { return (uint)Flags; }
+            set { Flags = (LLObject.ObjectFlags)value; }
+        }       
+        
+        public LLUUID UUID
+        {
+            get { return m_uuid; }
+            set { m_uuid = value; }
+        }
+        
+        public uint LocalId
+        {
+            get { return m_localId; }
+            set { m_localId = value; }
+        }
+        
+        public virtual string Name
+        {
+            get { return m_name; }
+            set { m_name = value; }
+        }
+   
+        public byte Material
+        {
+            get { return (byte) m_material; }
+            set { m_material = (LLObject.MaterialType) value; }
+        }
+
+        public ulong RegionHandle
+        {
+            get { return m_regionHandle; }
+            set { m_regionHandle = value; }
+        }
+
+        public int ScriptAccessPin
+        {
+            get { return m_scriptAccessPin; }
+            set { m_scriptAccessPin = (int)value; }
         }
 
         public LLVector3 GroupPosition
@@ -474,51 +491,6 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public int LinkNum
-        {
-            get { return m_linkNum; }
-            set
-            {
-                m_linkNum = value;
-                TriggerScriptChangedEvent(Changed.LINK);
-
-            }
-        }
-
-        public uint LocalId
-        {
-            get { return m_localId; }
-            set { m_localId = value; }
-        }
-
-        public byte Material
-        {
-            get { return (byte) m_material; }
-            set { m_material = (LLObject.MaterialType) value; }
-        }
-
-        public virtual string Name
-        {
-            get { return m_name; }
-            set { m_name = value; }
-        }
-
-        public LLUUID ObjectCreator
-        {
-            get { return _creatorID; }
-        }
-
-        public uint ObjectFlags
-        {
-            get { return (uint)Flags; }
-            set { Flags = (LLObject.ObjectFlags)value; }
-        }
-
-        public LLUUID ObjectOwner
-        {
-            get { return OwnerID; }
-        }
-
         public LLVector3 OffsetPosition
         {
             get { return m_offsetPosition; }
@@ -526,29 +498,18 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 StoreUndoState();
                 m_offsetPosition = value;
-            try
-            {
-                // Hack to get the child prim to update world positions in the physics engine
-                ParentGroup.ResetChildPrimPhysicsPositions();
+                try
+                {
+                    // Hack to get the child prim to update world positions in the physics engine
+                    ParentGroup.ResetChildPrimPhysicsPositions();
 
+                }
+                catch (NullReferenceException)
+                {
+                    // Ignore, and skip over.
+                }
+                //m_log.Info("[PART]: OFFSET:" + m_offsetPosition.ToString());
             }
-            catch (NullReferenceException)
-            {
-                // Ignore, and skip over.
-            }
-            //m_log.Info("[PART]: OFFSET:" + m_offsetPosition.ToString());
-            }
-        }
-
-        public SceneObjectGroup ParentGroup
-        {
-            get { return m_parentGroup; }
-        }
-
-        public ulong RegionHandle
-        {
-            get { return m_regionHandle; }
-            set { m_regionHandle = value; }
         }
 
         public LLQuaternion RotationOffset
@@ -603,6 +564,41 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary></summary>
+        public LLVector3 Velocity
+        {
+            get
+            {
+                //if (PhysActor.Velocity.x != 0 || PhysActor.Velocity.y != 0
+                //|| PhysActor.Velocity.z != 0)
+                //{
+                if (PhysActor != null)
+                {
+                    if (PhysActor.IsPhysical)
+                    {
+                        m_velocity.X = PhysActor.Velocity.X;
+                        m_velocity.Y = PhysActor.Velocity.Y;
+                        m_velocity.Z = PhysActor.Velocity.Z;
+                    }
+                }
+
+                return m_velocity;
+            }
+
+            set
+            {
+                m_velocity = value;
+                if (PhysActor != null)
+                {
+                    if (PhysActor.IsPhysical)
+                    {
+                        PhysActor.Velocity = new PhysicsVector(value.X, value.Y, value.Z);
+                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
+                    }
+                }
+            }
+        }
+
         public LLVector3 RotationalVelocity
         {
             get
@@ -614,7 +610,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (PhysActor.IsPhysical)
                     {
-                        m_rotationalvelocity.FromBytes(PhysActor.RotationalVelocity.GetBytes(),0);
+                        m_rotationalvelocity.FromBytes(PhysActor.RotationalVelocity.GetBytes(), 0);
                     }
                 }
 
@@ -623,6 +619,101 @@ namespace OpenSim.Region.Environment.Scenes
             set { m_rotationalvelocity = value; }
         }
 
+        /// <summary></summary>
+        public LLVector3 AngularVelocity
+        {
+            get { return m_angularVelocity; }
+            set { m_angularVelocity = value; }
+        }
+
+        /// <summary></summary>
+        public LLVector3 Acceleration
+        {
+            get { return m_acceleration; }
+            set { m_acceleration = value; }
+        }
+
+
+        public string Description
+        {
+            get { return m_description; }
+            set { m_description = value; }
+        }
+        
+        public Color Color
+        {
+            get { return m_color; }
+            set
+            {
+                m_color = value;
+                TriggerScriptChangedEvent(Changed.COLOR);
+
+                /* ScheduleFullUpdate() need not be called b/c after
+                 * setting the color, the text will be set, so then
+                 * ScheduleFullUpdate() will be called. */
+                //ScheduleFullUpdate();
+            }
+        }
+
+        public string Text
+        {
+            get
+            {
+                string returnstr = m_text;
+                if (returnstr.Length > 255)
+                {
+                    returnstr = returnstr.Substring(0, 254);
+                }
+                return returnstr;
+            }
+            set
+            {
+                m_text = value;
+            }
+        }
+
+
+        public string SitName
+        {
+            get { return m_sitName; }
+            set { m_sitName = value; }
+        }
+
+        public string TouchName
+        {
+            get { return m_touchName; }
+            set { m_touchName = value; }
+        }
+
+        public int LinkNum
+        {
+            get { return m_linkNum; }
+            set
+            {
+                m_linkNum = value;
+                TriggerScriptChangedEvent(Changed.LINK);
+
+            }
+        }
+
+        public byte ClickAction
+        {
+            get { return m_clickAction; }
+            set
+            {
+                m_clickAction = value;
+            }
+        }
+
+        public PrimitiveBaseShape Shape
+        {
+            get { return m_shape; }
+            set
+            {
+                m_shape = value;
+                TriggerScriptChangedEvent(Changed.SHAPE);
+            }
+        }
         public LLVector3 Scale
         {
             get { return m_shape.Scale; }
@@ -645,33 +736,51 @@ namespace OpenSim.Region.Environment.Scenes
                 TriggerScriptChangedEvent(Changed.SCALE);
             }
         }
-
-        public int ScriptAccessPin
+        public byte UpdateFlag
         {
-            get { return m_scriptAccessPin; }
-            set	{ m_scriptAccessPin = (int)value; }
+            get { return m_updateFlag; }
+            set { m_updateFlag = value; }
         }
+
+        #endregion
+       
+//---------------
+
+
+        #region Public Properties with only Get
+
+
+        public LLVector3 AbsolutePosition
+        {
+            get {
+                if (m_IsAttachment)
+                    return GroupPosition;
+
+                return m_offsetPosition + m_groupPosition; }
+        }
+
+        public LLUUID ObjectCreator
+        {
+            get { return _creatorID; }
+        }
+
+        public LLUUID ObjectOwner
+        {
+            get { return OwnerID; }
+        }
+
+        public SceneObjectGroup ParentGroup
+        {
+            get { return m_parentGroup; }
+        }
+
+        
 
         public scriptEvents ScriptEvents
         {
             get { return m_aggregateScriptEvents; }
         }
 
-        public PrimitiveBaseShape Shape
-        {
-            get { return m_shape; }
-            set
-            {
-                m_shape = value;
-                TriggerScriptChangedEvent(Changed.SHAPE);
-            }
-        }
-
-        public string SitName
-        {
-            get { return m_sitName; }
-            set { m_sitName = value; }
-        }
 
         public Quaternion SitTargetOrientation
         {
@@ -696,77 +805,9 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public string Text
-        {
-            get
-            {
-                string returnstr = m_text;
-                if (returnstr.Length > 255)
-                {
-                    returnstr = returnstr.Substring(0, 254);
-                }
-                return returnstr;
-            }
-            set
-            {
-                m_text = value;
-            }
-        }
 
-        public string TouchName
-        {
-            get { return m_touchName; }
-            set { m_touchName = value; }
-        }
-
-        public LLUUID UUID
-        {
-            get { return m_uuid; }
-            set { m_uuid = value; }
-        }
-
-        public byte UpdateFlag
-        {
-            get { return m_updateFlag; }
-            set { m_updateFlag = value; }
-        }
-
-        /// <summary></summary>
-        public LLVector3 Velocity
-        {
-            get
-            {
-                //if (PhysActor.Velocity.x != 0 || PhysActor.Velocity.y != 0
-                //|| PhysActor.Velocity.z != 0)
-                //{
-                if (PhysActor != null)
-                {
-                    if (PhysActor.IsPhysical)
-                    {
-                        m_velocity.X = PhysActor.Velocity.X;
-                        m_velocity.Y = PhysActor.Velocity.Y;
-                        m_velocity.Z = PhysActor.Velocity.Z;
-                    }
-                }
-
-                return m_velocity;
-            }
-
-            set 
-            {
-                m_velocity = value;
-                if (PhysActor != null)
-                {
-                    if (PhysActor.IsPhysical)
-                    {
-                        PhysActor.Velocity = new PhysicsVector(value.X, value.Y, value.Z);
-                        m_parentGroup.Scene.PhysicsScene.AddPhysicsActorTaint(PhysActor);
-                    }
-                }
-            }
-        }
-
-        #endregion Public Properties
+        
+        #endregion Public Properties with only Get
 
         #region Private Methods
 
