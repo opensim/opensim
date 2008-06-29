@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xs:schema elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:import namespace="http://microsoft.com/wsdl/types/" />
   <xs:import namespace="http://www.w3.org/2001/XMLSchema" />
@@ -14,6 +14,7 @@
       <xs:element minOccurs="1" maxOccurs="1" name="Category" type="xs:unsignedInt" />
       <xs:element minOccurs="1" maxOccurs="1" name="CreationDate" type="xs:int" />
       <xs:element minOccurs="1" maxOccurs="1" name="ParentID" type="xs:unsignedInt" />
+      <xs:element minOccurs="1" maxOccurs="1" name="m_sitTargetAvatar" type="LLUUID" />
       <xs:element minOccurs="1" maxOccurs="1" name="BaseMask" type="xs:unsignedInt" />
       <xs:element minOccurs="1" maxOccurs="1" name="OwnerMask" type="xs:unsignedInt" />
       <xs:element minOccurs="1" maxOccurs="1" name="GroupMask" type="xs:unsignedInt" />
@@ -21,12 +22,23 @@
       <xs:element minOccurs="1" maxOccurs="1" name="NextOwnerMask" type="xs:unsignedInt" />
       <xs:element minOccurs="1" maxOccurs="1" name="Flags" type="ObjectFlags" />
       <xs:element minOccurs="1" maxOccurs="1" name="CreatorID" type="LLUUID" />
+      <xs:element minOccurs="1" maxOccurs="1" name="FolderID" type="LLUUID" />
+      <xs:element minOccurs="1" maxOccurs="1" name="InventorySerial" type="xs:unsignedInt" />
+      <xs:element minOccurs="0" maxOccurs="1" name="TaskInventory">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="xs:schema" />
+            <xs:any />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
       <xs:element minOccurs="1" maxOccurs="1" name="ObjectFlags" type="xs:unsignedInt" />
       <xs:element minOccurs="1" maxOccurs="1" name="UUID" type="LLUUID" />
       <xs:element minOccurs="1" maxOccurs="1" name="LocalId" type="xs:unsignedInt" />
       <xs:element minOccurs="0" maxOccurs="1" name="Name" type="xs:string" />
       <xs:element minOccurs="1" maxOccurs="1" name="Material" type="xs:unsignedByte" />
       <xs:element minOccurs="1" maxOccurs="1" name="RegionHandle" type="xs:unsignedLong" />
+      <xs:element minOccurs="1" maxOccurs="1" name="ScriptAccessPin" type="xs:int" />
       <xs:element minOccurs="1" maxOccurs="1" name="GroupPosition" type="LLVector3" />
       <xs:element minOccurs="1" maxOccurs="1" name="OffsetPosition" type="LLVector3" />
       <xs:element minOccurs="1" maxOccurs="1" name="RotationOffset" type="LLQuaternion" />
@@ -44,16 +56,6 @@
       <xs:element minOccurs="0" maxOccurs="1" name="Shape" type="PrimitiveBaseShape" />
       <xs:element minOccurs="1" maxOccurs="1" name="Scale" type="LLVector3" />
       <xs:element minOccurs="1" maxOccurs="1" name="UpdateFlag" type="xs:unsignedByte" />
-      <xs:element minOccurs="1" maxOccurs="1" name="FolderID" type="LLUUID" />
-      <xs:element minOccurs="1" maxOccurs="1" name="InventorySerial" type="xs:unsignedInt" />
-      <xs:element minOccurs="0" maxOccurs="1" name="TaskInventory">
-        <xs:complexType>
-          <xs:sequence>
-            <xs:element ref="xs:schema" />
-            <xs:any />
-          </xs:sequence>
-        </xs:complexType>
-      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="LLUUID">
@@ -116,7 +118,6 @@
   <xs:complexType name="Color" />
   <xs:complexType name="PrimitiveBaseShape">
     <xs:sequence>
-      <xs:element minOccurs="0" maxOccurs="1" name="ExtraParams" type="xs:base64Binary" />
       <xs:element minOccurs="1" maxOccurs="1" name="PathBegin" type="xs:unsignedShort" />
       <xs:element minOccurs="1" maxOccurs="1" name="PathCurve" type="xs:unsignedByte" />
       <xs:element minOccurs="1" maxOccurs="1" name="PathEnd" type="xs:unsignedShort" />
@@ -129,18 +130,19 @@
       <xs:element minOccurs="1" maxOccurs="1" name="PathSkew" type="xs:byte" />
       <xs:element minOccurs="1" maxOccurs="1" name="PathTaperX" type="xs:byte" />
       <xs:element minOccurs="1" maxOccurs="1" name="PathTaperY" type="xs:byte" />
-      <xs:element minOccurs="1" maxOccurs="1" name="PathTwist" type="xs:byte" />
+      <xs:element 
       <xs:element minOccurs="1" maxOccurs="1" name="PathTwistBegin" type="xs:byte" />
       <xs:element minOccurs="1" maxOccurs="1" name="PCode" type="xs:unsignedByte" />
       <xs:element minOccurs="1" maxOccurs="1" name="ProfileBegin" type="xs:unsignedShort" />
-      <xs:element minOccurs="1" maxOccurs="1" name="ProfileCurve" type="xs:unsignedByte" />
       <xs:element minOccurs="1" maxOccurs="1" name="ProfileEnd" type="xs:unsignedShort" />
       <xs:element minOccurs="1" maxOccurs="1" name="ProfileHollow" type="xs:unsignedShort" />
       <xs:element minOccurs="1" maxOccurs="1" name="Scale" type="LLVector3" />
       <xs:element minOccurs="1" maxOccurs="1" name="State" type="xs:unsignedByte" />
-      <xs:element minOccurs="0" maxOccurs="1" name="TextureEntry" type="xs:base64Binary" />
       <xs:element minOccurs="1" maxOccurs="1" name="ProfileShape" type="ProfileShape" />
       <xs:element minOccurs="1" maxOccurs="1" name="HollowShape" type="HollowShape" />
+      <xs:element minOccurs="1" maxOccurs="1" name="ProfileCurve" type="xs:unsignedByte" />
+      <xs:element minOccurs="0" maxOccurs="1" name="TextureEntry" type="xs:base64Binary" />
+      <xs:element minOccurs="0" maxOccurs="1" name="ExtraParams" type="xs:base64Binary" />
     </xs:sequence>
   </xs:complexType>
   <xs:simpleType name="ProfileShape">
