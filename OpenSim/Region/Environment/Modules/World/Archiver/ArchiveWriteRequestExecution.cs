@@ -27,12 +27,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using libsecondlife;
 using log4net;
 using OpenSim.Framework;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.World.Serialiser;
+using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.World.Archiver
@@ -49,15 +51,23 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        protected ITerrainModule m_terrainModule;
         protected IRegionSerialiser m_serialiser;
         protected List<SceneObjectGroup> m_sceneObjects;
+        protected string m_sceneName;
         protected string m_savePath;
 
         public ArchiveWriteRequestExecution(
-             List<SceneObjectGroup> sceneObjects, IRegionSerialiser serialiser, string savePath)
+             List<SceneObjectGroup> sceneObjects,
+             ITerrainModule terrainModule,                               
+             IRegionSerialiser serialiser, 
+             string sceneName,
+             string savePath)
         {
             m_sceneObjects = sceneObjects;
+            m_terrainModule = terrainModule;
             m_serialiser = serialiser;
+            m_sceneName = sceneName;
             m_savePath = savePath;
         }
 
@@ -67,6 +77,14 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
             TarArchiveWriter archive = new TarArchiveWriter();
             
+            // Write out terrain
+            string terrainPath = String.Format("{0}{1}.png", ArchiveConstants.TERRAINS_PATH, m_sceneName);
+            MemoryStream ms = new MemoryStream();            
+            m_terrainModule.SaveToStream(terrainPath, ms);
+            archive.AddFile(terrainPath, ms.ToArray());           
+            ms.Close();
+            
+            // Write out scene object metadata
             foreach (SceneObjectGroup sceneObject in m_sceneObjects)
             {
                 //m_log.DebugFormat("[ARCHIVER]: Saving {0} {1}, {2}", entity.Name, entity.UUID, entity.GetType());
@@ -84,6 +102,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 archive.AddFile(filename, serializedObject);
             }
 
+            // Write out assets
             AssetsArchiver assetsArchiver = new AssetsArchiver(assets);
             assetsArchiver.Archive(archive);
 

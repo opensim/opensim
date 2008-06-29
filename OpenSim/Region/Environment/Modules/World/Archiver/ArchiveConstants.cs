@@ -43,12 +43,17 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <summary>
         /// Path for the assets metadata file
         /// </summary>
-        public static readonly string ASSETS_METADATA_PATH = "assets.xml";
+        //public static readonly string ASSETS_METADATA_PATH = "assets.xml";
         
         /// <summary>
         /// Path for the prims file
         /// </summary>
         public static readonly string OBJECTS_PATH = "objects/";
+        
+        /// <summary>
+        /// Path for terrains.  Technically these may be assets, but I think it's quite nice to split them out.
+        /// </summary>
+        public static readonly string TERRAINS_PATH = "terrains/";
                 
         /// <summary>
         /// Extensions used for asset types in the archive

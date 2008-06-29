@@ -29,6 +29,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.World.Serialiser;
+using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes;
 using System.Collections.Generic;
 using System.Reflection;
@@ -187,7 +188,11 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 // Asynchronously request all the assets required to perform this archive operation
                 ArchiveWriteRequestExecution awre 
                     = new ArchiveWriteRequestExecution(
-                        sceneObjects, m_scene.RequestModuleInterface<IRegionSerialiser>(), m_savePath);
+                        sceneObjects, 
+                        m_scene.RequestModuleInterface<ITerrainModule>(),
+                        m_scene.RequestModuleInterface<IRegionSerialiser>(),
+                        m_scene.RegionInfo.RegionName,
+                        m_savePath);
                 new AssetsRequest(assetUuids.Keys, m_scene.AssetCache, awre.ReceivedAllAssets).Execute();
             }
         }
