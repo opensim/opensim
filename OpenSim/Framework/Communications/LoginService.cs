@@ -231,10 +231,10 @@ namespace OpenSim.Framework.Communications
                         try
                         {
                             string inventoryServerUrl = "";
-                            if (!String.IsNullOrEmpty(userProfile.UserInventoryURI))
-                            {
-                                inventoryServerUrl = userProfile.UserInventoryURI;
-                            }
+                            //if (!String.IsNullOrEmpty(userProfile.UserInventoryURI))
+                            //{
+                            //    inventoryServerUrl = userProfile.UserInventoryURI;
+                            //}
                             inventData = GetInventorySkeleton(agentID, inventoryServerUrl);
                         }
                         catch (Exception e)
@@ -393,10 +393,10 @@ namespace OpenSim.Framework.Communications
                         // Inventory Library Section
 
                         string inventoryServerUrl = "";
-                        if (!String.IsNullOrEmpty(userProfile.UserInventoryURI))
-                        {
-                            inventoryServerUrl = userProfile.UserInventoryURI;
-                        }
+                        //if (!String.IsNullOrEmpty(userProfile.UserInventoryURI))
+                        //{
+                        //    inventoryServerUrl = userProfile.UserInventoryURI;
+                        //}
 
                         InventoryData inventData = GetInventorySkeleton(agentID, inventoryServerUrl);
                         ArrayList AgentInventoryArray = inventData.InventoryArray;

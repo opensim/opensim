@@ -87,24 +87,6 @@ namespace OpenSim.Framework.Communications.Cache
         private IDictionary<LLUUID, IList<InventoryFolderImpl>> pendingCategorizationFolders
             = new Dictionary<LLUUID, IList<InventoryFolderImpl>>();
 
-        private string m_inventoryHost
-        {
-            get
-            {
-                if (m_userProfile != null)
-                {
-                    if (! String.IsNullOrEmpty(m_userProfile.UserAssetURI))
-                    {
-                        Uri uri = new Uri(m_userProfile.UserInventoryURI);
-                        return uri.Host;
-                    }
-                }
-
-                return "";
-            }
-        
-        }
-
         /// <summary>
         /// Constructor
         /// </summary>
@@ -170,9 +152,9 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 foreach (InventoryFolderImpl folder in pendingCategorizationFolders[newFolder.ID])
                 {
-//                    m_log.DebugFormat(
-//                        "[INVENTORY CACHE]: Resolving pending received folder {0} {1} into {2} {3}",
-//                        folder.name, folder.folderID, parent.name, parent.folderID);
+                    //                    m_log.DebugFormat(
+                    //                        "[INVENTORY CACHE]: Resolving pending received folder {0} {1} into {2} {3}",
+                    //                        folder.name, folder.folderID, parent.name, parent.folderID);
 
                     lock (newFolder.SubFolders)
                     {
@@ -232,9 +214,9 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="folderInfo"></param>
         private void FolderReceive(InventoryFolderImpl newFolder)
         {
-//            m_log.DebugFormat(
-//                "[INVENTORY CACHE]: Received folder {0} {1} for user {2}",
-//                folderInfo.Name, folderInfo.ID, userID);
+            //            m_log.DebugFormat(
+            //                "[INVENTORY CACHE]: Received folder {0} {1} for user {2}",
+            //                folderInfo.Name, folderInfo.ID, userID);
 
             if (RootFolder == null)
             {
@@ -285,9 +267,9 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="folderInfo"></param>
         private void ItemReceive(InventoryItemBase itemInfo)
         {
-//            m_log.DebugFormat(
-//                "[INVENTORY CACHE]: Received item {0} {1} for user {2}",
-//                itemInfo.Name, itemInfo.ID, userID);
+            //            m_log.DebugFormat(
+            //                "[INVENTORY CACHE]: Received item {0} {1} for user {2}",
+            //                itemInfo.Name, itemInfo.ID, userID);
             InventoryFolderImpl folder = RootFolder.FindFolder(itemInfo.Folder);
 
             if (null == folder)
@@ -315,8 +297,8 @@ namespace OpenSim.Framework.Communications.Cache
         /// <returns></returns>
         public bool CreateFolder(string folderName, LLUUID folderID, ushort folderType, LLUUID parentID)
         {
-//            m_log.DebugFormat(
-//                "[AGENT INVENTORY]: Creating inventory folder {0} {1} for {2} {3}", folderID, folderName, remoteClient.Name, remoteClient.AgentId);
+            //            m_log.DebugFormat(
+            //                "[AGENT INVENTORY]: Creating inventory folder {0} {1} for {2} {3}", folderID, folderName, remoteClient.Name, remoteClient.AgentId);
 
             if (HasInventory)
             {
@@ -343,15 +325,9 @@ namespace OpenSim.Framework.Communications.Cache
                     createdBaseFolder.Type = createdFolder.Type;
                     createdBaseFolder.Version = createdFolder.Version;
 
-                     IInventoryServices invService = GetInventoryService();
-                     if (invService != null)
-                     {
-                        //m_commsManager.InventoryService
-                         invService.AddFolder(createdBaseFolder);
-                         return true;
-                     }
+                    m_commsManager.InventoryService.AddFolder(createdBaseFolder);
 
-                    return false;
+                    return true;
                 }
                 else
                 {
@@ -390,8 +366,8 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="parentID"></param>
         public bool UpdateFolder(string name, LLUUID folderID, ushort type, LLUUID parentID)
         {
-//            m_log.DebugFormat(
-//                "[AGENT INVENTORY]: Updating inventory folder {0} {1} for {2} {3}", folderID, name, remoteClient.Name, remoteClient.AgentId);
+            //            m_log.DebugFormat(
+            //                "[AGENT INVENTORY]: Updating inventory folder {0} {1} for {2} {3}", folderID, name, remoteClient.Name, remoteClient.AgentId);
 
             if (HasInventory)
             {
@@ -400,22 +376,17 @@ namespace OpenSim.Framework.Communications.Cache
                 baseFolder.ID = folderID;
                 baseFolder.Name = name;
                 baseFolder.ParentID = parentID;
-                baseFolder.Type = (short) type;
+                baseFolder.Type = (short)type;
                 baseFolder.Version = RootFolder.Version;
 
-                 IInventoryServices invService = GetInventoryService();
-                 if (invService != null)
-                 {
-                     //m_commsManager.InventoryService.
-                     invService.UpdateFolder(baseFolder);
+                m_commsManager.InventoryService.UpdateFolder(baseFolder);
 
-                     InventoryFolderImpl folder = RootFolder.FindFolder(folderID);
-                     if (folder != null)
-                     {
-                         folder.Name = name;
-                         folder.ParentID = parentID;
-                     }
-                 }
+                InventoryFolderImpl folder = RootFolder.FindFolder(folderID);
+                if (folder != null)
+                {
+                    folder.Name = name;
+                    folder.ParentID = parentID;
+                }
             }
             else
             {
@@ -439,9 +410,9 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="parentID"></param>
         public bool MoveFolder(LLUUID folderID, LLUUID parentID)
         {
-//            m_log.DebugFormat(
-//                "[AGENT INVENTORY]: Moving inventory folder {0} into folder {1} for {2} {3}",
-//                parentID, remoteClient.Name, remoteClient.Name, remoteClient.AgentId);
+            //            m_log.DebugFormat(
+            //                "[AGENT INVENTORY]: Moving inventory folder {0} into folder {1} for {2} {3}",
+            //                parentID, remoteClient.Name, remoteClient.Name, remoteClient.AgentId);
 
             if (HasInventory)
             {
@@ -450,24 +421,13 @@ namespace OpenSim.Framework.Communications.Cache
                 baseFolder.ID = folderID;
                 baseFolder.ParentID = parentID;
 
-                 IInventoryServices invService = GetInventoryService();
-                 if (invService != null)
-                 {
-                     //  m_commsManager.InventoryService
-                     invService.MoveFolder(baseFolder);
+                m_commsManager.InventoryService.MoveFolder(baseFolder);
 
-                     InventoryFolderImpl folder = RootFolder.FindFolder(folderID);
-                     if (folder != null)
-                     {
-                         folder.ParentID = parentID;
-                     }
+                InventoryFolderImpl folder = RootFolder.FindFolder(folderID);
+                if (folder != null)
+                    folder.ParentID = parentID;
 
-                     return true;
-                 }
-                 else
-                 {
-                     return false;
-                 }
+                return true;
             }
             else
             {
@@ -490,8 +450,8 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="folderID"></param>
         public bool PurgeFolder(LLUUID folderID)
         {
-//            m_log.InfoFormat("[AGENT INVENTORY]: Purging folder {0} for {1} uuid {2}",
-//                folderID, remoteClient.Name, remoteClient.AgentId);
+            //            m_log.InfoFormat("[AGENT INVENTORY]: Purging folder {0} for {1} uuid {2}",
+            //                folderID, remoteClient.Name, remoteClient.AgentId);
 
             if (HasInventory)
             {
@@ -508,16 +468,11 @@ namespace OpenSim.Framework.Communications.Cache
                     purgedBaseFolder.Type = purgedFolder.Type;
                     purgedBaseFolder.Version = purgedFolder.Version;
 
-                     IInventoryServices invService = GetInventoryService();
-                     if (invService != null)
-                     {
-                         //m_commsManager.InventoryService
-                         invService.PurgeFolder(purgedBaseFolder);
+                    m_commsManager.InventoryService.PurgeFolder(purgedBaseFolder);
 
-                         purgedFolder.Purge();
+                    purgedFolder.Purge();
 
-                         return true;
-                     }
+                    return true;
                 }
             }
             else
@@ -543,20 +498,14 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 if (item.Folder == LLUUID.Zero)
                 {
-                    InventoryFolderImpl f=FindFolderForType(item.AssetType);
+                    InventoryFolderImpl f = FindFolderForType(item.AssetType);
                     if (f != null)
-                        item.Folder=f.ID;
+                        item.Folder = f.ID;
                     else
-                        item.Folder=RootFolder.ID;
+                        item.Folder = RootFolder.ID;
                 }
                 ItemReceive(item);
-
-                 IInventoryServices invService = GetInventoryService();
-                 if (invService != null)
-                 {
-                     //m_commsManager.InventoryService
-                         invService.AddItem(item);
-                 }
+                m_commsManager.InventoryService.AddItem(item);
             }
             else
             {
@@ -576,12 +525,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             if (HasInventory)
             {
-                 IInventoryServices invService = GetInventoryService();
-                 if (invService != null)
-                 {
-                     //m_commsManager.InventoryService
-                     invService.UpdateItem(item);
-                 }
+                m_commsManager.InventoryService.UpdateItem(item);
             }
             else
             {
@@ -620,14 +564,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                 if (RootFolder.DeleteItem(item.ID))
                 {
-                     IInventoryServices invService = GetInventoryService();
-                     if (invService != null)
-                     {
-                         //return m_commsManager.InventoryService
-                           return invService.DeleteItem(item);
-                     }
-
-                     return false;
+                    return m_commsManager.InventoryService.DeleteItem(item);
                 }
             }
             else
@@ -659,9 +596,9 @@ namespace OpenSim.Framework.Communications.Cache
 
                 if ((folder = RootFolder.FindFolder(folderID)) != null)
                 {
-//                            m_log.DebugFormat(
-//                                "[AGENT INVENTORY]: Found folder {0} for client {1}",
-//                                folderID, remoteClient.AgentId);
+                    //                            m_log.DebugFormat(
+                    //                                "[AGENT INVENTORY]: Found folder {0} for client {1}",
+                    //                                folderID, remoteClient.AgentId);
 
                     client.SendInventoryFolderDetails(
                         client.AgentId, folderID, folder.RequestListOfItems(),
@@ -693,7 +630,7 @@ namespace OpenSim.Framework.Communications.Cache
         {
             if (RootFolder == null)
                 return null;
-            
+
             lock (RootFolder.SubFolders)
             {
                 foreach (InventoryFolderImpl f in RootFolder.SubFolders.Values)
@@ -703,13 +640,6 @@ namespace OpenSim.Framework.Communications.Cache
                 }
             }
             return null;
-        }
-
-        public IInventoryServices GetInventoryService()
-        {
-            IInventoryServices invService;
-            m_commsManager.TryGetInventoryService(m_inventoryHost, out invService);
-            return invService;
         }
     }
 
