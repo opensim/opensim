@@ -1905,7 +1905,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="vel"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        public virtual SceneObjectGroup RezObject(TaskInventoryItem item, LLVector3 pos, LLQuaternion rot, LLVector3 vel, int param)
+        public virtual SceneObjectGroup RezObject(SceneObjectPart sourcePart, TaskInventoryItem item, LLVector3 pos, LLQuaternion rot, LLVector3 vel, int param)
         {
             // Rez object
             if (item != null)
@@ -1942,15 +1942,18 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (rootPart.OwnerID != item.OwnerID)
                     {
-                        if ((item.OwnerMask & 8) != 0)
+                        if (ExternalChecks.ExternalChecksPropagatePermissions())
                         {
-                            foreach (SceneObjectPart part in partList)
+                            if ((item.OwnerMask & 8) != 0)
                             {
-                                part.EveryoneMask = item.EveryoneMask;
-                                part.NextOwnerMask = item.NextOwnerMask;
+                                foreach (SceneObjectPart part in partList)
+                                {
+                                    part.EveryoneMask = item.EveryoneMask;
+                                    part.NextOwnerMask = item.NextOwnerMask;
+                                }
                             }
+                            group.ApplyNextOwnerPermissions();
                         }
-                        group.ApplyNextOwnerPermissions();
                     }
 
                     foreach (SceneObjectPart part in partList)
@@ -1977,6 +1980,12 @@ namespace OpenSim.Region.Environment.Scenes
                     group.Velocity = vel;
                     group.CreateScriptInstances(param, true);
                     rootPart.ScheduleFullUpdate();
+
+                    if (!ExternalChecks.ExternalChecksBypassPermissions())
+                    {
+                        if ((item.OwnerMask & (uint)PermissionMask.Copy) == 0)
+                            sourcePart.RemoveInventoryItem(item.ItemID);
+                    }
                     return rootPart.ParentGroup;
                 }
             }

@@ -1993,7 +1993,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     // need the magnitude later
                     float velmag = (float)Util.GetMagnitude(llvel);
 
-                    SceneObjectGroup new_group = World.RezObject(inv.Value, llpos, new LLQuaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s), llvel, param);
+                    SceneObjectGroup new_group = World.RezObject(m_host, inv.Value, llpos, new LLQuaternion((float)rot.x, (float)rot.y, (float)rot.z, (float)rot.s), llvel, param);
 
                     // If either of these are null, then there was an unknown error.
                     if (new_group == null)
