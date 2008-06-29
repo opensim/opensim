@@ -25,12 +25,33 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.IO;
+
 namespace OpenSim.Region.Environment.Modules.World.Terrain
 {
     public interface ITerrainModule
     {
         void LoadFromFile(string filename);
         void SaveToFile(string filename);
+        
+        /// <summary>
+        /// Load a terrain from a stream.
+        /// </summary>
+        /// <param name="filename">
+        /// Only required here to identify the image type.  Not otherwise used in the loading itself.
+        /// </param>
+        /// <param name="stream"></param>
+        void LoadFromStream(string filename, Stream stream);
+        
+        /// <summary>
+        /// Save a terrain to a stream.
+        /// </summary>
+        /// <param name="filename">
+        /// Only required here to identify the image type.  Not otherwise used in the saving itself.
+        /// </param>
+        /// <param name="stream"></param>
+        void SaveToStream(string filename, Stream stream);
+        
         void InstallPlugin(string name, ITerrainEffect plug);
     }
 }

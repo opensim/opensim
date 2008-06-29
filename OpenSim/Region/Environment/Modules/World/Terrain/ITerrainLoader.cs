@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System.IO;
 using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.World.Terrain
@@ -34,6 +35,8 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
         string FileExtension { get; }
         ITerrainChannel LoadFile(string filename);
         ITerrainChannel LoadFile(string filename, int fileStartX, int fileStartY, int fileWidth, int fileHeight, int sectionWidth, int sectionHeight);
+        ITerrainChannel LoadStream(Stream stream);
         void SaveFile(string filename, ITerrainChannel map);
+        void SaveStream(Stream stream, ITerrainChannel map);
     }
 }

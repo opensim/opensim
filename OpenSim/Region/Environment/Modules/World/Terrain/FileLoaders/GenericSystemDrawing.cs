@@ -28,6 +28,7 @@
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
@@ -57,26 +58,34 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
         /// <returns>A terrain channel generated from the image.</returns>
         public virtual ITerrainChannel LoadFile(string filename)
         {
-            Bitmap file = new Bitmap(filename);
-
-            ITerrainChannel retval = new TerrainChannel(file.Width, file.Height);
-
-            int x;
-            for (x = 0; x < file.Width; x++)
-            {
-                int y;
-                for (y = 0; y < file.Height; y++)
-                {
-                    retval[x, y] = file.GetPixel(x, file.Height - y - 1).GetBrightness() * 128;
-                }
-            }
-
-            return retval;
+            return LoadBitmap(new Bitmap(filename));            
         }
 
         public ITerrainChannel LoadFile(string filename, int x, int y, int fileWidth, int fileHeight, int w, int h)
         {
             throw new NotImplementedException();
+        }
+        
+        public virtual ITerrainChannel LoadStream(Stream stream)
+        {
+            return LoadBitmap(new Bitmap(stream));
+        }
+        
+        protected virtual ITerrainChannel LoadBitmap(Bitmap bitmap)
+        {
+            ITerrainChannel retval = new TerrainChannel(bitmap.Width, bitmap.Height);
+
+            int x;
+            for (x = 0; x < bitmap.Width; x++)
+            {
+                int y;
+                for (y = 0; y < bitmap.Height; y++)
+                {
+                    retval[x, y] = bitmap.GetPixel(x, bitmap.Height - y - 1).GetBrightness() * 128;
+                }
+            }
+
+            return retval;            
         }
 
         /// <summary>
@@ -90,6 +99,18 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 
             colours.Save(filename, ImageFormat.Png);
         }
+        
+        /// <summary>
+        /// Exports a stream using a System.Drawing exporter.
+        /// </summary>
+        /// <param name="stream">The target stream</param>
+        /// <param name="map">The terrain channel being saved</param>
+        public virtual void SaveStream(Stream stream, ITerrainChannel map)
+        {
+            Bitmap colours = CreateGrayscaleBitmapFromMap(map);
+
+            colours.Save(stream, ImageFormat.Png);
+        }        
 
         #endregion
 

@@ -41,22 +41,10 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 
         public ITerrainChannel LoadFile(string filename)
         {
-            TerrainChannel retval = new TerrainChannel();
-
             FileInfo file = new FileInfo(filename);
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
-            BinaryReader bs = new BinaryReader(s);
-            int y;
-            for (y = 0; y < retval.Height; y++)
-            {
-                int x;
-                for (x = 0; x < retval.Width; x++)
-                {
-                    retval[x, y] = bs.ReadSingle();
-                }
-            }
+            ITerrainChannel retval = LoadStream(s);
 
-            bs.Close();
             s.Close();
 
             return retval;
@@ -124,11 +112,38 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 
             return retval;
         }
+        
+        public ITerrainChannel LoadStream(Stream s)
+        {
+            TerrainChannel retval = new TerrainChannel();
+            
+            BinaryReader bs = new BinaryReader(s);
+            int y;
+            for (y = 0; y < retval.Height; y++)
+            {
+                int x;
+                for (x = 0; x < retval.Width; x++)
+                {
+                    retval[x, y] = bs.ReadSingle();
+                }
+            }
 
+            bs.Close();
+            
+            return retval;
+        }
+            
         public void SaveFile(string filename, ITerrainChannel map)
         {
             FileInfo file = new FileInfo(filename);
             FileStream s = file.Open(FileMode.Create, FileAccess.Write);
+            SaveStream(s, map);
+
+            s.Close();
+        }
+        
+        public void SaveStream(Stream s, ITerrainChannel map)
+        {
             BinaryWriter bs = new BinaryWriter(s);
 
             int y;
@@ -141,8 +156,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
                 }
             }
 
-            bs.Close();
-            s.Close();
+            bs.Close();            
         }
 
         #endregion

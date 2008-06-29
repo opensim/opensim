@@ -28,6 +28,7 @@
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
@@ -50,6 +51,11 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
         {
             throw new NotImplementedException();
         }
+        
+        public ITerrainChannel LoadStream(Stream stream)
+        {
+            throw new NotImplementedException();
+        }        
 
         public void SaveFile(string filename, ITerrainChannel map)
         {
@@ -57,6 +63,18 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 
             colours.Save(filename, ImageFormat.Jpeg);
         }
+        
+        /// <summary>
+        /// Exports a stream using a System.Drawing exporter.
+        /// </summary>
+        /// <param name="stream">The target stream</param>
+        /// <param name="map">The terrain channel being saved</param>
+        public void SaveStream(Stream stream, ITerrainChannel map)
+        {
+            Bitmap colours = CreateBitmapFromMap(map);
+
+            colours.Save(stream, ImageFormat.Jpeg);
+        }        
 
         #endregion
 

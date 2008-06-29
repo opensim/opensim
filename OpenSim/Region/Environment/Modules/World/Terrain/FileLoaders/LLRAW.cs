@@ -71,10 +71,24 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 
         public ITerrainChannel LoadFile(string filename)
         {
-            TerrainChannel retval = new TerrainChannel();
-
             FileInfo file = new FileInfo(filename);
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
+            ITerrainChannel retval = LoadStream(s);
+            
+            s.Close();
+
+            return retval;
+        }
+
+        public ITerrainChannel LoadFile(string filename, int x, int y, int fileWidth, int fileHeight, int w, int h)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public ITerrainChannel LoadStream(Stream s)
+        {            
+            TerrainChannel retval = new TerrainChannel();
+            
             BinaryReader bs = new BinaryReader(s);
             int y;
             for (y = 0; y < retval.Height; y++)
@@ -87,21 +101,22 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
                 }
             }
 
-            bs.Close();
-            s.Close();
-
+            bs.Close();  
+            
             return retval;
-        }
-
-        public ITerrainChannel LoadFile(string filename, int x, int y, int fileWidth, int fileHeight, int w, int h)
-        {
-            throw new NotImplementedException();
         }
 
         public void SaveFile(string filename, ITerrainChannel map)
         {
             FileInfo file = new FileInfo(filename);
             FileStream s = file.Open(FileMode.CreateNew, FileAccess.Write);
+            SaveStream(s, map);
+
+            s.Close();
+        }
+        
+        public void SaveStream(Stream s, ITerrainChannel map)
+        {
             BinaryWriter binStream = new BinaryWriter(s);
 
             // Output the calculated raw
@@ -150,11 +165,9 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
                 }
             }
 
-            binStream.Close();
-            s.Close();
+            binStream.Close();            
         }
-
-
+        
         public string FileExtension
         {
             get { return ".raw"; }

@@ -221,6 +221,67 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                 throw new TerrainException(String.Format("Unable to save heightmap: saving of this file format not implemented"));
             }
         }
+        
+        /// <summary>
+        /// Loads a terrain file from a stream and installs it in the scene.
+        /// </summary>
+        /// <param name="filename">Filename to terrain file. Type is determined by extension.</param>
+        /// <param name="stream"></param>
+        public void LoadFromStream(string filename, Stream stream)
+        {
+            foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
+            {
+                if (filename.EndsWith(loader.Key))
+                {
+                    lock (m_scene)
+                    {
+                        try
+                        {
+                            ITerrainChannel channel = loader.Value.LoadStream(stream);
+                            m_scene.Heightmap = channel;
+                            m_channel = channel;
+                            UpdateRevertMap();
+                        }
+                        catch (NotImplementedException)
+                        {
+                            m_log.Error("[TERRAIN]: Unable to load heightmap, the " + loader.Value +
+                                        " parser does not support file loading. (May be save only)");
+                            throw new TerrainException(String.Format("unable to load heightmap: parser {0} does not support loading", loader.Value));
+                        }
+                    }
+                    CheckForTerrainUpdates();
+                    m_log.Info("[TERRAIN]: File (" + filename + ") loaded successfully");
+                    return;
+                }
+            }
+            m_log.Error("[TERRAIN]: Unable to load heightmap, no file loader availible for that format.");
+            throw new TerrainException(String.Format("unable to load heightmap from file {0}: no loader available for that format", filename));
+        }
+
+        /// <summary>
+        /// Saves the current heightmap to a specified stream.
+        /// </summary>
+        /// <param name="filename">The destination filename.  Used here only to identify the image type</param>
+        /// <param name="stream"></param>
+        public void SaveToStream(string filename, Stream stream)
+        {
+            try
+            {
+                foreach (KeyValuePair<string, ITerrainLoader> loader in m_loaders)
+                {
+                    if (filename.EndsWith(loader.Key))
+                    {
+                        loader.Value.SaveStream(stream, m_channel);
+                        return;
+                    }
+                }
+            }
+            catch (NotImplementedException)
+            {
+                m_log.Error("Unable to save to " + filename + ", saving of this file format has not been implemented.");
+                throw new TerrainException(String.Format("Unable to save heightmap: saving of this file format not implemented"));
+            }
+        }        
 
         #region Plugin Loading Methods
 

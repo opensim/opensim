@@ -43,10 +43,19 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 
         public ITerrainChannel LoadFile(string filename)
         {
-            TerrainChannel retval = new TerrainChannel();
-
             FileInfo file = new FileInfo(filename);
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
+            ITerrainChannel retval = LoadStream(s);
+
+            s.Close();
+
+            return retval;
+        }
+        
+        public ITerrainChannel LoadStream(Stream s)
+        {
+            TerrainChannel retval = new TerrainChannel();
+            
             BinaryReader bs = new BinaryReader(s);
 
             bool eof = false;
@@ -98,12 +107,16 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
             }
 
             bs.Close();
-            s.Close();
-
+            
             return retval;
         }
 
         public void SaveFile(string filename, ITerrainChannel map)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public void SaveStream(Stream stream, ITerrainChannel map)
         {
             throw new NotImplementedException();
         }

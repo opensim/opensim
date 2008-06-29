@@ -24,8 +24,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
@@ -38,6 +40,18 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
 
             colours.Save(filename, ImageFormat.Gif);
         }
+        
+        /// <summary>
+        /// Exports a stream using a System.Drawing exporter.
+        /// </summary>
+        /// <param name="stream">The target stream</param>
+        /// <param name="map">The terrain channel being saved</param>
+        public override void SaveStream(Stream stream, ITerrainChannel map)
+        {
+            Bitmap colours = CreateGrayscaleBitmapFromMap(map);
+
+            colours.Save(stream, ImageFormat.Gif);
+        }             
 
         public override string ToString()
         {
