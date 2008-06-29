@@ -1,0 +1,40 @@
+BEGIN;
+
+create table regionsettings (
+	regionUUID char(36) not null,
+	block_terraform integer not null,
+	block_fly integer not null,
+	allow_damage integer not null,
+	restrict_pushing integer not null,
+	allow_land_resell integer not null,
+	allow_land_join_divide integer not null,
+	block_show_in_search integer not null,
+	agent_limit integer not null,
+	object_bonus float not null,
+	maturity integer not null,
+	disable_scripts integer not null,
+	disable_collisions integer not null,
+	disable_physics integer not null,
+	terrain_texture_1 char(36) not null,
+	terrain_texture_2 char(36) not null,
+	terrain_texture_3 char(36) not null,
+	terrain_texture_4 char(36) not null,
+	elevation_1_nw float not null,
+	elevation_2_nw float not null,
+	elevation_1_ne float not null,
+	elevation_2_ne float not null,
+	elevation_1_se float not null,
+	elevation_2_se float not null,
+	elevation_1_sw float not null,
+	elevation_2_sw float not null,
+	water_height float not null,
+	terrain_raise_limit float not null,
+	terrain_lower_limit float not null,
+	use_estate_sun integer not null,
+	fixed_sun integer not null,
+	sun_position float not null,
+	covenant char(36),
+	primary key(regionUUID)
+);
+
+COMMIT;

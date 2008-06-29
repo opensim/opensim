@@ -214,6 +214,15 @@ namespace OpenSim.Data.SQLite
             }
         }
 
+        public void StoreRegionSettings(RegionSettings rs)
+        {
+        }
+
+        public RegionSettings LoadRegionSettings(LLUUID regionUUID)
+        {
+            return null;
+        }
+
         /// <summary>
         /// Adds an object into region storage
         /// </summary>

@@ -76,7 +76,8 @@ namespace OpenSim.Region.Environment.Interfaces
         void AddToRegionBanlist(RegionBanListItem item);
         void RemoveFromRegionBanlist(RegionBanListItem item);
 
-
+        void StoreRegionSettings(RegionSettings rs);
+        RegionSettings LoadRegionSettings(LLUUID regionUUID);
 
         void Shutdown();
     }

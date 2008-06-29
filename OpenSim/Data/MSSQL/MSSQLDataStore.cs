@@ -151,6 +151,15 @@ namespace OpenSim.Data.MSSQL
             }
         }
 
+        public void StoreRegionSettings(RegionSettings rs)
+        {
+        }
+
+        public RegionSettings LoadRegionSettings(LLUUID regionUUID)
+        {
+            return null;
+        }
+
         /// <summary>
         /// 
         /// </summary>

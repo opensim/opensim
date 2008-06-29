@@ -134,7 +134,7 @@ namespace OpenSim.Framework.Communications
 
         public bool TryGetInventoryService(string host, out IInventoryServices inventoryService)
         {
-            if ((host == string.Empty) | (host == "default"))
+            if ((host == string.Empty) || (host == "default"))
             {
                 host = m_defaultInventoryHost;
             }

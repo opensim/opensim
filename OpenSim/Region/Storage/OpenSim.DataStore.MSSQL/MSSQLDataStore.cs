@@ -124,6 +124,15 @@ namespace OpenSim.DataStore.MSSQL
             }
         }
 
+        public void StoreRegionSettings(RegionSettings rs)
+        {
+        }
+
+        public RegionSettings LoadRegionSettings(LLUUID regionUUID)
+        {
+            return null;
+        }
+
         public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
             lock (ds)
