@@ -1580,6 +1580,13 @@ namespace OpenSim.Region.Physics.Meshing
                     Console.WriteLine("Sphere dimple: fProfileBeginAngle: " + fProfileBeginAngle.ToString() + " fProfileEndAngle: " + fProfileEndAngle.ToString());
 #endif
                 }
+                else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Square)
+                { // tube cut is offset 45 degrees from other prim types
+                    fProfileBeginAngle += 45.0f;
+                    fProfileEndAngle += 45.0f;
+                    if (fProfileBeginAngle < fProfileEndAngle)
+                        fProfileEndAngle -= 360.0;
+                }
 
                 // Note, that we don't want to cut out a triangle, even if this is a
                 // good approximation for small cuts. Indeed we want to cut out an arc
