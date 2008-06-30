@@ -382,6 +382,30 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
+        /// <summary> 
+        /// Allows you to clear a specific asset by uuid out
+        /// of the asset cache.  This is needed because the osdynamic
+        /// texture code grows the asset cache without bounds.  The
+        /// real solution here is a much better cache archicture, but
+        /// this is a stop gap measure until we have such a thing.
+        /// </summary>
+
+        public void ExpireAsset(LLUUID uuid)
+        {
+            // uuid is unique, so no need to worry about it showing up
+            // in the 2 caches differently.  Also, locks are probably
+            // needed in all of this, or move to synchronized non
+            // generic forms for Dictionaries.
+            if (Textures.ContainsKey(uuid))
+            {
+                Textures.Remove(uuid);
+            } 
+            else if (Assets.ContainsKey(uuid)) 
+            {
+                Assets.Remove(uuid);
+            }
+        }
+
         // See IAssetReceiver
         public void AssetReceived(AssetBase asset, bool IsTexture)
         {
