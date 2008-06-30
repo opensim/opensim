@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-//#define SPAM
+#define SPAM
 
 using System;
 using System.Collections.Generic;
@@ -1581,9 +1581,16 @@ namespace OpenSim.Region.Physics.Meshing
 #endif
                 }
                 else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.Square)
-                { // tube cut is offset 45 degrees from other prim types
+                { // tube profile cut is offset 45 degrees from other prim types
                     fProfileBeginAngle += 45.0f;
                     fProfileEndAngle += 45.0f;
+                    if (fProfileBeginAngle < fProfileEndAngle)
+                        fProfileEndAngle -= 360.0;
+                }
+                else if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.EquilateralTriangle)
+                { // ring profile cut is offset 180 degrees from other prim types
+                    fProfileBeginAngle += 180.0f;
+                    fProfileEndAngle += 180.0f;
                     if (fProfileBeginAngle < fProfileEndAngle)
                         fProfileEndAngle -= 360.0;
                 }
