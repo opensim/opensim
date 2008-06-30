@@ -43,6 +43,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         private short count = 0;
         private short frame = 0;
 
+// disable warning: public events, part of the public API
 #pragma warning disable 67
 
         public event Action<IClientAPI> OnLogout;

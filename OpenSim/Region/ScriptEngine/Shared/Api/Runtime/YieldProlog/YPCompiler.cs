@@ -209,9 +209,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 object[] functorArgs = YP.getFunctorArgs(Term);
 
                 Variable pred = new Variable();
-                // disable warning on l1, don't see how we can
-                // code this differently
-                #pragma warning disable 0168
+// disable warning: don't see how we can code this differently short
+// of rewriting the whole thing
+#pragma warning disable 0168
                 foreach (bool l1 in ((CompilerState)State)._pred.match
                          (new object[] { functorName, functorArgs.Length, pred, Atom.a("det") }))
                 {
@@ -220,7 +220,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                         return true;
                     }
                 }
-                #pragma warning restore 0168
+#pragma warning restore 0168
 
                 return false;
             }
@@ -232,9 +232,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 object[] functorArgs = YP.getFunctorArgs(Term);
 
                 Variable pred = new Variable();
-                // disable warning on l1, don't see how we can
-                // code this differently
-                #pragma warning disable 0168
+// disable warning: don't see how we can code this differently short
+// of rewriting the whole thing
+#pragma warning disable 0168
                 foreach (bool l1 in ((CompilerState)State)._pred.match
                          (new object[] { functorName, functorArgs.Length, pred, Atom.a("semidet") }))
                 {
@@ -243,7 +243,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                         return true;
                     }
                 }
-                #pragma warning restore 0168
+#pragma warning restore 0168
 
                 return false;
             }
@@ -285,7 +285,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
 
         // disable warning unused variables, the following code is
         // infested with it.
-        #pragma warning disable 0168, 0219
+#pragma warning disable 0168, 0219
 
         /// <summary>
         /// Use makeFunctionPseudoCode, convertFunctionCSharp and compileAnonymousFunction

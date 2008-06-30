@@ -139,8 +139,9 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         #endregion
 
         #region Event Definitions IGNORE
-#pragma warning disable 67
 
+// disable warning: public events constituting public API
+#pragma warning disable 67
         public event Action<IClientAPI> OnLogout;
         public event ObjectPermissions OnObjectPermissions;
 
@@ -294,8 +295,8 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         public event GetScriptRunning OnGetScriptRunning;
         public event SetScriptRunning OnSetScriptRunning;
         public event UpdateVector OnAutoPilotGo;
-
 #pragma warning restore 67
+
         #endregion
 
         #region Overrriden Methods IGNORE

@@ -44,9 +44,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             yield return false;
         }
 
-        // disable warning about unused variables: the following code
-        // is infested with it.
-        #pragma warning disable 0168, 0219
+// disable warning: don't see how we can code this differently short
+// of rewriting the whole thing
+#pragma warning disable 0168, 0219
 
         // Debug: Hand-modify this central predicate to do tail recursion.
         public static IEnumerable<bool> read_tokens(object arg1, object arg2, object arg3)
@@ -4457,6 +4457,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 { }
             }
         }
-        #pragma warning restore 0168
+#pragma warning restore 0168
     }
 }

@@ -100,6 +100,7 @@ namespace OpenSim.Region.Physics.Manager
         public delegate void CollisionUpdate(EventArgs e);
         public delegate void OutOfBounds(PhysicsVector pos);
 
+// disable warning: public events
 #pragma warning disable 67
         public event PositionUpdate OnPositionUpdate;
         public event VelocityUpdate OnVelocityUpdate;

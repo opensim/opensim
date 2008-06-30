@@ -98,42 +98,54 @@ namespace OpenSim.Framework.Servers
         {
             OSHttpRequest req = null;
             
-            try {
-                while (true)
-                {
-                    // get job to do
+            while (true)
+            {
+                try {
+                    // dequeue an OSHttpRequest from OSHttpServer's
+                    // request queue 
                     req = _queue.Dequeue();
-
-                    // get list of registered handlers
+                    
+                    // get a copy of the list of registered handlers
                     List<OSHttpHandler> handlers = _server.OSHttpHandlers;
-
-                    // prune list and sort from most specific to least
-                    // specific
+                    
+                    // prune list and have it sorted from most
+                    // specific to least specific
                     handlers = MatchHandlers(req, handlers);
-
-                    // process req
+                        
+                    // process req: we try each handler in turn until
+                    // we are either out of handlers or get back a
+                    // Handled or Detached
+                    OSHttpHandlerResult rc = OSHttpHandlerResult.Unprocessed;
                     foreach(OSHttpHandler h in handlers)
                     {
-                        OSHttpHandlerResult rc = h.Process(req);
-                        // handler did not process the request, try
-                        // next handler
+                        rc = h.Process(req);
+                            
+                        // Pass: handler did not process the request,
+                        // try next handler
                         if (OSHttpHandlerResult.Pass == rc) continue;
-                        // handler is taking over processing of
-                        // request, we are done
+                        // Detached: handler is taking over processing
+                        // of request, we are done
                         if (OSHttpHandlerResult.Detached == rc) break;
-                        
-                        // request was handled, we need to clean up
-                        // TODO: cleanup :-)
-                        
+                            
+                        if (OSHttpHandlerResult.Handled != rc)
+                        {
+                            // something went wrong
+                            throw new Exception(String.Format("[{0}] got unexpected OSHttpHandlerResult {1}", EngineID, rc));
+                        }
+                            
+                        // Handled: clean up
+                        // response.KeepAlive   = false;
+                        // response.SendChunked = false;
+
                         break;
                     }
-                    
+                        
                 }
-            }
-            catch (Exception e)
-            {
-                _log.DebugFormat("[{0}] something went wrong: {1}", EngineID, e.ToString());
-                _log.ErrorFormat("[{0}] something went wrong: {1}, terminating this pump", EngineID, e.Message);
+                catch (Exception e)
+                {
+                    _log.DebugFormat("[{0}] OSHttpHandler problem: {1}", EngineID, e.ToString());
+                    _log.ErrorFormat("[{0}] OSHttpHandler problem: {1}", EngineID, e.Message);
+                }
             }
         }
 

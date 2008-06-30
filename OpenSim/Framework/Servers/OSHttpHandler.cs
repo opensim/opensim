@@ -57,6 +57,7 @@ namespace OpenSim.Framework.Servers
     /// </summary>
     public enum OSHttpHandlerResult
     {
+        Unprocessed,
         Pass,
         Handled,
         Detached,

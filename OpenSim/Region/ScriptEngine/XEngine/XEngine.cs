@@ -59,6 +59,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private Scene m_Scene;
         private IConfig m_ScriptConfig;
         private Compiler m_Compiler;
+
+// disable warning: need to keep a reference to XEngine.EventManager
+// alive to avoid it being garbage collected
 #pragma warning disable 414
         private EventManager m_EventManager;
 #pragma warning restore 414
