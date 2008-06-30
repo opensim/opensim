@@ -228,8 +228,8 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
                     assetData = new byte[data.Length];
                     Array.Copy(data, assetData, data.Length);
                 }
-
-                //TODO delete the last asset(data), if it was a dynamic texture
+                
+                // Create a new asset for user
                 AssetBase asset = new AssetBase();
                 asset.FullID = LLUUID.Random();
                 asset.Data = assetData;
@@ -244,6 +244,11 @@ namespace OpenSim.Region.Environment.Modules.Scripting.DynamicTexture
 
                 // mostly keep the values from before
                 LLObject.TextureEntry tmptex = part.Shape.Textures;
+                
+                // remove the old asset from the cache
+                LLUUID oldID = tmptex.DefaultTexture.TextureID;
+                scene.AssetCache.ExpireAsset(oldID);
+
                 tmptex.DefaultTexture.TextureID = asset.FullID;
                 // I'm pretty sure we always want to force this to true
                 tmptex.DefaultTexture.Fullbright = true;
