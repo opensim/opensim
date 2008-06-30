@@ -761,6 +761,8 @@ namespace OpenSim.Data.MySQL
                 {
                     fillRegionSettingsRow(settingsRow, rs);
                 }
+
+                Commit();
             }
         }
 
@@ -910,6 +912,7 @@ namespace OpenSim.Data.MySQL
                 m_landDataAdapter.Update(m_landTable);
                 m_landAccessListDataAdapter.Update(m_landAccessListTable);
                 m_regionBanListDataAdapter.Update(m_regionBanListTable);
+                m_regionSettingsDataAdapter.Update(m_regionSettingsTable);
 
                 m_dataSet.AcceptChanges();
             }
@@ -999,6 +1002,9 @@ namespace OpenSim.Data.MySQL
             createCol(regionsettings, "fixed_sun", typeof (Int32));
             createCol(regionsettings, "sun_position", typeof (Double));
             createCol(regionsettings, "covenant", typeof(String));
+
+            regionsettings.PrimaryKey = new DataColumn[] {regionsettings.Columns["RegionUUID"]};
+
             return regionsettings;
         }
 

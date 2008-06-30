@@ -197,6 +197,7 @@ namespace OpenSim.Framework
         public string DataStore = String.Empty;
         public bool isSandbox = false;
         private EstateSettings m_estateSettings;
+        private RegionSettings m_regionSettings;
 
 //        public bool m_allow_alternate_ports;
 
@@ -278,6 +279,21 @@ namespace OpenSim.Framework
 
                 return m_estateSettings;
             }
+        }
+
+        public RegionSettings RegionSettings
+        {
+            get
+            {
+                if(m_regionSettings == null)
+                {
+                    m_regionSettings = new RegionSettings();
+                }
+
+                return m_regionSettings;
+            }
+
+            set { m_regionSettings = value; }
         }
 
         public void SetEndPoint(string ipaddr, int port)

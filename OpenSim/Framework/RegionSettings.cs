@@ -33,7 +33,7 @@ namespace OpenSim.Framework
 {
     public class RegionSettings
     {
-		private LLUUID m_RegionUUID;
+        private LLUUID m_RegionUUID = LLUUID.Zero;
 
 		public LLUUID RegionUUID
 		{
@@ -41,7 +41,7 @@ namespace OpenSim.Framework
 			set { m_RegionUUID = value; }
 		}
 
-		private bool m_BlockTerraform;
+        private bool m_BlockTerraform = false;
 		
 		public bool BlockTerraform
 		{
@@ -49,7 +49,7 @@ namespace OpenSim.Framework
 			set { m_BlockTerraform = value; }
 		}
 
-		private bool m_BlockFly;
+        private bool m_BlockFly = false;
 		
 		public bool BlockFly
 		{
@@ -57,7 +57,7 @@ namespace OpenSim.Framework
 			set { m_BlockFly = value; }
 		}
 
-		private bool m_AllowDamage;
+        private bool m_AllowDamage = false;
 		
 		public bool AllowDamage
 		{
@@ -65,7 +65,7 @@ namespace OpenSim.Framework
 			set { m_AllowDamage = value; }
 		}
 
-		private bool m_RestrictPushing;
+        private bool m_RestrictPushing = false;
 		
 		public bool RestrictPushing
 		{
@@ -73,7 +73,7 @@ namespace OpenSim.Framework
 			set { m_RestrictPushing = value; }
 		}
 
-		private bool m_AllowLandResell;
+        private bool m_AllowLandResell = true;
 		
 		public bool AllowLandResell
 		{
@@ -81,7 +81,7 @@ namespace OpenSim.Framework
 			set { m_AllowLandResell = value; }
 		}
 
-		private bool m_AllowLandJoinDivide;
+        private bool m_AllowLandJoinDivide = true;
 		
 		public bool AllowLandJoinDivide
 		{
@@ -89,7 +89,7 @@ namespace OpenSim.Framework
 			set { m_AllowLandJoinDivide = value; }
 		}
 
-		private bool m_BlockShowInSearch;
+        private bool m_BlockShowInSearch = false;
 		
 		public bool BlockShowInSearch
 		{
@@ -97,7 +97,7 @@ namespace OpenSim.Framework
 			set { m_BlockShowInSearch = value; }
 		}
 
-		private int m_AgentLimit;
+        private int m_AgentLimit = 40;
 		
 		public int AgentLimit
 		{
@@ -105,7 +105,7 @@ namespace OpenSim.Framework
 			set { m_AgentLimit = value; }
 		}
 
-		private double m_ObjectBonus;
+        private double m_ObjectBonus = 1.0;
 		
 		public double ObjectBonus
 		{
@@ -113,7 +113,7 @@ namespace OpenSim.Framework
 			set { m_ObjectBonus = value; }
 		}
 
-		private int m_Maturity;
+        private int m_Maturity = 1;
 		
 		public int Maturity
 		{
@@ -121,7 +121,7 @@ namespace OpenSim.Framework
 			set { m_Maturity = value; }
 		}
 
-		private bool m_DisableScripts;
+        private bool m_DisableScripts = false;
 		
 		public bool DisableScripts
 		{
@@ -129,7 +129,7 @@ namespace OpenSim.Framework
 			set { m_DisableScripts = value; }
 		}
 
-		private bool m_DisableCollisions;
+        private bool m_DisableCollisions = false;
 		
 		public bool DisableCollisions
 		{
@@ -137,7 +137,7 @@ namespace OpenSim.Framework
 			set { m_DisableCollisions = value; }
 		}
 
-		private bool m_DisablePhysics;
+        private bool m_DisablePhysics = false;
 		
 		public bool DisablePhysics
 		{
@@ -145,7 +145,7 @@ namespace OpenSim.Framework
 			set { m_DisablePhysics = value; }
 		}
 
-		private LLUUID m_TerrainTexture1;
+        private LLUUID m_TerrainTexture1 = LLUUID.Zero;
 		
 		public LLUUID TerrainTexture1
 		{
@@ -153,7 +153,7 @@ namespace OpenSim.Framework
 			set { m_TerrainTexture1 = value; }
 		}
 
-		private LLUUID m_TerrainTexture2;
+        private LLUUID m_TerrainTexture2 = LLUUID.Zero;
 		
 		public LLUUID TerrainTexture2
 		{
@@ -161,7 +161,7 @@ namespace OpenSim.Framework
 			set { m_TerrainTexture2 = value; }
 		}
 
-		private LLUUID m_TerrainTexture3;
+        private LLUUID m_TerrainTexture3 = LLUUID.Zero;
 		
 		public LLUUID TerrainTexture3
 		{
@@ -169,7 +169,7 @@ namespace OpenSim.Framework
 			set { m_TerrainTexture3 = value; }
 		}
 
-		private LLUUID m_TerrainTexture4;
+        private LLUUID m_TerrainTexture4 = LLUUID.Zero;
 		
 		public LLUUID TerrainTexture4
 		{
@@ -177,7 +177,7 @@ namespace OpenSim.Framework
 			set { m_TerrainTexture4 = value; }
 		}
 
-		private double m_Elevation1NW;
+        private double m_Elevation1NW = 10;
 		
 		public double Elevation1NW
 		{
@@ -185,7 +185,7 @@ namespace OpenSim.Framework
 			set { m_Elevation1NW = value; }
 		}
 
-		private double m_Elevation2NW;
+        private double m_Elevation2NW = 60;
 		
 		public double Elevation2NW
 		{
@@ -193,7 +193,7 @@ namespace OpenSim.Framework
 			set { m_Elevation2NW = value; }
 		}
 
-		private double m_Elevation1NE;
+        private double m_Elevation1NE = 10;
 		
 		public double Elevation1NE
 		{
@@ -201,7 +201,7 @@ namespace OpenSim.Framework
 			set { m_Elevation1NE = value; }
 		}
 
-		private double m_Elevation2NE;
+        private double m_Elevation2NE = 60;
 		
 		public double Elevation2NE
 		{
@@ -209,7 +209,7 @@ namespace OpenSim.Framework
 			set { m_Elevation2NE = value; }
 		}
 
-		private double m_Elevation1SE;
+        private double m_Elevation1SE = 10;
 		
 		public double Elevation1SE
 		{
@@ -217,7 +217,7 @@ namespace OpenSim.Framework
 			set { m_Elevation1SE = value; }
 		}
 
-		private double m_Elevation2SE;
+        private double m_Elevation2SE = 60;
 		
 		public double Elevation2SE
 		{
@@ -225,7 +225,7 @@ namespace OpenSim.Framework
 			set { m_Elevation2SE = value; }
 		}
 
-		private double m_Elevation1SW;
+        private double m_Elevation1SW = 10;
 		
 		public double Elevation1SW
 		{
@@ -233,7 +233,7 @@ namespace OpenSim.Framework
 			set { m_Elevation1SW = value; }
 		}
 
-		private double m_Elevation2SW;
+        private double m_Elevation2SW = 60;
 		
 		public double Elevation2SW
 		{
@@ -241,7 +241,7 @@ namespace OpenSim.Framework
 			set { m_Elevation2SW = value; }
 		}
 
-		private double m_WaterHeight;
+        private double m_WaterHeight = 20;
 		
 		public double WaterHeight
 		{
@@ -249,7 +249,7 @@ namespace OpenSim.Framework
 			set { m_WaterHeight = value; }
 		}
 
-		private double m_TerrainRaiseLimit;
+        private double m_TerrainRaiseLimit = 100;
 		
 		public double TerrainRaiseLimit
 		{
@@ -257,7 +257,7 @@ namespace OpenSim.Framework
 			set { m_TerrainRaiseLimit = value; }
 		}
 
-		private double m_TerrainLowerLimit;
+        private double m_TerrainLowerLimit = 100;
 		
 		public double TerrainLowerLimit
 		{
@@ -265,7 +265,7 @@ namespace OpenSim.Framework
 			set { m_TerrainLowerLimit = value; }
 		}
 
-		private bool m_UseEstateSun;
+        private bool m_UseEstateSun = true;
 		
 		public bool UseEstateSun
 		{
@@ -273,7 +273,7 @@ namespace OpenSim.Framework
 			set { m_UseEstateSun = value; }
 		}
 
-		private bool m_FixedSun;
+        private bool m_FixedSun = false;
 		
 		public bool FixedSun
 		{
@@ -281,7 +281,7 @@ namespace OpenSim.Framework
 			set { m_FixedSun = value; }
 		}
 
-		private double m_SunPosition;
+        private double m_SunPosition = 0.0;
 		
 		public double SunPosition
 		{
@@ -289,7 +289,7 @@ namespace OpenSim.Framework
 			set { m_SunPosition = value; }
 		}
 
-		private LLUUID m_Covenant;
+        private LLUUID m_Covenant = LLUUID.Zero;
 		
 		public LLUUID Covenant
 		{

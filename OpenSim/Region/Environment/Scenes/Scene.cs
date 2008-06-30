@@ -264,6 +264,14 @@ namespace OpenSim.Region.Environment.Scenes
             m_eventManager = new EventManager();
             m_externalChecks = new SceneExternalChecks(this);
 
+            // Load region settings
+            // First try database
+            m_regInfo.RegionSettings = m_storageManager.DataStore.LoadRegionSettings(m_regInfo.RegionID);
+            // If the database access failed, this will create defaults
+            m_regInfo.RegionSettings.RegionUUID = m_regInfo.RegionID;
+            // Finally, save the defaults
+            m_storageManager.DataStore.StoreRegionSettings(m_regInfo.RegionSettings);
+
             //Bind Storage Manager functions to some land manager functions for this scene
             EventManager.OnLandObjectAdded +=
                 new EventManager.LandObjectAdded(m_storageManager.DataStore.StoreLandObject);
