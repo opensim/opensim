@@ -1960,9 +1960,9 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 m_log.Info("[REGION]: Add New Scene Presence");
 
-                CreateAndAddScenePresence(client, child);
-
                 CommsManager.UserProfileCacheService.AddNewUser(client.AgentId);
+
+                CreateAndAddScenePresence(client, child);
             }
             EventManager.TriggerOnNewClient(client);
         }
