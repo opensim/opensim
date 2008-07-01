@@ -46,6 +46,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
         IConfig Config { get; }
         Object AsyncCommands { get; }
         ILog Log { get; }
+        string ScriptEngineName { get; }
 
         bool PostScriptEvent(LLUUID itemID, EventParams parms);
         bool PostObjectEvent(uint localID, EventParams parms);

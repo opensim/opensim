@@ -64,5 +64,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
 
         double osList2Double(LSL_Types.list src, int index);
         void osSetRegionWaterHeight(double height);
+
+        string osGetScriptEngineName();
     }
 }

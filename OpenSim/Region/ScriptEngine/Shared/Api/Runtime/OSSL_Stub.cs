@@ -195,5 +195,10 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         {
             m_OSSL_Functions.osSetStateEvents(events);
         }
+
+        public string osGetScriptEngineName()
+        {
+            return m_OSSL_Functions.osGetScriptEngineName();
+        }
     }
 }

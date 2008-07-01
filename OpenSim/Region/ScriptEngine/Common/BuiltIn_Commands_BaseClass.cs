@@ -2022,6 +2022,11 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_LSL_Functions.osOpenRemoteDataChannel(channel);
         }
 
+        public string osGetScriptEngineName()
+        {
+            return m_LSL_Functions.osGetScriptEngineName();
+        }
+
         //
 
         public double llList2Float(LSL_Types.list src, int index)

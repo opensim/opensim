@@ -543,5 +543,31 @@ namespace OpenSim.Region.ScriptEngine.Common
                 m_ScriptEngine.m_EventQueueManager.AddToScriptQueue(m_localID, m_itemID, "remote_data", EventQueueManager.llDetectNull, resobj);
             }
         }
+
+        public string osGetScriptEngineName()
+        {
+            m_host.AddScriptLPS(1);
+
+            int scriptEngineNameIndex = 0;
+
+            if (!String.IsNullOrEmpty(m_ScriptEngine.ScriptEngineName))
+            {
+                // parse off the "ScriptEngine."
+                scriptEngineNameIndex = m_ScriptEngine.ScriptEngineName.IndexOf(".", scriptEngineNameIndex);
+                scriptEngineNameIndex++; // get past delimiter
+
+                int scriptEngineNameLength = m_ScriptEngine.ScriptEngineName.Length - scriptEngineNameIndex;
+
+                // create char array then a string that is only the script engine name
+                Char[] scriptEngineNameCharArray = m_ScriptEngine.ScriptEngineName.ToCharArray(scriptEngineNameIndex, scriptEngineNameLength);
+                String scriptEngineName = new String(scriptEngineNameCharArray);
+
+                return scriptEngineName;
+            }
+            else
+            {
+                return String.Empty;
+            } 
+        }
     }
 }

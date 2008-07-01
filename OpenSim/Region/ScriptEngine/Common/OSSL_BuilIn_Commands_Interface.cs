@@ -64,5 +64,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         void osOpenRemoteDataChannel(string channel);
 
+        string osGetScriptEngineName();
+
     }
 }
