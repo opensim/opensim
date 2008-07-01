@@ -736,7 +736,14 @@ namespace OpenSim.Data.MySQL
                 string searchExp = "regionUUID = '" + regionUUID.ToString() + "'";
                 DataRow[] rawsettings = regionsettings.Select(searchExp);
                 if(rawsettings.Length == 0)
-                    return null;
+                {
+                    RegionSettings rs = new RegionSettings();
+                    rs.RegionUUID = regionUUID;
+
+                    StoreRegionSettings(rs);
+
+                    return rs;
+                }
                 DataRow row = rawsettings[0];
 
                 return buildRegionSettings(row);

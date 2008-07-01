@@ -26,6 +26,8 @@
  */
 
 using System;
+using System.IO;
+using System.Reflection;
 using libsecondlife;
 using log4net;
 
@@ -33,6 +35,205 @@ namespace OpenSim.Framework
 {
     public class RegionSettings
     {
+        private ConfigurationMember configMember;
+
+        public delegate void SaveDelegate(RegionSettings rs);
+
+        public event SaveDelegate OnSave;
+
+        public RegionSettings()
+        {
+            if (configMember == null)
+            {
+                configMember = new ConfigurationMember(Path.Combine(Util.configDir(), "estate_settings.xml"), "ESTATE SETTINGS", LoadConfigurationOptions, HandleIncomingConfiguration, true);
+                configMember.performConfigurationRetrieve();
+            }
+        }
+
+        public void LoadConfigurationOptions()
+        {
+             configMember.addConfigurationOption("region_flags",
+                     ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
+                     String.Empty, "336723974", true);
+
+             configMember.addConfigurationOption("max_agents",
+                     ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+                     String.Empty, "40", true);
+
+             configMember.addConfigurationOption("object_bonus_factor",
+                     ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE,
+                     String.Empty, "1.0", true);
+
+             configMember.addConfigurationOption("sim_access",
+                     ConfigurationOption.ConfigurationTypes.TYPE_INT32,
+                     String.Empty, "21", true);
+
+             configMember.addConfigurationOption("terrain_detail_0",
+                     ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                     String.Empty, "00000000-0000-0000-0000-000000000000",true);
+
+             configMember.addConfigurationOption("terrain_detail_1",
+                     ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                     String.Empty, "00000000-0000-0000-0000-000000000000",true);
+
+             configMember.addConfigurationOption("terrain_detail_2",
+                     ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                     String.Empty, "00000000-0000-0000-0000-000000000000",true);
+
+             configMember.addConfigurationOption("terrain_detail_3",
+                     ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
+                     String.Empty, "00000000-0000-0000-0000-000000000000",true);
+
+             configMember.addConfigurationOption("terrain_start_height_0",
+                     ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE,
+                     String.Empty, "10.0", true);
+
+             configMember.addConfigurationOption("terrain_start_height_1",
+                     ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE,
+                     String.Empty, "10.0", true);
+
+             configMember.addConfigurationOption("terrain_start_height_2",
+                     ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE,
+                     String.Empty, "10.0", true);
+
+             configMember.addConfigurationOption("terrain_start_height_3",
+                     ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE,
+                     String.Empty, "10.0", true);
+
+             configMember.addConfigurationOption("terrain_height_range_0",
+                     ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE,
+                     String.Empty, "60.0", true);
+
+             configMember.addConfigurationOption("terrain_height_range_1",
+                     ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE,
+                     String.Empty, "60.0", true);
+
+             configMember.addConfigurationOption("terrain_height_range_2",
+                     ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE,
+                     String.Empty, "60.0", true);
+
+             configMember.addConfigurationOption("terrain_height_range_3",
+                     ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE,
+                     String.Empty, "60.0", true);
+
+             configMember.addConfigurationOption("region_water_height",
+                     ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE,
+                     String.Empty, "20.0", true);
+
+             configMember.addConfigurationOption("terrain_raise_limit",
+                     ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE,
+                     String.Empty, "100.0", true);
+
+             configMember.addConfigurationOption("terrain_lower_limit",
+                     ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE,
+                     String.Empty, "100.0", true);
+
+             configMember.addConfigurationOption("sun_hour",
+                     ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE,
+                     String.Empty, "0.0", true);
+        }
+
+        public bool HandleIncomingConfiguration(string key, object value)
+        {
+            switch(key)
+            {
+            case "region_flags":
+                Simulator.RegionFlags flags = (Simulator.RegionFlags)(uint)value;
+                
+                m_BlockTerraform =
+                        (flags & Simulator.RegionFlags.BlockTerraform) != 0;
+                m_BlockFly =
+                        (flags & Simulator.RegionFlags.NoFly) != 0;
+                m_AllowDamage =
+                        (flags & Simulator.RegionFlags.AllowDamage) != 0;
+                m_RestrictPushing =
+                        (flags & Simulator.RegionFlags.RestrictPushObject) != 0;
+                m_AllowLandResell =
+                        (flags & Simulator.RegionFlags.BlockLandResell) == 0;
+                m_AllowLandJoinDivide =
+                        (flags & Simulator.RegionFlags.AllowParcelChanges) != 0;
+                m_BlockShowInSearch =
+                        ((uint)flags & (1 << 29)) != 0;
+                m_DisableScripts =
+                        (flags & Simulator.RegionFlags.SkipScripts) != 0;
+                m_DisableCollisions =
+                        (flags & Simulator.RegionFlags.SkipCollisions) != 0;
+                m_DisablePhysics =
+                        (flags & Simulator.RegionFlags.SkipPhysics) != 0;
+                m_FixedSun =
+                        (flags & Simulator.RegionFlags.SunFixed) != 0;
+                break;
+            case "max_agents":
+                m_AgentLimit = (int)value;
+                break;
+            case "object_bonus_factor":
+                m_ObjectBonus = (double)value;
+                break;
+            case "sim_access":
+                int access = (int)value;
+                if(access <= 13)
+                    m_Maturity = 0;
+                else
+                    m_Maturity = 1;
+                break;
+            case "terrain_detail_0":
+                m_TerrainTexture1 = (LLUUID)value;
+                break;
+            case "terrain_detail_1":
+                m_TerrainTexture1 = (LLUUID)value;
+                break;
+            case "terrain_detail_2":
+                m_TerrainTexture1 = (LLUUID)value;
+                break;
+            case "terrain_detail_3":
+                m_TerrainTexture1 = (LLUUID)value;
+                break;
+            case "terrain_start_height_0":
+                m_Elevation1SW = (double)value;
+                break;
+            case "terrain_start_height_1":
+                m_Elevation1NW = (double)value;
+                break;
+            case "terrain_start_height_2":
+                m_Elevation1SE = (double)value;
+                break;
+            case "terrain_start_height_3":
+                m_Elevation1NE = (double)value;
+                break;
+            case "terrain_height_range_0":
+                m_Elevation2SW = (double)value;
+                break;
+            case "terrain_height_range_1":
+                m_Elevation2NW = (double)value;
+                break;
+            case "terrain_height_range_2":
+                m_Elevation2SE = (double)value;
+                break;
+            case "terrain_height_range_3":
+                m_Elevation2NE = (double)value;
+                break;
+            case "region_water_height":
+                m_WaterHeight = (double)value;
+                break;
+            case "terrain_raise_limit":
+                m_TerrainRaiseLimit = (double)value;
+                break;
+            case "terrain_lower_limit":
+                m_TerrainLowerLimit = (double)value;
+                break;
+            case "sun_hour":
+                m_SunPosition = (double)value;
+                break;
+            }
+
+            return true;
+        }
+
+        public void Save()
+        {
+            OnSave(this);
+        }
+
         private LLUUID m_RegionUUID = LLUUID.Zero;
 
 		public LLUUID RegionUUID

@@ -267,10 +267,10 @@ namespace OpenSim.Region.Environment.Scenes
             // Load region settings
             // First try database
             m_regInfo.RegionSettings = m_storageManager.DataStore.LoadRegionSettings(m_regInfo.RegionID);
-            // If the database access failed, this will create defaults
-            m_regInfo.RegionSettings.RegionUUID = m_regInfo.RegionID;
-            // Finally, save the defaults
-            m_storageManager.DataStore.StoreRegionSettings(m_regInfo.RegionSettings);
+
+            // Hook up save event
+            m_regInfo.RegionSettings.OnSave +=  m_storageManager.DataStore.StoreRegionSettings;
+
 
             //Bind Storage Manager functions to some land manager functions for this scene
             EventManager.OnLandObjectAdded +=
