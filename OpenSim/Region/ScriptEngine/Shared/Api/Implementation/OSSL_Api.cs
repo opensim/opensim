@@ -552,6 +552,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
         public string osGetScriptEngineName()
         {
+            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            {
+                OSSLError("osGetScriptEngineName: permission denied");
+                return "";
+            }
+
             m_host.AddScriptLPS(1);
 
             int scriptEngineNameIndex = 0;
