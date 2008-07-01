@@ -401,6 +401,17 @@ namespace OpenSim
                     }
                     break;
 
+                case "save-prims-xml2":
+                    if (cmdparams.Length > 1)
+                    {
+                        m_sceneManager.SaveNamedPrimsToXml2(cmdparams[0], cmdparams[1]);
+                    }
+                    else
+                    {
+                        m_sceneManager.SaveNamedPrimsToXml2("Primitive", DEFAULT_PRIM_BACKUP_FILENAME);
+                    }
+                    break;
+
                 case "load-oar":
                     m_log.Error("[CONSOLE]: Don't use me - I haven't yet been sufficiently implemented!");
 

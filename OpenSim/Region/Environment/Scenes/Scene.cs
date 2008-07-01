@@ -1738,6 +1738,27 @@ namespace OpenSim.Region.Environment.Scenes
             m_serialiser.SavePrimsToXml2(this, fileName);
         }
 
+
+        public void SaveNamedPrimsToXml2(string primName, string fileName)
+        {
+            List<EntityBase> entityList = GetEntities();
+            List<EntityBase> primList = new List<EntityBase>();
+
+            foreach (EntityBase ent in entityList)
+            {
+                if (ent is SceneObjectGroup)
+                {
+                    if (ent.Name == primName)
+                    {
+                        primList.Add(ent);
+                    }
+                }
+            }
+
+            m_serialiser.SavePrimListToXml2(primList, fileName);
+        }
+
+
         /// <summary>
         /// Load a prim archive into the scene.  This loads both prims and their assets.
         /// </summary>

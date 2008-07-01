@@ -186,18 +186,23 @@ namespace OpenSim.Region.Environment.Scenes
 
         public static void SavePrimsToXml2(Scene scene, string fileName)
         {
+            List<EntityBase> EntityList = scene.GetEntities();
+
+            SavePrimListToXml2(EntityList, fileName);
+        }
+
+        public static void SavePrimListToXml2(List<EntityBase> entityList, string fileName)
+        {
             FileStream file = new FileStream(fileName, FileMode.Create);
             StreamWriter stream = new StreamWriter(file);
             int primCount = 0;
             stream.WriteLine("<scene>\n");
 
-            List<EntityBase> EntityList = scene.GetEntities();
-
-            foreach (EntityBase ent in EntityList)
+            foreach (EntityBase ent in entityList)
             {
                 if (ent is SceneObjectGroup)
                 {
-                    stream.WriteLine(((SceneObjectGroup) ent).ToXmlString2());
+                    stream.WriteLine(((SceneObjectGroup)ent).ToXmlString2());
                     primCount++;
                 }
             }

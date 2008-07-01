@@ -204,6 +204,11 @@ namespace OpenSim.Region.Environment.Scenes
             CurrentOrFirstScene.SavePrimsToXml2(filename);
         }
 
+        public void SaveNamedPrimsToXml2(string primName, string filename)
+        {
+            CurrentOrFirstScene.SaveNamedPrimsToXml2( primName, filename);
+        }
+
         /// <summary>
         /// Load an xml file of prims in OpenSimulator's current 'xml2' file format to the current scene
         /// </summary>

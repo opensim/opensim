@@ -122,6 +122,11 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
             return SceneXmlLoader.SaveGroupToXml2(grp);
         }
 
+        public void SavePrimListToXml2(List<EntityBase> entityList, string fileName)
+        {
+            SceneXmlLoader.SavePrimListToXml2(entityList, fileName);
+        }
+
         public List<string> SerialiseRegion(Scene scene, string saveDir)
         {
             List<string> results = new List<string>();

@@ -74,6 +74,13 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
         void SavePrimsToXml2(Scene scene, string fileName);
 
         /// <summary>
+        /// Save a set of prims in the xml2 format
+        /// </summary>
+        /// <param name="entityList"></param>
+        /// <param name="fileName"></param>
+        void SavePrimListToXml2(List<EntityBase> entityList, string fileName);
+
+        /// <summary>
         /// Load an individual scene object from the xml2 format
         /// </summary>
         /// <param name="scene"></param>
