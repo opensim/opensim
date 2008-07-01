@@ -98,12 +98,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         public XmlRpcResponse XmlRpcRestartMethod(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable) request.Params[0];
-
             Hashtable responseData = new Hashtable();
 
-            m_log.Info("[RADMIN]: Request to restart Region.");
             try {
+                Hashtable requestData = (Hashtable) request.Params[0];
+
+                m_log.Info("[RADMIN]: Request to restart Region.");
                 checkStringParameters(request, new string[] { "password", "regionID" });
 
                 if (requiredPassword != String.Empty &&
@@ -140,10 +140,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         public XmlRpcResponse XmlRpcAlertMethod(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
 
             try {
+                Hashtable requestData = (Hashtable) request.Params[0];
+
                 checkStringParameters(request, new string[] { "password", "message" });
 
                 if (requiredPassword != String.Empty &&
@@ -175,17 +176,18 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         public XmlRpcResponse XmlRpcLoadHeightmapMethod(XmlRpcRequest request)
         {
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable)request.Params[0];
-
-            m_log.DebugFormat("[RADMIN]: Load Terrain: XmlRpc {0}", request.ToString());
-            foreach (string k in requestData.Keys)
-            {
-                m_log.DebugFormat("[RADMIN]: Load Terrain: XmlRpc {0}: >{1}< {2}",
-                                  k, (string)requestData[k], ((string)requestData[k]).Length);
-            }
-
             Hashtable responseData = new Hashtable();
+
             try {
+                Hashtable requestData = (Hashtable)request.Params[0];
+
+                m_log.DebugFormat("[RADMIN]: Load Terrain: XmlRpc {0}", request.ToString());
+                // foreach (string k in requestData.Keys)
+                // {
+                //     m_log.DebugFormat("[RADMIN]: Load Terrain: XmlRpc {0}: >{1}< {2}",
+                //                       k, (string)requestData[k], ((string)requestData[k]).Length);
+                // }
+
                 checkStringParameters(request, new string[] { "password", "filename", "regionid"});
 
                 if (requiredPassword != String.Empty &&
@@ -227,10 +229,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         {
             m_log.Info("[RADMIN]: Received Shutdown Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
 
             try {
+                Hashtable requestData = (Hashtable) request.Params[0];
+
                 if (requiredPassword != String.Empty &&
                     (!requestData.Contains("password") || (string) requestData["password"] != requiredPassword))
                     throw new Exception("wrong password");
@@ -355,10 +358,11 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         {
             m_log.Info("[RADMIN]: CreateRegion: new request");
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
 
             try {
+                Hashtable requestData = (Hashtable) request.Params[0];
+
                 checkStringParameters(request, new string[] { "password",
                                                               "region_name",
                                                               "region_master_first", "region_master_last",
@@ -507,11 +511,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         {
             m_log.Info("[RADMIN]: CreateUser: new request");
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
 
             try
             {
+                Hashtable requestData = (Hashtable) request.Params[0];
+            
                 // check completeness
                 checkStringParameters(request, new string[] { "password", "user_firstname",
                                                               "user_lastname", "user_password" });
@@ -563,11 +568,12 @@ namespace OpenSim.ApplicationPlugins.RemoteController
         {
             m_log.Info("[RADMIN]: Received Load XML Administrator Request");
             XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable requestData = (Hashtable) request.Params[0];
             Hashtable responseData = new Hashtable();
 
             try
             {
+                Hashtable requestData = (Hashtable) request.Params[0];
+
                 // check completeness
                 foreach (string p in new string[] { "password", "filename" })
                 {
