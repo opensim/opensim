@@ -866,6 +866,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private string m_ScriptName;
         private string m_Assembly;
         private int m_StartParam = 0;
+        private string m_CurrentEvent = String.Empty;
 
         private Dictionary<string,IScriptApi> m_Apis = new Dictionary<string,IScriptApi>();
 
@@ -1269,6 +1270,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
             else
             {
+                m_CurrentEvent = data.EventName;
 //                m_Engine.Log.DebugFormat("[XEngine] Processed event {0}", data.EventName);
                 SceneObjectPart part = m_Engine.World.GetSceneObjectPart(
                     m_LocalID);
@@ -1363,8 +1365,11 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_State = "default";
             if (running)
                 Start();
-            PostEvent(new EventParams("state_entry",
-                    new Object[0], new DetectParams[0]));
+            if(m_CurrentEvent != "state_entry")
+            {
+                PostEvent(new EventParams("state_entry",
+                        new Object[0], new DetectParams[0]));
+            }
         }
 
         public Dictionary<string, object> GetVars()
