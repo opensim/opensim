@@ -196,7 +196,6 @@ namespace OpenSim.Region.Environment.Scenes
         protected byte[] m_particleSystem = new byte[0];
         protected ulong m_regionHandle;
         protected LLQuaternion m_rotationOffset;
-        protected LLVector3 m_rotationalvelocity;
         protected PrimitiveBaseShape m_shape;
         protected LLUUID m_uuid;
         protected LLVector3 m_velocity;
@@ -255,7 +254,6 @@ namespace OpenSim.Region.Environment.Scenes
             OffsetPosition = offsetPosition;
             RotationOffset = rotationOffset;
             Velocity = new LLVector3(0, 0, 0);
-            m_rotationalvelocity = new LLVector3(0, 0, 0);
             AngularVelocity = new LLVector3(0, 0, 0);
             Acceleration = new LLVector3(0, 0, 0);
             m_TextureAnimation = new byte[0];
@@ -601,28 +599,21 @@ namespace OpenSim.Region.Environment.Scenes
 
         public LLVector3 RotationalVelocity
         {
-            get
-            {
-                //if (PhysActor.Velocity.x != 0 || PhysActor.Velocity.y != 0
-                //|| PhysActor.Velocity.z != 0)
-                //{
-                if (PhysActor != null)
-                {
-                    if (PhysActor.IsPhysical)
-                    {
-                        m_rotationalvelocity.FromBytes(PhysActor.RotationalVelocity.GetBytes(), 0);
-                    }
-                }
-
-                return m_rotationalvelocity;
-            }
-            set { m_rotationalvelocity = value; }
+            get { return AngularVelocity; }
+            set { AngularVelocity = value; }
         }
 
         /// <summary></summary>
         public LLVector3 AngularVelocity
         {
-            get { return m_angularVelocity; }
+            get 
+            { 
+                if ((PhysActor != null) && PhysActor.IsPhysical)
+                {
+                    m_angularVelocity.FromBytes(PhysActor.RotationalVelocity.GetBytes(), 0);
+                }
+                return m_angularVelocity; 
+            }
             set { m_angularVelocity = value; }
         }
 
@@ -1308,9 +1299,9 @@ namespace OpenSim.Region.Environment.Scenes
             info.AddValue("m_velocity.Y", m_velocity.Y);
             info.AddValue("m_velocity.Z", m_velocity.Z);
 
-            info.AddValue("m_rotationalvelocity.X", m_rotationalvelocity.X);
-            info.AddValue("m_rotationalvelocity.Y", m_rotationalvelocity.Y);
-            info.AddValue("m_rotationalvelocity.Z", m_rotationalvelocity.Z);
+            info.AddValue("m_rotationalvelocity.X", RotationalVelocity.X);
+            info.AddValue("m_rotationalvelocity.Y", RotationalVelocity.Y);
+            info.AddValue("m_rotationalvelocity.Z", RotationalVelocity.Z);
 
             info.AddValue("m_angularVelocity.X", m_angularVelocity.X);
             info.AddValue("m_angularVelocity.Y", m_angularVelocity.Y);
