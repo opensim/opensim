@@ -180,21 +180,19 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 GetSceneObjectAssetUuids(sceneObject, assetUuids);
             }
 
-            if (sceneObjects.Count > 0)
-            {
-                m_log.DebugFormat("[ARCHIVER]: Successfully got serialization for {0} scene objects", sceneObjects.Count);
-                m_log.DebugFormat("[ARCHIVER]: Requiring save of {0} assets", assetUuids.Count);
+            m_log.DebugFormat(
+                "[ARCHIVER]: {0} scene objects to serialize requiring save of {1} assets", 
+                sceneObjects.Count, assetUuids.Count);
 
-                // Asynchronously request all the assets required to perform this archive operation
-                ArchiveWriteRequestExecution awre 
-                    = new ArchiveWriteRequestExecution(
-                        sceneObjects, 
-                        m_scene.RequestModuleInterface<ITerrainModule>(),
-                        m_scene.RequestModuleInterface<IRegionSerialiser>(),
-                        m_scene.RegionInfo.RegionName,
-                        m_savePath);
-                new AssetsRequest(assetUuids.Keys, m_scene.AssetCache, awre.ReceivedAllAssets).Execute();
-            }
+            // Asynchronously request all the assets required to perform this archive operation
+            ArchiveWriteRequestExecution awre 
+                = new ArchiveWriteRequestExecution(
+                    sceneObjects, 
+                    m_scene.RequestModuleInterface<ITerrainModule>(),
+                    m_scene.RequestModuleInterface<IRegionSerialiser>(),
+                    m_scene.RegionInfo.RegionName,
+                    m_savePath);
+            new AssetsRequest(assetUuids.Keys, m_scene.AssetCache, awre.ReceivedAllAssets).Execute();
         }
     }
 }

@@ -118,9 +118,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// <summary>
         /// Create the control file for this archive
         /// </summary>
-        /// <returns>
-        /// A <see cref="System.String"/>
-        /// </returns>
+        /// <returns></returns>
         protected string CreateControlFile()
         {
             StringWriter sw = new StringWriter();
