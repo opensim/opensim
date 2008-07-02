@@ -303,7 +303,9 @@ namespace OpenSim.Region.Physics.Meshing
             System.Console.WriteLine("Extruder: PathScaleX: " + pathScaleX.ToString() + " pathScaleY: " + pathScaleY.ToString());
 #endif
 
-            float percentOfPath = 0.0f;
+            //float percentOfPath = 0.0f;
+            float percentOfPath = (float)pathBegin * 2.0e-5f;
+            zOffset += percentOfPath;
             bool done = false;
             do // loop through the length of the path and add the layers
             {
@@ -409,6 +411,9 @@ namespace OpenSim.Region.Physics.Meshing
                     xOffset += xOffsetStepIncrement;
                     yOffset += yOffsetStepIncrement;
                     zOffset += stepSize;
+
+                    if (percentOfPath > 1.0f - (float)pathEnd * 2.0e-5f)
+                        done = true;
                 }
                 else done = true;
 

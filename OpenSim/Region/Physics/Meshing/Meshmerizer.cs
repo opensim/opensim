@@ -664,6 +664,8 @@ namespace OpenSim.Region.Physics.Meshing
 
             extr.twistTop = (float)primShape.PathTwist * (float)Math.PI * 0.01f;
             extr.twistBot = (float)primShape.PathTwistBegin * (float)Math.PI * 0.01f;
+            extr.pathBegin = primShape.PathBegin;
+            extr.pathEnd = primShape.PathEnd;
 
             //Mesh result = extr.Extrude(m);
             Mesh result = extr.ExtrudeLinearPath(m);
@@ -1016,6 +1018,8 @@ namespace OpenSim.Region.Physics.Meshing
 
             extr.twistTop = (float)primShape.PathTwist * (float)Math.PI * 0.01f;
             extr.twistBot = (float)primShape.PathTwistBegin * (float)Math.PI * 0.01f;
+            extr.pathBegin = primShape.PathBegin;
+            extr.pathEnd = primShape.PathEnd;
             
             //System.Console.WriteLine("[MESH]: twistTop = " + twistTop.ToString() + "|" + extr.twistTop.ToString() + ", twistMid = " + twistMid.ToString() + "|" + extr.twistMid.ToString() + ", twistbot = " + twistBot.ToString() + "|" + extr.twistBot.ToString());
             //Mesh result = extr.Extrude(m);
@@ -1260,6 +1264,8 @@ namespace OpenSim.Region.Physics.Meshing
 
             extr.twistTop = (float)primShape.PathTwist * (float)Math.PI * 0.01f;
             extr.twistBot = (float)primShape.PathTwistBegin * (float)Math.PI * 0.01f;
+            extr.pathBegin = primShape.PathBegin;
+            extr.pathEnd = primShape.PathEnd;
 
             //System.Console.WriteLine("[MESH]: twistTop = " + twistTop.ToString() + "|" + extr.twistTop.ToString() + ", twistMid = " + twistMid.ToString() + "|" + extr.twistMid.ToString() + ", twistbot = " + twistBot.ToString() + "|" + extr.twistBot.ToString());
             //Mesh result = extr.Extrude(m);
@@ -2059,12 +2065,17 @@ namespace OpenSim.Region.Physics.Meshing
 
             float pathShearX = primShape.PathShearX < 128 ? (float)primShape.PathShearX * 0.01f : (float)(primShape.PathShearX - 256) * 0.01f;
             float pathShearY = primShape.PathShearY < 128 ? (float)primShape.PathShearY * 0.01f : (float)(primShape.PathShearY - 256) * 0.01f;
+            float pathBegin = (float)primShape.PathBegin * 2.0e-5f;
+            float pathEnd = 1.0f - (float)primShape.PathEnd * 2.0e-5f;
+            
+            float profileBegin = (float)primShape.ProfileBegin * 2.0e-5f;
+            float profileEnd = 1.0f - (float)primShape.ProfileEnd * 2.0e-5f;
 
             Console.WriteLine("********************* PrimitiveBaseShape Parameters *******************\n"
                 + "Name.............: " + name.ToString() + "\n"
                 + "HollowShape......: " + primShape.HollowShape.ToString() + "\n"
-                + "PathBegin........: " + primShape.PathBegin.ToString() + "\n"
-                + "PathCurve........: " + primShape.PathCurve.ToString() + "\n"
+                + "PathBegin........: " + primShape.PathBegin.ToString() + " " + pathBegin.ToString() + "\n"
+                + "PathCurve........: " + primShape.PathCurve.ToString() + " " + pathEnd.ToString() + "\n"
                 + "PathEnd..........: " + primShape.PathEnd.ToString() + "\n"
                 + "PathRadiusOffset.: " + primShape.PathRadiusOffset.ToString() + "\n"
                 + "PathRevolutions..: " + primShape.PathRevolutions.ToString() + "\n"
@@ -2077,9 +2088,9 @@ namespace OpenSim.Region.Physics.Meshing
                 + "PathTaperY.......: " + primShape.PathTaperY.ToString() + "\n"
                 + "PathTwist........: " + primShape.PathTwist.ToString() + "\n"
                 + "PathTwistBegin...: " + primShape.PathTwistBegin.ToString() + "\n"
-                + "ProfileBegin.....: " + primShape.ProfileBegin.ToString() + "\n"
+                + "ProfileBegin.....: " + primShape.ProfileBegin.ToString() + " " + profileBegin.ToString() + "\n"
                 + "ProfileCurve.....: " + primShape.ProfileCurve.ToString() + "\n"
-                + "ProfileEnd.......: " + primShape.ProfileEnd.ToString() + "\n"
+                + "ProfileEnd.......: " + primShape.ProfileEnd.ToString() + " " + profileEnd.ToString() + "\n"
                 + "ProfileHollow....: " + primShape.ProfileHollow.ToString() + "\n"
                 + "ProfileShape.....: " + primShape.ProfileShape.ToString() + "\n"
                 );
