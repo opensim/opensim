@@ -34,6 +34,7 @@ using System.Threading;
 using Nini.Config;
 using Axiom.Math;
 using libsecondlife;
+using libsecondlife.Packets;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
 using OpenSim.Region.Environment;
@@ -4778,6 +4779,316 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
             return Util.Md5Hash(src + ":" + nonce.ToString());
         }
+        
+        private ObjectShapePacket.ObjectDataBlock SetPrimitiveShapeParams(int holeshape, LSL_Types.Vector3 cut, float hollow, LSL_Types.Vector3 twist)
+        {
+            ObjectShapePacket.ObjectDataBlock shapeBlock = new ObjectShapePacket.ObjectDataBlock();
+            
+            if (holeshape != (int)BuiltIn_Commands_BaseClass.PRIM_HOLE_DEFAULT &&
+                holeshape != (int)BuiltIn_Commands_BaseClass.PRIM_HOLE_CIRCLE &&
+                holeshape != (int)BuiltIn_Commands_BaseClass.PRIM_HOLE_SQUARE &&
+                holeshape != (int)BuiltIn_Commands_BaseClass.PRIM_HOLE_TRIANGLE)
+            {
+                holeshape = (int)BuiltIn_Commands_BaseClass.PRIM_HOLE_DEFAULT;
+            }
+            shapeBlock.ProfileCurve = (byte)holeshape;
+            if (cut.x < 0f)
+            {
+                cut.x = 0f;
+            }
+            if (cut.x > 1f)
+            {
+                cut.x = 1f;
+            }
+            if (cut.y < 0f)
+            {
+                cut.y = 0f;
+            }
+            if (cut.y > 1f)
+            {
+                cut.y = 1f;
+            }
+            if (cut.y - cut.x < 0.05f)
+            {
+                cut.x = cut.y - 0.05f;
+            }
+            shapeBlock.ProfileBegin = (ushort)(50000 * cut.x);
+            shapeBlock.ProfileEnd = (ushort)(50000 * (1 - cut.y));
+            if (hollow < 0f)
+            {
+                hollow = 0f;
+            }
+            if (hollow > 0.95)
+            {
+                hollow = 0.95f;
+            }
+            shapeBlock.ProfileHollow = (ushort)(50000 * hollow);
+            if (twist.x < -0.5f)
+            {
+                twist.x = -0.5f;
+            }
+            if (twist.x > 0.5f)
+            {
+                twist.x = 0.5f;
+            }
+            if (twist.y < -0.5f)
+            {
+                twist.y = -0.5f;
+            }
+            if (twist.y > 0.5f)
+            {
+                twist.y = 0.5f;
+            }
+            shapeBlock.PathTwistBegin = (sbyte)(200 * twist.x);
+            shapeBlock.PathTwist = (sbyte)(200 * twist.y);
+            
+            shapeBlock.ObjectLocalID = m_host.LocalId;
+            
+            // retain pathcurve
+            shapeBlock.PathCurve = m_host.Shape.PathCurve; 
+            
+            return shapeBlock;
+        }
+        
+        private void SetPrimitiveShapeParams(int holeshape, LSL_Types.Vector3 cut, float hollow, LSL_Types.Vector3 twist, LSL_Types.Vector3 taper_b, LSL_Types.Vector3 topshear, byte fudge)
+        {
+            ObjectShapePacket.ObjectDataBlock shapeBlock;
+            
+            shapeBlock = SetPrimitiveShapeParams(holeshape, cut, hollow, twist);
+            
+            shapeBlock.ProfileCurve += fudge;
+            
+            if (taper_b.x < 0f)
+            {
+                taper_b.x = 0f;
+            }
+            if (taper_b.x > 2f)
+            {
+                taper_b.x = 2f;
+            }
+            if (taper_b.y < 0f)
+            {
+                taper_b.y = 0f;
+            }
+            if (taper_b.y > 2f)
+            {
+                taper_b.y = 2f;
+            }
+            shapeBlock.PathScaleX = (byte)(100 * taper_b.x);
+            shapeBlock.PathScaleY = (byte)(100 * taper_b.y);
+            if (topshear.x < -0.5f)
+            {
+                topshear.x = -0.5f;
+            }
+            if (topshear.x > 0.5f)
+            {
+                topshear.x = 0.5f;
+            }
+            if (topshear.y < -0.5f)
+            {
+                topshear.y = -0.5f;
+            }
+            if (topshear.y > 0.5f)
+            {
+                topshear.y = 0.5f;
+            }
+            shapeBlock.PathShearX = (byte)(100 * topshear.x);
+            shapeBlock.PathShearY = (byte)(100 * topshear.y);
+            
+            m_host.UpdateShape(shapeBlock);
+        }
+        
+        private void SetPrimitiveShapeParams(int holeshape, LSL_Types.Vector3 cut, float hollow, LSL_Types.Vector3 twist, LSL_Types.Vector3 dimple, byte fudge)
+        {
+            ObjectShapePacket.ObjectDataBlock shapeBlock;
+            
+            shapeBlock = SetPrimitiveShapeParams(holeshape, cut, hollow, twist);
+            
+            // profile/path swapped for a sphere
+            shapeBlock.PathBegin = shapeBlock.ProfileBegin;
+            shapeBlock.PathEnd = shapeBlock.ProfileEnd;
+            
+            shapeBlock.ProfileCurve += fudge;
+            
+            shapeBlock.PathScaleX = 100;
+            shapeBlock.PathScaleY = 100;
+            
+            if (dimple.x < 0f)
+            {
+                dimple.x = 0f;
+            }
+            if (dimple.x > 1f)
+            {
+                dimple.x = 1f;
+            }
+            if (dimple.y < 0f)
+            {
+                dimple.y = 0f;
+            }
+            if (dimple.y > 1f)
+            {
+                dimple.y = 1f;
+            }
+            if (dimple.y - cut.x < 0.05f)
+            {
+                dimple.x = cut.y - 0.05f;
+            }
+            shapeBlock.ProfileBegin = (ushort)(50000 * dimple.x);
+            shapeBlock.ProfileEnd   = (ushort)(50000 * (1 - dimple.y));
+            
+            m_host.UpdateShape(shapeBlock);
+        }
+        
+        private void SetPrimitiveShapeParams(int holeshape, LSL_Types.Vector3 cut, float hollow, LSL_Types.Vector3 twist, LSL_Types.Vector3 holesize, LSL_Types.Vector3 topshear, LSL_Types.Vector3 profilecut, LSL_Types.Vector3 taper_a, float revolutions, float radiusoffset, float skew, byte fudge)
+        {
+            ObjectShapePacket.ObjectDataBlock shapeBlock;
+            
+            shapeBlock = SetPrimitiveShapeParams(holeshape, cut, hollow, twist);
+            
+            shapeBlock.ProfileCurve += fudge;
+
+            // profile/path swapped for a torrus, tube, ring
+            shapeBlock.PathBegin = shapeBlock.ProfileBegin;
+            shapeBlock.PathEnd = shapeBlock.ProfileEnd;
+            
+            if (holesize.x < 0.05f)
+            {
+                holesize.x = 0.05f;
+            }
+            if (holesize.x > 1f)
+            {
+                holesize.x = 1f;
+            }
+            if (holesize.y < 0.05f)
+            {
+                holesize.y = 0.05f;
+            }
+            if (holesize.y > 0.5f)
+            {
+                holesize.y = 0.5f;
+            }
+            shapeBlock.PathScaleX = (byte)(100 * (2 - holesize.x));
+            shapeBlock.PathScaleY = (byte)(100 * (2 - holesize.y));
+            if (topshear.x < -0.5f)
+            {
+                topshear.x = -0.5f;
+            }
+            if (topshear.x > 0.5f)
+            {
+                topshear.x = 0.5f;
+            }
+            if (topshear.y < -0.5f)
+            {
+                topshear.y = -0.5f;
+            }
+            if (topshear.y > 0.5f)
+            {
+                topshear.y = 0.5f;
+            }
+            shapeBlock.PathShearX = (byte)(100 * topshear.x);
+            shapeBlock.PathShearY = (byte)(100 * topshear.y);
+            if (profilecut.x < 0f)
+            {
+                profilecut.x = 0f;
+            }
+            if (profilecut.x > 1f)
+            {
+                profilecut.x = 1f;
+            }
+            if (profilecut.y < 0f)
+            {
+                profilecut.y = 0f;
+            }
+            if (profilecut.y > 1f)
+            {
+                profilecut.y = 1f;
+            }
+            if (profilecut.y - cut.x < 0.05f)
+            {
+                profilecut.x = cut.y - 0.05f;
+            }
+            shapeBlock.ProfileBegin = (ushort)(50000 * profilecut.x);
+            shapeBlock.ProfileEnd = (ushort)(50000 * (1 - profilecut.y));
+            if (taper_a.x < -1f)
+            {
+                taper_a.x = -1f;
+            }
+            if (taper_a.x > 1f)
+            {
+                taper_a.x = 1f;
+            }
+            if (taper_a.y < -1f)
+            {
+                taper_a.y = -1f;
+            }
+            if (taper_a.y > 1f)
+            {
+                taper_a.y = 1f;
+            }
+            shapeBlock.PathTaperX = (sbyte)(100 * taper_a.x);
+            shapeBlock.PathTaperY = (sbyte)(100 * taper_a.y);
+            if (revolutions < 1f)
+            {
+                revolutions = 1f;
+            }
+            if (revolutions > 4f)
+            {
+                revolutions = 4f;
+            }
+            shapeBlock.PathRevolutions = (byte)(100 * revolutions);
+            // limits on radiusoffset depend on revolutions and hole size (how?) seems like the maximum range is 0 to 1
+            if (radiusoffset < 0f)
+            {
+                radiusoffset = 0f;
+            }
+            if (radiusoffset > 1f)
+            {
+                radiusoffset = 1f;
+            }
+            shapeBlock.PathRadiusOffset = (sbyte)(100 * radiusoffset);
+            if (skew < -0.95f)
+            {
+                skew = -0.95f;
+            }
+            if (skew > 0.95f)
+            {
+                skew = 0.95f;
+            }
+            shapeBlock.PathSkew = (sbyte)(100 * skew);
+            
+            m_host.UpdateShape(shapeBlock);
+        }
+        
+        private void SetPrimitiveShapeParams(string map, int type)
+        {
+            ObjectShapePacket.ObjectDataBlock shapeBlock = new ObjectShapePacket.ObjectDataBlock();
+            LLUUID sculptId;
+            
+            if (!LLUUID.TryParse(map, out sculptId))
+            {
+                llSay(0, "Could not parse key " + map);
+                return;
+            }
+
+            shapeBlock.ObjectLocalID = m_host.LocalId;
+            shapeBlock.PathScaleX = 100;
+            shapeBlock.PathScaleY = 150;
+			
+			if (type != (int)BuiltIn_Commands_BaseClass.PRIM_SCULPT_TYPE_CYLINDER &&
+			    type != (int)BuiltIn_Commands_BaseClass.PRIM_SCULPT_TYPE_PLANE &&
+			    type != (int)BuiltIn_Commands_BaseClass.PRIM_SCULPT_TYPE_SPHERE &&
+			    type != (int)BuiltIn_Commands_BaseClass.PRIM_SCULPT_TYPE_TORUS)
+			{
+				// default
+				type = (int)BuiltIn_Commands_BaseClass.PRIM_SCULPT_TYPE_SPHERE;
+			}
+            
+            // retain pathcurve
+            shapeBlock.PathCurve = m_host.Shape.PathCurve;
+
+            m_host.Shape.SetSculptData((byte)type, sculptId);
+            m_host.UpdateShape(shapeBlock);
+        }
 
         public void llSetPrimitiveParams(LSL_Types.list rules)
         {
@@ -4822,7 +5133,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                 switch (code)
                 {
-                    case 6: // PRIM_POSITION
+                    case (int)BuiltIn_Commands_BaseClass.PRIM_POSITION:
                         if (remain < 1)
                             return;
 
@@ -4830,7 +5141,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         SetPos(part, v);
 
                         break;
-                    case 7: // PRIM_SIZE
+                    case (int)BuiltIn_Commands_BaseClass.PRIM_SIZE:
                         if (remain < 1)
                             return;
 
@@ -4838,7 +5149,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         SetScale(part, v);
                         
                         break;
-                    case 8: // PRIM_ROTATION
+                    case (int)BuiltIn_Commands_BaseClass.PRIM_ROTATION:
                         if (remain < 1)
                             return;
 
@@ -4846,8 +5157,153 @@ namespace OpenSim.Region.ScriptEngine.Common
                         SetRot(part, q);
 
                         break;
+					
+                    case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE:
+                        if (remain < 3)
+                            return;
+                    
+                        code = Convert.ToInt32(rules.Data[idx++]);
+                    
+                        remain = rules.Length - idx;
+                        float hollow;
+                        LSL_Types.Vector3 twist;
+                        LSL_Types.Vector3 taper_b;
+                        LSL_Types.Vector3 topshear;
+                        float revolutions;
+                        float radiusoffset;
+                        float skew;
+                        LSL_Types.Vector3 holesize;
+                        LSL_Types.Vector3 profilecut;
+                    
+                        switch(code)
+                        {                        
+                            case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE_BOX:
+                                if (remain < 6)
+                                    return;
 
-                    case 17: // PRIM_TEXTURE
+                                face = Convert.ToInt32(rules.Data[idx++]); // holeshape
+                                v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); // cut
+                                hollow = (float)Convert.ToDouble(rules.Data[idx++]);
+                                twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                taper_b = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                topshear = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                m_host.Shape.PathCurve = (byte) Extrusion.Straight;
+                                SetPrimitiveShapeParams(face, v, hollow, twist, taper_b, topshear, 1);;
+                                break;
+                        
+                            case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE_CYLINDER:
+                                if (remain < 6)
+                                    return;
+
+                                face = Convert.ToInt32(rules.Data[idx++]); // holeshape
+                                v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); // cut
+                                hollow = (float)Convert.ToDouble(rules.Data[idx++]);
+                                twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                taper_b = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                topshear = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                m_host.Shape.ProfileShape = ProfileShape.Circle;
+                                m_host.Shape.PathCurve = (byte) Extrusion.Straight;
+                                SetPrimitiveShapeParams(face, v, hollow, twist, taper_b, topshear, 0);
+                                break;
+                        
+                            case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE_PRISM:
+                                if (remain < 6)
+                                    return;
+
+                                face = Convert.ToInt32(rules.Data[idx++]); // holeshape 
+                                v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); //cut
+                                hollow = (float)Convert.ToDouble(rules.Data[idx++]);
+                                twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                taper_b = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                topshear = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                m_host.Shape.PathCurve = (byte) Extrusion.Straight;
+                                SetPrimitiveShapeParams(face, v, hollow, twist, taper_b, topshear, 3);
+                                break;
+
+                            case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE_SPHERE:
+                                if (remain < 5)
+                                    return;
+
+                                face = Convert.ToInt32(rules.Data[idx++]); // holeshape
+                                v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); // cut
+                                hollow = (float)Convert.ToDouble(rules.Data[idx++]);
+                                twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                taper_b = new LSL_Types.Vector3(rules.Data[idx++].ToString()); // dimple
+                                m_host.Shape.PathCurve = (byte) Extrusion.Curve1;
+                                SetPrimitiveShapeParams(face, v, hollow, twist, taper_b, 5);
+                                break;
+                        
+                            case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE_TORUS:
+                                if (remain < 11)
+                                    return;
+
+                                face = Convert.ToInt32(rules.Data[idx++]); // holeshape 
+                                v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); //cut
+                                hollow = (float)Convert.ToDouble(rules.Data[idx++]);
+                                twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                holesize = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                topshear = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                profilecut = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                taper_b = new LSL_Types.Vector3(rules.Data[idx++].ToString()); // taper_a
+                                revolutions = (float)Convert.ToDouble(rules.Data[idx++]);
+                                radiusoffset = (float)Convert.ToDouble(rules.Data[idx++]);
+                                skew = (float)Convert.ToDouble(rules.Data[idx++]);
+                                m_host.Shape.PathCurve = (byte) Extrusion.Curve1;
+                                SetPrimitiveShapeParams(face, v, hollow, twist, holesize, topshear, profilecut, taper_b, revolutions, radiusoffset, skew, 0);
+                                break;
+                        
+                            case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE_TUBE:
+                                if (remain < 11)
+                                    return;
+
+                                face = Convert.ToInt32(rules.Data[idx++]); // holeshape 
+                                v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); //cut
+                                hollow = (float)Convert.ToDouble(rules.Data[idx++]);
+                                twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                holesize = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                topshear = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                profilecut = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                taper_b = new LSL_Types.Vector3(rules.Data[idx++].ToString()); // taper_a
+                                revolutions = (float)Convert.ToDouble(rules.Data[idx++]);
+                                radiusoffset = (float)Convert.ToDouble(rules.Data[idx++]);
+                                skew = (float)Convert.ToDouble(rules.Data[idx++]);
+                                m_host.Shape.PathCurve = (byte) Extrusion.Curve1;
+                                SetPrimitiveShapeParams(face, v, hollow, twist, holesize, topshear, profilecut, taper_b, revolutions, radiusoffset, skew, 1);
+                                break;
+                        
+                            case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE_RING:
+                                if (remain < 11)
+                                    return;
+
+                                face = Convert.ToInt32(rules.Data[idx++]); // holeshape 
+                                v = new LSL_Types.Vector3(rules.Data[idx++].ToString()); //cut
+                                hollow = (float)Convert.ToDouble(rules.Data[idx++]);
+                                twist = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                holesize = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                topshear = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                profilecut = new LSL_Types.Vector3(rules.Data[idx++].ToString());
+                                taper_b = new LSL_Types.Vector3(rules.Data[idx++].ToString()); // taper_a
+                                revolutions = (float)Convert.ToDouble(rules.Data[idx++]);
+                                radiusoffset = (float)Convert.ToDouble(rules.Data[idx++]);
+                                skew = (float)Convert.ToDouble(rules.Data[idx++]);
+                                m_host.Shape.PathCurve = (byte) Extrusion.Curve1;
+                                SetPrimitiveShapeParams(face, v, hollow, twist, holesize, topshear, profilecut, taper_b, revolutions, radiusoffset, skew, 3);
+                                break;
+                        
+                            case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE_SCULPT:
+                                if (remain < 2)
+                                    return;
+
+                                string map = rules.Data[idx++].ToString();
+                                face = Convert.ToInt32(rules.Data[idx++]); // type
+                                m_host.Shape.PathCurve = (byte) Extrusion.Curve1;
+                                SetPrimitiveShapeParams(map, face);
+                                break;
+                        }
+                    
+                        break;
+
+                    case (int)BuiltIn_Commands_BaseClass.PRIM_TEXTURE:
                         if (remain < 5)
                             return;
 
@@ -4864,7 +5320,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
                         break;
 
-                    case 18: // PRIM_COLOR
+                    case (int)BuiltIn_Commands_BaseClass.PRIM_COLOR:
                         if (remain < 3)
                             return;
 
@@ -4876,7 +5332,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         SetAlpha(part, alpha, face);
 
                         break;
-                    case 21: // PRIM_FLEXI
+                    case (int)BuiltIn_Commands_BaseClass.PRIM_FLEXIBLE:
                         if (remain < 7)
                             return;
 
@@ -4891,7 +5347,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         SetFlexi(part, (flexi == 1), softness, gravity, friction, wind, tension, force);
 
                         break;
-                    case 23: // PRIM_POINT_LIGHT
+                    case (int)BuiltIn_Commands_BaseClass.PRIM_POINT_LIGHT:
                         if (remain < 5)
                             return;
                         int light = Convert.ToInt32(rules.Data[idx++]);
