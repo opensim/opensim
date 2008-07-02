@@ -3,154 +3,126 @@
     <Key Name="assetID" Value="3b055e3f-b19d-11dc-8314-0800200c9a66" />
     <Key Name="name" Value="llAbs" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="llAbs.lsl" />
   </Section>
   <Section Name="llAcos">
     <Key Name="assetID" Value="6519bf39-b19f-11dc-8314-0800200c9a66" />
     <Key Name="name" Value="llAcos" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="llAcos.lsl" />
   </Section>
   <Section Name="llAddToLandBanList">
     <Key Name="assetID" Value="7ceba3f1-b1a0-11dc-8314-0800200c9a66" />
     <Key Name="name" Value="llAddToLandBanList" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="llAddToLandBanList.lsl" />
   </Section>
   <Section Name="llAddToLandPassList">
     <Key Name="assetID" Value="609047e7-b390-11dc-8314-0800200c9a66" />
     <Key Name="name" Value="llAddToLandPassList" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="llAddToLandPassList.lsl" />
   </Section>
   <Section Name="llAdjustSoundVolume">
     <Key Name="assetID" Value="56df4bcd-b393-11dc-8314-0800200c9a66" />
     <Key Name="name" Value="llAdjustSoundVolume" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="llAdjustSoundVolume.lsl" />
   </Section>
   <Section Name="llAllowInventoryDrop">
     <Key Name="assetID" Value="54d6962d-b394-11dc-8314-0800200c9a66" />
     <Key Name="name" Value="llAllowInventoryDrop" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="llAllowInventoryDrop.lsl" />
   </Section>
   <Section Name="llAngleBetween">
     <Key Name="assetID" Value="6b341609-b34e-11dc-8314-0800200c9a66" />
     <Key Name="name" Value="llAngleBetween" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="llAngleBetween.lsl" />
   </Section>
   <Section Name="llAsin">
     <Key Name="assetID" Value="7e7422ed-b425-11dc-8314-0800200c9a66" />
     <Key Name="name" Value="llAsin" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="llAsin.lsl" />
   </Section>
   <Section Name="llAtan2">
     <Key Name="assetID" Value="7e7422ef-b425-11dc-8314-0800200c9a66" />
     <Key Name="name" Value="llAtan2" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="llAtan2.lsl" />
   </Section>
   <Section Name="llApplyImpulse">
     <Key Name="assetID" Value="714ec679-b419-11dc-8314-0800200c9a66" />
     <Key Name="name" Value="llApplyImpulse" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="llApplyImpulse.lsl" />
   </Section>
   <Section Name="llAvatarOnSitTarget">
     <Key Name="assetID" Value="579fc821-b426-11dc-8314-0800200c9a66" />
     <Key Name="name" Value="llAvatarOnSitTarget" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="llAvatarOnSitTarget.lsl" />
   </Section>
   <Section Name="llBase64ToString">
     <Key Name="assetID" Value="1d4c71d9-b428-11dc-8314-0800200c9a66" />
     <Key Name="name" Value="llBase64ToString" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="llBase64ToString.lsl" />
   </Section>
   <Section Name="llRemoveFromLandBanList">
     <Key Name="assetID" Value="299b2101-b392-11dc-8314-0800200c9a66" />
     <Key Name="name" Value="llRemoveFromLandBanList" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="llRemoveFromLandBanList.lsl" />
   </Section>
   <Section Name="llRemoveFromLandPassList">
     <Key Name="assetID" Value="299b2103-b392-11dc-8314-0800200c9a66" />
     <Key Name="name" Value="llRemoveFromLandPassList" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="llRemoveFromLandPassList.lsl" />
   </Section>
   <Section Name="llResetLandBanList">
     <Key Name="assetID" Value="366ac8e7-b391-11dc-8314-0800200c9a66" />
     <Key Name="name" Value="llResetLandBanList" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="llResetLandBanList.lsl" />
   </Section>
   <Section Name="llResetLandPassList">
     <Key Name="assetID" Value="366ac8e9-b391-11dc-8314-0800200c9a66" />
     <Key Name="name" Value="llResetLandPassList" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
-    <Key Name="fileName" Value="llResetLandPassList.lsl" />
-  </Section>
-  <Section Name="llSay">
-    <Key Name="assetID" Value="3af51d21-b38f-11dc-8314-0800200c9a66" />
-    <Key Name="name" Value="llSay" />
-    <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="llSay.lsl" />
   </Section>
   <Section Name="llSetParcelMusicURL">
     <Key Name="assetID" Value="3603a4f8-b360-11dc-8314-0800200c9a66" />
     <Key Name="name" Value="llSetParcelMusicURL" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="llSetParcelMusicURL.lsl" />
   </Section>
   <Section Name="llSetRot">
     <Key Name="assetID" Value="220baef9-b376-11dc-8314-0800200c9a66" />
     <Key Name="name" Value="llSetRot" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="llSetRot.lsl" />
   </Section>
   <Section Name="osTextBoard">
     <Key Name="assetID" Value="3e4f2be4-4697-4697-15c8-5920140208c5" />
     <Key Name="name" Value="osTextBoard" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="osTextBoard.lsl" />
   </Section>
   <Section Name="osWeatherMap">
     <Key Name="assetID" Value="b102e3a7-c907-e63e-b9f5-b3fd63e6851b" />
     <Key Name="name" Value="osWeatherMap" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="osWeatherMap.lsl" />
   </Section>
   <Section Name="GrafittiBoard">
     <Key Name="assetID" Value="fdb637ae-e4fe-f220-62f0-9f9b5c0c2cdb" />
     <Key Name="name" Value="GrafittiBoard" />
     <Key Name="assetType" Value="10" />
-    <Key Name="inventoryType" Value="10" />
     <Key Name="fileName" Value="GrafittiBoard.lsl" />
   </Section>
      
