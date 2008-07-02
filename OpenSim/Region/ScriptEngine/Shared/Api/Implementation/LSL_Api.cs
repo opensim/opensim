@@ -2767,7 +2767,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llResetScript()
         {
             m_host.AddScriptLPS(1);
-            m_ScriptEngine.ResetScript(m_itemID);
+            m_ScriptEngine.ApiResetScript(m_itemID);
         }
 
         public void llMessageLinked(int linknum, int num, string msg, string id)

@@ -779,6 +779,13 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             return false;
         }
 
+        public void ApiResetScript(LLUUID itemID)
+        {
+            XScriptInstance instance = GetInstance(itemID);
+            if (instance != null)
+                instance.ApiResetScript();
+        }
+
         public void ResetScript(LLUUID itemID)
         {
             XScriptInstance instance = GetInstance(itemID);
@@ -1270,8 +1277,6 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             }
             else
             {
-                m_CurrentEvent = data.EventName;
-//                m_Engine.Log.DebugFormat("[XEngine] Processed event {0}", data.EventName);
                 SceneObjectPart part = m_Engine.World.GetSceneObjectPart(
                     m_LocalID);
 //                m_Engine.Log.DebugFormat("[XEngine] Delivered event {2} in state {3} to {0}.{1}",
@@ -1279,10 +1284,14 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
                 try
                 {
+                    m_CurrentEvent = data.EventName;
                     m_EventStart = DateTime.Now;
                     m_InEvent = true;
+
                     m_Executor.ExecuteEvent(State, data.EventName, data.Params);
+
                     m_InEvent = false;
+                    m_CurrentEvent = String.Empty;
                 }
                 catch (Exception e)
                 {
@@ -1358,6 +1367,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             bool running = Running;
 
+            RemoveState();
+
             Stop(0);
             m_Engine.m_AsyncCommands.RemoveScript(m_LocalID, m_ItemID);
             m_EventQueue.Clear();
@@ -1365,6 +1376,18 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             m_State = "default";
             if (running)
                 Start();
+            PostEvent(new EventParams("state_entry",
+                    new Object[0], new DetectParams[0]));
+        }
+
+        public void ApiResetScript()
+        {
+            bool running = Running;
+
+            RemoveState();
+
+            m_Script.ResetVars();
+            m_Engine.m_AsyncCommands.RemoveScript(m_LocalID, m_ItemID);
             if(m_CurrentEvent != "state_entry")
             {
                 PostEvent(new EventParams("state_entry",

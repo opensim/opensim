@@ -50,6 +50,7 @@ namespace OpenSim.Region.ScriptEngine.Interfaces
 
         bool PostScriptEvent(LLUUID itemID, EventParams parms);
         bool PostObjectEvent(uint localID, EventParams parms);
+        void ApiResetScript(LLUUID itemID);
         void ResetScript(LLUUID itemID);
         void SetScriptState(LLUUID itemID, bool state);
         bool GetScriptState(LLUUID itemID);
