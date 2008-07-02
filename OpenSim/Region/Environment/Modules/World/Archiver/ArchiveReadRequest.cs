@@ -119,7 +119,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         {
             // Right now we're nastily obtaining the lluuid from the filename
             string filename = assetPath.Remove(0, ArchiveConstants.ASSETS_PATH.Length);
-            string extension = filename.Substring(filename.LastIndexOf("."));
+            string extension = filename.Substring(filename.LastIndexOf("_"));
             string uuid = filename.Remove(filename.Length - extension.Length);        
                     
             if (ArchiveConstants.EXTENSION_TO_ASSET_TYPE.ContainsKey(extension))
