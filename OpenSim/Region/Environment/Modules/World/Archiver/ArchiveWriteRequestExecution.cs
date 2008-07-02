@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Xml;
 using libsecondlife;
 using log4net;
 using OpenSim.Framework;
@@ -77,6 +78,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
             TarArchiveWriter archive = new TarArchiveWriter();
             
+            // Write out control file
+            archive.AddFile(ArchiveConstants.CONTROL_FILE_PATH, CreateControlFile());
+            
             // Write out terrain
             string terrainPath = String.Format("{0}{1}.png", ArchiveConstants.TERRAINS_PATH, m_sceneName);
             MemoryStream ms = new MemoryStream();            
@@ -109,6 +113,32 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             archive.WriteTar(m_savePath);
 
             m_log.InfoFormat("[ARCHIVER]: Wrote out OpenSimulator archive {0}", m_savePath);
-        }       
+        }   
+        
+        /// <summary>
+        /// Create the control file for this archive
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String"/>
+        /// </returns>
+        protected string CreateControlFile()
+        {
+            StringWriter sw = new StringWriter();
+            XmlTextWriter xtw = new XmlTextWriter(sw);
+            xtw.Formatting = Formatting.Indented;
+            xtw.WriteStartDocument();
+            xtw.WriteStartElement("archive");
+            xtw.WriteAttributeString("major_version", "0");
+            xtw.WriteAttributeString("minor_version", "1");
+            xtw.WriteEndElement();
+            
+            xtw.Flush();
+            xtw.Close();
+            
+            String s = sw.ToString();
+            sw.Close();
+            
+            return s;
+        }
     }
 }

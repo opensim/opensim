@@ -36,6 +36,11 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     public class ArchiveConstants
     {
         /// <summary>
+        /// The location of the archive control file
+        /// </summary>
+        public static readonly string CONTROL_FILE_PATH = "archive.xml";
+        
+        /// <summary>
         /// Path for the assets held in an archive
         /// </summary>
         public static readonly string ASSETS_PATH = "assets/";
