@@ -63,6 +63,7 @@ namespace OpenSim.Data.MSSQL
                 database.ExecuteResourceSql("CreateAssetsTable.sql");
                 return;
             }
+            
         }
 
         /// <summary>
@@ -114,9 +115,9 @@ namespace OpenSim.Data.MSSQL
 
             SqlCommand cmd =
                 new SqlCommand(
-                    "INSERT INTO assets ([id], [name], [description], [assetType], [invType], [local], [temporary], [data])" +
+                    "INSERT INTO assets ([id], [name], [description], [assetType], [local], [temporary], [data])" +
                     " VALUES " +
-                    "(@id, @name, @description, @assetType, @invType, @local, @temporary, @data)",
+                    "(@id, @name, @description, @assetType, @local, @temporary, @data)",
                     database.getConnection());
 
             using (cmd)
@@ -128,8 +129,6 @@ namespace OpenSim.Data.MSSQL
                 cmd.Parameters.AddWithValue("description", asset.Description);
                 SqlParameter e = cmd.Parameters.Add("assetType", SqlDbType.TinyInt);
                 e.Value = asset.Type;
-                SqlParameter f = cmd.Parameters.Add("invType", SqlDbType.TinyInt);
-                f.Value = asset.InvType;
                 SqlParameter g = cmd.Parameters.Add("local", SqlDbType.TinyInt);
                 g.Value = asset.Local;
                 SqlParameter h = cmd.Parameters.Add("temporary", SqlDbType.TinyInt);
@@ -159,7 +158,6 @@ namespace OpenSim.Data.MSSQL
                                                 "name = @name, " +
                                                 "description = @description," +
                                                 "assetType = @assetType," +
-                                                "invType = @invType," +
                                                 "local = @local," +
                                                 "temporary = @temporary," +
                                                 "data = @data where " +
@@ -168,7 +166,6 @@ namespace OpenSim.Data.MSSQL
             SqlParameter param2 = new SqlParameter("@name", asset.Name);
             SqlParameter param3 = new SqlParameter("@description", asset.Description);
             SqlParameter param4 = new SqlParameter("@assetType", asset.Type);
-            SqlParameter param5 = new SqlParameter("@invType", asset.InvType);
             SqlParameter param6 = new SqlParameter("@local", asset.Local);
             SqlParameter param7 = new SqlParameter("@temporary", asset.Temporary);
             SqlParameter param8 = new SqlParameter("@data", asset.Data);
@@ -177,7 +174,6 @@ namespace OpenSim.Data.MSSQL
             command.Parameters.Add(param2);
             command.Parameters.Add(param3);
             command.Parameters.Add(param4);
-            command.Parameters.Add(param5);
             command.Parameters.Add(param6);
             command.Parameters.Add(param7);
             command.Parameters.Add(param8);

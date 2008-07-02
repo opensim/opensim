@@ -216,7 +216,6 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                 ourClient = remoteClient;
                 Asset = new AssetBase();
                 Asset.FullID = assetID;
-                Asset.InvType = type;
                 Asset.Type = type;
                 Asset.Data = data;
                 Asset.Name = "blank";
@@ -314,7 +313,6 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                     Asset.Name = name;
                     Asset.Description = description;
                     Asset.Type = type;
-                    Asset.InvType = invType;
                     m_createItem = true;
                     if (m_finished)
                     {
@@ -351,7 +349,6 @@ namespace OpenSim.Region.Environment.Modules.Agent.AssetTransaction
                             asset.FullID = LLUUID.Random();
                             asset.Name = item.Name;
                             asset.Description = item.Description;
-                            asset.InvType = (sbyte) item.InvType;
                             asset.Type = (sbyte) item.AssetType;
                             item.AssetID = asset.FullID;
 

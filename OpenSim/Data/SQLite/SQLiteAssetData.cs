@@ -50,8 +50,8 @@ namespace OpenSim.Data.SQLite
         /// </summary>
         private const string SelectAssetSQL = "select * from assets where UUID=:UUID";
         private const string DeleteAssetSQL = "delete from assets where UUID=:UUID";
-        private const string InsertAssetSQL = "insert into assets(UUID, Name, Description, Type, InvType, Local, Temporary, Data) values(:UUID, :Name, :Description, :Type, :InvType, :Local, :Temporary, :Data)";
-        private const string UpdateAssetSQL = "update assets set Name=:Name, Description=:Description, Type=:Type, InvType=:InvType, Local=:Local, Temporary=:Temporary, Data=:Data where UUID=:UUID";
+        private const string InsertAssetSQL = "insert into assets(UUID, Name, Description, Type, Local, Temporary, Data) values(:UUID, :Name, :Description, :Type, :Local, :Temporary, :Data)";
+        private const string UpdateAssetSQL = "update assets set Name=:Name, Description=:Description, Type=:Type, Local=:Local, Temporary=:Temporary, Data=:Data where UUID=:UUID";
         private const string assetSelect = "select * from assets";
 
         private SqliteConnection m_conn;
@@ -134,7 +134,6 @@ namespace OpenSim.Data.SQLite
                     cmd.Parameters.Add(new SqliteParameter(":Name", asset.Name));
                     cmd.Parameters.Add(new SqliteParameter(":Description", asset.Description));
                     cmd.Parameters.Add(new SqliteParameter(":Type", asset.Type));
-                    cmd.Parameters.Add(new SqliteParameter(":InvType", asset.InvType));
                     cmd.Parameters.Add(new SqliteParameter(":Local", asset.Local));
                     cmd.Parameters.Add(new SqliteParameter(":Temporary", asset.Temporary));
                     cmd.Parameters.Add(new SqliteParameter(":Data", asset.Data));
@@ -158,7 +157,6 @@ namespace OpenSim.Data.SQLite
                 cmd.Parameters.Add(new SqliteParameter(":Name", asset.Name));
                 cmd.Parameters.Add(new SqliteParameter(":Description", asset.Description));
                 cmd.Parameters.Add(new SqliteParameter(":Type", asset.Type));
-                cmd.Parameters.Add(new SqliteParameter(":InvType", asset.InvType));
                 cmd.Parameters.Add(new SqliteParameter(":Local", asset.Local));
                 cmd.Parameters.Add(new SqliteParameter(":Temporary", asset.Temporary));
                 cmd.Parameters.Add(new SqliteParameter(":Data", asset.Data));
@@ -180,9 +178,9 @@ namespace OpenSim.Data.SQLite
             int assetLength = (asset.Data != null) ? asset.Data.Length : 0;
 
             m_log.Info("[ASSET DB]: " +
-                                     string.Format("Loaded {6} {5} Asset: [{0}][{3}/{4}] \"{1}\":{2} ({7} bytes)",
+                                     string.Format("Loaded {6} {5} Asset: [{0}][{3}] \"{1}\":{2} ({7} bytes)",
                                                    asset.FullID, asset.Name, asset.Description, asset.Type,
-                                                   asset.InvType, temporary, local, assetLength));
+                                                   temporary, local, assetLength));
         }
 
         /// <summary>
@@ -258,7 +256,6 @@ namespace OpenSim.Data.SQLite
         //     SQLiteUtil.createCol(assets, "Name", typeof (String));
         //     SQLiteUtil.createCol(assets, "Description", typeof (String));
         //     SQLiteUtil.createCol(assets, "Type", typeof (Int32));
-        //     SQLiteUtil.createCol(assets, "InvType", typeof (Int32));
         //     SQLiteUtil.createCol(assets, "Local", typeof (Boolean));
         //     SQLiteUtil.createCol(assets, "Temporary", typeof (Boolean));
         //     SQLiteUtil.createCol(assets, "Data", typeof (Byte[]));
@@ -291,7 +288,6 @@ namespace OpenSim.Data.SQLite
             asset.Name = (String) row["Name"];
             asset.Description = (String) row["Description"];
             asset.Type = Convert.ToSByte(row["Type"]);
-            asset.InvType = Convert.ToSByte(row["InvType"]);
             asset.Local = Convert.ToBoolean(row["Local"]);
             asset.Temporary = Convert.ToBoolean(row["Temporary"]);
             asset.Data = (byte[]) row["Data"];

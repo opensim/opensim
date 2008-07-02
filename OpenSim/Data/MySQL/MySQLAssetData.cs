@@ -164,7 +164,7 @@ namespace OpenSim.Data.MySQL
             {
                 MySqlCommand cmd =
                     new MySqlCommand(
-                        "SELECT name, description, assetType, invType, local, temporary, data FROM assets WHERE id=?id",
+                        "SELECT name, description, assetType, local, temporary, data FROM assets WHERE id=?id",
                         _dbConnection.Connection);
                 cmd.Parameters.AddWithValue("?id", assetID.ToString());
 
@@ -178,7 +178,6 @@ namespace OpenSim.Data.MySQL
                             asset.Data = (byte[]) dbReader["data"];
                             asset.Description = (string) dbReader["description"];
                             asset.FullID = assetID;
-                            asset.InvType = (sbyte) dbReader["invType"];
                             asset.Local = ((sbyte) dbReader["local"]) != 0 ? true : false;
                             asset.Name = (string) dbReader["name"];
                             asset.Type = (sbyte) dbReader["assetType"];
@@ -216,8 +215,8 @@ namespace OpenSim.Data.MySQL
 
                 MySqlCommand cmd =
                     new MySqlCommand(
-                        "REPLACE INTO assets(id, name, description, assetType, invType, local, temporary, data)" +
-                        "VALUES(?id, ?name, ?description, ?assetType, ?invType, ?local, ?temporary, ?data)",
+                        "REPLACE INTO assets(id, name, description, assetType, local, temporary, data)" +
+                        "VALUES(?id, ?name, ?description, ?assetType, ?local, ?temporary, ?data)",
                         _dbConnection.Connection);
 
                 // need to ensure we dispose
@@ -229,7 +228,6 @@ namespace OpenSim.Data.MySQL
                         cmd.Parameters.AddWithValue("?name", asset.Name);
                         cmd.Parameters.AddWithValue("?description", asset.Description);
                         cmd.Parameters.AddWithValue("?assetType", asset.Type);
-                        cmd.Parameters.AddWithValue("?invType", asset.InvType);
                         cmd.Parameters.AddWithValue("?local", asset.Local);
                         cmd.Parameters.AddWithValue("?temporary", asset.Temporary);
                         cmd.Parameters.AddWithValue("?data", asset.Data);

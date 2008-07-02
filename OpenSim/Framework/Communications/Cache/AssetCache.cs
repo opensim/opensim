@@ -701,7 +701,6 @@ namespace OpenSim.Framework.Communications.Cache
                 Data = aBase.Data;
                 FullID = aBase.FullID;
                 Type = aBase.Type;
-                InvType = aBase.InvType;
                 Name = aBase.Name;
                 Description = aBase.Description;
             }
@@ -718,7 +717,6 @@ namespace OpenSim.Framework.Communications.Cache
                 Data = aBase.Data;
                 FullID = aBase.FullID;
                 Type = aBase.Type;
-                InvType = aBase.InvType;
                 Name = aBase.Name;
                 Description = aBase.Description;
             }

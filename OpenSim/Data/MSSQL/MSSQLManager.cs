@@ -405,7 +405,6 @@ namespace OpenSim.Data.MSSQL
                 asset.Data = (byte[])reader["data"];
                 asset.Description = (string)reader["description"];
                 asset.FullID = new LLUUID((string)reader["id"]);
-                asset.InvType = Convert.ToSByte(reader["invType"]);
                 asset.Local = Convert.ToBoolean(reader["local"]); // ((sbyte)reader["local"]) != 0 ? true : false;
                 asset.Name = (string)reader["name"];
                 asset.Type = Convert.ToSByte(reader["assetType"]);

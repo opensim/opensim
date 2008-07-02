@@ -223,7 +223,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                     rdata.writer.WriteAttributeString("name", asset.Name);
                     rdata.writer.WriteAttributeString("desc", asset.Description);
                     rdata.writer.WriteAttributeString("type", asset.Type.ToString());
-                    rdata.writer.WriteAttributeString("invtype", asset.InvType.ToString());
                     rdata.writer.WriteAttributeString("local", asset.Local.ToString());
                     rdata.writer.WriteAttributeString("temporary", asset.Temporary.ToString());
 

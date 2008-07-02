@@ -1492,7 +1492,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
         private void CollectAsset(XmlInventoryCollection ic)
         {
-
             Rest.Log.DebugFormat("{0} Interpret asset element", MsgId);
 
             AssetBase asset = null;
@@ -1500,7 +1499,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
             string    name  = String.Empty;
             string    desc  = String.Empty;
             sbyte     type  = (sbyte) AssetType.Unknown;
-            sbyte     itype = (sbyte) AssetType.Unknown;
             bool      temp  = false;
             bool     local  = false;
 
@@ -1532,10 +1530,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                     case "temporary" :
                         temp = Boolean.Parse(ic.xml.Value);
-                        break;
-
-                    case "invtype" :
-                        itype = SByte.Parse(ic.xml.Value);
                         break;
 
                     case "uuid" :
@@ -1603,7 +1597,6 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
 
                 asset.Description = desc;
                 asset.Type        = type; // type == 0 == texture
-                asset.InvType     = itype;
                 asset.Local       = local;
                 asset.Temporary   = temp;
                 

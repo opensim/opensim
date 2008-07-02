@@ -6,7 +6,6 @@ CREATE TABLE [assets] (
   [name] [varchar](64) NOT NULL,
   [description] [varchar](64) NOT NULL,
   [assetType] [tinyint] NOT NULL,
-  [invType] [tinyint] NOT NULL,
   [local] [tinyint] NOT NULL,
   [temporary] [tinyint] NOT NULL,
   [data] [image] NOT NULL,

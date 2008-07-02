@@ -670,7 +670,6 @@ namespace OpenSim.Framework.Communications.Capabilities
             asset = new AssetBase();
             asset.FullID = assetID;
             asset.Type = assType;
-            asset.InvType = inType;
             asset.Name = assetName;
             asset.Data = data;
             m_assetCache.AddAsset(asset);
