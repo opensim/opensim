@@ -702,9 +702,9 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void ApplyNextOwnerPermissions()
         {
-            BaseMask &= NextOwnerMask;
-            OwnerMask &= NextOwnerMask;
-            EveryoneMask &= NextOwnerMask;
+            _baseMask &= _nextOwnerMask;
+            _ownerMask &= _nextOwnerMask;
+            _everyoneMask &= _nextOwnerMask;
 
             foreach (TaskInventoryItem item in m_taskInventory.Values)
             {

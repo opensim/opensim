@@ -236,19 +236,19 @@ namespace OpenSim.Region.Environment.Scenes
             m_regionHandle = regionHandle;
             m_parentGroup = parent;
 
-            CreationDate = (Int32) (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
-            OwnerID = ownerID;
-            _creatorID = OwnerID;
-            LastOwnerID = LLUUID.Zero;
+            _creationDate = (Int32) (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+            _ownerID = ownerID;
+            _creatorID = _ownerID;
+            _lastOwnerID = LLUUID.Zero;
             UUID = LLUUID.Random();
             LocalId = (uint) (localID);
             Shape = shape;
             // Todo: Add More Object Parameter from above!
-            OwnershipCost = 0;
-            ObjectSaleType = (byte) 0;
-            SalePrice = 0;
-            Category = (uint) 0;
-            LastOwnerID = _creatorID;
+            _ownershipCost = 0;
+            _objectSaleType = (byte) 0;
+            _salePrice = 0;
+            _category = (uint) 0;
+            _lastOwnerID = _creatorID;
             // End Todo: ///
             GroupPosition = groupPosition;
             OffsetPosition = offsetPosition;
@@ -262,8 +262,8 @@ namespace OpenSim.Region.Environment.Scenes
             // this appears to have the same UUID (!) as the prim.  If this isn't the case, one can't drag items from
             // the prim into an agent inventory (Linden client reports that the "Object not found for drop" in its log
 
-            Flags = 0;
-            Flags |= LLObject.ObjectFlags.CreateSelected;
+            _flags = 0;
+            _flags |= LLObject.ObjectFlags.CreateSelected;
 
             TrimPermissions();
             //m_undo = new UndoStack<UndoState>(ParentGroup.GetSceneMaxUndo());
@@ -288,18 +288,18 @@ namespace OpenSim.Region.Environment.Scenes
             m_regionHandle = regionHandle;
             m_parentGroup = parent;
             TimeStampTerse = (uint) Util.UnixTimeSinceEpoch();
-            CreationDate = creationDate;
-            OwnerID = ownerID;
+            _creationDate = creationDate;
+            _ownerID = ownerID;
             _creatorID = creatorID;
-            LastOwnerID = lastOwnerID;
+            _lastOwnerID = lastOwnerID;
             UUID = LLUUID.Random();
             LocalId = (uint) (localID);
             Shape = shape;
-            OwnershipCost = 0;
-            ObjectSaleType = (byte) 0;
-            SalePrice = 0;
-            Category = (uint) 0;
-            LastOwnerID = _creatorID;
+            _ownershipCost = 0;
+            _objectSaleType = (byte) 0;
+            _salePrice = 0;
+            _category = (uint) 0;
+            _lastOwnerID = _creatorID;
             OffsetPosition = position;
             RotationOffset = rotation;
             ObjectFlags = flags;
@@ -335,22 +335,22 @@ namespace OpenSim.Region.Environment.Scenes
 
         #region XML Schema
 
-        public LLUUID LastOwnerID;
-        public LLUUID OwnerID;
-        public LLUUID GroupID;
-        public int OwnershipCost;
-        public byte ObjectSaleType;
-        public int SalePrice;
-        public uint Category;
-        public Int32 CreationDate;
-        public uint ParentID = 0;
-        public LLUUID m_sitTargetAvatar = LLUUID.Zero;
-        public uint BaseMask = (uint)PermissionMask.All;
-        public uint OwnerMask = (uint)PermissionMask.All;
-        public uint GroupMask = (uint)PermissionMask.None;
-        public uint EveryoneMask = (uint)PermissionMask.None;
-        public uint NextOwnerMask = (uint)PermissionMask.All;
-        public LLObject.ObjectFlags Flags = LLObject.ObjectFlags.None;
+        private LLUUID _lastOwnerID;
+        private LLUUID _ownerID;
+        private LLUUID _groupID;
+        private int _ownershipCost;
+        private byte _objectSaleType;
+        private int _salePrice;
+        private uint _category;
+        private Int32 _creationDate;
+        private uint _parentID = 0;
+        private LLUUID m_sitTargetAvatar = LLUUID.Zero;
+        private uint _baseMask = (uint)PermissionMask.All;
+        private uint _ownerMask = (uint)PermissionMask.All;
+        private uint _groupMask = (uint)PermissionMask.None;
+        private uint _everyoneMask = (uint)PermissionMask.None;
+        private uint _nextOwnerMask = (uint)PermissionMask.All;
+        private LLObject.ObjectFlags _flags = LLObject.ObjectFlags.None;
         
         public LLUUID CreatorID {
             get 
@@ -387,8 +387,8 @@ namespace OpenSim.Region.Environment.Scenes
 
         public uint ObjectFlags
         {
-            get { return (uint)Flags; }
-            set { Flags = (LLObject.ObjectFlags)value; }
+            get { return (uint)_flags; }
+            set { _flags = (LLObject.ObjectFlags)value; }
         }       
         
         public LLUUID UUID
@@ -432,7 +432,7 @@ namespace OpenSim.Region.Environment.Scenes
             get
             {
                 // If this is a linkset, we don't want the physics engine mucking up our group position here.
-                if (PhysActor != null && ParentID == 0)
+                if (PhysActor != null && _parentID == 0)
                 {
                     m_groupPosition.X = PhysActor.Position.X;
                     m_groupPosition.Y = PhysActor.Position.Y;
@@ -461,7 +461,7 @@ namespace OpenSim.Region.Environment.Scenes
                     {
 
                         // Root prim actually goes at Position
-                        if (ParentID == 0)
+                        if (_parentID == 0)
                         {
                             PhysActor.Position = new PhysicsVector(value.X, value.Y, value.Z);
 
@@ -515,7 +515,7 @@ namespace OpenSim.Region.Environment.Scenes
             get
             {
                 // We don't want the physics engine mucking up the rotations in a linkset
-                if (PhysActor != null && ParentID == 0)
+                if (PhysActor != null && _parentID == 0)
                 {
                     if (PhysActor.Orientation.x != 0 || PhysActor.Orientation.y != 0
                         || PhysActor.Orientation.z != 0 || PhysActor.Orientation.w != 0)
@@ -538,7 +538,7 @@ namespace OpenSim.Region.Environment.Scenes
                     try
                     {
                         // Root prim gets value directly
-                        if (ParentID == 0)
+                        if (_parentID == 0)
                         {
                             PhysActor.Orientation = new Quaternion(value.W, value.X, value.Y, value.Z);
                             //m_log.Info("[PART]: RO1:" + PhysActor.Orientation.ToString());
@@ -757,7 +757,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public LLUUID ObjectOwner
         {
-            get { return OwnerID; }
+            get { return _ownerID; }
         }
 
         public SceneObjectGroup ParentGroup
@@ -793,6 +793,150 @@ namespace OpenSim.Region.Environment.Scenes
                         Math.Abs(AngularVelocity.X) < threshold &&
                         Math.Abs(AngularVelocity.Y) < threshold &&
                         Math.Abs(AngularVelocity.Z) < threshold);
+            }
+        }
+
+        public uint ParentID {
+            get {
+                return _parentID;
+            }
+            set {
+                _parentID = value;
+            }
+        }
+
+        public int CreationDate {
+            get {
+                return _creationDate;
+            }
+            set {
+                _creationDate = value;
+            }
+        }
+
+        public uint Category {
+            get {
+                return _category;
+            }
+            set {
+                _category = value;
+            }
+        }
+
+        public int SalePrice {
+            get {
+                return _salePrice;
+            }
+            set {
+                _salePrice = value;
+            }
+        }
+
+        public byte ObjectSaleType {
+            get {
+                return _objectSaleType;
+            }
+            set {
+                _objectSaleType = value;
+            }
+        }
+
+        public int OwnershipCost {
+            get {
+                return _ownershipCost;
+            }
+            set {
+                _ownershipCost = value;
+            }
+        }
+
+        public LLUUID GroupID {
+            get {
+                return _groupID;
+            }
+            set {
+                _groupID = value;
+            }
+        }
+
+        public LLUUID OwnerID {
+            get {
+                return _ownerID;
+            }
+            set {
+                _ownerID = value;
+            }
+        }
+
+        public LLUUID LastOwnerID {
+            get {
+                return _lastOwnerID;
+            }
+            set {
+                _lastOwnerID = value;
+            }
+        }
+
+        public uint BaseMask {
+            get {
+                return _baseMask;
+            }
+            set {
+                _baseMask = value;
+            }
+        }
+
+        public uint OwnerMask {
+            get {
+                return _ownerMask;
+            }
+            set {
+                _ownerMask = value;
+            }
+        }
+
+        public uint GroupMask {
+            get {
+                return _groupMask;
+            }
+            set {
+                _groupMask = value;
+            }
+        }
+
+        public uint EveryoneMask {
+            get {
+                return _everyoneMask;
+            }
+            set {
+                _everyoneMask = value;
+            }
+        }
+
+        public uint NextOwnerMask {
+            get {
+                return _nextOwnerMask;
+            }
+            set {
+                _nextOwnerMask = value;
+            }
+        }
+
+        public libsecondlife.LLObject.ObjectFlags Flags {
+            get {
+                return _flags;
+            }
+            set {
+                _flags = value;
+            }
+        }
+
+        public LLUUID SitTargetAvatar {
+            get {
+                return m_sitTargetAvatar;
+            }
+            set {
+                m_sitTargetAvatar = value;
             }
         }
 
@@ -871,7 +1015,7 @@ namespace OpenSim.Region.Environment.Scenes
             if ((ObjectFlags & (uint) flag) == 0)
             {
                 //Console.WriteLine("Adding flag: " + ((LLObject.ObjectFlags) flag).ToString());
-                Flags |= flag;
+                _flags |= flag;
             }
             //uint currflag = (uint)Flags;
             //System.Console.WriteLine("Aprev: " + prevflag.ToString() + " curr: " + Flags.ToString());
@@ -1046,8 +1190,8 @@ namespace OpenSim.Region.Environment.Scenes
                 dupe.UUID = LLUUID.Random();
 
             dupe.LocalId = localID;
-            dupe.OwnerID = AgentID;
-            dupe.GroupID = GroupID;
+            dupe._ownerID = AgentID;
+            dupe._groupID = GroupID;
             dupe.GroupPosition = new LLVector3(GroupPosition.X, GroupPosition.Y, GroupPosition.Z);
             dupe.OffsetPosition = new LLVector3(OffsetPosition.X, OffsetPosition.Y, OffsetPosition.Z);
             dupe.RotationOffset =
@@ -1057,10 +1201,10 @@ namespace OpenSim.Region.Environment.Scenes
             dupe.AngularVelocity = new LLVector3(0, 0, 0);
             dupe.ObjectFlags = ObjectFlags;
 
-            dupe.OwnershipCost = OwnershipCost;
-            dupe.ObjectSaleType = ObjectSaleType;
-            dupe.SalePrice = SalePrice;
-            dupe.Category = Category;
+            dupe._ownershipCost = _ownershipCost;
+            dupe._objectSaleType = _objectSaleType;
+            dupe._salePrice = _salePrice;
+            dupe._category = _category;
 
             dupe.TaskInventory = (TaskInventoryDictionary)dupe.TaskInventory.Clone();
 
@@ -1068,7 +1212,7 @@ namespace OpenSim.Region.Environment.Scenes
                 dupe.ResetIDs(linkNum);
 
             // This may be wrong...    it might have to be applied in SceneObjectGroup to the object that's being duplicated.
-            dupe.LastOwnerID = ObjectOwner;
+            dupe._lastOwnerID = ObjectOwner;
 
             byte[] extraP = new byte[Shape.ExtraParams.Length];
             Array.Copy(Shape.ExtraParams, extraP, extraP.Length);
@@ -1095,7 +1239,7 @@ namespace OpenSim.Region.Environment.Scenes
             part.Shape = shape;
 
             part.Name = "Primitive";
-            part.OwnerID = LLUUID.Random();
+            part._ownerID = LLUUID.Random();
 
             return part;
         }
@@ -1140,7 +1284,7 @@ namespace OpenSim.Region.Environment.Scenes
 
                             PhysActor.OnRequestTerseUpdate += PhysicsRequestingTerseUpdate;
                             PhysActor.OnOutOfBounds += PhysicsOutOfBounds;
-                            if (ParentID != 0 && ParentID != LocalId)
+                            if (_parentID != 0 && _parentID != LocalId)
                             {
                                 if (ParentGroup.RootPart.PhysActor != null)
                                 {
@@ -1193,11 +1337,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public uint GetEffectiveObjectFlags()
         {
-            LLObject.ObjectFlags f = Flags;
+            LLObject.ObjectFlags f = _flags;
             if (m_parentGroup == null || m_parentGroup.RootPart == this)
                 f &= ~(LLObject.ObjectFlags.Touch | LLObject.ObjectFlags.Money);
 
-            return (uint)Flags | (uint)LocalFlags;
+            return (uint)_flags | (uint)LocalFlags;
         }
 
         public LLVector3 GetGeometricCenter()
@@ -1247,23 +1391,23 @@ namespace OpenSim.Region.Environment.Scenes
 
             info.AddValue("TaskInventory", TaskInventory_work);
 
-            info.AddValue("LastOwnerID", LastOwnerID.UUID);
-            info.AddValue("OwnerID", OwnerID.UUID);
-            info.AddValue("GroupID", GroupID.UUID);
+            info.AddValue("LastOwnerID", _lastOwnerID.UUID);
+            info.AddValue("OwnerID", _ownerID.UUID);
+            info.AddValue("GroupID", _groupID.UUID);
 
-            info.AddValue("OwnershipCost", OwnershipCost);
-            info.AddValue("ObjectSaleType", ObjectSaleType);
-            info.AddValue("SalePrice", SalePrice);
-            info.AddValue("Category", Category);
+            info.AddValue("OwnershipCost", _ownershipCost);
+            info.AddValue("ObjectSaleType", _objectSaleType);
+            info.AddValue("SalePrice", _salePrice);
+            info.AddValue("Category", _category);
 
-            info.AddValue("CreationDate", CreationDate);
-            info.AddValue("ParentID", ParentID);
+            info.AddValue("CreationDate", _creationDate);
+            info.AddValue("ParentID", _parentID);
 
-            info.AddValue("OwnerMask", OwnerMask);
-            info.AddValue("NextOwnerMask", NextOwnerMask);
-            info.AddValue("GroupMask", GroupMask);
-            info.AddValue("EveryoneMask", EveryoneMask);
-            info.AddValue("BaseMask", BaseMask);
+            info.AddValue("OwnerMask", _ownerMask);
+            info.AddValue("NextOwnerMask", _nextOwnerMask);
+            info.AddValue("GroupMask", _groupMask);
+            info.AddValue("EveryoneMask", _everyoneMask);
+            info.AddValue("BaseMask", _baseMask);
 
             info.AddValue("m_particleSystem", m_particleSystem);
 
@@ -1278,7 +1422,7 @@ namespace OpenSim.Region.Environment.Scenes
             info.AddValue("m_uuid", m_uuid.UUID);
             info.AddValue("m_localID", m_localId);
             info.AddValue("m_name", m_name);
-            info.AddValue("m_flags", Flags);
+            info.AddValue("m_flags", _flags);
             info.AddValue("m_material", m_material);
             info.AddValue("m_regionHandle", m_regionHandle);
 
@@ -1324,11 +1468,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void GetProperties(IClientAPI client)
         {
-            client.SendObjectPropertiesReply(LLUUID.Zero, (ulong)CreationDate, _creatorID, LLUUID.Zero, LLUUID.Zero,
-                                               GroupID, (short)InventorySerial, LastOwnerID, UUID, OwnerID,
+            client.SendObjectPropertiesReply(LLUUID.Zero, (ulong)_creationDate, _creatorID, LLUUID.Zero, LLUUID.Zero,
+                                               _groupID, (short)InventorySerial, _lastOwnerID, UUID, _ownerID,
                                                ParentGroup.RootPart.TouchName, new byte[0], ParentGroup.RootPart.SitName, Name, Description,
-                                               ParentGroup.RootPart.OwnerMask, ParentGroup.RootPart.NextOwnerMask, ParentGroup.RootPart.GroupMask, ParentGroup.RootPart.EveryoneMask,
-                                               ParentGroup.RootPart.BaseMask);
+                                               ParentGroup.RootPart._ownerMask, ParentGroup.RootPart._nextOwnerMask, ParentGroup.RootPart._groupMask, ParentGroup.RootPart._everyoneMask,
+                                               ParentGroup.RootPart._baseMask);
         }
 
         public LLUUID GetRootPartUUID()
@@ -1513,12 +1657,12 @@ namespace OpenSim.Region.Environment.Scenes
                             DetectedObject detobj = new DetectedObject();
                             detobj.keyUUID = obj.UUID;
                             detobj.nameStr = obj.Name;
-                            detobj.ownerUUID = obj.OwnerID;
+                            detobj.ownerUUID = obj._ownerID;
                             detobj.posVector = obj.AbsolutePosition;
                             detobj.rotQuat = obj.GetWorldRotation();
                             detobj.velVector = obj.Velocity;
                             detobj.colliderType = 0;
-                            detobj.groupUUID = obj.GroupID;
+                            detobj.groupUUID = obj._groupID;
                             colliding.Add(detobj);
                         }
                         else
@@ -1579,12 +1723,12 @@ namespace OpenSim.Region.Environment.Scenes
                             DetectedObject detobj = new DetectedObject();
                             detobj.keyUUID = obj.UUID;
                             detobj.nameStr = obj.Name;
-                            detobj.ownerUUID = obj.OwnerID;
+                            detobj.ownerUUID = obj._ownerID;
                             detobj.posVector = obj.AbsolutePosition;
                             detobj.rotQuat = obj.GetWorldRotation();
                             detobj.velVector = obj.Velocity;
                             detobj.colliderType = 0;
-                            detobj.groupUUID = obj.GroupID;
+                            detobj.groupUUID = obj._groupID;
                             colliding.Add(detobj);
                         }
                         else
@@ -1647,12 +1791,12 @@ namespace OpenSim.Region.Environment.Scenes
                             DetectedObject detobj = new DetectedObject();
                             detobj.keyUUID = obj.UUID;
                             detobj.nameStr = obj.Name;
-                            detobj.ownerUUID = obj.OwnerID;
+                            detobj.ownerUUID = obj._ownerID;
                             detobj.posVector = obj.AbsolutePosition;
                             detobj.rotQuat = obj.GetWorldRotation();
                             detobj.velVector = obj.Velocity;
                             detobj.colliderType = 0;
-                            detobj.groupUUID = obj.GroupID;
+                            detobj.groupUUID = obj._groupID;
                             colliding.Add(detobj);
                         }
                         else
@@ -1755,7 +1899,7 @@ namespace OpenSim.Region.Environment.Scenes
             if ((ObjectFlags & (uint) flag) != 0)
             {
                 //Console.WriteLine("Removing flag: " + ((LLObject.ObjectFlags)flag).ToString());
-                Flags &= ~flag;
+                _flags &= ~flag;
             }
             //System.Console.WriteLine("prev: " + prevflag.ToString() + " curr: " + Flags.ToString());
             //ScheduleFullUpdate();
@@ -1950,19 +2094,19 @@ namespace OpenSim.Region.Environment.Scenes
         {
             clientFlags &= ~(uint) LLObject.ObjectFlags.CreateSelected;
 
-            if (remoteClient.AgentId == OwnerID)
+            if (remoteClient.AgentId == _ownerID)
             {
-                if ((uint) (Flags & LLObject.ObjectFlags.CreateSelected) != 0)
+                if ((uint) (_flags & LLObject.ObjectFlags.CreateSelected) != 0)
                 {
                     clientFlags |= (uint) LLObject.ObjectFlags.CreateSelected;
-                    Flags &= ~LLObject.ObjectFlags.CreateSelected;
+                    _flags &= ~LLObject.ObjectFlags.CreateSelected;
                 }
             }
 
             byte[] color = new byte[] {m_color.R, m_color.G, m_color.B, m_color.A};
             remoteClient.SendPrimitiveToClient(m_regionHandle, (ushort)(m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue), LocalId, m_shape,
-                                               lPos, Velocity, Acceleration, RotationOffset, RotationalVelocity, clientFlags, m_uuid, OwnerID,
-                                               m_text, color, ParentID, m_particleSystem, m_clickAction, m_TextureAnimation, m_IsAttachment,
+                                               lPos, Velocity, Acceleration, RotationOffset, RotationalVelocity, clientFlags, m_uuid, _ownerID,
+                                               m_text, color, _parentID, m_particleSystem, m_clickAction, m_TextureAnimation, m_IsAttachment,
                                                m_attachmentPoint,fromAssetID, Sound, SoundGain, SoundFlags, SoundRadius);
         }
 
@@ -2001,7 +2145,7 @@ namespace OpenSim.Region.Environment.Scenes
             if (volume < 0)
                 volume = 0;
 
-            LLUUID ownerID = OwnerID;
+            LLUUID ownerID = _ownerID;
             LLUUID objectID = UUID;
             LLUUID parentID = GetRootPartUUID();
             LLUUID soundID = LLUUID.Zero;
@@ -2169,7 +2313,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void SetGroup(LLUUID groupID, IClientAPI client)
         {
-            GroupID = groupID;
+            _groupID = groupID;
             GetProperties(client);
             m_updateFlag = 2;
         }
@@ -2185,7 +2329,7 @@ namespace OpenSim.Region.Environment.Scenes
         // Use this for attachments!  LocalID should be avatar's localid
         public void SetParentLocalId(uint localID)
         {
-            ParentID = localID;
+            _parentID = localID;
         }
 
         public void SetPhysicsAxisRotation()
@@ -2766,11 +2910,11 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void TrimPermissions()
         {
-            BaseMask &= (uint)PermissionMask.All;
-            OwnerMask &= (uint)PermissionMask.All;
-            GroupMask &= (uint)PermissionMask.All;
-            EveryoneMask &= (uint)PermissionMask.All;
-            NextOwnerMask &= (uint)PermissionMask.All;
+            _baseMask &= (uint)PermissionMask.All;
+            _ownerMask &= (uint)PermissionMask.All;
+            _groupMask &= (uint)PermissionMask.All;
+            _everyoneMask &= (uint)PermissionMask.All;
+            _nextOwnerMask &= (uint)PermissionMask.All;
         }
 
         public void Undo()
@@ -2837,21 +2981,21 @@ namespace OpenSim.Region.Environment.Scenes
             bool set = addRemTF == 1;
 
             // Are we the owner?
-            if (AgentID == OwnerID)
+            if (AgentID == _ownerID)
             {
                 switch (field)
                 {
                     case 2:
-                        OwnerMask = ApplyMask(OwnerMask, set, mask);
+                        _ownerMask = ApplyMask(_ownerMask, set, mask);
                         break;
                     case 4:
-                        GroupMask = ApplyMask(GroupMask, set, mask);
+                        _groupMask = ApplyMask(_groupMask, set, mask);
                         break;
                     case 8:
-                        EveryoneMask = ApplyMask(EveryoneMask, set, mask);
+                        _everyoneMask = ApplyMask(_everyoneMask, set, mask);
                         break;
                     case 16:
-                        NextOwnerMask = ApplyMask(NextOwnerMask, set, mask);
+                        _nextOwnerMask = ApplyMask(_nextOwnerMask, set, mask);
                         break;
                 }
                 SendFullUpdateToAllClients();

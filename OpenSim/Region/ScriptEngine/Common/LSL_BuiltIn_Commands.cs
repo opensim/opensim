@@ -2396,7 +2396,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                     return;
                 }
             }
-            else if (m_host.m_sitTargetAvatar == agentID) // Sitting avatar
+            else if (m_host.SitTargetAvatar == agentID) // Sitting avatar
             {
                 // When agent is sitting, certain permissions are implicit if requested from sitting agent
                 int implicitPerms = BuiltIn_Commands_BaseClass.PERMISSION_TRIGGER_ANIMATION |
