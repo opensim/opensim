@@ -34,10 +34,37 @@ using Mono.Addins;
 
 namespace OpenSim.Framework
 {
+    /// <summary>
+    /// Exception thrown if an incorrect number of plugins are loaded
+    /// </summary>
+    public class PluginCountInvalidException : Exception
+    {
+        public PluginCountInvalidException () : base() {}
+        public PluginCountInvalidException (string msg) : base(msg) {}
+        public PluginCountInvalidException (string msg, Exception e) : base(msg, e) {}
+    }
+
+    /// <summary>
+    /// Generic Plugin Loader
+    /// </summary>
     public class PluginLoader <T> : IDisposable where T : IPlugin
     {
+        private struct Range 
+        { 
+            public int min; 
+            public int max; 
+            public Range (int n, int x) { min=n; max=x; } 
+        }
+
+        private const int max_loadable_plugins = 10000;
+
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private List<T> loaded = new List<T>();
+        private List<string> extpoints = new List<string>();
+        private Dictionary<string,Range> constraints = new Dictionary<string,Range>();
+        
+        public delegate void Initialiser (IPlugin p);
+        private void default_initialiser_ (IPlugin p) { p.Initialise(); }
 
         public PluginLoader (string dir)
         {            
@@ -52,24 +79,62 @@ namespace OpenSim.Framework
             suppress_console_output_ (false);
         }
 
-        public delegate void Initialiser (IPlugin p);
-        private void default_initialiser_ (IPlugin p) { p.Initialise(); }
+        public void AddExtensionPoint (string extpoint)
+        {
+            extpoints.Add (extpoint);
+        }
+
+        public void AddConstrainedExtensionPoint (string extpoint, int min, int max)
+        {
+            constraints.Add (extpoint, new Range (min, max));
+            AddExtensionPoint (extpoint);
+        }
+        
+        public void LoadAll (Initialiser initialise)
+        {
+            foreach (string pt in extpoints)
+                Load (pt, initialise);
+        }
 
         public void Load (string extpoint)
         {
             Load (extpoint, default_initialiser_);
         }
 
-        public void Load (string extpoint, Initialiser initialize)
+        public void Load (string extpoint, Initialiser initialise)
+        {
+            int min = 0;
+            int max = max_loadable_plugins;
+
+            if (constraints.ContainsKey (extpoint))
+            {
+                min = constraints[extpoint].min; 
+                max = constraints[extpoint].max;
+            }
+                
+            Load (extpoint, initialise, min, max);
+        }
+
+        public void Load (string extpoint, Initialiser initialise, int min, int max)
         {            
+            suppress_console_output_ (true);
+            AddinManager.Registry.Update (null);            
+            suppress_console_output_ (false);
+
             ExtensionNodeList ns = AddinManager.GetExtensionNodes(extpoint);
+
+            if ((ns.Count < min) || (ns.Count > max))
+                throw new PluginCountInvalidException 
+                    ("The number of plugins for " + extpoint + 
+                     " is constrained to the interval [" + min + ", " + max + "]");
+
             foreach (TypeExtensionNode n in ns)
             {
                 T p = (T) n.CreateInstance();
-                initialize (p);
+                initialise (p);
                 Plugins.Add (p);
 
-                log.Info("[PLUGINS]: Loading plugin " + n.Path + "/" + p.Name);
+                log.Info("[PLUGINS]: Loading plugin " + n.Path);
             }
         }
 
