@@ -80,9 +80,68 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain.FileLoaders
             return retval;
         }
 
-        public ITerrainChannel LoadFile(string filename, int x, int y, int fileWidth, int fileHeight, int w, int h)
+        public ITerrainChannel LoadFile(string filename, int offsetX, int offsetY, int fileWidth, int fileHeight, int sectionWidth, int sectionHeight)
         {
-            throw new NotImplementedException();
+            TerrainChannel retval = new TerrainChannel(sectionWidth, sectionHeight);
+
+            FileInfo file = new FileInfo(filename);
+            FileStream s = file.Open(FileMode.Open, FileAccess.Read);
+            BinaryReader bs = new BinaryReader(s);
+
+            int currFileYOffset = 0;
+
+            // if our region isn't on the first Y section of the areas to be landscaped, then
+            // advance to our section of the file
+            while (currFileYOffset < offsetY)
+            {
+                // read a whole strip of regions
+                int heightsToRead = sectionHeight * (fileWidth * sectionWidth);
+                bs.ReadBytes(heightsToRead * 13); // because there are 13 fun channels
+                currFileYOffset++;
+            }
+
+            // got to the Y start offset within the file of our region
+            // so read the file bits associated with our region
+            int y;
+            // for each Y within our Y offset
+            for (y = 0; y < sectionHeight; y++)
+            {
+                int currFileXOffset = 0;
+
+                // if our region isn't the first X section of the areas to be landscaped, then
+                // advance the stream to the X start pos of our section in the file
+                // i.e. eat X upto where we start
+                while (currFileXOffset < offsetX)
+                {
+                    bs.ReadBytes(sectionWidth * 13); 
+                    currFileXOffset++;
+                }
+
+                // got to our X offset, so write our regions X line
+                int x;
+                for (x = 0; x < sectionWidth; x++)
+                {
+                    // Read a strip and continue
+                    retval[x, y] = bs.ReadByte() * (bs.ReadByte() / 128.0);
+                    bs.ReadBytes(11);
+                }
+                // record that we wrote it
+                currFileXOffset++;
+
+                // if our region isn't the last X section of the areas to be landscaped, then
+                // advance the stream to the end of this Y column
+                while (currFileXOffset < fileWidth)
+                {
+                    // eat the next regions x line
+                    bs.ReadBytes(sectionWidth * 13); //The 13 channels again
+                    currFileXOffset++;
+                }
+            }
+
+            bs.Close();
+            s.Close();
+
+            return retval;
         }
         
         public ITerrainChannel LoadStream(Stream s)
