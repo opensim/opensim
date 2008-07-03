@@ -5391,56 +5391,56 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                 switch (code)
                 {
-                    case 2: // PRIM_MATERIAL
+                    case (int)ScriptBaseClass.PRIM_MATERIAL:
                         res.Add(new LSL_Types.LSLInteger(m_host.Material));
                         break;
 
-                    case 3: // PRIM_PHYSICS
+                    case (int)ScriptBaseClass.PRIM_PHYSICS:
                         if ((m_host.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Physics) != 0)
                             res.Add(new LSL_Types.LSLInteger(1));
                         else
                             res.Add(new LSL_Types.LSLInteger(0));
                         break;
 
-                    case 4: // PRIM_TEMP_ON_REZ
+                    case (int)ScriptBaseClass.PRIM_TEMP_ON_REZ:
                         if ((m_host.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.TemporaryOnRez) != 0)
                             res.Add(new LSL_Types.LSLInteger(1));
                         else
                             res.Add(new LSL_Types.LSLInteger(0));
                         break;
 
-                    case 5: // PRIM_PHANTOM
+                    case (int)ScriptBaseClass.PRIM_PHANTOM:
                         if ((m_host.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.Phantom) != 0)
                             res.Add(new LSL_Types.LSLInteger(1));
                         else
                             res.Add(new LSL_Types.LSLInteger(0));
                         break;
 
-                    case 6: // PRIM_POSITION
+                    case (int)ScriptBaseClass.PRIM_POSITION:
                         res.Add(new LSL_Types.Vector3(m_host.AbsolutePosition.X,
                                                       m_host.AbsolutePosition.Y,
                                                       m_host.AbsolutePosition.Z));
                         break;
 
-                    case 7: // PRIM_SIZE
+                    case (int)ScriptBaseClass.PRIM_SIZE:
                         res.Add(new LSL_Types.Vector3(m_host.Scale.X,
                                                       m_host.Scale.Y,
                                                       m_host.Scale.Z));
                         break;
 
-                    case 8: // PRIM_ROTATION
+                    case (int)ScriptBaseClass.PRIM_ROTATION:
                         res.Add(new LSL_Types.Quaternion(m_host.RotationOffset.X,
                                                          m_host.RotationOffset.Y,
                                                          m_host.RotationOffset.Z,
                                                          m_host.RotationOffset.W));
                         break;
 
-                    case 9: // PRIM_TYPE
+                    case (int)ScriptBaseClass.PRIM_TYPE:
                         // TODO--------------
                         res.Add(new LSL_Types.LSLInteger(0));
                         break;
 
-                    case 17: // PRIM_TEXTURE
+                    case (int)ScriptBaseClass.PRIM_TEXTURE:
                         if (remain < 1)
                             return res;
 
@@ -5461,7 +5461,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Types.LSLFloat(texface.Rotation));
                         break;
 
-                    case 18: // PRIM_COLOR
+                    case (int)ScriptBaseClass.PRIM_COLOR:
                         if (remain < 1)
                             return res;
 
@@ -5479,7 +5479,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Types.LSLFloat((texcolor.A * 255) / 255));
                         break;
 
-                    case 19: // PRIM_BUMP_SHINY
+                    case (int)ScriptBaseClass.PRIM_BUMP_SHINY:
                         // TODO--------------
                         if (remain < 1)
                             return res;
@@ -5490,7 +5490,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Types.LSLInteger(0));
                         break;
 
-                    case 20: // PRIM_FULLBRIGHT
+                    case (int)ScriptBaseClass.PRIM_FULLBRIGHT:
                         // TODO--------------
                         if (remain < 1)
                             return res;
@@ -5500,7 +5500,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Types.LSLInteger(0));
                         break;
 
-                    case 21: // PRIM_FLEXIBLE
+                    case (int)ScriptBaseClass.PRIM_FLEXIBLE:
                         PrimitiveBaseShape shape = m_host.Shape;
 
                         if (shape.FlexiEntry)
@@ -5517,7 +5517,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                                       shape.FlexiForceZ));
                         break;
 
-                    case 22: // PRIM_TEXGEN
+                    case (int)ScriptBaseClass.PRIM_TEXGEN:
                         // TODO--------------
                         // (PRIM_TEXGEN_DEFAULT, PRIM_TEXGEN_PLANAR)
                         if (remain < 1)
@@ -5528,7 +5528,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Types.LSLInteger(0));
                         break;
 
-                    case 23: // PRIM_POINT_LIGHT:
+                    case (int)ScriptBaseClass.PRIM_POINT_LIGHT:
                         shape = m_host.Shape;
 
                         if (shape.LightEntry)
@@ -5543,7 +5543,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         res.Add(new LSL_Types.LSLFloat(shape.LightFalloff));   // falloff
                         break;
 
-                    case 24: // PRIM_GLOW
+                    case (int)ScriptBaseClass.PRIM_GLOW:
                         // TODO--------------
                         if (remain < 1)
                             return res;
