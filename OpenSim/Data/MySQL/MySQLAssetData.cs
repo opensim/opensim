@@ -162,6 +162,8 @@ namespace OpenSim.Data.MySQL
             AssetBase asset = null;
             lock (_dbConnection)
             {
+                _dbConnection.CheckConnection();
+
                 MySqlCommand cmd =
                     new MySqlCommand(
                         "SELECT name, description, assetType, local, temporary, data FROM assets WHERE id=?id",
@@ -212,6 +214,8 @@ namespace OpenSim.Data.MySQL
                     //m_log.Info("[ASSET DB]: Asset exists already, ignoring.");
                     return;
                 }
+
+                _dbConnection.CheckConnection();
 
                 MySqlCommand cmd =
                     new MySqlCommand(
@@ -266,6 +270,8 @@ namespace OpenSim.Data.MySQL
 
             lock (_dbConnection)
             {
+                _dbConnection.CheckConnection();
+                
                 MySqlCommand cmd =
                     new MySqlCommand(
                         "SELECT id FROM assets WHERE id=?id",

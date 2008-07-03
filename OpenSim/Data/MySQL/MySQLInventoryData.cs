@@ -219,6 +219,8 @@ namespace OpenSim.Data.MySQL
                 {
                     List<InventoryItemBase> items = new List<InventoryItemBase>();
 
+                    database.CheckConnection();
+
                     MySqlCommand result =
                         new MySqlCommand("SELECT * FROM inventoryitems WHERE parentFolderID = ?uuid",
                                          database.Connection);
@@ -253,6 +255,8 @@ namespace OpenSim.Data.MySQL
             {
                 lock (database)
                 {
+                    database.CheckConnection();
+
                     MySqlCommand result =
                         new MySqlCommand(
                             "SELECT * FROM inventoryfolders WHERE parentFolderID = ?zero AND agentID = ?uuid",
@@ -292,6 +296,8 @@ namespace OpenSim.Data.MySQL
             {
                 lock (database)
                 {
+                    database.CheckConnection();
+
                     MySqlCommand result =
                         new MySqlCommand(
                             "SELECT * FROM inventoryfolders WHERE parentFolderID = ?zero AND agentID = ?uuid",
@@ -344,6 +350,8 @@ namespace OpenSim.Data.MySQL
             {
                 lock (database)
                 {
+                    database.CheckConnection();
+
                     MySqlCommand result =
                         new MySqlCommand("SELECT * FROM inventoryfolders WHERE parentFolderID = ?uuid",
                                          database.Connection);
@@ -421,6 +429,8 @@ namespace OpenSim.Data.MySQL
             {
                 lock (database)
                 {
+                    database.CheckConnection();
+
                     MySqlCommand result =
                         new MySqlCommand("SELECT * FROM inventoryitems WHERE inventoryID = ?uuid", database.Connection);
                     result.Parameters.AddWithValue("?uuid", itemID.ToString());
@@ -482,6 +492,8 @@ namespace OpenSim.Data.MySQL
             {
                 lock (database)
                 {
+                    database.CheckConnection();
+
                     MySqlCommand result =
                         new MySqlCommand("SELECT * FROM inventoryfolders WHERE folderID = ?uuid", database.Connection);
                     result.Parameters.AddWithValue("?uuid", folderID.ToString());
@@ -522,6 +534,8 @@ namespace OpenSim.Data.MySQL
 
             try
             {
+                database.CheckConnection();
+
                 MySqlCommand result = new MySqlCommand(sql, database.Connection);
                 result.Parameters.AddWithValue("?inventoryID", item.ID.ToString());
                 result.Parameters.AddWithValue("?assetID", item.AssetID.ToString());
@@ -574,6 +588,8 @@ namespace OpenSim.Data.MySQL
         {
             try
             {
+                database.CheckConnection();
+
                 MySqlCommand cmd =
                     new MySqlCommand("DELETE FROM inventoryitems WHERE inventoryID=?uuid", database.Connection);
                 cmd.Parameters.AddWithValue("?uuid", itemID.ToString());
@@ -599,6 +615,8 @@ namespace OpenSim.Data.MySQL
             string sql =
                 "REPLACE INTO inventoryfolders (folderID, agentID, parentFolderID, folderName, type, version) VALUES ";
             sql += "(?folderID, ?agentID, ?parentFolderID, ?folderName, ?type, ?version)";
+
+            database.CheckConnection();
 
             MySqlCommand cmd = new MySqlCommand(sql, database.Connection);
             cmd.Parameters.AddWithValue("?folderID", folder.ID.ToString());
@@ -639,6 +657,8 @@ namespace OpenSim.Data.MySQL
         {
             string sql =
                 "UPDATE inventoryfolders SET parentFolderID=?parentFolderID WHERE folderID=?folderID";
+
+            database.CheckConnection();
 
             MySqlCommand cmd = new MySqlCommand(sql, database.Connection);
             cmd.Parameters.AddWithValue("?folderID", folder.ID.ToString());
@@ -695,6 +715,8 @@ namespace OpenSim.Data.MySQL
         {
             try
             {
+                database.CheckConnection();
+
                 MySqlCommand cmd =
                     new MySqlCommand("DELETE FROM inventoryfolders WHERE folderID=?uuid", database.Connection);
                 cmd.Parameters.AddWithValue("?uuid", folderID.ToString());
@@ -719,6 +741,8 @@ namespace OpenSim.Data.MySQL
         {
             try
             {
+                database.CheckConnection();
+
                 MySqlCommand cmd =
                     new MySqlCommand("DELETE FROM inventoryitems WHERE parentFolderID=?uuid", database.Connection);
                 cmd.Parameters.AddWithValue("?uuid", folderID.ToString());

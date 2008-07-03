@@ -54,6 +54,24 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         private string connectionString;
 
+        private const string m_waitTimeoutSelect = "select @@wait_timeout";
+        
+        /// <summary>
+        /// Wait timeout for our connection in ticks.
+        /// </summary>
+        private long m_waitTimeout;
+
+        /// <summary>
+        /// Make our storage of the timeout this amount smaller than it actually is, to give us a margin on long
+        /// running database operations.
+        /// </summary>
+        private long m_waitTimeoutLeeway = 60 * TimeSpan.TicksPerSecond;
+
+        /// <summary>
+        /// Holds the last tick time that the connection was used.
+        /// </summary>
+        private long m_lastConnectionUse;  
+
         /// <summary>
         /// Initialises and creates a new MySQL connection and maintains it.
         /// </summary>
@@ -102,6 +120,7 @@ namespace OpenSim.Data.MySQL
                 }
 
                 m_log.Info("[MYSQL]: Connection established");
+                GetWaitTimeout();
             }
             catch (Exception e)
             {
@@ -109,6 +128,51 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// Get the wait_timeout value for our connection
+        /// </summary>
+        protected void GetWaitTimeout()
+        {
+            MySqlCommand cmd = new MySqlCommand(m_waitTimeoutSelect, dbcon);
+
+            using (MySqlDataReader dbReader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+            {
+                if (dbReader.Read())
+                {
+                    m_waitTimeout
+                        = Convert.ToInt32(dbReader["@@wait_timeout"]) * TimeSpan.TicksPerSecond + m_waitTimeoutLeeway;
+                }
+
+                dbReader.Close();
+                cmd.Dispose();
+            }
+
+            m_lastConnectionUse = System.DateTime.Now.Ticks;
+
+            m_log.DebugFormat(
+                "[REGION DB]: Connection wait timeout {0} seconds", m_waitTimeout / TimeSpan.TicksPerSecond);
+        }
+
+        /// <summary>
+        /// Should be called before any db operation.  This checks to see if the connection has not timed out
+        /// </summary>
+        public void CheckConnection()
+        {
+            //m_log.Debug("[REGION DB]: Checking connection");
+
+            long timeNow = System.DateTime.Now.Ticks;
+            if (timeNow - m_lastConnectionUse > m_waitTimeout || dbcon.State != ConnectionState.Open)
+            {
+                m_log.DebugFormat("[REGION DB]: Database connection has gone away - reconnecting");
+                Reconnect();
+            }
+
+            // Strictly, we should set this after the actual db operation.  But it's more convenient to set here rather
+            // than require the code to call another method - the timeout leeway should be large enough to cover the
+            // inaccuracy.
+            m_lastConnectionUse = timeNow;
+        }
+        
         /// <summary>
         /// Get the connection being used
         /// </summary>
@@ -132,6 +196,8 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         public void Reconnect()
         {
+            m_log.Info("[REGION DB] Reconnecting database");
+
             lock (dbcon)
             {
                 try
@@ -197,6 +263,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="name">name of embedded resource</param>
         public void ExecuteResourceSql(string name)
         {
+            CheckConnection();
             MySqlCommand cmd = new MySqlCommand(getResourceString(name), dbcon);
             cmd.ExecuteNonQuery();
         }
@@ -207,6 +274,7 @@ namespace OpenSim.Data.MySQL
         /// <param name="sql">sql string to execute</param>
         public void ExecuteSql(string sql)
         {
+            CheckConnection();
             MySqlCommand cmd = new MySqlCommand(sql, dbcon);
             cmd.ExecuteNonQuery();
         }
@@ -219,11 +287,14 @@ namespace OpenSim.Data.MySQL
         {
             lock (dbcon)
             {
+                CheckConnection(); 
+                
                 MySqlCommand tablesCmd =
                     new MySqlCommand(
                         "SELECT TABLE_NAME, TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=?dbname",
                         dbcon);
                 tablesCmd.Parameters.AddWithValue("?dbname", dbcon.Database);
+                
                 using (MySqlDataReader tables = tablesCmd.ExecuteReader())
                 {
                     while (tables.Read())
@@ -259,6 +330,8 @@ namespace OpenSim.Data.MySQL
         {
             try
             {
+                CheckConnection(); // Not sure if this one is necessary
+
                 MySqlCommand dbcommand = (MySqlCommand) dbcon.CreateCommand();
                 dbcommand.CommandText = sql;
                 foreach (KeyValuePair<string, string> param in parameters)
@@ -268,43 +341,11 @@ namespace OpenSim.Data.MySQL
 
                 return (IDbCommand) dbcommand;
             }
-            catch
+            catch (Exception e)
             {
-                lock (dbcon)
-                {
-                    // Close the DB connection
-                    dbcon.Close();
-
-                    // Try to reopen it
-                    try
-                    {
-                        dbcon = new MySqlConnection(connectionString);
-                        dbcon.Open();
-                    }
-                    catch (Exception e)
-                    {
-                        m_log.Error("Unable to reconnect to database " + e);
-                    }
-
-                    // Run the query again
-                    try
-                    {
-                        MySqlCommand dbcommand = (MySqlCommand) dbcon.CreateCommand();
-                        dbcommand.CommandText = sql;
-                        foreach (KeyValuePair<string, string> param in parameters)
-                        {
-                            dbcommand.Parameters.AddWithValue(param.Key, param.Value);
-                        }
-
-                        return (IDbCommand) dbcommand;
-                    }
-                    catch (Exception e)
-                    {
-                        // Return null if it fails.
-                        m_log.Error("Failed during Query generation: " + e.ToString());
-                        return null;
-                    }
-                }
+                // Return null if it fails.
+                m_log.Error("Failed during Query generation: " + e.ToString());
+                return null;
             }
         }
 
