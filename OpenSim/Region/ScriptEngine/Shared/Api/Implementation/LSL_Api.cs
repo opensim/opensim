@@ -2042,13 +2042,36 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llEmail(string address, string subject, string message)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llEmail");
+            IEmailModule emailModule = m_ScriptEngine.World.RequestModuleInterface<IEmailModule>();
+            if(emailModule == null)
+                return;
+
+            emailModule.SendEmail(m_host.UUID, address, subject, message);
         }
 
         public void llGetNextEmail(string address, string subject)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llGetNextEmail");
+            IEmailModule emailModule = m_ScriptEngine.World.RequestModuleInterface<IEmailModule>();
+            if(emailModule == null)
+                return;
+            Email email;
+
+            email = emailModule.GetNextEmail(m_host.UUID, address, subject);
+
+            if(email == null)
+                return;
+
+            m_ScriptEngine.PostObjectEvent(m_host.LocalId,
+                    new EventParams("email",
+                    new Object[] {
+                        new LSL_Types.LSLString(email.time),
+                        new LSL_Types.LSLString(email.sender),
+                        new LSL_Types.LSLString(email.subject),
+                        new LSL_Types.LSLString(email.message),
+                        new LSL_Types.LSLInteger(email.numLeft)},
+                    new DetectParams[0]));
+
         }
 
         public string llGetKey()
