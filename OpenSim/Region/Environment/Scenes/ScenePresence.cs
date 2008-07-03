@@ -1073,13 +1073,57 @@ namespace OpenSim.Region.Environment.Scenes
             TrySetMovementAnimation("STAND");
         }
 
+        private SceneObjectPart FindNextAvailableSitTarget(LLUUID targetID)
+        {
+            SceneObjectPart targetPart = m_scene.GetSceneObjectPart(targetID);
+            if (targetPart == null)
+                return null;
+
+            // If the primitive the player clicked on has a sit target and that sit target is not full, that sit target is used.
+            // If the primitive the player clicked on has no sit target, and one or more other linked objects have sit targets that are not full, the sit target of the object with the lowest link number will be used.
+
+            // Get our own copy of the part array, and sort into the order we want to test
+            SceneObjectPart[] partArray = targetPart.ParentGroup.GetParts();
+            Array.Sort(partArray, delegate(SceneObjectPart p1, SceneObjectPart p2) {
+                        // we want the originally selected part first, then the rest in link order -- so make the selected part link num (-1)
+                        int linkNum1 = p1==targetPart ? -1 : p1.LinkNum;
+                        int linkNum2 = p2==targetPart ? -1 : p2.LinkNum;
+                        return linkNum1 - linkNum2;
+                    }
+                );
+
+            //look for prims with explicit sit targets that are available
+            foreach(SceneObjectPart part in partArray) {
+
+                // Is a sit target available?
+                Vector3 avSitOffSet = part.GetSitTargetPosition();
+                Quaternion avSitOrientation = part.GetSitTargetOrientation();
+                LLUUID avOnTargetAlready = part.GetAvatarOnSitTarget();
+
+                bool SitTargetUnOccupied = (!(avOnTargetAlready != LLUUID.Zero));
+                bool SitTargetisSet =
+                    (!(avSitOffSet.x == 0 && avSitOffSet.y == 0 && avSitOffSet.z == 0 && avSitOrientation.w == 0 &&
+                       avSitOrientation.x == 0 && avSitOrientation.y == 0 && avSitOrientation.z == 1));
+
+                if (SitTargetisSet && SitTargetUnOccupied)
+                {
+                    //switch the target to this prim
+                    return part;
+                }
+            }
+
+            // no explicit sit target found - use original target
+            return targetPart;
+        }
+
         private void SendSitResponse(IClientAPI remoteClient, LLUUID targetID, LLVector3 offset)
         {
             bool autopilot = true;
             LLVector3 pos = new LLVector3();
             LLQuaternion sitOrientation = new LLQuaternion(0, 0, 0, 1);
 
-            SceneObjectPart part = m_scene.GetSceneObjectPart(targetID);
+            //SceneObjectPart part =  m_scene.GetSceneObjectPart(targetID);
+            SceneObjectPart part =  FindNextAvailableSitTarget(targetID);
             if (part != null)
             {
                 // TODO: determine position to sit at based on scene geometry; don't trust offset from client
@@ -1153,7 +1197,8 @@ namespace OpenSim.Region.Environment.Scenes
                 StandUp();
             }
 
-            SceneObjectPart part = m_scene.GetSceneObjectPart(targetID);
+            //SceneObjectPart part = m_scene.GetSceneObjectPart(targetID);
+            SceneObjectPart part =  FindNextAvailableSitTarget(targetID);
 
             if (part != null)
             {
