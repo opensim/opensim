@@ -32,7 +32,13 @@ namespace OpenSim.Region.Environment.Interfaces
         int Height { get; }
         double this[int x, int y] { get; set; }
         int Width { get; }
+
+        /// <summary>
+        /// Squash the entire heightmap into a single dimensioned array
+        /// </summary>
+        /// <returns></returns>
         float[] GetFloatsSerialised();
+        
         double[,] GetDoubles();
         bool Tainted(int x, int y);
         ITerrainChannel MakeCopy();

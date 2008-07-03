@@ -1101,27 +1101,44 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             //}
         }
 
+        /// <summary>
+        /// Send terrain layer information to the client.
+        /// </summary>
+        /// <param name="o"></param>
         private void DoSendLayerData(object o)
         {
             float[] map = (float[])o;
+            
             try
             {
                 for (int y = 0; y < 16; y++)
                 {
-                    for (int x = 0; x < 16; x += 4)
+                    // For some terrains, sending more than one terrain patch at once results in a libsecondlife exception
+                    // see http://opensimulator.org/mantis/view.php?id=1662                     
+                    //for (int x = 0; x < 16; x += 4)
+                    //{
+                    //    SendLayerPacket(map, y, x);
+                    //    Thread.Sleep(150);
+                    //}
+                    for (int x= 0; x < 16; x++)
                     {
-                        SendLayerPacket(map, y, x);
-                        Thread.Sleep(150);
+                         SendLayerData(x, y, map);
+                         Thread.Sleep(35);
                     }
                 }
             }
             catch (Exception e)
             {
-                m_log.Warn("[client]: " +
-                                      "ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
+                m_log.Warn("[CLIENT]: ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
             }
         }
 
+        /// <summary>
+        /// Sends a set of four patches (x, x+1, ..., x+3) to the client
+        /// </summary>
+        /// <param name="map">heightmap</param> 
+        /// <param name="px">X coordinate for patches 0..12</param>
+        /// <param name="py">Y coordinate for patches 0..15</param>
         private void SendLayerPacket(float[] map, int y, int x)
         {
             int[] patches = new int[4];
@@ -1137,8 +1154,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// Sends a specified patch to a client
         /// </summary>
-        /// <param name="px">Patch coordinate (x) 0..16</param>
-        /// <param name="py">Patch coordinate (y) 0..16</param>
+        /// <param name="px">Patch coordinate (x) 0..15</param>
+        /// <param name="py">Patch coordinate (y) 0..15</param>
         /// <param name="map">heightmap</param>
         public void SendLayerData(int px, int py, float[] map)
         {
@@ -1157,8 +1174,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
             catch (Exception e)
             {
-                m_log.Warn("[client]: " +
-                           "ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
+                m_log.Warn("[client]: ClientView.API.cs: SendLayerData() - Failed with exception " + e.ToString());
             }
         }
 

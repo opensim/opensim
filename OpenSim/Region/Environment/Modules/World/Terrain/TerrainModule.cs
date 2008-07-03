@@ -494,8 +494,9 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
         }
 
         /// <summary>
-        /// Checks to see if the terrain has been modified since last check
-        /// if the call is asked to respect the estate settings for terrain_raise_limit and
+        /// Checks to see if the terrain has been modified since last check.
+        /// If it has been modified, every all the terrain patches are sent to the client.
+        /// If the call is asked to respect the estate settings for terrain_raise_limit and
         /// terrain_lower_limit, it will clamp terrain updates between these values
         /// currently invoked by client_OnModifyTerrain only and not the Commander interfaces
         /// <param name="respectEstateSettings">should height map deltas be limited to the estate settings limits</param>
@@ -520,6 +521,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
                             // what we are going to send to the client
                             serialised = m_channel.GetFloatsSerialised();
                         }
+                        
                         SendToClients(serialised, x, y);
                         shouldTaint = true;
                     }
@@ -578,7 +580,11 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
         private void SendToClients(float[] serialised, int x, int y)
         {
             m_scene.ForEachClient(
-                delegate(IClientAPI controller) { controller.SendLayerData(x / Constants.TerrainPatchSize, y / Constants.TerrainPatchSize, serialised); });
+                delegate(IClientAPI controller) 
+                    { controller.SendLayerData(
+                        x / Constants.TerrainPatchSize, y / Constants.TerrainPatchSize, serialised); 
+                    }
+            );
         }
 
         private void client_OnModifyTerrain(float height, float seconds, byte size, byte action, float north, float west,

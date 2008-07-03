@@ -45,7 +45,7 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
 
         public TerrainChannel()
         {
-            map = new double[Constants.RegionSize,Constants.RegionSize];
+            map = new double[Constants.RegionSize, Constants.RegionSize];
             taint = new bool[Constants.RegionSize / 16,Constants.RegionSize / 16];
 
             int x;
