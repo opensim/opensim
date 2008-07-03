@@ -5,7 +5,6 @@
             <generator class="assigned" /> 
         </id> 
         <property name="Type" type="System.SByte" />
-        <property name="InvType" type="System.SByte" />
         <property name="Name" type="String" length="64" />
         <property name="Description" type="String" length="64" />
         <property name="Local" type="boolean" />

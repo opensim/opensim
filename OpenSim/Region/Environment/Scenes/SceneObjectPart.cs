@@ -776,12 +776,40 @@ namespace OpenSim.Region.Environment.Scenes
         public Quaternion SitTargetOrientation
         {
             get { return m_sitTargetOrientation; }
+            set { m_sitTargetOrientation = value; }
         }
+
 
         public Vector3 SitTargetPosition
         {
             get { return m_sitTargetPosition; }
+            set { m_sitTargetPosition = value; }
         }
+
+        // This sort of sucks, but I'm adding these in to make some of
+        // the mappings more consistant.
+        public LLVector3 SitTargetPositionLL
+        {
+            get { return new LLVector3(m_sitTargetPosition.x, m_sitTargetPosition.y,m_sitTargetPosition.z); }
+            set { m_sitTargetPosition = new Vector3(value.X, value.Y, value.Z); }
+        }
+
+        public LLQuaternion SitTargetOrientationLL
+        {
+            get 
+            { 
+                return new LLQuaternion(
+                                        m_sitTargetOrientation.x,
+                                        m_sitTargetOrientation.y,
+                                        m_sitTargetOrientation.z,
+                                        m_sitTargetOrientation.w
+                                        );
+            }
+
+            set { m_sitTargetOrientation = new Quaternion(value.X, value.Y, value.Z, value.W); }
+        }
+
+
 
         public bool Stopped
         {

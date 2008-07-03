@@ -29,34 +29,49 @@
           <column name="PositionY" />
           <column name="PositionZ" />
         </property>
-          
-        <property name="GroupPosition.X" column="GroupPositionX" type="Single" />
-        <property name="GroupPosition.Y" column="GroupPositionY" type="Single" />
-        <property name="GroupPosition.Z" column="GroupPositionZ" type="Single" />
+
+        <property name="GroupPosition" type="OpenSim.Data.NHibernate.LLVector3UserType, OpenSim.Data.NHibernate" >
+          <column name="GroupPositionX" />
+          <column name="GroupPositionY" />
+          <column name="GroupPositionZ" />
+        </property>
+
+        <property name="Velocity" type="OpenSim.Data.NHibernate.LLVector3UserType, OpenSim.Data.NHibernate" >
+          <column name="VelocityX" />
+          <column name="VelocityY" />
+          <column name="VelocityZ" />
+        </property>
+
+        <property name="AngularVelocity" type="OpenSim.Data.NHibernate.LLVector3UserType, OpenSim.Data.NHibernate" >
+          <column name="AngularVelocityX" />
+          <column name="AngularVelocityY" />
+          <column name="AngularVelocityZ" />
+        </property>
+
+        <property name="Acceleration" type="OpenSim.Data.NHibernate.LLVector3UserType, OpenSim.Data.NHibernate" >
+          <column name="AccelerationX" />
+          <column name="AccelerationY" />
+          <column name="AccelerationZ" />
+        </property>
+
+        <property name="SitTargetPositionLL" type="OpenSim.Data.NHibernate.LLVector3UserType, OpenSim.Data.NHibernate" >
+          <column name="SitTargetPosX" />
+          <column name="SitTargetPosY" />
+          <column name="SitTargetPosZ" />
+        </property>
+
+        <property name="RotationOffset" type="OpenSim.Data.NHibernate.LLQuaternionUserType, OpenSim.Data.NHibernate" >
+          <column name="RotationX" />
+          <column name="RotationY" />
+          <column name="RotationZ" />
+          <column name="RotationW" />
+        </property>
         
-        <property name="Velocity.X" column="VelocityX" type="Single" />
-        <property name="Velocity.Y" column="VelocityY" type="Single" />
-        <property name="Velocity.Z" column="VelocityZ" type="Single" />
-
-        <property name="AngularVelocity.X" column="AngularVelocityX" type="Single" />
-        <property name="AngularVelocity.Y" column="AngularVelocityY" type="Single" />
-        <property name="AngularVelocity.Z" column="AngularVelocityZ" type="Single" />
-
-        <property name="Acceleration.X" column="AccelerationX" type="Single" />
-        <property name="Acceleration.Y" column="AccelerationY" type="Single" />
-        <property name="Acceleration.Z" column="AccelerationZ" type="Single" />
-
-        <property name="Rotation.X" column="RotationX" type="Single" />
-        <property name="Rotation.Y" column="RotationY" type="Single" />
-        <property name="Rotation.Z" column="RotationZ" type="Single" />
-        <property name="Rotation.W" column="RotationW" type="Single" />
-
-        <property name="sitTargetPos.X" column="sitTargetPosX" type="Single" />
-        <property name="sitTargetPos.Y" column="sitTargetPosY" type="Single" />
-        <property name="sitTargetPos.Z" column="sitTargetPosZ" type="Single" />
-        <property name="SiteTargetOrient.X" column="SiteTargetOrientX" type="Single" />
-        <property name="SiteTargetOrient.Y" column="SiteTargetOrientY" type="Single" />
-        <property name="SiteTargetOrient.Z" column="SiteTargetOrientZ" type="Single" />
-        <property name="SiteTargetOrient.W" column="SiteTargetOrientW" type="Single" />
+        <property name="SitTargetOrientationLL" type="OpenSim.Data.NHibernate.LLQuaternionUserType, OpenSim.Data.NHibernate" >
+          <column name="SitTargetOrientX" />
+          <column name="SitTargetOrientY" />
+          <column name="SitTargetOrientZ" />
+          <column name="SitTargetOrientW" />
+        </property>
     </class>
 </hibernate-mapping>
