@@ -163,7 +163,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
             fullSimParcel.setLandBitmap(fullSimParcel.getSquareLandBitmap(0, 0, (int)Constants.RegionSize, (int)Constants.RegionSize));
             fullSimParcel.landData.ownerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
-
+            fullSimParcel.landData.claimDate = Util.UnixTimeSinceEpoch();
             AddLandObject(fullSimParcel);
         }
 
@@ -946,6 +946,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 if (m_scene.ExternalChecks.ExternalChecksCanReclaimParcel(remote_client.AgentId, landList[local_id]))
                 {
                     landList[local_id].landData.ownerID = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+                    landList[local_id].landData.claimDate = Util.UnixTimeSinceEpoch();
                     m_scene.Broadcast(SendParcelOverlay);
                     landList[local_id].sendLandUpdateToClient(remote_client);
                 }

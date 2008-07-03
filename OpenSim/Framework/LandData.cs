@@ -39,7 +39,7 @@ namespace OpenSim.Framework
         public uint auctionID = 0; //Unemplemented. If set to 0, not being auctioned
         public LLUUID authBuyerID = LLUUID.Zero; //Unemplemented. Authorized Buyer's UUID
         public Parcel.ParcelCategory category = new Parcel.ParcelCategory(); //Unemplemented. Parcel's chosen category
-        public int claimDate = 0; //Unemplemented
+        public int claimDate = 0; 
         public int claimPrice = 0; //Unemplemented
         public LLUUID globalID = LLUUID.Zero;
         public LLUUID groupID = LLUUID.Zero; //Unemplemented
