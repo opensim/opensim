@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2">
+    <class name="OpenSim.Region.Environment.Scenes.SceneObjectPart, OpenSim.Region.Environment" table="Prims" lazy="false">
+        <id name="UUID" column="ID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
+            <generator class="assigned" /> 
+        </id>
+        <property name="ParentID" type="System.UInt32" />
+        <property name="CreationDate" type="System.Int32" />
+        <property name="Name" type="String" length="255" />
+        <property name="Text" type="String" length="255" />
+        <property name="Description" type="String" length="255" />
+        <property name="SitName" type="String" length="255" />
+        <property name="TouchName" type="String" length="255" />
+        
+        <property name="ObjectFlags" type="System.UInt32" />
+        <property name="CreatorID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" /> 
+        <property name="OwnerID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" /> 
+        <property name="GroupID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" /> 
+        <property name="LastOwnerID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" /> 
+
+        <property name="OwnerMask" type="System.UInt32" />
+        <property name="NextOwnerMask" type="System.UInt32" />
+        <property name="GroupMask" type="System.UInt32" />
+        <property name="EveryoneMask" type="System.UInt32" />
+        <property name="BaseMask" type="System.UInt32" />
+
+        <property name="OffsetPosition" type="OpenSim.Data.NHibernate.LLVector3UserType, OpenSim.Data.NHibernate" >
+          <column name="PositionX" />
+          <column name="PositionY" />
+          <column name="PositionZ" />
+        </property>
+          
+        <property name="GroupPosition.X" column="GroupPositionX" type="Single" />
+        <property name="GroupPosition.Y" column="GroupPositionY" type="Single" />
+        <property name="GroupPosition.Z" column="GroupPositionZ" type="Single" />
+        
+        <property name="Velocity.X" column="VelocityX" type="Single" />
+        <property name="Velocity.Y" column="VelocityY" type="Single" />
+        <property name="Velocity.Z" column="VelocityZ" type="Single" />
+
+        <property name="AngularVelocity.X" column="AngularVelocityX" type="Single" />
+        <property name="AngularVelocity.Y" column="AngularVelocityY" type="Single" />
+        <property name="AngularVelocity.Z" column="AngularVelocityZ" type="Single" />
+
+        <property name="Acceleration.X" column="AccelerationX" type="Single" />
+        <property name="Acceleration.Y" column="AccelerationY" type="Single" />
+        <property name="Acceleration.Z" column="AccelerationZ" type="Single" />
+
+        <property name="Rotation.X" column="RotationX" type="Single" />
+        <property name="Rotation.Y" column="RotationY" type="Single" />
+        <property name="Rotation.Z" column="RotationZ" type="Single" />
+        <property name="Rotation.W" column="RotationW" type="Single" />
+
+        <property name="sitTargetPos.X" column="sitTargetPosX" type="Single" />
+        <property name="sitTargetPos.Y" column="sitTargetPosY" type="Single" />
+        <property name="sitTargetPos.Z" column="sitTargetPosZ" type="Single" />
+        <property name="SiteTargetOrient.X" column="SiteTargetOrientX" type="Single" />
+        <property name="SiteTargetOrient.Y" column="SiteTargetOrientY" type="Single" />
+        <property name="SiteTargetOrient.Z" column="SiteTargetOrientZ" type="Single" />
+        <property name="SiteTargetOrient.W" column="SiteTargetOrientW" type="Single" />
+    </class>
+</hibernate-mapping>

@@ -35,32 +35,31 @@ using NHibernate.UserTypes;
 namespace OpenSim.Data.NHibernate
 {
     [Serializable]
-    public class TextureUserType: IUserType
+    public class LLVector3UserType: IUserType
     {
         public object Assemble(object cached, object owner)
         {
             return cached;
         }
 
-        bool IUserType.Equals(object texture1, object texture2)
+        bool IUserType.Equals(object vector1, object vector2)
         {
-            return texture1.Equals(texture2);
+            return vector1.Equals(vector2);
         }
 
-        public object DeepCopy(object texture)
+        public object DeepCopy(object vector)
         {
-            byte[] bytes = ((LLObject.TextureEntry)texture).ToBytes();
-            return new LLObject.TextureEntry(bytes, 0, bytes.Length);
+            return new LLVector3((LLVector3) vector);
         }
 
-        public object Disassemble(object texture)
+        public object Disassemble(object vector)
         {
-            return texture;
+            return vector;
         }
 
-        public int GetHashCode(object texture)
+        public int GetHashCode(object vector)
         {
-            return (texture == null) ? 0 : texture.GetHashCode();
+            return (vector == null) ? 0 : vector.GetHashCode();
         }
 
         public bool IsMutable
@@ -70,22 +69,24 @@ namespace OpenSim.Data.NHibernate
 
         public object NullSafeGet(IDataReader rs, string[] names, object owner)
         {
-            object texture = null;
-
-            int ord = rs.GetOrdinal(names[0]);
-            if (!rs.IsDBNull(ord))
+            object vector = null;
+                        
+            int x = rs.GetOrdinal(names[0]);
+            int y = rs.GetOrdinal(names[1]);
+            int z = rs.GetOrdinal(names[2]);
+            if (!rs.IsDBNull(x))
             {
-                byte[] bytes = (byte[])rs[ord];
-                texture = new LLObject.TextureEntry(bytes, 0, bytes.Length);
+                vector = new LLVector3((Single)rs[x], (Single)rs[y], (Single)rs[z]);
             }
-
-            return texture;
+            return vector;
         }
 
         public void NullSafeSet(IDbCommand cmd, object obj, int index)
         {
-            LLObject.TextureEntry texture = (LLObject.TextureEntry)obj;
-            ((IDataParameter)cmd.Parameters[index]).Value = texture.ToBytes();
+            LLVector3 vector = (LLVector3)obj;
+            ((IDataParameter)cmd.Parameters[index]).Value = vector.X;
+            ((IDataParameter)cmd.Parameters[index + 1]).Value = vector.Y;
+            ((IDataParameter)cmd.Parameters[index + 2]).Value = vector.Z;
         }
 
         public object Replace(object original, object target, object owner)
@@ -95,12 +96,12 @@ namespace OpenSim.Data.NHibernate
 
         public Type ReturnedType
         {
-            get { return typeof(LLObject.TextureEntry); }
+            get { return typeof(LLVector3); }
         }
 
         public SqlType[] SqlTypes
         {
-            get { return new SqlType [] { NHibernateUtil.Binary.SqlType }; }
+            get { return new SqlType [] { NHibernateUtil.Single.SqlType, NHibernateUtil.Single.SqlType, NHibernateUtil.Single.SqlType }; }
         }
     }
 }
