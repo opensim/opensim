@@ -28,14 +28,15 @@
 using System;
 using vector = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Vector3;
 using rotation = OpenSim.Region.ScriptEngine.Shared.LSL_Types.Quaternion;
+using LSLInteger = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;
 
 namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
     public partial class ScriptBaseClass : MarshalByRefObject
     {
         // LSL CONSTANTS
-        public const int TRUE = 1;
-        public const int FALSE = 0;
+        public LSLInteger TRUE = new LSLInteger(1);
+        public LSLInteger FALSE = new LSLInteger(0);
 
         public const int STATUS_PHYSICS = 1;
         public const int STATUS_ROTATE_X = 2;
