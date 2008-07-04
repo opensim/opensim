@@ -332,16 +332,12 @@ namespace OpenSim
             m_networkServersInfo.loadFromConfiguration(m_config.Source);
         }
 
-        protected void plugin_initialiser_ (IPlugin plugin)
-        {
-            IApplicationPlugin p = plugin as IApplicationPlugin;
-            p.Initialise (this);
-        }
-
         protected void LoadPlugins()
         {
-            PluginLoader<IApplicationPlugin> loader = new PluginLoader<IApplicationPlugin> (".");
-            loader.Load ("/OpenSim/Startup", plugin_initialiser_);
+            PluginLoader<IApplicationPlugin> loader = 
+                new PluginLoader<IApplicationPlugin> (new ApplicationPluginInitialiser (this));
+
+            loader.Load ("/OpenSim/Startup", ".");
             m_plugins = loader.Plugins;
         }
 
@@ -730,6 +726,7 @@ namespace OpenSim
         }
     }
 }
+
 
 
 

@@ -37,4 +37,15 @@ namespace OpenSim
     {
         void Initialise(OpenSimBase openSim);
     }
+    
+    public class ApplicationPluginInitialiser : PluginInitialiserBase
+    {
+        private OpenSimBase server;
+        public ApplicationPluginInitialiser (OpenSimBase s) { server = s; }
+        public override void Initialise (IPlugin plugin)
+        {
+            IApplicationPlugin p = plugin as IApplicationPlugin;
+            p.Initialise (server);
+        }
+    }
 }

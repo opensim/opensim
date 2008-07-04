@@ -37,11 +37,21 @@ namespace OpenSim.Framework
     /// <summary>
     /// Exception thrown if an incorrect number of plugins are loaded
     /// </summary>
-    public class PluginCountInvalidException : Exception
+    public class PluginConstraintViolatedException : Exception
     {
-        public PluginCountInvalidException () : base() {}
-        public PluginCountInvalidException (string msg) : base(msg) {}
-        public PluginCountInvalidException (string msg, Exception e) : base(msg, e) {}
+        public PluginConstraintViolatedException () : base() {}
+        public PluginConstraintViolatedException (string msg) : base(msg) {}
+        public PluginConstraintViolatedException (string msg, Exception e) : base(msg, e) {}
+    }
+
+    /// <summary>
+    /// Classes wishing to impose constraints on plugin loading must implement 
+    /// this class and pass it to PluginLoader AddConstraint()
+    /// </summary>
+    public interface IPluginConstraint
+    {
+        bool Fail (string extpoint);
+        string Message { get; }
     }
 
     /// <summary>
@@ -49,26 +59,42 @@ namespace OpenSim.Framework
     /// </summary>
     public class PluginLoader <T> : IDisposable where T : IPlugin
     {
-        private struct Range 
-        { 
-            public int min; 
-            public int max; 
-            public Range (int n, int x) { min=n; max=x; } 
-        }
-
         private const int max_loadable_plugins = 10000;
 
-        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private List<T> loaded = new List<T>();
         private List<string> extpoints = new List<string>();
-        private Dictionary<string,Range> constraints = new Dictionary<string,Range>();
+        private PluginInitialiserBase initialiser;
+        private Dictionary<string,IPluginConstraint> constraints 
+            = new Dictionary<string,IPluginConstraint>();
         
-        public delegate void Initialiser (IPlugin p);
-        private void default_initialiser_ (IPlugin p) { p.Initialise(); }
+        private static readonly ILog log 
+            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
+        public PluginInitialiserBase Initialiser
+        { 
+            set { initialiser = value; } 
+            get { return initialiser; } 
+        }
+        
+        public List<T> Plugins 
+        { 
+            get { return loaded; } 
+        }
 
-        public PluginLoader (string dir)
+        public PluginLoader () 
+        {
+            Initialiser = new PluginInitialiserBase();
+        }
+
+        public PluginLoader (PluginInitialiserBase init)
         {            
-            AddPluginDir (dir);
+           Initialiser = init;
+        }
+
+        public PluginLoader (PluginInitialiserBase init, string dir)
+        {            
+           Initialiser = init;
+           AddPluginDir (dir);
         }
 
         public void AddPluginDir (string dir)
@@ -84,63 +110,43 @@ namespace OpenSim.Framework
             extpoints.Add (extpoint);
         }
 
-        public void AddConstrainedExtensionPoint (string extpoint, int min, int max)
+        public void AddConstraint (string extpoint, IPluginConstraint cons)
         {
-            constraints.Add (extpoint, new Range (min, max));
-            AddExtensionPoint (extpoint);
+            constraints.Add (extpoint, cons);
         }
         
-        public void LoadAll (Initialiser initialise)
+        public void Load (string extpoint, string dir)
         {
-            foreach (string pt in extpoints)
-                Load (pt, initialise);
+            AddPluginDir (dir);
+            AddExtensionPoint (extpoint);
+            Load();
         }
 
-        public void Load (string extpoint)
-        {
-            Load (extpoint, default_initialiser_);
-        }
-
-        public void Load (string extpoint, Initialiser initialise)
-        {
-            int min = 0;
-            int max = max_loadable_plugins;
-
-            if (constraints.ContainsKey (extpoint))
-            {
-                min = constraints[extpoint].min; 
-                max = constraints[extpoint].max;
-            }
-                
-            Load (extpoint, initialise, min, max);
-        }
-
-        public void Load (string extpoint, Initialiser initialise, int min, int max)
+        public void Load ()
         {            
             suppress_console_output_ (true);
             AddinManager.Registry.Update (null);            
             suppress_console_output_ (false);
 
-            ExtensionNodeList ns = AddinManager.GetExtensionNodes(extpoint);
-
-            if ((ns.Count < min) || (ns.Count > max))
-                throw new PluginCountInvalidException 
-                    ("The number of plugins for " + extpoint + 
-                     " is constrained to the interval [" + min + ", " + max + "]");
-
-            foreach (TypeExtensionNode n in ns)
+            foreach (string ext in extpoints)
             {
-                T p = (T) n.CreateInstance();
-                initialise (p);
-                Plugins.Add (p);
+                if (constraints.ContainsKey (ext))
+                {
+                    IPluginConstraint cons = constraints [ext];
+                    if (cons.Fail (ext))
+                        throw new PluginConstraintViolatedException (cons.Message);
+                }
 
-                log.Info("[PLUGINS]: Loading plugin " + n.Path);
+                ExtensionNodeList ns = AddinManager.GetExtensionNodes (ext);
+                foreach (TypeExtensionNode n in ns)
+                {
+                    T p = (T) n.CreateInstance();
+                    Initialiser.Initialise (p);
+                    Plugins.Add (p);
+
+                    log.Info("[PLUGINS]: Loading plugin " + n.Path);
+                }
             }
-        }
-
-        public List<T> Plugins
-        {
-            get { return loaded; } 
         }
 
         public void Dispose ()
@@ -174,6 +180,73 @@ namespace OpenSim.Framework
                     System.Console.SetOut(prev_console_);
             }
         }
+    }
 
+    public class PluginCountConstraint : IPluginConstraint
+    { 
+        private int min; 
+        private int max; 
+
+        public PluginCountConstraint (int exact)
+        {
+            min = exact; 
+            max = exact; 
+        }
+
+        public PluginCountConstraint (int minimum, int maximum) 
+        { 
+            min = minimum; 
+            max = maximum; 
+        } 
+
+        public string Message 
+        { 
+            get 
+            { 
+                return "The number of plugins is constrained to the interval [" 
+                    + min + ", " + max + "]"; 
+            } 
+        }
+
+        public bool Fail (string extpoint)
+        {
+            ExtensionNodeList ns = AddinManager.GetExtensionNodes (extpoint);
+            if ((ns.Count < min) || (ns.Count > max))
+                return true;
+            else
+                return false;
+        }
+    }
+
+    public class PluginFilenameConstraint : IPluginConstraint
+    { 
+        private string filename; 
+
+        public PluginFilenameConstraint (string name)
+        { 
+            filename = name; 
+            
+        } 
+
+        public string Message 
+        { 
+            get 
+            { 
+                return "The plugin must have the following name: " + filename; 
+            } 
+        }
+
+        public bool Fail (string extpoint)
+        {
+            ExtensionNodeList ns = AddinManager.GetExtensionNodes (extpoint);
+            if (ns.Count != 1)
+                return true;
+
+            string[] path = ns[0].Path.Split('/');
+            if (path [path.Length-1] == filename)
+                return false;
+                
+            return true;
+        }
     }
 }

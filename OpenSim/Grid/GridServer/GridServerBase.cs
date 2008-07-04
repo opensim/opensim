@@ -87,7 +87,7 @@ namespace OpenSim.Grid.GridServer
 
             AddHttpHandlers();
 
-            LoadGridPlugins();
+            LoadPlugins();
 
             m_httpServer.Start();
 
@@ -116,16 +116,12 @@ namespace OpenSim.Grid.GridServer
             m_httpServer.AddStreamHandler(new RestStreamHandler("POST", "/regions/", m_gridManager.RestSetRegionMethod));
         }
 
-        protected void grid_plugin_initialiser_ (IPlugin plugin)
+        protected void LoadPlugins()
         {
-            IGridPlugin p = plugin as IGridPlugin;
-            p.Initialise (this);
-        }
+            PluginLoader<IGridPlugin> loader = 
+                new PluginLoader<IGridPlugin> (new GridPluginInitialiser (this));
 
-        protected void LoadGridPlugins()
-        {
-            PluginLoader<IGridPlugin> loader = new PluginLoader<IGridPlugin> (".");
-            loader.Load ("/OpenSim/GridServer", grid_plugin_initialiser_);
+            loader.Load ("/OpenSim/GridServer", ".");
             m_plugins = loader.Plugins;
         }
 
@@ -181,7 +177,7 @@ namespace OpenSim.Grid.GridServer
 
         public override void Shutdown()
         {
-            foreach (IGridPlugin plugin in m_plugins) plugin.Close();
+            foreach (IGridPlugin plugin in m_plugins) plugin.Dispose();
 
             base.Shutdown();
         }
