@@ -66,7 +66,7 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("user_recv_key", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Key to expect from user server", "null", false);
             configMember.addConfigurationOption("database_provider", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
-                                                "DLL for database provider", "OpenSim.Data.SQLite.dll", false);
+                                                "DLL for database provider", "OpenSim.Data.MySQL.dll", false);
             configMember.addConfigurationOption("database_connect", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 "Database Connect String", "", false);
             configMember.addConfigurationOption("http_port", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
