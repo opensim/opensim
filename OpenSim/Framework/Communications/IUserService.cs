@@ -51,7 +51,7 @@ namespace OpenSim.Framework.Communications
 
         UserAgentData GetAgentByUUID(LLUUID userId);
 
-        void clearUserAgent(LLUUID avatarID);
+        void ClearUserAgent(LLUUID avatarID);
         List<AvatarPickerAvatar> GenerateAgentPickerRequestResponse(LLUUID QueryID, string Query);
 
         UserProfileData SetupMasterUser(string firstName, string lastName);

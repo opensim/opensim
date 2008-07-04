@@ -36,7 +36,6 @@ namespace OpenSim.Framework
         private byte[] _data;
         private string _description = String.Empty;
         private LLUUID _fullid;
-        private sbyte _invtype;
         private bool _local = false;
         private string _name = String.Empty;
         private bool _temporary = false;

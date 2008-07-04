@@ -1139,17 +1139,17 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="map">heightmap</param> 
         /// <param name="px">X coordinate for patches 0..12</param>
         /// <param name="py">Y coordinate for patches 0..15</param>
-        private void SendLayerPacket(float[] map, int y, int x)
-        {
-            int[] patches = new int[4];
-            patches[0] = x + 0 + y * 16;
-            patches[1] = x + 1 + y * 16;
-            patches[2] = x + 2 + y * 16;
-            patches[3] = x + 3 + y * 16;
+        // private void SendLayerPacket(float[] map, int y, int x)
+        // {
+        //     int[] patches = new int[4];
+        //     patches[0] = x + 0 + y * 16;
+        //     patches[1] = x + 1 + y * 16;
+        //     patches[2] = x + 2 + y * 16;
+        //     patches[3] = x + 3 + y * 16;
 
-            Packet layerpack = LLClientView.TerrainManager.CreateLandPacket(map, patches);
-            OutPacket(layerpack, ThrottleOutPacketType.Land);
-        }
+        //     Packet layerpack = LLClientView.TerrainManager.CreateLandPacket(map, patches);
+        //     OutPacket(layerpack, ThrottleOutPacketType.Land);
+        // }
 
         /// <summary>
         /// Sends a specified patch to a client

@@ -664,7 +664,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         public void ClearUserAgent(LLUUID avatarID)
         {
-            m_commsProvider.UserService.clearUserAgent(avatarID);
+            m_commsProvider.UserService.ClearUserAgent(avatarID);
         }
 
         public void AddNewUserFriend(LLUUID friendlistowner, LLUUID friend, uint perms)

@@ -96,7 +96,7 @@ namespace OpenSim.Framework.Communications
 
                 if (profile != null)
                 {
-                    profile.CurrentAgent = getUserAgent(profile.ID);
+                    profile.CurrentAgent = GetUserAgent(profile.ID);
                     return profile;
                 }
             }
@@ -126,7 +126,7 @@ namespace OpenSim.Framework.Communications
 
                 if (null != profile)
                 {
-                    profile.CurrentAgent = getUserAgent(profile.ID);
+                    profile.CurrentAgent = GetUserAgent(profile.ID);
                     return profile;
                 }
             }
@@ -157,7 +157,7 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public bool setUserProfile(UserProfileData data)
+        public bool SetUserProfile(UserProfileData data)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
             {
@@ -183,13 +183,58 @@ namespace OpenSim.Framework.Communications
         /// </summary>
         /// <param name="uuid">The agent's UUID</param>
         /// <returns>Agent profiles</returns>
-        public UserAgentData getUserAgent(LLUUID uuid)
+        public UserAgentData GetUserAgent(LLUUID uuid)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
             {
                 try
                 {
                     return plugin.Value.GetAgentByUUID(uuid);
+                }
+                catch (Exception e)
+                {
+                    m_log.Info("[USERSTORAGE]: Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Loads a user agent by name (not called directly)
+        /// </summary>
+        /// <param name="name">The agent's name</param>
+        /// <returns>A user agent</returns>
+        public UserAgentData GetUserAgent(string name)
+        {
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try
+                {
+                    return plugin.Value.GetAgentByName(name);
+                }
+                catch (Exception e)
+                {
+                    m_log.Info("[USERSTORAGE]: Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Loads a user agent by name (not called directly)
+        /// </summary>
+        /// <param name="fname">The agent's firstname</param>
+        /// <param name="lname">The agent's lastname</param>
+        /// <returns>A user agent</returns>
+        public UserAgentData GetUserAgent(string fname, string lname)
+        {
+            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
+            {
+                try
+                {
+                    return plugin.Value.GetAgentByName(fname, lname);
                 }
                 catch (Exception e)
                 {
@@ -297,62 +342,19 @@ namespace OpenSim.Framework.Communications
             }
         }
 
-        /// <summary>
-        /// Loads a user agent by name (not called directly)
-        /// </summary>
-        /// <param name="name">The agent's name</param>
-        /// <returns>A user agent</returns>
-        public UserAgentData getUserAgent(string name)
-        {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
-            {
-                try
-                {
-                    return plugin.Value.GetAgentByName(name);
-                }
-                catch (Exception e)
-                {
-                    m_log.Info("[USERSTORAGE]: Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
-                }
-            }
-
-            return null;
-        }
 
         /// <summary>
         /// Resets the currentAgent in the user profile
         /// </summary>
         /// <param name="agentID">The agent's ID</param>
-        public void clearUserAgent(LLUUID agentID)
+        public void ClearUserAgent(LLUUID agentID)
         {
             UserProfileData profile = GetUserProfile(agentID);
             profile.CurrentAgent = null;
 
-            setUserProfile(profile);
+            SetUserProfile(profile);
         }
 
-        /// <summary>
-        /// Loads a user agent by name (not called directly)
-        /// </summary>
-        /// <param name="fname">The agent's firstname</param>
-        /// <param name="lname">The agent's lastname</param>
-        /// <returns>A user agent</returns>
-        public UserAgentData getUserAgent(string fname, string lname)
-        {
-            foreach (KeyValuePair<string, IUserData> plugin in _plugins)
-            {
-                try
-                {
-                    return plugin.Value.GetAgentByName(fname, lname);
-                }
-                catch (Exception e)
-                {
-                    m_log.Info("[USERSTORAGE]: Unable to find user via " + plugin.Key + "(" + e.ToString() + ")");
-                }
-            }
-
-            return null;
-        }
 
         #endregion
 
@@ -537,7 +539,7 @@ namespace OpenSim.Framework.Communications
             // TODO: what is the logic should be?
             bool ret = false;
             ret = AddUserAgent(profile.CurrentAgent);
-            ret = ret & setUserProfile(profile);
+            ret = ret & SetUserProfile(profile);
             return ret;
         }
 

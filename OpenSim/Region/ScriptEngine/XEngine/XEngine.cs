@@ -1387,7 +1387,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
         public void ApiResetScript()
         {
-            bool running = Running;
+            // bool running = Running;
 
             RemoveState();
 
