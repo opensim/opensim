@@ -86,6 +86,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                     m_httpd.AddXmlRPCHandler("admin_restart", XmlRpcRestartMethod);
                     m_httpd.AddXmlRPCHandler("admin_load_heightmap", XmlRpcLoadHeightmapMethod);
                     m_httpd.AddXmlRPCHandler("admin_create_user", XmlRpcCreateUserMethod);
+                    m_httpd.AddXmlRPCHandler("admin_update_user", XmlRpcUpdateUserAccountMethod);
                     m_httpd.AddXmlRPCHandler("admin_load_xml", XmlRpcLoadXMLMethod);
                 }
             }
@@ -556,6 +557,111 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 responseData["success"]     = "false";
                 responseData["avatar_uuid"] = LLUUID.Zero.ToString();
+                responseData["error"]       = e.Message;
+
+                response.Value = responseData;
+            }
+
+            return response;
+        }
+
+        /// <summary>
+        /// Update the password of a user account.
+        /// <summary>
+        /// <param name="request">incoming XML RPC request</param>
+        /// <remarks>
+        /// XmlRpcUpdateUserAccountMethod takes the following XMLRPC
+        /// parameters
+        /// <list type="table">
+        /// <listheader><term>parameter name</term><description>description</description></listheader>
+        /// <item><term>password</term>
+        ///       <description>admin password as set in OpenSim.ini</description></item>
+        /// <item><term>user_firstname</term>
+        ///       <description>avatar's first name (cannot be changed)</description></item>
+        /// <item><term>user_lastname</term>
+        ///       <description>avatar's last name (cannot be changed)</description></item>
+        /// <item><term>user_password</term>
+        ///       <description>avatar's password (changeable)</description></item>
+        /// <item><term>start_region_x</term>
+        ///       <description>avatar's start region coordinates, X
+        ///                    value (changeable)</description></item>
+        /// <item><term>start_region_y</term>
+        ///       <description>avatar's start region coordinates, Y
+        ///                    value (changeable)</description></item>
+        /// </list>
+        ///
+        /// XmlRpcCreateUserMethod returns
+        /// <list type="table">
+        /// <listheader><term>name</term><description>description</description></listheader>
+        /// <item><term>success</term>
+        ///       <description>true or false</description></item>
+        /// <item><term>error</term>
+        ///       <description>error message if success is false</description></item>
+        /// </list>
+        /// </remarks>
+        public XmlRpcResponse XmlRpcUpdateUserAccountMethod(XmlRpcRequest request)
+        {
+            m_log.Info("[RADMIN]: UpdateUserAccount: new request");
+            XmlRpcResponse response = new XmlRpcResponse();
+            Hashtable responseData = new Hashtable();
+
+            try
+            {
+                Hashtable requestData = (Hashtable) request.Params[0];
+            
+                // check completeness
+                checkStringParameters(request, new string[] { "password", "user_firstname",
+                                                              "user_lastname" });
+
+                // check password
+                if (!String.IsNullOrEmpty(requiredPassword) &&
+                    (string)requestData["password"] != requiredPassword) throw new Exception("wrong password");
+
+                // do the job
+                string firstname = (string) requestData["user_firstname"];
+                string lastname  = (string) requestData["user_lastname"];
+
+                
+                string passwd = String.Empty;
+                uint?  regX   = null;
+                uint?  regY   = null;
+
+                if (requestData.ContainsKey("user_password")) passwd = (string) requestData["user_password"];
+                if (requestData.ContainsKey("start_region_x")) regX = Convert.ToUInt32((Int32)requestData["start_region_x"]);
+                if (requestData.ContainsKey("start_region_y")) regY = Convert.ToUInt32((Int32)requestData["start_region_y"]);
+
+                if (String.Empty == passwd && null == regX && null == regY)
+                    throw new Exception("neither user_password nor start_region_x nor start_region_y provided");
+
+                UserProfileData userProfile = m_app.CommunicationsManager.UserService.GetUserProfile(firstname, lastname);
+                if (null == userProfile)
+                    throw new Exception(String.Format("avatar {0} {1} does not exist", firstname, lastname));
+
+                if (null != passwd) 
+                {
+                    string md5PasswdHash = Util.Md5Hash(Util.Md5Hash(passwd) + ":" + String.Empty);
+                    userProfile.PasswordHash = md5PasswdHash;
+                }
+
+                if (null != regX) userProfile.HomeRegionX = (uint)regX;
+                if (null != regY) userProfile.HomeRegionY = (uint)regY;
+
+                if (!m_app.CommunicationsManager.UserService.UpdateUserProfile(userProfile))
+                    throw new Exception("did not manage to update user profile");
+
+                responseData["success"]     = "true";
+
+                response.Value = responseData;
+
+                m_log.InfoFormat("[RADMIN]: UpdateUserAccount: account for user {0} {1} updated, UUID {2}", firstname, lastname, 
+                                 userProfile.ID);
+            }
+            catch (Exception e)
+            {
+                m_log.ErrorFormat("[RADMIN] UpdateUserAccount: failed: {0}", e.Message);
+                m_log.DebugFormat("[RADMIN] UpdateUserAccount: failed: {0}", e.ToString());
+
+                responseData["success"]     = "false";
                 responseData["error"]       = e.Message;
 
                 response.Value = responseData;

@@ -64,6 +64,13 @@ namespace OpenSim.Framework.Communications
         /// <param name="user"></param>
         LLUUID AddUserProfile(string firstName, string lastName, string pass, uint regX, uint regY);
 
+        /// <summary>
+        /// Update the user's profile.
+        /// </summary>
+        /// <param name="data">UserProfileData object with updated data. Should be obtained 
+        ///                    via a call to GetUserProfile().</param>
+        /// <returns>true if the update could be applied, false if it could not be applied.</returns>
+        bool UpdateUserProfile(UserProfileData data);
 
         /// <summary>
         /// Adds a new friend to the database for XUser

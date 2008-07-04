@@ -153,11 +153,11 @@ namespace OpenSim.Framework.Communications
         }
 
         /// <summary>
-        /// Set's user profile from data object
+        /// Updates a user profile from data object
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public bool SetUserProfile(UserProfileData data)
+        public bool UpdateUserProfile(UserProfileData data)
         {
             foreach (KeyValuePair<string, IUserData> plugin in _plugins)
             {
@@ -168,7 +168,8 @@ namespace OpenSim.Framework.Communications
                 }
                 catch (Exception e)
                 {
-                    m_log.Info("[USERSTORAGE]: Unable to set user via " + plugin.Key + "(" + e.ToString() + ")");
+                    m_log.InfoFormat("[USERSTORAGE]: Unable to set user {0} {1} via {2}: {3}", data.FirstName, data.SurName,
+                                     plugin.Key, e.ToString());
                 }
             }
             return false;
@@ -352,7 +353,7 @@ namespace OpenSim.Framework.Communications
             UserProfileData profile = GetUserProfile(agentID);
             profile.CurrentAgent = null;
 
-            SetUserProfile(profile);
+            UpdateUserProfile(profile);
         }
 
 
@@ -539,7 +540,7 @@ namespace OpenSim.Framework.Communications
             // TODO: what is the logic should be?
             bool ret = false;
             ret = AddUserAgent(profile.CurrentAgent);
-            ret = ret & SetUserProfile(profile);
+            ret = ret & UpdateUserProfile(profile);
             return ret;
         }
 

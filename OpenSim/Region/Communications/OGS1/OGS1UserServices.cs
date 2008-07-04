@@ -437,6 +437,12 @@ namespace OpenSim.Region.Communications.OGS1
             throw new Exception("The method or operation is not implemented.");
         }
 
+        // TODO
+        public bool UpdateUserProfile(UserProfileData data)
+        {
+            return false;
+        }
+
         public bool UpdateUserProfileProperties(UserProfileData UserProfile)
         {
             m_log.Debug("[OGS1 USER SERVICES]: Asking UserServer to update profile.");
