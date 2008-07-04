@@ -33,7 +33,7 @@ using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
+//using System.Text;
 using System.Threading;
 using libsecondlife;
 using log4net;
@@ -155,18 +155,18 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                     {
                         assetUuids[tii.AssetID] = 1;
 
-                        if ((int)AssetType.Bodypart == tii.Type)
+                        if ((int)AssetType.Bodypart == tii.Type || ((int)AssetType.Clothing == tii.Type))
                         {
-                            AssetBase bodypartAsset = GetAsset(tii.AssetID);
-                            m_log.Debug(new System.Text.ASCIIEncoding().GetString(bodypartAsset.Data));
-                            AssetBodypart bp = new AssetBodypart(bodypartAsset.Data);
-                            bp.Decode();
+                            AssetBase assetBase = GetAsset(tii.AssetID);
+                            //m_log.Debug(new System.Text.ASCIIEncoding().GetString(bodypartAsset.Data));
+                            AssetWearable wearableAsset = new AssetBodypart(assetBase.Data);
+                            wearableAsset.Decode();
                             
-                            m_log.DebugFormat("[ARCHIVER]: Body part {0} references {1} assets", bp.AssetID, bp.Textures.Count);
+                            m_log.DebugFormat("[ARCHIVER]: Wearable asset {0} references {1} assets", tii.AssetID, wearableAsset.Textures.Count);
                             
-                            foreach (LLUUID uuid in bp.Textures.Values)
+                            foreach (LLUUID uuid in wearableAsset.Textures.Values)
                             {
-                                m_log.DebugFormat("[ARCHIVER]: Got bodypart uuid {0}", uuid);
+                                //m_log.DebugFormat("[ARCHIVER]: Got bodypart uuid {0}", uuid);
                                 assetUuids[uuid] = 1;
                             }
                         }
