@@ -1893,6 +1893,7 @@
       <Reference name="Axiom.MathLib.dll" localCopy="false"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
+      <Reference name="Tools.dll"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
