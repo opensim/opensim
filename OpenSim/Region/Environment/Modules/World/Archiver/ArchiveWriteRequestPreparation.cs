@@ -82,6 +82,35 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 Monitor.Pulse(this);
             }
         }
+        
+        /// <summary>
+        /// Get an asset synchronously, potentially using an asynchronous callback.  If the 
+        /// asynchronous callback is used, we will wait for it to complete.
+        /// </summary>
+        /// <param name="uuid"></param>
+        /// <returns></returns>
+        protected AssetBase GetAsset(LLUUID uuid)
+        {
+            m_waitingForObjectAsset = true;
+            m_scene.AssetCache.GetAsset(uuid, AssetRequestCallback, true);
+
+            // The asset cache callback can either
+            //
+            // 1. Complete on the same thread (if the asset is already in the cache) or
+            // 2. Come in via a different thread (if we need to go fetch it).
+            //
+            // The code below handles both these alternatives.
+            lock (this)
+            {
+                if (m_waitingForObjectAsset)
+                {
+                    Monitor.Wait(this);
+                    m_waitingForObjectAsset = false;
+                }
+            }          
+            
+            return m_requestedObjectAsset;
+        }
 
         /// <summary>
         /// Get all the asset uuids associated with a given object.  This includes both those directly associated with
@@ -116,43 +145,26 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                         assetUuids[texture.TextureID] = 1;
                     }
                 }
-
                 foreach (TaskInventoryItem tii in part.TaskInventory.Values)
                 {
                     if (!assetUuids.ContainsKey(tii.AssetID))
                     {
                         assetUuids[tii.AssetID] = 1;
 
-                        if (tii.Type != (int)InventoryType.Object)
+                        if ((int)InventoryType.Object == tii.Type)
                         {
-                            m_log.DebugFormat("[ARCHIVER]: Recording asset {0} in object {1}", tii.AssetID, part.UUID);
-                        }
-                        else
-                        {
-                            m_waitingForObjectAsset = true;
-                            m_scene.AssetCache.GetAsset(tii.AssetID, AssetRequestCallback, true);
+                            AssetBase objectAsset = GetAsset(tii.AssetID);
 
-                            // The asset cache callback can either
-                            //
-                            // 1. Complete on the same thread (if the asset is already in the cache) or
-                            // 2. Come in via a different thread (if we need to go fetch it).
-                            //
-                            // The code below handles both these alternatives.
-                            lock (this)
+                            if (null != objectAsset)
                             {
-                                if (m_waitingForObjectAsset)
-                                {
-                                    Monitor.Wait(this);
-                                    m_waitingForObjectAsset = false;
-                                }
-                            }
-
-                            if (null != m_requestedObjectAsset)
-                            {
-                                string xml = Helpers.FieldToUTF8String(m_requestedObjectAsset.Data);
+                                string xml = Helpers.FieldToUTF8String(objectAsset.Data);
                                 SceneObjectGroup sog = new SceneObjectGroup(m_scene, m_scene.RegionInfo.RegionHandle, xml);
                                 GetSceneObjectAssetUuids(sog, assetUuids);
                             }
+                        }
+                        else
+                        {
+                            m_log.DebugFormat("[ARCHIVER]: Recording asset {0} in object {1}", tii.AssetID, part.UUID);
                         }
                     }
                 }
