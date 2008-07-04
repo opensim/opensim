@@ -30,6 +30,7 @@ using System.IO;
 using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using libsecondlife;
 using OpenSim.Framework;
 using OpenSim.Region.Environment;
@@ -37,6 +38,20 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.ScriptEngine.Shared
 {
+    [Serializable]
+    public class EventAbortException : Exception
+    {
+        public EventAbortException()
+        {
+        }
+
+        protected EventAbortException(
+                SerializationInfo info, 
+                StreamingContext context)
+        {
+        }
+    }
+
     public class DetectParams
     {
         public DetectParams()

@@ -99,6 +99,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void state(string newState)
         {
             m_ScriptEngine.SetState(m_itemID, newState);
+            throw new EventAbortException();
         }
 
         public void llSay(int channelID, string text)
@@ -2791,6 +2792,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             m_ScriptEngine.ApiResetScript(m_itemID);
+            throw new EventAbortException();
         }
 
         public void llMessageLinked(int linknum, int num, string msg, string id)

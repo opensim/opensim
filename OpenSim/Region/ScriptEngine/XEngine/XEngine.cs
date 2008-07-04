@@ -1296,44 +1296,49 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 catch (Exception e)
                 {
                     m_InEvent = false;
-                    if (e is System.Threading.ThreadAbortException)
+                    m_CurrentEvent = String.Empty;
+
+                    if (!(e is TargetInvocationException) || !(e.InnerException is EventAbortException))
                     {
-                        lock (m_EventQueue)
+                        if (e is System.Threading.ThreadAbortException)
                         {
-                            if ((m_EventQueue.Count > 0) && m_RunEvents)
+                            lock (m_EventQueue)
                             {
-                                m_CurrentResult=m_Engine.QueueEventHandler(this);
+                                if ((m_EventQueue.Count > 0) && m_RunEvents)
+                                {
+                                    m_CurrentResult=m_Engine.QueueEventHandler(this);
+                                }
+                                else
+                                {
+                                    m_CurrentResult = null;
+                                }
                             }
-                            else
-                            {
-                                m_CurrentResult = null;
-                            }
+
+                            m_DetectParams = null;
+
+                            return 0;
                         }
 
-                        m_DetectParams = null;
-
-                        return 0;
-                    }
-
-                    try
-                    {
-                        // DISPLAY ERROR INWORLD
-                        string text = "Runtime error:\n" + e.ToString();
-                        if (text.Length > 1400)
-                            text = text.Substring(0, 1400);
-                        m_Engine.World.SimChat(Helpers.StringToField(text),
-                                               ChatTypeEnum.DebugChannel, 2147483647,
-                                               part.AbsolutePosition,
-                                               part.Name, part.UUID, false);
-                    }
-                    catch (Exception e2) // LEGIT: User Scripting
-                    {
-                        m_Engine.Log.Error("[XEngine]: "+
-                                           "Error displaying error in-world: " +
-                                           e2.ToString());
-                        m_Engine.Log.Error("[XEngine]: " +
-                                           "Errormessage: Error compiling script:\r\n" +
-                                           e.ToString());
+                        try
+                        {
+                            // DISPLAY ERROR INWORLD
+                            string text = "Runtime error:\n" + e.ToString();
+                            if (text.Length > 1400)
+                                text = text.Substring(0, 1400);
+                            m_Engine.World.SimChat(Helpers.StringToField(text),
+                                                   ChatTypeEnum.DebugChannel, 2147483647,
+                                                   part.AbsolutePosition,
+                                                   part.Name, part.UUID, false);
+                        }
+                        catch (Exception e2) // LEGIT: User Scripting
+                        {
+                            m_Engine.Log.Error("[XEngine]: "+
+                                               "Error displaying error in-world: " +
+                                               e2.ToString());
+                            m_Engine.Log.Error("[XEngine]: " +
+                                               "Errormessage: Error compiling script:\r\n" +
+                                               e.ToString());
+                        }
                     }
                 }
             }
