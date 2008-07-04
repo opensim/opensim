@@ -33,6 +33,7 @@ using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using libsecondlife;
 using log4net;
@@ -145,13 +146,31 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                         assetUuids[texture.TextureID] = 1;
                     }
                 }
+                
                 foreach (TaskInventoryItem tii in part.TaskInventory.Values)
                 {
+                    m_log.DebugFormat("[ARCHIVER]: Analysing item asset type {0}", tii.Type);
+                    
                     if (!assetUuids.ContainsKey(tii.AssetID))
                     {
                         assetUuids[tii.AssetID] = 1;
 
-                        if ((int)InventoryType.Object == tii.Type)
+                        if ((int)AssetType.Bodypart == tii.Type)
+                        {
+                            AssetBase bodypartAsset = GetAsset(tii.AssetID);
+                            m_log.Debug(new System.Text.ASCIIEncoding().GetString(bodypartAsset.Data));
+                            AssetBodypart bp = new AssetBodypart(bodypartAsset.Data);
+                            bp.Decode();
+                            
+                            m_log.DebugFormat("[ARCHIVER]: Body part {0} references {1} assets", bp.AssetID, bp.Textures.Count);
+                            
+                            foreach (LLUUID uuid in bp.Textures.Values)
+                            {
+                                m_log.DebugFormat("[ARCHIVER]: Got bodypart uuid {0}", uuid);
+                                assetUuids[uuid] = 1;
+                            }
+                        }
+                        if ((int)AssetType.Object == tii.Type)
                         {
                             AssetBase objectAsset = GetAsset(tii.AssetID);
 
