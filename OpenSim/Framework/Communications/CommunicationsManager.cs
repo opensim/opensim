@@ -183,21 +183,25 @@ namespace OpenSim.Framework.Communications
                     uint regY = 1000;
 
                     if (cmmdParams.Length < 2)
-                    {
                         firstName = MainConsole.Instance.CmdPrompt("First name", "Default");
+                    else firstName = cmmdParams[1];
+
+                    if ( cmmdParams.Length < 3 )
                         lastName = MainConsole.Instance.CmdPrompt("Last name", "User");
+                    else lastName = cmmdParams[2];
+
+                    if ( cmmdParams.Length < 4 )
                         password = MainConsole.Instance.PasswdPrompt("Password");
-                        regX = Convert.ToUInt32(MainConsole.Instance.CmdPrompt("Start Region X", "1000"));
-                        regY = Convert.ToUInt32(MainConsole.Instance.CmdPrompt("Start Region Y", "1000"));
-                    }
-                    else
-                    {
-                        firstName = cmmdParams[1];
-                        lastName = cmmdParams[2];
-                        password = cmmdParams[3];
-                        regX = Convert.ToUInt32(cmmdParams[4]);
-                        regY = Convert.ToUInt32(cmmdParams[5]);
-                    }
+                    else password = cmmdParams[3];
+
+                    if ( cmmdParams.Length < 5 )
+                        regX = Convert.ToUInt32(MainConsole.Instance.CmdPrompt("Start Region X", regX.ToString()));
+                    else regX = Convert.ToUInt32(cmmdParams[4]);
+
+                    if ( cmmdParams.Length < 6 )
+                        regY = Convert.ToUInt32(MainConsole.Instance.CmdPrompt("Start Region Y", regY.ToString()));
+                    else regY = Convert.ToUInt32(cmmdParams[5]);        
+
 
                     if (null == m_userService.GetUserProfile(firstName, lastName))
                     {
