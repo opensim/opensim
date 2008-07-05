@@ -126,7 +126,7 @@ namespace OpenSim.Framework
 
              configMember.addConfigurationOption("terrain_lower_limit",
                      ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE,
-                     String.Empty, "100.0", true);
+                     String.Empty, "-100.0", true);
 
              configMember.addConfigurationOption("sun_hour",
                      ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE,
