@@ -838,8 +838,17 @@ namespace OpenSim.Region.Physics.Meshing
                 //fProfileBeginAngle -= (90.0 + 45.0); // for some reasons, the SL client counts from the corner -X/-Y
                 double fProfileEndAngle = 360.0 - profileEnd / 50000.0 * 360.0; // Pathend comes as complement to 1.0
                 //fProfileEndAngle -= (90.0 + 45.0);
+#if SPAM
+                Console.WriteLine("Extruder: Cylinder fProfileBeginAngle: " + fProfileBeginAngle.ToString() + " fProfileEndAngle: " + fProfileEndAngle.ToString());
+#endif
+                if (fProfileBeginAngle > 270.0f && fProfileBeginAngle < 271.8f) // a problem angle for the hull subtract routine :(
+                    fProfileBeginAngle = 271.8f; // workaround - use the smaller slice
+
                 if (fProfileBeginAngle < fProfileEndAngle)
                     fProfileEndAngle -= 360.0;
+#if SPAM
+                Console.WriteLine("Extruder: Cylinder fProfileBeginAngle: " + fProfileBeginAngle.ToString() + " fProfileEndAngle: " + fProfileEndAngle.ToString());
+#endif
 
                 // Note, that we don't want to cut out a triangle, even if this is a
                 // good approximation for small cuts. Indeed we want to cut out an arc
