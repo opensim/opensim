@@ -112,6 +112,47 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             
             return m_requestedObjectAsset;
         }
+        
+        /// <summary>
+        /// Record the uuids referenced by the given wearable asset
+        /// </summary>
+        /// <param name="wearableAssetUuid"></param>
+        /// <param name="assetUuids">Dictionary in which to record the references</param>
+        protected void GetWearableAssetUuids(LLUUID wearableAssetUuid, IDictionary<LLUUID, int> assetUuids)
+        {
+            AssetBase assetBase = GetAsset(wearableAssetUuid);
+            //m_log.Debug(new System.Text.ASCIIEncoding().GetString(bodypartAsset.Data));
+            AssetWearable wearableAsset = new AssetBodypart(assetBase.Data);
+            wearableAsset.Decode();
+            
+            m_log.DebugFormat(
+                "[ARCHIVER]: Wearable asset {0} references {1} assets", wearableAssetUuid, wearableAsset.Textures.Count);
+            
+            foreach (LLUUID uuid in wearableAsset.Textures.Values)
+            {
+                //m_log.DebugFormat("[ARCHIVER]: Got bodypart uuid {0}", uuid);
+                assetUuids[uuid] = 1;
+            }
+        }
+        
+        /// <summary>
+        /// Get all the asset uuids associated with a given object.  This includes both those directly associated with
+        /// it (e.g. face textures) and recursively, those of items within it's inventory (e.g. objects contained
+        /// within this object).
+        /// </summary>
+        /// <param name="sceneObject"></param>
+        /// <param name="assetUuids"></param>        
+        protected void GetSceneObjectAssetUuids(LLUUID sceneObjectUuid, IDictionary<LLUUID, int> assetUuids)   
+        {
+            AssetBase objectAsset = GetAsset(sceneObjectUuid);
+
+            if (null != objectAsset)
+            {
+                string xml = Helpers.FieldToUTF8String(objectAsset.Data);
+                SceneObjectGroup sog = new SceneObjectGroup(m_scene, m_scene.RegionInfo.RegionHandle, xml);
+                GetSceneObjectAssetUuids(sog, assetUuids);
+            }            
+        }
 
         /// <summary>
         /// Get all the asset uuids associated with a given object.  This includes both those directly associated with
@@ -157,29 +198,11 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
                         if ((int)AssetType.Bodypart == tii.Type || ((int)AssetType.Clothing == tii.Type))
                         {
-                            AssetBase assetBase = GetAsset(tii.AssetID);
-                            //m_log.Debug(new System.Text.ASCIIEncoding().GetString(bodypartAsset.Data));
-                            AssetWearable wearableAsset = new AssetBodypart(assetBase.Data);
-                            wearableAsset.Decode();
-                            
-                            m_log.DebugFormat("[ARCHIVER]: Wearable asset {0} references {1} assets", tii.AssetID, wearableAsset.Textures.Count);
-                            
-                            foreach (LLUUID uuid in wearableAsset.Textures.Values)
-                            {
-                                //m_log.DebugFormat("[ARCHIVER]: Got bodypart uuid {0}", uuid);
-                                assetUuids[uuid] = 1;
-                            }
+                            GetWearableAssetUuids(tii.AssetID, assetUuids);
                         }
                         if ((int)AssetType.Object == tii.Type)
                         {
-                            AssetBase objectAsset = GetAsset(tii.AssetID);
-
-                            if (null != objectAsset)
-                            {
-                                string xml = Helpers.FieldToUTF8String(objectAsset.Data);
-                                SceneObjectGroup sog = new SceneObjectGroup(m_scene, m_scene.RegionInfo.RegionHandle, xml);
-                                GetSceneObjectAssetUuids(sog, assetUuids);
-                            }
+                            GetSceneObjectAssetUuids(tii.AssetID, assetUuids);
                         }
                         else
                         {

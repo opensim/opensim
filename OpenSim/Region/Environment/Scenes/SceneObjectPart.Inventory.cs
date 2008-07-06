@@ -50,7 +50,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         protected uint m_inventorySerial = 0;
 
-
         /// <summary>
         /// Holds in memory prim inventory
         /// </summary>
