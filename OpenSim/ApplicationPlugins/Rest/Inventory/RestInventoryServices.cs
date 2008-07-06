@@ -238,7 +238,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 Rest.Log.DebugFormat("{0} Inventory catalog requested for {1} {2}", 
                                      MsgId, rdata.userProfile.FirstName, rdata.userProfile.SurName);
 
-                lock(rdata)
+                lock (rdata)
                 {
                     if (!rdata.HaveInventory)
                     {
@@ -1869,7 +1869,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                 this.folders = folders;
                 this.items   = items;
                 this.HaveInventory = true;
-                lock(this)
+                lock (this)
                 {
                     Monitor.Pulse(this);
                 }

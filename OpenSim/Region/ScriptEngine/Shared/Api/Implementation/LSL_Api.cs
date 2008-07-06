@@ -2044,7 +2044,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             IEmailModule emailModule = m_ScriptEngine.World.RequestModuleInterface<IEmailModule>();
-            if(emailModule == null)
+            if (emailModule == null)
                 return;
 
             emailModule.SendEmail(m_host.UUID, address, subject, message);
@@ -2054,13 +2054,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
             IEmailModule emailModule = m_ScriptEngine.World.RequestModuleInterface<IEmailModule>();
-            if(emailModule == null)
+            if (emailModule == null)
                 return;
             Email email;
 
             email = emailModule.GetNextEmail(m_host.UUID, address, subject);
 
-            if(email == null)
+            if (email == null)
                 return;
 
             m_ScriptEngine.PostObjectEvent(m_host.LocalId,
@@ -3163,7 +3163,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             m_host.AddScriptLPS(1);
 
-            if(add != 0)
+            if (add != 0)
                 m_host.ParentGroup.RootPart.AllowedDrop = true;
             else
                 m_host.ParentGroup.RootPart.AllowedDrop = false;
@@ -4283,7 +4283,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
-                if(inv.Value.Name == name)
+                if (inv.Value.Name == name)
                     return inv.Key;
             }
             return LLUUID.Zero;
@@ -4294,7 +4294,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_host.AddScriptLPS(1);
 
             LLUUID destID;
-            if(!LLUUID.TryParse(destination, out destID))
+            if (!LLUUID.TryParse(destination, out destID))
                 return;
 
             List<LLUUID> itemList = new List<LLUUID>();
@@ -4302,19 +4302,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             foreach (Object item in inventory.Data)
             {
                 LLUUID itemID;
-                if(LLUUID.TryParse(item.ToString(), out itemID))
+                if (LLUUID.TryParse(item.ToString(), out itemID))
                 {
                     itemList.Add(itemID);
                 }
                 else
                 {
                     itemID = GetTaskInventoryItem(item.ToString());
-                    if(itemID != LLUUID.Zero)
+                    if (itemID != LLUUID.Zero)
                         itemList.Add(itemID);
                 }
             }
             
-            if(itemList.Count == 0)
+            if (itemList.Count == 0)
                 return;
 
             m_ScriptEngine.World.MoveTaskInventoryItems(destID, category, m_host, itemList);
@@ -4985,7 +4985,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                         LSL_Types.Vector3 holesize;
                         LSL_Types.Vector3 profilecut;
                     
-                        switch(code)
+                        switch (code)
                         {                        
                             case (int)ScriptBaseClass.PRIM_TYPE_BOX:
                                 if (remain < 6)

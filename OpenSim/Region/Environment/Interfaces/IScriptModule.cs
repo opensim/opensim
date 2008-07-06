@@ -33,6 +33,6 @@ namespace OpenSim.Region.Environment.Interfaces
 {
     public interface IScriptModule : IRegionModule
     {
-		bool GetScriptRunning(LLUUID objectID, LLUUID itemID);
+        bool GetScriptRunning(LLUUID objectID, LLUUID itemID);
     }
 }

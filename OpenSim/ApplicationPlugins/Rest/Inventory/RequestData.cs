@@ -476,7 +476,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
                         }
                         else
                         {
-                            lock(cntable) cntable.Add(cnonce, nck);
+                            lock (cntable) cntable.Add(cnonce, nck);
                         }
 
                     }

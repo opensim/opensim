@@ -331,12 +331,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             Object[] parms = new Object[]
                     { localID, itemID, script, startParam, postOnRez};
 
-            lock(m_CompileQueue)
+            lock (m_CompileQueue)
             {
                 m_CompileQueue.Enqueue(parms);
-                if(m_CurrentCompile == null)
+                if (m_CurrentCompile == null)
                 {
-                    if(m_firstStart)
+                    if (m_firstStart)
                     {
                         m_firstStart = false;
                         m_CurrentCompile = m_ThreadPool.QueueWorkItem(
@@ -355,9 +355,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         {
             Thread.Sleep(30000);
 
-            lock(m_CompileQueue)
+            lock (m_CompileQueue)
             {
-                if(m_CompileQueue.Count > 0)
+                if (m_CompileQueue.Count > 0)
                 {
                     m_CurrentCompile = m_ThreadPool.QueueWorkItem(
                             new WorkItemCallback(
@@ -374,10 +374,10 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         public Object DoOnRezScriptQueue(Object dummy)
         {
             Object o;
-            lock(m_CompileQueue)
+            lock (m_CompileQueue)
             {
                 o = m_CompileQueue.Dequeue();
-                if(o == null)
+                if (o == null)
                 {
                     m_CurrentCompile = null;
                     return null;
@@ -386,9 +386,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             DoOnRezScript(o);
 
-            lock(m_CompileQueue)
+            lock (m_CompileQueue)
             {
-                if(m_CompileQueue.Count > 0)
+                if (m_CompileQueue.Count > 0)
                 {
                     m_CurrentCompile = m_ThreadPool.QueueWorkItem(
                             new WorkItemCallback(
@@ -1056,7 +1056,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                             {
                                 m_RunEvents = false;
                                 Start();
-                                if(postOnRez)
+                                if (postOnRez)
                                     PostEvent(new EventParams("on_rez",
                                         new Object[] {new LSL_Types.LSLInteger(startParam)}, new DetectParams[0]));
                             }
@@ -1078,7 +1078,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                         Start();
                         PostEvent(new EventParams("state_entry",
                                                    new Object[0], new DetectParams[0]));
-                        if(postOnRez)
+                        if (postOnRez)
                             PostEvent(new EventParams("on_rez",
                                 new Object[] {new LSL_Types.LSLInteger(startParam)}, new DetectParams[0]));
 
@@ -1090,7 +1090,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     Start();
                     PostEvent(new EventParams("state_entry",
                                                new Object[0], new DetectParams[0]));
-                    if(postOnRez)
+                    if (postOnRez)
                         PostEvent(new EventParams("on_rez",
                                 new Object[] {new LSL_Types.LSLInteger(startParam)}, new DetectParams[0]));
                 }
@@ -1102,7 +1102,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                 PostEvent(new EventParams("state_entry",
                                            new Object[0], new DetectParams[0]));
 
-                if(postOnRez)
+                if (postOnRez)
                     PostEvent(new EventParams("on_rez",
                             new Object[] {new LSL_Types.LSLInteger(startParam)}, new DetectParams[0]));
             }
@@ -1215,7 +1215,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 //            m_Engine.Log.DebugFormat("[XEngine] Posted event {2} in state {3} to {0}.{1}",
 //                        m_PrimName, m_ScriptName, data.EventName, m_State);
 
-            if(!Running)
+            if (!Running)
                 return;
 
             lock (m_EventQueue)
@@ -1393,7 +1393,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
 
             m_Script.ResetVars();
             m_Engine.m_AsyncCommands.RemoveScript(m_LocalID, m_ItemID);
-            if(m_CurrentEvent != "state_entry")
+            if (m_CurrentEvent != "state_entry")
             {
                 PostEvent(new EventParams("state_entry",
                         new Object[0], new DetectParams[0]));

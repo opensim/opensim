@@ -1295,7 +1295,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             public override bool Equals(Object o)
             {
-                if(!(o is LSLInteger))
+                if (!(o is LSLInteger))
                     return false;
                 return value == ((LSLInteger)o).value;
             }
@@ -1452,7 +1452,7 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             public override bool Equals(Object o)
             {
-                if(!(o is LSLFloat))
+                if (!(o is LSLFloat))
                     return false;
                 return value == ((LSLFloat)o).value;
             }

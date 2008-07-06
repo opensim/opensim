@@ -31,18 +31,18 @@ using libsecondlife;
 
 namespace OpenSim.Region.Environment.Interfaces
 {
-	public class Email
-	{
-		public string time;
-		public string sender;
-		public string subject;
-		public string message;
-		public int numLeft;
-	}
+    public class Email
+    {
+        public string time;
+        public string sender;
+        public string subject;
+        public string message;
+        public int numLeft;
+    }
 
     public interface IEmailModule : IRegionModule
     {
-		void SendEmail(LLUUID objectID, string address, string subject, string body);
-		Email GetNextEmail(LLUUID objectID, string sender, string subject);
+        void SendEmail(LLUUID objectID, string address, string subject, string body);
+        Email GetNextEmail(LLUUID objectID, string sender, string subject);
     }
 }

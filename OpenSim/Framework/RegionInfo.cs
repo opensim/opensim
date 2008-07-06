@@ -285,7 +285,7 @@ namespace OpenSim.Framework
         {
             get
             {
-                if(m_regionSettings == null)
+                if (m_regionSettings == null)
                 {
                     m_regionSettings = new RegionSettings();
                 }

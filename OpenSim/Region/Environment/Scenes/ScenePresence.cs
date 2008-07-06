@@ -1093,8 +1093,8 @@ namespace OpenSim.Region.Environment.Scenes
                 );
 
             //look for prims with explicit sit targets that are available
-            foreach(SceneObjectPart part in partArray) {
-
+            foreach (SceneObjectPart part in partArray)
+            {
                 // Is a sit target available?
                 Vector3 avSitOffSet = part.GetSitTargetPosition();
                 Quaternion avSitOrientation = part.GetSitTargetOrientation();

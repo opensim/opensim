@@ -116,7 +116,7 @@ namespace OpenSim.Framework.Servers
                     // we are either out of handlers or get back a
                     // Handled or Detached
                     OSHttpHandlerResult rc = OSHttpHandlerResult.Unprocessed;
-                    foreach(OSHttpHandler h in handlers)
+                    foreach (OSHttpHandler h in handlers)
                     {
                         rc = h.Process(req);
                             

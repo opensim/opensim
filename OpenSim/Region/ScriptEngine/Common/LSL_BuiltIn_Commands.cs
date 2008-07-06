@@ -3211,7 +3211,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
 
-            if(add != 0)
+            if (add != 0)
                 m_host.ParentGroup.RootPart.AllowedDrop = true;
             else
                 m_host.ParentGroup.RootPart.AllowedDrop = false;
@@ -4408,7 +4408,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
-                if(inv.Value.Name == name)
+                if (inv.Value.Name == name)
                     return inv.Key;
             }
             return LLUUID.Zero;
@@ -4419,7 +4419,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             m_host.AddScriptLPS(1);
 
             LLUUID destID;
-            if(!LLUUID.TryParse(destination, out destID))
+            if (!LLUUID.TryParse(destination, out destID))
                 return;
 
             List<LLUUID> itemList = new List<LLUUID>();
@@ -4427,19 +4427,19 @@ namespace OpenSim.Region.ScriptEngine.Common
             foreach (Object item in inventory.Data)
             {
                 LLUUID itemID;
-                if(LLUUID.TryParse(item.ToString(), out itemID))
+                if (LLUUID.TryParse(item.ToString(), out itemID))
                 {
                     itemList.Add(itemID);
                 }
                 else
                 {
                     itemID = GetTaskInventoryItem(item.ToString());
-                    if(itemID != LLUUID.Zero)
+                    if (itemID != LLUUID.Zero)
                         itemList.Add(itemID);
                 }
             }
             
-            if(itemList.Count == 0)
+            if (itemList.Count == 0)
                 return;
 
             m_ScriptEngine.World.MoveTaskInventoryItems(destID, category, m_host, itemList);
@@ -4686,7 +4686,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         {
             m_host.AddScriptLPS(1);
             
-			m_host.ScriptAccessPin = pin;
+            m_host.ScriptAccessPin = pin;
         }
 
         public void llRemoteLoadScriptPin(string target, string name, int pin, int running, int start_param)
@@ -4701,38 +4701,38 @@ namespace OpenSim.Region.ScriptEngine.Common
                 llSay(0, "Could not parse key " + target);
                 return;
             }
-			
-			// target must be a different prim than the one containing the script
-			if (m_host.UUID == destId)
-			{
-				return;
-			}
-			
+            
+            // target must be a different prim than the one containing the script
+            if (m_host.UUID == destId)
+            {
+                return;
+            }
+            
             // copy the first script found with this inventory name
             foreach (KeyValuePair<LLUUID, TaskInventoryItem> inv in m_host.TaskInventory)
             {
                 if (inv.Value.Name == name)
                 {
-					// make sure the object is a script
-					if(10 == inv.Value.Type)
-					{
-						found = true;
-						srcId = inv.Key;
-						break;
-					}
+                    // make sure the object is a script
+                    if (10 == inv.Value.Type)
+                    {
+                        found = true;
+                        srcId = inv.Key;
+                        break;
+                    }
                 }
             }
-			
-			if (!found)
-			{
-				llSay(0, "Could not find script " + name);
-				return;
-			}
-			
-			// the rest of the permission checks are done in RezScript, so check the pin there as well
+            
+            if (!found)
+            {
+                llSay(0, "Could not find script " + name);
+                return;
+            }
+            
+            // the rest of the permission checks are done in RezScript, so check the pin there as well
             World.RezScript(srcId, m_host, destId, pin, running, start_param);
-			// this will cause the delay even if the script pin or permissions were wrong - seems ok
-			System.Threading.Thread.Sleep(3000);
+            // this will cause the delay even if the script pin or permissions were wrong - seems ok
+            System.Threading.Thread.Sleep(3000);
         }
 
         //  remote_data(integer type, key channel, key message_id, string sender, integer ival, string sval)
@@ -5072,15 +5072,15 @@ namespace OpenSim.Region.ScriptEngine.Common
             shapeBlock.ObjectLocalID = m_host.LocalId;
             shapeBlock.PathScaleX = 100;
             shapeBlock.PathScaleY = 150;
-			
-			if (type != (int)BuiltIn_Commands_BaseClass.PRIM_SCULPT_TYPE_CYLINDER &&
-			    type != (int)BuiltIn_Commands_BaseClass.PRIM_SCULPT_TYPE_PLANE &&
-			    type != (int)BuiltIn_Commands_BaseClass.PRIM_SCULPT_TYPE_SPHERE &&
-			    type != (int)BuiltIn_Commands_BaseClass.PRIM_SCULPT_TYPE_TORUS)
-			{
-				// default
-				type = (int)BuiltIn_Commands_BaseClass.PRIM_SCULPT_TYPE_SPHERE;
-			}
+            
+            if (type != (int)BuiltIn_Commands_BaseClass.PRIM_SCULPT_TYPE_CYLINDER &&
+                type != (int)BuiltIn_Commands_BaseClass.PRIM_SCULPT_TYPE_PLANE &&
+                type != (int)BuiltIn_Commands_BaseClass.PRIM_SCULPT_TYPE_SPHERE &&
+                type != (int)BuiltIn_Commands_BaseClass.PRIM_SCULPT_TYPE_TORUS)
+            {
+                // default
+                type = (int)BuiltIn_Commands_BaseClass.PRIM_SCULPT_TYPE_SPHERE;
+            }
             
             // retain pathcurve
             shapeBlock.PathCurve = m_host.Shape.PathCurve;
@@ -5157,7 +5157,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         SetRot(part, q);
 
                         break;
-					
+                    
                     case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE:
                         if (remain < 3)
                             return;
@@ -5175,7 +5175,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                         LSL_Types.Vector3 holesize;
                         LSL_Types.Vector3 profilecut;
                     
-                        switch(code)
+                        switch (code)
                         {                        
                             case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE_BOX:
                                 if (remain < 6)

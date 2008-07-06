@@ -108,7 +108,7 @@ namespace OpenSim.ApplicationPlugins.Rest.Inventory
         /// </summary>
         private void LoadHandlers()
         {
-            lock(handlers)
+            lock (handlers)
             {
                 if (!handlersLoaded)
                 {

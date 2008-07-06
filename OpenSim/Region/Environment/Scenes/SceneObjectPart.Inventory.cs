@@ -292,7 +292,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void AddInventoryItemExclusive(TaskInventoryItem item)
         {
             List<TaskInventoryItem> il = new List<TaskInventoryItem>(m_taskInventory.Values);
-            foreach(TaskInventoryItem i in il)
+            foreach (TaskInventoryItem i in il)
             {
                 if (i.Name == item.Name)
                 {

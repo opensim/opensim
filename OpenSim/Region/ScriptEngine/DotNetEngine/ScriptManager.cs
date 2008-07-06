@@ -132,7 +132,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                 int eventFlags = m_scriptEngine.m_ScriptManager.GetStateEventFlags(localID, itemID);
                 m_host.SetScriptEvents(itemID, eventFlags);
                 m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "state_entry", EventQueueManager.llDetectNull, new object[] { });
-                if(postOnRez)
+                if (postOnRez)
                 {
                     m_scriptEngine.m_EventQueueManager.AddToScriptQueue(localID, itemID, "on_rez", EventQueueManager.llDetectNull, new object[] { new LSL_Types.LSLInteger(startParam) });
                 }

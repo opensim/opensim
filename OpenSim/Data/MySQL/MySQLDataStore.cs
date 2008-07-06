@@ -729,13 +729,13 @@ namespace OpenSim.Data.MySQL
 
         public RegionSettings LoadRegionSettings(LLUUID regionUUID)
         {
-            lock(m_dataSet)
+            lock (m_dataSet)
             {
                 CheckConnection();
                 DataTable regionsettings = m_regionSettingsTable;
                 string searchExp = "regionUUID = '" + regionUUID.ToString() + "'";
                 DataRow[] rawsettings = regionsettings.Select(searchExp);
-                if(rawsettings.Length == 0)
+                if (rawsettings.Length == 0)
                 {
                     RegionSettings rs = new RegionSettings();
                     rs.RegionUUID = regionUUID;

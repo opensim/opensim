@@ -995,7 +995,7 @@ namespace OpenSim.Region.Environment.Scenes
             else
             {
                 CachedUserInfo profile = CommsManager.UserProfileCacheService.GetUserDetails(avatarId);
-                if(profile == null || profile.RootFolder == null)
+                if (profile == null || profile.RootFolder == null)
                 {
                     m_log.ErrorFormat(
                         "[PRIM INVENTORY]: " +
@@ -1040,7 +1040,7 @@ namespace OpenSim.Region.Environment.Scenes
                 return;
             }
             
-			if(part.OwnerID != destPart.OwnerID && (part.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.AllowInventoryDrop) == 0)
+            if (part.OwnerID != destPart.OwnerID && (part.GetEffectiveObjectFlags() & (uint)LLObject.ObjectFlags.AllowInventoryDrop) == 0)
             {
                 // object cannot copy items to an object owned by a different owner
                 // unless llAllowInventoryDrop has been called
@@ -1049,7 +1049,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             // must have both move and modify permission to put an item in an object
-            if((part.OwnerMask & ((uint)PermissionMask.Move | (uint)PermissionMask.Modify)) == 0 )
+            if ((part.OwnerMask & ((uint)PermissionMask.Move | (uint)PermissionMask.Modify)) == 0)
             {
                 return;
             }
@@ -1099,7 +1099,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             ScenePresence avatar;
             
-            if(TryGetAvatar(srcTaskItem.OwnerID, out avatar))
+            if (TryGetAvatar(srcTaskItem.OwnerID, out avatar))
             {
                 destPart.GetProperties(avatar.ControllingClient);
             }
@@ -1108,7 +1108,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void MoveTaskInventoryItems(LLUUID destID, string category, SceneObjectPart host, List<LLUUID> items)
         {
             CachedUserInfo profile = CommsManager.UserProfileCacheService.GetUserDetails(destID);
-            if(profile == null || profile.RootFolder == null)
+            if (profile == null || profile.RootFolder == null)
             {
                 m_log.ErrorFormat(
                     "[PRIM INVENTORY]: " +
@@ -1325,8 +1325,8 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="itemID"> </param>
         /// <param name="localID"></param>
         public void RezScript(LLUUID srcId, SceneObjectPart srcPart, LLUUID destId, int pin, int running, int start_param)
-		{
-			TaskInventoryItem srcTaskItem = srcPart.GetInventoryItem(srcId);
+        {
+            TaskInventoryItem srcTaskItem = srcPart.GetInventoryItem(srcId);
 
             if (srcTaskItem == null)
             {
@@ -1348,29 +1348,29 @@ namespace OpenSim.Region.Environment.Scenes
                         destId);
                 return;
             }
-			
+            
             // Must own the object, and have modify rights
-            if(srcPart.OwnerID != destPart.OwnerID)
+            if (srcPart.OwnerID != destPart.OwnerID)
                 return;
 
-            if((destPart.OwnerMask & (uint)PermissionMask.Modify) == 0)
+            if ((destPart.OwnerMask & (uint)PermissionMask.Modify) == 0)
                 return;
 
-			if (destPart.ScriptAccessPin != pin)
-			{
-				m_log.WarnFormat(
-				        "[PRIM INVENTORY]: " +
-				        "Script in object {0} : {1}, attempted to load script {2} : {3} into object {4} : {5} with invalid pin {6}",
-				        srcPart.Name, srcId, srcTaskItem.Name, srcTaskItem.ItemID, destPart.Name, destId, pin);
-				// the LSL Wiki says we are supposed to shout on the DEBUG_CHANNEL - 
-				//   "Object: Task Object trying to illegally load script onto task Other_Object!"
-				// How do we shout from in here?
-				return;
-			}
-			
-			TaskInventoryItem destTaskItem = new TaskInventoryItem();
-			
-			destTaskItem.ItemID = LLUUID.Random();
+            if (destPart.ScriptAccessPin != pin)
+            {
+                m_log.WarnFormat(
+                        "[PRIM INVENTORY]: " +
+                        "Script in object {0} : {1}, attempted to load script {2} : {3} into object {4} : {5} with invalid pin {6}",
+                        srcPart.Name, srcId, srcTaskItem.Name, srcTaskItem.ItemID, destPart.Name, destId, pin);
+                // the LSL Wiki says we are supposed to shout on the DEBUG_CHANNEL - 
+                //   "Object: Task Object trying to illegally load script onto task Other_Object!"
+                // How do we shout from in here?
+                return;
+            }
+            
+            TaskInventoryItem destTaskItem = new TaskInventoryItem();
+            
+            destTaskItem.ItemID = LLUUID.Random();
             destTaskItem.CreatorID = srcTaskItem.CreatorID;
             destTaskItem.AssetID = srcTaskItem.AssetID;
             destTaskItem.GroupID = destPart.GroupID;
@@ -1405,25 +1405,25 @@ namespace OpenSim.Region.Environment.Scenes
             destTaskItem.Name = srcTaskItem.Name;
             destTaskItem.InvType = srcTaskItem.InvType;
             destTaskItem.Type = srcTaskItem.Type;
-			
+            
             destPart.AddInventoryItemExclusive(destTaskItem);
 
-			if (running > 0)
-			{
-				if (ExternalChecks.ExternalChecksCanRunScript(destTaskItem.AssetID, destPart.UUID, destPart.OwnerID))
-				{
+            if (running > 0)
+            {
+                if (ExternalChecks.ExternalChecksCanRunScript(destTaskItem.AssetID, destPart.UUID, destPart.OwnerID))
+                {
                     destPart.CreateScriptInstance(destTaskItem, 0, false);
-				}
-			}
-			
-			ScenePresence avatar;
-			
-			if(TryGetAvatar(srcTaskItem.OwnerID, out avatar))
+                }
+            }
+            
+            ScenePresence avatar;
+            
+            if (TryGetAvatar(srcTaskItem.OwnerID, out avatar))
             {
                 destPart.GetProperties(avatar.ControllingClient);
             }
-		}
-		
+        }
+        
         /// <summary>
         /// Called when an object is removed from the environment into inventory.
         /// </summary>
@@ -1497,7 +1497,7 @@ namespace OpenSim.Region.Environment.Scenes
                             m_inventoryTicker.Elapsed += InventoryRunDeleteTimer;
                         }
 
-                        lock(m_inventoryDeletes)
+                        lock (m_inventoryDeletes)
                         {
                             DeleteToInventoryHolder dtis = new DeleteToInventoryHolder();
                             dtis.DeRezPacket = DeRezPacket;
@@ -2246,7 +2246,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void GetScriptRunning(IClientAPI controllingClient, LLUUID objectID, LLUUID itemID)
         {
             IScriptModule scriptModule = RequestModuleInterface<IScriptModule>();
-            if(scriptModule == null)
+            if (scriptModule == null)
                 return;
 
             controllingClient.SendScriptRunningReply(objectID, itemID,
@@ -2256,10 +2256,10 @@ namespace OpenSim.Region.Environment.Scenes
         public void SetScriptRunning(IClientAPI controllingClient, LLUUID objectID, LLUUID itemID, bool running)
         {
             SceneObjectPart part = GetSceneObjectPart(objectID);
-            if(part == null)
+            if (part == null)
                 return;
 
-            if(running)
+            if (running)
                 EventManager.TriggerStartScript(part.LocalId, itemID);
             else
                 EventManager.TriggerStopScript(part.LocalId, itemID);
