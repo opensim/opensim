@@ -5086,6 +5086,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             shapeBlock.PathCurve = m_host.Shape.PathCurve;
 
             m_host.Shape.SetSculptData((byte)type, sculptId);
+            m_host.Shape.SculptEntry = true;
             m_host.UpdateShape(shapeBlock);
         }
 
@@ -5187,7 +5188,7 @@ namespace OpenSim.Region.ScriptEngine.Common
                                 taper_b = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 topshear = new LSL_Types.Vector3(rules.Data[idx++].ToString());
                                 m_host.Shape.PathCurve = (byte) Extrusion.Straight;
-                                SetPrimitiveShapeParams(face, v, hollow, twist, taper_b, topshear, 1);;
+                                SetPrimitiveShapeParams(face, v, hollow, twist, taper_b, topshear, 1);
                                 break;
                         
                             case (int)BuiltIn_Commands_BaseClass.PRIM_TYPE_CYLINDER:
