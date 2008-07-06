@@ -272,7 +272,7 @@ namespace OpenSim.Region.Environment.Scenes
             item.ParentID = UUID;
             item.ParentPartID = UUID;
 
-            string name=FindAvailableInventoryName(item.Name);
+            string name = FindAvailableInventoryName(item.Name);
             if (name == String.Empty)
                 return;
 
@@ -346,7 +346,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="itemID"></param>
         /// <returns>null if the item does not exist</returns>
         public TaskInventoryItem GetInventoryItem(LLUUID itemID)
-        {
+        {            
             lock (m_taskInventory)
             {
                 if (m_taskInventory.ContainsKey(itemID))
@@ -356,13 +356,6 @@ namespace OpenSim.Region.Environment.Scenes
 //                        m_taskInventory[itemID].Name, itemID, Name, UUID);
 
                     return m_taskInventory[itemID];
-                }
-                else
-                {
-                    m_log.ErrorFormat(
-                        "[PRIM INVENTORY]: " +
-                        "Tried to retrieve item ID {0} from prim {1}, {2} but the item does not exist in this inventory",
-                        itemID, Name, UUID);
                 }
             }
 

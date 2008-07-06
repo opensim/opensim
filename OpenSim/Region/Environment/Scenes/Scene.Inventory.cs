@@ -239,8 +239,14 @@ namespace OpenSim.Region.Environment.Scenes
 
             // Retrieve item
             TaskInventoryItem item = group.GetInventoryItem(part.LocalId, itemId);
+            
             if (null == item)
-            {
+            {                                  
+                m_log.ErrorFormat(
+                    "[PRIM INVENTORY]: Tried to retrieve item ID {0} from prim {1}, {2} for caps script update "
+                        + " but the item does not exist in this inventory",
+                    itemId, part.Name, part.UUID);
+
                 return;
             }
 
@@ -878,7 +884,12 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (null == taskItem)
             {
-                // Console already notified of error in GetInventoryItem
+                m_log.ErrorFormat(
+                    "[PRIM INVENTORY]: Tried to retrieve item ID {0} from prim {1}, {2} for creating an avatar"
+                        + " inventory item from a prim's inventory item "
+                        + " but the required item does not exist in the prim's inventory",
+                    itemId, part.Name, part.UUID);
+
                 return null;
             }
 
@@ -1010,7 +1021,11 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (srcTaskItem == null)
             {
-                // error was already logged
+                m_log.ErrorFormat(
+                    "[PRIM INVENTORY]: Tried to retrieve item ID {0} from prim {1}, {2} for moving"
+                        + " but the item does not exist in this inventory",
+                    itemId, part.Name, part.UUID);
+
                 return;
             }
             
@@ -1143,7 +1158,8 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (part != null)
             {
-                TaskInventoryItem currentItem=part.GetInventoryItem(itemID);
+                TaskInventoryItem currentItem = part.GetInventoryItem(itemID);
+
                 if (currentItem == null)
                 {
                     LLUUID copyID = LLUUID.Random();
@@ -1186,7 +1202,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 else // Updating existing item with new perms etc
                 {
-                    TaskInventoryItem prevItem=part.GetInventoryItem(itemID);
+                    TaskInventoryItem prevItem = part.GetInventoryItem(itemID);
                     itemInfo.AssetID = prevItem.AssetID;
                     if (part.UpdateInventoryItem(itemInfo))
                         part.GetProperties(remoteClient);
@@ -1314,7 +1330,11 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (srcTaskItem == null)
             {
-                // error was already logged
+                m_log.ErrorFormat(
+                    "[PRIM INVENTORY]: Tried to retrieve item ID {0} from prim {1}, {2} for rezzing a script but the "
+                        + " item does not exist in this inventory",
+                    srcId, srcPart.Name, srcPart.UUID);
+
                 return;
             }
             
