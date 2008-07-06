@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using System.Timers;
 using libsecondlife;
 using libsecondlife.Packets;
 using log4net;
@@ -38,8 +39,20 @@ using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Scenes
 {
+    class DeleteToInventoryHolder
+    {
+        public DeRezObjectPacket DeRezPacket;
+        public EntityBase selectedEnt;
+        public IClientAPI remoteClient;
+        public SceneObjectGroup objectGroup;
+        public LLUUID folderID;
+    }
+
     public partial class Scene
     {
+        private Timer m_inventoryTicker;
+        private readonly Queue<DeleteToInventoryHolder> m_inventoryDeletes = new Queue<DeleteToInventoryHolder>();
+
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -1395,7 +1408,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// Called when an object is removed from the environment into inventory.
         /// </summary>
         /// <param name="packet"></param>
-        /// <param name="simClient"></param>
+        /// <param name="remoteClient"></param>
         public virtual void DeRezObject(Packet packet, IClientAPI remoteClient)
         {
             DeRezObjectPacket DeRezPacket = (DeRezObjectPacket) packet;
@@ -1453,12 +1466,84 @@ namespace OpenSim.Region.Environment.Scenes
 
                     if (permissionToTake)
                     {
-                        string sceneObjectXml = objectGroup.ToXmlString();
-
-                        CachedUserInfo userInfo =
-                            CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
-                        if (userInfo != null)
+                        if (m_inventoryTicker != null)
                         {
+                            m_inventoryTicker.Stop();
+                        }
+                        else
+                        {
+                            m_inventoryTicker = new Timer(2000);
+                            m_inventoryTicker.AutoReset = false;
+                            m_inventoryTicker.Elapsed += InventoryRunDeleteTimer;
+                        }
+
+                        lock(m_inventoryDeletes)
+                        {
+                            DeleteToInventoryHolder dtis = new DeleteToInventoryHolder();
+                            dtis.DeRezPacket = DeRezPacket;
+                            dtis.folderID = folderID;
+                            dtis.objectGroup = objectGroup;
+                            dtis.remoteClient = remoteClient;
+                            dtis.selectedEnt = selectedEnt;
+
+                            m_inventoryDeletes.Enqueue(dtis);
+                        }
+
+                        m_inventoryTicker.Start();
+
+                        // Visually remove it, even if it isnt really gone yet.
+                        objectGroup.FakeDeleteGroup();
+                    }
+                    else if (permissionToDelete)
+                    {
+                        DeleteSceneObject(objectGroup);
+                    }
+                }
+            }
+        }
+
+        void InventoryRunDeleteTimer(object sender, ElapsedEventArgs e)
+        {
+            m_log.Info("Starting inventory send loop");
+            while (InventoryDeQueueAndDelete() == true)
+            {
+                m_log.Info("Returned item successfully, continuing...");
+            }
+        }
+
+        private bool InventoryDeQueueAndDelete()
+        {
+            DeleteToInventoryHolder x;
+            try
+            {
+                lock (m_inventoryDeletes)
+                {
+                    int left = m_inventoryDeletes.Count;
+                    if (left > 0)
+                    {
+                        m_log.InfoFormat("Sending deleted object to user's inventory, {0} item(s) remaining.", left);
+                        x = m_inventoryDeletes.Dequeue();
+                        DeleteToInventory(x.DeRezPacket, x.selectedEnt, x.remoteClient, x.objectGroup, x.folderID);
+                        return true;
+                    }
+                }
+            } catch(Exception e)
+            {
+                m_log.Error(e.ToString());
+            }
+
+            m_log.Info("No objects left in inventory delete queue.");
+            return false;
+        }
+
+        private void DeleteToInventory(DeRezObjectPacket DeRezPacket, EntityBase selectedEnt, IClientAPI remoteClient, SceneObjectGroup objectGroup, LLUUID folderID)
+        {
+            string sceneObjectXml = objectGroup.ToXmlString();
+
+            CachedUserInfo userInfo =
+                CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
+            if (userInfo != null)
+            {
 //                            string searchFolder = "";
 
 //                            if (DeRezPacket.AgentBlock.Destination == 6)
@@ -1466,103 +1551,98 @@ namespace OpenSim.Region.Environment.Scenes
 //                            else if (DeRezPacket.AgentBlock.Destination == 9)
 //                                searchFolder = "Lost And Found";
 
-                            // If we're deleting someone else's item, it goes back to their deleted items folder
-                            // If we're returning someone's item, it goes back to the owner's Lost And Found folder.
+                // If we're deleting someone else's item, it goes back to their deleted items folder
+                // If we're returning someone's item, it goes back to the owner's Lost And Found folder.
 
-                            if (DeRezPacket.AgentBlock.DestinationID == LLUUID.Zero || (DeRezPacket.AgentBlock.Destination == 6 && objectGroup.OwnerID != remoteClient.AgentId))
-                            {
-                                List<InventoryFolderBase> subrootfolders = userInfo.RootFolder.RequestListOfFolders();
-                                foreach (InventoryFolderBase flder in subrootfolders)
-                                {
-                                    if (flder.Name == "Lost And Found")
-                                    {
-                                        folderID = flder.ID;
-                                        break;
-                                    }
-                                }
-
-                                if (folderID == LLUUID.Zero)
-                                {
-                                    folderID = userInfo.RootFolder.ID;
-                                }
-                                //currently following code not used (or don't know of any case of destination being zero
-                            }
-                            else
-                            {
-                                folderID = DeRezPacket.AgentBlock.DestinationID;
-                            }
-
-                            AssetBase asset = CreateAsset(
-                                ((SceneObjectGroup) selectedEnt).GetPartName(selectedEnt.LocalId),
-                                ((SceneObjectGroup) selectedEnt).GetPartDescription(selectedEnt.LocalId),
-                                (sbyte)AssetType.Object,
-                                Helpers.StringToField(sceneObjectXml));
-                            AssetCache.AddAsset(asset);
-
-                            InventoryItemBase item = new InventoryItemBase();
-                            item.Creator = objectGroup.RootPart.CreatorID;
-
-                            if (DeRezPacket.AgentBlock.Destination == 1 || DeRezPacket.AgentBlock.Destination == 4)// Take / Copy
-                                item.Owner = remoteClient.AgentId;
-                            else // Delete / Return
-                                item.Owner = objectGroup.OwnerID;
-
-                            item.ID = LLUUID.Random();
-                            item.AssetID = asset.FullID;
-                            item.Description = asset.Description;
-                            item.Name = asset.Name;
-                            item.AssetType = asset.Type;
-                            item.InvType = (int)InventoryType.Object;
-                            item.Folder = folderID;
-                            if ((remoteClient.AgentId != objectGroup.RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
-                            {
-                                uint perms=objectGroup.GetEffectivePermissions();
-                                uint nextPerms=(perms & 7) << 13;
-                                if ((nextPerms & (uint)PermissionMask.Copy) == 0)
-                                    perms &= ~(uint)PermissionMask.Copy;
-                                if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
-                                    perms &= ~(uint)PermissionMask.Transfer;
-                                if ((nextPerms & (uint)PermissionMask.Modify) == 0)
-                                    perms &= ~(uint)PermissionMask.Modify;
-
-                                item.BasePermissions = perms & objectGroup.RootPart.NextOwnerMask;
-                                item.CurrentPermissions = item.BasePermissions;
-                                item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
-                                item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask & objectGroup.RootPart.NextOwnerMask;
-                                item.CurrentPermissions |= 8; // Slam!
-                            }
-                            else
-                            {
-                                item.BasePermissions = objectGroup.GetEffectivePermissions();
-                                item.CurrentPermissions = objectGroup.GetEffectivePermissions();
-                                item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
-                                item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
-                            }
-
-                            // TODO: add the new fields (Flags, Sale info, etc)
-
-                            userInfo.AddItem(item);
-                            if (item.Owner == remoteClient.AgentId)
-                            {
-                                remoteClient.SendInventoryItemCreateUpdate(item);
-                            }
-                            else
-                            {
-                                ScenePresence notifyUser = GetScenePresence(item.Owner);
-                                if (notifyUser != null)
-                                {
-                                    notifyUser.ControllingClient.SendInventoryItemCreateUpdate(item);
-                                }
-                            }
+                if (DeRezPacket.AgentBlock.DestinationID == LLUUID.Zero || (DeRezPacket.AgentBlock.Destination == 6 && objectGroup.OwnerID != remoteClient.AgentId))
+                {
+                    List<InventoryFolderBase> subrootfolders = userInfo.RootFolder.RequestListOfFolders();
+                    foreach (InventoryFolderBase flder in subrootfolders)
+                    {
+                        if (flder.Name == "Lost And Found")
+                        {
+                            folderID = flder.ID;
+                            break;
                         }
                     }
 
-                    if (permissionToDelete)
+                    if (folderID == LLUUID.Zero)
                     {
-                        DeleteSceneObject(objectGroup);
+                        folderID = userInfo.RootFolder.ID;
+                    }
+                    //currently following code not used (or don't know of any case of destination being zero
+                }
+                else
+                {
+                    folderID = DeRezPacket.AgentBlock.DestinationID;
+                }
+
+                AssetBase asset = CreateAsset(
+                    ((SceneObjectGroup) selectedEnt).GetPartName(selectedEnt.LocalId),
+                    ((SceneObjectGroup) selectedEnt).GetPartDescription(selectedEnt.LocalId),
+                    (sbyte)AssetType.Object,
+                    Helpers.StringToField(sceneObjectXml));
+                AssetCache.AddAsset(asset);
+
+                InventoryItemBase item = new InventoryItemBase();
+                item.Creator = objectGroup.RootPart.CreatorID;
+
+                if (DeRezPacket.AgentBlock.Destination == 1 || DeRezPacket.AgentBlock.Destination == 4)// Take / Copy
+                    item.Owner = remoteClient.AgentId;
+                else // Delete / Return
+                    item.Owner = objectGroup.OwnerID;
+
+                item.ID = LLUUID.Random();
+                item.AssetID = asset.FullID;
+                item.Description = asset.Description;
+                item.Name = asset.Name;
+                item.AssetType = asset.Type;
+                item.InvType = (int)InventoryType.Object;
+                item.Folder = folderID;
+                if ((remoteClient.AgentId != objectGroup.RootPart.OwnerID) && ExternalChecks.ExternalChecksPropagatePermissions())
+                {
+                    uint perms=objectGroup.GetEffectivePermissions();
+                    uint nextPerms=(perms & 7) << 13;
+                    if ((nextPerms & (uint)PermissionMask.Copy) == 0)
+                        perms &= ~(uint)PermissionMask.Copy;
+                    if ((nextPerms & (uint)PermissionMask.Transfer) == 0)
+                        perms &= ~(uint)PermissionMask.Transfer;
+                    if ((nextPerms & (uint)PermissionMask.Modify) == 0)
+                        perms &= ~(uint)PermissionMask.Modify;
+
+                    item.BasePermissions = perms & objectGroup.RootPart.NextOwnerMask;
+                    item.CurrentPermissions = item.BasePermissions;
+                    item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
+                    item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask & objectGroup.RootPart.NextOwnerMask;
+                    item.CurrentPermissions |= 8; // Slam!
+                }
+                else
+                {
+                    item.BasePermissions = objectGroup.GetEffectivePermissions();
+                    item.CurrentPermissions = objectGroup.GetEffectivePermissions();
+                    item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
+                    item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
+                }
+
+                // TODO: add the new fields (Flags, Sale info, etc)
+
+                userInfo.AddItem(item);
+                if (item.Owner == remoteClient.AgentId)
+                {
+                    remoteClient.SendInventoryItemCreateUpdate(item);
+                }
+                else
+                {
+                    ScenePresence notifyUser = GetScenePresence(item.Owner);
+                    if (notifyUser != null)
+                    {
+                        notifyUser.ControllingClient.SendInventoryItemCreateUpdate(item);
                     }
                 }
             }
+
+            // Finally remove the item, for reals this time.
+            DeleteSceneObject(objectGroup);
         }
 
         public void updateKnownAsset(IClientAPI remoteClient, SceneObjectGroup grp, LLUUID assetID, LLUUID agentID)
