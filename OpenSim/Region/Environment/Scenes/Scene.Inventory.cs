@@ -1408,7 +1408,7 @@ namespace OpenSim.Region.Environment.Scenes
 			
             destPart.AddInventoryItemExclusive(destTaskItem);
 
-			if ( running > 0 )
+			if (running > 0)
 			{
 				if (ExternalChecks.ExternalChecksCanRunScript(destTaskItem.AssetID, destPart.UUID, destPart.OwnerID))
 				{

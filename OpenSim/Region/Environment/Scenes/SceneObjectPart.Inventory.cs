@@ -90,6 +90,10 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Change every item in this prim's inventory to a new owner.
+        /// </summary>
+        /// <param name="ownerId"></param>
         public void ChangeInventoryOwner(LLUUID ownerId)
         {
             lock (TaskInventory)
@@ -122,8 +126,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 foreach (TaskInventoryItem item in m_taskInventory.Values)
                 {
-                    // XXX more hardcoding badness.  Should be an enum in TaskInventoryItem
-                    if (10 == item.Type)
+                    if ((int)InventoryType.LSL == item.InvType)
                     {
                         CreateScriptInstance(item, startParam, postOnRez);
                     }
@@ -140,7 +143,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 foreach (TaskInventoryItem item in m_taskInventory.Values)
                 {
-                    if (10 == item.Type)
+                    if ((int)InventoryType.LSL == item.InvType)
                     {
                         RemoveScriptInstance(item.ItemID);
                         RemoveScriptEvents(item.ItemID);
@@ -154,7 +157,6 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-
         public void CreateScriptInstance(TaskInventoryItem item, int startParam, bool postOnRez)
         {
             //            m_log.InfoFormat(
@@ -200,7 +202,6 @@ namespace OpenSim.Region.Environment.Scenes
                 if (m_taskInventory.ContainsKey(itemId))
                 {
                     CreateScriptInstance(m_taskInventory[itemId], startParam, postOnRez);
-
                 }
                 else
                 {
@@ -232,7 +233,12 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        // Assumes a lock is held on the inventory
+        /// <summary>
+        /// Check if the inventory holds an item with a given name.
+        /// This method assumes that the task inventory is already locked.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         private bool InventoryContainsName(string name)
         {
             foreach (TaskInventoryItem item in m_taskInventory.Values)
@@ -243,6 +249,12 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
+        /// <summary>
+        /// For a given item name, return that name if it is available.  Otherwise, return the next available
+        /// similar name (which is currently the original name with the next available numeric suffix).
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         private string FindAvailableInventoryName(string name)
         {
             if (!InventoryContainsName(name))
@@ -260,49 +272,54 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Add an item to this prim's inventory.
+        /// Add an item to this prim's inventory.  If an item with the same name already exists, then an alternative
+        /// name is chosen.
         /// </summary>
         /// <param name="item"></param>
         public void AddInventoryItem(TaskInventoryItem item)
         {
-            item.ParentID = UUID;
-            item.ParentPartID = UUID;
-
             string name = FindAvailableInventoryName(item.Name);
             if (name == String.Empty)
                 return;
 
-            item.Name=name;
-
-            lock (m_taskInventory)
-            {
-                m_taskInventory.Add(item.ItemID, item);
-                TriggerScriptChangedEvent(Changed.INVENTORY);
-            }
-
-            m_inventorySerial++;
-            //m_inventorySerial += 2;
-            HasInventoryChanged = true;
-            ParentGroup.HasGroupChanged = true;
+            AddInventoryItem(name, item);
         }
 
+        /// <summary>
+        /// Add an item to this prim's inventory.  If an item with the same name already exists, it is replaced.
+        /// </summary>
+        /// <param name="item"></param>
         public void AddInventoryItemExclusive(TaskInventoryItem item)
         {
-            item.ParentID = UUID;
-            item.ParentPartID = UUID;
-
             List<TaskInventoryItem> il = new List<TaskInventoryItem>(m_taskInventory.Values);
             foreach(TaskInventoryItem i in il)
             {
-                if(i.Name == item.Name)
+                if (i.Name == item.Name)
                 {
-                    if(i.Type == 10)
+                    if (i.InvType == (int)InventoryType.LSL)
                         RemoveScriptInstance(i.ItemID);
+                    
                     RemoveInventoryItem(i.ItemID);
                     break;
                 }
             }
 
+            AddInventoryItem(item.Name, item);
+        }
+        
+        /// <summary>
+        /// Add an item to this prim's inventory.
+        /// </summary>
+        /// <param name="name">The name that the new item should have.</param>
+        /// <param name="item">
+        /// The item itself.  The name within this structure is ignored in favour of the name
+        /// given in this method's arguments
+        /// </param>
+        protected void AddInventoryItem(string name, TaskInventoryItem item)
+        {
+            item.ParentID = UUID;
+            item.ParentPartID = UUID;
+            
             lock (m_taskInventory)
             {
                 m_taskInventory.Add(item.ItemID, item);
@@ -312,7 +329,7 @@ namespace OpenSim.Region.Environment.Scenes
             m_inventorySerial++;
             //m_inventorySerial += 2;
             HasInventoryChanged = true;
-            ParentGroup.HasGroupChanged = true;
+            ParentGroup.HasGroupChanged = true;                    
         }
 
         /// <summary>
