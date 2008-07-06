@@ -1542,7 +1542,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public double llGetTimeOfDay()
         {
             m_host.AddScriptLPS(1);
-            return (double)(((DateTime.Now.TimeOfDay.Milliseconds / 1000) % (3600 * 4)) * World.TimeDilation);
+            return (double)(((DateTime.Now.TimeOfDay.TotalMilliseconds / 1000) % (3600 * 4)) * World.TimeDilation);
         }
 
         public double llGetWallclock()
