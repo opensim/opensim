@@ -43,9 +43,7 @@ namespace OpenSim.Region.Environment.Scenes
 
         private string m_inventoryFileName = String.Empty;
         private int m_inventoryFileNameSerial = 0;
-
         
-
         /// <summary>
         /// Serial count for inventory file , used to tell if inventory has changed
         /// no need for this to be part of Database backup
@@ -56,9 +54,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Holds in memory prim inventory
         /// </summary>
-        protected TaskInventoryDictionary m_taskInventory = new TaskInventoryDictionary();
-
-        
+        protected TaskInventoryDictionary m_taskInventory = new TaskInventoryDictionary();      
 
         /// <summary>
         /// Tracks whether inventory has changed since the last persistent backup
@@ -345,21 +341,12 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="itemID"></param>
         /// <returns>null if the item does not exist</returns>
-        public TaskInventoryItem GetInventoryItem(LLUUID itemID)
+        public TaskInventoryItem GetInventoryItem(LLUUID itemId)
         {            
-            lock (m_taskInventory)
-            {
-                if (m_taskInventory.ContainsKey(itemID))
-                {
-//                    m_log.DebugFormat(
-//                        "[PRIM INVENTORY]: Retrieved task inventory item {0}, {1} from prim {2}, {3}",
-//                        m_taskInventory[itemID].Name, itemID, Name, UUID);
-
-                    return m_taskInventory[itemID];
-                }
-            }
-
-            return null;
+            TaskInventoryItem item;
+            m_taskInventory.TryGetValue(itemId, out item);
+            
+            return item;
         }
 
         /// <summary>
@@ -367,7 +354,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="item">The updated item.  An item with the same id must already exist
         /// in this prim's inventory.</param>
-        /// <returns>false if the item did not exist, true if the update occurred succesfully</returns>
+        /// <returns>false if the item did not exist, true if the update occurred successfully</returns>
         public bool UpdateInventoryItem(TaskInventoryItem item)
         {
             lock (m_taskInventory)
