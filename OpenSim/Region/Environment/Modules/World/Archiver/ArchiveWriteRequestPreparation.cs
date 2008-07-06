@@ -34,6 +34,7 @@ using OpenSim.Region.Environment.Scenes;
 using System.Collections.Generic;
 using System.Reflection;
 //using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using libsecondlife;
 using log4net;
@@ -50,6 +51,14 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
         protected Scene m_scene;
         protected string m_savePath;
+        
+        /// <summary>
+        /// Used for identifying uuids embedded in scripts
+        /// </summary>
+        protected static readonly Regex m_uuidRegex 
+            = new Regex(
+                "[0-9a-eA-E]{8}-[0-9a-eA-E]{4}-[0-9a-eA-E]{4}-[0-9a-eA-E]{4}-[0-9a-eA-E]{12}", 
+                RegexOptions.Compiled);        
 
         /// <summary>
         /// Used as a temporary store of an asset which represents an object.  This can be a null if no appropriate
@@ -111,6 +120,31 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             }          
             
             return m_requestedObjectAsset;
+        }
+        
+        /// <summary>
+        /// Record the asset uuids embedded within the given script.
+        /// </summary>
+        /// <param name="scriptUuid"></param>
+        /// <param name="assetUuids">Dictionary in which to record the references</param>
+        protected void GetScriptAssetUuids(LLUUID scriptUuid, IDictionary<LLUUID, int> assetUuids)
+        {
+            AssetBase scriptAsset = GetAsset(scriptUuid);
+
+            if (null != scriptAsset)
+            {
+                string script = Helpers.FieldToUTF8String(scriptAsset.Data);
+                m_log.DebugFormat("[ARCHIVER]: Script {0}", script);
+                MatchCollection uuidMatches = m_uuidRegex.Matches(script);
+                m_log.DebugFormat("[ARCHIVER]: Found {0} matches in script", uuidMatches.Count);
+                
+                foreach (Match uuidMatch in uuidMatches)
+                {
+                    LLUUID uuid = new LLUUID(uuidMatch.Value);
+                    m_log.DebugFormat("[ARCHIVER]: Recording {0} in script", uuid);
+                    assetUuids[uuid] = 1;
+                }
+            }                         
         }
         
         /// <summary>
@@ -200,7 +234,11 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                         {
                             GetWearableAssetUuids(tii.AssetID, assetUuids);
                         }
-                        if ((int)AssetType.Object == tii.Type)
+                        else if ((int)AssetType.LSLText == tii.Type)
+                        {
+                            GetScriptAssetUuids(tii.AssetID, assetUuids);
+                        }
+                        else if ((int)AssetType.Object == tii.Type)
                         {
                             GetSceneObjectAssetUuids(tii.AssetID, assetUuids);
                         }
