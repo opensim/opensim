@@ -1582,14 +1582,14 @@ namespace OpenSim.Region.Physics.Meshing
 
                 if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
                 { // dimpled sphere uses profile cut but since it's a half circle the angles are smaller
-
+                    if (hollowFactor == 0) hollowFactor = 1000; // bare minimum hollow to keep the triangulator happy
                     fProfileBeginAngle = 0.0036f * (float)primShape.ProfileBegin;
                     fProfileEndAngle = 180.0f - 0.0036f * (float)primShape.ProfileEnd;
                     if (fProfileBeginAngle < fProfileEndAngle)
                         fProfileEndAngle -= 360.0f;
                     // a cut starting at 0 degrees with a hollow causes an infinite loop so move the start angle
                     // past it into the empty part of the circle to avoid this condition
-                    if (fProfileBeginAngle == 0.0f) fProfileBeginAngle = -10.0f;
+                    if (fProfileBeginAngle == 0.0f && hollowFactor != 0) fProfileBeginAngle = -10.0f;
 
 #if SPAM
                     Console.WriteLine("Sphere dimple: fProfileBeginAngle: " + fProfileBeginAngle.ToString() + " fProfileEndAngle: " + fProfileEndAngle.ToString());
