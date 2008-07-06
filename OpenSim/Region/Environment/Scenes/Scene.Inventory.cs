@@ -46,6 +46,7 @@ namespace OpenSim.Region.Environment.Scenes
         public IClientAPI remoteClient;
         public SceneObjectGroup objectGroup;
         public LLUUID folderID;
+        public bool permissionToDelete;
     }
 
     public partial class Scene
@@ -1505,6 +1506,7 @@ namespace OpenSim.Region.Environment.Scenes
                             dtis.objectGroup = objectGroup;
                             dtis.remoteClient = remoteClient;
                             dtis.selectedEnt = selectedEnt;
+                            dtis.permissionToDelete = permissionToDelete;
 
                             m_inventoryDeletes.Enqueue(dtis);
                         }
@@ -1512,7 +1514,8 @@ namespace OpenSim.Region.Environment.Scenes
                         m_inventoryTicker.Start();
 
                         // Visually remove it, even if it isnt really gone yet.
-                        objectGroup.FakeDeleteGroup();
+                        if (permissionToDelete)
+                            objectGroup.FakeDeleteGroup();
                     }
                     else if (permissionToDelete)
                     {
@@ -1543,7 +1546,7 @@ namespace OpenSim.Region.Environment.Scenes
                     {
                         m_log.InfoFormat("Sending deleted object to user's inventory, {0} item(s) remaining.", left);
                         x = m_inventoryDeletes.Dequeue();
-                        DeleteToInventory(x.DeRezPacket, x.selectedEnt, x.remoteClient, x.objectGroup, x.folderID);
+                        DeleteToInventory(x.DeRezPacket, x.selectedEnt, x.remoteClient, x.objectGroup, x.folderID, x.permissionToDelete);
                         return true;
                     }
                 }
@@ -1556,7 +1559,7 @@ namespace OpenSim.Region.Environment.Scenes
             return false;
         }
 
-        private void DeleteToInventory(DeRezObjectPacket DeRezPacket, EntityBase selectedEnt, IClientAPI remoteClient, SceneObjectGroup objectGroup, LLUUID folderID)
+        private void DeleteToInventory(DeRezObjectPacket DeRezPacket, EntityBase selectedEnt, IClientAPI remoteClient, SceneObjectGroup objectGroup, LLUUID folderID, bool permissionToDelete)
         {
             string sceneObjectXml = objectGroup.ToXmlString();
 
@@ -1662,7 +1665,8 @@ namespace OpenSim.Region.Environment.Scenes
             }
 
             // Finally remove the item, for reals this time.
-            DeleteSceneObject(objectGroup);
+            if(permissionToDelete)
+                DeleteSceneObject(objectGroup);
         }
 
         public void updateKnownAsset(IClientAPI remoteClient, SceneObjectGroup grp, LLUUID assetID, LLUUID agentID)
