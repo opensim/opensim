@@ -56,6 +56,7 @@ namespace OpenSim.Framework.Servers
         private Uri _url;
         private NameValueCollection _queryString;
         private string _userAgent;
+        private IPEndPoint _ipEndPoint;
 
         private HttpRequest _request;
         // private HttpClientContext _context;
@@ -146,6 +147,11 @@ namespace OpenSim.Framework.Servers
             get { return _queryString; }
         }
 
+        public IPEndPoint RemoteIPEndPoint
+        {
+            get { return _ipEndPoint; }
+        }
+
         public HttpRequest HttpRequest
         {
             get { return _request; }
@@ -161,18 +167,20 @@ namespace OpenSim.Framework.Servers
             _contentEncoding = req.ContentEncoding;
             _contentLength64 = req.ContentLength64;
             _contentType = req.ContentType;
-            // _cookies = req.Cookies;
             _headers = req.Headers;
             _httpMethod = req.HttpMethod;
             _hasbody = req.HasEntityBody;
             _inputStream = req.InputStream;
-            // _isSecureConnection = req.IsSecureConnection;
-            // _isAuthenticated = req.IsAuthenticated;
             _keepAlive = req.KeepAlive;
             _rawUrl = req.RawUrl;
             _url = req.Url;
             _queryString = req.QueryString;
             _userAgent = req.UserAgent;
+            _ipEndPoint = req.RemoteEndPoint;
+
+            // _cookies = req.Cookies;
+            // _isSecureConnection = req.IsSecureConnection;
+            // _isAuthenticated = req.IsAuthenticated;
         }
 
         public OSHttpRequest(HttpClientContext context, HttpRequest req)
@@ -186,13 +194,10 @@ namespace OpenSim.Framework.Servers
             _contentLength64 = req.ContentLength;
             if (null != req.Headers["content-type"])
                 _contentType = _request.Headers["content-type"];
-            // _cookies = req.Cookies;
             _headers = req.Headers;
             _httpMethod = req.Method;
             _hasbody = req.ContentLength != 0;
             _inputStream = req.Body;
-            // _isSecureConnection = req.IsSecureConnection;
-            // _isAuthenticated = req.IsAuthenticated;
             _keepAlive = ConnectionType.KeepAlive == req.Connection;
             _rawUrl = req.Uri.AbsolutePath;
             _url = req.Uri;
@@ -203,6 +208,12 @@ namespace OpenSim.Framework.Servers
             {
                 _queryString.Add(q.Key, q.Value.Value);
             }
+            // TODO: requires change to HttpServer.HttpRequest
+            _ipEndPoint = null;
+
+            // _cookies = req.Cookies;
+            // _isSecureConnection = req.IsSecureConnection;
+            // _isAuthenticated = req.IsAuthenticated;
         }
     }
 }

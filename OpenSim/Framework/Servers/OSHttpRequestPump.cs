@@ -165,11 +165,14 @@ namespace OpenSim.Framework.Servers
                 if (null != endPointsRegex)
                 {
                     // TODO: following code requires code changes to
-                    // HttpServer.HttpRequest
+                    // HttpServer.HttpRequest to become functional
 
-                    // IPEndPoint remote = HttpServer.HttpRequest.RemoteIPEndPoint;
-                    // Match epm = endPointsRegex.Match(remote.ToString());
-                    // if (!epm.Success) continue;
+                    IPEndPoint remote = req.RemoteIPEndPoint;
+                    if (null != remote)
+                    {
+                        Match epm = endPointsRegex.Match(remote.ToString());
+                        if (!epm.Success) continue;
+                    }
                 }
 
                 // whitelist ok, now check path
