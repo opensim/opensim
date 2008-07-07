@@ -435,6 +435,12 @@ namespace OpenSim.Region.Physics.Meshing
             // Int16 twistTop = primShape.PathTwistBegin;
             // Int16 twistBot = primShape.PathTwist;
 
+            // tweak problem cut angles
+            if (profileBegin > 23 && profileBegin % 50 == 0) profileBegin -= 23;
+            if (profileEnd > 23 && profileEnd % 50 == 0) profileEnd += 23;
+
+
+
 #if SPAM
             reportPrimParams("[BOX] " + primName, primShape);
 #endif
@@ -1539,7 +1545,7 @@ namespace OpenSim.Region.Physics.Meshing
                         && primShape.PathTwistBegin == 0
                         && primShape.ProfileBegin == 0
                         && primShape.ProfileEnd == 0
-                        && primShape.ProfileHollow == 0
+                        && hollowFactor == 0
                         ) // simple sphere, revert to geodesic shape
 
                 )
@@ -1548,6 +1554,12 @@ namespace OpenSim.Region.Physics.Meshing
                     System.Console.WriteLine("reverting to geodesic sphere for prim: " + primName);
 #endif
                     return CreateSphereMesh(primName, primShape, size);
+                }
+
+                if (hollowFactor == 0)
+                {
+                    // the hull triangulator is happier with a minimal hollow
+                    hollowFactor = 2000;
                 }
 
                 if (hollowShape == HollowShape.Same)
@@ -1582,7 +1594,6 @@ namespace OpenSim.Region.Physics.Meshing
 
                 if ((primShape.ProfileCurve & 0x07) == (byte)ProfileShape.HalfCircle)
                 { // dimpled sphere uses profile cut but since it's a half circle the angles are smaller
-                    //if (hollowFactor == 0) hollowFactor = 1000; // bare minimum hollow to keep the triangulator happy
                     fProfileBeginAngle = 0.0036f * (float)primShape.ProfileBegin;
                     fProfileEndAngle = 180.0f - 0.0036f * (float)primShape.ProfileEnd;
                     if (fProfileBeginAngle < fProfileEndAngle)
@@ -2084,8 +2095,8 @@ namespace OpenSim.Region.Physics.Meshing
                 + "Name.............: " + name.ToString() + "\n"
                 + "HollowShape......: " + primShape.HollowShape.ToString() + "\n"
                 + "PathBegin........: " + primShape.PathBegin.ToString() + " " + pathBegin.ToString() + "\n"
-                + "PathCurve........: " + primShape.PathCurve.ToString() + " " + pathEnd.ToString() + "\n"
-                + "PathEnd..........: " + primShape.PathEnd.ToString() + "\n"
+                + "PathCurve........: " + primShape.PathCurve.ToString() + "\n"
+                + "PathEnd..........: " + primShape.PathEnd.ToString() + " " + pathEnd.ToString() + "\n"
                 + "PathRadiusOffset.: " + primShape.PathRadiusOffset.ToString() + "\n"
                 + "PathRevolutions..: " + primShape.PathRevolutions.ToString() + "\n"
                 + "PathScaleX.......: " + primShape.PathScaleX.ToString() + "\n"
