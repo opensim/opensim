@@ -526,6 +526,8 @@ namespace OpenSim.Region.Physics.Meshing
             // Deal with the hole here
             if (hollowFactor > 0)
             {
+                if (hollowFactor < 1000)
+                    hollowFactor = 1000;  // some sane minimum for our beloved SimpleHull routines
 
                 SimpleHull holeHull = BuildHoleHull(primShape, primShape.ProfileShape, primShape.HollowShape, hollowFactor);
                 if (holeHull != null)
@@ -887,6 +889,9 @@ namespace OpenSim.Region.Physics.Meshing
             // Deal with the hole here
             if (hollowFactor > 0)
             {
+                if (hollowFactor < 1000)
+                    hollowFactor = 1000;  // some sane minimum for our beloved SimpleHull routines
+
                 SimpleHull holeHull = BuildHoleHull(primShape, primShape.ProfileShape, primShape.HollowShape, hollowFactor);
                 if (holeHull != null)
                 {
@@ -1137,6 +1142,9 @@ namespace OpenSim.Region.Physics.Meshing
             // Deal with the hole here
             if (hollowFactor > 0)
             {
+                if (hollowFactor < 1000)
+                    hollowFactor = 1000;  // some sane minimum for our beloved SimpleHull routines
+
                 SimpleHull holeHull = BuildHoleHull(primShape, primShape.ProfileShape, primShape.HollowShape, hollowFactor);
                 if (holeHull != null)
                 {
