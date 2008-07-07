@@ -106,10 +106,6 @@ namespace OpenSim.Framework.Communications.Cache
             }
         }
 
-        protected override void CommitAssets()
-        {
-        }
-
         public override void Close()
         {
             throw new Exception("The method or operation is not implemented.");

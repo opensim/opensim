@@ -35,7 +35,6 @@ namespace OpenSim.Framework
         void CreateAsset(AssetBase asset);
         void UpdateAsset(AssetBase asset);
         bool ExistsAsset(LLUUID uuid);
-        void CommitAssets(); // force a sync to the database
         void Initialise(string connect);
     }
 }

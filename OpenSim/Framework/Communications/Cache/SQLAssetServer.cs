@@ -74,8 +74,6 @@ namespace OpenSim.Framework.Communications.Cache
         public override void Close()
         {
             base.Close();
-
-            m_assetProvider.CommitAssets();
         }
 
         protected override AssetBase GetAsset(AssetRequest req)
@@ -92,11 +90,6 @@ namespace OpenSim.Framework.Communications.Cache
         protected override void StoreAsset(AssetBase asset)
         {
             m_assetProvider.CreateAsset(asset);
-        }
-
-        protected override void CommitAssets()
-        {
-            m_assetProvider.CommitAssets();
         }
     }
 }

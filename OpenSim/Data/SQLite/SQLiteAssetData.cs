@@ -223,19 +223,6 @@ namespace OpenSim.Data.SQLite
             }
         }
 
-        /// <summary>
-        /// commit
-        /// </summary>
-        override public void CommitAssets() // force a sync to the database
-        {
-            m_log.Info("[ASSET DB]: Attempting commit");
-            // lock (ds)
-            //             {
-            //                 da.Update(ds, "assets");
-            //                 ds.AcceptChanges();
-            // }
-        }
-
         /***********************************************************************
          *
          *  Database Definition Functions

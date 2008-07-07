@@ -136,9 +136,8 @@ namespace OpenSim.Grid.AssetServer
             XmlSerializer xs = new XmlSerializer(typeof (AssetBase));
             AssetBase asset = (AssetBase) xs.Deserialize(request);
 
-            m_log.InfoFormat("[REST]: StoreAndCommitAsset {0}", asset.FullID);
+            m_log.InfoFormat("[REST]: Creating asset {0}", asset.FullID);
             m_assetProvider.CreateAsset(asset);
-            m_assetProvider.CommitAssets();
 
             return new byte[] {};
         }

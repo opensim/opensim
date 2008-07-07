@@ -203,13 +203,6 @@ namespace OpenSim.Data.MSSQL
             return false;
         }
 
-        /// <summary>
-        /// All writes are immediately commited to the database, so this is a no-op
-        /// </summary>
-        override public void CommitAssets()
-        {
-        }
-
         #endregion
 
         #region IPlugin Members

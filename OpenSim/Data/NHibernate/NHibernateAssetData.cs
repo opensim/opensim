@@ -161,12 +161,6 @@ namespace OpenSim.Data.NHibernate
 
         }
 
-        override public void CommitAssets() // force a sync to the database
-        {
-            m_log.Info("[SQLITE]: Attempting commit");
-        }
-
-
         public override string Name {
             get { return "NHibernate"; }
         }

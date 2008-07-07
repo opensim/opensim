@@ -36,7 +36,6 @@ namespace OpenSim.Data
         public abstract void CreateAsset(AssetBase asset);
         public abstract void UpdateAsset(AssetBase asset);
         public abstract bool ExistsAsset(LLUUID uuid);
-        public abstract void CommitAssets();
 
         public abstract string Version { get; }
         public abstract string Name { get; }

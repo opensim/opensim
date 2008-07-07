@@ -50,7 +50,6 @@ namespace OpenSim.Framework.Communications.Cache
         protected IAssetLoader assetLoader = new AssetLoaderFileSystem();
 
         protected abstract void StoreAsset(AssetBase asset);
-        protected abstract void CommitAssets();
 
         /// <summary>
         /// This method must be implemented by a subclass to retrieve the asset named in the
@@ -108,8 +107,6 @@ namespace OpenSim.Framework.Communications.Cache
             m_log.Info("[ASSET SERVER]: Setting up asset database");
 
             assetLoader.ForEachDefaultXmlAsset(StoreAsset);
-
-            CommitAssets();
         }
 
         public AssetServerBase()
@@ -167,7 +164,6 @@ namespace OpenSim.Framework.Communications.Cache
             lock (m_syncLock)
             {
                 m_assetProvider.UpdateAsset(asset);
-                m_assetProvider.CommitAssets();
             }
         }
 
@@ -176,7 +172,6 @@ namespace OpenSim.Framework.Communications.Cache
             lock (m_syncLock)
             {
                 StoreAsset(asset);
-                CommitAssets();
             }
         }
 

@@ -304,13 +304,6 @@ namespace OpenSim.Data.MySQL
             return assetExists;
         }
 
-        /// <summary>
-        /// All writes are immediately commited to the database, so this is a no-op
-        /// </summary>
-        override public void CommitAssets()
-        {
-        }
-
         #endregion
 
         /// <summary>
