@@ -4369,7 +4369,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if (rot.s == 0 && rot.x == 0 && rot.y == 0 && rot.z == 0)
                 rot.z = 1; // ZERO_ROTATION = 0,0,0,1
 
-            m_host.SetSitTarget(new Vector3((float)offset.x, (float)offset.y, (float)offset.z), new Quaternion((float)rot.s, (float)rot.x, (float)rot.y, (float)rot.z));
+            m_host.SitTargetPosition = new Vector3((float)offset.x, (float)offset.y, (float)offset.z);
+            m_host.SitTargetOrientation = new Quaternion((float)rot.s, (float)rot.x, (float)rot.y, (float)rot.z);
         }
 
         public string llAvatarOnSitTarget()

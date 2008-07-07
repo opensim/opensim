@@ -1508,28 +1508,6 @@ namespace OpenSim.Region.Environment.Scenes
             return LLUUID.Zero;
         }
 
-        public Quaternion GetSitTargetOrientation()
-        {
-            return m_sitTargetOrientation;
-        }
-
-        public LLQuaternion GetSitTargetOrientationLL()
-        {
-            return
-                new LLQuaternion(m_sitTargetOrientation.x, m_sitTargetOrientation.y, m_sitTargetOrientation.z,
-                                 m_sitTargetOrientation.w);
-        }
-
-        public Vector3 GetSitTargetPosition()
-        {
-            return m_sitTargetPosition;
-        }
-
-        public LLVector3 GetSitTargetPositionLL()
-        {
-            return new LLVector3(m_sitTargetPosition.x, m_sitTargetPosition.y, m_sitTargetPosition.z);
-        }
-
         /// <summary>
         /// Method for a prim to get it's world position from the group.
         /// Remember, the Group Position simply gives the position of the group itself
@@ -2382,23 +2360,23 @@ namespace OpenSim.Region.Environment.Scenes
             aggregateScriptEvents();
         }
 
-        public void SetSitTarget(Vector3 offset, Quaternion orientation)
-        {
-            m_sitTargetPosition = offset;
-            m_sitTargetOrientation = orientation;
-        }
+        // public void SetSitTarget(Vector3 offset, Quaternion orientation)
+        // {
+        //     m_sitTargetPosition = offset;
+        //     m_sitTargetOrientation = orientation;
+        // }
 
-        // Utility function so the databases don't have to reference axiom.math
-        public void SetSitTargetLL(LLVector3 offset, LLQuaternion orientation)
-        {
-            if (
-                !(offset.X == 0 && offset.Y == 0 && offset.Z == 0 && (orientation.W == 0 || orientation.W == 1) &&
-                  orientation.X == 0 && orientation.Y == 0 && orientation.Z == 0))
-            {
-                m_sitTargetPosition = new Vector3(offset.X, offset.Y, offset.Z);
-                m_sitTargetOrientation = new Quaternion(orientation.W, orientation.X, orientation.Y, orientation.Z);
-            }
-        }
+        // // Utility function so the databases don't have to reference axiom.math
+        // public void SetSitTargetLL(LLVector3 offset, LLQuaternion orientation)
+        // {
+        //     if (
+        //         !(offset.X == 0 && offset.Y == 0 && offset.Z == 0 && (orientation.W == 0 || orientation.W == 1) &&
+        //           orientation.X == 0 && orientation.Y == 0 && orientation.Z == 0))
+        //     {
+        //         m_sitTargetPosition = new Vector3(offset.X, offset.Y, offset.Z);
+        //         m_sitTargetOrientation = new Quaternion(orientation.W, orientation.X, orientation.Y, orientation.Z);
+        //     }
+        // }
 
         /// <summary>
         /// Set the text displayed for this part.

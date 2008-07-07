@@ -1096,8 +1096,8 @@ namespace OpenSim.Region.Environment.Scenes
             foreach (SceneObjectPart part in partArray)
             {
                 // Is a sit target available?
-                Vector3 avSitOffSet = part.GetSitTargetPosition();
-                Quaternion avSitOrientation = part.GetSitTargetOrientation();
+                Vector3 avSitOffSet = part.SitTargetPosition;
+                Quaternion avSitOrientation = part.SitTargetOrientation;
                 LLUUID avOnTargetAlready = part.GetAvatarOnSitTarget();
 
                 bool SitTargetUnOccupied = (!(avOnTargetAlready != LLUUID.Zero));
@@ -1130,8 +1130,8 @@ namespace OpenSim.Region.Environment.Scenes
                 // see http://wiki.secondlife.com/wiki/User:Andrew_Linden/Office_Hours/2007_11_06 for details on how LL does it
 
                 // Is a sit target available?
-                Vector3 avSitOffSet = part.GetSitTargetPosition();
-                Quaternion avSitOrientation = part.GetSitTargetOrientation();
+                Vector3 avSitOffSet = part.SitTargetPosition;
+                Quaternion avSitOrientation = part.SitTargetOrientation;
                 LLUUID avOnTargetAlready = part.GetAvatarOnSitTarget();
 
                 bool SitTargetUnOccupied = (!(avOnTargetAlready != LLUUID.Zero));
@@ -1222,8 +1222,8 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     if (part.GetAvatarOnSitTarget() == UUID)
                     {
-                        Vector3 sitTargetPos = part.GetSitTargetPosition();
-                        Quaternion sitTargetOrient = part.GetSitTargetOrientation();
+                        Vector3 sitTargetPos = part.SitTargetPosition;
+                        Quaternion sitTargetOrient = part.SitTargetOrientation;
 
                         //Quaternion vq = new Quaternion(sitTargetPos.x, sitTargetPos.y+0.2f, sitTargetPos.z+0.2f, 0);
                         //Quaternion nq = new Quaternion(sitTargetOrient.w, -sitTargetOrient.x, -sitTargetOrient.y, -sitTargetOrient.z);

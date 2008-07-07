@@ -992,18 +992,19 @@ namespace OpenSim.Data.SQLite
 
             try
             {
-                prim.SetSitTargetLL(new LLVector3(
-                                        Convert.ToSingle(row["SitTargetOffsetX"]),
-                                        Convert.ToSingle(row["SitTargetOffsetY"]),
-                                        Convert.ToSingle(row["SitTargetOffsetZ"])), new LLQuaternion(
-                                                                                        Convert.ToSingle(
-                                                                                            row["SitTargetOrientX"]),
-                                                                                        Convert.ToSingle(
-                                                                                            row["SitTargetOrientY"]),
-                                                                                        Convert.ToSingle(
-                                                                                            row["SitTargetOrientZ"]),
-                                                                                        Convert.ToSingle(
-                                                                                            row["SitTargetOrientW"])));
+                prim.SitTargetPositionLL = new LLVector3(
+                                                         Convert.ToSingle(row["SitTargetOffsetX"]),
+                                                         Convert.ToSingle(row["SitTargetOffsetY"]),
+                                                         Convert.ToSingle(row["SitTargetOffsetZ"]));
+                prim.SitTargetOrientationLL = new LLQuaternion(
+                                                               Convert.ToSingle(
+                                                                                row["SitTargetOrientX"]),
+                                                               Convert.ToSingle(
+                                                                                row["SitTargetOrientY"]),
+                                                               Convert.ToSingle(
+                                                                                row["SitTargetOrientZ"]),
+                                                               Convert.ToSingle(
+                                                                                row["SitTargetOrientW"]));
             }
             catch (InvalidCastException)
             {
@@ -1334,12 +1335,12 @@ namespace OpenSim.Data.SQLite
             row["RotationW"] = prim.RotationOffset.W;
 
             // Sit target
-            LLVector3 sitTargetPos = prim.GetSitTargetPositionLL();
+            LLVector3 sitTargetPos = prim.SitTargetPositionLL;
             row["SitTargetOffsetX"] = sitTargetPos.X;
             row["SitTargetOffsetY"] = sitTargetPos.Y;
             row["SitTargetOffsetZ"] = sitTargetPos.Z;
 
-            LLQuaternion sitTargetOrient = prim.GetSitTargetOrientationLL();
+            LLQuaternion sitTargetOrient = prim.SitTargetOrientationLL;
             row["SitTargetOrientW"] = sitTargetOrient.W;
             row["SitTargetOrientX"] = sitTargetOrient.X;
             row["SitTargetOrientY"] = sitTargetOrient.Y;
