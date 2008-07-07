@@ -85,7 +85,8 @@ namespace OpenSim.Region.Environment.Modules.World.Serialiser
         /// </summary>
         /// <param name="scene"></param>
         /// <param name="xmlString"></param>
-        void LoadGroupFromXml2(Scene scene, string xmlString);
+        /// <returns>The scene object created</returns>
+        SceneObjectGroup LoadGroupFromXml2(Scene scene, string xmlString);
 
         /// <summary>
         /// Serialize an individual scene object into the xml2 format

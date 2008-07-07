@@ -348,7 +348,7 @@ namespace OpenSim.Framework.Communications.Cache
         /// <param name="asset"></param>
         public void AddAsset(AssetBase asset)
         {
-            if (asset.Type == 0)
+            if (asset.Type == (int)AssetType.Texture)
             {
                 if (!Textures.ContainsKey(asset.FullID))
                 {
@@ -365,9 +365,9 @@ namespace OpenSim.Framework.Communications.Cache
                 }
             }
             else
-            {
+            {                
                 if (!Assets.ContainsKey(asset.FullID))
-                {
+                {                    
                     AssetInfo assetInf = new AssetInfo(asset);
                     Assets.Add(assetInf.FullID, assetInf);
 

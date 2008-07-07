@@ -100,10 +100,18 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             m_log.InfoFormat("[ARCHIVER]: Loading {0} scene objects", serialisedSceneObjects.Count);
 
             IRegionSerialiser serialiser = m_scene.RequestModuleInterface<IRegionSerialiser>();
+            ICollection<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
 
             foreach (string serialisedSceneObject in serialisedSceneObjects)
             {                
-                serialiser.LoadGroupFromXml2(m_scene, serialisedSceneObject);
+                sceneObjects.Add(serialiser.LoadGroupFromXml2(m_scene, serialisedSceneObject));
+            }
+            
+            m_log.Debug("[ARCHIVER]: Starting scripts");
+            
+            foreach (SceneObjectGroup sceneObject in sceneObjects)
+            {
+                sceneObject.CreateScriptInstances(0, true);
             }
             
             m_log.InfoFormat("[ARCHIVER]: Successfully loaded archive");
@@ -126,7 +134,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             {
                 sbyte assetType = ArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension];
     
-                m_log.DebugFormat("[ARCHIVER]: Importing asset {0}", filename);
+                m_log.DebugFormat("[ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
     
                 AssetBase asset = new AssetBase(new LLUUID(uuid), String.Empty);
                 asset.Type = assetType;

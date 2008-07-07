@@ -494,7 +494,7 @@ namespace OpenSim
 
             if (string.IsNullOrEmpty(m_scriptEngine))
             {
-                m_log.Info("[MODULES]: No script engien module specified");
+                m_log.Info("[MODULES]: No script engine module specified");
             }
             else
             {

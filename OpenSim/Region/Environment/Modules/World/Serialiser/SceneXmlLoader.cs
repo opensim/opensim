@@ -104,7 +104,7 @@ namespace OpenSim.Region.Environment.Scenes
             return grp.ToXmlString2();
         }
 
-        public static void LoadGroupFromXml2(Scene scene, string xmlString)
+        public static SceneObjectGroup LoadGroupFromXml2(Scene scene, string xmlString)
         {
             XmlDocument doc = new XmlDocument();
             XmlNode rootNode;
@@ -126,11 +126,14 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     CreatePrimFromXml2(scene, aPrimNode.OuterXml);
                 }
+                
+                // There is only ever one prim, but it's easiest to return null here since this part should disappear post 0.5.9 anyway
+                return null;
             }
             else
             {
-                CreatePrimFromXml2(scene, rootNode.OuterXml);
-            }
+                return CreatePrimFromXml2(scene, rootNode.OuterXml);
+            }            
         }
 
         /// <summary>
@@ -177,11 +180,14 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="scene"></param>
         /// <param name="xmlData"></param>
-        protected static void CreatePrimFromXml2(Scene scene, string xmlData)
+        /// <returns>The scene object created</returns>
+        protected static SceneObjectGroup CreatePrimFromXml2(Scene scene, string xmlData)
         {
             SceneObjectGroup obj = new SceneObjectGroup(xmlData);
 
             scene.AddRestoredSceneObject(obj, true);
+            
+            return obj;
         }
 
         public static void SavePrimsToXml2(Scene scene, string fileName)
