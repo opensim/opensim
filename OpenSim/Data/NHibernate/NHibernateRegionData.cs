@@ -119,7 +119,7 @@ namespace OpenSim.Data.NHibernate
         /// <param name="regionUUID">the region UUID</param>
         public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
-
+            NHPrim[] prims = (NHPrim[]) obj.GetParts();
         }
 
         /// <summary>
