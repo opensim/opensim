@@ -996,34 +996,6 @@
       </Files>
     </Project>
 
-    <Project name="OpenSim.DataStore.MSSQL" path="OpenSim/Region/Storage/OpenSim.DataStore.MSSQL" type="Library">
-      <Configuration name="Debug">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-      <Configuration name="Release">
-        <Options>
-          <OutputPath>../../../../bin/</OutputPath>
-        </Options>
-      </Configuration>
-
-      <ReferencePath>../../../../bin/</ReferencePath>
-      <Reference name="System" localCopy="false"/>
-      <Reference name="System.Xml"/>
-      <Reference name="System.Data"/>
-      <Reference name="libsecondlife.dll"/>
-      <Reference name="OpenSim.Framework"/>
-      <Reference name="OpenSim.Data"/>
-      <Reference name="OpenSim.Region.Environment"/>
-      <Reference name="OpenSim.Framework.Console"/>
-      <Reference name="log4net.dll"/>
-
-      <Files>
-        <Match pattern="*.cs" recurse="true"/>
-      </Files>
-    </Project>
-
     <!-- OpenSim app -->
     <Project name="OpenSim" path="OpenSim/Region/Application" type="Exe">
       <Configuration name="Debug">
