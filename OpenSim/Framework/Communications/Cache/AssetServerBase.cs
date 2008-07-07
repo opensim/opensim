@@ -44,12 +44,11 @@ namespace OpenSim.Framework.Communications.Cache
         protected BlockingQueue<AssetRequest> m_assetRequests;
         protected Thread m_localAssetServerThread;
         protected IAssetProvider m_assetProvider;
-        protected object m_syncLock = new object();
 
         // Temporarily hardcoded - should be a plugin
         protected IAssetLoader assetLoader = new AssetLoaderFileSystem();
 
-        protected abstract void StoreAsset(AssetBase asset);
+        public abstract void StoreAsset(AssetBase asset);
 
         /// <summary>
         /// This method must be implemented by a subclass to retrieve the asset named in the
@@ -161,18 +160,7 @@ namespace OpenSim.Framework.Communications.Cache
 
         public virtual void UpdateAsset(AssetBase asset)
         {
-            lock (m_syncLock)
-            {
-                m_assetProvider.UpdateAsset(asset);
-            }
-        }
-
-        public void StoreAndCommitAsset(AssetBase asset)
-        {
-            lock (m_syncLock)
-            {
-                StoreAsset(asset);
-            }
+            m_assetProvider.UpdateAsset(asset);
         }
 
         public virtual void Close()

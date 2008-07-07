@@ -78,16 +78,10 @@ namespace OpenSim.Framework.Communications.Cache
 
         protected override AssetBase GetAsset(AssetRequest req)
         {
-            AssetBase asset;
-            lock (m_syncLock)
-            {
-                asset = m_assetProvider.FetchAsset(req.AssetID);
-            }
-
-            return asset;
+            return m_assetProvider.FetchAsset(req.AssetID);;
         }
 
-        protected override void StoreAsset(AssetBase asset)
+        public override void StoreAsset(AssetBase asset)
         {
             m_assetProvider.CreateAsset(asset);
         }

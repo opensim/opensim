@@ -360,7 +360,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                     if (!asset.Temporary)
                     {
-                        m_assetServer.StoreAndCommitAsset(asset);
+                        m_assetServer.StoreAsset(asset);
                     }
                 }
             }
@@ -376,7 +376,7 @@ namespace OpenSim.Framework.Communications.Cache
 
                     if (!asset.Temporary)
                     {
-                        m_assetServer.StoreAndCommitAsset(asset);
+                        m_assetServer.StoreAsset(asset);
                     }
                 }
             }

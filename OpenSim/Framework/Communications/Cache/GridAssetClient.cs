@@ -78,7 +78,7 @@ namespace OpenSim.Framework.Communications.Cache
             throw new Exception("The method or operation is not implemented.");
         }
 
-        protected override void StoreAsset(AssetBase asset)
+        public override void StoreAsset(AssetBase asset)
         {
             try
             {
