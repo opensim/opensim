@@ -82,7 +82,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             archive.AddFile(ArchiveConstants.CONTROL_FILE_PATH, CreateControlFile());
             
             // Write out terrain
-            string terrainPath = String.Format("{0}{1}.png", ArchiveConstants.TERRAINS_PATH, m_sceneName);
+            string terrainPath = String.Format("{0}{1}.r32", ArchiveConstants.TERRAINS_PATH, m_sceneName);
             MemoryStream ms = new MemoryStream();            
             m_terrainModule.SaveToStream(terrainPath, ms);
             archive.AddFile(terrainPath, ms.ToArray());           
