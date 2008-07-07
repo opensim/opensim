@@ -1,4 +1,3 @@
-^tailor.state$
 ^tailor.state.old$
 ^tailor.state.journal$
 \.csproj$
@@ -6,12 +5,14 @@
 \.mdp$
 \.mds$
 \.dll\.build$
-/bin/Debug/.+\.dll$
-/bin/Debug/.+\.dll.mdb$
-^bin/.+\.dll$
+^bin/Debug/.+\.dll$
+bin/.+\.dll.mdb$
+bin/addin-db-
+bin/.+\.dll$
+bin/.+\.maddin$
+Examples/.+\.dll$
 ^bin/.+\.exe
 ^(OpenSim|Prebuild)/.+\.(exe|exe\.build|exe\.mdb)$
 ^OpenSim\.(build|sln)$
 ^Prebuild/Prebuild\.(build|sln)$
 .+~$
-

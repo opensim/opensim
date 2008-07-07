@@ -38,12 +38,14 @@ namespace OpenSim.Framework.Servers
     /// </summary>
     public class OSHttpRequestQueue : Queue<OSHttpRequest>
     {
+        private object _syncObject = new object();
+
         new public void Enqueue(OSHttpRequest req) 
         {
-            lock (this)
+            lock (_syncObject)
             {
                 base.Enqueue(req);
-                Monitor.Pulse(this);
+                Monitor.Pulse(_syncObject);
             }
         }
         
@@ -51,11 +53,11 @@ namespace OpenSim.Framework.Servers
         {
             OSHttpRequest req = null;
 
-            lock (this)
+            lock (_syncObject)
             {
                 while (null == req)
                 {
-                    Monitor.Wait(this);
+                    Monitor.Wait(_syncObject);
                     if (0 != this.Count) req = base.Dequeue();
                 }
             }
