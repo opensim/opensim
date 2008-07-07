@@ -435,12 +435,6 @@ namespace OpenSim.Region.Physics.Meshing
             // Int16 twistTop = primShape.PathTwistBegin;
             // Int16 twistBot = primShape.PathTwist;
 
-            // tweak problem cut angles
-            if (profileBegin > 23 && profileBegin % 50 == 0) profileBegin -= 23;
-            if (profileEnd > 23 && profileEnd % 50 == 0) profileEnd += 23;
-
-
-
 #if SPAM
             reportPrimParams("[BOX] " + primName, primShape);
 #endif
@@ -487,6 +481,10 @@ namespace OpenSim.Region.Physics.Meshing
                     fProfileBeginAngle += 5.0f;
                 if ((fProfileEndAngle + 45.0f) % 90.0f == 0.0f)
                     fProfileEndAngle -= 5.0f;
+                if (fProfileBeginAngle % 90.0f == 0.0f)
+                    fProfileBeginAngle += 1.0f;
+                if (fProfileEndAngle % 90.0f == 0.0f)
+                    fProfileEndAngle -= 1.0f;
 
                 if (fProfileBeginAngle < fProfileEndAngle)
                     fProfileEndAngle -= 360.0;
