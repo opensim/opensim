@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Net;
 using System.IO;
@@ -43,12 +44,12 @@ namespace OpenSim.Framework.Servers
         private Encoding _contentEncoding;
         private long _contentLength64;
         private string _contentType;
-        private CookieCollection _cookies;
+        // private CookieCollection _cookies;
         private NameValueCollection _headers;
         private string _httpMethod;
         private Stream _inputStream;
-        private bool _isSecureConnection;
-        private bool _isAuthenticated;
+        // private bool _isSecureConnection;
+        // private bool _isAuthenticated;
         private bool _keepAlive;
         private bool _hasbody;
         private string _rawUrl;
@@ -76,7 +77,7 @@ namespace OpenSim.Framework.Servers
 
         public long ContentLength64
         {
-            get { return _contentLength64; }
+            get { return ContentLength; }
         }
 
         public string ContentType
@@ -84,10 +85,11 @@ namespace OpenSim.Framework.Servers
             get { return _contentType; }
         }
 
-        public CookieCollection Cookies
-        {
-            get { return _cookies; }
-        }
+
+        // public CookieCollection Cookies
+        // {
+        //     get { return _cookies; }
+        // }
 
         public NameValueCollection Headers
         {
@@ -104,15 +106,15 @@ namespace OpenSim.Framework.Servers
             get { return _inputStream; }
         }
 
-        public bool IsSecureConnection
-        {
-            get { return _isSecureConnection; }
-        }
+        // public bool IsSecureConnection
+        // {
+        //     get { return _isSecureConnection; }
+        // }
 
-        public bool IsAuthenticated
-        {
-            get { return _isAuthenticated; }
-        }
+        // public bool IsAuthenticated
+        // {
+        //     get { return _isAuthenticated; }
+        // }
 
         public bool HasEntityBody
         {
@@ -159,13 +161,13 @@ namespace OpenSim.Framework.Servers
             _contentEncoding = req.ContentEncoding;
             _contentLength64 = req.ContentLength64;
             _contentType = req.ContentType;
-            _cookies = req.Cookies;
+            // _cookies = req.Cookies;
             _headers = req.Headers;
             _httpMethod = req.HttpMethod;
             _hasbody = req.HasEntityBody;
             _inputStream = req.InputStream;
-            _isSecureConnection = req.IsSecureConnection;
-            _isAuthenticated = req.IsAuthenticated;
+            // _isSecureConnection = req.IsSecureConnection;
+            // _isAuthenticated = req.IsAuthenticated;
             _keepAlive = req.KeepAlive;
             _rawUrl = req.RawUrl;
             _url = req.Url;
@@ -177,6 +179,30 @@ namespace OpenSim.Framework.Servers
         {
             // _context = context;
             _request = req;
+
+            _acceptTypes = req.AcceptTypes;
+            if (null != req.Headers["content-encoding"])
+                _contentEncoding = Encoding.GetEncoding(_request.Headers["content-encoding"]);
+            _contentLength64 = req.ContentLength;
+            if (null != req.Headers["content-type"])
+                _contentType = _request.Headers["content-type"];
+            // _cookies = req.Cookies;
+            _headers = req.Headers;
+            _httpMethod = req.Method;
+            _hasbody = req.ContentLength != 0;
+            _inputStream = req.Body;
+            // _isSecureConnection = req.IsSecureConnection;
+            // _isAuthenticated = req.IsAuthenticated;
+            _keepAlive = ConnectionType.KeepAlive == req.Connection;
+            _rawUrl = req.Uri.AbsolutePath;
+            _url = req.Uri;
+            if (null != req.Headers["user-agent"])
+                _userAgent = req.Headers["user-agent"];
+            _queryString = new NameValueCollection();
+            foreach (KeyValuePair<string, HttpInputItem> q in req.QueryString)
+            {
+                _queryString.Add(q.Key, q.Value.Value);
+            }
         }
     }
 }

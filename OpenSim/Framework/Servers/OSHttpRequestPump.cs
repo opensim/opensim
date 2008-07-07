@@ -133,9 +133,8 @@ namespace OpenSim.Framework.Servers
                             throw new Exception(String.Format("[{0}] got unexpected OSHttpHandlerResult {1}", EngineID, rc));
                         }
                             
-                        // Handled: clean up
-                        // response.KeepAlive   = false;
-                        // response.SendChunked = false;
+                        // Handled: clean up now
+                        req.HttpRequest.AddHeader("keep-alive", "false");
 
                         break;
                     }

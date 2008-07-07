@@ -73,7 +73,7 @@ namespace OpenSim.Framework.Servers
         }
 
         public WebHeaderCollection Headers;
-        public CookieCollection Cookies;
+        // public CookieCollection Cookies;
 
         private bool _keepAlive;
         public bool KeepAlive
@@ -144,7 +144,7 @@ namespace OpenSim.Framework.Servers
             ContentLength64 = resp.ContentLength64;
             _contentType = resp.ContentType;
             Headers = resp.Headers;
-            Cookies = resp.Cookies;
+            // Cookies = resp.Cookies;
             KeepAlive = resp.KeepAlive;
             OutputStream = resp.OutputStream;
             RedirectLocation = resp.RedirectLocation;

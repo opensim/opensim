@@ -50,6 +50,8 @@ namespace OpenSim.Framework.Servers
     {
         private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private object _syncObject = new object();
+
         // underlying HttpServer.HttpListener
         protected HttpListener _listener;
         // underlying core/engine thread
@@ -157,16 +159,28 @@ namespace OpenSim.Framework.Servers
                 _pumps[i].Start();
         }
 
+        public void Stop()
+        {
+            lock (_syncObject) Monitor.Pulse(_syncObject);
+        }
+
         /// <summary>
         /// Engine keeps the HTTP server running.
         /// </summary>
         private void Engine()
         {
-            while (true)
-            {
+            try {
                 _listener.RequestHandler += OnHttpRequest;
                 _listener.Start(QueueSize);
+                _log.InfoFormat("[{0}] HTTP server started", EngineID);
+                
+                lock (_syncObject) Monitor.Wait(_syncObject);
             }
+            catch (Exception)
+            {
+            }
+
+            _log.InfoFormat("[{0}] HTTP server terminated", EngineID);
         }
 
 
