@@ -96,7 +96,7 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("default_Y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Known good region Y", "1000", false);
             configMember.addConfigurationOption("enable_llsd_login", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
-                                                "Enable LLSD login support? true/false", true.ToString(), false);
+                                                "Enable LLSD login support [Currently used by libsl based clients/bots]? true/false", true.ToString(), false);
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
