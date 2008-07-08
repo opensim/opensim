@@ -179,6 +179,8 @@ namespace OpenSim.Region.Environment.Scenes
                        }
                        else
                        {
+                              m_taskInventory[item.ItemID].PermsMask = 0;
+                              m_taskInventory[item.ItemID].PermsGranter = LLUUID.Zero;
                            string script = Helpers.FieldToUTF8String(asset.Data);
                            m_parentGroup.Scene.EventManager.TriggerRezScript(LocalId,item.ItemID,script, startParam, postOnRez);
                            m_parentGroup.AddActiveScriptCount(1);
