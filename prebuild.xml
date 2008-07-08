@@ -1603,6 +1603,7 @@
       <ReferencePath>../../../../../../../bin/</ReferencePath>
       <Reference name="OpenSim.Region.ScriptEngine.Shared.CodeTools"/>
       <Reference name="nunit.framework.dll" />
+      <Reference name="Tools.dll" />
       <Files>
         <Match pattern="*.cs" recurse="false"/>
       </Files>
