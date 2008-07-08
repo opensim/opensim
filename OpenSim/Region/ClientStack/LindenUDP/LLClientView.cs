@@ -42,12 +42,12 @@ using OpenSim.Framework.Communications.Cache;
 using OpenSim.Framework.Statistics;
 using OpenSim.Region.ClientStack.LindenUDP;
 using OpenSim.Region.Environment.Scenes;
-using Timer=System.Timers.Timer;
+using Timer = System.Timers.Timer;
 
 namespace OpenSim.Region.ClientStack.LindenUDP
 {
     public delegate bool PacketMethod(IClientAPI simClient, Packet packet);
-    
+
 
     /// <summary>
     /// Class that keeps track of past packets so that they don't get 
@@ -727,7 +727,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_log.WarnFormat(
                         "[CLIENT]: New user request denied to avatar {0} connecting with circuit code {1} from {2}",
                         m_agentId, m_circuitCode, m_userEndPoint);
-                    
+
                     m_packetQueue.Close();
                     m_clientThread.Abort();
                 }
@@ -742,7 +742,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     {
                         m_secureSessionId = sessionInfo.LoginInfo.SecureSession;
                     }
-                    
+
                     // This sets up all the timers
                     InitNewClient();
 
@@ -753,24 +753,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             {
                 if (e is ThreadAbortException)
                     throw e;
-                
+
                 if (StatsManager.SimExtraStats != null)
                     StatsManager.SimExtraStats.AddAbnormalClientThreadTermination();
-                
+
                 // Don't let a failure in an individual client thread crash the whole sim.
                 m_log.ErrorFormat("[CLIENT]: Client thread for {0} {1} crashed.  Logging them out.  Exception {2}", Name, AgentId, e);
 
                 try
                 {
                     // Make an attempt to alert the user that their session has crashed
-                    AgentAlertMessagePacket packet 
+                    AgentAlertMessagePacket packet
                         = BuildAgentAlertPacket(
                             "Unfortunately the session for this client on the server has crashed.\n"
                                 + "Any further actions taken will not be processed.\n"
-                                + "Please relog", true); 
-                    
+                                + "Please relog", true);
+
                     ProcessOutPacket(packet);
-                    
+
                     // There may be a better way to do this.  Perhaps kick?  Not sure this propogates notifications to
                     // listeners yet, though.
                     Logout(this);
@@ -779,7 +779,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 {
                     if (e2 is ThreadAbortException)
                         throw e2;
-                    
+
                     m_log.ErrorFormat("[CLIENT]: Further exception thrown on forced session logout.  {0}", e2);
                 }
             }
@@ -1108,7 +1108,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         private void DoSendLayerData(object o)
         {
             float[] map = (float[])o;
-            
+
             try
             {
                 for (int y = 0; y < 16; y++)
@@ -1120,10 +1120,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     //    SendLayerPacket(map, y, x);
                     //    Thread.Sleep(150);
                     //}
-                    for (int x= 0; x < 16; x++)
+                    for (int x = 0; x < 16; x++)
                     {
-                         SendLayerData(x, y, map);
-                         Thread.Sleep(35);
+                        SendLayerData(x, y, map);
+                        Thread.Sleep(35);
                     }
                 }
             }
@@ -1278,15 +1278,15 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendMapBlock(List<MapBlockData> mapBlocks, uint flag)
         {
-           
+
             MapBlockData[] mapBlocks2 = mapBlocks.ToArray();
-            
+
             int maxsend = 10;
-            
+
             //int packets = Math.Ceiling(mapBlocks2.Length / maxsend);
 
             List<MapBlockData> sendingBlocks = new List<MapBlockData>();
-            
+
             for (int i = 0; i < mapBlocks2.Length; i++)
             {
                 sendingBlocks.Add(mapBlocks2[i]);
@@ -1389,14 +1389,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             payPriceReply.ObjectData.ObjectID = objectID;
             payPriceReply.ObjectData.DefaultPayPrice = payPrice[0];
 
-            payPriceReply.ButtonData=new PayPriceReplyPacket.ButtonDataBlock[4];
-            payPriceReply.ButtonData[0]=new PayPriceReplyPacket.ButtonDataBlock();
+            payPriceReply.ButtonData = new PayPriceReplyPacket.ButtonDataBlock[4];
+            payPriceReply.ButtonData[0] = new PayPriceReplyPacket.ButtonDataBlock();
             payPriceReply.ButtonData[0].PayButton = payPrice[1];
-            payPriceReply.ButtonData[1]=new PayPriceReplyPacket.ButtonDataBlock();
+            payPriceReply.ButtonData[1] = new PayPriceReplyPacket.ButtonDataBlock();
             payPriceReply.ButtonData[1].PayButton = payPrice[2];
-            payPriceReply.ButtonData[2]=new PayPriceReplyPacket.ButtonDataBlock();
+            payPriceReply.ButtonData[2] = new PayPriceReplyPacket.ButtonDataBlock();
             payPriceReply.ButtonData[2].PayButton = payPrice[3];
-            payPriceReply.ButtonData[3]=new PayPriceReplyPacket.ButtonDataBlock();
+            payPriceReply.ButtonData[3] = new PayPriceReplyPacket.ButtonDataBlock();
             payPriceReply.ButtonData[3].PayButton = payPrice[4];
 
             OutPacket(payPriceReply, ThrottleOutPacketType.Task);
@@ -1448,8 +1448,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // 6 to 7 items at a time, so let's stick with 6
             int MAX_ITEMS_PER_PACKET = 6;
 
-//Ckrinke This variable is not used, so comment out to remove the warning from the compiler (3-21-08)
-//Ckrinke            uint FULL_MASK_PERMISSIONS = 2147483647;
+            //Ckrinke This variable is not used, so comment out to remove the warning from the compiler (3-21-08)
+            //Ckrinke            uint FULL_MASK_PERMISSIONS = 2147483647;
 
             if (fetchItems)
             {
@@ -1576,7 +1576,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     descend.FolderData[i].FolderID = folder.ID;
                     descend.FolderData[i].Name = Helpers.StringToField(folder.Name);
                     descend.FolderData[i].ParentID = folder.ParentID;
-                    descend.FolderData[i].Type = (sbyte) folder.Type;
+                    descend.FolderData[i].Type = (sbyte)folder.Type;
 
                     i++;
                     count++;
@@ -1902,7 +1902,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             OutPacket(BuildAgentAlertPacket(message, modal), ThrottleOutPacketType.Task);
         }
-        
+
         /// <summary>
         /// Construct an agent alert packet
         /// </summary>
@@ -1915,7 +1915,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             alertPack.AgentData.AgentID = AgentId;
             alertPack.AlertData.Message = Helpers.StringToField(message);
             alertPack.AlertData.Modal = modal;
-            
+
             return alertPack;
         }
 
@@ -2003,13 +2003,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public void SendSunPos(LLVector3 Position, LLVector3 Velocity, ulong CurrentTime, uint SecondsPerSunCycle, uint SecondsPerYear, float OrbitalPosition)
         {
             SimulatorViewerTimeMessagePacket viewertime = (SimulatorViewerTimeMessagePacket)PacketPool.Instance.GetPacket(PacketType.SimulatorViewerTimeMessage);
-            viewertime.TimeInfo.SunDirection   = Position;
+            viewertime.TimeInfo.SunDirection = Position;
             viewertime.TimeInfo.SunAngVelocity = Velocity;
             viewertime.TimeInfo.UsecSinceStart = CurrentTime;
-            viewertime.TimeInfo.SecPerDay      = SecondsPerSunCycle;
-            viewertime.TimeInfo.SecPerYear     = SecondsPerYear;
-            viewertime.TimeInfo.SunPhase       = OrbitalPosition;
-            viewertime.Header.Reliable         = false;
+            viewertime.TimeInfo.SecPerDay = SecondsPerSunCycle;
+            viewertime.TimeInfo.SecPerYear = SecondsPerYear;
+            viewertime.TimeInfo.SunPhase = OrbitalPosition;
+            viewertime.Header.Reliable = false;
             viewertime.Header.Zerocoded = true;
             OutPacket(viewertime, ThrottleOutPacketType.Task);
         }
@@ -2296,7 +2296,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             SendPrimitiveToClient(regionHandle, timeDilation, localID, primShape, pos, vel,
                                   acc, rotation, rvel, flags,
                                   objectID, ownerID, text, color, parentID, particleSystem,
-                                  clickAction, textureanim, false,(uint)0, LLUUID.Zero, LLUUID.Zero,0,0,0);
+                                  clickAction, textureanim, false, (uint)0, LLUUID.Zero, LLUUID.Zero, 0, 0, 0);
         }
 
         public void SendPrimitiveToClient(
@@ -2485,13 +2485,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendSimStats(Packet pack)
         {
-           pack.Header.Reliable = false;
-           OutPacket(pack, ThrottleOutPacketType.Task);
+            pack.Header.Reliable = false;
+            OutPacket(pack, ThrottleOutPacketType.Task);
         }
 
         public void SendObjectPropertiesFamilyData(uint RequestFlags, LLUUID ObjectUUID, LLUUID OwnerID, LLUUID GroupID,
                                                     uint BaseMask, uint OwnerMask, uint GroupMask, uint EveryoneMask,
-                                                    uint NextOwnerMask, int OwnershipCost, byte SaleType,int SalePrice, uint Category,
+                                                    uint NextOwnerMask, int OwnershipCost, byte SaleType, int SalePrice, uint Category,
                                                     LLUUID LastOwnerID, string ObjectName, string Description)
         {
             ObjectPropertiesFamilyPacket objPropFamilyPack = (ObjectPropertiesFamilyPacket)PacketPool.Instance.GetPacket(PacketType.ObjectPropertiesFamily);
@@ -2621,7 +2621,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     continue;
                 BannedUsers[i] = bl[i].bannedUUID;
             }
-            
+
             EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();
             packet.AgentData.TransactionID = LLUUID.Random();
             packet.AgentData.AgentID = this.AgentId;
@@ -2659,10 +2659,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             RegionInfoPacket.RegionInfoBlock rinfoblk = new RegionInfoPacket.RegionInfoBlock();
             rinfopack.AgentData.AgentID = this.AgentId;
             rinfopack.AgentData.SessionID = this.SessionId;
-            rinfoblk.BillableFactor =args.billableFactor;
+            rinfoblk.BillableFactor = args.billableFactor;
             rinfoblk.EstateID = args.estateID;
             rinfoblk.MaxAgents = args.maxAgents;
-            rinfoblk.ObjectBonusFactor =args.objectBonusFactor;
+            rinfoblk.ObjectBonusFactor = args.objectBonusFactor;
             rinfoblk.ParentEstateID = args.parentEstateID;
             rinfoblk.PricePerMeter = args.pricePerMeter;
             rinfoblk.RedirectGridX = args.redirectGridX;
@@ -2741,9 +2741,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             this.OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
-        public void sendLandProperties(IClientAPI remote_client,int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
+        public void sendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
         {
-            ParcelPropertiesPacket updatePacket = (ParcelPropertiesPacket) PacketPool.Instance.GetPacket(PacketType.ParcelProperties);
+            ParcelPropertiesPacket updatePacket = (ParcelPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ParcelProperties);
             // TODO: don't create new blocks if recycling an old packet
 
             updatePacket.ParcelData.AABBMax = landData.AABBMax;
@@ -2755,13 +2755,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updatePacket.ParcelData.Bitmap = landData.landBitmapByteArray;
 
             updatePacket.ParcelData.Desc = Helpers.StringToField(landData.landDesc);
-            updatePacket.ParcelData.Category = (byte) landData.category;
+            updatePacket.ParcelData.Category = (byte)landData.category;
             updatePacket.ParcelData.ClaimDate = landData.claimDate;
             updatePacket.ParcelData.ClaimPrice = landData.claimPrice;
             updatePacket.ParcelData.GroupID = landData.groupID;
             updatePacket.ParcelData.GroupPrims = landData.groupPrims;
             updatePacket.ParcelData.IsGroupOwned = landData.isGroupOwned;
-            updatePacket.ParcelData.LandingType = (byte) landData.landingType;
+            updatePacket.ParcelData.LandingType = (byte)landData.landingType;
             updatePacket.ParcelData.LocalID = landData.localID;
             if (landData.area > 0)
             {
@@ -2787,13 +2787,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updatePacket.ParcelData.PassPrice = landData.passPrice;
             updatePacket.ParcelData.PublicCount = 0; //unemplemented
 
-            updatePacket.ParcelData.RegionDenyAnonymous = ((regionFlags & (uint) Simulator.RegionFlags.DenyAnonymous) >
+            updatePacket.ParcelData.RegionDenyAnonymous = ((regionFlags & (uint)Simulator.RegionFlags.DenyAnonymous) >
                                                            0);
-            updatePacket.ParcelData.RegionDenyIdentified = ((regionFlags & (uint) Simulator.RegionFlags.DenyIdentified) >
+            updatePacket.ParcelData.RegionDenyIdentified = ((regionFlags & (uint)Simulator.RegionFlags.DenyIdentified) >
                                                             0);
-            updatePacket.ParcelData.RegionDenyTransacted = ((regionFlags & (uint) Simulator.RegionFlags.DenyTransacted) >
+            updatePacket.ParcelData.RegionDenyTransacted = ((regionFlags & (uint)Simulator.RegionFlags.DenyTransacted) >
                                                             0);
-            updatePacket.ParcelData.RegionPushOverride = ((regionFlags & (uint) Simulator.RegionFlags.RestrictPushObject) >
+            updatePacket.ParcelData.RegionPushOverride = ((regionFlags & (uint)Simulator.RegionFlags.RestrictPushObject) >
                                                           0);
 
             updatePacket.ParcelData.RentPrice = 0;
@@ -2813,13 +2813,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             updatePacket.ParcelData.SimWideTotalPrims = landData.simwidePrims;
             updatePacket.ParcelData.SnapSelection = snap_selection;
             updatePacket.ParcelData.SnapshotID = landData.snapshotID;
-            updatePacket.ParcelData.Status = (byte) landData.landStatus;
+            updatePacket.ParcelData.Status = (byte)landData.landStatus;
             updatePacket.ParcelData.TotalPrims = landData.ownerPrims + landData.groupPrims + landData.otherPrims +
                                                  landData.selectedPrims;
             updatePacket.ParcelData.UserLocation = landData.userLocation;
             updatePacket.ParcelData.UserLookAt = landData.userLookAt;
             updatePacket.Header.Zerocoded = true;
-            remote_client.OutPacket((Packet) updatePacket, ThrottleOutPacketType.Task);
+            remote_client.OutPacket((Packet)updatePacket, ThrottleOutPacketType.Task);
         }
 
         public void sendLandAccessListData(List<LLUUID> avatars, uint accessFlag, int localLandID)
@@ -3330,14 +3330,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private bool HandleUUIDGroupNameRequest(IClientAPI sender, Packet Pack)
         {
-            UUIDGroupNameRequestPacket upack = (UUIDGroupNameRequestPacket) Pack;
+            UUIDGroupNameRequestPacket upack = (UUIDGroupNameRequestPacket)Pack;
 
-            for (int i=0;i< upack.UUIDNameBlock.Length; i++)
+            for (int i = 0; i < upack.UUIDNameBlock.Length; i++)
             {
                 handlerUUIDGroupNameRequest = OnUUIDGroupNameRequest;
                 if (handlerUUIDGroupNameRequest != null)
                 {
-                    handlerUUIDGroupNameRequest(upack.UUIDNameBlock[i].ID,this);
+                    handlerUUIDGroupNameRequest(upack.UUIDNameBlock[i].ID, this);
                 }
             }
 
@@ -3421,7 +3421,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             return Logout(client);
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -3754,7 +3754,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         m_needAck.Add(Pack.Header.Sequence, Pack);
                         m_unAckedBytes += Pack.ToBytes().Length;
                     }
-                        //BUG: severity=major - This looks like a framework bug!?
+                    //BUG: severity=major - This looks like a framework bug!?
                     catch (Exception) // HACKY
                     {
                         // Ignore
@@ -3777,7 +3777,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <param name="Pack"></param>
         protected virtual void SetPendingAcks(ref Packet Pack)
         {
-            
+
             lock (m_pendingAcks)
             {
                 // TODO: If we are over MAX_APPENDED_ACKS we should drain off some of these
@@ -3919,7 +3919,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
         }
-        
+
         /// <summary>
         /// The dreaded OutPacket.   This should only be called from withink the ClientStack itself right now
         /// This is the entry point for simulator packets to go out to the client.
@@ -4127,9 +4127,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     uint regionX = 0;
                     uint regionY = 0;
                     try
-
                     {
-                        Helpers.LongToUInts(Scene.RegionInfo.RegionHandle,out regionX, out regionY);
+                        Helpers.LongToUInts(Scene.RegionInfo.RegionHandle, out regionX, out regionY);
                         locx = Convert.ToSingle(Helpers.FieldToUTF8String(gmParams[0].Parameter)) - (float)regionX;
                         locy = Convert.ToSingle(Helpers.FieldToUTF8String(gmParams[1].Parameter)) - (float)regionY;
                         locz = Convert.ToSingle(Helpers.FieldToUTF8String(gmParams[2].Parameter));
@@ -4149,7 +4148,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
 
                     break;
-                default: 
+                default:
                     m_log.Debug("[CLIENT]: Unknown Generic Message, Method: " + gmMethod + ". Invoice: " + gmInvoice.ToString() + ".  Dumping Params:");
                     for (int hi = 0; hi < gmParams.Length; hi++)
                     {
@@ -4170,7 +4169,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             // always ack the packet!
             ack_pack(Pack);
-            
+
             // check for duplicate packets..    packets that the client is 
             // resending because it didn't receive our ack
 
@@ -4190,7 +4189,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     m_dupeLimiter.Add(Pack.Header.Sequence, pkdedupe);
                 }
             }
-            
+
             // check if we've got a local packet handler for this packet.type.   See RegisterLocalPacketHandlers()
             if (ProcessPacketMethod(Pack))
             {
@@ -4206,9 +4205,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     case PacketType.GenericMessage:
                         GenericMessagePacket gmpack = (GenericMessagePacket)Pack;
-                        
-                        DecipherGenericMessage(Helpers.FieldToUTF8String(gmpack.MethodData.Method),gmpack.MethodData.Invoice,gmpack.ParamList);
-                        
+
+                        DecipherGenericMessage(Helpers.FieldToUTF8String(gmpack.MethodData.Method), gmpack.MethodData.Invoice, gmpack.ParamList);
+
                         break;
                     case PacketType.AvatarPropertiesRequest:
                         AvatarPropertiesRequestPacket avatarProperties = (AvatarPropertiesRequestPacket)Pack;
@@ -4511,7 +4510,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             handlerObjectDetach = OnObjectDetach;
                             if (handlerObjectDetach != null)
                             {
-                                handlerObjectDetach(obj,this);
+                                handlerObjectDetach(obj, this);
                             }
 
                         }
@@ -4541,18 +4540,18 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                             AgentUpdatePacket.AgentDataBlock x = agenUpdate.AgentData;
                             AgentUpdateArgs arg = new AgentUpdateArgs();
-                                arg.AgentID = x.AgentID;
-                                arg.BodyRotation = x.BodyRotation;
-                                arg.CameraAtAxis = x.CameraAtAxis;
-                                arg.CameraCenter = x.CameraCenter;
-                                arg.CameraLeftAxis = x.CameraLeftAxis;
-                                arg.CameraUpAxis = x.CameraUpAxis;
-                                arg.ControlFlags = x.ControlFlags;
-                                arg.Far = x.Far;
-                                arg.Flags = x.Flags;
-                                arg.HeadRotation = x.HeadRotation;
-                                arg.SessionID = x.SessionID;
-                                arg.State = x.State;
+                            arg.AgentID = x.AgentID;
+                            arg.BodyRotation = x.BodyRotation;
+                            arg.CameraAtAxis = x.CameraAtAxis;
+                            arg.CameraCenter = x.CameraCenter;
+                            arg.CameraLeftAxis = x.CameraLeftAxis;
+                            arg.CameraUpAxis = x.CameraUpAxis;
+                            arg.ControlFlags = x.ControlFlags;
+                            arg.Far = x.Far;
+                            arg.Flags = x.Flags;
+                            arg.HeadRotation = x.HeadRotation;
+                            arg.SessionID = x.SessionID;
+                            arg.State = x.State;
 
                             handlerAgentUpdate = OnAgentUpdate;
                             if (handlerAgentUpdate != null)
@@ -4842,7 +4841,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // DEPRECATED: but till libsecondlife removes it, people will use it
                         ObjectPositionPacket position = (ObjectPositionPacket)Pack;
 
-                        for (int i=0; i<position.ObjectData.Length; i++)
+                        for (int i = 0; i < position.ObjectData.Length; i++)
                         {
                             handlerUpdateVector = OnUpdatePrimGroupPosition;
                             if (handlerUpdateVector != null)
@@ -4854,7 +4853,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // DEPRECATED: but till libsecondlife removes it, people will use it
                         ObjectScalePacket scale = (ObjectScalePacket)Pack;
 
-                        for (int i=0; i<scale.ObjectData.Length; i++)
+                        for (int i = 0; i < scale.ObjectData.Length; i++)
                         {
                             handlerUpdatePrimGroupScale = OnUpdatePrimGroupScale;
                             if (handlerUpdatePrimGroupScale != null)
@@ -4866,7 +4865,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // DEPRECATED: but till libsecondlife removes it, people will use it
                         ObjectRotationPacket rotation = (ObjectRotationPacket)Pack;
 
-                        for (int i=0; i<rotation.ObjectData.Length; i++)
+                        for (int i = 0; i < rotation.ObjectData.Length; i++)
                         {
                             handlerUpdatePrimRotation = OnUpdatePrimGroupRotation;
                             if (handlerUpdatePrimRotation != null)
@@ -5415,26 +5414,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 handlerUpdateTaskInventory = OnUpdateTaskInventory;
                                 if (handlerUpdateTaskInventory != null)
                                 {
-                                    TaskInventoryItem newTaskItem=new TaskInventoryItem();
-                                    newTaskItem.ItemID=updatetask.InventoryData.ItemID;
-                                    newTaskItem.ParentID=updatetask.InventoryData.FolderID;
-                                    newTaskItem.CreatorID=updatetask.InventoryData.CreatorID;
-                                    newTaskItem.OwnerID=updatetask.InventoryData.OwnerID;
-                                    newTaskItem.GroupID=updatetask.InventoryData.GroupID;
-                                    newTaskItem.BaseMask=updatetask.InventoryData.BaseMask;
-                                    newTaskItem.OwnerMask=updatetask.InventoryData.OwnerMask;
-                                    newTaskItem.GroupMask=updatetask.InventoryData.GroupMask;
-                                    newTaskItem.EveryoneMask=updatetask.InventoryData.EveryoneMask;
-                                    newTaskItem.NextOwnerMask=updatetask.InventoryData.NextOwnerMask;
+                                    TaskInventoryItem newTaskItem = new TaskInventoryItem();
+                                    newTaskItem.ItemID = updatetask.InventoryData.ItemID;
+                                    newTaskItem.ParentID = updatetask.InventoryData.FolderID;
+                                    newTaskItem.CreatorID = updatetask.InventoryData.CreatorID;
+                                    newTaskItem.OwnerID = updatetask.InventoryData.OwnerID;
+                                    newTaskItem.GroupID = updatetask.InventoryData.GroupID;
+                                    newTaskItem.BaseMask = updatetask.InventoryData.BaseMask;
+                                    newTaskItem.OwnerMask = updatetask.InventoryData.OwnerMask;
+                                    newTaskItem.GroupMask = updatetask.InventoryData.GroupMask;
+                                    newTaskItem.EveryoneMask = updatetask.InventoryData.EveryoneMask;
+                                    newTaskItem.NextOwnerMask = updatetask.InventoryData.NextOwnerMask;
                                     //newTaskItem.GroupOwned=updatetask.InventoryData.GroupOwned;
-                                    newTaskItem.Type=updatetask.InventoryData.Type;
-                                    newTaskItem.InvType=updatetask.InventoryData.InvType;
-                                    newTaskItem.Flags=updatetask.InventoryData.Flags;
+                                    newTaskItem.Type = updatetask.InventoryData.Type;
+                                    newTaskItem.InvType = updatetask.InventoryData.InvType;
+                                    newTaskItem.Flags = updatetask.InventoryData.Flags;
                                     //newTaskItem.SaleType=updatetask.InventoryData.SaleType;
                                     //newTaskItem.SalePrice=updatetask.InventoryData.SalePrice;;
-                                    newTaskItem.Name=Util.FieldToString(updatetask.InventoryData.Name);
-                                    newTaskItem.Description=Util.FieldToString(updatetask.InventoryData.Description);
-                                    newTaskItem.CreationDate=(uint)updatetask.InventoryData.CreationDate;
+                                    newTaskItem.Name = Util.FieldToString(updatetask.InventoryData.Name);
+                                    newTaskItem.Description = Util.FieldToString(updatetask.InventoryData.Description);
+                                    newTaskItem.CreationDate = (uint)updatetask.InventoryData.CreationDate;
                                     handlerUpdateTaskInventory(this, updatetask.InventoryData.TransactionID,
                                                                newTaskItem, updatetask.UpdateData.LocalID);
                                 }
@@ -5478,25 +5477,25 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         RezScriptPacket rezScriptx = (RezScriptPacket)Pack;
 
                         handlerRezScript = OnRezScript;
-                        InventoryItemBase item=new InventoryItemBase();
-                        item.ID=rezScriptx.InventoryBlock.ItemID;
-                        item.Folder=rezScriptx.InventoryBlock.FolderID;
-                        item.Creator=rezScriptx.InventoryBlock.CreatorID;
-                        item.Owner=rezScriptx.InventoryBlock.OwnerID;
-                        item.BasePermissions=rezScriptx.InventoryBlock.BaseMask;
-                        item.CurrentPermissions=rezScriptx.InventoryBlock.OwnerMask;
-                        item.EveryOnePermissions=rezScriptx.InventoryBlock.EveryoneMask;
-                        item.NextPermissions=rezScriptx.InventoryBlock.NextOwnerMask;
-                        item.GroupOwned=rezScriptx.InventoryBlock.GroupOwned;
-                        item.GroupID=rezScriptx.InventoryBlock.GroupID;
-                        item.AssetType=rezScriptx.InventoryBlock.Type;
-                        item.InvType=rezScriptx.InventoryBlock.InvType;
-                        item.Flags=rezScriptx.InventoryBlock.Flags;
-                        item.SaleType=rezScriptx.InventoryBlock.SaleType;
-                        item.SalePrice=rezScriptx.InventoryBlock.SalePrice;
-                        item.Name=Util.FieldToString(rezScriptx.InventoryBlock.Name);
-                        item.Description=Util.FieldToString(rezScriptx.InventoryBlock.Description);
-                        item.CreationDate=(int)rezScriptx.InventoryBlock.CreationDate;
+                        InventoryItemBase item = new InventoryItemBase();
+                        item.ID = rezScriptx.InventoryBlock.ItemID;
+                        item.Folder = rezScriptx.InventoryBlock.FolderID;
+                        item.Creator = rezScriptx.InventoryBlock.CreatorID;
+                        item.Owner = rezScriptx.InventoryBlock.OwnerID;
+                        item.BasePermissions = rezScriptx.InventoryBlock.BaseMask;
+                        item.CurrentPermissions = rezScriptx.InventoryBlock.OwnerMask;
+                        item.EveryOnePermissions = rezScriptx.InventoryBlock.EveryoneMask;
+                        item.NextPermissions = rezScriptx.InventoryBlock.NextOwnerMask;
+                        item.GroupOwned = rezScriptx.InventoryBlock.GroupOwned;
+                        item.GroupID = rezScriptx.InventoryBlock.GroupID;
+                        item.AssetType = rezScriptx.InventoryBlock.Type;
+                        item.InvType = rezScriptx.InventoryBlock.InvType;
+                        item.Flags = rezScriptx.InventoryBlock.Flags;
+                        item.SaleType = rezScriptx.InventoryBlock.SaleType;
+                        item.SalePrice = rezScriptx.InventoryBlock.SalePrice;
+                        item.Name = Util.FieldToString(rezScriptx.InventoryBlock.Name);
+                        item.Description = Util.FieldToString(rezScriptx.InventoryBlock.Description);
+                        item.CreationDate = (int)rezScriptx.InventoryBlock.CreationDate;
 
                         if (handlerRezScript != null)
                         {
@@ -5564,7 +5563,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             handlerTeleportHomeRequest = OnTeleportHomeRequest;
                             if (handlerTeleportHomeRequest != null)
                             {
-                                handlerTeleportHomeRequest(this.AgentId,this);
+                                handlerTeleportHomeRequest(this.AgentId, this);
                             }
                             break;
                         }
@@ -5781,7 +5780,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerParcelReturnObjectsRequest = OnParcelReturnObjectsRequest;
                         if (handlerParcelReturnObjectsRequest != null)
                         {
-                            handlerParcelReturnObjectsRequest(parcelReturnObjects.ParcelData.LocalID,parcelReturnObjects.ParcelData.ReturnType,puserselectedOwnerIDs,puserselectedTaskIDs, this);
+                            handlerParcelReturnObjectsRequest(parcelReturnObjects.ParcelData.LocalID, parcelReturnObjects.ParcelData.ReturnType, puserselectedOwnerIDs, puserselectedTaskIDs, this);
 
                         }
                         break;
@@ -5805,12 +5804,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                             case "setregioninfo":
                                 if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(this.AgentId))
                                 {
-                                    OnSetEstateFlagsRequest(convertParamStringToBool(messagePacket.ParamList[0].Parameter),convertParamStringToBool(messagePacket.ParamList[1].Parameter),
+                                    OnSetEstateFlagsRequest(convertParamStringToBool(messagePacket.ParamList[0].Parameter), convertParamStringToBool(messagePacket.ParamList[1].Parameter),
                                         convertParamStringToBool(messagePacket.ParamList[2].Parameter), !convertParamStringToBool(messagePacket.ParamList[3].Parameter),
                                         Convert.ToInt16(Convert.ToDecimal(Helpers.FieldToUTF8String(messagePacket.ParamList[4].Parameter))),
                                         (float)Convert.ToDecimal(Helpers.FieldToUTF8String(messagePacket.ParamList[5].Parameter)),
                                         Convert.ToInt16(Helpers.FieldToUTF8String(messagePacket.ParamList[6].Parameter)),
-                                        convertParamStringToBool(messagePacket.ParamList[7].Parameter),convertParamStringToBool(messagePacket.ParamList[8].Parameter));
+                                        convertParamStringToBool(messagePacket.ParamList[7].Parameter), convertParamStringToBool(messagePacket.ParamList[8].Parameter));
 
                                 }
 
@@ -5842,7 +5841,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                             Int16 corner = Convert.ToInt16(splitField[0]);
                                             LLUUID textureUUID = new LLUUID(splitField[1]);
 
-                                            OnSetEstateTerrainDetailTexture(this, corner,textureUUID);
+                                            OnSetEstateTerrainDetailTexture(this, corner, textureUUID);
                                         }
                                     }
                                 }
@@ -5861,7 +5860,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                             float lowValue = (float)Convert.ToDecimal(splitField[1]);
                                             float highValue = (float)Convert.ToDecimal(splitField[2]);
 
-                                            OnSetEstateTerrainTextureHeights(this,corner,lowValue,highValue);
+                                            OnSetEstateTerrainTextureHeights(this, corner, lowValue, highValue);
                                         }
                                     }
                                 }
@@ -5932,7 +5931,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(this.AgentId))
                                 {
                                     int estateAccessType = Convert.ToInt16(Helpers.FieldToUTF8String(messagePacket.ParamList[1].Parameter));
-                                    OnUpdateEstateAccessDeltaRequest(this, messagePacket.MethodData.Invoice,estateAccessType,new LLUUID(Helpers.FieldToUTF8String(messagePacket.ParamList[2].Parameter)));
+                                    OnUpdateEstateAccessDeltaRequest(this, messagePacket.MethodData.Invoice, estateAccessType, new LLUUID(Helpers.FieldToUTF8String(messagePacket.ParamList[2].Parameter)));
 
                                 }
                                 break;
@@ -5944,7 +5943,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     string SenderName = Helpers.FieldToUTF8String(messagePacket.ParamList[3].Parameter);
                                     string Message = Helpers.FieldToUTF8String(messagePacket.ParamList[4].Parameter);
                                     LLUUID sessionID = messagePacket.AgentData.SessionID;
-                                    OnSimulatorBlueBoxMessageRequest(this,invoice,SenderID, sessionID, SenderName,Message);
+                                    OnSimulatorBlueBoxMessageRequest(this, invoice, SenderID, sessionID, SenderName, Message);
                                 }
                                 break;
                             case "instantmessage":
@@ -5955,7 +5954,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     string SenderName = Helpers.FieldToUTF8String(messagePacket.ParamList[3].Parameter);
                                     string Message = Helpers.FieldToUTF8String(messagePacket.ParamList[4].Parameter);
                                     LLUUID sessionID = messagePacket.AgentData.SessionID;
-                                    OnEstateBlueBoxMessageRequest(this,invoice,SenderID, sessionID, SenderName,Message);
+                                    OnEstateBlueBoxMessageRequest(this, invoice, SenderID, sessionID, SenderName, Message);
                                 }
                                 break;
                             case "setregiondebug":
@@ -5967,7 +5966,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                     bool collisionEvents = convertParamStringToBool(messagePacket.ParamList[1].Parameter);
                                     bool physics = convertParamStringToBool(messagePacket.ParamList[2].Parameter);
 
-                                    OnEstateDebugRegionRequest(this, invoice,SenderID,scripted,collisionEvents,physics);
+                                    OnEstateDebugRegionRequest(this, invoice, SenderID, scripted, collisionEvents, physics);
                                 }
                                 break;
                             case "teleporthomeuser":
@@ -5979,7 +5978,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                                     Helpers.TryParse(Helpers.FieldToUTF8String(messagePacket.ParamList[1].Parameter), out Prey);
 
-                                    OnEstateTeleportOneUserHomeRequest(this,invoice,SenderID,Prey);
+                                    OnEstateTeleportOneUserHomeRequest(this, invoice, SenderID, Prey);
                                 }
                                 break;
                             case "colliders":
@@ -6018,7 +6017,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         handlerLandStatRequest = OnLandStatRequest;
                         if (handlerLandStatRequest != null)
                         {
-                            handlerLandStatRequest(lsrp.RequestData.ParcelLocalID,lsrp.RequestData.ReportType,lsrp.RequestData.RequestFlags,Helpers.FieldToUTF8String(lsrp.RequestData.Filter),this);
+                            handlerLandStatRequest(lsrp.RequestData.ParcelLocalID, lsrp.RequestData.ReportType, lsrp.RequestData.RequestFlags, Helpers.FieldToUTF8String(lsrp.RequestData.Filter), this);
                         }
                         //int parcelID, uint reportType, uint requestflags, string filter
 
@@ -6136,6 +6135,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                     #endregion
 
+                    #region Script Packets
+
+                    case PacketType.GetScriptRunning:
+                        GetScriptRunningPacket scriptRunning = (GetScriptRunningPacket)Pack;
+                        handlerGetScriptRunning = OnGetScriptRunning;
+                        if (handlerGetScriptRunning != null)
+                        {
+                            handlerGetScriptRunning(this, scriptRunning.Script.ObjectID, scriptRunning.Script.ItemID);
+                        }
+                        break;
+
+                    case PacketType.SetScriptRunning:
+                        SetScriptRunningPacket setScriptRunning = (SetScriptRunningPacket)Pack;
+                        handlerSetScriptRunning = OnSetScriptRunning;
+                        if (handlerSetScriptRunning != null)
+                        {
+                            handlerSetScriptRunning(this, setScriptRunning.Script.ObjectID, setScriptRunning.Script.ItemID, setScriptRunning.Script.Running);
+                        }
+                        break;
+
+                    case PacketType.ScriptReset:
+                        ScriptResetPacket scriptResetPacket = (ScriptResetPacket)Pack;
+                        handlerScriptReset = OnScriptReset;
+                        if (handlerScriptReset != null)
+                        {
+                            handlerScriptReset(this, scriptResetPacket.Script.ObjectID, scriptResetPacket.Script.ItemID);
+                        }
+                        break;
+
+                    #endregion
+
                     #region unimplemented handlers
 
                     case PacketType.StartPingCheck:
@@ -6148,14 +6178,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         // TODO: Perhaps this should be processed on the Sim to determine whether or not to drop a dead client
                         //m_log.Warn("[CLIENT]: unhandled CompletePingCheck packet");
                         break;
-                    case PacketType.ScriptReset:
-                        ScriptResetPacket scriptResetPacket = (ScriptResetPacket)Pack;
-                        handlerScriptReset = OnScriptReset;
-                        if (handlerScriptReset != null)
-                        {
-                            handlerScriptReset(this, scriptResetPacket.Script.ObjectID,  scriptResetPacket.Script.ItemID);
-                        }
-                        break;
+
                     case PacketType.ViewerStats:
                         // TODO: handle this packet
                         m_log.Warn("[CLIENT]: unhandled ViewerStats packet");
@@ -6166,9 +6189,9 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         m_log.Warn("[CLIENT]: unhandled CreateGroupRequest packet");
                         break;
                     //case PacketType.GenericMessage:
-                        // TODO: handle this packet
-                        //m_log.Warn("[CLIENT]: unhandled GenericMessage packet");
-                        //break;
+                    // TODO: handle this packet
+                    //m_log.Warn("[CLIENT]: unhandled GenericMessage packet");
+                    //break;
                     case PacketType.MapItemRequest:
                         // TODO: handle this packet
                         m_log.Warn("[CLIENT]: unhandled MapItemRequest packet");
@@ -6205,22 +6228,6 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     case PacketType.InventoryDescendents:
                         // TODO: handle this packet
                         m_log.Warn("[CLIENT]: unhandled InventoryDescent packet");
-                        break;
-                    case PacketType.GetScriptRunning:
-                        GetScriptRunningPacket scriptRunning = (GetScriptRunningPacket)Pack;
-                        handlerGetScriptRunning = OnGetScriptRunning;
-                        if (handlerGetScriptRunning != null)
-                        {
-                            handlerGetScriptRunning(this, scriptRunning.Script.ObjectID, scriptRunning.Script.ItemID);
-                        }
-                        break;
-                    case PacketType.SetScriptRunning:
-                        SetScriptRunningPacket setScriptRunning = (SetScriptRunningPacket)Pack;
-                        handlerSetScriptRunning = OnSetScriptRunning;
-                        if (handlerSetScriptRunning != null)
-                        {
-                            handlerSetScriptRunning(this, setScriptRunning.Script.ObjectID, setScriptRunning.Script.ItemID, setScriptRunning.Script.Running);
-                        }
                         break;
                     default:
                         m_log.Warn("[CLIENT]: unhandled packet " + Pack.ToString());
@@ -6435,7 +6442,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendAsset(AssetRequestToClient req)
         {
-            
+
             //Console.WriteLine("sending asset " + req.RequestAssetID);
             TransferInfoPacket Transfer = new TransferInfoPacket();
             Transfer.TransferInfo.ChannelType = 2;
@@ -6511,7 +6518,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         public void SendTexture(AssetBase TextureAsset)
         {
-            
+
         }
 
         public ClientInfo GetClientInfo()
@@ -6525,7 +6532,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             info.pendingAcks = m_pendingAcks;
 
-            info.needAck = new Dictionary<uint,byte[]>();
+            info.needAck = new Dictionary<uint, byte[]>();
 
             lock (m_needAck)
             {
@@ -6535,20 +6542,20 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 }
             }
 
-/* pending
-            QueItem[] queitems = m_packetQueue.GetQueueArray();
+            /* pending
+                        QueItem[] queitems = m_packetQueue.GetQueueArray();
 
-            MainLog.Instance.Verbose("CLIENT", "Queue Count : [{0}]", queitems.Length);
+                        MainLog.Instance.Verbose("CLIENT", "Queue Count : [{0}]", queitems.Length);
 
-            for (int i = 0; i < queitems.Length; i++)
-            {
-                if (queitems[i].Incoming == false)
-                {
-                    info.out_packets.Add(queitems[i].Packet.ToBytes());
-                    MainLog.Instance.Verbose("CLIENT", "Add OutPacket [{0}]", queitems[i].Packet.Type.ToString());
-                }
-            }
-*/
+                        for (int i = 0; i < queitems.Length; i++)
+                        {
+                            if (queitems[i].Incoming == false)
+                            {
+                                info.out_packets.Add(queitems[i].Packet.ToBytes());
+                                MainLog.Instance.Verbose("CLIENT", "Add OutPacket [{0}]", queitems[i].Packet.Type.ToString());
+                            }
+                        }
+            */
 
             info.sequence = m_sequence;
 
@@ -6561,7 +6568,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             m_pendingAcks = info.pendingAcks;
 
-            m_needAck = new Dictionary<uint,Packet>();
+            m_needAck = new Dictionary<uint, Packet>();
 
             Packet packet = null;
             int packetEnd = 0;
