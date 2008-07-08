@@ -1,0 +1,12 @@
+The LSL compiler is generated with "Compiler tools in C#" version 4.7[1] by Dr. Malcolm Crowe[2]. The code is used with permission by the author:
+
+There is no problem with using the code in any way you like, as long as
+somewhere you say that that is what you have done (in the source for
+example).
+And of course we disclaim all responsibility for any resulting
+damage...
+Best wishes
+Malcolm Crowe
+
+[1] http://cis.paisley.ac.uk/crow-ci0/CSTools47.zip
+[2] http://cis.paisley.ac.uk/crow-ci0/
