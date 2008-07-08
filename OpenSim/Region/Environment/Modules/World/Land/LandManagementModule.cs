@@ -834,7 +834,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                         byteArrayCount++;
                         if (byteArrayCount >= LAND_BLOCKS_PER_PACKET)
                         {
-                            remote_client.sendLandParcelOverlay(byteArray, sequenceID);
+                            remote_client.SendLandParcelOverlay(byteArray, sequenceID);
                             byteArrayCount = 0;
                             sequenceID++;
                             byteArray = new byte[LAND_BLOCKS_PER_PACKET];

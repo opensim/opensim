@@ -161,7 +161,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public void sendLandProperties(int sequence_id, bool snap_selection, int request_result, IClientAPI remote_client)
         {
-            remote_client.sendLandProperties(remote_client, sequence_id, snap_selection, request_result, landData, m_scene.RegionInfo.EstateSettings.objectBonusFactor, getParcelMaxPrimCount(this), getSimulatorMaxPrimCount(this), (uint)m_scene.RegionInfo.EstateSettings.regionFlags);
+            remote_client.SendLandProperties(remote_client, sequence_id, snap_selection, request_result, landData, m_scene.RegionInfo.EstateSettings.objectBonusFactor, getParcelMaxPrimCount(this), getSimulatorMaxPrimCount(this), (uint)m_scene.RegionInfo.EstateSettings.regionFlags);
         }
 
         public void updateLandProperties(LandUpdateArgs args, IClientAPI remote_client)
@@ -332,13 +332,13 @@ namespace OpenSim.Region.Environment.Modules.World.Land
             if (flags == (uint) ParcelManager.AccessList.Access || flags == (uint) ParcelManager.AccessList.Both)
             {
                 List<LLUUID> avatars = createAccessListArrayByFlag(ParcelManager.AccessList.Access);
-                remote_client.sendLandAccessListData(avatars,(uint) ParcelManager.AccessList.Access,landData.localID);
+                remote_client.SendLandAccessListData(avatars,(uint) ParcelManager.AccessList.Access,landData.localID);
             }
 
             if (flags == (uint) ParcelManager.AccessList.Ban || flags == (uint) ParcelManager.AccessList.Both)
             {
                 List<LLUUID> avatars = createAccessListArrayByFlag(ParcelManager.AccessList.Ban);
-                remote_client.sendLandAccessListData(avatars, (uint)ParcelManager.AccessList.Ban, landData.localID);
+                remote_client.SendLandAccessListData(avatars, (uint)ParcelManager.AccessList.Ban, landData.localID);
             }
         }
 
@@ -663,7 +663,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                     m_log.Error("[LAND]: Unable to force select the parcel objects. Arr.");
                 }
 
-                remote_client.sendForceClientSelectObjects(resultLocalIDs);
+                remote_client.SendForceClientSelectObjects(resultLocalIDs);
             }
         }
 
@@ -715,7 +715,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                     }
                 }
 
-                remote_client.sendLandObjectOwners(primCount);
+                remote_client.SendLandObjectOwners(primCount);
             }
         }
 

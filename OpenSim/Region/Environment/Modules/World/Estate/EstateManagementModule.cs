@@ -49,9 +49,9 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
         private void sendDetailedEstateData(IClientAPI remote_client, LLUUID invoice)
         {
-            remote_client.sendDetailedEstateData(invoice,m_scene.RegionInfo.EstateSettings.estateName,m_scene.RegionInfo.EstateSettings.estateID);
-            remote_client.sendEstateManagersList(invoice,m_scene.RegionInfo.EstateSettings.estateManagers,m_scene.RegionInfo.EstateSettings.estateID);
-            remote_client.sendBannedUserList(invoice, m_scene.RegionInfo.regionBanlist, m_scene.RegionInfo.EstateSettings.estateID);
+            remote_client.SendDetailedEstateData(invoice,m_scene.RegionInfo.EstateSettings.estateName,m_scene.RegionInfo.EstateSettings.estateID);
+            remote_client.SendEstateManagersList(invoice,m_scene.RegionInfo.EstateSettings.estateManagers,m_scene.RegionInfo.EstateSettings.estateID);
+            remote_client.SendBannedUserList(invoice, m_scene.RegionInfo.regionBanlist, m_scene.RegionInfo.EstateSettings.estateID);
         }
 
         private void estateSetRegionInfoHandler(bool blockTerraform, bool noFly, bool allowDamage, bool blockLandResell, int maxAgents, float objectBonusFactor,
@@ -248,7 +248,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                             remote_client.SendAlertMessage("User is already on the region ban list");
                         }
                         //m_scene.RegionInfo.regionBanlist.Add(Manager(user);
-                        remote_client.sendBannedUserList(invoice, m_scene.RegionInfo.regionBanlist, m_scene.RegionInfo.EstateSettings.estateID);
+                        remote_client.SendBannedUserList(invoice, m_scene.RegionInfo.regionBanlist, m_scene.RegionInfo.EstateSettings.estateID);
                     }
                     else
                     {
@@ -283,7 +283,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                             remote_client.SendAlertMessage("User is not on the region ban list");
                         }
                         //m_scene.RegionInfo.regionBanlist.Add(Manager(user);
-                        remote_client.sendBannedUserList(invoice, m_scene.RegionInfo.regionBanlist, m_scene.RegionInfo.EstateSettings.estateID);
+                        remote_client.SendBannedUserList(invoice, m_scene.RegionInfo.regionBanlist, m_scene.RegionInfo.EstateSettings.estateID);
                     }
                     else
                     {
@@ -297,7 +297,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                     if (remote_client.AgentId == m_scene.RegionInfo.MasterAvatarAssignedUUID || m_scene.ExternalChecks.ExternalChecksBypassPermissions())
                     {
                         m_scene.RegionInfo.EstateSettings.AddEstateManager(user);
-                        remote_client.sendEstateManagersList(invoice, m_scene.RegionInfo.EstateSettings.estateManagers, m_scene.RegionInfo.EstateSettings.estateID);
+                        remote_client.SendEstateManagersList(invoice, m_scene.RegionInfo.EstateSettings.estateManagers, m_scene.RegionInfo.EstateSettings.estateID);
                     }
                     else
                     {
@@ -311,7 +311,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                     if (remote_client.AgentId == m_scene.RegionInfo.MasterAvatarAssignedUUID || m_scene.ExternalChecks.ExternalChecksBypassPermissions())
                     {
                         m_scene.RegionInfo.EstateSettings.RemoveEstateManager(user);
-                        remote_client.sendEstateManagersList(invoice, m_scene.RegionInfo.EstateSettings.estateManagers, m_scene.RegionInfo.EstateSettings.estateID);
+                        remote_client.SendEstateManagersList(invoice, m_scene.RegionInfo.EstateSettings.estateManagers, m_scene.RegionInfo.EstateSettings.estateID);
                     }
                     else
                     {
@@ -399,12 +399,12 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
            args.simName = m_scene.RegionInfo.RegionName;
            
            
-           remote_client.sendRegionInfoToEstateMenu(args);
+           remote_client.SendRegionInfoToEstateMenu(args);
         }
 
         private static void HandleEstateCovenantRequest(IClientAPI remote_client)
         {
-            remote_client.sendEstateCovenantInformation();
+            remote_client.SendEstateCovenantInformation();
         }
         private void HandleLandStatRequest(int parcelID, uint reportType, uint requestFlags, string filter, IClientAPI remoteClient)
         {

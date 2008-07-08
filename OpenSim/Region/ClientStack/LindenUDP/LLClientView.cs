@@ -2576,7 +2576,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             return false;
         }
 
-        public void sendEstateManagersList(LLUUID invoice, LLUUID[] EstateManagers, uint estateID)
+        public void SendEstateManagersList(LLUUID invoice, LLUUID[] EstateManagers, uint estateID)
         {
             EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();
             packet.AgentData.TransactionID = LLUUID.Random();
@@ -2608,7 +2608,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             this.OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
-        public void sendBannedUserList(LLUUID invoice, List<RegionBanListItem> banlist, uint estateID)
+        public void SendBannedUserList(LLUUID invoice, List<RegionBanListItem> banlist, uint estateID)
         {
             RegionBanListItem[] bl = banlist.ToArray();
 
@@ -2653,7 +2653,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             this.OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
-        public void sendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args)
+        public void SendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args)
         {
             RegionInfoPacket rinfopack = new RegionInfoPacket();
             RegionInfoPacket.RegionInfoBlock rinfoblk = new RegionInfoPacket.RegionInfoBlock();
@@ -2681,7 +2681,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             this.OutPacket(rinfopack, ThrottleOutPacketType.Task);
         }
 
-        public void sendEstateCovenantInformation()
+        public void SendEstateCovenantInformation()
         {
             EstateCovenantReplyPacket einfopack = new EstateCovenantReplyPacket();
             EstateCovenantReplyPacket.DataBlock edata = new EstateCovenantReplyPacket.DataBlock();
@@ -2694,7 +2694,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             this.OutPacket(einfopack, ThrottleOutPacketType.Task);
         }
 
-        public void sendDetailedEstateData(LLUUID invoice, string estateName, uint estateID)
+        public void SendDetailedEstateData(LLUUID invoice, string estateName, uint estateID)
         {
             EstateOwnerMessagePacket packet = new EstateOwnerMessagePacket();
             packet.MethodData.Invoice = invoice;
@@ -2730,7 +2730,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Land Data Sending Methods
 
-        public void sendLandParcelOverlay(byte[] data, int sequence_id)
+        public void SendLandParcelOverlay(byte[] data, int sequence_id)
         {
 
             ParcelOverlayPacket packet;
@@ -2741,7 +2741,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             this.OutPacket(packet, ThrottleOutPacketType.Task);
         }
 
-        public void sendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
+        public void SendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
         {
             ParcelPropertiesPacket updatePacket = (ParcelPropertiesPacket)PacketPool.Instance.GetPacket(PacketType.ParcelProperties);
             // TODO: don't create new blocks if recycling an old packet
@@ -2822,7 +2822,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             remote_client.OutPacket((Packet)updatePacket, ThrottleOutPacketType.Task);
         }
 
-        public void sendLandAccessListData(List<LLUUID> avatars, uint accessFlag, int localLandID)
+        public void SendLandAccessListData(List<LLUUID> avatars, uint accessFlag, int localLandID)
         {
             ParcelAccessListReplyPacket replyPacket = (ParcelAccessListReplyPacket)PacketPool.Instance.GetPacket(PacketType.ParcelAccessListReply);
             replyPacket.Data.AgentID = this.AgentId;
@@ -2844,7 +2844,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             this.OutPacket((Packet)replyPacket, ThrottleOutPacketType.Task);
         }
 
-        public void sendForceClientSelectObjects(List<uint> ObjectIDs)
+        public void SendForceClientSelectObjects(List<uint> ObjectIDs)
         {
             bool firstCall = true;
             int MAX_OBJECTS_PER_PACKET = 251;
@@ -2884,7 +2884,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             }
         }
 
-        public void sendLandObjectOwners(Dictionary<LLUUID, int> ownersAndCount)
+        public void SendLandObjectOwners(Dictionary<LLUUID, int> ownersAndCount)
         {
             int notifyCount = ownersAndCount.Count;
             ParcelObjectOwnersReplyPacket pack = (ParcelObjectOwnersReplyPacket)PacketPool.Instance.GetPacket(PacketType.ParcelObjectOwnersReply);

@@ -737,37 +737,37 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public void sendEstateManagersList(LLUUID invoice, LLUUID[] EstateManagers, uint estateID)
+        public void SendEstateManagersList(LLUUID invoice, LLUUID[] EstateManagers, uint estateID)
         {
         }
 
-        public void sendBannedUserList(LLUUID invoice, List<RegionBanListItem> banlist, uint estateID)
+        public void SendBannedUserList(LLUUID invoice, List<RegionBanListItem> banlist, uint estateID)
         {
         }
 
-        public void sendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args)
+        public void SendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args)
         {
         }
-        public void sendEstateCovenantInformation()
+        public void SendEstateCovenantInformation()
         {
         }
-        public void sendDetailedEstateData(LLUUID invoice, string estateName, uint estateID)
+        public void SendDetailedEstateData(LLUUID invoice, string estateName, uint estateID)
         {
         }
 
-        public void sendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
+        public void SendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
         {
         }
-        public void sendLandAccessListData(List<LLUUID> avatars, uint accessFlag, int localLandID)
+        public void SendLandAccessListData(List<LLUUID> avatars, uint accessFlag, int localLandID)
         {
         }
-        public void sendForceClientSelectObjects(List<uint> objectIDs)
+        public void SendForceClientSelectObjects(List<uint> objectIDs)
         {
         }
-        public void sendLandObjectOwners(Dictionary<LLUUID, int> ownersAndCount)
+        public void SendLandObjectOwners(Dictionary<LLUUID, int> ownersAndCount)
         {
         }
-        public void sendLandParcelOverlay(byte[] data, int sequence_id)
+        public void SendLandParcelOverlay(byte[] data, int sequence_id)
         {
         }
 

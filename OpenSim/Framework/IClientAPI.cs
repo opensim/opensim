@@ -626,19 +626,19 @@ namespace OpenSim.Framework
         void SendHealth(float health);
 
 
-        void sendEstateManagersList(LLUUID invoice, LLUUID[] EstateManagers, uint estateID);
+        void SendEstateManagersList(LLUUID invoice, LLUUID[] EstateManagers, uint estateID);
 
-        void sendBannedUserList(LLUUID invoice, List<RegionBanListItem> banlist, uint estateID);
+        void SendBannedUserList(LLUUID invoice, List<RegionBanListItem> banlist, uint estateID);
 
-        void sendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args);
-        void sendEstateCovenantInformation();
-        void sendDetailedEstateData(LLUUID invoice,string estateName, uint estateID);
+        void SendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args);
+        void SendEstateCovenantInformation();
+        void SendDetailedEstateData(LLUUID invoice,string estateName, uint estateID);
 
-        void sendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags);
-        void sendLandAccessListData(List<LLUUID> avatars, uint accessFlag, int localLandID);
-        void sendForceClientSelectObjects(List<uint> objectIDs);
-        void sendLandObjectOwners(Dictionary<LLUUID, int> ownersAndCount);
-        void sendLandParcelOverlay(byte[] data, int sequence_id);
+        void SendLandProperties(IClientAPI remote_client, int sequence_id, bool snap_selection, int request_result, LandData landData, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags);
+        void SendLandAccessListData(List<LLUUID> avatars, uint accessFlag, int localLandID);
+        void SendForceClientSelectObjects(List<uint> objectIDs);
+        void SendLandObjectOwners(Dictionary<LLUUID, int> ownersAndCount);
+        void SendLandParcelOverlay(byte[] data, int sequence_id);
 
         void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, LLUUID AssetFullID);
         void SendConfirmXfer(ulong xferID, uint PacketID);
