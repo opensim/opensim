@@ -1588,6 +1588,26 @@
       </Files>
     </Project>
 
+    <Project name="OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests" path="OpenSim/Tests/OpenSim/Region/ScriptEngine/Shared/CodeTools" type="Library">
+      <Configuration name="Debug">
+        <Options>
+          <OutputPath>../../../../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+      <Configuration name="Release">
+        <Options>
+          <OutputPath>../../../../../../../bin/</OutputPath>
+        </Options>
+      </Configuration>
+
+      <ReferencePath>../../../../../../../bin/</ReferencePath>
+      <Reference name="OpenSim.Region.ScriptEngine.Shared.CodeTools"/>
+      <Reference name="nunit.framework.dll" />
+      <Files>
+        <Match pattern="*.cs" recurse="false"/>
+      </Files>
+    </Project>
+
     <Project name="OpenSim.Region.ScriptEngine.XEngine" path="OpenSim/Region/ScriptEngine/XEngine" type="Library">
       <Configuration name="Debug">
         <Options>
