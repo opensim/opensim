@@ -31,6 +31,7 @@ using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Modules.World.Serialiser;
 using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 //using System.Text;
@@ -205,48 +206,55 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 m_log.DebugFormat(
                     "[ARCHIVER]: Getting part {0}, {1} for object {2}", part.Name, part.UUID, sceneObject.UUID);
 
-                LLObject.TextureEntry textureEntry = part.Shape.Textures;
-
-                // Get the prim's default texture.  This will be used for faces which don't have their own texture
-                assetUuids[textureEntry.DefaultTexture.TextureID] = 1;
-
-                // XXX: Not a great way to iterate through face textures, but there's no
-                // other method available to tell how many faces there actually are
-                int i = 0;
-                foreach (LLObject.TextureEntryFace texture in textureEntry.FaceTextures)
+                try
                 {
-                    if (texture != null)
+                    LLObject.TextureEntry textureEntry = part.Shape.Textures;
+    
+                    // Get the prim's default texture.  This will be used for faces which don't have their own texture
+                    assetUuids[textureEntry.DefaultTexture.TextureID] = 1;
+    
+                    // XXX: Not a great way to iterate through face textures, but there's no
+                    // other method available to tell how many faces there actually are
+                    int i = 0;
+                    foreach (LLObject.TextureEntryFace texture in textureEntry.FaceTextures)
                     {
-                        m_log.DebugFormat("[ARCHIVER]: Got face {0}", i++);
-                        assetUuids[texture.TextureID] = 1;
+                        if (texture != null)
+                        {
+                            m_log.DebugFormat("[ARCHIVER]: Got face {0}", i++);
+                            assetUuids[texture.TextureID] = 1;
+                        }
+                    }
+                    
+                    foreach (TaskInventoryItem tii in part.TaskInventory.Values)
+                    {
+                        m_log.DebugFormat("[ARCHIVER]: Analysing item asset type {0}", tii.Type);
+                        
+                        if (!assetUuids.ContainsKey(tii.AssetID))
+                        {
+                            assetUuids[tii.AssetID] = 1;
+    
+                            if ((int)AssetType.Bodypart == tii.Type || ((int)AssetType.Clothing == tii.Type))
+                            {
+                                GetWearableAssetUuids(tii.AssetID, assetUuids);
+                            }
+                            else if ((int)AssetType.LSLText == tii.Type)
+                            {
+                                GetScriptAssetUuids(tii.AssetID, assetUuids);
+                            }
+                            else if ((int)AssetType.Object == tii.Type)
+                            {
+                                GetSceneObjectAssetUuids(tii.AssetID, assetUuids);
+                            }
+                            else
+                            {
+                                m_log.DebugFormat("[ARCHIVER]: Recording asset {0} in object {1}", tii.AssetID, part.UUID);
+                            }
+                        }
                     }
                 }
-                
-                foreach (TaskInventoryItem tii in part.TaskInventory.Values)
+                catch (Exception e)
                 {
-                    m_log.DebugFormat("[ARCHIVER]: Analysing item asset type {0}", tii.Type);
-                    
-                    if (!assetUuids.ContainsKey(tii.AssetID))
-                    {
-                        assetUuids[tii.AssetID] = 1;
-
-                        if ((int)AssetType.Bodypart == tii.Type || ((int)AssetType.Clothing == tii.Type))
-                        {
-                            GetWearableAssetUuids(tii.AssetID, assetUuids);
-                        }
-                        else if ((int)AssetType.LSLText == tii.Type)
-                        {
-                            GetScriptAssetUuids(tii.AssetID, assetUuids);
-                        }
-                        else if ((int)AssetType.Object == tii.Type)
-                        {
-                            GetSceneObjectAssetUuids(tii.AssetID, assetUuids);
-                        }
-                        else
-                        {
-                            m_log.DebugFormat("[ARCHIVER]: Recording asset {0} in object {1}", tii.AssetID, part.UUID);
-                        }
-                    }
+                    m_log.ErrorFormat("[ARCHIVER]: Failed to get part - {0}", e);
                 }
             }
         }
