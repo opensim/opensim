@@ -49,6 +49,8 @@ namespace OpenSim.Framework
         public bool HttpSSL = DefaultHttpSSL;
         public string InventoryUrl = String.Empty;
 
+        public bool EnableLLSDLogin = true;
+
         public UserConfig()
         {
             // weird, but UserManagerBase needs this.
@@ -93,6 +95,8 @@ namespace OpenSim.Framework
                                                 "Known good region X", "1000", false);
             configMember.addConfigurationOption("default_Y", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 "Known good region Y", "1000", false);
+            configMember.addConfigurationOption("enable_llsd_login", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN,
+                                                "Enable LLSD login support? true/false", true.ToString(), false);
         }
 
         public bool handleIncomingConfiguration(string configuration_key, object configuration_result)
@@ -131,6 +135,9 @@ namespace OpenSim.Framework
                     break;
                 case "default_Y":
                     DefaultY = (uint) configuration_result;
+                    break;
+                case "enable_llsd_login":
+                    EnableLLSDLogin = (bool)configuration_result;
                     break;
             }
 
