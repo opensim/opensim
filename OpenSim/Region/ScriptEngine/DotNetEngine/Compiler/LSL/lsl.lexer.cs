@@ -18683,7 +18683,6 @@ public override TOKEN OldAction(Lexer yym,ref string yytext,int action, ref bool
    case 1020: { }
       break;
    case 1064: { yym.yy_begin("YYINITIAL"); ((LSLTokens)yym).yytext = ((LSLTokens)yym).str; ((LSLTokens)yym).str = String.Empty; return new STRING_CONSTANT(yym); }
-      // break;
    case 1069: ;   
       break;
    case 1073: ;   

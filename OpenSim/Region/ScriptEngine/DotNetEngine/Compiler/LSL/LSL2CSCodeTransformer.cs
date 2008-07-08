@@ -93,8 +93,94 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             else if (s is GlobalFunctionDefinition && "void" != ((GlobalFunctionDefinition) s).ReturnType) // we don't need to translate "void"
                 ((GlobalFunctionDefinition) s).ReturnType = m_datatypeLSL2OpenSim[((GlobalFunctionDefinition) s).ReturnType];
 
-            foreach (SYMBOL kid in s.kids)
-                TransformNode(kid);
+            for (int i = 0; i < s.kids.Count; i++)
+            {
+                if (!(s is Assignment || s is ArgumentDeclarationList) && s.kids[i] is Declaration)
+                    AddImplicitInitialization(s, i);
+
+                TransformNode((SYMBOL) s.kids[i]);
+            }
+        }
+
+        /// <summary>
+        /// Replaces an instance of the node at s.kids[didx] with an assignment
+        /// node. The assignment node has the Declaration node on the left hand
+        /// side and a default initializer on the right hand side.
+        /// </summary>
+        /// <param name="s">
+        /// The node containing the Declaration node that needs replacing.
+        /// </param>
+        /// <param name="didx">Index of the Declaration node to replace.</param>
+        private void AddImplicitInitialization(SYMBOL s, int didx)
+        {
+            // We take the kids for a while to play with them.
+            int sKidSize = s.kids.Count;
+            object [] sKids = new object[sKidSize];
+            for (int i = 0; i < sKidSize; i++)
+                sKids[i] = s.kids.Pop();
+
+            // The child to be changed.
+            Declaration currentDeclaration = (Declaration) sKids[didx];
+
+            // We need an assignment node.
+            Assignment newAssignment = new Assignment(currentDeclaration.yyps,
+                                                      currentDeclaration,
+                                                      GetZeroConstant(currentDeclaration.yyps, currentDeclaration.Datatype),
+                                                      "=");
+            sKids[didx] = newAssignment;
+
+            // Put the kids back where they belong.
+            for (int i = 0; i < sKidSize; i++)
+                s.kids.Add(sKids[i]);
+        }
+
+        /// <summary>
+        /// Generates the node structure required to generate a default
+        /// initialization.
+        /// </summary>
+        /// <param name="p">
+        /// Tools.Parser instance to use when instantiating nodes.
+        /// </param>
+        /// <param name="constantType">String describing the datatype.</param>
+        /// <returns>
+        /// A SYMBOL node conaining the appropriate structure for intializing a
+        /// constantType.
+        /// </returns>
+        private SYMBOL GetZeroConstant(Parser p, string constantType)
+        {
+            switch (constantType)
+            {
+            case "integer":
+                return new Constant(p, constantType, "0");
+            case "float":
+                return new Constant(p, constantType, "0.0");
+            case "string":
+            case "key":
+                return new Constant(p, constantType, "");
+            case "list":
+                ArgumentList al = new ArgumentList(p);
+                return new ListConstant(p, al);
+            case "vector":
+                Constant vca = new Constant(p, "float", "0.0");
+                Constant vcb = new Constant(p, "float", "0.0");
+                Constant vcc = new Constant(p, "float", "0.0");
+                ConstantExpression vcea = new ConstantExpression(p, vca);
+                ConstantExpression vceb = new ConstantExpression(p, vcb);
+                ConstantExpression vcec = new ConstantExpression(p, vcc);
+                return new VectorConstant(p, vcea, vceb, vcec);
+            case "rotation":
+                Constant rca = new Constant(p, "float", "0.0");
+                Constant rcb = new Constant(p, "float", "0.0");
+                Constant rcc = new Constant(p, "float", "0.0");
+                Constant rcd = new Constant(p, "float", "0.0");
+                ConstantExpression rcea = new ConstantExpression(p, rca);
+                ConstantExpression rceb = new ConstantExpression(p, rcb);
+                ConstantExpression rcec = new ConstantExpression(p, rcc);
+                ConstantExpression rced = new ConstantExpression(p, rcd);
+                return new RotationConstant(p, rcea, rceb, rcec, rced);
+            default:
+                return null; // this will probably break stuff
+            }
         }
     }
 }

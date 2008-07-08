@@ -116,6 +116,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 retstr += GenerateStatement((Statement) s);
             else if (s is ReturnStatement)
                 retstr += GenerateReturnStatement((ReturnStatement) s);
+            else if (s is JumpLabel)
+                retstr += GenerateJumpLabel((JumpLabel) s);
+            else if (s is JumpStatement)
+                retstr += GenerateJumpStatement((JumpStatement) s);
             else if (s is StateChange)
                 retstr += GenerateStateChange((StateChange) s);
             else if (s is IfStatement)
@@ -354,12 +358,16 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         {
             string retstr = String.Empty;
 
+            // Jump label prints its own colon, we don't need a semicolon.
+            bool printSemicolon = !(s.kids.Top is JumpLabel);
+
             retstr += Indent();
 
             foreach (SYMBOL kid in s.kids)
                 retstr += GenerateNode(kid);
 
-            retstr += ";\n";
+            if (printSemicolon)
+                retstr += ";\n";
 
             return retstr;
         }
@@ -396,6 +404,26 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                 retstr += GenerateNode(kid);
 
             return retstr;
+        }
+
+        /// <summary>
+        /// Generates the code for a JumpLabel node.
+        /// </summary>
+        /// <param name="jl">The JumpLabel node.</param>
+        /// <returns>String containing C# code for SYMBOL s.</returns>
+        private string GenerateJumpLabel(JumpLabel jl)
+        {
+            return String.Format("{0}:\n", jl.LabelName);
+        }
+
+        /// <summary>
+        /// Generates the code for a JumpStatement node.
+        /// </summary>
+        /// <param name="js">The JumpStatement node.</param>
+        /// <returns>String containing C# code for SYMBOL s.</returns>
+        private string GenerateJumpStatement(JumpStatement js)
+        {
+            return String.Format("goto {0}", js.TargetName);
         }
 
         /// <summary>
