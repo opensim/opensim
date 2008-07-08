@@ -230,13 +230,24 @@ namespace OpenSim.Framework.Servers
             string buildVersion = string.Empty;
 
             // Add subversion revision information if available
+            // Try file "svn_revision" in the current directory first, then the .svn info.
+            // This allows to make the revision available in simulators not running from the source tree.
             // FIXME: Making an assumption about the directory we're currently in - we do this all over the place
             // elsewhere as well
+            string svnRevisionFileName = "svn_revision";
             string svnFileName = "../.svn/entries";
             string inputLine;
             int strcmp;
 
-            if (File.Exists(svnFileName))
+            if (File.Exists(svnRevisionFileName))
+            {
+                StreamReader RevisionFile = File.OpenText(svnRevisionFileName);
+                buildVersion = RevisionFile.ReadLine();
+                buildVersion.Trim();
+                RevisionFile.Close();
+            }
+
+            if (string.IsNullOrEmpty(buildVersion) && File.Exists(svnFileName))
             {
                 StreamReader EntriesFile = File.OpenText(svnFileName);
                 inputLine = EntriesFile.ReadLine();
