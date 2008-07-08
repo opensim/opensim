@@ -1375,6 +1375,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             RemoveState();
 
             Stop(0);
+            SceneObjectPart part=m_Engine.World.GetSceneObjectPart(m_LocalID);
+            part.GetInventoryItem(m_ItemID).PermsMask = 0;
+            part.GetInventoryItem(m_ItemID).PermsGranter = LLUUID.Zero;
             m_Engine.m_AsyncCommands.RemoveScript(m_LocalID, m_ItemID);
             m_EventQueue.Clear();
             m_Script.ResetVars();
@@ -1392,6 +1395,9 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             RemoveState();
 
             m_Script.ResetVars();
+            SceneObjectPart part=m_Engine.World.GetSceneObjectPart(m_LocalID);
+            part.GetInventoryItem(m_ItemID).PermsMask = 0;
+            part.GetInventoryItem(m_ItemID).PermsGranter = LLUUID.Zero;
             m_Engine.m_AsyncCommands.RemoveScript(m_LocalID, m_ItemID);
             if (m_CurrentEvent != "state_entry")
             {

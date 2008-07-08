@@ -432,6 +432,9 @@ namespace OpenSim.Region.ScriptEngine.Common.ScriptEngineBase
             IScript s = GetScript(localID, itemID);
             string script = s.Source;
             StopScript(localID, itemID);
+            SceneObjectPart part = World.GetSceneObjectPart(localID);
+            part.GetInventoryItem(itemID).PermsMask = 0;
+            part.GetInventoryItem(itemID).PermsGranter = LLUUID.Zero;
             StartScript(localID, itemID, script, s.StartParam, false);
         }
 
