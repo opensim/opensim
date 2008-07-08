@@ -795,5 +795,15 @@ namespace OpenSim.Region.Environment.Modules.World.NPC
         }
         #endregion
 
-     }
+
+        public void SendParcelMediaCommand(ParcelMediaCommandEnum flags, uint command, float time)
+        {           
+        }
+
+        public void SendParcelMediaUpdate(string mediaUrl, LLUUID mediaTextureID,
+                                   byte autoScale, string mediaType, string mediaDesc, int mediaWidth, int mediaHeight,
+                                   byte mediaLoop)
+        {  
+        }
+    }
 }

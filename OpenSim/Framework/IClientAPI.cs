@@ -640,6 +640,16 @@ namespace OpenSim.Framework
         void SendLandObjectOwners(Dictionary<LLUUID, int> ownersAndCount);
         void SendLandParcelOverlay(byte[] data, int sequence_id);
 
+        #region Parcel Methods
+
+        void SendParcelMediaCommand(ParcelMediaCommandEnum flags, uint command, float time);
+
+        void SendParcelMediaUpdate(string mediaUrl, LLUUID mediaTextureID,
+                                   byte autoScale, string mediaType, string mediaDesc, int mediaWidth, int mediaHeight,
+                                   byte mediaLoop);
+
+        #endregion
+
         void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, LLUUID AssetFullID);
         void SendConfirmXfer(ulong xferID, uint PacketID);
         void SendXferRequest(ulong XferID, short AssetType, LLUUID vFileID, byte FilePath, byte[] FileName);

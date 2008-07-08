@@ -771,6 +771,17 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
+        public void SendParcelMediaCommand(ParcelMediaCommandEnum flags, uint command, float time)
+        {
+
+        }
+
+        public void SendParcelMediaUpdate(string mediaUrl, LLUUID mediaTextureID, byte autoScale, string mediaType,
+                                          string mediaDesc, int mediaWidth, int mediaHeight, byte mediaLoop)
+        {
+
+        }
+
         public void SendGroupNameReply(LLUUID groupLLUID, string GroupName)
         {
         }

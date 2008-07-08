@@ -6594,5 +6594,37 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
             m_sequence = info.sequence;
         }
+
+        #region Media Parcel Members
+
+        public void SendParcelMediaCommand(ParcelMediaCommandEnum flags, uint command, float time)
+        {
+            ParcelMediaCommandMessagePacket commandMessagePacket = new ParcelMediaCommandMessagePacket();
+            commandMessagePacket.CommandBlock.Flags = (uint) flags;
+            commandMessagePacket.CommandBlock.Command = command;
+            commandMessagePacket.CommandBlock.Time = time;
+
+            OutPacket(commandMessagePacket, ThrottleOutPacketType.Unknown);
+        }
+
+        public void SendParcelMediaUpdate(string mediaUrl, LLUUID mediaTextureID,
+                                   byte autoScale, string mediaType, string mediaDesc, int mediaWidth, int mediaHeight,
+                                   byte mediaLoop)
+        {
+            ParcelMediaUpdatePacket updatePacket = new ParcelMediaUpdatePacket();
+            updatePacket.DataBlock.MediaURL = Helpers.StringToField(mediaUrl);
+            updatePacket.DataBlock.MediaID = mediaTextureID;
+            updatePacket.DataBlock.MediaAutoScale = autoScale;
+
+            updatePacket.DataBlockExtended.MediaType = Helpers.StringToField(mediaType);
+            updatePacket.DataBlockExtended.MediaDesc = Helpers.StringToField(mediaDesc);
+            updatePacket.DataBlockExtended.MediaWidth = mediaWidth;
+            updatePacket.DataBlockExtended.MediaWidth = mediaHeight;
+            updatePacket.DataBlockExtended.MediaLoop = mediaLoop;
+
+            OutPacket(updatePacket, ThrottleOutPacketType.Unknown);
+        }
+
+        #endregion
     }
 }
