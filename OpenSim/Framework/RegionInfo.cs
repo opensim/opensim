@@ -565,10 +565,13 @@ namespace OpenSim.Framework
 
         public void SaveEstatecovenantUUID(LLUUID notecard)
         {
+            if (null == configMember) return;
             configMember.forceSetConfigurationOption("estate_covanant_uuid", notecard.ToString());
         }
         public void SaveLastMapUUID(LLUUID mapUUID)
         {
+            if (null == configMember) return;
+
             lastMapUUID = mapUUID;
             lastMapRefresh = Util.UnixTimeSinceEpoch().ToString();
 
