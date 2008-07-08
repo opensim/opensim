@@ -73,6 +73,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         private string ScriptEnginesPath = "ScriptEngines";
 
         private static LSL2CSConverter LSL_Converter = new LSL2CSConverter();
+        //private static CSCodeGenerator LSL_Converter;
         private static CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
         private static VBCodeProvider VBcodeProvider = new VBCodeProvider();
         private static JScriptCodeProvider JScodeProvider = new JScriptCodeProvider();
@@ -324,6 +325,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             {
                 // Its LSL, convert it to C#
                 compileScript = LSL_Converter.Convert(Script);
+                //LSL_Converter = new CSCodeGenerator(Script);
+                //compileScript = LSL_Converter.Generate();
                 l = enumCompileType.cs;
             }
 

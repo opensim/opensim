@@ -26,7 +26,7 @@
  */
 
 using System;using Tools;
-namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL {
+namespace OpenSim.Region.ScriptEngine.Shared.CodeTools {
 //%+STRING_CONSTANT+3
 public class STRING_CONSTANT : TOKEN{
 public override string yyname { get { return "STRING_CONSTANT"; }}

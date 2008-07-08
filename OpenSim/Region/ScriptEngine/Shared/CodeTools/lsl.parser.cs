@@ -26,7 +26,7 @@
  */
 
 using System;using Tools;
-namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL {
+namespace OpenSim.Region.ScriptEngine.Shared.CodeTools {
 //%+LSLProgramRoot+95
 public class LSLProgramRoot : SYMBOL{
  public  LSLProgramRoot (Parser yyp, States  s ):base(((LSLSyntax

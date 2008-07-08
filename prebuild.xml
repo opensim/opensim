@@ -1581,6 +1581,7 @@
       <Reference name="Nini.dll" />
       <Reference name="RAIL.dll"/>
       <Reference name="log4net.dll"/>
+      <Reference name="Tools.dll"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
