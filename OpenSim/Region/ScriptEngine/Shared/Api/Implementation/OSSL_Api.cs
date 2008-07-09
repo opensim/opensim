@@ -586,6 +586,14 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         //for testing purposes only
         public void osSetParcelMediaTime(double time)
         {
+            if (!m_ScriptEngine.Config.GetBoolean("AllowOSFunctions", false))
+            {
+                OSSLError("osSetParcelMediaTime: permission denied");
+                return;
+            }
+
+            m_host.AddScriptLPS(1);
+
             World.ParcelMediaSetTime((float)time);
         }
     }
