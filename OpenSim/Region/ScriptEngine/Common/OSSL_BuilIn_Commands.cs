@@ -569,5 +569,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return String.Empty;
             } 
         }
+
+        //for testing purposes only
+        public void osSetParcelMediaTime(double time)
+        {
+            World.ParcelMediaSetTime((float)time);
+        }
     }
 }

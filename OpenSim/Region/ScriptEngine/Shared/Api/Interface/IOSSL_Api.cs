@@ -66,5 +66,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Interfaces
         void osSetRegionWaterHeight(double height);
 
         string osGetScriptEngineName();
+        void osSetParcelMediaTime(double time);
     }
 }

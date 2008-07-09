@@ -2034,6 +2034,13 @@ namespace OpenSim.Region.ScriptEngine.Common
             return m_LSL_Functions.llList2Float(src, index);
         }
 
+
+        //for testing purposes only
+        public void osSetParcelMediaTime(double time)
+        {
+            m_LSL_Functions.osSetParcelMediaTime(time);
+        }
+
         // LSL CONSTANTS
         public const int TRUE = 1;
         public const int FALSE = 0;

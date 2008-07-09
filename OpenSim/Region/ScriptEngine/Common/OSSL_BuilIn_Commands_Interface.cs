@@ -65,6 +65,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         void osOpenRemoteDataChannel(string channel);
 
         string osGetScriptEngineName();
+        void osSetParcelMediaTime(double time);
 
     }
 }

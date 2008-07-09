@@ -757,7 +757,10 @@ namespace OpenSim.Region.Environment.Scenes
                         UpdateEvents();
 
                     if (m_frame % m_update_backup == 0)
+                    {
                         UpdateStorageBackup();
+                        
+                    }
 
                     if (m_frame % m_update_terrain == 0)
                         UpdateTerrain();
@@ -3661,7 +3664,20 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
-     
+
+
+        public void ParcelMediaSetTime(float time)
+        {
+            //should be doing this by parcel, but as its only for testing
+            ForEachClient(delegate(IClientAPI client)
+            {
+                client.SendParcelMediaCommand((uint)(2), ParcelMediaCommandEnum.Pause, 0);
+                Thread.Sleep(10);
+                client.SendParcelMediaCommand((uint)(64), ParcelMediaCommandEnum.Time, time);
+                Thread.Sleep(200);
+                client.SendParcelMediaCommand((uint)(4), ParcelMediaCommandEnum.Play, 0);
+            });
+        }
     }
 }
         
