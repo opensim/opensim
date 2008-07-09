@@ -642,7 +642,7 @@ namespace OpenSim.Framework
 
         #region Parcel Methods
 
-        void SendParcelMediaCommand(ParcelMediaCommandEnum flags, uint command, float time);
+        void SendParcelMediaCommand(uint flags, ParcelMediaCommandEnum command, float time);
 
         void SendParcelMediaUpdate(string mediaUrl, LLUUID mediaTextureID,
                                    byte autoScale, string mediaType, string mediaDesc, int mediaWidth, int mediaHeight,

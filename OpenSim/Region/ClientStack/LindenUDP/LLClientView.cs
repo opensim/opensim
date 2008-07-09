@@ -6597,11 +6597,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         #region Media Parcel Members
 
-        public void SendParcelMediaCommand(ParcelMediaCommandEnum flags, uint command, float time)
+        public void SendParcelMediaCommand(uint flags, ParcelMediaCommandEnum command, float time)
         {
             ParcelMediaCommandMessagePacket commandMessagePacket = new ParcelMediaCommandMessagePacket();
             commandMessagePacket.CommandBlock.Flags = (uint) flags;
-            commandMessagePacket.CommandBlock.Command = command;
+            commandMessagePacket.CommandBlock.Command =(uint) command;
             commandMessagePacket.CommandBlock.Time = time;
 
             OutPacket(commandMessagePacket, ThrottleOutPacketType.Unknown);

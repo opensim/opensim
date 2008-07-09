@@ -771,7 +771,7 @@ namespace OpenSim.Region.Examples.SimpleModule
         {
         }
 
-        public void SendParcelMediaCommand(ParcelMediaCommandEnum flags, uint command, float time)
+        public void SendParcelMediaCommand(uint flags, ParcelMediaCommandEnum command, float time)
         {
 
         }
