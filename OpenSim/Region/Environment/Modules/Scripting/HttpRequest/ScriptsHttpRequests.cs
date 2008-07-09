@@ -117,7 +117,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
             if (parameters != null)
             {
                 string[] parms = parameters.ToArray();
-                for (int i = 0; i < parms.Length / 2; i += 2)
+                for (int i = 0; i < parms.Length; i += 2)
                 {
                     switch (Int32.Parse(parms[i]))
                     {
