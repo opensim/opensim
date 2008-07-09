@@ -162,6 +162,9 @@ namespace OpenSim.Region.Environment.Scenes
             //                "[PRIM INVENTORY]: " +
             //                "Starting script {0}, {1} in prim {2}, {3}",
             //                item.Name, item.ItemID, Name, UUID);
+            if (!m_parentGroup.Scene.ExternalChecks.ExternalChecksCanRunScript(item.ItemID, UUID, item.OwnerID))
+                return;
+
             AddFlag(LLObject.ObjectFlags.Scripted);
 
             if (!((m_parentGroup.Scene.RegionInfo.EstateSettings.regionFlags & Simulator.RegionFlags.SkipScripts) == Simulator.RegionFlags.SkipScripts))

@@ -1166,6 +1166,12 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (part != null)
             {
+                if (part.OwnerID != remoteClient.AgentId)
+                    return;
+
+                if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                    return;
+
                 TaskInventoryItem currentItem = part.GetInventoryItem(itemID);
 
                 if (currentItem == null)
@@ -1256,17 +1262,20 @@ namespace OpenSim.Region.Environment.Scenes
                         SceneObjectPart part = GetSceneObjectPart(localID);
                         if (part != null)
                         {
-                            if (ExternalChecks.ExternalChecksCanRunScript(item.ID, part.UUID, remoteClient.AgentId))
-                            {
-                                part.ParentGroup.AddInventoryItem(remoteClient, localID, item, copyID);
-                                // TODO: set this to "true" when scripts in inventory have persistent state to fire on_rez
-                                part.CreateScriptInstance(copyID, 0, false);
-                                part.GetProperties(remoteClient);
+                            if (part.OwnerID != remoteClient.AgentId)
+                                return;
 
-                                //                        m_log.InfoFormat("[PRIMINVENTORY]: " +
-                                //                                         "Rezzed script {0} into prim local ID {1} for user {2}",
-                                //                                         item.inventoryName, localID, remoteClient.Name);
-                            }
+                            if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                                return;
+
+                            part.ParentGroup.AddInventoryItem(remoteClient, localID, item, copyID);
+                            // TODO: set this to "true" when scripts in inventory have persistent state to fire on_rez
+                            part.CreateScriptInstance(copyID, 0, false);
+
+                            //                        m_log.InfoFormat("[PRIMINVENTORY]: " +
+                            //                                         "Rezzed script {0} into prim local ID {1} for user {2}",
+                            //                                         item.inventoryName, localID, remoteClient.Name);
+                            part.GetProperties(remoteClient);
                         }
                         else
                         {
@@ -1289,6 +1298,12 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 SceneObjectPart part=GetSceneObjectPart(itemBase.Folder);
                 if (part == null)
+                    return;
+
+                if (part.OwnerID != remoteClient.AgentId)
+                    return;
+
+                if ((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
                     return;
 
                 AssetBase asset = CreateAsset(itemBase.Name, itemBase.Description, (sbyte)itemBase.AssetType, Encoding.ASCII.GetBytes("default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}"));
@@ -1319,10 +1334,7 @@ namespace OpenSim.Region.Environment.Scenes
                 part.AddInventoryItem(taskItem);
                 part.GetProperties(remoteClient);
                 
-                if (ExternalChecks.ExternalChecksCanRunScript(taskItem.AssetID, part.UUID, remoteClient.AgentId))
-                {
-                    part.CreateScriptInstance(taskItem, 0, false);
-                }
+                part.CreateScriptInstance(taskItem, 0, false);
             }
         }
 
@@ -1418,10 +1430,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             if (running > 0)
             {
-                if (ExternalChecks.ExternalChecksCanRunScript(destTaskItem.AssetID, destPart.UUID, destPart.OwnerID))
-                {
-                    destPart.CreateScriptInstance(destTaskItem, 0, false);
-                }
+                destPart.CreateScriptInstance(destTaskItem, 0, false);
             }
             
             ScenePresence avatar;
