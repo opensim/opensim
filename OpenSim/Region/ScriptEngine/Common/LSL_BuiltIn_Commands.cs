@@ -2759,10 +2759,17 @@ namespace OpenSim.Region.ScriptEngine.Common
                 llSay(0, "Could not find object " + inventory);
         }
 
-        public void llRemoveInventory(string item)
+        public void llRemoveInventory(string name)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llRemoveInventory");
+            foreach (TaskInventoryItem item in m_host.TaskInventory.Values)
+            {
+                if (item.Name == name)
+                {
+                    m_host.RemoveInventoryItem(item.ItemID);
+                    return;
+                }
+            }
         }
 
         public void llSetText(string text, LSL_Types.Vector3 color, double alpha)
