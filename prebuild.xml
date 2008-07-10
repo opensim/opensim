@@ -1602,6 +1602,7 @@
       </Configuration>
 
       <ReferencePath>../../../../../../../bin/</ReferencePath>
+      <Reference name="System" localCopy="false"/>
       <Reference name="OpenSim.Region.ScriptEngine.Shared.CodeTools"/>
       <Reference name="nunit.framework.dll" />
       <Reference name="Tools.dll" />
