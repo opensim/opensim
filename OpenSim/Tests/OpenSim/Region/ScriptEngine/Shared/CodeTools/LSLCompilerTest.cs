@@ -26,6 +26,7 @@
  */
 
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using OpenSim.Region.ScriptEngine.Shared.CodeTools;
 
@@ -1298,6 +1299,36 @@ default
             CSCodeGenerator cg = new CSCodeGenerator(input);
             string output = cg.Generate();
             Assert.AreEqual(expected, output);
+        }
+
+        [Test]
+        [ExpectedException("Tools.CSToolsException")]
+        public void TestSyntaxError()
+        {
+            string input = @"default
+{
+    state_entry()
+    {
+        integer y
+    }
+}
+";
+            try
+            {
+                CSCodeGenerator cg = new CSCodeGenerator(input);
+                string output = cg.Generate();
+            }
+            catch (Tools.CSToolsException e)
+            {
+                // The syntax error is on line 6, char 5 (expected ';', found
+                // '}').
+                Regex r = new Regex("Line ([0-9]+), char ([0-9]+)");
+                Match m = r.Match(e.Message);
+                Assert.AreEqual("6", m.Groups[1].Value);
+                Assert.AreEqual("5", m.Groups[2].Value);
+
+                throw;
+            }
         }
     }
 }

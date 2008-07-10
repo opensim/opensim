@@ -43,7 +43,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
         /// <param name="script">String containing LSL source.</param>
         public CSCodeGenerator(string script)
         {
-            Parser p = new LSLSyntax();
+            Parser p = new LSLSyntax(new yyLSLSyntax(), new ErrorHandler(true));
             // Obviously this needs to be in a try/except block.
             LSL2CSCodeTransformer codeTransformer = new LSL2CSCodeTransformer(p.Parse(script));
             m_astRoot = codeTransformer.Transform();
