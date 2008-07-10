@@ -1292,6 +1292,26 @@ namespace OpenSim.Region.ScriptEngine.Common
                 bool ret = i1.value != i2.value;
                 return ret;
             }
+            
+            static public LSLInteger operator +(LSLInteger i1, int i2)
+            {
+                return new LSLInteger(i1.value + i2);
+            }
+            
+            static public LSLInteger operator -(LSLInteger i1, int i2)
+            {
+                return new LSLInteger(i1.value - i2);
+            }
+            
+            static public LSLInteger operator *(LSLInteger i1, int i2)
+            {
+                return new LSLInteger(i1.value * i2);
+            }
+            
+            static public LSLInteger operator /(LSLInteger i1, int i2)
+            {
+                return new LSLInteger(i1.value / i2);
+            }
 
             public override bool Equals(Object o)
             {
