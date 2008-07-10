@@ -671,7 +671,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             if ((status & ScriptBaseClass.STATUS_PHYSICS) == ScriptBaseClass.STATUS_PHYSICS)
             {
                 if (value == 1)
+                {
+                    SceneObjectGroup group = m_host.ParentGroup;
+                    if(group == null)
+                        return;
+                    bool allow = true;
+                    foreach(SceneObjectPart part in group.Children.Values)
+                    {
+                        if(part.Scale.X > 10.0 || part.Scale.Y > 10.0 || part.Scale.Z > 10.0)
+                        {
+                            allow = false;
+                            break;
+                        }
+                    }
+
+                    if(!allow)
+                        return;
                     m_host.ScriptSetPhysicsStatus(true);
+                }
                 else
                     m_host.ScriptSetPhysicsStatus(false);
             }
@@ -802,6 +819,25 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         private void SetScale(SceneObjectPart part, LSL_Types.Vector3 scale)
         {
             // TODO: this needs to trigger a persistance save as well
+
+            if(part == null || part.ParentGroup == null || part.ParentGroup.RootPart == null)
+                return;
+
+            if(part.ParentGroup.RootPart.PhysActor != null && part.ParentGroup.RootPart.PhysActor.IsPhysical)
+            {
+                if(scale.x > 10.0)
+                    scale.x = 10.0;
+                if(scale.y > 10.0)
+                    scale.y = 10.0;
+                if(scale.z > 10.0)
+                    scale.z = 10.0;
+            }
+            if(scale.x > 65536.0)
+                scale.x = 65536.0;
+            if(scale.y > 65536.0)
+                scale.y = 65536.0;
+            if(scale.z > 65536.0)
+                scale.z = 65536.0;
             LLVector3 tmp = part.Scale;
             tmp.X = (float)scale.x;
             tmp.Y = (float)scale.y;

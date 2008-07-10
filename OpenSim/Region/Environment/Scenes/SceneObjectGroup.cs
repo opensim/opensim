@@ -2012,6 +2012,15 @@ namespace OpenSim.Region.Environment.Scenes
                 // If we have children
                 lock (m_parts)
                 {
+                    foreach (SceneObjectPart parts in m_parts.Values)
+                    {
+                        if(part.Scale.X > 10.0 || part.Scale.Y > 10.0 || part.Scale.Z > 10.0)
+                        {
+                            data[47] = 0; // Reset physics
+                            break;
+                        }
+                    }
+
                     if (m_parts.Count > 1)
                     {
                         foreach (SceneObjectPart parts in m_parts.Values)
@@ -2100,12 +2109,28 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="localID"></param>
         public void Resize(LLVector3 scale, uint localID)
         {
+            if(scale.X > 65536.0f)
+                scale.X = 65536.0f;
+            if(scale.Y > 65536.0f)
+                scale.Y = 65536.0f;
+            if(scale.Z > 65536.0f)
+                scale.Z = 65536.0f;
+
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
                 part.Resize(scale);
                 if (part.PhysActor != null)
                 {
+                    if(part.PhysActor.IsPhysical)
+                    {
+                        if(scale.X > 10.0f)
+                            scale.X = 10.0f;
+                        if(scale.Y > 10.0f)
+                            scale.Y = 10.0f;
+                        if(scale.Z > 10.0f)
+                            scale.Z = 10.0f;
+                    }
                     part.PhysActor.Size =
                         new PhysicsVector(scale.X, scale.Y, scale.Z);
                     m_scene.PhysicsScene.AddPhysicsActorTaint(part.PhysActor);
@@ -2132,10 +2157,102 @@ namespace OpenSim.Region.Environment.Scenes
             SceneObjectPart part = GetChildPart(localID);
             if (part != null)
             {
+                if(scale.X > 65536.0f)
+                    scale.X = 65536.0f;
+                if(scale.Y > 65536.0f)
+                    scale.Y = 65536.0f;
+                if(scale.Z > 65536.0f)
+                    scale.Z = 65536.0f;
+                if(part.PhysActor != null && part.PhysActor.IsPhysical)
+                {
+                    if(scale.X > 10.0f)
+                        scale.X = 10.0f;
+                    if(scale.Y > 10.0f)
+                        scale.Y = 10.0f;
+                    if(scale.Z > 10.0f)
+                        scale.Z = 10.0f;
+                }
                 float x = (scale.X / part.Scale.X);
                 float y = (scale.Y / part.Scale.Y);
                 float z = (scale.Z / part.Scale.Z);
-                part.Resize(scale);
+
+                lock (m_parts)
+                {
+                    if(x > 1.0f || y > 1.0f || z > 1.0f)
+                    {
+                        foreach (SceneObjectPart obPart in m_parts.Values)
+                        {
+                            if (obPart.UUID != m_rootPart.UUID)
+                            {
+                                LLVector3 oldSize = new LLVector3(obPart.Scale);
+
+                                float f = 1.0f;
+                                float a = 1.0f;
+
+                                if(part.PhysActor != null && part.PhysActor.IsPhysical)
+                                {
+                                    if(oldSize.X*x > 10.0f)
+                                    {
+                                        f = 10.0f / oldSize.X;
+                                        a = f / x;
+                                        x *= a;
+                                        y *= a;
+                                        z *= a;
+                                    }
+                                    if(oldSize.Y*y > 10.0f)
+                                    {
+                                        f = 10.0f / oldSize.Y;
+                                        a = f / y;
+                                        x *= a;
+                                        y *= a;
+                                        z *= a;
+                                    }
+                                    if(oldSize.Z*z > 10.0f)
+                                    {
+                                        f = 10.0f / oldSize.Z;
+                                        a = f / z;
+                                        x *= a;
+                                        y *= a;
+                                        z *= a;
+                                    }
+                                }
+                                else
+                                {
+                                    if(oldSize.X*x > 65536.0f)
+                                    {
+                                        f = 65536.0f / oldSize.X;
+                                        a = f / x;
+                                        x *= a;
+                                        y *= a;
+                                        z *= a;
+                                    }
+                                    if(oldSize.Y*y > 65536.0f)
+                                    {
+                                        f = 65536.0f / oldSize.Y;
+                                        a = f / y;
+                                        x *= a;
+                                        y *= a;
+                                        z *= a;
+                                    }
+                                    if(oldSize.Z*z > 65536.0f)
+                                    {
+                                        f = 65536.0f / oldSize.Z;
+                                        a = f / z;
+                                        x *= a;
+                                        y *= a;
+                                        z *= a;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                LLVector3 prevScale = part.Scale;
+                prevScale.X *= x;
+                prevScale.Y *= y;
+                prevScale.Z *= z;
+                part.Resize(prevScale);
 
                 lock (m_parts)
                 {
@@ -2160,7 +2277,7 @@ namespace OpenSim.Region.Environment.Scenes
                 if (part.PhysActor != null)
                 {
                     part.PhysActor.Size =
-                        new PhysicsVector(scale.X, scale.Y, scale.Z);
+                        new PhysicsVector(prevScale.X, prevScale.Y, prevScale.Z);
                     m_scene.PhysicsScene.AddPhysicsActorTaint(part.PhysActor);
                 }
 
