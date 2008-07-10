@@ -212,9 +212,11 @@ namespace OpenSim.Region.Modules.SvnSerialiser
             {
                 m_scenes.Add(scene);
             }
-
-            scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
-        }
+			//Only register it once, to prevend command being executed x*region times
+			if(m_scenes.Count ==1) {
+				scene.EventManager.OnPluginConsole += EventManager_OnPluginConsole;
+			}
+		}
 
         public void PostInitialise()
         {
