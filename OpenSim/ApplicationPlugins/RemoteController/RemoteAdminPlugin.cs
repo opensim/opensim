@@ -393,8 +393,8 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 region.RegionID = regionID;
                 region.RegionName = (string) requestData["region_name"];
-                region.RegionLocX = Convert.ToUInt32((Int32) requestData["region_x"]);
-                region.RegionLocY = Convert.ToUInt32((Int32) requestData["region_y"]);
+                region.RegionLocX = Convert.ToUInt32(requestData["region_x"]);
+                region.RegionLocY = Convert.ToUInt32(requestData["region_y"]);
 
                 // check for collisions: region name, region UUID,
                 // region location
@@ -416,7 +416,7 @@ namespace OpenSim.ApplicationPlugins.RemoteController
                 region.InternalEndPoint =
                     new IPEndPoint(IPAddress.Parse((string) requestData["listen_ip"]), 0);
 
-                region.InternalEndPoint.Port = (Int32) requestData["listen_port"];
+                region.InternalEndPoint.Port = Convert.ToInt32(requestData["listen_port"]);
                 if (0 == region.InternalEndPoint.Port) throw new Exception("listen_port is 0");
                 if (m_app.SceneManager.TryGetScene(region.InternalEndPoint, out scene))
                     throw new Exception(String.Format("region internal IP {0} and port {1} already in use by region {2}, UUID {3}, <{4},{5}>",
