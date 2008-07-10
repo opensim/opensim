@@ -34,7 +34,6 @@ using System.Text;
 using System.Threading;
 using libsecondlife;
 using log4net;
-using Mono.Addins;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.Communications.Cache;
@@ -337,7 +336,7 @@ namespace OpenSim
             PluginLoader<IApplicationPlugin> loader = 
                 new PluginLoader<IApplicationPlugin> (new ApplicationPluginInitialiser (this));
 
-            loader.Load ("/OpenSim/Startup", ".");
+            loader.Load ("/OpenSim/Startup");
             m_plugins = loader.Plugins;
         }
 
@@ -726,6 +725,7 @@ namespace OpenSim
         }
     }
 }
+
 
 
 

@@ -1,0 +1,6 @@
+<Addins host-reference="/home/ryanm/Code/opensim/bin/OpenSim.exe">
+  <Directory>/home/ryanm/Code/opensim/bin</Directory>
+</Addins>
+<Addins host-reference="C:\cfk2007\svnsugi\bin\OpenSim.exe">
+  <Directory>C:\cfk2007\svnsugi\bin</Directory>
+</Addins>

@@ -37,7 +37,6 @@ using System.Timers;
 using System.Xml;
 using System.Xml.Serialization;
 using libsecondlife;
-using Mono.Addins;
 using Nwc.XmlRpc;
 using Nini.Config;
 using OpenSim.Framework;
@@ -47,13 +46,8 @@ using OpenSim.Framework.Communications;
 using OpenSim.Region.Environment.Scenes;
 using OpenSim.ApplicationPlugins.Rest;
 
-[assembly : Addin]
-[assembly : AddinDependency("OpenSim", "0.5")]
-
 namespace OpenSim.ApplicationPlugins.Rest.Regions
 {
-
-    [Extension("/OpenSim/Startup")]
     public partial class RestRegionPlugin : RestPlugin
     {
         private static XmlSerializerNamespaces _xmlNs;

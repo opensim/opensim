@@ -35,7 +35,6 @@ using System.Reflection;
 using System.Timers;
 using System.Xml;
 using libsecondlife;
-using Mono.Addins;
 using Nwc.XmlRpc;
 using Nini.Config;
 using OpenSim.Framework;
@@ -44,13 +43,8 @@ using OpenSim.Framework.Servers;
 using OpenSim.Framework.Communications;
 using OpenSim.Region.Environment.Scenes;
 
-// [assembly : Addin]
-// [assembly : AddinDependency("OpenSim", "0.5")]
-
 namespace OpenSim.ApplicationPlugins.Rest
 {
-
-    // [Extension("/OpenSim/Startup")]
     public abstract class RestPlugin : IApplicationPlugin
     {
         #region properties

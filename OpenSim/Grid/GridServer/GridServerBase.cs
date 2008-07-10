@@ -31,7 +31,6 @@ using System.IO;
 using System.Reflection;
 using System.Timers;
 using log4net;
-using Mono.Addins;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
@@ -121,7 +120,7 @@ namespace OpenSim.Grid.GridServer
             PluginLoader<IGridPlugin> loader = 
                 new PluginLoader<IGridPlugin> (new GridPluginInitialiser (this));
 
-            loader.Load ("/OpenSim/GridServer", ".");
+            loader.Load ("/OpenSim/GridServer");
             m_plugins = loader.Plugins;
         }
 

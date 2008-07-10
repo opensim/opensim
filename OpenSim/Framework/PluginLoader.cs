@@ -55,6 +55,7 @@ namespace OpenSim.Framework
     }
 
     /// <summary>
+
     /// Generic Plugin Loader
     /// </summary>
     public class PluginLoader <T> : IDisposable where T : IPlugin
@@ -66,16 +67,17 @@ namespace OpenSim.Framework
         private PluginInitialiserBase initialiser;
         private Dictionary<string,IPluginConstraint> constraints 
             = new Dictionary<string,IPluginConstraint>();
-        
+
+        private static bool runonce = false; 
         private static readonly ILog log 
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         public PluginInitialiserBase Initialiser
         { 
             set { initialiser = value; } 
             get { return initialiser; } 
         }
-        
+
         public List<T> Plugins 
         { 
             get { return loaded; } 
@@ -84,25 +86,19 @@ namespace OpenSim.Framework
         public PluginLoader () 
         {
             Initialiser = new PluginInitialiserBase();
+            initialise_plugin_dir_ (".");
         }
 
         public PluginLoader (PluginInitialiserBase init)
         {            
-           Initialiser = init;
+            Initialiser = init;
+            initialise_plugin_dir_ (".");
         }
 
         public PluginLoader (PluginInitialiserBase init, string dir)
         {            
-           Initialiser = init;
-           AddPluginDir (dir);
-        }
-
-        public void AddPluginDir (string dir)
-        {
-            suppress_console_output_ (true);
-            AddinManager.Initialize (dir);
-            AddinManager.Registry.Update (null);            
-            suppress_console_output_ (false);
+            Initialiser = init;
+            initialise_plugin_dir_ (dir);
         }
 
         public void AddExtensionPoint (string extpoint)
@@ -114,22 +110,21 @@ namespace OpenSim.Framework
         {
             constraints.Add (extpoint, cons);
         }
-        
-        public void Load (string extpoint, string dir)
+
+        public void Load (string extpoint)
         {
-            AddPluginDir (dir);
             AddExtensionPoint (extpoint);
             Load();
         }
 
         public void Load ()
         {            
-            suppress_console_output_ (true);
-            AddinManager.Registry.Update (null);            
-            suppress_console_output_ (false);
+            log.Info("[PLUGINS]: Begin Loading " + AddinManager.Registry.RegistryPath);
 
             foreach (string ext in extpoints)
             {
+                log.Info("[PLUGINS]: Loading extension point " + ext);
+
                 if (constraints.ContainsKey (ext))
                 {
                     IPluginConstraint cons = constraints [ext];
@@ -155,9 +150,25 @@ namespace OpenSim.Framework
                 p.Dispose ();
         }
 
-        public void ClearCache()
+        private void initialise_plugin_dir_ (string dir)
         {
-            // The Mono addin manager (in Mono.Addins.dll version 0.2.0.0) occasionally seems to corrupt its addin cache
+            if (runonce == true)
+                return;
+
+            log.Info("[PLUGINS]: Initialzing " + dir);
+
+            clear_registry_();
+            suppress_console_output_ (true);
+            AddinManager.Initialize (dir);
+            AddinManager.Registry.Update (null);
+            suppress_console_output_ (false);
+            runonce = true;
+        }
+
+        private void clear_registry_ ()
+        {
+            // The Mono addin manager (in Mono.Addins.dll version 0.2.0.0) 
+            // occasionally seems to corrupt its addin cache
             // Hence, as a temporary solution we'll remove it before each startup
             if (Directory.Exists("addin-db-000"))
                 Directory.Delete("addin-db-000", true);
@@ -225,7 +236,7 @@ namespace OpenSim.Framework
         public PluginFilenameConstraint (string name)
         { 
             filename = name; 
-            
+
         } 
 
         public string Message 
@@ -245,7 +256,7 @@ namespace OpenSim.Framework
             string[] path = ns[0].Path.Split('/');
             if (path [path.Length-1] == filename)
                 return false;
-                
+
             return true;
         }
     }

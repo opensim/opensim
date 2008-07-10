@@ -37,7 +37,6 @@ using System.Timers;
 using System.Xml;
 using System.Xml.Serialization;
 using libsecondlife;
-using Mono.Addins;
 using Nwc.XmlRpc;
 using Nini.Config;
 using OpenSim.Framework;
