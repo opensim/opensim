@@ -715,6 +715,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         protected virtual void AuthUser()
         {
+
+            //tell this thread we are using the culture set up for the sim (currently hardcoded to en_US)
+            //otherwise it will override this and use the system default
+            Culture.SetCurrentCulture();
+
             try
             {
                 // AuthenticateResponse sessionInfo = m_gridServer.AuthenticateSession(m_cirpack.m_circuitCode.m_sessionId, m_cirpack.m_circuitCode.ID, m_cirpack.m_circuitCode.Code);

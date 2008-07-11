@@ -62,7 +62,7 @@ namespace OpenSim.Framework
         private int m_redirectGridY;
         private bool m_regionAllowTerraform;
         private Simulator.RegionFlags m_regionFlags;
-        private ushort m_regionWaterHeight;
+        private float m_regionWaterHeight;
         private Simulator.SimAccess m_simAccess;
         private float m_sunHour;
         private LLVector3 m_sunPosition;
@@ -256,7 +256,7 @@ namespace OpenSim.Framework
         }
 
 
-        public ushort regionWaterHeight
+        public float regionWaterHeight
         {
             get { return m_regionWaterHeight; }
             set
@@ -781,7 +781,7 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("price_per_meter", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 String.Empty, "1", true);
             configMember.addConfigurationOption("region_water_height",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_UINT16, String.Empty, "20", true);
+                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "20", true);
             configMember.addConfigurationOption("region_allow_terraform",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN, String.Empty, "true", true);
 
@@ -903,7 +903,7 @@ namespace OpenSim.Framework
                     m_pricePerMeter = Convert.ToInt32(configuration_result);
                     break;
                 case "region_water_height":
-                    m_regionWaterHeight = (ushort) configuration_result;
+                    m_regionWaterHeight = (float) configuration_result;
                     break;
                 case "region_allow_terraform":
                     m_regionAllowTerraform = (bool) configuration_result;
