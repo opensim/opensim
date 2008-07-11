@@ -474,15 +474,26 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         public virtual void RemoveClientCircuit(uint circuitcode)
         {
             EndPoint sendto = null;
-            if (clientCircuits_reverse.Contains(circuitcode)) {
+            if (clientCircuits_reverse.Contains(circuitcode)) 
+            {
                 sendto = (EndPoint)clientCircuits_reverse[circuitcode];
 
                 clientCircuits_reverse.Remove(circuitcode);
                 
-                lock (clientCircuits) {
-                    clientCircuits.Remove(sendto);
+                lock (clientCircuits) 
+                {
+                    if (sendto != null)
+                    {
+                        clientCircuits.Remove(sendto);
+                    }
+                    else
+                    {
+                        m_log.DebugFormat(
+                            "[UDPSERVER]: endpoint for circuit code {0} in RemoveClientCircuit() was unexpectedly null!", circuitcode);
+                    }
                 }
-                lock (proxyCircuits) {
+                lock (proxyCircuits) 
+                {
                     proxyCircuits.Remove(circuitcode);
                 }
             }
