@@ -1302,6 +1302,64 @@ default
         }
 
         [Test]
+        public void TestMultipleEqualsExpression()
+        {
+            string input = @"// let's test x = y = 5 type expressions
+
+default
+{
+    touch_start(integer num_detected)
+    {
+        integer x;
+        integer y;
+        x = y = 5;
+        x += y -= 5;
+        llOwnerSay(""x is: "" + (string) x + "", y is: "" + (string) y);
+    }
+}
+";
+            string expected = @"
+        public void default_event_touch_start(LSL_Types.LSLInteger num_detected)
+        {
+            LSL_Types.LSLInteger x = 0;
+            LSL_Types.LSLInteger y = 0;
+            x = y = 5;
+            x += y -= 5;
+            llOwnerSay(""x is: "" + (LSL_Types.LSLString) (x) + "", y is: "" + (LSL_Types.LSLString) (y));
+        }
+";
+
+            CSCodeGenerator cg = new CSCodeGenerator(input);
+            string output = cg.Generate();
+            Assert.AreEqual(expected, output);
+        }
+
+        [Test]
+        public void TestUnaryExpressionLastInVectorConstant()
+        {
+            string input = @"// let's test unary expressions some more
+
+default
+{
+    state_entry()
+    {
+        vector v = <x,y,-0.5>;
+    }
+}
+";
+            string expected = @"
+        public void default_event_state_entry()
+        {
+            LSL_Types.Vector3 v = new LSL_Types.Vector3(x, y, -0.5);
+        }
+";
+
+            CSCodeGenerator cg = new CSCodeGenerator(input);
+            string output = cg.Generate();
+            Assert.AreEqual(expected, output);
+        }
+
+        [Test]
         [ExpectedException("Tools.CSToolsException")]
         public void TestSyntaxError()
         {
@@ -1316,7 +1374,7 @@ default
             try
             {
                 CSCodeGenerator cg = new CSCodeGenerator(input);
-                string output = cg.Generate();
+                cg.Generate();
             }
             catch (Tools.CSToolsException e)
             {
