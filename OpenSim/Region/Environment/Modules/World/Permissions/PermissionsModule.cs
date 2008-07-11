@@ -62,7 +62,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         // Bypasses the permissions engine
         private bool m_bypassPermissions = false;
         private bool m_bypassPermissionsValue = true;
-        private bool m_debugPermissions = false;
+        private bool m_debugPermissions = true;
 
         #endregion
 
@@ -137,6 +137,11 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 return;
 
             m_bypassPermissions = !myConfig.GetBoolean("serverside_object_permissions", true);
+            
+            if (m_bypassPermissions)
+                m_log.Info("[PERMISSIONS]: serviceside_object_permissions = false in ini file so disabling all region service permission checks");
+            else
+                m_log.Debug("[PERMISSIONS]: Enabling all region service permission checks");
 
             //Register functions with Scene External Checks!
             m_scene.ExternalChecks.addBypassPermissions(BypassPermissions); //FULLY IMPLEMENTED
@@ -226,6 +231,10 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
 
         protected bool IsAdministrator(LLUUID user)
         {
+//            m_log.DebugFormat(
+//                "[PERMISSIONS]: Is adminstrator called for {0} where region master avatar is {1}", 
+//                user, m_scene.RegionInfo.MasterAvatarAssignedUUID);
+            
             // If there is no master avatar, return false
             if (m_scene.RegionInfo.MasterAvatarAssignedUUID != LLUUID.Zero)
             {

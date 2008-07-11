@@ -2956,7 +2956,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Handle a request for admin rights
         /// </summary>
         /// <param name="agentID"></param>
         /// <param name="sessionID"></param>
