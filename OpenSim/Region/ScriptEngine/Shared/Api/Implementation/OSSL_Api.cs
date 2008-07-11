@@ -25,6 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
+using System.Runtime.Remoting.Lifetime;
 using Axiom.Math;
 using libsecondlife;
 using Nini.Config;
@@ -55,6 +56,19 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             m_itemID = itemID;
         }
 
+        //
+        // Never expire this object
+        //
+        public override Object InitializeLifetimeService()
+        {
+            ILease lease = (ILease)base.InitializeLifetimeService();
+
+            if (lease.CurrentState == LeaseState.Initial)
+            {
+                lease.InitialLeaseTime = TimeSpan.Zero;
+            }
+            return lease;
+        }
 
         //
         // OpenSim functions

@@ -40,6 +40,20 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
     {
         private Dictionary<string,MethodInfo> inits = new Dictionary<string,MethodInfo>();
 
+        //
+        // Never expire this object
+        //
+        public override Object InitializeLifetimeService()
+        {
+            ILease lease = (ILease)base.InitializeLifetimeService();
+
+            if (lease.CurrentState == LeaseState.Initial)
+            {
+                lease.InitialLeaseTime = TimeSpan.Zero;
+            }
+            return lease;
+        }
+
         public ScriptBaseClass()
         {
             MethodInfo[] myArrayMethodInfo = GetType().GetMethods(BindingFlags.Public|BindingFlags.Instance);
