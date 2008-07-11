@@ -503,11 +503,18 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         public void Reconnect()
         {
             m_connected = false;
-            listener.Abort();
-            pingSender.Abort();
-            m_writer.Close();
-            m_reader.Close();
-            m_tcp.Close();
+            try
+            {
+                listener.Abort();
+                pingSender.Abort();
+                m_writer.Close();
+                m_reader.Close();
+                m_tcp.Close();
+            }
+            catch (Exception)
+            {
+            }
+
             if (m_enabled)
             {
                 Connect(m_last_scenes);
