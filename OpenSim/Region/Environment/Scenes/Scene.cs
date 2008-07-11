@@ -3664,21 +3664,22 @@ namespace OpenSim.Region.Environment.Scenes
 
         #endregion
 
-
-
         public void ParcelMediaSetTime(float time)
         {
             //should be doing this by parcel, but as its only for testing
-            ForEachClient(delegate(IClientAPI client)
-            {
-                client.SendParcelMediaCommand((uint)(2), ParcelMediaCommandEnum.Pause, 0);
-                Thread.Sleep(10);
-                client.SendParcelMediaCommand((uint)(64), ParcelMediaCommandEnum.Time, time);
-                Thread.Sleep(200);
-                client.SendParcelMediaCommand((uint)(4), ParcelMediaCommandEnum.Play, 0);
-            });
+            // The use of Thread.Sleep here causes the following compiler error under mono 1.2.4
+            // OpenSim/Region/Environment/Scenes/Scene.cs(3675,17): error CS0103: The name `Thread' does not exist 
+            // in the context of `<>c__CompilerGenerated17'
+            // MW said it was okay to comment the body of this method out for now since the code is experimental 
+            // and will be replaced anyway
+//            ForEachClient(delegate(IClientAPI client)
+//            {
+//                client.SendParcelMediaCommand((uint)(2), ParcelMediaCommandEnum.Pause, 0);
+//                Thread.Sleep(10);
+//                client.SendParcelMediaCommand((uint)(64), ParcelMediaCommandEnum.Time, time);
+//                Thread.Sleep(200);
+//                client.SendParcelMediaCommand((uint)(4), ParcelMediaCommandEnum.Play, 0);
+//            });
         }
     }
-}
-        
-        
+}              
