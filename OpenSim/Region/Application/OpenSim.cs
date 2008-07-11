@@ -295,7 +295,6 @@ namespace OpenSim
                     m_console.Notice("show users - show info about connected users.");
                     m_console.Notice("show modules - shows info about loaded modules.");
                     m_console.Notice("show regions - show running region information.");
-                    m_console.Notice("threads - list threads");
                     m_console.Notice("config set section field value - set a config value");
                     m_console.Notice("config get section field - get a config value");
                     m_console.Notice("config save - save OpenSim.ini");
@@ -303,33 +302,6 @@ namespace OpenSim
                     ShowPluginCommandsHelp(CombineParams(cmdparams, 0), m_console);
                     break;
 
-                case "threads":
-//                     m_console.Notice("THREAD", Process.GetCurrentProcess().Threads.Count + " threads running:");
-//                     int _tc = 0;
-
-//                     foreach (ProcessThread pt in Process.GetCurrentProcess().Threads)
-//                     {
-//                         _tc++;
-//                         m_console.Notice("THREAD", _tc + ": ID: " + pt.Id + ", Started: " + pt.StartTime.ToString() + ", CPU time: " + pt.TotalProcessorTime + ", Pri: " + pt.BasePriority.ToString() + ", State: " + pt.ThreadState.ToString());
-//                     }
-
-                    List<Thread> threads = ThreadTracker.GetThreads();
-                    if (threads == null)
-                    {
-                        m_console.Notice("THREAD", "Thread tracking is only enabled in DEBUG mode.");
-                    }
-                    else
-                    {
-                        int _tc = 0;
-                        m_console.Notice("THREAD", threads.Count + " threads are being tracked:");
-                        foreach (Thread t in threads)
-                        {
-                            _tc++;
-                            m_console.Notice("THREAD", _tc + ": ID: " + t.ManagedThreadId.ToString() + ", Name: " + t.Name + ", Alive: " + t.IsAlive.ToString() + ", Pri: " + t.Priority.ToString() + ", State: " + t.ThreadState.ToString());
-                        }
-                    }
-
-                    break;
                 case "save-xml":
                     m_log.Error("[CONSOLE]: PLEASE NOTE, save-xml is DEPRECATED and may be REMOVED soon.  If you are using this and there is some reason you can't use save-xml2, please file a mantis detailing the reason.");
 

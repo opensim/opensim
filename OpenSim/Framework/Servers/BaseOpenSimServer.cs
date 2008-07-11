@@ -26,9 +26,11 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Timers;
 using log4net;
 using OpenSim.Framework.Console;
@@ -47,7 +49,7 @@ namespace OpenSim.Framework.Servers
         /// This will control a periodic log printout of the current 'show stats' (if they are active) for this
         /// server.
         /// </summary>
-        private Timer m_periodicDiagnosticsTimer = new Timer(60 * 60 * 1000);
+        private System.Timers.Timer m_periodicDiagnosticsTimer = new System.Timers.Timer(60 * 60 * 1000);
 
         protected ConsoleBase m_console;
 
@@ -154,6 +156,7 @@ namespace OpenSim.Framework.Servers
                     if (m_stats != null)
                         Notice("show stats - show statistical information for this server");
 
+                    Notice("show threads - list tracked threads");
                     Notice("show uptime - show server startup time and uptime.");
                     Notice("show version - show server version.");
                     Notice("shutdown - shutdown the server.\n");
@@ -193,14 +196,36 @@ namespace OpenSim.Framework.Servers
                         Notice(m_stats.Report());
                     }
                     break;
+                    
+                case "threads":
+//                     m_console.Notice("THREAD", Process.GetCurrentProcess().Threads.Count + " threads running:");
+//                     int _tc = 0;
+
+//                     foreach (ProcessThread pt in Process.GetCurrentProcess().Threads)
+//                     {
+//                         _tc++;
+//                         m_console.Notice("THREAD", _tc + ": ID: " + pt.Id + ", Started: " + pt.StartTime.ToString() + ", CPU time: " + pt.TotalProcessorTime + ", Pri: " + pt.BasePriority.ToString() + ", State: " + pt.ThreadState.ToString());
+//                     }
+
+                    List<Thread> threads = ThreadTracker.GetThreads();
+                    if (threads == null)
+                    {
+                        Notice("Thread tracking is only enabled in DEBUG mode.");
+                    }
+                    else
+                    {
+                        int tc = 0;
+                        Notice(threads.Count + " threads are being tracked:");
+                        foreach (Thread t in threads)
+                        {
+                            tc++;
+                            Notice(tc + ": ID: " + t.ManagedThreadId.ToString() + ", Name: " + t.Name + ", Alive: " + t.IsAlive.ToString() + ", Pri: " + t.Priority.ToString() + ", State: " + t.ThreadState.ToString());
+                        }
+                    }
+                    break;                    
 
                 case "uptime":
                     Notice(GetUptimeReport());
-                    /*
-                    Notice("Time now is " + DateTime.Now);
-                    Notice("Server has been running since " + m_startuptime.DayOfWeek + ", " + m_startuptime.ToString());
-                    Notice("That is an elapsed time of " + (DateTime.Now - m_startuptime).ToString());
-                    */
                     break;
 
                 case "version":
