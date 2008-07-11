@@ -28,13 +28,18 @@
 using System.Reflection;
 using System.Threading;
 using log4net;
+using Mono.Addins;
 using Nini.Config;
 using OpenSim.Framework;
 using OpenSim.Framework.RegionLoader.Filesystem;
 using OpenSim.Framework.RegionLoader.Web;
 
+[assembly : Addin]
+[assembly : AddinDependency("OpenSim", "0.5")]
+
 namespace OpenSim.ApplicationPlugins.LoadRegions
 {
+    [Extension("/OpenSim/Startup")]
     public class LoadRegionsPlugin : IApplicationPlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

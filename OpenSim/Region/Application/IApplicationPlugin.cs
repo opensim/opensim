@@ -25,10 +25,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using Mono.Addins;
 using OpenSim.Framework;
+
+[assembly : AddinRoot("OpenSim", "0.5")]
 
 namespace OpenSim
 {
+    [TypeExtensionPoint("/OpenSim/Startup")]
     public interface IApplicationPlugin : IPlugin
     {
         void Initialise(OpenSimBase openSim);

@@ -33,14 +33,19 @@ using System.Reflection;
 using System.Timers;
 using libsecondlife;
 using log4net;
+using Mono.Addins;
 using Nwc.XmlRpc;
 using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Modules.World.Terrain;
 using OpenSim.Region.Environment.Scenes;
 
+[assembly : Addin]
+[assembly : AddinDependency("OpenSim", "0.5")]
+
 namespace OpenSim.ApplicationPlugins.RemoteController
 {
+    [Extension("/OpenSim/Startup")]
     public class RemoteAdminPlugin : IApplicationPlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);

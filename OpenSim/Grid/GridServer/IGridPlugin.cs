@@ -26,10 +26,14 @@
 *
 */
 
+using Mono.Addins;
 using OpenSim.Framework;
+
+[assembly : AddinRoot("OpenSim", "0.5")]
 
 namespace OpenSim.Grid.GridServer
 {
+    [TypeExtensionPoint("/OpenSim/GridServer")]
     public interface IGridPlugin : IPlugin
     {
         void Initialise(GridServerBase gridServer);
