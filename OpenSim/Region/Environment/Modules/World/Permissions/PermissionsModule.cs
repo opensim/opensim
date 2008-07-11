@@ -62,7 +62,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
         // Bypasses the permissions engine
         private bool m_bypassPermissions = false;
         private bool m_bypassPermissionsValue = true;
-        private bool m_debugPermissions = true;
+        private bool m_debugPermissions = false;
 
         #endregion
 
