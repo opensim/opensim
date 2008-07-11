@@ -64,6 +64,8 @@ namespace OpenSim.Region.Physics.Meshing
 #endif
         private const float DEG_TO_RAD = 0.01745329238f;
 
+        private float minSizeForComplexMesh = 0.2f; // prims with all dimensions smaller than this will have a bounding box mesh
+
 // TODO: unused
 //         private static void IntersectionParameterPD(PhysicsVector p1, PhysicsVector r1, PhysicsVector p2,
 //                                                     PhysicsVector r2, ref float lambda, ref float mu)
@@ -421,6 +423,95 @@ namespace OpenSim.Region.Physics.Meshing
 
 
         }
+
+        /// <summary>
+        /// creates a simple box mesh of the specified size
+        /// </summary>
+        /// <param name="minX"></param>
+        /// <param name="maxX"></param>
+        /// <param name="minY"></param>
+        /// <param name="maxY"></param>
+        /// <param name="minZ"></param>
+        /// <param name="maxZ"></param>
+        /// <returns></returns>
+        private static Mesh CreateSimpleBoxMesh(float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
+        {
+            Mesh box = new Mesh();
+
+            // bottom
+
+            //box.Add(new Vertex(maxX, maxY, minZ));
+            //box.Add(new Vertex(minX, maxY, minZ));
+            //box.Add(new Vertex(minX, minY, minZ));
+            //box.Add(new Vertex(maxX, minY, minZ));
+
+            box.Add(new Vertex(minX, maxY, minZ));
+            box.Add(new Vertex(maxX, maxY, minZ));
+            box.Add(new Vertex(maxX, minY, minZ));
+            box.Add(new Vertex(minX, minY, minZ));
+
+            box.Add(new Triangle(box.vertices[0], box.vertices[1], box.vertices[2]));
+            box.Add(new Triangle(box.vertices[0], box.vertices[2], box.vertices[3]));
+
+            // top
+
+            box.Add(new Vertex(maxX, maxY, maxZ));
+            box.Add(new Vertex(minX, maxY, maxZ));
+            box.Add(new Vertex(minX, minY, maxZ));
+            box.Add(new Vertex(maxX, minY, maxZ));
+
+            box.Add(new Triangle(box.vertices[4], box.vertices[5], box.vertices[6]));
+            box.Add(new Triangle(box.vertices[4], box.vertices[6], box.vertices[7]));
+
+            // sides
+
+            box.Add(new Triangle(box.vertices[5], box.vertices[0], box.vertices[3]));
+            box.Add(new Triangle(box.vertices[5], box.vertices[3], box.vertices[6]));
+
+            box.Add(new Triangle(box.vertices[1], box.vertices[0], box.vertices[5]));
+            box.Add(new Triangle(box.vertices[1], box.vertices[5], box.vertices[4]));
+
+            box.Add(new Triangle(box.vertices[7], box.vertices[1], box.vertices[4]));
+            box.Add(new Triangle(box.vertices[7], box.vertices[2], box.vertices[1]));
+
+            box.Add(new Triangle(box.vertices[3], box.vertices[2], box.vertices[7]));
+            box.Add(new Triangle(box.vertices[3], box.vertices[7], box.vertices[6]));
+
+            return box;
+        }
+
+
+        /// <summary>
+        /// Creates a simple bounding box mesh for a complex input mesh
+        /// </summary>
+        /// <param name="meshIn"></param>
+        /// <returns></returns>
+        private static Mesh CreateBoundingBoxMesh(Mesh meshIn)
+        {
+            float minX = float.MaxValue;
+            float maxX = float.MinValue;
+            float minY = float.MaxValue;
+            float maxY = float.MinValue;
+            float minZ = float.MaxValue;
+            float maxZ = float.MinValue;
+
+            foreach (Vertex v in meshIn.vertices)
+            {
+                if (v != null)
+                {
+                    if (v.X < minX) minX = v.X;
+                    if (v.Y < minY) minY = v.Y;
+                    if (v.Z < minZ) minZ = v.Z;
+
+                    if (v.X > maxX) maxX = v.X;
+                    if (v.Y > maxY) maxY = v.Y;
+                    if (v.Z > maxZ) maxZ = v.Z;
+                }
+            }
+
+            return CreateSimpleBoxMesh(minX, maxX, minY, maxY, minZ, maxZ);
+        }
+
 
         private static Mesh CreateBoxMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size)
             // Builds the z (+ and -) surfaces of a box shaped prim
@@ -1967,6 +2058,7 @@ namespace OpenSim.Region.Physics.Meshing
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size, float lod)
         {
             Mesh mesh = null;
+
             if (primShape.SculptEntry && primShape.SculptType != (byte)0 && primShape.SculptData.Length > 0)
             {
                 
@@ -2080,6 +2172,15 @@ namespace OpenSim.Region.Physics.Meshing
             //            break;
             //    }
             //}
+
+            if (mesh != null && size.X < minSizeForComplexMesh && size.Y < minSizeForComplexMesh && size.Z < minSizeForComplexMesh)
+            {
+#if SPAM
+                Console.WriteLine("Meshmerizer: prim " + primName + " has a size of " + size.ToString() + " which is below threshold of " + minSizeForComplexMesh.ToString() + " - creating simple bounding box" );
+#endif
+                mesh = CreateBoundingBoxMesh(mesh);
+                mesh.DumpRaw(baseDir, primName, "Z extruded");
+            }
 
             return mesh;
         }
