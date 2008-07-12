@@ -149,6 +149,10 @@ namespace OpenSim.Data.MSSQL
             IDataReader reader = null;
             try
             {
+                if (database.getConnection().State == ConnectionState.Closed)
+                {
+                    database.Reconnect();
+                }
                 Dictionary<string, string> param = new Dictionary<string, string>();
                 param["handle"] = handle.ToString();
                 IDbCommand result = database.Query("SELECT * FROM " + m_regionsTableName + " WHERE regionHandle = @handle", param);
