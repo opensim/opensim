@@ -98,6 +98,14 @@ namespace OpenSim.Region.Environment.Scenes
         private LLVector3 m_LastFinitePos = new LLVector3();
 
         private float m_sitAvatarHeight = 2.0f;
+
+        // experimentally determined "fudge factor" to make sit-target positions
+        // the same as in SecondLife. Fudge factor was tested for 36 different
+        // test cases including prims of type box, sphere, cylinder, and torus,
+        // with varying parameters for sit target location, prim size, prim
+        // rotation, prim cut, prim twist, prim taper, and prim shear. See mantis
+        // issue #1716
+        private static readonly LLVector3 m_sitTargetCorrectionOffset = new LLVector3(0.1f, 0.0f, 0.3f);
         private float m_godlevel = 0;
 
         private bool m_attachmentsTransported = false;
@@ -1231,6 +1239,7 @@ namespace OpenSim.Region.Environment.Scenes
                         //Quaternion result = (sitTargetOrient * vq) * nq;
 
                         m_pos = new LLVector3(sitTargetPos.x, sitTargetPos.y, sitTargetPos.z);
+                        m_pos += m_sitTargetCorrectionOffset;
                         m_bodyRot = sitTargetOrient;
                         //Rotation = sitTargetOrient;
                         m_parentPosition = part.AbsolutePosition;
