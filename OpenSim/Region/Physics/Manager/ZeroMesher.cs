@@ -62,6 +62,11 @@ namespace OpenSim.Region.Physics.Manager
     {
         public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size, float lod)
         {
+            return CreateMesh(primName, primShape, size, lod, false);
+        }
+
+        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size, float lod, bool isPhysical)
+        {
             return null;
         }
     }

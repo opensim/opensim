@@ -34,6 +34,7 @@ namespace OpenSim.Region.Physics.Manager
     public interface IMesher
     {
         IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size, float lod);
+        IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, PhysicsVector size, float lod, bool isPhysical);
     }
 
     public interface IVertex
