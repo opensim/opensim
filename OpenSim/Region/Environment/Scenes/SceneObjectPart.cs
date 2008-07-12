@@ -819,151 +819,101 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
-        public uint ParentID {
-            get {
-                return _parentID;
-            }
-            set {
-                _parentID = value;
-            }
+        public uint ParentID 
+        {
+            get { return _parentID; }
+            set { _parentID = value; }
         }
 
-        public int CreationDate {
-            get {
-                return _creationDate;
-            }
-            set {
-                _creationDate = value;
-            }
+        public int CreationDate 
+        {
+            get { return _creationDate; }
+            set { _creationDate = value; }
         }
 
-        public uint Category {
-            get {
-                return _category;
-            }
-            set {
-                _category = value;
-            }
+        public uint Category 
+        {
+            get { return _category; }
+            set { _category = value; }
         }
 
-        public int SalePrice {
-            get {
-                return _salePrice;
-            }
-            set {
-                _salePrice = value;
-            }
+        public int SalePrice 
+        {
+            get { return _salePrice; }
+            set { _salePrice = value; }
         }
 
-        public byte ObjectSaleType {
-            get {
-                return _objectSaleType;
-            }
-            set {
-                _objectSaleType = value;
-            }
+        public byte ObjectSaleType 
+        {
+            get { return _objectSaleType; }
+            set { _objectSaleType = value; }
         }
 
-        public int OwnershipCost {
-            get {
-                return _ownershipCost;
-            }
-            set {
-                _ownershipCost = value;
-            }
+        public int OwnershipCost 
+        {
+            get { return _ownershipCost; }
+            set { _ownershipCost = value; }
         }
 
-        public LLUUID GroupID {
-            get {
-                return _groupID;
-            }
-            set {
-                _groupID = value;
-            }
+        public LLUUID GroupID 
+        {
+            get { return _groupID; }
+            set { _groupID = value; }
         }
 
-        public LLUUID OwnerID {
-            get {
-                return _ownerID;
-            }
-            set {
-                _ownerID = value;
-            }
+        public LLUUID OwnerID 
+        {
+            get { return _ownerID; }
+            set { _ownerID = value; }
         }
 
-        public LLUUID LastOwnerID {
-            get {
-                return _lastOwnerID;
-            }
-            set {
-                _lastOwnerID = value;
-            }
+        public LLUUID LastOwnerID 
+        {
+            get { return _lastOwnerID; }
+            set { _lastOwnerID = value; }
         }
 
-        public uint BaseMask {
-            get {
-                return _baseMask;
-            }
-            set {
-                _baseMask = value;
-            }
+        public uint BaseMask 
+        {
+            get { return _baseMask; }
+            set { _baseMask = value; }
         }
 
-        public uint OwnerMask {
-            get {
-                return _ownerMask;
-            }
-            set {
-                _ownerMask = value;
-            }
+        public uint OwnerMask 
+        {
+            get { return _ownerMask; }
+            set { _ownerMask = value; }
         }
 
-        public uint GroupMask {
-            get {
-                return _groupMask;
-            }
-            set {
-                _groupMask = value;
-            }
+        public uint GroupMask 
+        {
+            get { return _groupMask; }
+            set { _groupMask = value; }
         }
 
-        public uint EveryoneMask {
-            get {
-                return _everyoneMask;
-            }
-            set {
-                _everyoneMask = value;
-            }
+        public uint EveryoneMask 
+        {
+            get { return _everyoneMask; }
+            set { _everyoneMask = value; }
         }
 
-        public uint NextOwnerMask {
-            get {
-                return _nextOwnerMask;
-            }
-            set {
-                _nextOwnerMask = value;
-            }
+        public uint NextOwnerMask 
+        {
+            get { return _nextOwnerMask; }
+            set { _nextOwnerMask = value; }
         }
 
-        public libsecondlife.LLObject.ObjectFlags Flags {
-            get {
-                return _flags;
-            }
-            set {
-                _flags = value;
-            }
+        public libsecondlife.LLObject.ObjectFlags Flags 
+        {
+            get { return _flags; }
+            set { _flags = value; }
         }
 
-        public LLUUID SitTargetAvatar {
-            get {
-                return m_sitTargetAvatar;
-            }
-            set {
-                m_sitTargetAvatar = value;
-            }
+        public LLUUID SitTargetAvatar 
+        {
+            get { return m_sitTargetAvatar; }
+            set { m_sitTargetAvatar = value; }
         }
-
-
         
         #endregion Public Properties with only Get
 
@@ -982,7 +932,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Clear all pending updates
+        /// Clear all pending updates of parts to clients
         /// </summary>
         private void ClearUpdateSchedule()
         {

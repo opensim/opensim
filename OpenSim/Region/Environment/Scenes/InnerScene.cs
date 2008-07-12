@@ -747,6 +747,11 @@ namespace OpenSim.Region.Environment.Scenes
             return sp;
         }
 
+        /// <summary>
+        /// Get a scene object group that contains the prim with the given local id
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <returns>null if no scene object group containing that prim is found</returns>
         private SceneObjectGroup GetGroupByPrim(uint localID)
         {
             List<EntityBase> EntityList = GetEntities();
@@ -762,6 +767,11 @@ namespace OpenSim.Region.Environment.Scenes
             return null;
         }
 
+        /// <summary>
+        /// Get a scene object group that contains the prim with the given uuid
+        /// </summary>
+        /// <param name="fullID"></param>
+        /// <returns>null if no scene object group containing that prim is found</returns>        
         private SceneObjectGroup GetGroupByPrim(LLUUID fullID)
         {
             List<EntityBase> EntityList = GetEntities();
@@ -802,15 +812,26 @@ namespace OpenSim.Region.Environment.Scenes
             return returnResult;
         }
 
+        /// <summary>
+        /// Get a part contained in this scene.
+        /// </summary>
+        /// <param name="localID"></param>
+        /// <returns>null if the part was not found</returns>
         protected internal SceneObjectPart GetSceneObjectPart(uint localID)
         {
             SceneObjectGroup group = GetGroupByPrim(localID);
+            
             if (group != null)
                 return group.GetChildPart(localID);
             else
                 return null;
         }
 
+        /// <summary>
+        /// Get a part contained in this scene.
+        /// </summary>
+        /// <param name="fullID"></param>
+        /// <returns>null if the part was not found</returns>        
         protected internal SceneObjectPart GetSceneObjectPart(LLUUID fullID)
         {
             SceneObjectGroup group = GetGroupByPrim(fullID);

@@ -442,12 +442,12 @@ namespace OpenSim.Region.Environment.Scenes
                 }
                 more = !reader.EOF;
             }
+            
             reader.Close();
             sr.Close();
 
             UpdateParentIDs();
         }
-
        
         /// <summary>
         ///
@@ -832,7 +832,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Make sure that every non root part has the proper parent root part local id
         /// </summary>
         public void UpdateParentIDs()
         {
@@ -1663,6 +1663,7 @@ namespace OpenSim.Region.Environment.Scenes
             {
                 return true;
             }
+            
             return false;
         }
 
@@ -1684,6 +1685,7 @@ namespace OpenSim.Region.Environment.Scenes
                     }
                 }
             }
+            
             return false;
         }
 
