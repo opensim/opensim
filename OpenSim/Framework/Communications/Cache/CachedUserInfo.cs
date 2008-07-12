@@ -619,7 +619,7 @@ namespace OpenSim.Framework.Communications.Cache
             {
                 AddRequest(
                     new InventoryRequest(
-                        Delegate.CreateDelegate(typeof(SendInventoryDescendentsDelegate), this, "SendInventoryDecendents"),
+                        Delegate.CreateDelegate(typeof(SendInventoryDescendentsDelegate), this, "SendInventoryDecendents", false, false),
                         new object[] { client, folderID, fetchFolders, fetchItems }));
 
                 return true;
@@ -670,7 +670,8 @@ namespace OpenSim.Framework.Communications.Cache
 
         public void Execute()
         {
-            m_delegate.DynamicInvoke(m_args);
+            if(m_delegate != null)
+                m_delegate.DynamicInvoke(m_args);
         }
     }
 }
