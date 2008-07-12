@@ -1665,9 +1665,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// Add an object into the scene that has come from storage
         /// </summary>
         /// <param name="sceneObject"></param>
-        public void AddRestoredSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
+        public bool AddRestoredSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
         {
-            m_innerScene.AddRestoredSceneObject(sceneObject, attachToBackup);
+            return m_innerScene.AddRestoredSceneObject(sceneObject, attachToBackup);
         }
 
         /// <summary>
@@ -1678,9 +1678,9 @@ namespace OpenSim.Region.Environment.Scenes
         /// If true, the object is made persistent into the scene.
         /// If false, the object will not persist over server restarts
         /// </param>
-        public void AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
+        public bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
         {
-            m_innerScene.AddNewSceneObject(sceneObject, attachToBackup);
+            return m_innerScene.AddNewSceneObject(sceneObject, attachToBackup);
         }
 
         /// <summary>

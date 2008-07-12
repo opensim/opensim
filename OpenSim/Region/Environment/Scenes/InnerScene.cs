@@ -196,7 +196,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// If true, changes to the object will be reflected in its persisted data
         /// If false, the persisted data will not be changed even if the object in the scene is changed
         /// </param>
-        protected internal void AddRestoredSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
+        /// <returns>
+        /// true if the object was added, false if an object with the same uuid was already in the scene
+        /// </returns>         
+        protected internal bool AddRestoredSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
         {
             sceneObject.RegionHandle = m_regInfo.RegionHandle;
             sceneObject.SetScene(m_parentScene);
@@ -208,7 +211,7 @@ namespace OpenSim.Region.Environment.Scenes
             
             sceneObject.UpdateParentIDs();
 
-            AddSceneObject(sceneObject, attachToBackup);
+            return AddSceneObject(sceneObject, attachToBackup);
         }
         
         /// <summary>
@@ -220,14 +223,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// If true, the object is made persistent into the scene.
         /// If false, the object will not persist over server restarts
         /// </param>
-        /// <returns>true if the object was added, false if an object with the same uuid was already in the scene
+        /// <returns>
+        /// true if the object was added, false if an object with the same uuid was already in the scene
         /// </returns>        
-        protected internal void AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
+        protected internal bool AddNewSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
         {   
             // Ensure that we persist this new scene object
             sceneObject.HasGroupChanged = true;
             
-            AddSceneObject(sceneObject, attachToBackup);
+            return AddSceneObject(sceneObject, attachToBackup);
         }
 
         /// <summary>

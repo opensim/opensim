@@ -85,10 +85,7 @@ namespace OpenSim.Region.DataSnapshot
 
         #region IRegionModule
 
-        public void Close()
-        {
-            m_log.Info("[DATASNAPSHOT]: Close called");
-        }
+        public void Close() {}
 
         public void Initialise(Scene scene, IConfigSource config)
         {

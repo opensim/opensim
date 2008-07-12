@@ -77,7 +77,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             if (null == m_host)
             {
                 m_log.ErrorFormat(
-                    "[{0}]: Could not get scene object part corresponding to localID {1} to start script", 
+                    "[{0}]: Could not find scene object part corresponding to localID {1} to start script", 
                     m_scriptEngine.ScriptEngineName, localID);
                 
                 return;

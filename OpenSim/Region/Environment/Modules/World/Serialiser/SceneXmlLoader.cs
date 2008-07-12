@@ -180,14 +180,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// </summary>
         /// <param name="scene"></param>
         /// <param name="xmlData"></param>
-        /// <returns>The scene object created</returns>
+        /// <returns>The scene object created.  null if the scene object already existed</returns>
         protected static SceneObjectGroup CreatePrimFromXml2(Scene scene, string xmlData)
         {
             SceneObjectGroup obj = new SceneObjectGroup(xmlData);
 
-            scene.AddRestoredSceneObject(obj, true);
-            
-            return obj;
+            if (scene.AddRestoredSceneObject(obj, true))                            
+                return obj;
+            else
+                return null;
         }
 
         public static void SavePrimsToXml2(Scene scene, string fileName)

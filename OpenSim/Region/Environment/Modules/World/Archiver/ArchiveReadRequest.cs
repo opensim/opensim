@@ -103,11 +103,14 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             m_log.InfoFormat("[ARCHIVER]: Loading {0} scene objects", serialisedSceneObjects.Count);
 
             IRegionSerialiser serialiser = m_scene.RequestModuleInterface<IRegionSerialiser>();
-            ICollection<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
+            ICollection<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();            
 
             foreach (string serialisedSceneObject in serialisedSceneObjects)
-            {                
-                sceneObjects.Add(serialiser.LoadGroupFromXml2(m_scene, serialisedSceneObject));
+            {             
+                SceneObjectGroup sceneObject = serialiser.LoadGroupFromXml2(m_scene, serialisedSceneObject);
+                
+                if (null != sceneObject)
+                    sceneObjects.Add(sceneObject);
             }
             
             m_log.Debug("[ARCHIVER]: Starting scripts");
@@ -117,6 +120,13 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 sceneObject.CreateScriptInstances(0, true);
             }
             
+            m_log.InfoFormat("[ARCHIVER]: Restored {0} objects to the scene", sceneObjects.Count);
+            
+            int ignoredObjects = serialisedSceneObjects.Count - sceneObjects.Count;
+            
+            if (ignoredObjects > 0)
+                m_log.WarnFormat("[ARCHIVER]: Ignored {0} objects that already existed in the scene", ignoredObjects);
+                                 
             m_log.InfoFormat("[ARCHIVER]: Successfully loaded archive");
         }
     
