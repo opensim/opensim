@@ -111,10 +111,13 @@ physical_prim = true
 ;script_engine = OpenSim.Region.ScriptEngine.DotNetEngine.dll,OpenSim.Region.ScriptEngine.RemoteServer.dll
 ;
 ; This is the current and most stable ScriptEngine:
-script_engine = OpenSim.Region.ScriptEngine.DotNetEngine.dll
+script_engine = "OpenSim.Region.ScriptEngine.DotNetEngine.dll"
+
+; This is the new XEngine (experimental)
+;script_engine = "OpenSim.Region.ScriptEngine.XEngine.dll"
 
 ;Experimental remote ScriptServer plugin (does not currently work):
-;script_engine = OpenSim.Region.ScriptEngine.RemoteServer.dll
+;script_engine = "OpenSim.Region.ScriptEngine.RemoteServer.dll"
 
 
 [StandAlone]
@@ -596,6 +599,8 @@ AutoSavePeriod = 15 ; Number of minutes between autosave backups
 
 
 [XEngine]
+; Use the newer LSL to CS compiler (experimental)
+UseNewCompiler = false
 ; How many threads to keep alive even if nothing is happening
 MinThreads = 2
 ; How many threads to start at maximum load

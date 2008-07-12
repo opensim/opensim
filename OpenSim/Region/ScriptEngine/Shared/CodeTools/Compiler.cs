@@ -72,8 +72,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         private string FilePrefix;
         private string ScriptEnginesPath = "ScriptEngines";
 
-        private static LSL2CSConverter LSL_Converter = new LSL2CSConverter();
-        //private static CSCodeGenerator LSL_Converter;
+        private static ICodeConverter LSL_Converter;
         private static CSharpCodeProvider CScodeProvider = new CSharpCodeProvider();
         private static VBCodeProvider VBcodeProvider = new VBCodeProvider();
         private static JScriptCodeProvider JScodeProvider = new JScriptCodeProvider();
@@ -82,6 +81,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 
         // private static int instanceID = new Random().Next(0, int.MaxValue);                 // Unique number to use on our compiled files
         private static UInt64 scriptCompileCounter = 0;                                     // And a counter
+        private bool m_UseCompiler = false;
 
         public IScriptEngine m_scriptEngine;
         public Compiler(IScriptEngine scriptEngine)
@@ -94,6 +94,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         {
 
             // Get some config
+            m_UseCompiler = m_scriptEngine.Config.GetBoolean("UseNewCompiler", true);
             WriteScriptSourceToDebugFile = m_scriptEngine.Config.GetBoolean("WriteScriptSourceToDebugFile", true);
             CompileWithDebugInformation = m_scriptEngine.Config.GetBoolean("CompileWithDebugInformation", true);
 
@@ -324,9 +325,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
             if (l == enumCompileType.lsl)
             {
                 // Its LSL, convert it to C#
+                //compileScript = LSL_Converter.Convert(Script);
+                if(m_UseCompiler)
+                    LSL_Converter = (ICodeConverter)new CSCodeGenerator();
+                else
+                    LSL_Converter = (ICodeConverter)new LSL2CSConverter();
                 compileScript = LSL_Converter.Convert(Script);
-                //LSL_Converter = new CSCodeGenerator(Script);
-                //compileScript = LSL_Converter.Generate();
                 l = enumCompileType.cs;
             }
 

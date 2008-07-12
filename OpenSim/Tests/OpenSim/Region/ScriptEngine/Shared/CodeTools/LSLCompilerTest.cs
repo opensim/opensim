@@ -56,8 +56,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools.Tests
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -87,8 +87,8 @@ state another_state
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -108,8 +108,8 @@ state another_state
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -131,8 +131,8 @@ state another_state
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -158,8 +158,8 @@ state another_state
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -187,8 +187,8 @@ state another_state
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -214,8 +214,8 @@ state another_state
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -253,8 +253,8 @@ state another_state
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -306,8 +306,8 @@ state another_state
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -329,8 +329,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -368,8 +368,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -413,8 +413,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -469,8 +469,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -524,8 +524,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -552,8 +552,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -579,8 +579,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -608,8 +608,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -639,8 +639,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -668,8 +668,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -773,8 +773,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -880,8 +880,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -921,8 +921,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -966,8 +966,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -1011,8 +1011,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -1064,8 +1064,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -1101,8 +1101,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -1147,8 +1147,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -1188,8 +1188,8 @@ state statetwo
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -1221,8 +1221,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -1252,8 +1252,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -1296,8 +1296,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -1329,8 +1329,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -1354,8 +1354,8 @@ default
         }
 ";
 
-            CSCodeGenerator cg = new CSCodeGenerator(input);
-            string output = cg.Generate();
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
             Assert.AreEqual(expected, output);
         }
 
@@ -1373,8 +1373,8 @@ default
 ";
             try
             {
-                CSCodeGenerator cg = new CSCodeGenerator(input);
-                cg.Generate();
+                CSCodeGenerator cg = new CSCodeGenerator();
+                cg.Convert(input);
             }
             catch (Tools.CSToolsException e)
             {

@@ -32,7 +32,7 @@ using System.Text.RegularExpressions;
 
 namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 {
-    public class LSL2CSConverter
+    public class LSL2CSConverter : ICodeConverter
     {
         // Uses regex to convert LSL code to C# code.
 

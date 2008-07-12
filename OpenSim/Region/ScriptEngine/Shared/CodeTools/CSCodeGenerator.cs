@@ -32,7 +32,7 @@ using Tools;
 
 namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
 {
-    public class CSCodeGenerator
+    public class CSCodeGenerator : ICodeConverter
     {
         private SYMBOL m_astRoot = null;
         private int m_braceCount;   // for indentation
@@ -41,12 +41,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         /// Pass the new CodeGenerator a string containing the LSL source.
         /// </summary>
         /// <param name="script">String containing LSL source.</param>
-        public CSCodeGenerator(string script)
+        public CSCodeGenerator()
         {
-            Parser p = new LSLSyntax(new yyLSLSyntax(), new ErrorHandler(true));
-            // Obviously this needs to be in a try/except block.
-            LSL2CSCodeTransformer codeTransformer = new LSL2CSCodeTransformer(p.Parse(script));
-            m_astRoot = codeTransformer.Transform();
         }
 
         /// <summary>
@@ -63,8 +59,12 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
         /// Generate the code from the AST we have.
         /// </summary>
         /// <returns>String containing the generated C# code.</returns>
-        public string Generate()
+        public string Convert(string script)
         {
+            Parser p = new LSLSyntax(new yyLSLSyntax(), new ErrorHandler(true));
+            // Obviously this needs to be in a try/except block.
+            LSL2CSCodeTransformer codeTransformer = new LSL2CSCodeTransformer(p.Parse(script));
+            m_astRoot = codeTransformer.Transform();
             string retstr = String.Empty;
 
             // standard preamble
