@@ -52,7 +52,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.EmailModules
         //
         private IConfigSource m_Config;
         private string m_HostName = string.Empty;
-        private string m_RegionName = string.Empty;
+        //private string m_RegionName = string.Empty;
         private string SMTP_SERVER_HOSTNAME = string.Empty;
         private int SMTP_SERVER_PORT = 25;
         private string SMTP_SERVER_LOGIN = string.Empty;
