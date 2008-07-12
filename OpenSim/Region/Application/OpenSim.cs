@@ -244,24 +244,6 @@ namespace OpenSim
                     Debug(cmdparams);
                     break;
 
-                case "scene-debug":
-                    if (cmdparams.Length == 3)
-                    {
-                        if (m_sceneManager.CurrentScene == null)
-                        {
-                            m_console.Error("CONSOLE", "Please use 'change-region <regioname>' first");
-                        }
-                        else
-                        {
-                            m_sceneManager.CurrentScene.SetSceneCoreDebug(!Convert.ToBoolean(cmdparams[0]), !Convert.ToBoolean(cmdparams[1]), !Convert.ToBoolean(cmdparams[2]));
-                        }
-                    }
-                    else
-                    {
-                        m_console.Error("scene-debug <scripting> <collisions> <physics> (where inside <> is true/false)");
-                    }
-                    break;
-
                 case "help":
                     m_console.Notice("alert - send alert to a designated user or all users.");
                     m_console.Notice("  alert [First] [Last] [Message] - send an alert to a user. Case sensitive.");
@@ -273,8 +255,8 @@ namespace OpenSim
                     m_console.Notice("change-region [name] - sets the region that many of these commands affect.");
                     m_console.Notice("command-script [filename] - Execute command in a file.");
                     m_console.Notice("debug - debugging commands");
-                    m_console.Notice("  packet 0..255 - print incoming/outgoing packets (0=off)");
-                    m_console.Notice("scene-debug [scripting] [collision] [physics] - Enable/Disable debug stuff, each can be True/False");
+                    m_console.Notice("  debug packet 0..255 - print incoming/outgoing packets (0=off)");
+                    m_console.Notice("  debug scene [scripting] [collision] [physics] - Enable/Disable debug stuff, each can be True/False");
                     m_console.Notice("edit-scale [prim name] [x] [y] [z] - resize given prim");
                     m_console.Notice("export-map [filename] - save image of world map");
                     m_console.Notice("force-update - force an update of prims in the scene");
@@ -627,6 +609,34 @@ namespace OpenSim
                     }
 
                     break;
+                
+                case "scene":
+                    if (args.Length == 4)
+                    {
+                        if (m_sceneManager.CurrentScene == null)
+                        {
+                            m_console.Error("CONSOLE", "Please use 'change-region <regioname>' first");
+                        }
+                        else
+                        {
+                            bool scriptingOn = !Convert.ToBoolean(args[1]);
+                            bool collisionsOn = !Convert.ToBoolean(args[2]);
+                            bool physicsOn = !Convert.ToBoolean(args[3]);
+                            m_sceneManager.CurrentScene.SetSceneCoreDebug(scriptingOn, collisionsOn, physicsOn);
+                        
+                            m_console.Notice(
+                                "CONSOLE", 
+                                String.Format(
+                                    "Set debug scene scripting = {0}, collisions = {1}, physics = {2}", 
+                                    !scriptingOn, !collisionsOn, !physicsOn));
+                        }
+                    }
+                    else
+                    {
+                        m_console.Error("debug scene <scripting> <collisions> <physics> (where inside <> is true/false)");
+                    }
+               
+                    break;                
                 
                 default:
                     m_console.Error("Unknown debug");
