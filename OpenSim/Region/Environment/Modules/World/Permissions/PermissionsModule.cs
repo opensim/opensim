@@ -602,7 +602,7 @@ namespace OpenSim.Region.Environment.Modules.World.Permissions
                 DebugPermissionInformation(MethodInfo.GetCurrentMethod().Name);
                 if (m_bypassPermissions) return m_bypassPermissionsValue;
 
-                return true;
+                return false;
             }
 
             private bool CanEditNotecard(LLUUID notecard, LLUUID objectID, LLUUID user, Scene scene)

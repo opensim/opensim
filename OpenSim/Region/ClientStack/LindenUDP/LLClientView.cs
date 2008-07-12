@@ -5110,6 +5110,65 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     case PacketType.TransferRequest:
                         //Console.WriteLine("ClientView.ProcessPackets.cs:ProcessInPacket() - Got transfer request");
                         TransferRequestPacket transfer = (TransferRequestPacket)Pack;
+                        // Validate inventory transfers
+                        // Has to be done here, because AssetCache can't do it
+                        //
+                        if (transfer.TransferInfo.SourceType == 3)
+                        {
+                            LLUUID taskID = null;
+                            LLUUID itemID = null;
+                            LLUUID requestID = null;
+                            taskID = new LLUUID(transfer.TransferInfo.Params, 48);
+                            itemID = new LLUUID(transfer.TransferInfo.Params, 64);
+                            requestID = new LLUUID(transfer.TransferInfo.Params, 80);
+                            if (!(((Scene)m_scene).ExternalChecks.ExternalChecksBypassPermissions()))
+                            {
+                                if(taskID != LLUUID.Zero) // Prim
+                                {
+                                    SceneObjectPart part = ((Scene)m_scene).GetSceneObjectPart(taskID);
+                                    if(part == null)
+                                        break;
+
+                                    if(part.OwnerID != AgentId)
+                                        break;
+
+                                    if((part.OwnerMask & (uint)PermissionMask.Modify) == 0)
+                                        break;
+
+                                    TaskInventoryItem ti = part.GetInventoryItem(itemID);
+                                    if(ti == null)
+                                        break;
+
+                                    if(ti.OwnerID != AgentId)
+                                        break;
+
+                                    if((ti.OwnerMask & ((uint)PermissionMask.Modify| (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer)) != ((uint)PermissionMask.Modify| (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer))
+                                        break;
+
+                                    if(ti.AssetID != requestID)
+                                        break;
+                                }
+                                else // Agent
+                                {
+                                    CachedUserInfo userInfo = ((Scene)m_scene).CommsManager.UserProfileCacheService.GetUserDetails(AgentId);
+                                    if(userInfo == null)
+                                        break;
+
+                                    if(userInfo.RootFolder == null)
+                                        break;
+
+                                    InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(itemID);
+                                    if(assetRequestItem == null)
+                                        return;
+
+                                    if((assetRequestItem.CurrentPermissions & ((uint)PermissionMask.Modify| (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer)) != ((uint)PermissionMask.Modify| (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer))
+                                        break;
+                                    if(assetRequestItem.AssetID != requestID)
+                                        break;
+                                }
+                            }
+                        }
+
                         m_assetCache.AddAssetRequest(this, transfer);
                         /* RequestAsset = OnRequestAsset;
                          if (RequestAsset != null)

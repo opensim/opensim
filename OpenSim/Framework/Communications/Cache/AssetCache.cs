@@ -445,7 +445,10 @@ namespace OpenSim.Framework.Communications.Cache
                         req.NumPackets = CalculateNumPackets(assetInf.Data);
 
                         RequestedAssets.Remove(assetInf.FullID);
-                        AssetRequests.Add(req);
+                        // If it's a direct request for a script, drop it
+                        // because it's a hacked client
+                        if(req.AssetRequestSource != 2 || assetInf.Type != 10)
+                            AssetRequests.Add(req);
                     }
                 }
             }
@@ -608,6 +611,10 @@ namespace OpenSim.Framework.Communications.Cache
                 //m_log.DebugFormat("[ASSET CACHE]: Asset transfer request for asset which is {0} already known to be missing.  Dropping", requestID);
                 return;
             }
+
+            // Scripts cannot be retrieved by direct request
+            if (transferRequest.TransferInfo.SourceType == 2 && asset.Type == 10)
+                return;
 
             // The asset is knosn to exist and is in our cache, so add it to the AssetRequests list
             AssetRequest req = new AssetRequest();
