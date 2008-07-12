@@ -1177,7 +1177,7 @@ namespace OpenSim.Region.Physics.OdePlugin
                     /// support simple box & hollow box now; later, more shapes
                     if (needsMeshing(pbs))
                     {
-                        mesh = mesher.CreateMesh(primName, pbs, size, 32f);
+                        mesh = mesher.CreateMesh(primName, pbs, size, 32f, isPhysical);
                     }
 
                     break;

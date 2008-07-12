@@ -2178,30 +2178,32 @@ namespace OpenSim.Region.Physics.Meshing
             //}
 
             if (mesh != null)
-                if (size.X < minSizeForComplexMesh && size.Y < minSizeForComplexMesh && size.Z < minSizeForComplexMesh)
+            {
+                if ((!isPhysical) && size.X < minSizeForComplexMesh && size.Y < minSizeForComplexMesh && size.Z < minSizeForComplexMesh)
                 {
 #if SPAM
                 Console.WriteLine("Meshmerizer: prim " + primName + " has a size of " + size.ToString() + " which is below threshold of " + minSizeForComplexMesh.ToString() + " - creating simple bounding box" );
 #endif
                     mesh = CreateBoundingBoxMesh(mesh);
                     mesh.DumpRaw(baseDir, primName, "Z extruded");
-
-                    // trim the vertex and triangle lists to free up memory
-                    //mesh.vertices.TrimExcess();
-                    //mesh.triangles.TrimExcess();
-
-                    int vertCount = 0;
-                    foreach (Vertex v in mesh.vertices)
-                        if (v != null)
-                            vertCount++;
-                    mesh.vertices.Capacity = vertCount;
-
-                    int triCount = 0;
-                    foreach (Triangle t in mesh.triangles)
-                        if ( t != null )
-                            triCount++;
-                    mesh.triangles.Capacity = triCount;
                 }
+
+                // trim the vertex and triangle lists to free up memory
+                mesh.vertices.TrimExcess();
+                mesh.triangles.TrimExcess();
+
+                //int vertCount = 0;
+                //foreach (Vertex v in mesh.vertices)
+                //    if (v != null)
+                //        vertCount++;
+                //mesh.vertices.Capacity = vertCount;
+
+                //int triCount = 0;
+                //foreach (Triangle t in mesh.triangles)
+                //    if (t != null)
+                //        triCount++;
+                //mesh.triangles.Capacity = triCount;
+            }
 
             return mesh;
         }
