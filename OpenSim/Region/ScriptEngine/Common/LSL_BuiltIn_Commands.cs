@@ -6626,9 +6626,24 @@ namespace OpenSim.Region.ScriptEngine.Common
 
         public LSL_Types.Vector3 llGetCameraPos()
         {
-            m_host.AddScriptLPS(1);
-            NotImplemented("llGetCameraPos");
-            return new LSL_Types.Vector3();
+			m_host.AddScriptLPS(1);
+            LLUUID invItemID=InventorySelf();
+            if (invItemID == LLUUID.Zero) 
+                return new LSL_Types.Vector3();
+            if (m_host.TaskInventory[invItemID].PermsGranter == LLUUID.Zero)
+               return new LSL_Types.Vector3();
+            if ((m_host.TaskInventory[invItemID].PermsMask & BuiltIn_Commands_BaseClass.PERMISSION_TRACK_CAMERA) == 0)
+            {
+				ShoutError("No permissions to track the camera");
+                return new LSL_Types.Vector3();
+            }
+			ScenePresence presence = World.GetScenePresence(m_host.OwnerID);
+			if(presence != null) 
+			{
+				LSL_Types.Vector3 pos = new LSL_Types.Vector3(presence.CameraPosition.x,presence.CameraPosition.y,presence.CameraPosition.z);
+				return pos;
+			}
+			return new LSL_Types.Vector3();
         }
 
         public LSL_Types.Quaternion llGetCameraRot()
