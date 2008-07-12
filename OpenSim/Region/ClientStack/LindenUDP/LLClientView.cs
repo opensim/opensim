@@ -5159,7 +5159,11 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                                     InventoryItemBase assetRequestItem = userInfo.RootFolder.FindItem(itemID);
                                     if(assetRequestItem == null)
-                                        return;
+                                    {
+                                        assetRequestItem = ((Scene)m_scene).CommsManager.UserProfileCacheService.libraryRoot.FindItem(itemID);
+                                        if(assetRequestItem == null)
+                                            return;
+                                    }
 
                                     if((assetRequestItem.CurrentPermissions & ((uint)PermissionMask.Modify| (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer)) != ((uint)PermissionMask.Modify| (uint)PermissionMask.Copy | (uint)PermissionMask.Transfer))
                                         break;
