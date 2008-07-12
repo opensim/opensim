@@ -280,74 +280,19 @@ namespace OpenSim
                     break;
 
                 case "save-xml":
-                    m_log.Error("[CONSOLE]: PLEASE NOTE, save-xml is DEPRECATED and may be REMOVED soon.  If you are using this and there is some reason you can't use save-xml2, please file a mantis detailing the reason.");
-
-                    if (cmdparams.Length > 0)
-                    {
-                        m_sceneManager.SaveCurrentSceneToXml(cmdparams[0]);
-                    }
-                    else
-                    {
-                        m_sceneManager.SaveCurrentSceneToXml(DEFAULT_PRIM_BACKUP_FILENAME);
-                    }
+                    SaveXml(cmdparams);
                     break;
 
                 case "load-xml":
-                    m_log.Error("[CONSOLE]: PLEASE NOTE, load-xml is DEPRECATED and may be REMOVED soon.  If you are using this and there is some reason you can't use load-xml2, please file a mantis detailing the reason.");
-
-                    LLVector3 loadOffset = new LLVector3(0, 0, 0);
-                    if (cmdparams.Length > 0)
-                    {
-                        bool generateNewIDS = false;
-                        if (cmdparams.Length > 1)
-                        {
-                            if (cmdparams[1] == "-newUID")
-                            {
-                                generateNewIDS = true;
-                            }
-                            if (cmdparams.Length > 2)
-                            {
-                                loadOffset.X = (float) Convert.ToDecimal(cmdparams[2]);
-                                if (cmdparams.Length > 3)
-                                {
-                                    loadOffset.Y = (float) Convert.ToDecimal(cmdparams[3]);
-                                }
-                                if (cmdparams.Length > 4)
-                                {
-                                    loadOffset.Z = (float) Convert.ToDecimal(cmdparams[4]);
-                                }
-                                m_console.Error("loadOffsets <X,Y,Z> = <" + loadOffset.X + "," + loadOffset.Y + "," +
-                                                loadOffset.Z + ">");
-                            }
-                        }
-                        m_sceneManager.LoadCurrentSceneFromXml(cmdparams[0], generateNewIDS, loadOffset);
-                    }
-                    else
-                    {
-                        m_sceneManager.LoadCurrentSceneFromXml(DEFAULT_PRIM_BACKUP_FILENAME, false, loadOffset);
-                    }
+                    LoadXml(cmdparams);
                     break;
 
                 case "save-xml2":
-                    if (cmdparams.Length > 0)
-                    {
-                        m_sceneManager.SaveCurrentSceneToXml2(cmdparams[0]);
-                    }
-                    else
-                    {
-                        m_sceneManager.SaveCurrentSceneToXml2(DEFAULT_PRIM_BACKUP_FILENAME);
-                    }
+                    SaveXml2(cmdparams);
                     break;
 
                 case "load-xml2":
-                    if (cmdparams.Length > 0)
-                    {
-                        m_sceneManager.LoadCurrentSceneFromXml2(cmdparams[0]);
-                    }
-                    else
-                    {
-                        m_sceneManager.LoadCurrentSceneFromXml2(DEFAULT_PRIM_BACKUP_FILENAME);
-                    }
+                    LoadXml2(cmdparams);
                     break;
 
                 case "save-prims-xml2":
@@ -362,29 +307,11 @@ namespace OpenSim
                     break;
 
                 case "load-oar":
-                    m_log.Error("[CONSOLE]: Don't use me - I haven't yet been sufficiently implemented!");
-
-                    if (cmdparams.Length > 0)
-                    {
-                        m_sceneManager.LoadArchiveToCurrentScene(cmdparams[0]);
-                    }
-                    else
-                    {
-                        m_sceneManager.LoadArchiveToCurrentScene(DEFAULT_OAR_BACKUP_FILENAME);
-                    }
+                    LoadOar(cmdparams);
                     break;
                     
                 case "save-oar":
-                    m_log.Error("[CONSOLE]: Don't use me - I haven't yet been sufficiently implemented!");
-
-                    if (cmdparams.Length > 0)
-                    {
-                        m_sceneManager.SaveCurrentSceneToArchive(cmdparams[0]);
-                    }
-                    else
-                    {
-                        m_sceneManager.SaveCurrentSceneToArchive(DEFAULT_OAR_BACKUP_FILENAME);
-                    }
+                    SaveOar(cmdparams);
                     break;
 
                 case "plugin":
@@ -709,6 +636,109 @@ namespace OpenSim
                     break;
             }
         }
+        
+        protected void SaveXml(string[] cmdparams)
+        {
+            m_log.Error("[CONSOLE]: PLEASE NOTE, save-xml is DEPRECATED and may be REMOVED soon.  If you are using this and there is some reason you can't use save-xml2, please file a mantis detailing the reason.");
+
+            if (cmdparams.Length > 0)
+            {
+                m_sceneManager.SaveCurrentSceneToXml(cmdparams[0]);
+            }
+            else
+            {
+                m_sceneManager.SaveCurrentSceneToXml(DEFAULT_PRIM_BACKUP_FILENAME);
+            }
+        }            
+        
+        protected void LoadXml(string[] cmdparams)
+        {
+            m_log.Error("[CONSOLE]: PLEASE NOTE, load-xml is DEPRECATED and may be REMOVED soon.  If you are using this and there is some reason you can't use load-xml2, please file a mantis detailing the reason.");
+
+            LLVector3 loadOffset = new LLVector3(0, 0, 0);
+            if (cmdparams.Length > 0)
+            {
+                bool generateNewIDS = false;
+                if (cmdparams.Length > 1)
+                {
+                    if (cmdparams[1] == "-newUID")
+                    {
+                        generateNewIDS = true;
+                    }
+                    if (cmdparams.Length > 2)
+                    {
+                        loadOffset.X = (float) Convert.ToDecimal(cmdparams[2]);
+                        if (cmdparams.Length > 3)
+                        {
+                            loadOffset.Y = (float) Convert.ToDecimal(cmdparams[3]);
+                        }
+                        if (cmdparams.Length > 4)
+                        {
+                            loadOffset.Z = (float) Convert.ToDecimal(cmdparams[4]);
+                        }
+                        m_console.Error("loadOffsets <X,Y,Z> = <" + loadOffset.X + "," + loadOffset.Y + "," +
+                                        loadOffset.Z + ">");
+                    }
+                }
+                m_sceneManager.LoadCurrentSceneFromXml(cmdparams[0], generateNewIDS, loadOffset);
+            }
+            else
+            {
+                m_sceneManager.LoadCurrentSceneFromXml(DEFAULT_PRIM_BACKUP_FILENAME, false, loadOffset);
+            }
+        }           
+        
+        protected void SaveXml2(string[] cmdparams)
+        {
+            if (cmdparams.Length > 0)
+            {
+                m_sceneManager.SaveCurrentSceneToXml2(cmdparams[0]);
+            }
+            else
+            {
+                m_sceneManager.SaveCurrentSceneToXml2(DEFAULT_PRIM_BACKUP_FILENAME);
+            }
+        }
+        
+        protected void LoadXml2(string[] cmdparams)
+        {
+            if (cmdparams.Length > 0)
+            {
+                m_sceneManager.LoadCurrentSceneFromXml2(cmdparams[0]);
+            }
+            else
+            {
+                m_sceneManager.LoadCurrentSceneFromXml2(DEFAULT_PRIM_BACKUP_FILENAME);
+            }
+        }           
+        
+        protected void LoadOar(string[] cmdparams)
+        {
+            m_log.Error("[CONSOLE]: Don't use me - I haven't yet been sufficiently implemented!");
+
+            if (cmdparams.Length > 0)
+            {
+                m_sceneManager.LoadArchiveToCurrentScene(cmdparams[0]);
+            }
+            else
+            {
+                m_sceneManager.LoadArchiveToCurrentScene(DEFAULT_OAR_BACKUP_FILENAME);
+            }            
+        }
+        
+        protected void SaveOar(string[] cmdparams)
+        {
+            m_log.Error("[CONSOLE]: Don't use me - I haven't yet been sufficiently implemented!");
+
+            if (cmdparams.Length > 0)
+            {
+                m_sceneManager.SaveCurrentSceneToArchive(cmdparams[0]);
+            }
+            else
+            {
+                m_sceneManager.SaveCurrentSceneToArchive(DEFAULT_OAR_BACKUP_FILENAME);
+            }           
+        }        
 
         private static string CombineParams(string[] commandParams, int pos)
         {
