@@ -3299,7 +3299,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public LSL_Types.LSLInteger llGetListLength(LSL_Types.list src)
         {
             m_host.AddScriptLPS(1);
-            return src.Length;
+
+            if (src == null)
+            {
+                return 0;
+            }
+            else
+            {
+                return src.Length;
+            }
         }
 
         public LSL_Types.LSLInteger llList2Integer(LSL_Types.list src, int index)
