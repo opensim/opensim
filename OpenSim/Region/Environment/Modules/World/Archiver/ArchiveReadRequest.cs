@@ -62,6 +62,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
         protected void DearchiveRegion()
         {            
+            m_log.InfoFormat("[ARCHIVER]: Restoring archive {0}", m_loadPath);
+            
             TarArchiveReader archive 
                 = new TarArchiveReader(
                     new GZipStream(new FileStream(m_loadPath, FileMode.Open), CompressionMode.Decompress));           
@@ -73,8 +75,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             byte[] data;
             while ((data = archive.ReadEntry(out filePath)) != null)
             {
-                m_log.DebugFormat(
-                    "[ARCHIVER]: Successfully read {0} ({1} bytes) from archive {2}", filePath, data.Length, m_loadPath);
+                //m_log.DebugFormat(
+                //    "[ARCHIVER]: Successfully read {0} ({1} bytes)}", filePath, data.Length);
 
                 if (filePath.StartsWith(ArchiveConstants.OBJECTS_PATH))
                 {
@@ -95,7 +97,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 }
             }
 
-            m_log.Debug("[ARCHIVER]: Reached end of archive");
+            //m_log.Debug("[ARCHIVER]: Reached end of archive");
 
             archive.Close();
 
@@ -111,14 +113,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 
                 if (null != sceneObject)
                     sceneObjects.Add(sceneObject);
-            }
-            
-            m_log.Debug("[ARCHIVER]: Starting scripts");
-            
-            foreach (SceneObjectGroup sceneObject in sceneObjects)
-            {
-                sceneObject.CreateScriptInstances(0, true);
-            }
+            }            
             
             m_log.InfoFormat("[ARCHIVER]: Restored {0} objects to the scene", sceneObjects.Count);
             
@@ -128,6 +123,13 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 m_log.WarnFormat("[ARCHIVER]: Ignored {0} objects that already existed in the scene", ignoredObjects);
                                  
             m_log.InfoFormat("[ARCHIVER]: Successfully loaded archive");
+            
+            m_log.Debug("[ARCHIVER]: Starting scripts");
+            
+            foreach (SceneObjectGroup sceneObject in sceneObjects)
+            {
+                sceneObject.CreateScriptInstances(0, true);
+            }            
         }
     
         /// <summary>

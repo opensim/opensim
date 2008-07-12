@@ -136,7 +136,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 }
                 else
                 {
-                    m_log.DebugFormat("[ARCHIVER]: Could not find asset {0} to archive", uuid);
+                    m_log.WarnFormat("[ARCHIVER]: Could not find asset {0} to archive", uuid);
                 }
             }
         }

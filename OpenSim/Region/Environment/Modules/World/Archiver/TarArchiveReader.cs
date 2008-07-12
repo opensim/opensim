@@ -27,9 +27,9 @@
 
 using System;
 using System.IO;
-using System.Reflection;
+//using System.Reflection;
 using System.Text;
-using log4net;
+//using log4net;
 
 namespace OpenSim.Region.Environment.Modules.World.Archiver
 {
@@ -38,7 +38,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     /// </summary>
     public class TarArchiveReader
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected static ASCIIEncoding m_asciiEncoding = new ASCIIEncoding();
 
@@ -78,14 +78,14 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             filePath = header.FilePath;
             byte[] data = m_br.ReadBytes(header.FileSize);
 
-            m_log.DebugFormat("[TAR ARCHIVE READER]: filePath {0}, fileSize {1}", filePath, header.FileSize);
+            //m_log.DebugFormat("[TAR ARCHIVE READER]: filePath {0}, fileSize {1}", filePath, header.FileSize);
 
             // Read the rest of the empty padding in the 512 byte block
             if (header.FileSize % 512 != 0)
             {
                 int paddingLeft = 512 - (header.FileSize % 512);
 
-                m_log.DebugFormat("[TAR ARCHIVE READER]: Reading {0} padding bytes", paddingLeft);
+                //m_log.DebugFormat("[TAR ARCHIVE READER]: Reading {0} padding bytes", paddingLeft);
 
                 m_br.ReadBytes(paddingLeft);
             }

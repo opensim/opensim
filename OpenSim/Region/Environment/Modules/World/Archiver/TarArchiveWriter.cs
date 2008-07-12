@@ -29,8 +29,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Reflection;
-using log4net;
+//using System.Reflection;
+//using log4net;
 
 namespace OpenSim.Region.Environment
 {
@@ -39,7 +39,7 @@ namespace OpenSim.Region.Environment
     /// </summary>
     public class TarArchiveWriter
     {
-        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected Dictionary<string, byte[]> m_files = new Dictionary<string, byte[]>();
 
@@ -111,7 +111,7 @@ namespace OpenSim.Region.Environment
 
                 // file size in bytes (12)
                 int fileSize = data.Length;
-                m_log.DebugFormat("[TAR ARCHIVE WRITER]: File size of {0} is {1}", filePath, fileSize);
+                //m_log.DebugFormat("[TAR ARCHIVE WRITER]: File size of {0} is {1}", filePath, fileSize);
 
                 byte[] fileSizeBytes = ConvertDecimalToPaddedOctalBytes(fileSize, 11);
 
@@ -144,7 +144,7 @@ namespace OpenSim.Region.Environment
                     checksum += b;
                 }
 
-                m_log.DebugFormat("[TAR ARCHIVE WRITER]: Decimal header checksum is {0}", checksum);
+                //m_log.DebugFormat("[TAR ARCHIVE WRITER]: Decimal header checksum is {0}", checksum);
 
                 byte[] checkSumBytes = ConvertDecimalToPaddedOctalBytes(checksum, 6);
 
@@ -162,7 +162,7 @@ namespace OpenSim.Region.Environment
                 {
                     int paddingRequired = 512 - (data.Length % 512);
                     
-                    m_log.DebugFormat("[TAR ARCHIVE WRITER]: Padding data with {0} bytes", paddingRequired);
+                    //m_log.DebugFormat("[TAR ARCHIVE WRITER]: Padding data with {0} bytes", paddingRequired);
 
                     byte[] padding = new byte[paddingRequired];
                     bw.Write(padding);

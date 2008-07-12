@@ -135,14 +135,14 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             if (null != scriptAsset)
             {
                 string script = Helpers.FieldToUTF8String(scriptAsset.Data);
-                m_log.DebugFormat("[ARCHIVER]: Script {0}", script);
+                //m_log.DebugFormat("[ARCHIVER]: Script {0}", script);
                 MatchCollection uuidMatches = m_uuidRegex.Matches(script);
-                m_log.DebugFormat("[ARCHIVER]: Found {0} matches in script", uuidMatches.Count);
+                //m_log.DebugFormat("[ARCHIVER]: Found {0} matches in script", uuidMatches.Count);
                 
                 foreach (Match uuidMatch in uuidMatches)
                 {
                     LLUUID uuid = new LLUUID(uuidMatch.Value);
-                    m_log.DebugFormat("[ARCHIVER]: Recording {0} in script", uuid);
+                    //m_log.DebugFormat("[ARCHIVER]: Recording {0} in script", uuid);
                     assetUuids[uuid] = 1;
                 }
             }                         
@@ -160,8 +160,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             AssetWearable wearableAsset = new AssetBodypart(assetBase.Data);
             wearableAsset.Decode();
             
-            m_log.DebugFormat(
-                "[ARCHIVER]: Wearable asset {0} references {1} assets", wearableAssetUuid, wearableAsset.Textures.Count);
+            //m_log.DebugFormat(
+            //    "[ARCHIVER]: Wearable asset {0} references {1} assets", wearableAssetUuid, wearableAsset.Textures.Count);
             
             foreach (LLUUID uuid in wearableAsset.Textures.Values)
             {
@@ -203,8 +203,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
             foreach (SceneObjectPart part in sceneObject.GetParts())
             {
-                m_log.DebugFormat(
-                    "[ARCHIVER]: Getting part {0}, {1} for object {2}", part.Name, part.UUID, sceneObject.UUID);
+                //m_log.DebugFormat(
+                //    "[ARCHIVER]: Getting part {0}, {1} for object {2}", part.Name, part.UUID, sceneObject.UUID);
 
                 try
                 {
@@ -220,14 +220,14 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                     {
                         if (texture != null)
                         {
-                            m_log.DebugFormat("[ARCHIVER]: Got face {0}", i++);
+                            //m_log.DebugFormat("[ARCHIVER]: Got face {0}", i++);
                             assetUuids[texture.TextureID] = 1;
                         }
                     }
                     
                     foreach (TaskInventoryItem tii in part.TaskInventory.Values)
                     {
-                        m_log.DebugFormat("[ARCHIVER]: Analysing item asset type {0}", tii.Type);
+                        //m_log.DebugFormat("[ARCHIVER]: Analysing item asset type {0}", tii.Type);
                         
                         if (!assetUuids.ContainsKey(tii.AssetID))
                         {
@@ -247,7 +247,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                             }
                             else
                             {
-                                m_log.DebugFormat("[ARCHIVER]: Recording asset {0} in object {1}", tii.AssetID, part.UUID);
+                                //m_log.DebugFormat("[ARCHIVER]: Recording asset {0} in object {1}", tii.AssetID, part.UUID);
                             }
                         }
                     }
