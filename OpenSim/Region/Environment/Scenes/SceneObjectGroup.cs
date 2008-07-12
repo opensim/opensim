@@ -2014,7 +2014,7 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     foreach (SceneObjectPart parts in m_parts.Values)
                     {
-                        if(part.Scale.X > 10.0 || part.Scale.Y > 10.0 || part.Scale.Z > 10.0)
+                        if (part.Scale.X > 10.0 || part.Scale.Y > 10.0 || part.Scale.Z > 10.0)
                         {
                             data[47] = 0; // Reset physics
                             break;

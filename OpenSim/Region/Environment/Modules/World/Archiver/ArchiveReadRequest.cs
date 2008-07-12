@@ -32,6 +32,7 @@ using OpenSim.Region.Environment.Modules.World.Terrain;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Reflection;
 using System.Xml;
 using libsecondlife;
@@ -60,8 +61,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         }
 
         protected void DearchiveRegion()
-        {
-            TarArchiveReader archive = new TarArchiveReader(m_loadPath);
+        {            
+            TarArchiveReader archive 
+                = new TarArchiveReader(
+                    new GZipStream(new FileStream(m_loadPath, FileMode.Open), CompressionMode.Decompress));           
             //AssetsDearchiver dearchiver = new AssetsDearchiver(m_scene.AssetCache);
 
             List<string> serialisedSceneObjects = new List<string>();

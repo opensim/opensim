@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Reflection;
 using System.Xml;
 using libsecondlife;
@@ -110,7 +111,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             AssetsArchiver assetsArchiver = new AssetsArchiver(assets);
             assetsArchiver.Archive(archive);
 
-            archive.WriteTar(m_savePath);
+            archive.WriteTar(new GZipStream(new FileStream(m_savePath, FileMode.Create), CompressionMode.Compress));
 
             m_log.InfoFormat("[ARCHIVER]: Wrote out OpenSimulator archive {0}", m_savePath);
         }   

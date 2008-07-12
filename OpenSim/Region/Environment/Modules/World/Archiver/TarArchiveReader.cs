@@ -52,23 +52,13 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         /// </summary>
         protected char[] m_nullCharArray = new char[] { '\0' };
 
-        public TarArchiveReader(string archivePath)
-        {
-            m_br = new BinaryReader(new FileStream(archivePath, FileMode.Open));
-        }
-
         /// <summary>
-        /// Are we at the end of the archive?
+        /// Generate a tar reader which reads from the given stream.
         /// </summary>
-        /// <returns></returns>
-        public bool AtEof()
+        /// <param name="s"></param>
+        public TarArchiveReader(Stream s)
         {
-            // If we've reached the end of the archive we'll be in null block territory, which means
-            // the next byte will be 0
-            if (m_br.PeekChar() == 0)
-                return true;
-
-            return false;
+            m_br = new BinaryReader(s);
         }
 
         /// <summary>
@@ -79,11 +69,11 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         public byte[] ReadEntry(out string filePath)
         {
             filePath = String.Empty;
-
-            if (AtEof())
-                return null;
-
+            
             TarHeader header = ReadHeader();
+            
+            if (null == header)
+                return null;
 
             filePath = header.FilePath;
             byte[] data = m_br.ReadBytes(header.FileSize);
@@ -105,14 +95,18 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
         /// <summary>
         /// Read the next 512 byte chunk of data as a tar header.
-        /// This method assumes we are not at the end of the archive
         /// </summary>
-        /// <returns>A tar header struct.</returns>
+        /// <returns>A tar header struct.  null if we have reached the end of the archive.</returns>
         protected TarHeader ReadHeader()
-        {
-            TarHeader tarHeader = new TarHeader();
-
+        {            
             byte[] header = m_br.ReadBytes(512);
+            
+            // If we've reached the end of the archive we'll be in null block territory, which means
+            // the next byte will be 0            
+            if (header[0] == 0)
+                return null;
+            
+            TarHeader tarHeader = new TarHeader();
 
             tarHeader.FilePath = m_asciiEncoding.GetString(header, 0, 100);
             tarHeader.FilePath = tarHeader.FilePath.Trim(m_nullCharArray);
@@ -147,7 +141,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
         }
     }
 
-    public struct TarHeader
+    public class TarHeader
     {
         public string FilePath;
         public int FileSize;

@@ -79,20 +79,18 @@ namespace OpenSim.Region.Environment
         }
 
         /// <summary>
-        /// Write the raw tar archive data to a file
+        /// Write the raw tar archive data to a stream.  The stream will be closed on completion.
         /// </summary>
+        /// <param name="s">Stream to which to write the data</param>
         /// <returns></returns>
-        public void WriteTar(string archivePath)
+        public void WriteTar(Stream s)
         {
-            BinaryWriter bw = new BinaryWriter(new FileStream(archivePath, FileMode.Create));
+            BinaryWriter bw = new BinaryWriter(s);
 
             foreach (string filePath in m_files.Keys)
             {
                 byte[] header = new byte[512];
                 byte[] data = m_files[filePath];
-
-                //string filePath = "test.txt";
-                //byte[] data = m_asciiEncoding.GetBytes("hello\n");
 
                 // file path field (100)
                 byte[] nameBytes = m_asciiEncoding.GetBytes(filePath);
@@ -149,7 +147,6 @@ namespace OpenSim.Region.Environment
                 m_log.DebugFormat("[TAR ARCHIVE WRITER]: Decimal header checksum is {0}", checksum);
 
                 byte[] checkSumBytes = ConvertDecimalToPaddedOctalBytes(checksum, 6);
-                //byte[] checkSumBytes = m_asciiEncoding.GetBytes("007520");
 
                 Array.Copy(checkSumBytes, 0, header, 148, 6);
 
@@ -176,6 +173,7 @@ namespace OpenSim.Region.Environment
             byte[] finalZeroPadding = new byte[1024];
             bw.Write(finalZeroPadding);
 
+            bw.Flush();
             bw.Close();
         }
 
