@@ -637,7 +637,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void llDie()
         {
             m_host.AddScriptLPS(1);
-            World.DeleteSceneObject(m_host.ParentGroup);
+            throw new SelfDeleteException();
         }
 
         public double llGround(LSL_Types.Vector3 offset)

@@ -52,6 +52,20 @@ namespace OpenSim.Region.ScriptEngine.Shared
         }
     }
 
+    [Serializable]
+    public class SelfDeleteException : Exception
+    {
+        public SelfDeleteException()
+        {
+        }
+
+        protected SelfDeleteException(
+                SerializationInfo info, 
+                StreamingContext context)
+        {
+        }
+    }
+
     public class DetectParams
     {
         public DetectParams()

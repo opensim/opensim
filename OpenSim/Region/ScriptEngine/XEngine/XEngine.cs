@@ -874,6 +874,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
         private string m_Assembly;
         private int m_StartParam = 0;
         private string m_CurrentEvent = String.Empty;
+        private bool m_InSelfDelete = false;
 
         private Dictionary<string,IScriptApi> m_Apis = new Dictionary<string,IScriptApi>();
 
@@ -1190,7 +1191,8 @@ namespace OpenSim.Region.ScriptEngine.XEngine
             if (result == null)
                 return true;
 
-            result.Abort();
+			if(!m_InSelfDelete)
+				result.Abort();
 
             lock (m_EventQueue)
             {
@@ -1298,7 +1300,7 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                     m_InEvent = false;
                     m_CurrentEvent = String.Empty;
 
-                    if (!(e is TargetInvocationException) || !(e.InnerException is EventAbortException))
+                    if (!(e is TargetInvocationException) || (!(e.InnerException is EventAbortException) && (!(e.InnerException is SelfDeleteException))))
                     {
                         if (e is System.Threading.ThreadAbortException)
                         {
@@ -1339,6 +1341,12 @@ namespace OpenSim.Region.ScriptEngine.XEngine
                                                "Errormessage: Error compiling script:\r\n" +
                                                e.ToString());
                         }
+                    }
+                    else if((e is TargetInvocationException) && (e.InnerException is SelfDeleteException))
+                    {
+                        m_InSelfDelete = true;
+                        if(part != null && part.ParentGroup != null)
+                            m_Engine.World.DeleteSceneObject(part.ParentGroup);
                     }
                 }
             }
