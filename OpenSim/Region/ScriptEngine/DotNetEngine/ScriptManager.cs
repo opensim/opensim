@@ -38,16 +38,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 {
     public class ScriptManager : Common.ScriptEngineBase.ScriptManager
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         public ScriptManager(Common.ScriptEngineBase.ScriptEngine scriptEngine)
             : base(scriptEngine)
         {
             base.m_scriptEngine = scriptEngine;
         }
-        private Compiler.LSL.Compiler LSLCompiler;
-
-        private static readonly ILog m_log
-            = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
+        private Compiler.LSL.Compiler LSLCompiler;        
 
         public override void Initialize()
         {
@@ -64,8 +62,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
 
         public override void _StartScript(uint localID, LLUUID itemID, string Script, int startParam, bool postOnRez)
         {
-            m_scriptEngine.Log.Debug("[" + m_scriptEngine.ScriptEngineName + "]: ScriptManager StartScript: localID: " + localID + ", itemID: " + itemID);
-
+            m_log.DebugFormat(
+                "[{0}]: ScriptManager StartScript: localID: {1}, itemID: {2}", 
+                m_scriptEngine.ScriptEngineName, localID, itemID);
 
             //IScriptHost root = host.GetRoot();
 
@@ -74,13 +73,21 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
             string CompiledScriptFile = String.Empty;
 
             SceneObjectPart m_host = World.GetSceneObjectPart(localID);
+            
+            if (null == m_host)
+            {
+                m_log.ErrorFormat(
+                    "[{0}]: Could not get scene object part corresponding to localID {1} to start script", 
+                    m_scriptEngine.ScriptEngineName, localID);
+                
+                return;
+            }
 
             // Xantor 20080525: I need assetID here to see if we already compiled this one previously
             LLUUID assetID = LLUUID.Zero;
             TaskInventoryItem taskInventoryItem = new TaskInventoryItem();
-            if (m_host.TaskInventory.TryGetValue(itemID,out taskInventoryItem))
+            if (m_host.TaskInventory.TryGetValue(itemID, out taskInventoryItem))
                 assetID = taskInventoryItem.AssetID;
-
 
             try
             {

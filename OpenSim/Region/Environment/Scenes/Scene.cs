@@ -72,8 +72,12 @@ namespace OpenSim.Region.Environment.Scenes
 
         public InnerScene m_innerScene;
 
-        // private Random Rand = new Random();
-        private uint _primCount = 720000;
+        /// <summary>
+        /// The last allocated local prim id.  When a new local id is requested, the next number in the sequence is 
+        /// dispenced.
+        /// </summary>       
+        private uint m_localId = 720000;
+        
         private readonly Mutex _primAllocateMutex = new Mutex(false);
 
         private int m_timePhase = 24;
@@ -1493,16 +1497,15 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        /// Returns a new unallocated primitive ID
+        /// Returns a new unallocated local primitive ID
         /// </summary>
-        /// <returns>A brand new primitive ID</returns>
+        /// <returns>A brand new local primitive ID</returns>
         public uint PrimIDAllocate()
         {
             uint myID;
 
             _primAllocateMutex.WaitOne();
-            ++_primCount;
-            myID = _primCount;
+            myID = ++m_localId;
             _primAllocateMutex.ReleaseMutex();
 
             return myID;

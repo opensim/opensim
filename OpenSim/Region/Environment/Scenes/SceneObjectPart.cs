@@ -141,7 +141,6 @@ namespace OpenSim.Region.Environment.Scenes
         public uint m_attachmentPoint = (byte)0;
         [XmlIgnore]
         public PhysicsVector m_rotationAxis = new PhysicsVector(1f,1f,1f);
-
         
         [XmlIgnore]
         public bool m_undoing = false;
