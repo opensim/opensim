@@ -1997,22 +1997,21 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Update prim flags for this group.
         /// </summary>
         /// <param name="localID"></param>
         /// <param name="type"></param>
         /// <param name="inUse"></param>
         /// <param name="data"></param>
-        ///
         public void UpdatePrimFlags(uint localID, ushort type, bool inUse, byte[] data)
         {
-            SceneObjectPart part = GetChildPart(localID);
-            if (part != null)
+            SceneObjectPart selectionPart = GetChildPart(localID);
+            
+            if (selectionPart != null)
             {
-                // If we have children
                 lock (m_parts)
                 {
-                    foreach (SceneObjectPart parts in m_parts.Values)
+                    foreach (SceneObjectPart part in m_parts.Values)
                     {
                         if (part.Scale.X > 10.0 || part.Scale.Y > 10.0 || part.Scale.Z > 10.0)
                         {
@@ -2021,14 +2020,7 @@ namespace OpenSim.Region.Environment.Scenes
                         }
                     }
 
-                    if (m_parts.Count > 1)
-                    {
-                        foreach (SceneObjectPart parts in m_parts.Values)
-                        {
-                            parts.UpdatePrimFlags(type, inUse, data);
-                        }
-                    }
-                    else
+                    foreach (SceneObjectPart part in m_parts.Values)
                     {
                         part.UpdatePrimFlags(type, inUse, data);
                     }
