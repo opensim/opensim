@@ -241,10 +241,7 @@ namespace OpenSim
                     break;
 
                 case "debug":
-                    if (cmdparams.Length > 0)
-                    {
-                        Debug(cmdparams);
-                    }
+                    Debug(cmdparams);
                     break;
 
                 case "scene-debug":
@@ -434,6 +431,7 @@ namespace OpenSim
                 case "create-region":
                     CreateRegion(new RegionInfo(cmdparams[0], "Regions/" + cmdparams[1],false), true);
                     break;
+                
                 case "remove-region":
                     string regName = CombineParams(cmdparams, 0);
 
@@ -544,6 +542,7 @@ namespace OpenSim
                         }
                     }
                     break;
+                
                 case "modules":
                     if (cmdparams.Length > 0)
                     {
@@ -590,6 +589,7 @@ namespace OpenSim
                         m_commsManager.AddInventoryService(cmdparams[0]);
                     }
                     break;
+                
                 default:
                     string[] tmpPluginArgs = new string[cmdparams.Length + 1];
                     cmdparams.CopyTo(tmpPluginArgs, 1);
@@ -600,8 +600,15 @@ namespace OpenSim
             }
         }
 
-        public void Debug(string[] args)
+        /// <summary>
+        /// Turn on some debugging values for OpenSim.
+        /// </summary>
+        /// <param name="args"></param>
+        protected void Debug(string[] args)
         {
+            if (args.Length == 0)
+                return;
+          
             switch (args[0])
             {
                 case "packet":
@@ -620,6 +627,7 @@ namespace OpenSim
                     }
 
                     break;
+                
                 default:
                     m_console.Error("Unknown debug");
                     break;
