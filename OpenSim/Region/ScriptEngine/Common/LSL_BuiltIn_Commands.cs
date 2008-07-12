@@ -2222,7 +2222,11 @@ namespace OpenSim.Region.ScriptEngine.Common
         public void llEmail(string address, string subject, string message)
         {
             m_host.AddScriptLPS(1);
-            NotImplemented("llEmail");
+            IEmailModule emailModule = m_ScriptEngine.World.RequestModuleInterface<IEmailModule>();
+            if (emailModule == null)
+                return;
+
+            emailModule.SendEmail(m_host.UUID, address, subject, message);
         }
 
         public void llGetNextEmail(string address, string subject)

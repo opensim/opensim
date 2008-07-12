@@ -783,6 +783,7 @@
       <Reference name="OpenSim.Data.Base"/>
       <Reference name="Nini.dll" />
       <Reference name="log4net.dll"/>
+      <Reference name="DotNetOpenMail.dll"/>
 
       <Files>
         <Match pattern="*.cs" recurse="true"/>
