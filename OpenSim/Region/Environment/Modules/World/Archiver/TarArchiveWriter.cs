@@ -98,7 +98,7 @@ namespace OpenSim.Region.Environment
                 Array.Copy(nameBytes, header, nameSize);
 
                 // file mode (8)
-                byte[] modeBytes = m_asciiEncoding.GetBytes("0000755");
+                byte[] modeBytes = m_asciiEncoding.GetBytes("0000777");
                 Array.Copy(modeBytes, 0, header, 100, 7);
 
                 // owner user id (8)
