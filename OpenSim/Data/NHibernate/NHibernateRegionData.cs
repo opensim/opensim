@@ -52,7 +52,7 @@ namespace OpenSim.Data.NHibernate
 
         private Configuration cfg;
         private ISessionFactory factory;
-        private ISession session;
+        //private ISession session;
 
         public void Initialise()
         {
@@ -89,7 +89,7 @@ namespace OpenSim.Data.NHibernate
                 cfg.AddInputStream(stream);
             
             factory  = cfg.BuildSessionFactory();
-            session = factory.OpenSession();
+            //session = factory.OpenSession();
             
             // This actually does the roll forward assembly stuff
             Assembly assem = GetType().Assembly;
@@ -119,7 +119,7 @@ namespace OpenSim.Data.NHibernate
         /// <param name="regionUUID">the region UUID</param>
         public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
-            NHPrim[] prims = (NHPrim[]) obj.GetParts();
+            //NHPrim[] prims = (NHPrim[]) obj.GetParts();
         }
 
         /// <summary>
@@ -242,18 +242,18 @@ namespace OpenSim.Data.NHibernate
         /// </summary>
         /// <param name="val"></param>
         /// <returns></returns>
-        private static Array serializeTerrain(double[,] val)
-        {
-            MemoryStream str = new MemoryStream(65536*sizeof (double));
-            BinaryWriter bw = new BinaryWriter(str);
-
-            // TODO: COMPATIBILITY - Add byte-order conversions
-            for (int x = 0; x < 256; x++)
-                for (int y = 0; y < 256; y++)
-                    bw.Write(val[x, y]);
-
-            return str.ToArray();
-        }
+//        private static Array serializeTerrain(double[,] val)
+//        {
+//            MemoryStream str = new MemoryStream(65536*sizeof (double));
+//            BinaryWriter bw = new BinaryWriter(str);
+//
+//            // TODO: COMPATIBILITY - Add byte-order conversions
+//            for (int x = 0; x < 256; x++)
+//                for (int y = 0; y < 256; y++)
+//                    bw.Write(val[x, y]);
+//
+//            return str.ToArray();
+//        }
 
         /// <summary>
         /// see IRegionDatastore
