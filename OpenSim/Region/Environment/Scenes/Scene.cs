@@ -76,7 +76,7 @@ namespace OpenSim.Region.Environment.Scenes
         /// The last allocated local prim id.  When a new local id is requested, the next number in the sequence is 
         /// dispenced.
         /// </summary>       
-        private uint m_localId = 720000;
+        private uint m_lastAllocatedLocalId = 720000;
         
         private readonly Mutex _primAllocateMutex = new Mutex(false);
 
@@ -1505,7 +1505,7 @@ namespace OpenSim.Region.Environment.Scenes
             uint myID;
 
             _primAllocateMutex.WaitOne();
-            myID = ++m_localId;
+            myID = ++m_lastAllocatedLocalId;
             _primAllocateMutex.ReleaseMutex();
 
             return myID;
