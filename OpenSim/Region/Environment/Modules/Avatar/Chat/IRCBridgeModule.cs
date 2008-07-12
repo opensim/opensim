@@ -181,7 +181,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             if (m_irc.Equals(sender)) return;
 
             ScenePresence avatar = null;
-            Scene scene = (Scene) e.Scene;
+            Scene scene = (Scene)e.Scene;
 
             if (scene == null)
                 scene = m_scenes[0];
@@ -249,7 +249,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                     {
                         m_log.DebugFormat("[IRC] {0} logging on", clientName);
                         m_irc.PrivMsg(m_irc.Nick, "Sim",
-                                      String.Format("notices {0} logging on", clientName));
+                        String.Format("notices {0} logging on", clientName));
                     }
                     m_last_new_user = clientName;
                 }
@@ -309,6 +309,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                         // but filters out multiple reports
                         if (clientName != m_last_leaving_user)
                         {
+                            Console.WriteLine("Avatar was seen logging out.");
+                            Console.ReadLine();
+                            Console.WriteLine();
                             m_last_leaving_user = clientName;
                             m_irc.PrivMsg(m_irc.Nick, "Sim", String.Format("notices {0} logging out", clientName));
                             m_log.InfoFormat("[IRC]: {0} logging out", clientName);
@@ -367,6 +370,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
 
         private string m_basenick = null;
         private string m_channel = null;
+        private bool m_nrnick = false;
         private bool m_connected = false;
         private bool m_enabled = false;
         private List<Scene> m_last_scenes = null;
@@ -380,7 +384,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
         private NetworkStream m_stream;
         internal object m_syncConnect = new object();
         private TcpClient m_tcp;
-        private string m_user = "USER OpenSimBot 8 * :I'm an OpenSim to irc bot";
+        private string m_user = "USER OpenSimBot 8 * :I'm an OpenSim to IRC bot";
         private StreamWriter m_writer;
 
         private Thread pingSender;
@@ -418,13 +422,17 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 m_server = config.Configs["IRC"].GetString("server");
                 m_nick = config.Configs["IRC"].GetString("nick");
                 m_basenick = m_nick;
+                m_nrnick = config.Configs["IRC"].GetBoolean("nicknum");
                 m_channel = config.Configs["IRC"].GetString("channel");
-                m_port = (uint) config.Configs["IRC"].GetInt("port", (int) m_port);
+                m_port = (uint)config.Configs["IRC"].GetInt("port", (int)m_port);
                 m_user = config.Configs["IRC"].GetString("username", m_user);
                 m_privmsgformat = config.Configs["IRC"].GetString("msgformat", m_privmsgformat);
                 if (m_server != null && m_nick != null && m_channel != null)
                 {
-                    m_nick = m_nick + Util.RandomClass.Next(1, 99);
+                    if (m_nrnick == true)
+                    {
+                        m_nick = m_nick + Util.RandomClass.Next(1, 99);
+                    }
                     m_enabled = true;
                 }
             }
@@ -463,7 +471,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                         m_last_scenes = scenes;
                     }
 
-                    m_tcp = new TcpClient(m_server, (int) m_port);
+                    m_tcp = new TcpClient(m_server, (int)m_port);
                     m_log.Info("[IRC]: Connecting...");
                     m_stream = m_tcp.GetStream();
                     m_log.Info("[IRC]: Connected to " + m_server);
@@ -737,7 +745,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                     Int32 commandCode = Int32.Parse(commArgs[1]);
                     switch (commandCode)
                     {
-                        case (int) ErrorReplies.NicknameInUse:
+                        case (int)ErrorReplies.NicknameInUse:
                             // Gen a new name
                             m_nick = m_basenick + Util.RandomClass.Next(1, 99);
                             m_log.ErrorFormat("[IRC]: IRC SERVER reports NicknameInUse, trying {0}", m_nick);
@@ -747,9 +755,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                             m_writer.WriteLine(String.Format("JOIN {0}", m_channel));
                             m_writer.Flush();
                             break;
-                        case (int) ErrorReplies.NotRegistered:
+                        case (int)ErrorReplies.NotRegistered:
                             break;
-                        case (int) Replies.EndOfMotd:
+                        case (int)Replies.EndOfMotd:
                             break;
                     }
                 }
