@@ -185,7 +185,7 @@ namespace OpenSim.Region.Environment.Scenes
         {
             SceneObjectGroup obj = new SceneObjectGroup(xmlData);
 
-            if (scene.AddRestoredSceneObject(obj, true))                            
+            if (scene.AddRestoredSceneObject(obj, true, false))                            
                 return obj;
             else
                 return null;

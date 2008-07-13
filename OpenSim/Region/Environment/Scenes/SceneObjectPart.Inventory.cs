@@ -58,7 +58,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// <summary>
         /// Tracks whether inventory has changed since the last persistent backup
         /// </summary>
-        private bool HasInventoryChanged;
+        protected bool HasInventoryChanged;
+        
+        /// <summary>
+        /// Force the task inventory of this prim to persist at the next update sweep
+        /// </summary>
+        public void ForceInventoryPersistence()
+        {
+            HasInventoryChanged = true;
+        }
 
         /// <summary>
         /// Reset LLUUIDs for all the items in the prim's inventory.  This involves either generating
@@ -72,9 +80,7 @@ namespace OpenSim.Region.Environment.Scenes
             lock (TaskInventory)
             {
                 if (0 == TaskInventory.Count)
-                {
                     return;
-                }
 
                 HasInventoryChanged = true;
                 ParentGroup.HasGroupChanged = true;
@@ -597,7 +603,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void ProcessInventoryBackup(IRegionDataStore datastore)
         {
             if (HasInventoryChanged)
-            {
+            {                                
                 lock (TaskInventory)
                 {
                     datastore.StorePrimInventory(UUID, TaskInventory.Values);

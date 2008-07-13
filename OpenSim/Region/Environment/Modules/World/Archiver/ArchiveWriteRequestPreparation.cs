@@ -215,7 +215,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
     
                     // XXX: Not a great way to iterate through face textures, but there's no
                     // other method available to tell how many faces there actually are
-                    int i = 0;
+                    //int i = 0;
                     foreach (LLObject.TextureEntryFace texture in textureEntry.FaceTextures)
                     {
                         if (texture != null)

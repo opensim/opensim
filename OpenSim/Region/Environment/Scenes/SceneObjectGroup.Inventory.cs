@@ -39,6 +39,20 @@ namespace OpenSim.Region.Environment.Scenes
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
+        /// Force all task inventories of prims in the scene object to persist 
+        /// </summary>
+        public void ForceInventoryPersistence()
+        {
+            lock (m_parts)
+            {
+                foreach (SceneObjectPart part in m_parts.Values)
+                {
+                    part.ForceInventoryPersistence();
+                }
+            }            
+        }
+        
+        /// <summary>
         /// Start the scripts contained in all the prims in this group.
         /// </summary>
         public void CreateScriptInstances(int startParam, bool postOnRez)
@@ -53,6 +67,9 @@ namespace OpenSim.Region.Environment.Scenes
             }
         }
 
+        /// <summary>
+        /// Stop the scripts contained in all the prims in this group
+        /// </summary>
         public void RemoveScriptInstances()
         {
             lock (m_parts)

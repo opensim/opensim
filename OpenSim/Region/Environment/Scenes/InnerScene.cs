@@ -196,10 +196,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// If true, changes to the object will be reflected in its persisted data
         /// If false, the persisted data will not be changed even if the object in the scene is changed
         /// </param>
+        /// <param name="alreadyPersisted">
+        /// If true, we won't persist this object until it changes
+        /// If false, we'll persist this object immediately
+        /// </param>
         /// <returns>
         /// true if the object was added, false if an object with the same uuid was already in the scene
         /// </returns>         
-        protected internal bool AddRestoredSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
+        protected internal bool AddRestoredSceneObject(
+            SceneObjectGroup sceneObject, bool attachToBackup, bool alreadyPersisted)
         {
             sceneObject.RegionHandle = m_regInfo.RegionHandle;
             sceneObject.SetScene(m_parentScene);
@@ -211,6 +216,12 @@ namespace OpenSim.Region.Environment.Scenes
             
             sceneObject.UpdateParentIDs();
 
+            if (!alreadyPersisted)
+            {
+                sceneObject.ForceInventoryPersistence();
+                sceneObject.HasGroupChanged = true;
+            }
+ 
             return AddSceneObject(sceneObject, attachToBackup);
         }
         

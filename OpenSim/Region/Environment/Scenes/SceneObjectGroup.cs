@@ -1396,7 +1396,7 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
-        ///
+        /// Make a copy of the given part.
         /// </summary>
         /// <param name="part"></param>
         /// <param name="cAgentID"></param>

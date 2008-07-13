@@ -71,6 +71,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 
             List<string> serialisedSceneObjects = new List<string>();
             string filePath = "ERROR";
+            
+            int successfulAssetRestores = 0;
+            int failedAssetRestores = 0;
 
             byte[] data;
             while ((data = archive.ReadEntry(out filePath)) != null)
@@ -89,7 +92,10 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
 //                }
                 else if (filePath.StartsWith(ArchiveConstants.ASSETS_PATH))
                 {
-                    LoadAsset(filePath, data);
+                    if (LoadAsset(filePath, data))
+                        successfulAssetRestores++;
+                    else
+                        failedAssetRestores++;
                 }
                 else if (filePath.StartsWith(ArchiveConstants.TERRAINS_PATH))
                 {
@@ -100,9 +106,14 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             //m_log.Debug("[ARCHIVER]: Reached end of archive");
 
             archive.Close();
+            
+            m_log.InfoFormat("[ARCHIVER]: Restored {0} assets", successfulAssetRestores);
+            
+            if (failedAssetRestores > 0)
+                m_log.ErrorFormat("[ARCHIVER]: Failed to load {0} assets", failedAssetRestores);
 
             // Reload serialized prims
-            m_log.InfoFormat("[ARCHIVER]: Loading {0} scene objects", serialisedSceneObjects.Count);
+            m_log.InfoFormat("[ARCHIVER]: Loading {0} scene objects.  Please wait.", serialisedSceneObjects.Count);
 
             IRegionSerialiser serialiser = m_scene.RequestModuleInterface<IRegionSerialiser>();
             ICollection<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();            
@@ -115,12 +126,12 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                     sceneObjects.Add(sceneObject);
             }            
             
-            m_log.InfoFormat("[ARCHIVER]: Restored {0} objects to the scene", sceneObjects.Count);
+            m_log.InfoFormat("[ARCHIVER]: Restored {0} scene objects to the scene", sceneObjects.Count);
             
             int ignoredObjects = serialisedSceneObjects.Count - sceneObjects.Count;
             
             if (ignoredObjects > 0)
-                m_log.WarnFormat("[ARCHIVER]: Ignored {0} objects that already existed in the scene", ignoredObjects);
+                m_log.WarnFormat("[ARCHIVER]: Ignored {0} scene objects that already existed in the scene", ignoredObjects);
                                  
             m_log.InfoFormat("[ARCHIVER]: Successfully loaded archive");
             
@@ -149,7 +160,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             {
                 sbyte assetType = ArchiveConstants.EXTENSION_TO_ASSET_TYPE[extension];
     
-                m_log.DebugFormat("[ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
+                //m_log.DebugFormat("[ARCHIVER]: Importing asset {0}, type {1}", uuid, assetType);
     
                 AssetBase asset = new AssetBase(new LLUUID(uuid), String.Empty);
                 asset.Type = assetType;
@@ -185,7 +196,7 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             terrainModule.LoadFromStream(terrainPath, ms);
             ms.Close();
             
-            m_log.DebugFormat("[ARCHIVER]: Successfully loaded terrain {0}", terrainPath);
+            m_log.DebugFormat("[ARCHIVER]: Restored terrain {0}", terrainPath);
             
             return true;
         }

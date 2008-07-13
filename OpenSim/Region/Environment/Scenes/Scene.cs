@@ -1485,7 +1485,7 @@ namespace OpenSim.Region.Environment.Scenes
             List<SceneObjectGroup> PrimsFromDB = m_storageManager.DataStore.LoadObjects(regionID);
             foreach (SceneObjectGroup group in PrimsFromDB)
             {
-                AddRestoredSceneObject(group, true);
+                AddRestoredSceneObject(group, true, true);
                 SceneObjectPart rootPart = group.GetChildPart(group.UUID);
                 rootPart.ObjectFlags &= ~(uint)LLObject.ObjectFlags.Scripted;
                 rootPart.TrimPermissions();
@@ -1665,9 +1665,21 @@ namespace OpenSim.Region.Environment.Scenes
         /// Add an object into the scene that has come from storage
         /// </summary>
         /// <param name="sceneObject"></param>
-        public bool AddRestoredSceneObject(SceneObjectGroup sceneObject, bool attachToBackup)
+        /// <param name="attachToBackup">
+        /// If true, changes to the object will be reflected in its persisted data
+        /// If false, the persisted data will not be changed even if the object in the scene is changed
+        /// </param>
+        /// <param name="alreadyPersisted">
+        /// If true, we won't persist this object until it changes
+        /// If false, we'll persist this object immediately
+        /// </param>
+        /// <returns>
+        /// true if the object was added, false if an object with the same uuid was already in the scene
+        /// </returns> 
+        public bool AddRestoredSceneObject(
+            SceneObjectGroup sceneObject, bool attachToBackup, bool alreadyPersisted)
         {
-            return m_innerScene.AddRestoredSceneObject(sceneObject, attachToBackup);
+            return m_innerScene.AddRestoredSceneObject(sceneObject, attachToBackup, alreadyPersisted);
         }
 
         /// <summary>
