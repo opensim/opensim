@@ -198,7 +198,7 @@ namespace OpenSim.Framework
 
     public delegate void CreateNewInventoryItem(
         IClientAPI remoteClient, LLUUID transActionID, LLUUID folderID, uint callbackID, string description, string name,
-        sbyte invType, sbyte type, byte wearableType, uint nextOwnerMask);
+        sbyte invType, sbyte type, byte wearableType, uint nextOwnerMask, int creationDate);
 
     public delegate void FetchInventoryDescendents(
         IClientAPI remoteClient, LLUUID folderID, LLUUID ownerID, bool fetchFolders, bool fetchItems, int sortOrder);

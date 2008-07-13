@@ -1762,6 +1762,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             InventoryReply.InventoryData[0].Flags = Item.Flags;
             InventoryReply.InventoryData[0].SalePrice = Item.SalePrice;
             InventoryReply.InventoryData[0].SaleType = Item.SaleType;
+            InventoryReply.InventoryData[0].CreationDate = Item.CreationDate;
 
             InventoryReply.InventoryData[0].CRC =
                 Helpers.InventoryCRC(1000, 0, InventoryReply.InventoryData[0].InvType,
@@ -5288,7 +5289,8 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                                           createItem.InventoryBlock.InvType,
                                                           createItem.InventoryBlock.Type,
                                                           createItem.InventoryBlock.WearableType,
-                                                          createItem.InventoryBlock.NextOwnerMask);
+                                                          createItem.InventoryBlock.NextOwnerMask,
+                                                          Util.UnixTimeSinceEpoch());
                         }
                         break;
                     case PacketType.FetchInventory:

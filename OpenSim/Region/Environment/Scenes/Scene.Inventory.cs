@@ -330,6 +330,13 @@ namespace OpenSim.Region.Environment.Scenes
                         //item.GroupID = itemUpd.GroupID;
                         //item.GroupOwned = itemUpd.GroupOwned;
                         //item.CreationDate = itemUpd.CreationDate;
+                        // The client sends zero if its newly created?
+
+                        if (itemUpd.CreationDate == 0)
+                            item.CreationDate = Util.UnixTimeSinceEpoch();
+                        else
+                            item.CreationDate = itemUpd.CreationDate;
+ 
 
                         // TODO: Check if folder changed and move item
                         //item.NextPermissions = itemUpd.Folder;
@@ -448,6 +455,8 @@ namespace OpenSim.Region.Environment.Scenes
                         itemCopy.SalePrice = item.SalePrice;
                         itemCopy.SaleType = item.SaleType;
 
+                        itemCopy.CreationDate = item.CreationDate;
+
                         recipientUserInfo.AddItem(itemCopy);
 
                         if (!ExternalChecks.ExternalChecksBypassPermissions())
@@ -532,13 +541,13 @@ namespace OpenSim.Region.Environment.Scenes
                 {
                     CreateNewInventoryItem(
                         remoteClient, newFolderID, item.Name, item.Flags, callbackID, asset, (sbyte)item.InvType,
-                        item.BasePermissions, item.CurrentPermissions, item.EveryOnePermissions, item.NextPermissions);
+                        item.BasePermissions, item.CurrentPermissions, item.EveryOnePermissions, item.NextPermissions, Util.UnixTimeSinceEpoch());
                 }
                 else
                 {
                     CreateNewInventoryItem(
                         remoteClient, newFolderID, item.Name, item.Flags, callbackID, asset, (sbyte)item.InvType,
-                        item.NextPermissions, item.NextPermissions, item.EveryOnePermissions & item.NextPermissions, item.NextPermissions);
+                        item.NextPermissions, item.NextPermissions, item.EveryOnePermissions & item.NextPermissions, item.NextPermissions, Util.UnixTimeSinceEpoch());
                 }
             }
             else
@@ -634,15 +643,15 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="invType"></param>
         /// <param name="nextOwnerMask"></param>
         private void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID folderID, string name, uint flags, uint callbackID,
-                                            AssetBase asset, sbyte invType, uint nextOwnerMask)
+                                            AssetBase asset, sbyte invType, uint nextOwnerMask, int creationDate)
         {
             CreateNewInventoryItem(
                 remoteClient, folderID, name, flags, callbackID, asset, invType,
-                (uint)PermissionMask.All, (uint)PermissionMask.All, 0, nextOwnerMask);
+                (uint)PermissionMask.All, (uint)PermissionMask.All, 0, nextOwnerMask, creationDate);
         }
 
         /// <summary>
-        /// Create a new inventory item.
+        /// Create a new Inventory Item
         /// </summary>
         /// <param name="remoteClient"></param>
         /// <param name="folderID"></param>
@@ -650,9 +659,10 @@ namespace OpenSim.Region.Environment.Scenes
         /// <param name="asset"></param>
         /// <param name="invType"></param>
         /// <param name="nextOwnerMask"></param>
+        /// <param name="creationDate"></param>
         private void CreateNewInventoryItem(
             IClientAPI remoteClient, LLUUID folderID, string name, uint flags, uint callbackID, AssetBase asset, sbyte invType,
-            uint baseMask, uint currentMask, uint everyoneMask, uint nextOwnerMask)
+            uint baseMask, uint currentMask, uint everyoneMask, uint nextOwnerMask, int creationDate)
         {
             CachedUserInfo userInfo
                 = CommsManager.UserProfileCacheService.GetUserDetails(remoteClient.AgentId);
@@ -674,6 +684,7 @@ namespace OpenSim.Region.Environment.Scenes
                 item.NextPermissions = nextOwnerMask;
                 item.EveryOnePermissions = everyoneMask;
                 item.BasePermissions = baseMask;
+                item.CreationDate = creationDate;
 
                 userInfo.AddItem(item);
                 remoteClient.SendInventoryItemCreateUpdate(item);
@@ -703,7 +714,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void CreateNewInventoryItem(IClientAPI remoteClient, LLUUID transactionID, LLUUID folderID,
                                            uint callbackID, string description, string name, sbyte invType,
                                            sbyte assetType,
-                                           byte wearableType, uint nextOwnerMask)
+                                           byte wearableType, uint nextOwnerMask, int creationDate)
         {
 //            m_log.DebugFormat("[AGENT INVENTORY]: Received request to create inventory item {0} in folder {1}", name, folderID);
 
@@ -730,7 +741,7 @@ namespace OpenSim.Region.Environment.Scenes
                     AssetBase asset = CreateAsset(name, description, assetType, data);
                     AssetCache.AddAsset(asset);
 
-                    CreateNewInventoryItem(remoteClient, folderID, asset.Name, 0, callbackID, asset, invType, nextOwnerMask);
+                    CreateNewInventoryItem(remoteClient, folderID, asset.Name, 0, callbackID, asset, invType, nextOwnerMask, creationDate);
                 }
                 else
                 {
@@ -1664,6 +1675,7 @@ namespace OpenSim.Region.Environment.Scenes
                 }
 
                 // TODO: add the new fields (Flags, Sale info, etc)
+                item.CreationDate = Util.UnixTimeSinceEpoch();
 
                 userInfo.AddItem(item);
                 if (item.Owner == remoteClient.AgentId)
@@ -1817,6 +1829,7 @@ namespace OpenSim.Region.Environment.Scenes
                         item.NextPermissions = objectGroup.RootPart.NextOwnerMask;
                         item.EveryOnePermissions = objectGroup.RootPart.EveryoneMask;
                     }
+                    item.CreationDate = Util.UnixTimeSinceEpoch();
 
                     userInfo.AddItem(item);
                     remoteClient.SendInventoryItemCreateUpdate(item);
