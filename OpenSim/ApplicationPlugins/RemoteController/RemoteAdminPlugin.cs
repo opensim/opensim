@@ -712,7 +712,26 @@ namespace OpenSim.ApplicationPlugins.RemoteController
 
                 responseData["switched"] = "true";
 
-                m_app.SceneManager.LoadCurrentSceneFromXml(filename, true, new LLVector3(0, 0, 0));
+                string xml_version = "1";
+                if (requestData.Contains("xml_version"))
+                {
+                    xml_version = (string)requestData["xml_version"];
+                }
+
+                switch (xml_version)
+                {
+                case "1":
+                    m_app.SceneManager.LoadCurrentSceneFromXml(filename, true, new LLVector3(0, 0, 0));
+                    break;
+
+                case "2":
+                    m_app.SceneManager.LoadCurrentSceneFromXml2(filename);
+                    break;
+
+                default:
+                    throw new Exception(String.Format("unknown Xml{0} format", xml_version));
+                }
+
                 responseData["loaded"]   = "true";
 
                 response.Value           = responseData;
