@@ -6648,8 +6648,24 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             {
                 param.Add(o.ToString());
             }
+
+            Dictionary<string, string> httpHeaders = new Dictionary<string, string>();
+
+            httpHeaders["X-SecondLife-Shard"] = "OpenSim";
+            httpHeaders["X-SecondLife-Object-Name"] = m_host.Name;
+            httpHeaders["X-SecondLife-Object-Key"] = m_itemID.ToString();
+            httpHeaders["X-SecondLife-Region"] = World.RegionInfo.RegionName;
+            httpHeaders["X-SecondLife-Local-Position"] = m_host.AbsolutePosition.ToString();
+            httpHeaders["X-SecondLife-Local-Velocity"] = m_host.Velocity.ToString();
+            httpHeaders["X-SecondLife-Local-Rotation"] = m_host.RotationOffset.ToString();
+
+            ScenePresence scenePresence = World.GetScenePresence(m_host.ObjectOwner);
+            httpHeaders["X-SecondLife-Owner-Name"] = scenePresence == null ? string.Empty : scenePresence.Name;
+
+            httpHeaders["X-SecondLife-Owner-Key"] = m_host.ObjectOwner.ToString();
+
             LLUUID reqID = httpScriptMod.
-                StartHttpRequest(m_localID, m_itemID, url, param, body);
+                StartHttpRequest(m_localID, m_itemID, url, param, httpHeaders, body);
 
             if (reqID != LLUUID.Zero)
                 return reqID.ToString();

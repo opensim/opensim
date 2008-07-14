@@ -37,6 +37,7 @@ using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Environment.Interfaces;
 using OpenSim.Region.Environment.Scenes;
+using System.Collections;
 
 /*****************************************************
  *
@@ -105,7 +106,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
             return LLUUID.Zero;
         }
 
-        public LLUUID StartHttpRequest(uint localID, LLUUID itemID, string url, List<string> parameters, string body)
+        public LLUUID StartHttpRequest(uint localID, LLUUID itemID, string url, List<string> parameters, Dictionary<string, string> headers, string body)
         {
             LLUUID reqID = LLUUID.Random();
             HttpRequestClass htc = new HttpRequestClass();
@@ -150,6 +151,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
             htc.reqID = reqID;
             htc.httpTimeout = httpTimeout;
             htc.outbound_body = body;
+            htc.response_headers = headers;
 
             lock (HttpListLock)
             {
@@ -280,6 +282,7 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
         public HttpWebRequest request;
         public string response_body;
         public List<string> response_metadata;
+        public Dictionary<string, string> response_headers;
         public int status;
         public string url;
 
@@ -313,6 +316,9 @@ namespace OpenSim.Region.Environment.Modules.Scripting.HttpRequest
                           WebRequest.Create(url);
                 request.Method = httpMethod;
                 request.ContentType = httpMIMEType;
+
+                foreach (KeyValuePair<string, string> entry in response_headers)
+                    request.Headers[entry.Key] = entry.Value;
 
                 // Encode outbound data
                 if (outbound_body.Length > 0) {
