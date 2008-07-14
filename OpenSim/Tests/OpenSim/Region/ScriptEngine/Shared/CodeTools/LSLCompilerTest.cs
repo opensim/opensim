@@ -1360,6 +1360,41 @@ default
         }
 
         [Test]
+        public void TestVectorMemberPlusEquals()
+        {
+            string input = @"// let's test unary expressions some more
+
+default
+{
+    state_entry()
+    {
+        vector v = llGetPos();
+        v.z += 4;
+        v.z -= 4;
+        v.z *= 4;
+        v.z /= 4;
+        v.z %= 4;
+    }
+}
+";
+            string expected = @"
+        public void default_event_state_entry()
+        {
+            LSL_Types.Vector3 v = llGetPos();
+            v.z += 4;
+            v.z -= 4;
+            v.z *= 4;
+            v.z /= 4;
+            v.z %= 4;
+        }
+";
+
+            CSCodeGenerator cg = new CSCodeGenerator();
+            string output = cg.Convert(input);
+            Assert.AreEqual(expected, output);
+        }
+
+        [Test]
         [ExpectedException("Tools.CSToolsException")]
         public void TestSyntaxError()
         {
