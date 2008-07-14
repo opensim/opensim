@@ -140,7 +140,7 @@ namespace OpenSim.Region.Environment.Modules.World.Land
                 //Normal Calculations
                 return Convert.ToInt32(
                         Math.Round((Convert.ToDecimal(landData.area) / Convert.ToDecimal(65536)) * m_scene.objectCapacity *
-                                   Convert.ToDecimal(m_scene.RegionInfo.EstateSettings.objectBonusFactor))); ;
+                                   Convert.ToDecimal(m_scene.RegionInfo.RegionSettings.ObjectBonus))); ;
             }
         }
         public int getSimulatorMaxPrimCount(ILandObject thisObject)
@@ -161,7 +161,15 @@ namespace OpenSim.Region.Environment.Modules.World.Land
 
         public void sendLandProperties(int sequence_id, bool snap_selection, int request_result, IClientAPI remote_client)
         {
-            remote_client.SendLandProperties(remote_client, sequence_id, snap_selection, request_result, landData, m_scene.RegionInfo.EstateSettings.objectBonusFactor, getParcelMaxPrimCount(this), getSimulatorMaxPrimCount(this), (uint)m_scene.RegionInfo.EstateSettings.regionFlags);
+            IEstateModule estateModule = m_scene.RequestModuleInterface<IEstateModule>();
+            uint regionFlags = 67108864;
+            if(estateModule != null)
+                regionFlags = estateModule.GetRegionFlags();
+            remote_client.SendLandProperties(remote_client, sequence_id,
+                    snap_selection, request_result, landData,
+                    (float)m_scene.RegionInfo.RegionSettings.ObjectBonus,
+                    getParcelMaxPrimCount(this),
+                    getSimulatorMaxPrimCount(this), regionFlags);
         }
 
         public void updateLandProperties(LandUpdateArgs args, IClientAPI remote_client)

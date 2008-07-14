@@ -297,24 +297,11 @@ namespace OpenSim.Region.Environment.Scenes
             m_httpListener = httpServer;
             m_dumpAssetsToFile = dumpAssetsToFile;
 
-            if ((RegionInfo.EstateSettings.regionFlags & Simulator.RegionFlags.SkipScripts) == Simulator.RegionFlags.SkipScripts)
-            {
-                m_scripts_enabled = false;
-            }
-            else
-            {
-                m_scripts_enabled = true;
-            }
-            if ((RegionInfo.EstateSettings.regionFlags & Simulator.RegionFlags.SkipPhysics) == Simulator.RegionFlags.SkipPhysics)
-            {
-                m_physics_enabled = false;
-            }
-            else
-            {
-                m_physics_enabled = true;
-            }
+            m_scripts_enabled = !RegionInfo.RegionSettings.DisableScripts;
 
-            m_statsReporter = new SimStatsReporter(regInfo);
+            m_physics_enabled = !RegionInfo.RegionSettings.DisablePhysics;
+
+            m_statsReporter = new SimStatsReporter(this);
             m_statsReporter.OnSendStatsResult += SendSimStatsPackets;
 
             m_statsReporter.SetObjectCapacity(objectCapacity);
@@ -1076,7 +1063,7 @@ namespace OpenSim.Region.Environment.Scenes
                         //float tmpval = (float)hm[x, y];
                         float heightvalue = (float)hm[x, y];
 
-                        if ((float)heightvalue > m_regInfo.EstateSettings.waterHeight)
+                        if (heightvalue > (float)m_regInfo.RegionSettings.WaterHeight)
                         {
                             // scale height value
                             heightvalue = low + mid * (heightvalue - low) / mid;
@@ -1110,7 +1097,7 @@ namespace OpenSim.Region.Environment.Scenes
                         else
                         {
                             // Y flip the cordinates
-                            heightvalue = m_regInfo.EstateSettings.waterHeight - heightvalue;
+                            heightvalue = (float)m_regInfo.RegionSettings.WaterHeight - heightvalue;
                             if (heightvalue > 19)
                                 heightvalue = 19;
                             if (heightvalue < 0)

@@ -53,17 +53,11 @@ namespace OpenSim.Framework
         private LLUUID m_estateManager8;
         private LLUUID m_estateManager9;
         private string m_estateName;
-        private byte m_maxAgents;
-        private float m_objectBonusFactor;
 
         private uint m_parentEstateID;
         private int m_pricePerMeter;
         private int m_redirectGridX;
         private int m_redirectGridY;
-        private bool m_regionAllowTerraform;
-        private Simulator.RegionFlags m_regionFlags;
-        private float m_regionWaterHeight;
-        private Simulator.SimAccess m_simAccess;
         private float m_sunHour;
         private LLVector3 m_sunPosition;
         private LLUUID m_terrainBase0;
@@ -80,15 +74,11 @@ namespace OpenSim.Framework
         private float m_terrainHeightRange2;
         private float m_terrainHeightRange3;
         private LLUUID m_terrainImageID;
-        private float m_terrainLowerLimit;
         private double m_terrainMultiplier;
-        private float m_terrainRaiseLimit;
         private float m_terrainStartHeight0;
         private float m_terrainStartHeight1;
         private float m_terrainStartHeight2;
         private float m_terrainStartHeight3;
-        private bool m_useFixedSun;
-        private float m_waterHeight;
 
         public EstateSettings()
         {
@@ -132,26 +122,6 @@ namespace OpenSim.Framework
             }
         }
 
-        public byte maxAgents
-        {
-            get { return m_maxAgents; }
-            set
-            {
-                m_maxAgents = value;
-                configMember.forceSetConfigurationOption("max_agents", m_maxAgents.ToString());
-            }
-        }
-
-        public float objectBonusFactor
-        {
-            get { return m_objectBonusFactor; }
-            set
-            {
-                m_objectBonusFactor = value;
-                configMember.forceSetConfigurationOption("object_bonus_factor", m_objectBonusFactor.ToString());
-            }
-        }
-
         public int redirectGridX
         {
             get { return m_redirectGridX; }
@@ -172,36 +142,12 @@ namespace OpenSim.Framework
             }
         }
 
-        public Simulator.RegionFlags regionFlags
-        {
-            get { return m_regionFlags; }
-            set
-            {
-                //m_regionFlags = (Simulator.RegionFlags)0x400000;
-                m_regionFlags = value;
-                configMember.forceSetConfigurationOption("region_flags", ((uint) m_regionFlags).ToString());
-            }
-        }
-
-        public Simulator.SimAccess simAccess
-        {
-            get { return m_simAccess; }
-            set
-            {
-                m_simAccess = value;
-                configMember.forceSetConfigurationOption("sim_access", ((byte) m_simAccess).ToString());
-            }
-        }
-
         public float sunHour
         {
             get { return m_sunHour; }
             set
             {
                 m_sunHour = value;
-
-                if (useFixedSun)
-                    configMember.forceSetConfigurationOption("sun_hour", m_sunHour.ToString());
             }
         }
 
@@ -215,36 +161,6 @@ namespace OpenSim.Framework
             }
         }
 
-        public float terrainRaiseLimit
-        {
-            get { return m_terrainRaiseLimit; }
-            set
-            {
-                m_terrainRaiseLimit = value;
-                configMember.forceSetConfigurationOption("terrain_raise_limit", m_terrainRaiseLimit.ToString());
-            }
-        }
-
-        public float terrainLowerLimit
-        {
-            get { return m_terrainLowerLimit; }
-            set
-            {
-                m_terrainLowerLimit = value;
-                configMember.forceSetConfigurationOption("terrain_lower_limit", m_terrainLowerLimit.ToString());
-            }
-        }
-
-        public bool useFixedSun
-        {
-            get { return m_useFixedSun; }
-            set
-            {
-                m_useFixedSun = value;
-                configMember.forceSetConfigurationOption("use_fixed_sun", m_useFixedSun.ToString());
-            }
-        }
-
         public int pricePerMeter
         {
             get { return m_pricePerMeter; }
@@ -252,28 +168,6 @@ namespace OpenSim.Framework
             {
                 m_pricePerMeter = value;
                 configMember.forceSetConfigurationOption("price_per_meter", m_pricePerMeter.ToString());
-            }
-        }
-
-
-        public float regionWaterHeight
-        {
-            get { return m_regionWaterHeight; }
-            set
-            {
-                m_regionWaterHeight = value;
-                configMember.forceSetConfigurationOption("region_water_height", m_regionWaterHeight.ToString());
-            }
-        }
-
-
-        public bool regionAllowTerraform
-        {
-            get { return m_regionAllowTerraform; }
-            set
-            {
-                m_regionAllowTerraform = value;
-                configMember.forceSetConfigurationOption("region_allow_terraform", m_regionAllowTerraform.ToString());
             }
         }
 
@@ -470,16 +364,6 @@ namespace OpenSim.Framework
             {
                 m_terrainMultiplier = value;
                 configMember.forceSetConfigurationOption("terrain_multiplier", m_terrainMultiplier.ToString());
-            }
-        }
-
-        public float waterHeight
-        {
-            get { return m_waterHeight; }
-            set
-            {
-                m_waterHeight = value;
-                configMember.forceSetConfigurationOption("water_height", m_waterHeight.ToString());
             }
         }
 
@@ -760,30 +644,16 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("max_agents", ConfigurationOption.ConfigurationTypes.TYPE_BYTE, String.Empty, "40",
                                                 true);
 
-            configMember.addConfigurationOption("object_bonus_factor", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT,
-                                                String.Empty, "1.0", true);
             configMember.addConfigurationOption("redirect_grid_x", ConfigurationOption.ConfigurationTypes.TYPE_INT32, String.Empty,
                                                 "0", true);
             configMember.addConfigurationOption("redirect_grid_y", ConfigurationOption.ConfigurationTypes.TYPE_INT32, String.Empty,
                                                 "0", true);
-            configMember.addConfigurationOption("region_flags", ConfigurationOption.ConfigurationTypes.TYPE_UINT32, String.Empty,
-                                                "336723974", true); //Taken from a Linden sim for the moment.
-            configMember.addConfigurationOption("sim_access", ConfigurationOption.ConfigurationTypes.TYPE_BYTE, String.Empty, "21",
-                                                true);
             configMember.addConfigurationOption("sun_hour", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "0",
                                                 true);
-            configMember.addConfigurationOption("terrain_raise_limit", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT,
-                                                String.Empty, "4.0", true); //4 is the LL default
-            configMember.addConfigurationOption("terrain_lower_limit", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT,
-                                                String.Empty, "-4.0", true); //-4.0 is the LL default
             configMember.addConfigurationOption("use_fixed_sun", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN, String.Empty,
                                                 "false", true);
             configMember.addConfigurationOption("price_per_meter", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 String.Empty, "1", true);
-            configMember.addConfigurationOption("region_water_height",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "20", true);
-            configMember.addConfigurationOption("region_allow_terraform",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN, String.Empty, "true", true);
 
             configMember.addConfigurationOption("terrain_base_0", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, String.Empty,
                                                 "b8d3965a-ad78-bf43-699b-bff8eca6c975", true);
@@ -868,45 +738,17 @@ namespace OpenSim.Framework
                 case "parent_estate_id":
                     m_parentEstateID = (uint) configuration_result;
                     break;
-                case "max_agents":
-                    m_maxAgents = (byte) configuration_result;
-                    break;
-
-                case "object_bonus_factor":
-                    m_objectBonusFactor = (float) configuration_result;
-                    break;
                 case "redirect_grid_x":
                     m_redirectGridX = (int) configuration_result;
                     break;
                 case "redirect_grid_y":
                     m_redirectGridY = (int) configuration_result;
                     break;
-                case "region_flags":
-                    m_regionFlags = (Simulator.RegionFlags) ((uint) configuration_result);
-                    break;
-                case "sim_access":
-                    m_simAccess = (Simulator.SimAccess) ((byte) configuration_result);
-                    break;
                 case "sun_hour":
                     m_sunHour = (float) configuration_result;
                     break;
-                case "terrain_raise_limit":
-                    m_terrainRaiseLimit = (float) configuration_result;
-                    break;
-                case "terrain_lower_limit":
-                    m_terrainLowerLimit = (float) configuration_result;
-                    break;
-                case "use_fixed_sun":
-                    m_useFixedSun = (bool) configuration_result;
-                    break;
                 case "price_per_meter":
                     m_pricePerMeter = Convert.ToInt32(configuration_result);
-                    break;
-                case "region_water_height":
-                    m_regionWaterHeight = (float) configuration_result;
-                    break;
-                case "region_allow_terraform":
-                    m_regionAllowTerraform = (bool) configuration_result;
                     break;
 
                 case "terrain_base_0":
@@ -969,10 +811,6 @@ namespace OpenSim.Framework
                     break;
                 case "terrain_multiplier":
                     m_terrainMultiplier = Convert.ToDouble(configuration_result);
-                    break;
-                case "water_height":
-                    double tmpVal = (double) configuration_result;
-                    m_waterHeight = (float) tmpVal;
                     break;
                 case "terrain_image_id":
                     m_terrainImageID = (LLUUID) configuration_result;

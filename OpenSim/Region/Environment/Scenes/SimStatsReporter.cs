@@ -29,6 +29,7 @@ using System;
 using System.Timers;
 using libsecondlife.Packets;
 using OpenSim.Framework;
+using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Scenes
 {
@@ -104,16 +105,19 @@ namespace OpenSim.Region.Environment.Scenes
         SimStatsPacket statpack = (SimStatsPacket)PacketPool.Instance.GetPacket(PacketType.SimStats);
 
 
+        private Scene m_scene;
+
         private RegionInfo ReportingRegion;
 
         private Timer m_report = new Timer();
 
 
-        public SimStatsReporter(RegionInfo regionData)
+        public SimStatsReporter(Scene scene)
         {
 
             statsUpdateFactor = (float)(statsUpdatesEveryMS / 1000);
-            ReportingRegion = regionData;
+            m_scene = scene;
+            ReportingRegion = scene.RegionInfo;
             for (int i = 0; i<21;i++)
             {
                 sb[i] = new SimStatsPacket.StatBlock();
@@ -145,7 +149,8 @@ namespace OpenSim.Region.Environment.Scenes
                 statpack.Region.RegionY = ReportingRegion.RegionLocY;
                 try
                 {
-                    statpack.Region.RegionFlags = (uint) ReportingRegion.EstateSettings.regionFlags;
+                    IEstateModule estateModule = m_scene.RequestModuleInterface<IEstateModule>();
+                    statpack.Region.RegionFlags = estateModule.GetRegionFlags();
                 }
                 catch (Exception)
                 {

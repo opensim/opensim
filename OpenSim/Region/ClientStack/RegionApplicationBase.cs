@@ -136,7 +136,7 @@ namespace OpenSim.Region.ClientStack
 
             scene.PhysicsScene = GetPhysicsScene();
             scene.PhysicsScene.SetTerrain(scene.Heightmap.GetFloatsSerialised());
-            scene.PhysicsScene.SetWaterLevel(regionInfo.EstateSettings.waterHeight);
+            scene.PhysicsScene.SetWaterLevel((float)regionInfo.RegionSettings.WaterHeight);
 
             //Master Avatar Setup
             UserProfileData masterAvatar;

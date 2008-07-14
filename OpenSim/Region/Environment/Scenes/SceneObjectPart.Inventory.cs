@@ -173,7 +173,7 @@ namespace OpenSim.Region.Environment.Scenes
 
             AddFlag(LLObject.ObjectFlags.Scripted);
 
-            if (!((m_parentGroup.Scene.RegionInfo.EstateSettings.regionFlags & Simulator.RegionFlags.SkipScripts) == Simulator.RegionFlags.SkipScripts))
+            if (!m_parentGroup.Scene.RegionInfo.RegionSettings.DisableScripts)
             {
                 AssetCache cache = m_parentGroup.Scene.AssetCache;
 

@@ -2822,7 +2822,7 @@ namespace OpenSim.Region.ScriptEngine.Common
         public double llWater(LSL_Types.Vector3 offset)
         {
             m_host.AddScriptLPS(1);
-            return World.RegionInfo.EstateSettings.waterHeight;
+            return World.RegionInfo.RegionSettings.WaterHeight;
         }
 
         public void llPassTouches(int pass)
@@ -6456,10 +6456,10 @@ namespace OpenSim.Region.ScriptEngine.Common
             case 7: // DATA_SIM_RATING
                 if (info == null)
                     return LLUUID.Zero.ToString();
-                int access = (int)info.EstateSettings.simAccess;
-                if (access == 21)
-                    reply = "MATURE";
-                else if (access == 13)
+                int access = info.RegionSettings.Maturity;
+                if (access == 0)
+                    reply = "PG";
+                else if (access == 1)
                     reply = "MATURE";
                 else
                     reply = "UNKNOWN";
@@ -6829,7 +6829,10 @@ namespace OpenSim.Region.ScriptEngine.Common
         public LSL_Types.LSLInteger llGetRegionFlags()
         {
             m_host.AddScriptLPS(1);
-            return (int)World.RegionInfo.EstateSettings.regionFlags;
+            IEstateModule estate = World.RequestModuleInterface<IEstateModule>();
+            if(estate == null)
+                return 67108864;
+            return estate.GetRegionFlags();
         }
 
         public string llXorBase64StringsCorrect(string str1, string str2)
@@ -7006,7 +7009,7 @@ namespace OpenSim.Region.ScriptEngine.Common
             // Which probably will be irrelevent in OpenSim....
             LandData land = World.GetLandData((float)pos.x, (float)pos.y);
 
-            float bonusfactor = World.RegionInfo.EstateSettings.objectBonusFactor;
+            float bonusfactor = (float)World.RegionInfo.RegionSettings.ObjectBonus;
 
             if (land == null)
             {

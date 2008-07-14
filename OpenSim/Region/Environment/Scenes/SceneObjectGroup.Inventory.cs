@@ -58,7 +58,7 @@ namespace OpenSim.Region.Environment.Scenes
         public void CreateScriptInstances(int startParam, bool postOnRez)
         {
             // Don't start scripts if they're turned off in the region!
-            if (!((m_scene.RegionInfo.EstateSettings.regionFlags & Simulator.RegionFlags.SkipScripts) == Simulator.RegionFlags.SkipScripts))
+            if (!m_scene.RegionInfo.RegionSettings.DisableScripts)
             {
                 foreach (SceneObjectPart part in m_parts.Values)
                 {

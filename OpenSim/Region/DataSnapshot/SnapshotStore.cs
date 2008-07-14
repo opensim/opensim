@@ -258,11 +258,11 @@ namespace OpenSim.Region.DataSnapshot
             //  "PG" - Mormontown
             //  "Mature" - Sodom and Gomorrah
             //  (Depreciated) "Patriotic Nigra Testing Sandbox" - Abandon Hope All Ye Who Enter Here
-            if ((scene.RegionInfo.EstateSettings.simAccess & Simulator.SimAccess.Mature) == Simulator.SimAccess.Mature)
+            if (scene.RegionInfo.RegionSettings.Maturity == 1)
             {
                 return "Mature";
             }
-            else if ((scene.RegionInfo.EstateSettings.simAccess & Simulator.SimAccess.PG) == Simulator.SimAccess.PG)
+            else if (scene.RegionInfo.RegionSettings.Maturity == 0)
             {
                 return "PG";
             }

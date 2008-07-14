@@ -541,8 +541,8 @@ namespace OpenSim.Region.Environment.Modules.World.Terrain
         private bool LimitChannelChanges(int xStart, int yStart)
         {
             bool changesLimited = false;
-            double minDelta = m_scene.RegionInfo.EstateSettings.terrainLowerLimit;
-            double maxDelta = m_scene.RegionInfo.EstateSettings.terrainRaiseLimit;
+            double minDelta = m_scene.RegionInfo.RegionSettings.TerrainLowerLimit;
+            double maxDelta = m_scene.RegionInfo.RegionSettings.TerrainRaiseLimit;
 
             // loop through the height map for this patch and compare it against
             // the revert map

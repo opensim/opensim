@@ -458,7 +458,7 @@ namespace OpenSim.Framework
             set { m_TerrainRaiseLimit = value; }
         }
 
-        private double m_TerrainLowerLimit = 100;
+        private double m_TerrainLowerLimit = -100;
         
         public double TerrainLowerLimit
         {

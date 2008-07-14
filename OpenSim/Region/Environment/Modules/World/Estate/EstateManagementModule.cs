@@ -37,7 +37,7 @@ using OpenSim.Region.Environment.Scenes;
 
 namespace OpenSim.Region.Environment.Modules.World.Estate
 {
-    public class EstateManagementModule : IRegionModule
+    public class EstateManagementModule : IEstateModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -57,50 +57,46 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         private void estateSetRegionInfoHandler(bool blockTerraform, bool noFly, bool allowDamage, bool blockLandResell, int maxAgents, float objectBonusFactor,
                                                 int matureLevel, bool restrictPushObject, bool allowParcelChanges)
         {
-            m_scene.RegionInfo.EstateSettings.regionFlags = Simulator.RegionFlags.None;
-
             if (blockTerraform)
-            {
-                m_scene.RegionInfo.EstateSettings.regionFlags = m_scene.RegionInfo.EstateSettings.regionFlags |
-                                                                Simulator.RegionFlags.BlockTerraform;
-            }
+                m_scene.RegionInfo.RegionSettings.BlockTerraform = true;
+            else
+                m_scene.RegionInfo.RegionSettings.BlockTerraform = false;
 
             if (noFly)
-            {
-                m_scene.RegionInfo.EstateSettings.regionFlags = m_scene.RegionInfo.EstateSettings.regionFlags |
-                                                                Simulator.RegionFlags.NoFly;
-            }
+                m_scene.RegionInfo.RegionSettings.BlockFly = true;
+            else
+                m_scene.RegionInfo.RegionSettings.BlockFly = false;
 
             if (allowDamage)
-            {
-                m_scene.RegionInfo.EstateSettings.regionFlags = m_scene.RegionInfo.EstateSettings.regionFlags |
-                                                                Simulator.RegionFlags.AllowDamage;
-            }
+                m_scene.RegionInfo.RegionSettings.AllowDamage = true;
+            else
+                m_scene.RegionInfo.RegionSettings.AllowDamage = false;
 
             if (blockLandResell)
-            {
-                m_scene.RegionInfo.EstateSettings.regionFlags = m_scene.RegionInfo.EstateSettings.regionFlags |
-                                                                Simulator.RegionFlags.BlockLandResell;
-            }
+                m_scene.RegionInfo.RegionSettings.AllowLandResell = false;
+            else
+                m_scene.RegionInfo.RegionSettings.AllowLandResell = true;
 
-            m_scene.RegionInfo.EstateSettings.maxAgents = (byte) maxAgents;
+            m_scene.RegionInfo.RegionSettings.AgentLimit = (byte) maxAgents;
 
-            m_scene.RegionInfo.EstateSettings.objectBonusFactor = objectBonusFactor;
+            m_scene.RegionInfo.RegionSettings.ObjectBonus = objectBonusFactor;
 
-            m_scene.RegionInfo.EstateSettings.simAccess = (Simulator.SimAccess) matureLevel;
-
+            if(matureLevel <= 13)
+                m_scene.RegionInfo.RegionSettings.Maturity = 0;
+            else
+                m_scene.RegionInfo.RegionSettings.Maturity = 1;
 
             if (restrictPushObject)
-            {
-                m_scene.RegionInfo.EstateSettings.regionFlags = m_scene.RegionInfo.EstateSettings.regionFlags |
-                                                                Simulator.RegionFlags.RestrictPushObject;
-            }
+                m_scene.RegionInfo.RegionSettings.RestrictPushing = true;
+            else
+                m_scene.RegionInfo.RegionSettings.RestrictPushing = false;
 
             if (allowParcelChanges)
-            {
-                m_scene.RegionInfo.EstateSettings.regionFlags = m_scene.RegionInfo.EstateSettings.regionFlags |
-                                                                Simulator.RegionFlags.AllowParcelChanges;
-            }
+                m_scene.RegionInfo.RegionSettings.AllowLandJoinDivide = true;
+            else
+                m_scene.RegionInfo.RegionSettings.AllowLandJoinDivide = false;
+
+            m_scene.RegionInfo.RegionSettings.Save();
 
             sendRegionInfoPacketToAll();
         }
@@ -175,19 +171,20 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                                              bool UseFixedSun, float SunHour)
         {
             // Water Height
-            m_scene.RegionInfo.EstateSettings.waterHeight = WaterHeight;
+            m_scene.RegionInfo.RegionSettings.WaterHeight = WaterHeight;
 
             // Terraforming limits
-            m_scene.RegionInfo.EstateSettings.terrainRaiseLimit = TerrainRaiseLimit;
-            m_scene.RegionInfo.EstateSettings.terrainLowerLimit = TerrainLowerLimit;
+            m_scene.RegionInfo.RegionSettings.TerrainRaiseLimit = TerrainRaiseLimit;
+            m_scene.RegionInfo.RegionSettings.TerrainLowerLimit = TerrainLowerLimit;
 
             // Time of day / fixed sun
-            m_scene.RegionInfo.EstateSettings.useFixedSun = UseFixedSun;
+            m_scene.RegionInfo.RegionSettings.FixedSun = UseFixedSun;
             m_scene.RegionInfo.EstateSettings.sunHour = SunHour;
             m_scene.EventManager.TriggerEstateToolsTimeUpdate(m_scene.RegionInfo.RegionHandle, UseFixedSun, UseFixedSun, SunHour);
             //m_log.Debug("[ESTATE]: UFS: " + UseFixedSun.ToString());
             //m_log.Debug("[ESTATE]: SunHour: " + SunHour.ToString());
             sendRegionInfoPacketToAll();
+            m_scene.RegionInfo.RegionSettings.Save();
         }
 
         private void handleEstateRestartSimRequest(IClientAPI remoteClient, int timeInSeconds)
@@ -339,23 +336,22 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         private void handleEstateDebugRegionRequest(IClientAPI remote_client, LLUUID invoice, LLUUID senderID, bool scripted, bool collisionEvents, bool physics)
         {
             if (physics)
-            {
-                m_scene.RegionInfo.EstateSettings.regionFlags |= Simulator.RegionFlags.SkipPhysics;
-            }
+                m_scene.RegionInfo.RegionSettings.DisablePhysics = true;
             else
-            {
-                m_scene.RegionInfo.EstateSettings.regionFlags &= ~Simulator.RegionFlags.SkipPhysics;
-            }
+                m_scene.RegionInfo.RegionSettings.DisablePhysics = false;
 
             if (scripted)
-            {
-                m_scene.RegionInfo.EstateSettings.regionFlags |= Simulator.RegionFlags.SkipScripts;
-            }
+                m_scene.RegionInfo.RegionSettings.DisableScripts = true;
             else
-            {
-                m_scene.RegionInfo.EstateSettings.regionFlags &= ~Simulator.RegionFlags.SkipScripts;
-            }
+                m_scene.RegionInfo.RegionSettings.DisableScripts = false;
 
+            if (collisionEvents)
+                m_scene.RegionInfo.RegionSettings.DisableCollisions = true;
+            else
+                m_scene.RegionInfo.RegionSettings.DisableCollisions = false;
+
+
+            m_scene.RegionInfo.RegionSettings.Save();
 
             m_scene.SetSceneCoreDebug(scripted, collisionEvents, physics);
         }
@@ -378,24 +374,27 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
            RegionInfoForEstateMenuArgs args = new RegionInfoForEstateMenuArgs();
            args.billableFactor = m_scene.RegionInfo.EstateSettings.billableFactor;
            args.estateID = m_scene.RegionInfo.EstateSettings.estateID;
-           args.maxAgents = m_scene.RegionInfo.EstateSettings.maxAgents;
-           args.objectBonusFactor = m_scene.RegionInfo.EstateSettings.objectBonusFactor;
+           args.maxAgents = (byte)m_scene.RegionInfo.RegionSettings.AgentLimit;
+           args.objectBonusFactor = (float)m_scene.RegionInfo.RegionSettings.ObjectBonus;
            args.parentEstateID = m_scene.RegionInfo.EstateSettings.parentEstateID;
            args.pricePerMeter = m_scene.RegionInfo.EstateSettings.pricePerMeter;
            args.redirectGridX = m_scene.RegionInfo.EstateSettings.redirectGridX;
            args.redirectGridY = m_scene.RegionInfo.EstateSettings.redirectGridY;
-           args.regionFlags = (uint)(m_scene.RegionInfo.EstateSettings.regionFlags);
-           args.simAccess = (byte)m_scene.RegionInfo.EstateSettings.simAccess;
+           args.regionFlags = GetRegionFlags();
+           byte mature = 13;
+           if(m_scene.RegionInfo.RegionSettings.Maturity == 1)
+              mature = 21;
+           args.simAccess = mature;
 
-           if (m_scene.RegionInfo.EstateSettings.useFixedSun)
+           if (m_scene.RegionInfo.RegionSettings.FixedSun)
                args.sunHour = m_scene.RegionInfo.EstateSettings.sunHour;
            else
                args.sunHour = m_scene.EventManager.GetSunLindenHour();
            
-           args.terrainLowerLimit = m_scene.RegionInfo.EstateSettings.terrainLowerLimit;
-           args.terrainRaiseLimit = m_scene.RegionInfo.EstateSettings.terrainRaiseLimit;
-           args.useEstateSun = !m_scene.RegionInfo.EstateSettings.useFixedSun;
-           args.waterHeight = m_scene.RegionInfo.EstateSettings.waterHeight;
+           args.terrainLowerLimit = (float)m_scene.RegionInfo.RegionSettings.TerrainLowerLimit;
+           args.terrainRaiseLimit = (float)m_scene.RegionInfo.RegionSettings.TerrainRaiseLimit;
+           args.useEstateSun = !m_scene.RegionInfo.RegionSettings.FixedSun;
+           args.waterHeight = (float)m_scene.RegionInfo.RegionSettings.WaterHeight;
            args.simName = m_scene.RegionInfo.RegionName;
            
            
@@ -541,10 +540,13 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             args.terrainStartHeight1 = m_scene.RegionInfo.EstateSettings.terrainStartHeight1;
             args.terrainStartHeight2 = m_scene.RegionInfo.EstateSettings.terrainStartHeight2;
             args.terrainStartHeight3 = m_scene.RegionInfo.EstateSettings.terrainStartHeight3;
-            args.simAccess = (byte)m_scene.RegionInfo.EstateSettings.simAccess;
-            args.waterHeight = m_scene.RegionInfo.EstateSettings.waterHeight;
+            byte mature = 13;
+            if(m_scene.RegionInfo.RegionSettings.Maturity == 1)
+                mature = 21;
+            args.simAccess = mature;
+            args.waterHeight = (float)m_scene.RegionInfo.RegionSettings.WaterHeight;
 
-            args.regionFlags = (uint)m_scene.RegionInfo.EstateSettings.regionFlags;
+            args.regionFlags = GetRegionFlags();
             args.regionName = m_scene.RegionInfo.RegionName;
             args.SimOwner = m_scene.RegionInfo.MasterAvatarAssignedUUID;
             args.terrainBase0 = m_scene.RegionInfo.EstateSettings.terrainBase0;
@@ -573,6 +575,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         public void Initialise(Scene scene, IConfigSource source)
         {
             m_scene = scene;
+            m_scene.RegisterModuleInterface<IEstateModule>(this);
             m_scene.EventManager.OnNewClient += EventManager_OnNewClient;
             m_scene.EventManager.OnRequestChangeWaterHeight += changeWaterHeight;
         }
@@ -602,8 +605,8 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
         public void changeWaterHeight(float height)
         {
-            setRegionTerrainSettings(height, m_scene.RegionInfo.EstateSettings.terrainRaiseLimit, m_scene.RegionInfo.EstateSettings.terrainLowerLimit,
-                                     m_scene.RegionInfo.EstateSettings.useFixedSun, m_scene.RegionInfo.EstateSettings.sunHour);
+            setRegionTerrainSettings(height, (float)m_scene.RegionInfo.RegionSettings.TerrainRaiseLimit, (float)m_scene.RegionInfo.RegionSettings.TerrainLowerLimit,
+                                     m_scene.RegionInfo.RegionSettings.FixedSun, m_scene.RegionInfo.EstateSettings.sunHour);
             sendRegionInfoPacketToAll();
         }
 
@@ -630,6 +633,13 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             client.OnEstateCovenantRequest += HandleEstateCovenantRequest;
             client.OnLandStatRequest += HandleLandStatRequest;
             sendRegionHandshake(client);
+        }
+        
+        public uint GetRegionFlags()
+        {
+            Simulator.RegionFlags flags = Simulator.RegionFlags.None;
+            //m_scene.RegionInfo.RegionSettings.
+            return (uint)flags;
         }
     }
 }
