@@ -128,7 +128,18 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
                 // TODO: Change object creator/owner here
                 
                 if (null != sceneObject)
+                {
+                    // Make the master the owner/creator of everything imported for now
+                    LLUUID masterAvatarId = m_scene.RegionInfo.MasterAvatarAssignedUUID;
+                    foreach (SceneObjectPart part in sceneObject.Children.Values)
+                    {
+                        part.CreatorID = masterAvatarId;
+                        part.OwnerID = masterAvatarId;
+                        part.LastOwnerID = masterAvatarId;
+                    }
+                        
                     sceneObjects.Add(sceneObject);
+                }
             }            
             
             m_log.InfoFormat("[ARCHIVER]: Restored {0} scene objects to the scene", sceneObjects.Count);
