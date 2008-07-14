@@ -914,6 +914,12 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_sitTargetAvatar; }
             set { m_sitTargetAvatar = value; }
         }
+
+        [XmlIgnore]
+        public LLUUID RegionID
+        {
+            get { return ParentGroup.Scene.RegionInfo.RegionID; }
+        }
         
         #endregion Public Properties with only Get
 
