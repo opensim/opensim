@@ -400,6 +400,8 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
             // [IRC]
             // server  = chat.freenode.net
             // nick    = OSimBot_mysim
+            // nicknum = true
+            // ;nicknum set to true appends a 2 digit random number to the nick
             // ;username = USER OpenSimBot 8 * :I'm a OpenSim to irc bot
             // ; username is the IRC command line sent
             // ; USER <irc_user> <visible=8,invisible=0> * : <IRC_realname>
@@ -422,7 +424,7 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                 m_server = config.Configs["IRC"].GetString("server");
                 m_nick = config.Configs["IRC"].GetString("nick");
                 m_basenick = m_nick;
-                m_nrnick = config.Configs["IRC"].GetBoolean("nicknum");
+                m_nrnick = config.Configs["IRC"].GetBoolean("nicknum", true);
                 m_channel = config.Configs["IRC"].GetString("channel");
                 m_port = (uint)config.Configs["IRC"].GetInt("port", (int)m_port);
                 m_user = config.Configs["IRC"].GetString("username", m_user);
@@ -436,9 +438,9 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                     m_enabled = true;
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                m_log.Info("[CHAT]: No IRC config information, skipping IRC bridge configuration");
+                m_log.Info("[CHAT]: Incomplete IRC config information, skipping IRC bridge configuration");
             }
         }
 
