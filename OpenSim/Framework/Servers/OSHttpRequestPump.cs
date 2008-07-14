@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -114,7 +115,7 @@ namespace OpenSim.Framework.Servers
                         
                     // process req: we try each handler in turn until
                     // we are either out of handlers or get back a
-                    // Handled or Detached
+                    // Pass or Done
                     OSHttpHandlerResult rc = OSHttpHandlerResult.Unprocessed;
                     foreach (OSHttpHandler h in handlers)
                     {
@@ -123,22 +124,35 @@ namespace OpenSim.Framework.Servers
                         // Pass: handler did not process the request,
                         // try next handler
                         if (OSHttpHandlerResult.Pass == rc) continue;
-                        // Detached: handler is taking over processing
-                        // of request, we are done
-                        if (OSHttpHandlerResult.Detached == rc) break;
-                            
-                        if (OSHttpHandlerResult.Handled != rc)
-                        {
-                            // something went wrong
-                            throw new Exception(String.Format("[{0}] got unexpected OSHttpHandlerResult {1}", EngineID, rc));
-                        }
-                            
-                        // Handled: clean up now
-                        req.HttpRequest.AddHeader("keep-alive", "false");
 
-                        break;
+                        // Handled: handler has processed the request
+                        if (OSHttpHandlerResult.Done == rc) break;
+                            
+                        // hmm, something went wrong
+                        throw new Exception(String.Format("[{0}] got unexpected OSHttpHandlerResult {1}", EngineID, rc));
                     }
-                        
+                    
+                    if (OSHttpHandlerResult.Unprocessed == rc)
+                    {
+                        _log.InfoFormat("[{0}] OSHttpHandler: no handler registered for {1}", EngineID, req);
+
+                        // set up response header
+                        OSHttpResponse resp = new OSHttpResponse(req);
+                        resp.StatusCode = (int)OSHttpStatusCode.ClientErrorNotFound;
+                        resp.StatusDescription = String.Format("no handler on call for {0}", req);
+                        resp.ContentType = "text/html";
+
+                        // add explanatory message
+                        StreamWriter body = new StreamWriter(resp.Body);
+                        body.WriteLine("<html>");
+                        body.WriteLine("<header><title>Ooops...</title><header>");
+                        body.WriteLine(String.Format("<body><p>{0}</p></body>", resp.StatusDescription));
+                        body.WriteLine("</html>");
+                        body.Flush();
+
+                        // and ship it back
+                        resp.HttpResponse.Send();
+                    }
                 }
                 catch (Exception e)
                 {
@@ -199,17 +213,37 @@ namespace OpenSim.Framework.Servers
                     NameValueCollection headers = req.HttpRequest.Headers;
                     foreach (string tag in headerRegexs.Keys)
                     {
-                        if (null != headers[tag])
+                        // do we have a header "tag"?
+                        if (null == headers[tag])
                         {
-                            Match hm = headerRegexs[tag].Match(headers[tag]);
-                            if (hm.Success) {
-                                headersMatch++;
-                                continue;
-                            }
+                            // no: remove the handler if it was added
+                            // earlier and on to the next one
+                            scoredHandlers.Remove(h);
+                            break;
                         }
-
-                        scoredHandlers.Remove(h);
-                        break;
+                            
+                        // does the content of header "tag" match
+                        // the supplied regex?
+                        Match hm = headerRegexs[tag].Match(headers[tag]);
+                        if (!hm.Success) {
+                            // no: remove the handler if it was added
+                            // earlier and on to the next one
+                            scoredHandlers.Remove(h);
+                            break;
+                        }
+                        
+                        // if we are looking at the "content-type" tag,
+                        // check wether h has a ContentTypeChecker and
+                        // invoke it if it has
+                        if ((null != h.ContentTypeChecker) && !h.ContentTypeChecker(req))
+                        {
+                            scoredHandlers.Remove(h);
+                            break;
+                        }
+                        
+                        // ok: header matches
+                        headersMatch++;
+                        continue;
                     }
                     // check whether h got kicked out
                     if (!scoredHandlers.ContainsKey(h)) continue;

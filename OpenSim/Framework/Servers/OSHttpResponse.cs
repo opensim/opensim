@@ -25,141 +25,346 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections;
 using System.IO;
 using System.Net;
 using System.Text;
+using HttpServer;
 
 namespace OpenSim.Framework.Servers
 {
+    /// <summary>
+    /// OSHttpResponse is the OpenSim representation of an HTTP
+    /// response.
+    /// </summary>
+    /// <remarks>
+    /// OSHttpResponse is currently dual "homed" in that it support
+    /// both the .NET HttpListenerResponse and the HttpServer
+    /// HttpResponse (similar to OSHttpRequest); this duality is only
+    /// temporary and the .NET usage will disappear once the switch to
+    /// HttpServer is completed.
+    /// </remarks>
     public class OSHttpResponse
     {
-        private string _contentType;
-        private bool _contentTypeSet;
+
+        // property code below is a bit messy, will all resolve to
+        // harmony once we've completed the switch
+
+        /// <summary>
+        /// Content type property.
+        /// </summary>
+        /// <remarks>
+        /// Setting this property will also set IsContentTypeSet to
+        /// true. 
+        /// </remarks>
         public string ContentType
         {
-            get { return _contentType; }
+            get 
+            { 
+                return HttpServer ? _httpResponse.ContentType : _contentType; 
+            }
             set
             {
-                _contentType = value;
-                _contentTypeSet = true;
+                if (HttpServer)
+                {
+                    _httpResponse.ContentType = value;
+                }
+                else
+                {
+                    _contentType = value;
+                    _contentTypeSet = true;
+                }
             }
         }
+        private string _contentType;
+
+        /// <summary>
+        /// Boolean property indicating whether the content type
+        /// property actively has been set.
+        /// </summary>
+        /// <remarks>
+        /// IsContentTypeSet will go away together with .NET base.
+        /// </remarks>
         public bool IsContentTypeSet
         {
             get { return _contentTypeSet; }
         }
+        private bool _contentTypeSet;
 
-        private long _contentLength64;
+
+        /// <summary>
+        /// Length of the body content; 0 if there is no body.
+        /// </summary>
+        public long ContentLength
+        {
+            get 
+            { 
+                return HttpServer ?  _httpResponse.ContentLength : _contentLength;
+            }
+            set
+            {
+                if (HttpServer)
+                    _httpResponse.ContentLength = value;
+                else
+                    _contentLength = value;
+            }
+        }
+        private long _contentLength;
+
+        /// <summary>
+        /// Aliases for ContentLength.
+        /// </summary>
         public long ContentLength64
         {
-            get { return _contentLength64; }
-            set
-            {
-                _contentLength64 = value;
-                if (null != _resp) _resp.ContentLength64 = value;
-            }
+            get { return ContentLength; }
+            set { ContentLength = value; }
         }
 
-        private Encoding _contentEncoding;
+        /// <summary>
+        /// Encoding of the body content.
+        /// </summary>
         public Encoding ContentEncoding
         {
-            get { return _contentEncoding; }
+            get { 
+                return HttpServer ? _httpResponse.Encoding : _contentEncoding; 
+            }
             set
             {
-                _contentEncoding = value;
-                if (null != _resp) _resp.ContentEncoding = value;
+                if (HttpServer)
+                    _httpResponse.Encoding = value;
+                else 
+                    _contentEncoding = value;
             }
         }
+        private Encoding _contentEncoding;
 
-        public WebHeaderCollection Headers;
-        // public CookieCollection Cookies;
+        /// <summary>
+        /// Headers of the response.
+        /// </summary>
+        public WebHeaderCollection Headers
+        {
+            get 
+            { 
+                return HttpServer ? null : _headers; 
+            }
+        }
+        private WebHeaderCollection _headers;
 
-        private bool _keepAlive;
+        /// <summary>
+        /// Get or set the keep alive property.
+        /// </summary>
         public bool KeepAlive
         {
-            get { return _keepAlive; }
+            get 
+            { 
+                if (HttpServer)
+                    return _httpResponse.Connection == ConnectionType.KeepAlive; 
+                else
+                    return _keepAlive;
+            }
             set
             {
-                _keepAlive = value;
-                if (null != _resp) _resp.KeepAlive = value;
+                if (HttpServer)
+                    _httpResponse.Connection = ConnectionType.KeepAlive;
+                else 
+                    _keepAlive = value;
+            }
+        }
+        private bool _keepAlive;
+
+        /// <summary>
+        /// Return the output stream feeding the body.
+        /// </summary>
+        /// <remarks>
+        /// On its way out...
+        /// </remarks>
+        public Stream OutputStream
+        {
+            get 
+            { 
+                return HttpServer ? _httpResponse.Body : _outputStream;
+            }
+        }
+        private Stream _outputStream;
+
+
+        /// <summary>
+        /// Return the output stream feeding the body.
+        /// </summary>
+        public Stream Body
+        {
+            get 
+            { 
+                if (HttpServer)
+                    return _httpResponse.Body; 
+                throw new Exception("[OSHttpResponse] mixed .NET and HttpServer access");
             }
         }
 
-        public Stream OutputStream;
-
-        private string _redirectLocation;
+        /// <summary>
+        /// Set a redirct location.
+        /// </summary>
         public string RedirectLocation
         {
-            get { return _redirectLocation; }
+            // get { return _redirectLocation; }
             set
             {
-                _redirectLocation = value;
-                if (null != _resp) _resp.RedirectLocation = value;
+                if (HttpServer)
+                    _httpResponse.Redirect(value);
+                // else
+                //     _redirectLocation = value;
             }
         }
+        // private string _redirectLocation;
 
-        private bool _sendChunked;
+
+        
+        /// <summary>
+        /// Chunk transfers.
+        /// </summary>
         public bool SendChunked
         {
-            get { return _sendChunked; }
+            get 
+            { 
+                return HttpServer ? _httpResponse.Chunked :_sendChunked; 
+            }
+
             set
             {
-                _sendChunked = value;
-                if (null != _resp) _resp.SendChunked = value;
+                if (HttpServer)
+                    _httpResponse.Chunked = value;
+                else
+                    _sendChunked = value;
             }
         }
+        private bool _sendChunked;
 
-        private int _statusCode;
+
+        /// <summary>
+        /// HTTP status code.
+        /// </summary>
         public int StatusCode
         {
-            get { return _statusCode; }
+            get 
+            { 
+                return HttpServer ? (int)_httpResponse.Status : _statusCode; 
+            }
+
             set
             {
-                _statusCode = value;
-                if (null != _resp) _resp.StatusCode = value;
+                if (HttpServer)
+                    _httpResponse.Status = (HttpStatusCode)value;
+                else
+                    _statusCode = value;
             }
         }
+        private int _statusCode;
 
-        private string _statusDescription;
+
+        /// <summary>
+        /// HTTP status description.
+        /// </summary>
         public string StatusDescription
         {
-            get { return _statusDescription; }
+            get 
+            { 
+                return HttpServer ? _httpResponse.Reason : _statusDescription; 
+            }
+
             set
             {
-                _statusDescription = value;
-                if (null != _resp) _resp.StatusDescription = value;
+                if (HttpServer)
+                    _httpResponse.Reason = value;
+                else
+                    _statusDescription = value;
             }
         }
+        private string _statusDescription;
 
-        private HttpListenerResponse _resp;
+        private HttpResponse _httpResponse;
+
+        internal bool HttpServer
+        {
+            get { return null != _httpResponse; }
+        }
+
+        internal HttpResponse HttpResponse
+        {
+            get { return _httpResponse; }
+        }
 
         public OSHttpResponse()
         {
         }
 
+        /// <summary>
+        /// Instantiate an OSHttpResponse object based on an
+        /// underlying .NET HttpListenerResponse.
+        /// </summary>
+        /// <remarks>
+        /// Almost deprecated; will go west to make once HttpServer
+        /// base takes over.
+        /// </remarks>
         public OSHttpResponse(HttpListenerResponse resp)
         {
-            ContentEncoding = resp.ContentEncoding;
-            ContentLength64 = resp.ContentLength64;
+            _contentEncoding = resp.ContentEncoding;
+            _contentLength = resp.ContentLength64;
             _contentType = resp.ContentType;
-            Headers = resp.Headers;
-            // Cookies = resp.Cookies;
-            KeepAlive = resp.KeepAlive;
-            OutputStream = resp.OutputStream;
-            RedirectLocation = resp.RedirectLocation;
-            SendChunked = resp.SendChunked;
-            StatusCode = resp.StatusCode;
-            StatusDescription = resp.StatusDescription;
+            _headers = resp.Headers;
+            // _cookies = resp.Cookies;
+            _keepAlive = resp.KeepAlive;
+            _outputStream = resp.OutputStream;
+            // _redirectLocation = resp.RedirectLocation;
+            _sendChunked = resp.SendChunked;
+            _statusCode = resp.StatusCode;
+            _statusDescription = resp.StatusDescription;
 
             _contentTypeSet = false;
 
-            _resp = resp;
+            // _resp = resp;
         }
 
+        /// <summary>
+        /// Instantiate an OSHttpResponse object from an OSHttpRequest
+        /// object.
+        /// </summary
+        /// <param name="req">Incoming OSHttpRequest to which we are
+        /// replying</param> 
+        public OSHttpResponse(OSHttpRequest req)
+        {
+            _httpResponse = new HttpResponse(req.HttpClientContext, req.HttpRequest);
+        }
+
+        /// <summary>
+        /// Add a header field and content to the response.
+        /// </summary>
+        /// <param name="key">string containing the header field
+        /// name</param>
+        /// <param name="value">string containing the header field
+        /// value</param> 
         public void AddHeader(string key, string value)
         {
-            Headers.Add(key, value);
+            if (HttpServer)
+                _headers.Add(key, value);
+            else
+                _httpResponse.AddHeader(key, value);
+        }
+
+        /// <summary>
+        /// Send the response back to the remote client
+        /// </summary>
+        public void Send()
+        {
+            if (HttpServer)
+            {
+                _httpResponse.Body.Flush();
+                _httpResponse.Send();
+            } 
+            else 
+            {
+                OutputStream.Close();
+            }
         }
     }
 }

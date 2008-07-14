@@ -59,9 +59,17 @@ namespace OpenSim.Framework.Servers
     {
         Unprocessed,
         Pass,
-        Handled,
-        Detached,
+        Done,
     }
+
+    /// <summary>
+    /// An OSHttpHandler that matches on the "content-type" header can
+    /// supply an OSHttpContentTypeChecker delegate which will be
+    /// invoked by the request matcher in OSHttpRequestPump.
+    /// </summary>
+    /// <returns>true if the handler is interested in the content;
+    /// false otherwise</returns>
+    public delegate bool OSHttpContentTypeChecker(OSHttpRequest req);
 
     public interface OSHttpHandler
     {
@@ -95,6 +103,19 @@ namespace OpenSim.Framework.Servers
         /// </remarks>
         Regex IPEndPointWhitelist
         {
+            get;
+        }
+
+
+        /// <summary>
+        /// An OSHttpHandler that matches on the "content-type" header can
+        /// supply an OSHttpContentTypeChecker delegate which will be
+        /// invoked by the request matcher in OSHttpRequestPump.
+        /// </summary>
+        /// <returns>true if the handler is interested in the content;
+        /// false otherwise</returns>
+        OSHttpContentTypeChecker ContentTypeChecker
+        { 
             get;
         }
 

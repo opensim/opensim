@@ -416,7 +416,7 @@ namespace OpenSim.Framework.Servers
             {
                 try
                 {
-                    response.OutputStream.Close();
+                    response.Send();
                 }
                 catch (SocketException e)
                 {

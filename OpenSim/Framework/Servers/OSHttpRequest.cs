@@ -59,7 +59,7 @@ namespace OpenSim.Framework.Servers
         private IPEndPoint _ipEndPoint;
 
         private HttpRequest _request;
-        // private HttpClientContext _context;
+        private HttpClientContext _context;
 
         public string[] AcceptTypes
         {
@@ -152,10 +152,27 @@ namespace OpenSim.Framework.Servers
             get { return _ipEndPoint; }
         }
 
-        public HttpRequest HttpRequest
+
+        internal HttpRequest HttpRequest
         {
             get { return _request; }
         }
+
+        internal HttpClientContext HttpClientContext
+        {
+            get { return _context; }
+        }
+        
+        /// <summary>
+        /// Internal whiteboard for handlers to store temporary stuff
+        /// into.
+        /// </summary>
+        internal Dictionary<string, object> Whiteboard
+        {
+            get { return _whiteboard; }
+        }
+        private Dictionary<string, object> _whiteboard = new Dictionary<string, object>();
+
 
         public OSHttpRequest()
         {
@@ -185,7 +202,7 @@ namespace OpenSim.Framework.Servers
 
         public OSHttpRequest(HttpClientContext context, HttpRequest req)
         {
-            // _context = context;
+            _context = context;
             _request = req;
 
             _acceptTypes = req.AcceptTypes;
@@ -214,6 +231,22 @@ namespace OpenSim.Framework.Servers
             // _cookies = req.Cookies;
             // _isSecureConnection = req.IsSecureConnection;
             // _isAuthenticated = req.IsAuthenticated;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder me = new StringBuilder();
+            me.Append(String.Format("OSHttpRequest: {0} {1}\n", HttpMethod, RawUrl));
+            foreach (string k in Headers.AllKeys)
+            {
+                me.Append(String.Format("    {0}: {1}\n", k, Headers[k]));
+            }
+            if (null != RemoteIPEndPoint)
+            {
+                me.Append(String.Format("    IP: {0}\n", RemoteIPEndPoint.ToString()));
+            }
+
+            return me.ToString();
         }
     }
 }
