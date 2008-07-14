@@ -438,9 +438,10 @@ namespace OpenSim.Region.Environment.Modules.Avatar.Chat
                     m_enabled = true;
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                m_log.Info("[CHAT]: Incomplete IRC config information, skipping IRC bridge configuration");
+                m_log.Info("[IRC]: Incomplete IRC configuration, skipping IRC bridge configuration");
+                m_log.DebugFormat("[IRC] Incomplete IRC configuration: {0}", ex.ToString());
             }
         }
 
