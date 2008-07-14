@@ -118,7 +118,7 @@ namespace OpenSim.Region.Communications.OGS1
             GridParams["sim_name"] = regionInfo.RegionName;
             GridParams["http_port"] = serversInfo.HttpListenerPort.ToString();
             GridParams["remoting_port"] = NetworkServersInfo.RemotingListenerPort.ToString();
-            GridParams["map-image-id"] = regionInfo.EstateSettings.terrainImageID.ToString();
+            GridParams["map-image-id"] = regionInfo.RegionSettings.TerrainImageID.ToString();
             GridParams["originUUID"] = regionInfo.originRegionID.ToString();
             GridParams["server_uri"] = regionInfo.ServerURI;
             GridParams["region_secret"] = regionInfo.regionSecret;

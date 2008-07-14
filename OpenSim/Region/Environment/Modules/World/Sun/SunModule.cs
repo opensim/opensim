@@ -301,7 +301,7 @@ namespace OpenSim.Region.Environment.Modules
             }
 
             // set estate settings for region access to sun position
-            m_scene.RegionInfo.EstateSettings.sunPosition = Position;
+            m_scene.RegionInfo.RegionSettings.SunVector = Position;
             //m_scene.RegionInfo.EstateSettings.sunHour = GetLindenEstateHourFromCurrentTime();
         }
         public void ForceSunUpdateToAllClients()
@@ -316,8 +316,8 @@ namespace OpenSim.Region.Environment.Modules
             }
 
             // set estate settings for region access to sun position
-            m_scene.RegionInfo.EstateSettings.sunPosition = Position;
-            m_scene.RegionInfo.EstateSettings.sunHour = GetLindenEstateHourFromCurrentTime();
+            m_scene.RegionInfo.RegionSettings.SunVector = Position;
+            m_scene.RegionInfo.RegionSettings.SunPosition = GetLindenEstateHourFromCurrentTime();
         }
         /// <summary>
         /// Calculate the sun's orbital position and its velocity.

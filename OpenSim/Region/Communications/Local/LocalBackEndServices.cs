@@ -208,7 +208,7 @@ namespace OpenSim.Region.Communications.Local
                     map.X = (ushort) regInfo.RegionLocX;
                     map.Y = (ushort) regInfo.RegionLocY;
                     map.WaterHeight = (byte) regInfo.RegionSettings.WaterHeight;
-                    map.MapImageId = regInfo.EstateSettings.terrainImageID;
+                    map.MapImageId = regInfo.RegionSettings.TerrainImageID;
                     map.Agents = 1;
                     map.RegionFlags = 72458694;
                     map.Access = 13;

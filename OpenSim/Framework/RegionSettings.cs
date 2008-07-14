@@ -474,6 +474,22 @@ namespace OpenSim.Framework
             set { m_UseEstateSun = value; }
         }
 
+        private LLVector3 m_SunVector;
+
+        public LLVector3 SunVector
+        {
+            get { return m_SunVector; }
+            set { m_SunVector = value; }
+        }
+
+        private LLUUID m_TerrainImageID;
+
+        public LLUUID TerrainImageID
+        {
+            get { return m_TerrainImageID; }
+            set { m_TerrainImageID = value; }
+        }
+
         private bool m_FixedSun = false;
         
         public bool FixedSun

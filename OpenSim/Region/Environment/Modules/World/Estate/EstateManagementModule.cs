@@ -118,6 +118,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                     m_scene.RegionInfo.RegionSettings.TerrainTexture4 = texture;
                     break;
             }
+            m_scene.RegionInfo.RegionSettings.Save();
         }
 
         public void setEstateTerrainTextureHeights(IClientAPI client, int corner, float lowValue, float highValue)
@@ -141,6 +142,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
                     m_scene.RegionInfo.RegionSettings.Elevation2NE = highValue;
                     break;
             }
+            m_scene.RegionInfo.RegionSettings.Save();
         }
 
         private void handleCommitEstateTerrainTextureRequest(IClientAPI remoteClient)
@@ -160,10 +162,13 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
             // Time of day / fixed sun
             m_scene.RegionInfo.RegionSettings.FixedSun = UseFixedSun;
-            m_scene.RegionInfo.EstateSettings.sunHour = SunHour;
+            m_scene.RegionInfo.RegionSettings.SunPosition = SunHour;
+
             m_scene.EventManager.TriggerEstateToolsTimeUpdate(m_scene.RegionInfo.RegionHandle, UseFixedSun, UseFixedSun, SunHour);
+
             //m_log.Debug("[ESTATE]: UFS: " + UseFixedSun.ToString());
             //m_log.Debug("[ESTATE]: SunHour: " + SunHour.ToString());
+
             sendRegionInfoPacketToAll();
             m_scene.RegionInfo.RegionSettings.Save();
         }
@@ -368,7 +373,7 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
            args.simAccess = mature;
 
            if (m_scene.RegionInfo.RegionSettings.FixedSun)
-               args.sunHour = m_scene.RegionInfo.EstateSettings.sunHour;
+               args.sunHour = (float)m_scene.RegionInfo.RegionSettings.SunPosition;
            else
                args.sunHour = m_scene.EventManager.GetSunLindenHour();
            
@@ -586,8 +591,12 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
 
         public void changeWaterHeight(float height)
         {
-            setRegionTerrainSettings(height, (float)m_scene.RegionInfo.RegionSettings.TerrainRaiseLimit, (float)m_scene.RegionInfo.RegionSettings.TerrainLowerLimit,
-                                     m_scene.RegionInfo.RegionSettings.FixedSun, m_scene.RegionInfo.EstateSettings.sunHour);
+            setRegionTerrainSettings(height,
+                    (float)m_scene.RegionInfo.RegionSettings.TerrainRaiseLimit,
+                    (float)m_scene.RegionInfo.RegionSettings.TerrainLowerLimit,
+                    m_scene.RegionInfo.RegionSettings.FixedSun,
+                    (float)m_scene.RegionInfo.RegionSettings.SunPosition);
+
             sendRegionInfoPacketToAll();
         }
 
@@ -597,7 +606,8 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         {
             client.OnDetailedEstateDataRequest += sendDetailedEstateData;
             client.OnSetEstateFlagsRequest += estateSetRegionInfoHandler;
-            client.OnSetEstateTerrainBaseTexture += setEstateTerrainBaseTexture;
+//            client.OnSetEstateTerrainBaseTexture += setEstateTerrainBaseTexture;
+            client.OnSetEstateTerrainDetailTexture += setEstateTerrainBaseTexture;
             client.OnSetEstateTerrainTextureHeights += setEstateTerrainTextureHeights;
             client.OnCommitEstateTerrainTextureRequest += handleCommitEstateTerrainTextureRequest;
             client.OnSetRegionTerrainSettings += setRegionTerrainSettings;
@@ -618,7 +628,66 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
         public uint GetRegionFlags()
         {
             Simulator.RegionFlags flags = Simulator.RegionFlags.None;
-            //m_scene.RegionInfo.RegionSettings.
+            
+            // Fully implemented
+            //
+            if(m_scene.RegionInfo.RegionSettings.AllowDamage)
+                flags |= Simulator.RegionFlags.AllowDamage;
+            if(m_scene.RegionInfo.RegionSettings.BlockTerraform)
+                flags |= Simulator.RegionFlags.BlockTerraform;
+            if(!m_scene.RegionInfo.RegionSettings.AllowLandResell)
+                flags |= Simulator.RegionFlags.BlockLandResell;
+            if(m_scene.RegionInfo.RegionSettings.DisableCollisions)
+                flags |= Simulator.RegionFlags.SkipCollisions;
+            if(m_scene.RegionInfo.RegionSettings.DisableScripts)
+                flags |= Simulator.RegionFlags.SkipScripts;
+            if(m_scene.RegionInfo.RegionSettings.DisablePhysics)
+                flags |= Simulator.RegionFlags.SkipPhysics;
+            if(m_scene.RegionInfo.RegionSettings.BlockFly)
+                flags |= Simulator.RegionFlags.NoFly;
+            if(m_scene.RegionInfo.RegionSettings.RestrictPushing)
+                flags |= Simulator.RegionFlags.RestrictPushObject;
+            if(m_scene.RegionInfo.RegionSettings.AllowLandJoinDivide)
+                flags |= Simulator.RegionFlags.AllowParcelChanges;
+            if(m_scene.RegionInfo.RegionSettings.BlockShowInSearch)
+                flags |= (Simulator.RegionFlags)(1 << 29);
+
+            // Partially implemented
+            //
+            if(m_scene.RegionInfo.RegionSettings.FixedSun)
+                flags |= Simulator.RegionFlags.SunFixed;
+
+            // Not implemented
+            //
+            // TODO: ExternallyVisible
+            flags |= Simulator.RegionFlags.ExternallyVisible;
+            // TODO: PublicAllowed
+            flags |= Simulator.RegionFlags.PublicAllowed;
+            // TODO: AllowDirectTeleport
+            flags |= Simulator.RegionFlags.AllowDirectTeleport;
+            // TODO: AllowVoice
+            flags |= Simulator.RegionFlags.AllowVoice;
+
+            // TDOD: AllowLandmark
+            // TDOD: AllowSetHome
+            // TODO: ResetHomeOnTeleport
+            // TODO: TaxFree ? (Linden-ism)
+            // TODO: Sandbox ?
+            // TODO: SkipUpdateInterestList
+            // TODO: ExternallyVisible
+            // TODO: DenyAnonymous
+            // TODO: DenyIdentified
+            // TODO: DenyTransacted
+            // TODO: AbuseEmailToEstateOwner
+            // TODO: BlockDwell
+            // TODO: EstateSkipScripts
+
+            // Omitted
+            //
+            // Omitted: NullLayer (what is that?)
+            // Omitted: SkipAgentAction (what does it do?)
+            // Omitted: MainlandVisible (Do we need it)
+
             return (uint)flags;
         }
     }

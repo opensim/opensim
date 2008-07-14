@@ -3214,7 +3214,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             // sunPosition estate setting is set in OpenSim.Region.Environment.Modules.SunModule
             // have to convert from LLVector3 (float) to LSL_Types.Vector3 (double)
-            SunFloatVector3 = World.RegionInfo.EstateSettings.sunPosition;
+            SunFloatVector3 = World.RegionInfo.RegionSettings.SunVector;
             SunDoubleVector3.x = (double)SunFloatVector3.X;
             SunDoubleVector3.y = (double)SunFloatVector3.Y;
             SunDoubleVector3.z = (double)SunFloatVector3.Z;

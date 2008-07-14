@@ -5884,21 +5884,21 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                                 }
 
                                 break;
-                            case "texturebase":
-                                if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(this.AgentId))
-                                {
-                                    foreach (EstateOwnerMessagePacket.ParamListBlock block in messagePacket.ParamList)
-                                    {
-                                        string s = Helpers.FieldToUTF8String(block.Parameter);
-                                        string[] splitField = s.Split(' ');
-                                        if (splitField.Length == 2)
-                                        {
-                                            LLUUID tempUUID = new LLUUID(splitField[1]);
-                                            OnSetEstateTerrainBaseTexture(this, Convert.ToInt16(splitField[0]), tempUUID);
-                                        }
-                                    }
-                                }
-                                break;
+//                            case "texturebase":
+//                                if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(this.AgentId))
+//                                {
+//                                    foreach (EstateOwnerMessagePacket.ParamListBlock block in messagePacket.ParamList)
+//                                    {
+//                                        string s = Helpers.FieldToUTF8String(block.Parameter);
+//                                        string[] splitField = s.Split(' ');
+//                                        if (splitField.Length == 2)
+//                                        {
+//                                            LLUUID tempUUID = new LLUUID(splitField[1]);
+//                                            OnSetEstateTerrainBaseTexture(this, Convert.ToInt16(splitField[0]), tempUUID);
+//                                        }
+//                                    }
+//                                }
+//                                break;
                             case "texturedetail":
                                 if (((Scene)m_scene).ExternalChecks.ExternalChecksCanIssueEstateCommand(this.AgentId))
                                 {

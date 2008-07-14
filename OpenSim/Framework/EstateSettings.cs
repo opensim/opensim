@@ -58,11 +58,6 @@ namespace OpenSim.Framework
         private int m_pricePerMeter;
         private int m_redirectGridX;
         private int m_redirectGridY;
-        private float m_sunHour;
-        private LLVector3 m_sunPosition;
-        private string m_terrainFile;
-        private LLUUID m_terrainImageID;
-        private double m_terrainMultiplier;
 
         public EstateSettings()
         {
@@ -126,25 +121,6 @@ namespace OpenSim.Framework
             }
         }
 
-        public float sunHour
-        {
-            get { return m_sunHour; }
-            set
-            {
-                m_sunHour = value;
-            }
-        }
-
-        public LLVector3 sunPosition
-        {
-            get { return m_sunPosition; }
-            set
-            {
-                //Just set - does not need to be written to settings file
-                m_sunPosition = value;
-            }
-        }
-
         public int pricePerMeter
         {
             get { return m_pricePerMeter; }
@@ -152,45 +128,6 @@ namespace OpenSim.Framework
             {
                 m_pricePerMeter = value;
                 configMember.forceSetConfigurationOption("price_per_meter", m_pricePerMeter.ToString());
-            }
-        }
-
-
-        // First quad - each point is bilinearly interpolated at each meter of terrain
-
-        // Terrain Default (Must be in F32 Format!)
-
-        public string terrainFile
-        {
-            get { return m_terrainFile; }
-            set
-            {
-                m_terrainFile = value;
-                configMember.forceSetConfigurationOption("terrain_file", m_terrainFile.ToString());
-            }
-        }
-
-        public double terrainMultiplier
-        {
-            get { return m_terrainMultiplier; }
-            set
-            {
-                m_terrainMultiplier = value;
-                configMember.forceSetConfigurationOption("terrain_multiplier", m_terrainMultiplier.ToString());
-            }
-        }
-
-        public LLUUID terrainImageID
-        {
-            get { return m_terrainImageID; }
-            set
-            {
-                m_terrainImageID = value;
-                // I don't think there is a reason that this actually
-                // needs to be written back to the estate settings
-                // file.
-
-                // configMember.forceSetConfigurationOption("terrain_image_id", m_terrainImageID.ToString());
             }
         }
 
@@ -461,22 +398,11 @@ namespace OpenSim.Framework
                                                 "0", true);
             configMember.addConfigurationOption("redirect_grid_y", ConfigurationOption.ConfigurationTypes.TYPE_INT32, String.Empty,
                                                 "0", true);
-            configMember.addConfigurationOption("sun_hour", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "0",
-                                                true);
-            configMember.addConfigurationOption("use_fixed_sun", ConfigurationOption.ConfigurationTypes.TYPE_BOOLEAN, String.Empty,
-                                                "false", true);
             configMember.addConfigurationOption("price_per_meter", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 String.Empty, "1", true);
 
-            configMember.addConfigurationOption("terrain_file",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, String.Empty,
-                                                "default.r32", true);
-            configMember.addConfigurationOption("terrain_multiplier", ConfigurationOption.ConfigurationTypes.TYPE_FLOAT,
-                                                String.Empty, "60.0", true);
             configMember.addConfigurationOption("water_height", ConfigurationOption.ConfigurationTypes.TYPE_DOUBLE, String.Empty,
                                                 "20.0", true);
-            configMember.addConfigurationOption("terrain_image_id", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
 
             configMember.addConfigurationOption("estate_name", ConfigurationOption.ConfigurationTypes.TYPE_STRING,
                                                 String.Empty, "TestEstate", true);
@@ -521,26 +447,13 @@ namespace OpenSim.Framework
                 case "redirect_grid_y":
                     m_redirectGridY = (int) configuration_result;
                     break;
-                case "sun_hour":
-                    m_sunHour = (float) configuration_result;
-                    break;
                 case "price_per_meter":
                     m_pricePerMeter = Convert.ToInt32(configuration_result);
                     break;
 
-                case "terrain_file":
-                    m_terrainFile = (string) configuration_result;
-                    break;
                 case "estate_name":
                     m_estateName = (string) configuration_result;
                     break;
-                case "terrain_multiplier":
-                    m_terrainMultiplier = Convert.ToDouble(configuration_result);
-                    break;
-                case "terrain_image_id":
-                    m_terrainImageID = (LLUUID) configuration_result;
-                    break;
-
                 case "estate_manager_0":
                     m_estateManager0 = (LLUUID) configuration_result;
                     break;

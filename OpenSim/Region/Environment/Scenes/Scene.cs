@@ -1354,10 +1354,10 @@ namespace OpenSim.Region.Environment.Scenes
                     m_log.Warn("[MAPTILE]: REUSING OLD MAPTILE IMAGE ID");
                 }
 
-                m_regInfo.EstateSettings.terrainImageID = TerrainImageLLUUID;
+                m_regInfo.RegionSettings.TerrainImageID = TerrainImageLLUUID;
 
                 AssetBase asset = new AssetBase();
-                asset.FullID = m_regInfo.EstateSettings.terrainImageID;
+                asset.FullID = m_regInfo.RegionSettings.TerrainImageID;
                 asset.Data = data;
                 asset.Name = "terrainImage_" + m_regInfo.RegionID.ToString() + "_" + lastMapRefresh.ToString();
                 asset.Description = RegionInfo.RegionName;
@@ -1405,10 +1405,10 @@ namespace OpenSim.Region.Environment.Scenes
                         TerrainImageLLUUID = lastMapRegionUUID;
                     }
 
-                    m_regInfo.EstateSettings.terrainImageID = TerrainImageLLUUID;
+                    m_regInfo.RegionSettings.TerrainImageID = TerrainImageLLUUID;
 
                     AssetBase asset = new AssetBase();
-                    asset.FullID = m_regInfo.EstateSettings.terrainImageID;
+                    asset.FullID = m_regInfo.RegionSettings.TerrainImageID;
                     asset.Data = data;
                     asset.Name = "terrainImage_" + m_regInfo.RegionID.ToString() + "_" + lastMapRefresh.ToString();
                     asset.Description = RegionInfo.RegionName;
