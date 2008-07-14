@@ -68,19 +68,19 @@ namespace OpenSim.Framework
                      ConfigurationOption.ConfigurationTypes.TYPE_INT32,
                      String.Empty, "21", true);
 
-             configMember.addConfigurationOption("terrain_detail_0",
+             configMember.addConfigurationOption("terrain_base_0",
                      ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
                      String.Empty, "00000000-0000-0000-0000-000000000000",true);
 
-             configMember.addConfigurationOption("terrain_detail_1",
+             configMember.addConfigurationOption("terrain_base_1",
                      ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
                      String.Empty, "00000000-0000-0000-0000-000000000000",true);
 
-             configMember.addConfigurationOption("terrain_detail_2",
+             configMember.addConfigurationOption("terrain_base_2",
                      ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
                      String.Empty, "00000000-0000-0000-0000-000000000000",true);
 
-             configMember.addConfigurationOption("terrain_detail_3",
+             configMember.addConfigurationOption("terrain_base_3",
                      ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
                      String.Empty, "00000000-0000-0000-0000-000000000000",true);
 
@@ -176,17 +176,17 @@ namespace OpenSim.Framework
                 else
                     m_Maturity = 1;
                 break;
-            case "terrain_detail_0":
+            case "terrain_base_0":
                 m_TerrainTexture1 = (LLUUID)value;
                 break;
-            case "terrain_detail_1":
-                m_TerrainTexture1 = (LLUUID)value;
+            case "terrain_base_1":
+                m_TerrainTexture2 = (LLUUID)value;
                 break;
-            case "terrain_detail_2":
-                m_TerrainTexture1 = (LLUUID)value;
+            case "terrain_base_2":
+                m_TerrainTexture3 = (LLUUID)value;
                 break;
-            case "terrain_detail_3":
-                m_TerrainTexture1 = (LLUUID)value;
+            case "terrain_base_3":
+                m_TerrainTexture4 = (LLUUID)value;
                 break;
             case "terrain_start_height_0":
                 m_Elevation1SW = (double)value;
