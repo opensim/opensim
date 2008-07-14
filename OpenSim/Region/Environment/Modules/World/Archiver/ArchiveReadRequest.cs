@@ -112,6 +112,9 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             if (failedAssetRestores > 0)
                 m_log.ErrorFormat("[ARCHIVER]: Failed to load {0} assets", failedAssetRestores);
 
+            m_log.Info("[ARCHIVER]: Clearing all existing scene objects");            
+            m_scene.DeleteAllSceneObjects();
+            
             // Reload serialized prims
             m_log.InfoFormat("[ARCHIVER]: Loading {0} scene objects.  Please wait.", serialisedSceneObjects.Count);
 
@@ -121,6 +124,8 @@ namespace OpenSim.Region.Environment.Modules.World.Archiver
             foreach (string serialisedSceneObject in serialisedSceneObjects)
             {             
                 SceneObjectGroup sceneObject = serialiser.LoadGroupFromXml2(m_scene, serialisedSceneObject);
+                
+                // TODO: Change object creator/owner here
                 
                 if (null != sceneObject)
                     sceneObjects.Add(sceneObject);

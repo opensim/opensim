@@ -1684,6 +1684,23 @@ namespace OpenSim.Region.Environment.Scenes
         }
 
         /// <summary>
+        /// Delete every object from the scene
+        /// </summary>
+        public void DeleteAllSceneObjects()
+        {
+            lock (Entities)
+            {
+                ICollection<EntityBase> entities = new List<EntityBase>(Entities.Values);
+                
+                foreach (EntityBase e in entities)
+                {
+                    if (e is SceneObjectGroup)
+                        DeleteSceneObject((SceneObjectGroup)e);
+                }
+            }        
+        }
+        
+        /// <summary>
         /// Delete the given object from the scene.
         /// </summary>
         /// <param name="group"></param>
