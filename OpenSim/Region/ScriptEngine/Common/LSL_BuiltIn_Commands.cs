@@ -6869,19 +6869,22 @@ namespace OpenSim.Region.ScriptEngine.Common
                 param.Add(o.ToString());
             }
 
+            LLVector3 position = m_host.AbsolutePosition;
+            LLVector3 velocity = m_host.Velocity;
+            LLQuaternion rotation = m_host.RotationOffset;
+            ScenePresence scenePresence = World.GetScenePresence(m_host.ObjectOwner);
+            RegionInfo regionInfo = World.RegionInfo;
+
             Dictionary<string, string> httpHeaders = new Dictionary<string, string>();
 
             httpHeaders["X-SecondLife-Shard"] = "OpenSim";
             httpHeaders["X-SecondLife-Object-Name"] = m_host.Name;
             httpHeaders["X-SecondLife-Object-Key"] = m_itemID.ToString();
-            httpHeaders["X-SecondLife-Region"] = World.RegionInfo.RegionName;
-            httpHeaders["X-SecondLife-Local-Position"] = m_host.AbsolutePosition.ToString();
-            httpHeaders["X-SecondLife-Local-Velocity"] = m_host.Velocity.ToString();
-            httpHeaders["X-SecondLife-Local-Rotation"] = m_host.RotationOffset.ToString();
-
-            ScenePresence scenePresence = World.GetScenePresence(m_host.ObjectOwner);
-            httpHeaders["X-SecondLife-Owner-Name"] = scenePresence == null ? string.Empty : scenePresence.Name;
-
+            httpHeaders["X-SecondLife-Region"] = string.Format("{0} ({1}, {2})", regionInfo.RegionName, regionInfo.RegionLocX, regionInfo.RegionLocY);
+            httpHeaders["X-SecondLife-Local-Position"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000})", position.X, position.Y, position.Z);
+            httpHeaders["X-SecondLife-Local-Velocity"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000})", velocity.X, velocity.Y, velocity.Z);
+            httpHeaders["X-SecondLife-Local-Rotation"] = string.Format("({0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000})", rotation.X, rotation.Y, rotation.Z, rotation.W);
+            httpHeaders["X-SecondLife-Owner-Name"] = scenePresence == null ? string.Empty : scenePresence.ControllingClient.Name;
             httpHeaders["X-SecondLife-Owner-Key"] = m_host.ObjectOwner.ToString();
 
             LLUUID reqID = httpScriptMod.
