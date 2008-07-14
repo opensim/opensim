@@ -106,35 +106,16 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             switch (corner)
             {
                 case 0:
-                    m_scene.RegionInfo.EstateSettings.terrainBase0 = texture;
+                    m_scene.RegionInfo.RegionSettings.TerrainTexture1 = texture;
                     break;
                 case 1:
-                    m_scene.RegionInfo.EstateSettings.terrainBase1 = texture;
+                    m_scene.RegionInfo.RegionSettings.TerrainTexture2 = texture;
                     break;
                 case 2:
-                    m_scene.RegionInfo.EstateSettings.terrainBase2 = texture;
+                    m_scene.RegionInfo.RegionSettings.TerrainTexture3 = texture;
                     break;
                 case 3:
-                    m_scene.RegionInfo.EstateSettings.terrainBase3 = texture;
-                    break;
-            }
-        }
-
-        public void setEstateTerrainDetailTexture(IClientAPI client, int corner, LLUUID textureUUID)
-        {
-            switch (corner)
-            {
-                case 0:
-                    m_scene.RegionInfo.EstateSettings.terrainDetail0 = textureUUID;
-                    break;
-                case 1:
-                    m_scene.RegionInfo.EstateSettings.terrainDetail1 = textureUUID;
-                    break;
-                case 2:
-                    m_scene.RegionInfo.EstateSettings.terrainDetail2 = textureUUID;
-                    break;
-                case 3:
-                    m_scene.RegionInfo.EstateSettings.terrainDetail3 = textureUUID;
+                    m_scene.RegionInfo.RegionSettings.TerrainTexture4 = texture;
                     break;
             }
         }
@@ -144,20 +125,20 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             switch (corner)
             {
                 case 0:
-                    m_scene.RegionInfo.EstateSettings.terrainStartHeight0 = lowValue;
-                    m_scene.RegionInfo.EstateSettings.terrainHeightRange0 = highValue;
+                    m_scene.RegionInfo.RegionSettings.Elevation1SW = lowValue;
+                    m_scene.RegionInfo.RegionSettings.Elevation2SW = highValue;
                     break;
                 case 1:
-                    m_scene.RegionInfo.EstateSettings.terrainStartHeight1 = lowValue;
-                    m_scene.RegionInfo.EstateSettings.terrainHeightRange1 = highValue;
+                    m_scene.RegionInfo.RegionSettings.Elevation1NW = lowValue;
+                    m_scene.RegionInfo.RegionSettings.Elevation2NW = highValue;
                     break;
                 case 2:
-                    m_scene.RegionInfo.EstateSettings.terrainStartHeight2 = lowValue;
-                    m_scene.RegionInfo.EstateSettings.terrainHeightRange2 = highValue;
+                    m_scene.RegionInfo.RegionSettings.Elevation1SE = lowValue;
+                    m_scene.RegionInfo.RegionSettings.Elevation2SE = highValue;
                     break;
                 case 3:
-                    m_scene.RegionInfo.EstateSettings.terrainStartHeight3 = lowValue;
-                    m_scene.RegionInfo.EstateSettings.terrainHeightRange3 = highValue;
+                    m_scene.RegionInfo.RegionSettings.Elevation1NE = lowValue;
+                    m_scene.RegionInfo.RegionSettings.Elevation2NE = highValue;
                     break;
             }
         }
@@ -532,14 +513,14 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             args.isEstateManager = estatemanager;
 
             args.billableFactor = m_scene.RegionInfo.EstateSettings.billableFactor;
-            args.terrainHeightRange0 = m_scene.RegionInfo.EstateSettings.terrainHeightRange0;
-            args.terrainHeightRange1 = m_scene.RegionInfo.EstateSettings.terrainHeightRange1;
-            args.terrainHeightRange2 = m_scene.RegionInfo.EstateSettings.terrainHeightRange2;
-            args.terrainHeightRange3 = m_scene.RegionInfo.EstateSettings.terrainHeightRange3;
-            args.terrainStartHeight0 = m_scene.RegionInfo.EstateSettings.terrainStartHeight0;
-            args.terrainStartHeight1 = m_scene.RegionInfo.EstateSettings.terrainStartHeight1;
-            args.terrainStartHeight2 = m_scene.RegionInfo.EstateSettings.terrainStartHeight2;
-            args.terrainStartHeight3 = m_scene.RegionInfo.EstateSettings.terrainStartHeight3;
+            args.terrainStartHeight0 = (float)m_scene.RegionInfo.RegionSettings.Elevation1SW;
+            args.terrainHeightRange0 = (float)m_scene.RegionInfo.RegionSettings.Elevation2SW;
+            args.terrainStartHeight1 = (float)m_scene.RegionInfo.RegionSettings.Elevation1NW;
+            args.terrainHeightRange1 = (float)m_scene.RegionInfo.RegionSettings.Elevation2NW;
+            args.terrainStartHeight2 = (float)m_scene.RegionInfo.RegionSettings.Elevation1SE;
+            args.terrainHeightRange2 = (float)m_scene.RegionInfo.RegionSettings.Elevation2SE;
+            args.terrainStartHeight3 = (float)m_scene.RegionInfo.RegionSettings.Elevation1NE;
+            args.terrainHeightRange3 = (float)m_scene.RegionInfo.RegionSettings.Elevation2NE;
             byte mature = 13;
             if(m_scene.RegionInfo.RegionSettings.Maturity == 1)
                 mature = 21;
@@ -549,14 +530,14 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             args.regionFlags = GetRegionFlags();
             args.regionName = m_scene.RegionInfo.RegionName;
             args.SimOwner = m_scene.RegionInfo.MasterAvatarAssignedUUID;
-            args.terrainBase0 = m_scene.RegionInfo.EstateSettings.terrainBase0;
-            args.terrainBase1 = m_scene.RegionInfo.EstateSettings.terrainBase1;
-            args.terrainBase2 = m_scene.RegionInfo.EstateSettings.terrainBase2;
-            args.terrainBase3 = m_scene.RegionInfo.EstateSettings.terrainBase3;
-            args.terrainDetail0 = m_scene.RegionInfo.EstateSettings.terrainDetail0;
-            args.terrainDetail1 = m_scene.RegionInfo.EstateSettings.terrainDetail1;
-            args.terrainDetail2 = m_scene.RegionInfo.EstateSettings.terrainDetail2;
-            args.terrainDetail3 = m_scene.RegionInfo.EstateSettings.terrainDetail3;
+            args.terrainBase0 = m_scene.RegionInfo.RegionSettings.TerrainTexture1;
+            args.terrainBase1 = m_scene.RegionInfo.RegionSettings.TerrainTexture2;
+            args.terrainBase2 = m_scene.RegionInfo.RegionSettings.TerrainTexture3;
+            args.terrainBase3 = m_scene.RegionInfo.RegionSettings.TerrainTexture4;
+            args.terrainDetail0 = m_scene.RegionInfo.RegionSettings.TerrainTexture1;
+            args.terrainDetail1 = m_scene.RegionInfo.RegionSettings.TerrainTexture2;
+            args.terrainDetail2 = m_scene.RegionInfo.RegionSettings.TerrainTexture3;
+            args.terrainDetail3 = m_scene.RegionInfo.RegionSettings.TerrainTexture4;
 
             remoteClient.SendRegionHandshake(m_scene.RegionInfo,args);
         }
@@ -617,7 +598,6 @@ namespace OpenSim.Region.Environment.Modules.World.Estate
             client.OnDetailedEstateDataRequest += sendDetailedEstateData;
             client.OnSetEstateFlagsRequest += estateSetRegionInfoHandler;
             client.OnSetEstateTerrainBaseTexture += setEstateTerrainBaseTexture;
-            client.OnSetEstateTerrainDetailTexture += setEstateTerrainDetailTexture;
             client.OnSetEstateTerrainTextureHeights += setEstateTerrainTextureHeights;
             client.OnCommitEstateTerrainTextureRequest += handleCommitEstateTerrainTextureRequest;
             client.OnSetRegionTerrainSettings += setRegionTerrainSettings;

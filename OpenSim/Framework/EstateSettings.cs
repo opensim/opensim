@@ -60,25 +60,9 @@ namespace OpenSim.Framework
         private int m_redirectGridY;
         private float m_sunHour;
         private LLVector3 m_sunPosition;
-        private LLUUID m_terrainBase0;
-        private LLUUID m_terrainBase1;
-        private LLUUID m_terrainBase2;
-        private LLUUID m_terrainBase3;
-        private LLUUID m_terrainDetail0;
-        private LLUUID m_terrainDetail1;
-        private LLUUID m_terrainDetail2;
-        private LLUUID m_terrainDetail3;
         private string m_terrainFile;
-        private float m_terrainHeightRange0;
-        private float m_terrainHeightRange1;
-        private float m_terrainHeightRange2;
-        private float m_terrainHeightRange3;
         private LLUUID m_terrainImageID;
         private double m_terrainMultiplier;
-        private float m_terrainStartHeight0;
-        private float m_terrainStartHeight1;
-        private float m_terrainStartHeight2;
-        private float m_terrainStartHeight3;
 
         public EstateSettings()
         {
@@ -172,178 +156,7 @@ namespace OpenSim.Framework
         }
 
 
-        // Region Information
-        // Low resolution 'base' textures. No longer used.
-
-        public LLUUID terrainBase0
-        {
-            get { return m_terrainBase0; }
-            set
-            {
-                m_terrainBase0 = value;
-                configMember.forceSetConfigurationOption("terrain_base_0", m_terrainBase0.ToString());
-            }
-        }
-
-        public LLUUID terrainBase1
-        {
-            get { return m_terrainBase1; }
-            set
-            {
-                m_terrainBase1 = value;
-                configMember.forceSetConfigurationOption("terrain_base_1", m_terrainBase1.ToString());
-            }
-        }
-
-        public LLUUID terrainBase2
-        {
-            get { return m_terrainBase2; }
-            set
-            {
-                m_terrainBase2 = value;
-                configMember.forceSetConfigurationOption("terrain_base_2", m_terrainBase2.ToString());
-            }
-        }
-
-        public LLUUID terrainBase3
-        {
-            get { return m_terrainBase3; }
-            set
-            {
-                m_terrainBase3 = value;
-                configMember.forceSetConfigurationOption("terrain_base_3", m_terrainBase3.ToString());
-            }
-        }
-
-
-        // Higher resolution terrain textures
-
-        public LLUUID terrainDetail0
-        {
-            get { return m_terrainDetail0; }
-            set
-            {
-                m_terrainDetail0 = value;
-                configMember.forceSetConfigurationOption("terrain_detail_0", m_terrainDetail0.ToString());
-            }
-        }
-
-        public LLUUID terrainDetail1
-        {
-            get { return m_terrainDetail1; }
-            set
-            {
-                m_terrainDetail1 = value;
-                configMember.forceSetConfigurationOption("terrain_detail_1", m_terrainDetail1.ToString());
-            }
-        }
-
-        public LLUUID terrainDetail2
-        {
-            get { return m_terrainDetail2; }
-            set
-            {
-                m_terrainDetail2 = value;
-                configMember.forceSetConfigurationOption("terrain_detail_2", m_terrainDetail2.ToString());
-            }
-        }
-
-        public LLUUID terrainDetail3
-        {
-            get { return m_terrainDetail3; }
-            set
-            {
-                m_terrainDetail3 = value;
-                configMember.forceSetConfigurationOption("terrain_detail_3", m_terrainDetail3.ToString());
-            }
-        }
-
         // First quad - each point is bilinearly interpolated at each meter of terrain
-
-        public float terrainStartHeight0
-        {
-            get { return m_terrainStartHeight0; }
-            set
-            {
-                m_terrainStartHeight0 = value;
-                configMember.forceSetConfigurationOption("terrain_start_height_0", m_terrainStartHeight0.ToString());
-            }
-        }
-
-
-        public float terrainStartHeight1
-        {
-            get { return m_terrainStartHeight1; }
-            set
-            {
-                m_terrainStartHeight1 = value;
-                configMember.forceSetConfigurationOption("terrain_start_height_1", m_terrainStartHeight1.ToString());
-            }
-        }
-
-        public float terrainStartHeight2
-        {
-            get { return m_terrainStartHeight2; }
-            set
-            {
-                m_terrainStartHeight2 = value;
-                configMember.forceSetConfigurationOption("terrain_start_height_2", m_terrainStartHeight2.ToString());
-            }
-        }
-
-        public float terrainStartHeight3
-        {
-            get { return m_terrainStartHeight3; }
-            set
-            {
-                m_terrainStartHeight3 = value;
-                configMember.forceSetConfigurationOption("terrain_start_height_3", m_terrainStartHeight3.ToString());
-            }
-        }
-
-        // Second quad - also bilinearly interpolated.
-        // Terrain texturing is done that:
-        // 0..3 (0 = base0, 3 = base3) = (terrain[x,y] - start[x,y]) / range[x,y]
-
-        public float terrainHeightRange0
-        {
-            get { return m_terrainHeightRange0; }
-            set
-            {
-                m_terrainHeightRange0 = value;
-                configMember.forceSetConfigurationOption("terrain_height_range_0", m_terrainHeightRange0.ToString());
-            }
-        }
-
-        public float terrainHeightRange1
-        {
-            get { return m_terrainHeightRange1; }
-            set
-            {
-                m_terrainHeightRange1 = value;
-                configMember.forceSetConfigurationOption("terrain_height_range_1", m_terrainHeightRange1.ToString());
-            }
-        }
-
-        public float terrainHeightRange2
-        {
-            get { return m_terrainHeightRange2; }
-            set
-            {
-                m_terrainHeightRange2 = value;
-                configMember.forceSetConfigurationOption("terrain_height_range_2", m_terrainHeightRange2.ToString());
-            }
-        }
-
-        public float terrainHeightRange3
-        {
-            get { return m_terrainHeightRange3; }
-            set
-            {
-                m_terrainHeightRange3 = value;
-                configMember.forceSetConfigurationOption("terrain_height_range_3", m_terrainHeightRange3.ToString());
-            }
-        }
 
         // Terrain Default (Must be in F32 Format!)
 
@@ -655,42 +468,6 @@ namespace OpenSim.Framework
             configMember.addConfigurationOption("price_per_meter", ConfigurationOption.ConfigurationTypes.TYPE_UINT32,
                                                 String.Empty, "1", true);
 
-            configMember.addConfigurationOption("terrain_base_0", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, String.Empty,
-                                                "b8d3965a-ad78-bf43-699b-bff8eca6c975", true);
-            configMember.addConfigurationOption("terrain_base_1", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, String.Empty,
-                                                "abb783e6-3e93-26c0-248a-247666855da3", true);
-            configMember.addConfigurationOption("terrain_base_2", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, String.Empty,
-                                                "179cdabd-398a-9b6b-1391-4dc333ba321f", true);
-            configMember.addConfigurationOption("terrain_base_3", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID, String.Empty,
-                                                "beb169c7-11ea-fff2-efe5-0f24dc881df2", true);
-
-            configMember.addConfigurationOption("terrain_detail_0", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
-            configMember.addConfigurationOption("terrain_detail_1", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
-            configMember.addConfigurationOption("terrain_detail_2", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
-            configMember.addConfigurationOption("terrain_detail_3", ConfigurationOption.ConfigurationTypes.TYPE_LLUUID,
-                                                String.Empty, "00000000-0000-0000-0000-000000000000", true);
-
-            configMember.addConfigurationOption("terrain_start_height_0",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "10.0", true);
-            configMember.addConfigurationOption("terrain_start_height_1",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "10.0", true);
-            configMember.addConfigurationOption("terrain_start_height_2",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "10.0", true);
-            configMember.addConfigurationOption("terrain_start_height_3",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "10.0", true);
-
-            configMember.addConfigurationOption("terrain_height_range_0",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "60.0", true);
-            configMember.addConfigurationOption("terrain_height_range_1",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "60.0", true);
-            configMember.addConfigurationOption("terrain_height_range_2",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "60.0", true);
-            configMember.addConfigurationOption("terrain_height_range_3",
-                                                ConfigurationOption.ConfigurationTypes.TYPE_FLOAT, String.Empty, "60.0", true);
-
             configMember.addConfigurationOption("terrain_file",
                                                 ConfigurationOption.ConfigurationTypes.TYPE_STRING_NOT_EMPTY, String.Empty,
                                                 "default.r32", true);
@@ -749,58 +526,6 @@ namespace OpenSim.Framework
                     break;
                 case "price_per_meter":
                     m_pricePerMeter = Convert.ToInt32(configuration_result);
-                    break;
-
-                case "terrain_base_0":
-                    m_terrainBase0 = (LLUUID) configuration_result;
-                    break;
-                case "terrain_base_1":
-                    m_terrainBase1 = (LLUUID) configuration_result;
-                    break;
-                case "terrain_base_2":
-                    m_terrainBase2 = (LLUUID) configuration_result;
-                    break;
-                case "terrain_base_3":
-                    m_terrainBase3 = (LLUUID) configuration_result;
-                    break;
-
-                case "terrain_detail_0":
-                    m_terrainDetail0 = (LLUUID) configuration_result;
-                    break;
-                case "terrain_detail_1":
-                    m_terrainDetail1 = (LLUUID) configuration_result;
-                    break;
-                case "terrain_detail_2":
-                    m_terrainDetail2 = (LLUUID) configuration_result;
-                    break;
-                case "terrain_detail_3":
-                    m_terrainDetail3 = (LLUUID) configuration_result;
-                    break;
-
-                case "terrain_start_height_0":
-                    m_terrainStartHeight0 = (float) configuration_result;
-                    break;
-                case "terrain_start_height_1":
-                    m_terrainStartHeight1 = (float) configuration_result;
-                    break;
-                case "terrain_start_height_2":
-                    m_terrainStartHeight2 = (float) configuration_result;
-                    break;
-                case "terrain_start_height_3":
-                    m_terrainStartHeight3 = (float) configuration_result;
-                    break;
-
-                case "terrain_height_range_0":
-                    m_terrainHeightRange0 = (float) configuration_result;
-                    break;
-                case "terrain_height_range_1":
-                    m_terrainHeightRange1 = (float) configuration_result;
-                    break;
-                case "terrain_height_range_2":
-                    m_terrainHeightRange2 = (float) configuration_result;
-                    break;
-                case "terrain_height_range_3":
-                    m_terrainHeightRange3 = (float) configuration_result;
                     break;
 
                 case "terrain_file":
