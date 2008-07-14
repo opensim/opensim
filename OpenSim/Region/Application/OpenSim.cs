@@ -259,13 +259,15 @@ namespace OpenSim
                     m_console.Notice("  debug scene [scripting] [collision] [physics] - Enable/Disable debug stuff, each can be True/False");
                     m_console.Notice("edit-scale [prim name] [x] [y] [z] - resize given prim");
                     m_console.Notice("export-map [filename] - save image of world map");
-                    m_console.Notice("force-update - force an update of prims in the scene");
-                    m_console.Notice("load-xml [filename] - load prims from XML (DEPRECATED)");
-                    m_console.Notice("load-xml2 [filename] - load prims from XML using version 2 format");
+                    m_console.Notice("force-update - force an update of prims in the scene");                                        
                     m_console.Notice("restart - disconnects all clients and restarts the sims in the instance.");
                     m_console.Notice("remove-region [name] - remove a region");
+                    m_console.Notice("load-xml [filename] - load prims from XML (DEPRECATED)");
                     m_console.Notice("save-xml [filename] - save prims to XML (DEPRECATED)");
                     m_console.Notice("save-xml2 [filename] - save prims to XML using version 2 format");
+                    m_console.Notice("load-xml2 [filename] - load prims from XML using version 2 format");
+                    m_console.Notice("load-oar [filename] - load an OpenSimulator region archive.  This replaces everything in the current region.");
+                    m_console.Notice("save-oar [filename] - Save the current region to an OpenSimulator region archive.");
                     m_console.Notice("script - manually trigger scripts? or script commands?");
                     m_console.Notice("set-time [x] - set the current scene time phase");
                     m_console.Notice("show assets - show state of asset cache.");
@@ -714,7 +716,7 @@ namespace OpenSim
         
         protected void LoadOar(string[] cmdparams)
         {
-            m_log.Error("[CONSOLE]: Don't use me - I haven't yet been sufficiently implemented!");
+            m_log.Warn("[CONSOLE]: Highly experimental functionality.  Please don't rely on this.");
 
             if (cmdparams.Length > 0)
             {
@@ -728,7 +730,7 @@ namespace OpenSim
         
         protected void SaveOar(string[] cmdparams)
         {
-            m_log.Error("[CONSOLE]: Don't use me - I haven't yet been sufficiently implemented!");
+            m_log.Warn("[CONSOLE]: Highly experimental functionality.  Please don't rely on this.");
 
             if (cmdparams.Length > 0)
             {
