@@ -151,7 +151,7 @@ namespace OpenSim.Framework.Servers
                         body.Flush();
 
                         // and ship it back
-                        resp.HttpResponse.Send();
+                        resp.Send();
                     }
                 }
                 catch (Exception e)
