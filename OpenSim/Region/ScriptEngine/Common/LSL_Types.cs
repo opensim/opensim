@@ -141,9 +141,9 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return new Vector3(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z);
             }
 
-            public static LSLFloat operator *(Vector3 lhs, Vector3 rhs)
+            public static Vector3 operator *(Vector3 lhs, Vector3 rhs)
             {
-                return Dot(lhs, rhs);
+                return new Vector3(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z);
             }
 
             public static Vector3 operator %(Vector3 v1, Vector3 v2)
