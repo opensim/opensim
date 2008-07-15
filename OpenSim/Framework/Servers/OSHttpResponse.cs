@@ -346,9 +346,9 @@ namespace OpenSim.Framework.Servers
         public void AddHeader(string key, string value)
         {
             if (HttpServer)
-                _headers.Add(key, value);
-            else
                 _httpResponse.AddHeader(key, value);
+            else
+                _headers.Add(key, value);
         }
 
         /// <summary>
