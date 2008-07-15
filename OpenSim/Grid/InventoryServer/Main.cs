@@ -85,35 +85,35 @@ namespace OpenSim.Grid.InventoryServer
         protected void AddHttpHandlers()
         {
             m_httpServer.AddStreamHandler(
-                new RestDeserialisehandler<Guid, InventoryCollection>(
+                new RestDeserialiseHandler<Guid, InventoryCollection>(
                     "POST", "/GetInventory/", m_inventoryService.GetUserInventory));
 
             m_httpServer.AddStreamHandler(
-                new RestDeserialisehandler<Guid, bool>(
+                new RestDeserialiseHandler<Guid, bool>(
                     "POST", "/CreateInventory/", m_inventoryService.CreateUsersInventory));
 
             m_httpServer.AddStreamHandler(
-                new RestDeserialisehandler<InventoryFolderBase, bool>(
+                new RestDeserialiseHandler<InventoryFolderBase, bool>(
                     "POST", "/NewFolder/", m_inventoryService.AddFolder));
 
             m_httpServer.AddStreamHandler(
-                new RestDeserialisehandler<InventoryFolderBase, bool>(
+                new RestDeserialiseHandler<InventoryFolderBase, bool>(
                     "POST", "/UpdateFolder/", m_inventoryService.UpdateFolder));
 
             m_httpServer.AddStreamHandler(
-                new RestDeserialisehandler<InventoryFolderBase, bool>(
+                new RestDeserialiseHandler<InventoryFolderBase, bool>(
                     "POST", "/MoveFolder/", m_inventoryService.MoveFolder));
 
             m_httpServer.AddStreamHandler(
-                new RestDeserialisehandler<InventoryFolderBase, bool>(
+                new RestDeserialiseHandler<InventoryFolderBase, bool>(
                     "POST", "/PurgeFolder/", m_inventoryService.PurgeFolder));
 
             m_httpServer.AddStreamHandler(
-                new RestDeserialisehandler<InventoryItemBase, bool>(
+                new RestDeserialiseHandler<InventoryItemBase, bool>(
                     "POST", "/NewItem/", m_inventoryService.AddItem));
 
             m_httpServer.AddStreamHandler(
-                new RestDeserialisehandler<InventoryItemBase, bool>(
+                new RestDeserialiseHandler<InventoryItemBase, bool>(
                     "POST", "/DeleteItem/", m_inventoryService.DeleteItem));
 
             // WARNING: Root folders no longer just delivers the root and immediate child folders (e.g
@@ -122,7 +122,7 @@ namespace OpenSim.Grid.InventoryServer
             // (e.g. any http request not found is automatically treated as an xmlrpc request) make it easier
             // to do this for now.
             m_httpServer.AddStreamHandler(
-                new RestDeserialisehandler<Guid, List<InventoryFolderBase>>
+                new RestDeserialiseHandler<Guid, List<InventoryFolderBase>>
                     ("POST", "/RootFolders/", m_inventoryService.GetInventorySkeleton));
         }
 

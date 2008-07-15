@@ -34,12 +34,12 @@ namespace OpenSim.Framework.Servers
 {
     public delegate TResponse RestDeserialiseMethod<TRequest, TResponse>(TRequest request);
 
-    public class RestDeserialisehandler<TRequest, TResponse> : BaseRequestHandler, IStreamHandler
+    public class RestDeserialiseHandler<TRequest, TResponse> : BaseRequestHandler, IStreamHandler
         where TRequest : new()
     {
         private RestDeserialiseMethod<TRequest, TResponse> m_method;
 
-        public RestDeserialisehandler(string httpMethod, string path, RestDeserialiseMethod<TRequest, TResponse> method)
+        public RestDeserialiseHandler(string httpMethod, string path, RestDeserialiseMethod<TRequest, TResponse> method)
             : base(httpMethod, path)
         {
             m_method = method;
