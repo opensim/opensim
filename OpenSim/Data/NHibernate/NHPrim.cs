@@ -37,7 +37,7 @@ namespace OpenSim.Data.NHibernate
     {
         protected LLUUID regionID = LLUUID.Zero;
 
-        public LLUUID RegionID 
+        new public LLUUID RegionID 
         {
             get { return regionID; }
             set { regionID = value; }
