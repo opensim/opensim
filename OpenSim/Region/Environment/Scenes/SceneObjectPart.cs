@@ -920,6 +920,11 @@ namespace OpenSim.Region.Environment.Scenes
         {
             get { return ParentGroup.Scene.RegionInfo.RegionID; }
         }
+        [XmlIgnore]
+        public LLUUID ParentUUID
+        {
+            get { return ParentGroup.UUID; }
+        }
         
         #endregion Public Properties with only Get
 

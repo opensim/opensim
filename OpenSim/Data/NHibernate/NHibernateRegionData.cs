@@ -52,7 +52,7 @@ namespace OpenSim.Data.NHibernate
 
         private Configuration cfg;
         private ISessionFactory factory;
-        //private ISession session;
+        private ISession session;
 
         public void Initialise()
         {
@@ -89,11 +89,11 @@ namespace OpenSim.Data.NHibernate
                 cfg.AddInputStream(stream);
             
             factory  = cfg.BuildSessionFactory();
-            //session = factory.OpenSession();
+            session = factory.OpenSession();
             
             // This actually does the roll forward assembly stuff
             Assembly assem = GetType().Assembly;
-            Migration m = new Migration((System.Data.Common.DbConnection)factory.ConnectionProvider.GetConnection(), assem, dialect, "AssetStore");
+            Migration m = new Migration((System.Data.Common.DbConnection)factory.ConnectionProvider.GetConnection(), assem, dialect, "RegionStore");
             m.Update();
         }
 
@@ -119,7 +119,18 @@ namespace OpenSim.Data.NHibernate
         /// <param name="regionUUID">the region UUID</param>
         public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
-            //NHPrim[] prims = (NHPrim[]) obj.GetParts();
+            foreach (SceneObjectPart part in obj.Children.Values)
+            {
+                try 
+                {
+                    session.SaveOrUpdate(part);
+                } 
+                catch (Exception e) 
+                {
+                    m_log.Error("Can't save: ", e);
+                }
+            }
+
         }
 
         /// <summary>
