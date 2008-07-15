@@ -306,7 +306,7 @@ namespace OpenSim.Region.Environment.Scenes
             }
             else
             {
-                Console.WriteLine("Searching for Region: '" + regionName + "'");
+                // Console.WriteLine("Searching for Region: '" + regionName + "'");
 
                 foreach (Scene scene in m_localScenes)
                 {
