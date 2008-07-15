@@ -25,9 +25,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// #define DEBUGGING
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Reflection;
@@ -35,6 +38,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using log4net;
 using HttpServer;
+
 
 namespace OpenSim.Framework.Servers
 {
@@ -57,12 +61,16 @@ namespace OpenSim.Framework.Servers
         
         public string EngineID
         {
-            get { return String.Format("{0}-{1}", _server.EngineID, _id); }
+            get { return String.Format("{0} pump {1}", _server.EngineID, _id); }
         }
 
         
-        public OSHttpRequestPump()
+        public OSHttpRequestPump(OSHttpServer server, OSHttpRequestQueue queue, int id)
         {
+            _server = server;
+            _queue = queue;
+            _id = id;
+
             _engine = new Thread(new ThreadStart(Engine));
             _engine.Name = EngineID;
             _engine.IsBackground = true;
@@ -77,9 +85,7 @@ namespace OpenSim.Framework.Servers
             OSHttpRequestPump[] pumps = new OSHttpRequestPump[poolSize];
             for (int i = 0; i < pumps.Length; i++)
             {
-                pumps[i]._server = server;
-                pumps[i]._queue = queue;
-                pumps[i]._id = i;
+                pumps[i] = new OSHttpRequestPump(server, queue, i);
             }
 
             return pumps;
@@ -166,12 +172,15 @@ namespace OpenSim.Framework.Servers
         {
             Dictionary<OSHttpHandler, int> scoredHandlers = new Dictionary<OSHttpHandler, int>();
 
+            _log.DebugFormat("[{0}] MatchHandlers for {1}", EngineID, req);
             foreach (OSHttpHandler h in handlers)
             {
                 Regex pathRegex = h.Path;
                 Dictionary<string, Regex> headerRegexs = h.Headers;
                 Regex endPointsRegex = h.IPEndPointWhitelist;
 
+                // initial anchor
+                scoredHandlers[h] = 0;
 
                 // first, check whether IPEndPointWhitelist applies
                 // and, if it does, whether client is on that white
@@ -218,6 +227,9 @@ namespace OpenSim.Framework.Servers
                         {
                             // no: remove the handler if it was added
                             // earlier and on to the next one
+                            _LogDumpOSHttpHandler(String.Format("[{0}] dropping handler for {1}: null {2} header field", 
+                                                                EngineID, req, tag), h);
+
                             scoredHandlers.Remove(h);
                             break;
                         }
@@ -228,6 +240,8 @@ namespace OpenSim.Framework.Servers
                         if (!hm.Success) {
                             // no: remove the handler if it was added
                             // earlier and on to the next one
+                            _LogDumpOSHttpHandler(String.Format("[{0}] dropping handler for {1}: {2} header field content \"{3}\" does not match regex {4}", 
+                                                                EngineID, req, tag, headers[tag], headerRegexs[tag].ToString()), h);
                             scoredHandlers.Remove(h);
                             break;
                         }
@@ -238,11 +252,14 @@ namespace OpenSim.Framework.Servers
                         if ((null != h.ContentTypeChecker) && !h.ContentTypeChecker(req))
                         {
                             scoredHandlers.Remove(h);
+                            _LogDumpOSHttpHandler(String.Format("[{0}] dropping handler for {1}: content checker returned false", 
+                                                                EngineID, req), h);
                             break;
                         }
                         
                         // ok: header matches
                         headersMatch++;
+                        _LogDumpOSHttpHandler(String.Format("[{0}] MatchHandlers: found handler for {1}", EngineID, req), h);
                         continue;
                     }
                     // check whether h got kicked out
@@ -251,15 +268,49 @@ namespace OpenSim.Framework.Servers
                     scoredHandlers[h] +=  headersMatch;
                 }
             }
+
+            foreach (OSHttpHandler hh in scoredHandlers.Keys)
+            {
+                _LogDumpOSHttpHandler("scoredHandlers:", hh);
+            }
             
             List<OSHttpHandler> matchingHandlers = new List<OSHttpHandler>(scoredHandlers.Keys);
+            _LogDumpOSHttpHandlerList("before sort: ", matchingHandlers);
             matchingHandlers.Sort(delegate(OSHttpHandler x, OSHttpHandler y)
                                   {
                                       return scoredHandlers[x] - scoredHandlers[y];
                                   });
+            
+            _LogDumpOSHttpHandlerList("after sort: ", matchingHandlers);
 
             return matchingHandlers;
         }
+
+        [ConditionalAttribute("DEBUGGING")] 
+        private void _LogDumpOSHttpHandler(string msg, OSHttpHandler h)
+        {
+            _log.Debug(msg);
+
+            StringWriter sw = new StringWriter();
+            sw.WriteLine("{0}", h.ToString());
+            sw.WriteLine("    path regex {0}", null == h.Path ? "null": h.Path.ToString());
+            foreach (string tag in h.Headers.Keys)
+            {
+                sw.WriteLine("        header[{0}] {1}", tag, h.Headers[tag].ToString());
+            }
+            sw.WriteLine("  IP whitelist {0}", null == h.IPEndPointWhitelist ? "null" : h.IPEndPointWhitelist.ToString());
+            sw.WriteLine();
+            sw.Close();
+
+            _log.Debug(sw.ToString());
+        }
         
+        [ConditionalAttribute("DEBUGGING")] 
+        private void _LogDumpOSHttpHandlerList(string msg, List<OSHttpHandler> l)
+        {
+            _log.DebugFormat("OSHttpHandlerList dump: {0}", msg);
+            foreach (OSHttpHandler h in l)
+                _LogDumpOSHttpHandler("OSHttpHandler", h);
+        }
     }
 }

@@ -106,8 +106,9 @@ namespace OpenSim.Framework.Servers
         /// </summary>
         public OSHttpServer(IPAddress address, int port, int poolSize)
         {
-            _engineId = String.Format("OSHttpServer [HTTP:{0}/ps:{1}]", port, poolSize);
+            _engineId = String.Format("OSHttpServer (HTTP:{0})", port);
             _isSecure = false;
+            _log.DebugFormat("[{0}] HTTP server instantiated", EngineID);
 
             _listener = new HttpListener(address, port);
             _queue = new OSHttpRequestQueue();
@@ -121,6 +122,7 @@ namespace OpenSim.Framework.Servers
         {
             _engineId = String.Format("OSHttpServer [HTTPS:{0}/ps:{1}]", port, poolSize);
             _isSecure = true;
+            _log.DebugFormat("[{0}] HTTPS server instantiated", EngineID);
 
             _listener = new HttpListener(address, port, certificate);
             _queue = new OSHttpRequestQueue();
@@ -176,8 +178,9 @@ namespace OpenSim.Framework.Servers
                 
                 lock (_syncObject) Monitor.Wait(_syncObject);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _log.DebugFormat("[{0}] HTTP server startup failed: {1}", EngineID, ex.ToString());
             }
 
             _log.InfoFormat("[{0}] HTTP server terminated", EngineID);
