@@ -29,6 +29,7 @@ using System;
 using System.Timers;
 using libsecondlife.Packets;
 using OpenSim.Framework;
+using OpenSim.Framework.Statistics;
 using OpenSim.Region.Environment.Interfaces;
 
 namespace OpenSim.Region.Environment.Scenes
@@ -114,7 +115,6 @@ namespace OpenSim.Region.Environment.Scenes
 
         public SimStatsReporter(Scene scene)
         {
-
             statsUpdateFactor = (float)(statsUpdatesEveryMS / 1000);
             m_scene = scene;
             ReportingRegion = scene.RegionInfo;
@@ -126,6 +126,9 @@ namespace OpenSim.Region.Environment.Scenes
             m_report.Interval = statsUpdatesEveryMS;
             m_report.Elapsed += new ElapsedEventHandler(statsHeartBeat);
             m_report.Enabled = true;
+            
+            if (StatsManager.SimExtraStats != null)
+                OnSendStatsResult += StatsManager.SimExtraStats.ReceiveClassicSimStatsPacket;
         }
 
         public void SetUpdateMS(int ms)

@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using libsecondlife;
+using libsecondlife.Packets;
 using OpenSim.Framework.Statistics.Interfaces;
 
 namespace OpenSim.Framework.Statistics
@@ -48,6 +49,28 @@ namespace OpenSim.Framework.Statistics
 
         private long assetServiceRequestFailures;
         private long inventoryServiceRetrievalFailures;
+        
+        private float timeDilation;
+        private float simFps;
+        private float physicsFps;
+        private float agentUpdates;
+        private float rootAgents;
+        private float childAgents;
+        private float totalPrims;
+        private float activePrims;
+        private float totalFrameTime;
+        private float netFrameTime;
+        private float physicsFrameTime;
+        private float otherFrameTime;
+        private float imageFrameTime;
+        private float inPacketsPerSecond;
+        private float outPacketsPerSecond;
+        private float unackedBytes;
+        private float agentFrameTime;
+        private float pendingDownloads;
+        private float pendingUploads;
+        private float activeScripts;
+        private float scriptLinesPerSecond;                        
         
         /// <summary>
         /// Number of times that a client thread terminated because of an exception
@@ -85,6 +108,16 @@ namespace OpenSim.Framework.Statistics
         /// we do not yet timeout this situation.
         /// </summary>
         public long InventoryServiceRetrievalFailures { get { return inventoryServiceRetrievalFailures; } }
+        
+        /// <summary>
+        /// Retrieve the total frame time (in ms) of the last frame
+        /// </summary>
+        //public float TotalFrameTime { get { return totalFrameTime; } }
+        
+        /// <summary>
+        /// Retrieve the physics update component (in ms) of the last frame
+        /// </summary>
+        //public float PhysicsFrameTime { get { return physicsFrameTime; } }
 
         /// <summary>
         /// Retain a dictionary of all packet queues stats reporters
@@ -166,7 +199,39 @@ namespace OpenSim.Framework.Statistics
                 packetQueueStatsCollectors.Remove(uuid);
             }
         }
-
+        
+        /// <summary>
+        /// This is the method on which the classic sim stats reporter (which collects stats for 
+        /// client purposes) sends information to listeners.
+        /// </summary>
+        /// <param name="pack"></param>
+        public void ReceiveClassicSimStatsPacket(SimStatsPacket statsPacket)        
+        {
+            // FIXME: Really shouldn't rely on the probably arbitrary order in which
+            // stats are packed into the packet
+            timeDilation            = statsPacket.Stat[0].StatValue;
+            simFps                  = statsPacket.Stat[1].StatValue;            
+            physicsFps              = statsPacket.Stat[2].StatValue;
+            agentUpdates            = statsPacket.Stat[3].StatValue;
+            rootAgents              = statsPacket.Stat[4].StatValue;
+            childAgents             = statsPacket.Stat[5].StatValue;
+            totalPrims              = statsPacket.Stat[6].StatValue;
+            activePrims             = statsPacket.Stat[7].StatValue;
+            totalFrameTime          = statsPacket.Stat[8].StatValue;
+            netFrameTime            = statsPacket.Stat[9].StatValue;
+            physicsFrameTime        = statsPacket.Stat[10].StatValue;
+            otherFrameTime          = statsPacket.Stat[11].StatValue;
+            imageFrameTime          = statsPacket.Stat[12].StatValue;
+            inPacketsPerSecond      = statsPacket.Stat[13].StatValue;
+            outPacketsPerSecond     = statsPacket.Stat[14].StatValue;
+            unackedBytes            = statsPacket.Stat[15].StatValue;
+            agentFrameTime          = statsPacket.Stat[16].StatValue;
+            pendingDownloads        = statsPacket.Stat[17].StatValue;
+            pendingUploads          = statsPacket.Stat[18].StatValue;
+            activeScripts           = statsPacket.Stat[19].StatValue;
+            scriptLinesPerSecond    = statsPacket.Stat[20].StatValue;
+        }
+        
         /// <summary>
         /// Report back collected statistical information.
         /// </summary>
@@ -202,7 +267,31 @@ Asset service request failures: {5}"+ Environment.NewLine,
                 string.Format(
                     "Initial inventory caching failures: {0}" + Environment.NewLine,
                     InventoryServiceRetrievalFailures));
+            
+            sb.Append(Environment.NewLine);
+            sb.Append("FRAME STATISTICS");
+            sb.Append(Environment.NewLine);
+            sb.Append("Dilatn  SimFPS  PhyFPS  AgntUp  RootAg  ChldAg  Prims   AtvPrm  AtvScr  ScrLPS");
+            sb.Append(Environment.NewLine);
+            sb.Append(
+                string.Format(
+                    "{0,6:0.00}  {1,6:0}  {2,6:0.0}  {3,6:0.0}  {4,6:0}  {5,6:0}  {6,6:0}  {7,6:0}  {8,6:0}  {9,6:0}",
+                    timeDilation, simFps, physicsFps, agentUpdates, rootAgents,
+                    childAgents, totalPrims, activePrims, activeScripts, scriptLinesPerSecond));
+                    
+            sb.Append(Environment.NewLine);
+            sb.Append(Environment.NewLine);
+            // There is no script frame time currently because we don't yet collect it
+            sb.Append("PktsIn  PktOut  PendDl  PendUl  UnackB  TotlFt  NetFt   PhysFt  OthrFt  AgntFt  ImgsFt");
+            sb.Append(Environment.NewLine);                    
+            sb.Append(
+                string.Format(
+                    "{0,6:0}  {1,6:0}  {2,6:0}  {3,6:0}  {4,6:0}  {5,6:0.0}  {6,6:0.0}  {7,6:0.0}  {8,6:0.0}  {9,6:0.0}  {10,6:0.0}",
+                    inPacketsPerSecond, outPacketsPerSecond, pendingDownloads, pendingUploads, unackedBytes, totalFrameTime,
+                    netFrameTime, physicsFrameTime, otherFrameTime, agentFrameTime, imageFrameTime));
+            sb.Append(Environment.NewLine);                  
 
+            /*
             sb.Append(Environment.NewLine);
             sb.Append("PACKET QUEUE STATISTICS");
             sb.Append(Environment.NewLine);
@@ -219,6 +308,7 @@ Asset service request failures: {5}"+ Environment.NewLine,
                 sb.Append(packetQueueStatsCollectors[key].Report());
                 sb.Append(Environment.NewLine);
             }
+            */
 
             sb.Append(base.Report());
             
