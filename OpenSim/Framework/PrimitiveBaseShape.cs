@@ -78,72 +78,33 @@ namespace OpenSim.Framework
 
         private byte[] m_textureEntry;
 
-        public ushort PathBegin;
-        public byte PathCurve;
-        public ushort PathEnd;
-        public sbyte PathRadiusOffset;
-        public byte PathRevolutions;
-        public byte PathScaleX;
-        public byte PathScaleY;
-        public byte PathShearX;
-        public byte PathShearY;
-        public sbyte PathSkew;
-        public sbyte PathTaperX;
-        public sbyte PathTaperY;
-        public sbyte PathTwist;
-        public sbyte PathTwistBegin;
-        public byte PCode;
-        public ushort ProfileBegin;
-
-        public byte ProfileCurve
-        {
-            get { return (byte)((byte)HollowShape | (byte)ProfileShape); }
-
-            set
-            {
-                // Handle hollow shape component
-                byte hollowShapeByte = (byte)(value & 0xf0);
-
-                if (!Enum.IsDefined(typeof(HollowShape), hollowShapeByte))
-                {
-                    m_log.WarnFormat(
-                        "[SHAPE]: Attempt to set a ProfileCurve with a hollow shape value of {0}, which isn't a valid enum.  Replacing with default shape.",
-                        hollowShapeByte);
-
-                    this.HollowShape = HollowShape.Same;
-                }
-                else
-                {
-                    this.HollowShape = (HollowShape)hollowShapeByte;
-                }
-
-                // Handle profile shape component
-                byte profileShapeByte = (byte)(value & 0xf);
-
-                if (!Enum.IsDefined(typeof(ProfileShape), profileShapeByte))
-                {
-                    m_log.WarnFormat(
-                        "[SHAPE]: Attempt to set a ProfileCurve with a profile shape value of {0}, which isn't a valid enum.  Replacing with square.",
-                        profileShapeByte);
-
-                    this.ProfileShape = ProfileShape.Square;
-                }
-                else
-                {
-                    this.ProfileShape = (ProfileShape)profileShapeByte;
-                }
-            }
-        }
-
-        public ushort ProfileEnd;
-        public ushort ProfileHollow;
-        public LLVector3 Scale;
-        public byte State;
+        public ushort _pathBegin;
+        public byte _pathCurve;
+        public ushort _pathEnd;
+        public sbyte _pathRadiusOffset;
+        public byte _pathRevolutions;
+        public byte _pathScaleX;
+        public byte _pathScaleY;
+        public byte _pathShearX;
+        public byte _pathShearY;
+        public sbyte _pathSkew;
+        public sbyte _pathTaperX;
+        public sbyte _pathTaperY;
+        public sbyte _pathTwist;
+        public sbyte _pathTwistBegin;
+        public byte _pCode;
+        public ushort _profileBegin;
+        public ushort _profileEnd;
+        public ushort _profileHollow;
+        public LLVector3 _scale;
+        public byte _state;
+        public ProfileShape _profileShape;
+        public HollowShape _hollowShape;
 
         // Sculpted
-        [XmlIgnore] public LLUUID SculptTexture = LLUUID.Zero;
-        [XmlIgnore] public byte SculptType = (byte)0;
-        [XmlIgnore] public byte[] SculptData = new byte[0];
+        [XmlIgnore] public LLUUID _sculptTexture = LLUUID.Zero;
+        [XmlIgnore] public byte _sculptType = (byte)0;
+        [XmlIgnore] public byte[] _sculptData = new byte[0];
 
         // Flexi
         [XmlIgnore] public int FlexiSoftness = 0;
@@ -167,6 +128,48 @@ namespace OpenSim.Framework
         [XmlIgnore] public bool FlexiEntry = false;
         [XmlIgnore] public bool LightEntry = false;
         [XmlIgnore] public bool SculptEntry = false;
+        
+        public byte ProfileCurve
+        {
+            get { return (byte)((byte)HollowShape | (byte)ProfileShape); }
+
+            set
+            {
+                // Handle hollow shape component
+                byte hollowShapeByte = (byte)(value & 0xf0);
+
+                if (!Enum.IsDefined(typeof(HollowShape), hollowShapeByte))
+                {
+                    m_log.WarnFormat(
+                        "[SHAPE]: Attempt to set a ProfileCurve with a hollow shape value of {0}, which isn't a valid enum.  Replacing with default shape.",
+                        hollowShapeByte);
+
+                    this._hollowShape = HollowShape.Same;
+                }
+                else
+                {
+                    this._hollowShape = (HollowShape)hollowShapeByte;
+                }
+
+                // Handle profile shape component
+                byte profileShapeByte = (byte)(value & 0xf);
+
+                if (!Enum.IsDefined(typeof(ProfileShape), profileShapeByte))
+                {
+                    m_log.WarnFormat(
+                        "[SHAPE]: Attempt to set a ProfileCurve with a profile shape value of {0}, which isn't a valid enum.  Replacing with square.",
+                        profileShapeByte);
+
+                    this._profileShape = ProfileShape.Square;
+                }
+                else
+                {
+                    this._profileShape = (ProfileShape)profileShapeByte;
+                }
+            }
+        }
+
+
 
 
         static PrimitiveBaseShape()
@@ -197,9 +200,7 @@ namespace OpenSim.Framework
             set { m_textureEntry = value; }
         }
 
-        public ProfileShape ProfileShape;
 
-        public HollowShape HollowShape;
 
         public static PrimitiveBaseShape Default
         {
@@ -223,10 +224,10 @@ namespace OpenSim.Framework
         {
             PrimitiveBaseShape shape = Create();
 
-            shape.PathCurve = (byte) Extrusion.Straight;
-            shape.ProfileShape = ProfileShape.Square;
-            shape.PathScaleX = 100;
-            shape.PathScaleY = 100;
+            shape._pathCurve = (byte) Extrusion.Straight;
+            shape._profileShape = ProfileShape.Square;
+            shape._pathScaleX = 100;
+            shape._pathScaleY = 100;
 
             return shape;
         }
@@ -235,28 +236,28 @@ namespace OpenSim.Framework
         {
             PrimitiveBaseShape shape = Create();
 
-            shape.PathCurve = (byte) Extrusion.Curve1;
-            shape.ProfileShape = ProfileShape.Square;
+            shape._pathCurve = (byte) Extrusion.Curve1;
+            shape._profileShape = ProfileShape.Square;
 
-            shape.PathScaleX = 100;
-            shape.PathScaleY = 100;
+            shape._pathScaleX = 100;
+            shape._pathScaleY = 100;
 
             return shape;
         }
 
         public void SetScale(float side)
         {
-            Scale = new LLVector3(side, side, side);
+            _scale = new LLVector3(side, side, side);
         }
 
         public void SetHeigth(float heigth)
         {
-            Scale.Z = heigth;
+            _scale.Z = heigth;
         }
 
         public void SetRadius(float radius)
         {
-            Scale.X = Scale.Y = radius * 2f;
+            _scale.X = _scale.Y = radius * 2f;
         }
 
         // TODO: void returns need to change of course
@@ -281,20 +282,20 @@ namespace OpenSim.Framework
 
         public void SetPathRange(LLVector3 pathRange)
         {
-            PathBegin = LLObject.PackBeginCut(pathRange.X);
-            PathEnd = LLObject.PackEndCut(pathRange.Y);
+            _pathBegin = LLObject.PackBeginCut(pathRange.X);
+            _pathEnd = LLObject.PackEndCut(pathRange.Y);
         }
 
         public void SetSculptData(byte sculptType, LLUUID SculptTextureUUID)
         {
-            SculptType = sculptType;
-            SculptTexture = SculptTextureUUID;
+            _sculptType = sculptType;
+            _sculptTexture = SculptTextureUUID;
         }
 
         public void SetProfileRange(LLVector3 profileRange)
         {
-            ProfileBegin = LLObject.PackBeginCut(profileRange.X);
-            ProfileEnd = LLObject.PackEndCut(profileRange.Y);
+            _profileBegin = LLObject.PackBeginCut(profileRange.X);
+            _profileEnd = LLObject.PackEndCut(profileRange.Y);
         }
         
         public byte[] ExtraParams
@@ -306,6 +307,231 @@ namespace OpenSim.Framework
             set
             {
                 ReadInExtraParamsBytes(value);
+            }
+        }
+
+        public ushort PathBegin {
+            get {
+                return _pathBegin;
+            }
+            set {
+                _pathBegin = value;
+            }
+        }
+
+        public byte PathCurve {
+            get {
+                return _pathCurve;
+            }
+            set {
+                _pathCurve = value;
+            }
+        }
+
+        public ushort PathEnd {
+            get {
+                return _pathEnd;
+            }
+            set {
+                _pathEnd = value;
+            }
+        }
+
+        public sbyte PathRadiusOffset {
+            get {
+                return _pathRadiusOffset;
+            }
+            set {
+                _pathRadiusOffset = value;
+            }
+        }
+
+        public byte PathRevolutions {
+            get {
+                return _pathRevolutions;
+            }
+            set {
+                _pathRevolutions = value;
+            }
+        }
+
+        public byte PathScaleX {
+            get {
+                return _pathScaleX;
+            }
+            set {
+                _pathScaleX = value;
+            }
+        }
+
+        public byte PathScaleY {
+            get {
+                return _pathScaleY;
+            }
+            set {
+                _pathScaleY = value;
+            }
+        }
+
+        public byte PathShearX {
+            get {
+                return _pathShearX;
+            }
+            set {
+                _pathShearX = value;
+            }
+        }
+
+        public byte PathShearY {
+            get {
+                return _pathShearY;
+            }
+            set {
+                _pathShearY = value;
+            }
+        }
+
+        public sbyte PathSkew {
+            get {
+                return _pathSkew;
+            }
+            set {
+                _pathSkew = value;
+            }
+        }
+
+        public sbyte PathTaperX {
+            get {
+                return _pathTaperX;
+            }
+            set {
+                _pathTaperX = value;
+            }
+        }
+
+        public sbyte PathTaperY {
+            get {
+                return _pathTaperY;
+            }
+            set {
+                _pathTaperY = value;
+            }
+        }
+
+        public sbyte PathTwist {
+            get {
+                return _pathTwist;
+            }
+            set {
+                _pathTwist = value;
+            }
+        }
+
+        public sbyte PathTwistBegin {
+            get {
+                return _pathTwistBegin;
+            }
+            set {
+                _pathTwistBegin = value;
+            }
+        }
+
+        public byte PCode {
+            get {
+                return _pCode;
+            }
+            set {
+                _pCode = value;
+            }
+        }
+
+        public ushort ProfileBegin {
+            get {
+                return _profileBegin;
+            }
+            set {
+                _profileBegin = value;
+            }
+        }
+
+        public ushort ProfileEnd {
+            get {
+                return _profileEnd;
+            }
+            set {
+                _profileEnd = value;
+            }
+        }
+
+        public ushort ProfileHollow {
+            get {
+                return _profileHollow;
+            }
+            set {
+                _profileHollow = value;
+            }
+        }
+
+        public LLVector3 Scale {
+            get {
+                return _scale;
+            }
+            set {
+                _scale = value;
+            }
+        }
+
+        public byte State {
+            get {
+                return _state;
+            }
+            set {
+                _state = value;
+            }
+        }
+
+        public ProfileShape ProfileShape {
+            get {
+                return _profileShape;
+            }
+            set {
+                _profileShape = value;
+            }
+        }
+
+        public HollowShape HollowShape {
+            get {
+                return _hollowShape;
+            }
+            set {
+                _hollowShape = value;
+            }
+        }
+
+        public LLUUID SculptTexture {
+            get {
+                return _sculptTexture;
+            }
+            set {
+                _sculptTexture = value;
+            }
+        }
+
+        public byte SculptType {
+            get {
+                return _sculptType;
+            }
+            set {
+                _sculptType = value;
+            }
+        }
+
+        public byte[] SculptData {
+            get {
+                return _sculptData;
+            }
+            set {
+                _sculptData = value;
             }
         }
 
@@ -519,11 +745,11 @@ namespace OpenSim.Framework
 
             if (SculptEntry)
             {
-                if (SculptType != (byte)1 && SculptType != (byte)2 && SculptType != (byte)3 && SculptType != (byte)4)
-                    SculptType = 4;
+                if (_sculptType != (byte)1 && _sculptType != (byte)2 && _sculptType != (byte)3 && _sculptType != (byte)4)
+                    _sculptType = 4;
             }
-            SculptTexture = SculptUUID;
-            SculptType = SculptTypel;
+            _sculptTexture = SculptUUID;
+            _sculptType = SculptTypel;
             //m_log.Info("[SCULPT]:" + SculptUUID.ToString());
         }
 
@@ -531,8 +757,8 @@ namespace OpenSim.Framework
         {
             byte[] data = new byte[17];
 
-            SculptTexture.GetBytes().CopyTo(data, 0);
-            data[16] = (byte)SculptType;
+            _sculptTexture.GetBytes().CopyTo(data, 0);
+            data[16] = (byte)_sculptType;
 
             return data;
         }
