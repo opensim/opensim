@@ -74,10 +74,11 @@
           <column name="SitTargetOrientZ" />
           <column name="SitTargetOrientW" />
         </property>
-        
-        <class name="PrimShape" type="OpenSim.Framework.PrimitiveBaseShape, OpenSim.Framework">
-          <property name="
-        </class>
+    </class>
 
+    <class name="OpenSim.Framework.PrimitiveBaseShape, OpenSim.Framework" table="PrimShapes" lazy="false">
+        <id name="UUID" column="ID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
+            <generator class="assigned" /> 
+        </id>
     </class>
 </hibernate-mapping>
