@@ -78,56 +78,56 @@ namespace OpenSim.Framework
 
         private byte[] m_textureEntry;
 
-        public ushort _pathBegin;
-        public byte _pathCurve;
-        public ushort _pathEnd;
-        public sbyte _pathRadiusOffset;
-        public byte _pathRevolutions;
-        public byte _pathScaleX;
-        public byte _pathScaleY;
-        public byte _pathShearX;
-        public byte _pathShearY;
-        public sbyte _pathSkew;
-        public sbyte _pathTaperX;
-        public sbyte _pathTaperY;
-        public sbyte _pathTwist;
-        public sbyte _pathTwistBegin;
-        public byte _pCode;
-        public ushort _profileBegin;
-        public ushort _profileEnd;
-        public ushort _profileHollow;
-        public LLVector3 _scale;
-        public byte _state;
-        public ProfileShape _profileShape;
-        public HollowShape _hollowShape;
+        private ushort _pathBegin;
+        private byte _pathCurve;
+        private ushort _pathEnd;
+        private sbyte _pathRadiusOffset;
+        private byte _pathRevolutions;
+        private byte _pathScaleX;
+        private byte _pathScaleY;
+        private byte _pathShearX;
+        private byte _pathShearY;
+        private sbyte _pathSkew;
+        private sbyte _pathTaperX;
+        private sbyte _pathTaperY;
+        private sbyte _pathTwist;
+        private sbyte _pathTwistBegin;
+        private byte _pCode;
+        private ushort _profileBegin;
+        private ushort _profileEnd;
+        private ushort _profileHollow;
+        private LLVector3 _scale;
+        private byte _state;
+        private ProfileShape _profileShape;
+        private HollowShape _hollowShape;
 
         // Sculpted
-        [XmlIgnore] public LLUUID _sculptTexture = LLUUID.Zero;
-        [XmlIgnore] public byte _sculptType = (byte)0;
-        [XmlIgnore] public byte[] _sculptData = new byte[0];
+        [XmlIgnore] private LLUUID _sculptTexture = LLUUID.Zero;
+        [XmlIgnore] private byte _sculptType = (byte)0;
+        [XmlIgnore] private byte[] _sculptData = new byte[0];
 
         // Flexi
-        [XmlIgnore] public int _flexiSoftness = 0;
-        [XmlIgnore] public float _flexiTension = 0f;
-        [XmlIgnore] public float _flexiDrag = 0f;
-        [XmlIgnore] public float _flexiGravity = 0f;
-        [XmlIgnore] public float _flexiWind = 0f;
-        [XmlIgnore] public float _flexiForceX = 0f;
-        [XmlIgnore] public float _flexiForceY = 0f;
-        [XmlIgnore] public float _flexiForceZ = 0f;
+        [XmlIgnore] private int _flexiSoftness = 0;
+        [XmlIgnore] private float _flexiTension = 0f;
+        [XmlIgnore] private float _flexiDrag = 0f;
+        [XmlIgnore] private float _flexiGravity = 0f;
+        [XmlIgnore] private float _flexiWind = 0f;
+        [XmlIgnore] private float _flexiForceX = 0f;
+        [XmlIgnore] private float _flexiForceY = 0f;
+        [XmlIgnore] private float _flexiForceZ = 0f;
 
         //Bright n sparkly
-        [XmlIgnore] public float _lightColorR = 0f;
-        [XmlIgnore] public float _lightColorG = 0f;
-        [XmlIgnore] public float _lightColorB = 0f;
-        [XmlIgnore] public float _lightColorA = 1f;
-        [XmlIgnore] public float _lightRadius = 0f;
-        [XmlIgnore] public float _lightCutoff = 0f;
-        [XmlIgnore] public float _lightFalloff = 0f;
-        [XmlIgnore] public float _lightIntensity = 1f;
-        [XmlIgnore] public bool _flexiEntry = false;
-        [XmlIgnore] public bool _lightEntry = false;
-        [XmlIgnore] public bool _sculptEntry = false;
+        [XmlIgnore] private float _lightColorR = 0f;
+        [XmlIgnore] private float _lightColorG = 0f;
+        [XmlIgnore] private float _lightColorB = 0f;
+        [XmlIgnore] private float _lightColorA = 1f;
+        [XmlIgnore] private float _lightRadius = 0f;
+        [XmlIgnore] private float _lightCutoff = 0f;
+        [XmlIgnore] private float _lightFalloff = 0f;
+        [XmlIgnore] private float _lightIntensity = 1f;
+        [XmlIgnore] private bool _flexiEntry = false;
+        [XmlIgnore] private bool _lightEntry = false;
+        [XmlIgnore] private bool _sculptEntry = false;
         
         public byte ProfileCurve
         {
