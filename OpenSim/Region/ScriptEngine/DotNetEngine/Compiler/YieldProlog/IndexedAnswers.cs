@@ -249,6 +249,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             object[] arguments = YP.getFunctorArgs(Head);
 
             // We always match Head from _allAnswers, and the Body is Atom.a("true").
+            #pragma warning disable 0168
             foreach (bool l1 in YP.unify(Body, Atom.a("true")))
             {
                 // The caller can assert another answer into this same predicate during yield, so we have to
@@ -259,6 +260,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                         yield return false;
                 }
             }
+            #pragma warning restore 0168
         }
 
         public IEnumerable<bool> retract(object Head, object Body)
@@ -268,7 +270,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 throw new PrologException("instantiation_error", "Head is an unbound variable");
             object[] arguments = YP.getFunctorArgs(Head);
 
-            // We always match Head from _allAnswers, and the Body is Atom.a("true").
+            // We always match Head from _allAnswers, and the Body is
+            // Atom.a("true").
+            #pragma warning disable 0168
             foreach (bool l1 in YP.unify(Body, Atom.a("true")))
             {
                 // The caller can assert another answer into this same predicate during yield, so we have to
@@ -283,6 +287,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                     }
                 }
             }
+            #pragma warning restore 0168
         }
 
         /// <summary>
