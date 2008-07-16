@@ -191,7 +191,7 @@ namespace OpenSim.Region.Environment.Scenes
         protected byte[] m_particleSystem = new byte[0];
         protected ulong m_regionHandle;
         protected LLQuaternion m_rotationOffset;
-        protected PrimitiveBaseShape m_shape;
+        protected PrimitiveBaseShape m_shape = null;
         protected LLUUID m_uuid;
         protected LLVector3 m_velocity;
 
@@ -696,8 +696,18 @@ namespace OpenSim.Region.Environment.Scenes
             get { return m_shape; }
             set
             {
+                bool shape_changed = false;
+                // TODO: this should really be restricted to the right
+                // set of attributes on shape change.  For instance,
+                // changing the lighting on a shape shouldn't cause
+                // this.
+                if (m_shape != null) 
+                    shape_changed = true;
+
                 m_shape = value;
-                TriggerScriptChangedEvent(Changed.SHAPE);
+
+                if (shape_changed)
+                    TriggerScriptChangedEvent(Changed.SHAPE);
             }
         }
         public LLVector3 Scale
