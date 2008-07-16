@@ -107,27 +107,27 @@ namespace OpenSim.Framework
         [XmlIgnore] public byte[] _sculptData = new byte[0];
 
         // Flexi
-        [XmlIgnore] public int FlexiSoftness = 0;
-        [XmlIgnore] public float FlexiTension = 0f;
-        [XmlIgnore] public float FlexiDrag = 0f;
-        [XmlIgnore] public float FlexiGravity = 0f;
-        [XmlIgnore] public float FlexiWind = 0f;
-        [XmlIgnore] public float FlexiForceX = 0f;
-        [XmlIgnore] public float FlexiForceY = 0f;
-        [XmlIgnore] public float FlexiForceZ = 0f;
+        [XmlIgnore] public int _flexiSoftness = 0;
+        [XmlIgnore] public float _flexiTension = 0f;
+        [XmlIgnore] public float _flexiDrag = 0f;
+        [XmlIgnore] public float _flexiGravity = 0f;
+        [XmlIgnore] public float _flexiWind = 0f;
+        [XmlIgnore] public float _flexiForceX = 0f;
+        [XmlIgnore] public float _flexiForceY = 0f;
+        [XmlIgnore] public float _flexiForceZ = 0f;
 
         //Bright n sparkly
-        [XmlIgnore] public float LightColorR = 0f;
-        [XmlIgnore] public float LightColorG = 0f;
-        [XmlIgnore] public float LightColorB = 0f;
-        [XmlIgnore] public float LightColorA = 1f;
-        [XmlIgnore] public float LightRadius = 0f;
-        [XmlIgnore] public float LightCutoff = 0f;
-        [XmlIgnore] public float LightFalloff = 0f;
-        [XmlIgnore] public float LightIntensity = 1f;
-        [XmlIgnore] public bool FlexiEntry = false;
-        [XmlIgnore] public bool LightEntry = false;
-        [XmlIgnore] public bool SculptEntry = false;
+        [XmlIgnore] public float _lightColorR = 0f;
+        [XmlIgnore] public float _lightColorG = 0f;
+        [XmlIgnore] public float _lightColorB = 0f;
+        [XmlIgnore] public float _lightColorA = 1f;
+        [XmlIgnore] public float _lightRadius = 0f;
+        [XmlIgnore] public float _lightCutoff = 0f;
+        [XmlIgnore] public float _lightFalloff = 0f;
+        [XmlIgnore] public float _lightIntensity = 1f;
+        [XmlIgnore] public bool _flexiEntry = false;
+        [XmlIgnore] public bool _lightEntry = false;
+        [XmlIgnore] public bool _sculptEntry = false;
         
         public byte ProfileCurve
         {
@@ -535,6 +535,177 @@ namespace OpenSim.Framework
             }
         }
 
+        public int FlexiSoftness {
+            get {
+                return _flexiSoftness;
+            }
+            set {
+                _flexiSoftness = value;
+            }
+        }
+
+        public float FlexiTension {
+            get {
+                return _flexiTension;
+            }
+            set {
+                _flexiTension = value;
+            }
+        }
+
+        public float FlexiDrag {
+            get {
+                return _flexiDrag;
+            }
+            set {
+                _flexiDrag = value;
+            }
+        }
+
+        public float FlexiGravity {
+            get {
+                return _flexiGravity;
+            }
+            set {
+                _flexiGravity = value;
+            }
+        }
+
+        public float FlexiWind {
+            get {
+                return _flexiWind;
+            }
+            set {
+                _flexiWind = value;
+            }
+        }
+
+        public float FlexiForceX {
+            get {
+                return _flexiForceX;
+            }
+            set {
+                _flexiForceX = value;
+            }
+        }
+
+        public float FlexiForceY {
+            get {
+                return _flexiForceY;
+            }
+            set {
+                _flexiForceY = value;
+            }
+        }
+
+        public float FlexiForceZ {
+            get {
+                return _flexiForceZ;
+            }
+            set {
+                _flexiForceZ = value;
+            }
+        }
+
+        public float LightColorR {
+            get {
+                return _lightColorR;
+            }
+            set {
+                _lightColorR = value;
+            }
+        }
+
+        public float LightColorG {
+            get {
+                return _lightColorG;
+            }
+            set {
+                _lightColorG = value;
+            }
+        }
+
+        public float LightColorB {
+            get {
+                return _lightColorB;
+            }
+            set {
+                _lightColorB = value;
+            }
+        }
+
+        public float LightColorA {
+            get {
+                return _lightColorA;
+            }
+            set {
+                _lightColorA = value;
+            }
+        }
+
+        public float LightRadius {
+            get {
+                return _lightRadius;
+            }
+            set {
+                _lightRadius = value;
+            }
+        }
+
+        public float LightCutoff {
+            get {
+                return _lightCutoff;
+            }
+            set {
+                _lightCutoff = value;
+            }
+        }
+
+        public float LightFalloff {
+            get {
+                return _lightFalloff;
+            }
+            set {
+                _lightFalloff = value;
+            }
+        }
+
+        public float LightIntensity {
+            get {
+                return _lightIntensity;
+            }
+            set {
+                _lightIntensity = value;
+            }
+        }
+
+        public bool FlexiEntry {
+            get {
+                return _flexiEntry;
+            }
+            set {
+                _flexiEntry = value;
+            }
+        }
+
+        public bool LightEntry {
+            get {
+                return _lightEntry;
+            }
+            set {
+                _lightEntry = value;
+            }
+        }
+
+        public bool SculptEntry {
+            get {
+                return _sculptEntry;
+            }
+            set {
+                _sculptEntry = value;
+            }
+        }
+
         public byte[] ExtraParamsToBytes()
         {
             ushort FlexiEP = 0x10;
@@ -545,19 +716,19 @@ namespace OpenSim.Framework
             uint TotalBytesLength = 1; // ExtraParamsNum
 
             uint ExtraParamsNum = 0;
-            if (FlexiEntry)
+            if (_flexiEntry)
             {
                 ExtraParamsNum++;
                 TotalBytesLength += 16;// data
                 TotalBytesLength += 2 + 4; // type
             }
-            if (LightEntry)
+            if (_lightEntry)
             {
                 ExtraParamsNum++;
                 TotalBytesLength += 16;// data
                 TotalBytesLength += 2 + 4; // type
             }
-            if (SculptEntry)
+            if (_sculptEntry)
             {
                 ExtraParamsNum++;
                 TotalBytesLength += 17;// data
@@ -572,7 +743,7 @@ namespace OpenSim.Framework
             // Stick in the number of parameters
             returnbytes[i++] = (byte)ExtraParamsNum;
 
-            if (FlexiEntry)
+            if (_flexiEntry)
             {
                 byte[] FlexiData = GetFlexiBytes();
 
@@ -586,7 +757,7 @@ namespace OpenSim.Framework
                 Array.Copy(FlexiData, 0, returnbytes, i, FlexiData.Length);
                 i += FlexiData.Length;
             }
-            if (LightEntry)
+            if (_lightEntry)
             {
                 byte[] LightData = GetLightBytes();
 
@@ -600,7 +771,7 @@ namespace OpenSim.Framework
                 Array.Copy(LightData, 0, returnbytes, i, LightData.Length);
                 i += LightData.Length;
             }
-            if (SculptEntry)
+            if (_sculptEntry)
             {
                 byte[] SculptData = GetSculptBytes();
 
@@ -615,7 +786,7 @@ namespace OpenSim.Framework
                 i += SculptData.Length;
             }
 
-            if (!FlexiEntry && !LightEntry && !SculptEntry)
+            if (!_flexiEntry && !_lightEntry && !_sculptEntry)
             {
                 byte[] returnbyte = new byte[1];
                 returnbyte[0] = 0;
@@ -639,7 +810,7 @@ namespace OpenSim.Framework
                 case FlexiEP:
                     if (!inUse)
                     {
-                        FlexiEntry = false;
+                        _flexiEntry = false;
                         return;
                     }
                     ReadFlexiData(data, 0);
@@ -648,7 +819,7 @@ namespace OpenSim.Framework
                 case LightEP:
                     if (!inUse)
                     {
-                        LightEntry = false;
+                        _lightEntry = false;
                         return;
                     }
                     ReadLightData(data, 0);
@@ -657,7 +828,7 @@ namespace OpenSim.Framework
                 case SculptEP:
                     if (!inUse)
                     {
-                        SculptEntry = false;
+                        _sculptEntry = false;
                         return;
                     }
                     ReadSculptData(data, 0);
@@ -714,11 +885,11 @@ namespace OpenSim.Framework
             }
 
             if (!lGotFlexi)
-                FlexiEntry = false;
+                _flexiEntry = false;
             if (!lGotLight)
-                LightEntry = false;
+                _lightEntry = false;
             if (!lGotSculpt)
-                SculptEntry = false;
+                _sculptEntry = false;
 
         }
 
@@ -730,7 +901,7 @@ namespace OpenSim.Framework
 
             if (data.Length+pos >= 17)
             {
-                SculptEntry = true;
+                _sculptEntry = true;
                 SculptTextureUUID = new byte[16];
                 SculptTypel = data[16 + pos];
                 Array.Copy(data, pos, SculptTextureUUID,0, 16);
@@ -738,12 +909,12 @@ namespace OpenSim.Framework
             }
             else
             {
-                SculptEntry = false;
+                _sculptEntry = false;
                 SculptUUID = LLUUID.Zero;
                 SculptTypel = 0x00;
             }
 
-            if (SculptEntry)
+            if (_sculptEntry)
             {
                 if (_sculptType != (byte)1 && _sculptType != (byte)2 && _sculptType != (byte)3 && _sculptType != (byte)4)
                     _sculptType = 4;
@@ -767,30 +938,30 @@ namespace OpenSim.Framework
         {
             if (data.Length-pos >= 16)
             {
-                FlexiEntry = true;
-                FlexiSoftness = ((data[pos] & 0x80) >> 6) | ((data[pos + 1] & 0x80) >> 7);
+                _flexiEntry = true;
+                _flexiSoftness = ((data[pos] & 0x80) >> 6) | ((data[pos + 1] & 0x80) >> 7);
 
-                FlexiTension = (float)(data[pos++] & 0x7F) / 10.0f;
-                FlexiDrag = (float)(data[pos++] & 0x7F) / 10.0f;
-                FlexiGravity = (float)(data[pos++] / 10.0f) - 10.0f;
-                FlexiWind = (float)data[pos++] / 10.0f;
+                _flexiTension = (float)(data[pos++] & 0x7F) / 10.0f;
+                _flexiDrag = (float)(data[pos++] & 0x7F) / 10.0f;
+                _flexiGravity = (float)(data[pos++] / 10.0f) - 10.0f;
+                _flexiWind = (float)data[pos++] / 10.0f;
                 LLVector3 lForce = new LLVector3(data, pos);
-                FlexiForceX = lForce.X;
-                FlexiForceY = lForce.Y;
-                FlexiForceZ = lForce.Z;
+                _flexiForceX = lForce.X;
+                _flexiForceY = lForce.Y;
+                _flexiForceZ = lForce.Z;
             }
             else
             {
-                FlexiEntry = false;
-                FlexiSoftness = 0;
+                _flexiEntry = false;
+                _flexiSoftness = 0;
 
-                FlexiTension = 0.0f;
-                FlexiDrag = 0.0f;
-                FlexiGravity = 0.0f;
-                FlexiWind = 0.0f;
-                FlexiForceX = 0f;
-                FlexiForceY = 0f;
-                FlexiForceZ = 0f;
+                _flexiTension = 0.0f;
+                _flexiDrag = 0.0f;
+                _flexiGravity = 0.0f;
+                _flexiWind = 0.0f;
+                _flexiForceX = 0f;
+                _flexiForceY = 0f;
+                _flexiForceZ = 0f;
             }
         }
         
@@ -800,14 +971,14 @@ namespace OpenSim.Framework
             int i = 0;
 
             // Softness is packed in the upper bits of tension and drag
-            data[i] = (byte)((FlexiSoftness & 2) << 6);
-            data[i + 1] = (byte)((FlexiSoftness & 1) << 7);
+            data[i] = (byte)((_flexiSoftness & 2) << 6);
+            data[i + 1] = (byte)((_flexiSoftness & 1) << 7);
 
-            data[i++] |= (byte)((byte)(FlexiTension * 10.01f) & 0x7F);
-            data[i++] |= (byte)((byte)(FlexiDrag * 10.01f) & 0x7F);
-            data[i++] = (byte)((FlexiGravity + 10.0f) * 10.01f);
-            data[i++] = (byte)(FlexiWind * 10.01f);
-            LLVector3 lForce = new LLVector3(FlexiForceX, FlexiForceY, FlexiForceZ);
+            data[i++] |= (byte)((byte)(_flexiTension * 10.01f) & 0x7F);
+            data[i++] |= (byte)((byte)(_flexiDrag * 10.01f) & 0x7F);
+            data[i++] = (byte)((_flexiGravity + 10.0f) * 10.01f);
+            data[i++] = (byte)(_flexiWind * 10.01f);
+            LLVector3 lForce = new LLVector3(_flexiForceX, _flexiForceY, _flexiForceZ);
             lForce.GetBytes().CopyTo(data, i);
 
             return data;
@@ -817,29 +988,29 @@ namespace OpenSim.Framework
         {
             if (data.Length - pos >= 16)
             {
-                LightEntry = true;
+                _lightEntry = true;
                 LLColor lColor = new LLColor(data, pos, false);
-                LightIntensity = lColor.A;
-                LightColorA = 1f;
-                LightColorR = lColor.R;
-                LightColorG = lColor.G;
-                LightColorB = lColor.B;
+                _lightIntensity = lColor.A;
+                _lightColorA = 1f;
+                _lightColorR = lColor.R;
+                _lightColorG = lColor.G;
+                _lightColorB = lColor.B;
 
-                LightRadius = Helpers.BytesToFloat(data, pos + 4);
-                LightCutoff = Helpers.BytesToFloat(data, pos + 8);
-                LightFalloff = Helpers.BytesToFloat(data, pos + 12);
+                _lightRadius = Helpers.BytesToFloat(data, pos + 4);
+                _lightCutoff = Helpers.BytesToFloat(data, pos + 8);
+                _lightFalloff = Helpers.BytesToFloat(data, pos + 12);
             }
             else
             {
-                LightEntry = false;
-                LightColorA = 1f;
-                LightColorR = 0f;
-                LightColorG = 0f;
-                LightColorB = 0f;
-                LightRadius = 0f;
-                LightCutoff = 0f;
-                LightFalloff = 0f;
-                LightIntensity = 0f;
+                _lightEntry = false;
+                _lightColorA = 1f;
+                _lightColorR = 0f;
+                _lightColorG = 0f;
+                _lightColorB = 0f;
+                _lightRadius = 0f;
+                _lightCutoff = 0f;
+                _lightFalloff = 0f;
+                _lightIntensity = 0f;
             }
         }
         
@@ -848,12 +1019,12 @@ namespace OpenSim.Framework
             byte[] data = new byte[16];
 
             // Alpha channel in color is intensity
-            LLColor tmpColor = new LLColor(LightColorR,LightColorG,LightColorB,LightIntensity);
+            LLColor tmpColor = new LLColor(_lightColorR,_lightColorG,_lightColorB,_lightIntensity);
 
             tmpColor.GetBytes().CopyTo(data, 0);
-            Helpers.FloatToBytes(LightRadius).CopyTo(data, 4);
-            Helpers.FloatToBytes(LightCutoff).CopyTo(data, 8);
-            Helpers.FloatToBytes(LightFalloff).CopyTo(data, 12);
+            Helpers.FloatToBytes(_lightRadius).CopyTo(data, 4);
+            Helpers.FloatToBytes(_lightCutoff).CopyTo(data, 8);
+            Helpers.FloatToBytes(_lightFalloff).CopyTo(data, 12);
 
             return data;
         }
