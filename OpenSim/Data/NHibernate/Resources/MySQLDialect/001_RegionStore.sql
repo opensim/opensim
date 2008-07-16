@@ -74,6 +74,6 @@ CREATE TABLE `Prims` (
   `ExtraParams` longblob,
   PRIMARY KEY  (`UUID`),
   KEY `prims_regionuuid` (`RegionID`),
-  KEY 'prims_parentuuid' ('ParentUUID')
+  KEY `prims_parentuuid` (`ParentUUID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

@@ -54,10 +54,10 @@ namespace OpenSim.Data.NHibernate
         private ISessionFactory factory;
         private ISession session;
 
-        public void Initialise()
-        {
-            Initialise("SQLiteDialect;SqliteClientDriver;URI=file:OpenSim.db,version=3", true);
-        }
+        // public void Initialise()
+        // {
+        //     Initialise("SQLiteDialect;SqliteClientDriver;URI=file:OpenSim.db,version=3", true);
+        // }
 
         public void Initialise(string connect, bool persistpriminventories)
         {
@@ -67,7 +67,7 @@ namespace OpenSim.Data.NHibernate
             if (parts.Length != 3)
             {
                 // TODO: make this a real exception type
-                throw new Exception("Malformed Inventory connection string '" + connect + "'");
+                throw new Exception("Malformed Region connection string '" + connect + "'");
             }
 
             string dialect = parts[0];
