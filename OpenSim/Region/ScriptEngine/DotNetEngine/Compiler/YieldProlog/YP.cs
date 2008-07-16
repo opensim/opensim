@@ -1,20 +1,20 @@
 /*
  * Copyright (C) 2007-2008, Jeff Thompson
- *
+ * 
  * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
+ * 
+ * Redistribution and use in source and binary forms, with or without 
  * modification, are permitted provided that the following conditions are met:
- *
- *     * Redistributions of source code must retain the above copyright
+ * 
+ *     * Redistributions of source code must retain the above copyright 
  *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
+ *     * Redistributions in binary form must reproduce the above copyright 
+ *       notice, this list of conditions and the following disclaimer in the 
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its contributors
- *       may be used to endorse or promote products derived from this software
+ *     * Neither the name of the copyright holder nor the names of its contributors 
+ *       may be used to endorse or promote products derived from this software 
  *       without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -33,6 +33,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Net.Sockets;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
 {
@@ -48,7 +51,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             new Dictionary<NameArity, List<IClause>>();
         private static TextWriter _outputStream = System.Console.Out;
         private static TextReader _inputStream = System.Console.In;
-        private static List<object[]> _operatorTable = null;
+        private static IndexedAnswers _operatorTable = null;
 
         /// <summary>
         /// An IClause is used so that dynamic predicates can call match.
@@ -56,6 +59,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         public interface IClause
         {
             IEnumerable<bool> match(object[] args);
+            IEnumerable<bool> clause(object Head, object Body);
         }
 
         public static object getValue(object value)
@@ -120,7 +124,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         /// <summary>
         /// Convert term to an int.
         /// If term is a single-element List, use its first element
-        /// (to handle the char types like "a").  If can't convert, throw an exception.
+        /// (to handle the char types like "a").  
+        /// If can't convert, throw a PrologException for type_error evaluable (because this is only
+        ///   called from arithmetic functions).
         /// </summary>
         /// <param name="term"></param>
         /// <returns></returns>
@@ -131,14 +137,30 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 YP.getValue(((Functor2)term)._arg2) == Atom.NIL)
                 // Assume it is a char type like "a".
                 term = YP.getValue(((Functor2)term)._arg1);
+            if (term is Variable)
+                throw new PrologException(Atom.a("instantiation_error"),
+                    "Expected a number but the argument is an unbound variable");
 
-            return (int)term;
+            try
+            {
+                return (int)term;
+            }
+            catch (InvalidCastException)
+            {
+                throw new PrologException
+                    (new Functor2
+                     ("type_error", Atom.a("evaluable"), 
+                      new Functor2(Atom.SLASH, getFunctorName(term), getFunctorArgs(term).Length)), 
+                     "Term must be an integer");
+            }
         }
 
         /// <summary>
         /// Convert term to a double.  This may convert an int to a double, etc.
         /// If term is a single-element List, use its first element
-        /// (to handle the char types like "a").  If can't convert, throw an exception.
+        /// (to handle the char types like "a").  
+        /// If can't convert, throw a PrologException for type_error evaluable (because this is only
+        ///   called from arithmetic functions).
         /// </summary>
         /// <param name="term"></param>
         /// <returns></returns>
@@ -153,7 +175,18 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 throw new PrologException(Atom.a("instantiation_error"), 
                     "Expected a number but the argument is an unbound variable");
 
-            return Convert.ToDouble(term);
+            try
+            {
+                return Convert.ToDouble(term);
+            }
+            catch (InvalidCastException)
+            {
+                throw new PrologException
+                    (new Functor2
+                     ("type_error", Atom.a("evaluable"),
+                      new Functor2(Atom.SLASH, getFunctorName(term), getFunctorArgs(term).Length)),
+                     "Term must be an integer");
+            }
         }
 
         /// <summary>
@@ -258,6 +291,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             if (getInt(x, out intX))
                 return Math.Sign(intX);
             return Math.Sign(convertDouble(x));
+        }
+
+        // Use toFloat instead of float because it is a reserved keyword.
+        public static object toFloat(object x)
+        {
+            return convertDouble(x);
         }
 
         /// <summary>
@@ -485,8 +524,6 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             return YP.unify(Sorted, ListPair.makeWithoutRepeatedTerms(array));
         }
 
-
-
         /// <summary>
         /// Use YP.unify to unify each of the elements of the two arrays, and yield
         /// once if they all unify.
@@ -579,12 +616,16 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             {
                 object[] args = ListPair.toArray(ArgList);
                 if (args == null)
-                    throw new Exception("Expected a list. Got: " + ArgList.getValue());
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("list"), ArgList),
+                        "Expected a list. Got: " + ArgList.getValue());
                 if (args.Length == 0)
                     // Return the Name, even if it is not an Atom.
                     return YP.unify(Term, Name);
                 if (!atom(Name))
-                    throw new Exception("Expected an atom. Got: " + Name.getValue());
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("atom"), Name),
+                        "Expected an atom. Got: " + Name.getValue());
 
                 return YP.unify(Term, Functor.make((Atom)YP.getValue(Name), args));
             }
@@ -598,7 +639,45 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             FunctorName = YP.getValue(FunctorName);
             Arity = YP.getValue(Arity);
 
-            if (!(Term is Variable))
+            if (Term is Variable)
+            {
+                if (FunctorName is Variable)
+                    throw new PrologException(Atom.a("instantiation_error"),
+                        "Arg 2 FunctorName is an unbound variable");
+                if (Arity is Variable)
+                    throw new PrologException(Atom.a("instantiation_error"),
+                        "Arg 3 Arity is an unbound variable");
+                if (!(Arity is int))
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("integer"), Arity), "Arity is not an integer");
+                if (!YP.atomic(FunctorName))
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("atomic"), FunctorName), "FunctorName is not atomic");
+
+                if ((int)Arity < 0)
+                    throw new PrologException
+                        (new Functor2("domain_error", Atom.a("not_less_than_zero"), Arity),
+                         "Arity may not be less than zero");
+                else if ((int)Arity == 0)
+                {
+                    // Just unify Term with the atomic FunctorName.
+                    foreach (bool l1 in YP.unify(Term, FunctorName))
+                        yield return false;
+                }
+                else
+                {
+                    if (!(FunctorName is Atom))
+                        throw new PrologException
+                            (new Functor2("type_error", Atom.a("atom"), FunctorName), "FunctorName is not an atom");
+                    // Construct a functor with unbound variables.
+                    object[] args = new object[(int)Arity];
+                    for (int i = 0; i < args.Length; ++i)
+                        args[i] = new Variable();
+                    foreach (bool l1 in YP.unify(Term, Functor.make((Atom)FunctorName, args)))
+                        yield return false;
+                }
+            }
+            else
             {
                 foreach (bool l1 in YP.unify(FunctorName, getFunctorName(Term)))
                 {
@@ -606,27 +685,35 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                         yield return false;
                 }
             }
-            else
-                throw new NotImplementedException("Debug: must finish functor/3");
         }
 
         public static IEnumerable<bool> arg(object ArgNumber, object Term, object Value)
         {
-            if (YP.var(ArgNumber))
-                throw new NotImplementedException("Debug: must finish arg/3");
-            else
+            if (var(ArgNumber))
+                throw new PrologException(Atom.a("instantiation_error"), "Arg 1 ArgNumber is an unbound variable");
+            int argNumberInt;
+            if (!getInt(ArgNumber, out argNumberInt))
+                throw new PrologException
+                    (new Functor2("type_error", Atom.a("integer"), ArgNumber), "Arg 1 ArgNumber must be integer");
+            if (argNumberInt < 0)
+                throw new PrologException
+                    (new Functor2("domain_error", Atom.a("not_less_than_zero"), argNumberInt),
+                    "ArgNumber may not be less than zero");
+
+            if (YP.var(Term))
+                throw new PrologException(Atom.a("instantiation_error"),
+                    "Arg 2 Term is an unbound variable");
+            if (!YP.compound(Term))
+                throw new PrologException
+                    (new Functor2("type_error", Atom.a("compound"), Term), "Arg 2 Term must be compound");
+
+            object[] termArgs = YP.getFunctorArgs(Term);
+            // Silently fail if argNumberInt is out of range.
+            if (argNumberInt >= 1 && argNumberInt <= termArgs.Length)
             {
-                int argNumberInt = convertInt(ArgNumber);
-                if (argNumberInt < 0)
-                    throw new Exception("ArgNumber must be non-negative");
-                object[] termArgs = YP.getFunctorArgs(Term);
-                // Silently fail if argNumberInt is out of range.
-                if (argNumberInt >= 1 && argNumberInt <= termArgs.Length)
-                {
-                    // The first ArgNumber is at 1, not 0.
-                    foreach (bool l1 in YP.unify(Value, termArgs[argNumberInt - 1]))
-                        yield return false;
-                }
+                // The first ArgNumber is at 1, not 0.
+                foreach (bool l1 in YP.unify(Value, termArgs[argNumberInt - 1]))
+                    yield return false;
             }
         }
 
@@ -656,8 +743,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             if (term1TypeCode == -2)
             {
                 // Variable.
-                // We always check for equality first because we want to be sure
-                //   that less than returns false if the terms are equal, in
+                // We always check for equality first because we want to be sure 
+                //   that less than returns false if the terms are equal, in 
                 //   case that the less than check really behaves like less than or equal.
                 if ((Variable)Term1 != (Variable)Term2)
                     // The hash code should be unique to a Variable object.
@@ -700,8 +787,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         }
 
         /// <summary>
-        /// Type code is -2 if term is a Variable, 0 if it is an Atom,
-        /// 1 if it is a Functor1, 2 if it is a Functor2, 3 if it is a Functor3,
+        /// Type code is -2 if term is a Variable, 0 if it is an Atom, 
+        /// 1 if it is a Functor1, 2 if it is a Functor2, 3 if it is a Functor3, 
         /// 4 if it is Functor.
         /// Otherwise, type code is -1.
         /// This does not call YP.getValue(term).
@@ -769,93 +856,303 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             if (_operatorTable == null)
             {
                 // Initialize.
-                _operatorTable = new List<object[]>();
-                _operatorTable.Add(new object[] { 1200, Atom.a("xfx"), Atom.a(":-") });
-                _operatorTable.Add(new object[] { 1200, Atom.a("xfx"), Atom.a("-->") });
-                _operatorTable.Add(new object[] { 1200, Atom.a("fx"), Atom.a(":-") });
-                _operatorTable.Add(new object[] { 1200, Atom.a("fx"), Atom.a("?-") });
-                _operatorTable.Add(new object[] { 1100, Atom.a("xfy"), Atom.a(";") });
-                _operatorTable.Add(new object[] { 1050, Atom.a("xfy"), Atom.a("->") });
-                _operatorTable.Add(new object[] { 1000, Atom.a("xfy"), Atom.a(",") });
-                _operatorTable.Add(new object[] { 900, Atom.a("fy"), Atom.a("\\+") });
-                _operatorTable.Add(new object[] { 700, Atom.a("xfx"), Atom.a("=") });
-                _operatorTable.Add(new object[] { 700, Atom.a("xfx"), Atom.a("\\=") });
-                _operatorTable.Add(new object[] { 700, Atom.a("xfx"), Atom.a("==") });
-                _operatorTable.Add(new object[] { 700, Atom.a("xfx"), Atom.a("\\==") });
-                _operatorTable.Add(new object[] { 700, Atom.a("xfx"), Atom.a("@<") });
-                _operatorTable.Add(new object[] { 700, Atom.a("xfx"), Atom.a("@=<") });
-                _operatorTable.Add(new object[] { 700, Atom.a("xfx"), Atom.a("@>") });
-                _operatorTable.Add(new object[] { 700, Atom.a("xfx"), Atom.a("@>=") });
-                _operatorTable.Add(new object[] { 700, Atom.a("xfx"), Atom.a("=..") });
-                _operatorTable.Add(new object[] { 700, Atom.a("xfx"), Atom.a("is") });
-                _operatorTable.Add(new object[] { 700, Atom.a("xfx"), Atom.a("=:=") });
-                _operatorTable.Add(new object[] { 700, Atom.a("xfx"), Atom.a("=\\=") });
-                _operatorTable.Add(new object[] { 700, Atom.a("xfx"), Atom.a("<") });
-                _operatorTable.Add(new object[] { 700, Atom.a("xfx"), Atom.a("=<") });
-                _operatorTable.Add(new object[] { 700, Atom.a("xfx"), Atom.a(">") });
-                _operatorTable.Add(new object[] { 700, Atom.a("xfx"), Atom.a(">=") });
-                _operatorTable.Add(new object[] { 600, Atom.a("xfy"), Atom.a(":") });
-                _operatorTable.Add(new object[] { 500, Atom.a("yfx"), Atom.a("+") });
-                _operatorTable.Add(new object[] { 500, Atom.a("yfx"), Atom.a("-") });
-                _operatorTable.Add(new object[] { 500, Atom.a("yfx"), Atom.a("/\\") });
-                _operatorTable.Add(new object[] { 500, Atom.a("yfx"), Atom.a("\\/") });
-                _operatorTable.Add(new object[] { 400, Atom.a("yfx"), Atom.a("*") });
-                _operatorTable.Add(new object[] { 400, Atom.a("yfx"), Atom.a("/") });
-                _operatorTable.Add(new object[] { 400, Atom.a("yfx"), Atom.a("//") });
-                _operatorTable.Add(new object[] { 400, Atom.a("yfx"), Atom.a("rem") });
-                _operatorTable.Add(new object[] { 400, Atom.a("yfx"), Atom.a("mod") });
-                _operatorTable.Add(new object[] { 400, Atom.a("yfx"), Atom.a("<<") });
-                _operatorTable.Add(new object[] { 400, Atom.a("yfx"), Atom.a(">>") });
-                _operatorTable.Add(new object[] { 200, Atom.a("xfx"), Atom.a("**") });
-                _operatorTable.Add(new object[] { 200, Atom.a("xfy"), Atom.a("^") });
-                _operatorTable.Add(new object[] { 200, Atom.a("fy"), Atom.a("-") });
-                _operatorTable.Add(new object[] { 200, Atom.a("fy"), Atom.a("\\") });
+                _operatorTable = new IndexedAnswers(3);
+                _operatorTable.addAnswer(new object[] { 1200, Atom.a("xfx"), Atom.a(":-") });
+                _operatorTable.addAnswer(new object[] { 1200, Atom.a("xfx"), Atom.a("-->") });
+                _operatorTable.addAnswer(new object[] { 1200, Atom.a("fx"), Atom.a(":-") });
+                _operatorTable.addAnswer(new object[] { 1200, Atom.a("fx"), Atom.a("?-") });
+                _operatorTable.addAnswer(new object[] { 1100, Atom.a("xfy"), Atom.a(";") });
+                _operatorTable.addAnswer(new object[] { 1050, Atom.a("xfy"), Atom.a("->") });
+                _operatorTable.addAnswer(new object[] { 1000, Atom.a("xfy"), Atom.a(",") });
+                _operatorTable.addAnswer(new object[] { 900, Atom.a("fy"), Atom.a("\\+") });
+                _operatorTable.addAnswer(new object[] { 700, Atom.a("xfx"), Atom.a("=") });
+                _operatorTable.addAnswer(new object[] { 700, Atom.a("xfx"), Atom.a("\\=") });
+                _operatorTable.addAnswer(new object[] { 700, Atom.a("xfx"), Atom.a("==") });
+                _operatorTable.addAnswer(new object[] { 700, Atom.a("xfx"), Atom.a("\\==") });
+                _operatorTable.addAnswer(new object[] { 700, Atom.a("xfx"), Atom.a("@<") });
+                _operatorTable.addAnswer(new object[] { 700, Atom.a("xfx"), Atom.a("@=<") });
+                _operatorTable.addAnswer(new object[] { 700, Atom.a("xfx"), Atom.a("@>") });
+                _operatorTable.addAnswer(new object[] { 700, Atom.a("xfx"), Atom.a("@>=") });
+                _operatorTable.addAnswer(new object[] { 700, Atom.a("xfx"), Atom.a("=..") });
+                _operatorTable.addAnswer(new object[] { 700, Atom.a("xfx"), Atom.a("is") });
+                _operatorTable.addAnswer(new object[] { 700, Atom.a("xfx"), Atom.a("=:=") });
+                _operatorTable.addAnswer(new object[] { 700, Atom.a("xfx"), Atom.a("=\\=") });
+                _operatorTable.addAnswer(new object[] { 700, Atom.a("xfx"), Atom.a("<") });
+                _operatorTable.addAnswer(new object[] { 700, Atom.a("xfx"), Atom.a("=<") });
+                _operatorTable.addAnswer(new object[] { 700, Atom.a("xfx"), Atom.a(">") });
+                _operatorTable.addAnswer(new object[] { 700, Atom.a("xfx"), Atom.a(">=") });
+                _operatorTable.addAnswer(new object[] { 600, Atom.a("xfy"), Atom.a(":") });
+                _operatorTable.addAnswer(new object[] { 500, Atom.a("yfx"), Atom.a("+") });
+                _operatorTable.addAnswer(new object[] { 500, Atom.a("yfx"), Atom.a("-") });
+                _operatorTable.addAnswer(new object[] { 500, Atom.a("yfx"), Atom.a("/\\") });
+                _operatorTable.addAnswer(new object[] { 500, Atom.a("yfx"), Atom.a("\\/") });
+                _operatorTable.addAnswer(new object[] { 400, Atom.a("yfx"), Atom.a("*") });
+                _operatorTable.addAnswer(new object[] { 400, Atom.a("yfx"), Atom.a("/") });
+                _operatorTable.addAnswer(new object[] { 400, Atom.a("yfx"), Atom.a("//") });
+                _operatorTable.addAnswer(new object[] { 400, Atom.a("yfx"), Atom.a("rem") });
+                _operatorTable.addAnswer(new object[] { 400, Atom.a("yfx"), Atom.a("mod") });
+                _operatorTable.addAnswer(new object[] { 400, Atom.a("yfx"), Atom.a("<<") });
+                _operatorTable.addAnswer(new object[] { 400, Atom.a("yfx"), Atom.a(">>") });
+                _operatorTable.addAnswer(new object[] { 200, Atom.a("xfx"), Atom.a("**") });
+                _operatorTable.addAnswer(new object[] { 200, Atom.a("xfy"), Atom.a("^") });
+                _operatorTable.addAnswer(new object[] { 200, Atom.a("fy"), Atom.a("-") });
+                _operatorTable.addAnswer(new object[] { 200, Atom.a("fy"), Atom.a("\\") });
                 // Debug: This is hacked in to run the Prolog test suite until we implement op/3.
-                _operatorTable.Add(new object[] { 20, Atom.a("xfx"), Atom.a("<--") });
+                _operatorTable.addAnswer(new object[] { 20, Atom.a("xfx"), Atom.a("<--") });
             }
 
-            object[] args = new object[] { Priority, Specifier, Operator };
-            foreach (object[] answer in _operatorTable)
-            {
-                foreach (bool l1 in YP.unifyArrays(args, answer))
-                    yield return false;
-            }
+            foreach (bool l1 in _operatorTable.match(new object[] { Priority, Specifier, Operator }))
+                yield return false;
         }
 
         public static IEnumerable<bool> atom_length(object atom, object Length)
         {
-            return YP.unify(Length, ((Atom)YP.getValue(atom))._name.Length);
+            atom = YP.getValue(atom);
+            Length = YP.getValue(Length);
+            if (atom is Variable)
+                throw new PrologException(Atom.a("instantiation_error"),
+                    "Expected atom(Arg1) but it is an unbound variable");
+            if (!(atom is Atom))
+                throw new PrologException
+                    (new Functor2("type_error", Atom.a("atom"), atom), "Arg 1 Atom is not an atom");
+            if (!(Length is Variable))
+            {
+                if (!(Length is int))
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("integer"), Length), "Length must be var or integer");
+                if ((int)Length < 0)
+                    throw new PrologException
+                        (new Functor2("domain_error", Atom.a("not_less_than_zero"), Length),
+                        "Length must not be less than zero");
+            }
+            return YP.unify(Length, ((Atom)atom)._name.Length);
         }
 
         public static IEnumerable<bool> atom_concat(object Start, object End, object Whole)
         {
-            // Debug: Should implement for var(Start) which is a kind of search.
             // Debug: Should we try to preserve the _declaringClass?
-            return YP.unify(Whole, Atom.a(((Atom)YP.getValue(Start))._name +
-                ((Atom)YP.getValue(End))._name));
+            Start = YP.getValue(Start);
+            End = YP.getValue(End);
+            Whole = YP.getValue(Whole);
+            if (Whole is Variable)
+            {
+                if (Start is Variable)
+                    throw new PrologException(Atom.a("instantiation_error"),
+                        "Arg 1 Start and arg 3 Whole are both var");
+                if (End is Variable)
+                    throw new PrologException(Atom.a("instantiation_error"),
+                        "Arg 2 End and arg 3 Whole are both var");
+                if (!(Start is Atom))
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("atom"), Start), "Arg 1 Start is not an atom");
+                if (!(End is Atom))
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("atom"), End), "Arg 2 End is not an atom");
+
+                foreach (bool l1 in YP.unify(Whole, Atom.a(((Atom)Start)._name + ((Atom)End)._name)))
+                    yield return false;
+            }
+            else
+            {
+                if (!(Whole is Atom))
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("atom"), Whole), "Arg 3 Whole is not an atom");
+                bool gotStartLength = false;
+                int startLength = 0;
+                if (!(Start is Variable))
+                {
+                    if (!(Start is Atom))
+                        throw new PrologException
+                            (new Functor2("type_error", Atom.a("atom"), Start), "Arg 1 Start is not var or atom");
+                    startLength = ((Atom)Start)._name.Length;
+                    gotStartLength = true;
+                }
+
+                bool gotEndLength = false;
+                int endLength = 0;
+                if (!(End is Variable))
+                {
+                    if (!(End is Atom))
+                        throw new PrologException
+                            (new Functor2("type_error", Atom.a("atom"), End), "Arg 2 End is not var or atom");
+                    endLength = ((Atom)End)._name.Length;
+                    gotEndLength = true;
+                }
+
+                // We are doing a search through all possible Start and End which concatenate to Whole.
+                string wholeString = ((Atom)Whole)._name;
+                for (int i = 0; i <= wholeString.Length; ++i)
+                {
+                    // If we got either startLength or endLength, we know the lengths have to match so check
+                    //   the lengths instead of constructing an Atom to do it.
+                    if (gotStartLength && startLength != i)
+                        continue;
+                    if (gotEndLength && endLength != wholeString.Length - i)
+                        continue;
+                    foreach (bool l1 in YP.unify(Start, Atom.a(wholeString.Substring(0, i))))
+                    {
+                        foreach (bool l2 in YP.unify(End, Atom.a(wholeString.Substring(i, wholeString.Length - i))))
+                            yield return false;
+                    }
+                }
+            }
         }
 
         public static IEnumerable<bool> sub_atom
             (object atom, object Before, object Length, object After, object Sub_atom)
         {
-            // Debug: Should implement for var(atom) which is a kind of search.
             // Debug: Should we try to preserve the _declaringClass?
-            Atom atomAtom = (Atom)YP.getValue(atom);
-            int beforeInt = YP.convertInt(Before);
-            int lengthInt = YP.convertInt(Length);
-            if (beforeInt < 0)
-                throw new Exception("Before must be non-negative");
-            if (lengthInt < 0)
-                throw new Exception("Length must be non-negative");
-            int afterInt = atomAtom._name.Length - (beforeInt + lengthInt);
-            if (afterInt >= 0)
+            atom = YP.getValue(atom);
+            Before = YP.getValue(Before);
+            Length = YP.getValue(Length);
+            After = YP.getValue(After);
+            Sub_atom = YP.getValue(Sub_atom);
+            if (atom is Variable)
+                throw new PrologException(Atom.a("instantiation_error"),
+                    "Expected atom(Arg1) but it is an unbound variable");
+            if (!(atom is Atom))
+                throw new PrologException
+                    (new Functor2("type_error", Atom.a("atom"), atom), "Arg 1 Atom is not an atom");
+            if (!(Sub_atom is Variable))
             {
-                foreach (bool l1 in YP.unify(After, afterInt))
+                if (!(Sub_atom is Atom))
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("atom"), Sub_atom), "Sub_atom is not var or atom");
+            }
+
+            bool beforeIsInt = false;
+            bool lengthIsInt = false;
+            bool afterIsInt = false;
+            if (!(Before is Variable))
+            {
+                if (!(Before is int))
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("integer"), Before), "Before must be var or integer");
+                beforeIsInt = true;
+                if ((int)Before < 0)
+                    throw new PrologException
+                        (new Functor2("domain_error", Atom.a("not_less_than_zero"), Before),
+                        "Before must not be less than zero");
+            }
+            if (!(Length is Variable))
+            {
+                if (!(Length is int))
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("integer"), Length), "Length must be var or integer");
+                lengthIsInt = true;
+                if ((int)Length < 0)
+                    throw new PrologException
+                        (new Functor2("domain_error", Atom.a("not_less_than_zero"), Length),
+                        "Length must not be less than zero");
+            }
+            if (!(After is Variable))
+            {
+                if (!(After is int))
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("integer"), After), "After must be var or integer");
+                afterIsInt = true;
+                if ((int)After < 0)
+                    throw new PrologException
+                        (new Functor2("domain_error", Atom.a("not_less_than_zero"), After),
+                        "After must not be less than zero");
+            }
+
+            Atom atomAtom = (Atom)atom;
+            int atomLength = atomAtom._name.Length;
+            if (beforeIsInt && lengthIsInt)
+            {
+                // Special case: the caller is just trying to extract a substring, so do it quickly.
+                int xAfter = atomLength - (int)Before - (int)Length;
+                if (xAfter >= 0)
                 {
-                    foreach (bool l2 in YP.unify
-                        (Sub_atom, Atom.a(atomAtom._name.Substring(beforeInt, lengthInt))))
-                        yield return false;
+                    foreach (bool l1 in YP.unify(After, xAfter))
+                    {
+                        foreach (bool l2 in YP.unify
+                            (Sub_atom, Atom.a(atomAtom._name.Substring((int)Before, (int)Length))))
+                            yield return false;
+                    }
                 }
+            }
+            else if (afterIsInt && lengthIsInt)
+            {
+                // Special case: the caller is just trying to extract a substring, so do it quickly.
+                int xBefore = atomLength - (int)After - (int)Length;
+                if (xBefore >= 0)
+                {
+                    foreach (bool l1 in YP.unify(Before, xBefore))
+                    {
+                        foreach (bool l2 in YP.unify
+                            (Sub_atom, Atom.a(atomAtom._name.Substring(xBefore, (int)Length))))
+                            yield return false;
+                    }
+                }
+            }
+            else
+            {
+                // We are underconstrained and doing a search, so go through all possibilities.
+                for (int xBefore = 0; xBefore <= atomLength; ++xBefore)
+                {
+                    foreach (bool l1 in YP.unify(Before, xBefore))
+                    {
+                        for (int xLength = 0; xLength <= (atomLength - xBefore); ++xLength)
+                        {
+                            foreach (bool l2 in YP.unify(Length, xLength))
+                            {
+                                foreach (bool l3 in YP.unify(After, atomLength - (xBefore + xLength)))
+                                {
+                                    foreach (bool l4 in YP.unify
+                                        (Sub_atom, Atom.a(atomAtom._name.Substring(xBefore, xLength))))
+                                        yield return false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public static IEnumerable<bool> atom_chars(object atom, object List)
+        {
+            atom = YP.getValue(atom);
+            List = YP.getValue(List);
+
+            if (atom is Variable)
+            {
+                if (List is Variable)
+                    throw new PrologException(Atom.a("instantiation_error"),
+                        "Arg 1 Atom and arg 2 List are both unbound variables");
+                object[] codeArray = ListPair.toArray(List);
+                if (codeArray == null)
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("list"), List), "Arg 2 List is not a list");
+
+                char[] charArray = new char[codeArray.Length];
+                for (int i = 0; i < codeArray.Length; ++i)
+                {
+                    object listAtom = YP.getValue(codeArray[i]);
+                    if (listAtom is Variable)
+                        throw new PrologException(Atom.a("instantiation_error"),
+                            "Arg 2 List has an element which is an unbound variable");
+                    if (!(listAtom is Atom && ((Atom)listAtom)._name.Length == 1))
+                        throw new PrologException
+                            (new Functor2("type_error", Atom.a("character"), listAtom), 
+                             "Arg 2 List has an element which is not a one character atom");
+                    charArray[i] = ((Atom)listAtom)._name[0];
+                }
+                return YP.unify(atom, Atom.a(new String(charArray)));
+            }
+            else
+            {
+                if (!(atom is Atom))
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("atom"), atom), "Arg 1 Atom is not var or atom");
+
+                string atomString = ((Atom)atom)._name;
+                object charList = Atom.NIL;
+                // Start from the back to make the list.
+                for (int i = atomString.Length - 1; i >= 0; --i)
+                    charList = new ListPair(Atom.a(atomString.Substring(i, 1)), charList);
+                return YP.unify(List, charList);
             }
         }
 
@@ -864,38 +1161,141 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             atom = YP.getValue(atom);
             List = YP.getValue(List);
 
-            if (nonvar(atom))
+            if (atom is Variable)
             {
-                string name = ((Atom)atom)._name;
-                object codeList = Atom.NIL;
-                // Start from the back to make the list.
-                for (int i = name.Length - 1; i >= 0; --i)
-                    codeList = new ListPair((int)name[i], codeList);
-                return YP.unify(List, codeList);
-            }
-            {
+                if (List is Variable)
+                    throw new PrologException(Atom.a("instantiation_error"),
+                        "Arg 1 Atom and arg 2 List are both unbound variables");
                 object[] codeArray = ListPair.toArray(List);
+                if (codeArray == null)
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("list"), List), "Arg 2 List is not a list");
+
                 char[] charArray = new char[codeArray.Length];
                 for (int i = 0; i < codeArray.Length; ++i)
-                    charArray[i] = (char)YP.convertInt(codeArray[i]);
+                {
+                    int codeInt;
+                    if (!getInt(codeArray[i], out codeInt) || codeInt < 0)
+                        throw new PrologException
+                            (new Functor1("representation_error", Atom.a("character_code")), 
+                             "Element of Arg 2 List is not a character code");
+                    charArray[i] = (char)codeInt;
+                }
                 return YP.unify(atom, Atom.a(new String(charArray)));
+            }
+            else
+            {
+                if (!(atom is Atom))
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("atom"), atom), "Arg 1 Atom is not var or atom");
+
+                string atomString = ((Atom)atom)._name;
+                object codeList = Atom.NIL;
+                // Start from the back to make the list.
+                for (int i = atomString.Length - 1; i >= 0; --i)
+                    codeList = new ListPair((int)atomString[i], codeList);
+                return YP.unify(List, codeList);
             }
         }
 
-        public static IEnumerable<bool> number_codes(object number, object List)
+        public static IEnumerable<bool> number_chars(object Number, object List)
         {
-            number = YP.getValue(number);
+            Number = YP.getValue(Number);
             List = YP.getValue(List);
 
-            if (nonvar(number))
+            if (Number is Variable)
+            {
+                if (List is Variable)
+                    throw new PrologException(Atom.a("instantiation_error"),
+                        "Arg 1 Number and arg 2 List are both unbound variables");
+                object[] codeArray = ListPair.toArray(List);
+                if (codeArray == null)
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("list"), List), "Arg 2 List is not a list");
+
+                char[] charArray = new char[codeArray.Length];
+                for (int i = 0; i < codeArray.Length; ++i)
+                {
+                    object listAtom = YP.getValue(codeArray[i]);
+                    if (listAtom is Variable)
+                        throw new PrologException(Atom.a("instantiation_error"),
+                            "Arg 2 List has an element which is an unbound variable");
+                    if (!(listAtom is Atom && ((Atom)listAtom)._name.Length == 1))
+                        throw new PrologException
+                            (new Functor2("type_error", Atom.a("character"), listAtom),
+                             "Arg 2 List has an element which is not a one character atom");
+                    charArray[i] = ((Atom)listAtom)._name[0];
+                }
+                return YP.unify(Number, parseNumberString(charArray));
+            }
+            else
             {
                 string numberString = null;
                 // Try converting to an int first.
                 int intNumber;
-                if (YP.getInt(number, out intNumber))
+                if (YP.getInt(Number, out intNumber))
                     numberString = intNumber.ToString();
                 else
-                    numberString = YP.doubleToString(YP.convertDouble(number));
+                {
+                    if (!YP.number(Number))
+                        throw new PrologException
+                            (new Functor2("type_error", Atom.a("number"), Number),
+                            "Arg 1 Number is not var or number");
+                    // We just checked, so convertDouble shouldn't throw an exception.
+                    numberString = YP.doubleToString(YP.convertDouble(Number));
+                }
+
+                object charList = Atom.NIL;
+                // Start from the back to make the list.
+                for (int i = numberString.Length - 1; i >= 0; --i)
+                    charList = new ListPair(Atom.a(numberString.Substring(i, 1)), charList);
+                return YP.unify(List, charList);
+            }
+        }
+
+        public static IEnumerable<bool> number_codes(object Number, object List)
+        {
+            Number = YP.getValue(Number);
+            List = YP.getValue(List);
+
+            if (Number is Variable)
+            {
+                if (List is Variable)
+                    throw new PrologException(Atom.a("instantiation_error"),
+                        "Arg 1 Number and arg 2 List are both unbound variables");
+                object[] codeArray = ListPair.toArray(List);
+                if (codeArray == null)
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("list"), List), "Arg 2 List is not a list");
+
+                char[] charArray = new char[codeArray.Length];
+                for (int i = 0; i < codeArray.Length; ++i)
+                {
+                    int codeInt;
+                    if (!getInt(codeArray[i], out codeInt) || codeInt < 0)
+                        throw new PrologException
+                            (new Functor1("representation_error", Atom.a("character_code")),
+                             "Element of Arg 2 List is not a character code");
+                    charArray[i] = (char)codeInt;
+                }
+                return YP.unify(Number, parseNumberString(charArray));
+            }
+            else
+            {
+                string numberString = null;
+                // Try converting to an int first.
+                int intNumber;
+                if (YP.getInt(Number, out intNumber))
+                    numberString = intNumber.ToString();
+                else
+                {
+                    if (!YP.number(Number))
+                        throw new PrologException
+                            (new Functor2("type_error", Atom.a("number"), Number), 
+                            "Arg 1 Number is not var or number");
+                    // We just checked, so convertDouble shouldn't throw an exception.
+                    numberString = YP.doubleToString(YP.convertDouble(Number));
+                }
 
                 object codeList = Atom.NIL;
                 // Start from the back to make the list.
@@ -903,20 +1303,92 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                     codeList = new ListPair((int)numberString[i], codeList);
                 return YP.unify(List, codeList);
             }
+        }
+
+        /// <summary>
+        /// Used by number_chars and number_codes.  Return the number in charArray or
+        /// throw an exception if can't parse.
+        /// </summary>
+        /// <param name="numberString"></param>
+        /// <returns></returns>
+        private static object parseNumberString(char[] charArray)
+        {
+            string numberString = new String(charArray);
+            if (charArray.Length == 3 && numberString.StartsWith("0'"))
+                // This is a char code.
+                return (int)charArray[2];
+            if (numberString.StartsWith("0x"))
             {
-                object[] codeArray = ListPair.toArray(List);
-                char[] charArray = new char[codeArray.Length];
-                for (int i = 0; i < codeArray.Length; ++i)
-                    charArray[i] = (char)YP.convertInt(codeArray[i]);
-                String numberString = new String(charArray);
-                // Debug: Is there a way in C# to ask if a string parses as int without throwing an exception?
                 try
                 {
-                    // Try an int first.
-                    return YP.unify(number, Convert.ToInt32(numberString));
+                    return Int32.Parse
+                        (numberString.Substring(2), System.Globalization.NumberStyles.AllowHexSpecifier);
                 }
-                catch (FormatException) { }
-                return YP.unify(number, Convert.ToDouble(numberString));
+                catch (FormatException)
+                {
+                    throw new PrologException
+                        (new Functor1("syntax_error", Atom.a("number_format: " + numberString)),
+                         "Arg 2 List is not a list for a hexadecimal number");
+                }
+            }
+            // Debug: Is there a way in C# to ask if a string parses as int without throwing an exception?
+            try
+            {
+                // Try an int first.
+                return Convert.ToInt32(numberString);
+            }
+            catch (FormatException) { }
+            try
+            {
+                return Convert.ToDouble(numberString);
+            }
+            catch (FormatException)
+            {
+                throw new PrologException
+                    (new Functor1("syntax_error", Atom.a("number_format: " + numberString)),
+                     "Arg 2 List is not a list for a number");
+            }
+        }
+
+        public static IEnumerable<bool> char_code(object Char, object Code)
+        {
+            Char = YP.getValue(Char);
+            Code = YP.getValue(Code);
+
+            int codeInt = 0;
+            if (!(Code is Variable))
+            {
+                // Get codeInt now so we type check it whether or not Char is Variable.
+                if (!getInt(Code, out codeInt))
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("integer"), Code),
+                         "Arg 2 Code is not var or a character code");
+                if (codeInt < 0)
+                    throw new PrologException
+                        (new Functor1("representation_error", Atom.a("character_code")),
+                         "Arg 2 Code is not a character code");
+            }
+
+            if (Char is Variable)
+            {
+                if (Code is Variable)
+                    throw new PrologException(Atom.a("instantiation_error"),
+                        "Arg 1 Char and arg 2 Code are both unbound variables");
+
+                return YP.unify(Char, Atom.a(new String(new char[] {(char)codeInt} )));
+            }
+            else
+            {
+                if (!(Char is Atom) || ((Atom)Char)._name.Length != 1)
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("character"), Char), 
+                         "Arg 1 Char is not var or one-character atom");
+
+                if (Code is Variable)
+                    return YP.unify(Code, (int)((Atom)Char)._name[0]);
+                else
+                    // Use codeInt to handle whether Code is supplied as, e.g., 97 or 0'a .
+                    return YP.unify(codeInt, (int)((Atom)Char)._name[0]);
             }
         }
 
@@ -1092,7 +1564,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         }
 
         /// <summary>
-        /// Format x as a string, making sure that it will parse as an int later.  I.e., for 1.0, don't just
+        /// Format x as a string, making sure that it won't parse as an int later.  I.e., for 1.0, don't just
         /// use "1" which will parse as an int.
         /// </summary>
         /// <param name="x"></param>
@@ -1117,7 +1589,13 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
 
         public static void put_code(object x)
         {
-            _outputStream.Write((char)YP.convertInt(x));
+            if (var(x))
+                throw new PrologException(Atom.a("instantiation_error"), "Arg 1 is an unbound variable");
+            int xInt;
+            if (!getInt(x, out xInt))
+                throw new PrologException
+                    (new Functor2("type_error", Atom.a("integer"), x), "Arg 1 must be integer");
+            _outputStream.Write((char)xInt);
         }
 
         public static void nl()
@@ -1153,6 +1631,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             {
                 Head = YP.getValue(((Functor2)TermCopy)._arg1);
                 Body = YP.getValue(((Functor2)TermCopy)._arg2);
+                if (Head is Variable)
+                    throw new PrologException("instantiation_error", "Head to assert is an unbound variable");
+                if (Body is Variable)
+                    throw new PrologException("instantiation_error", "Body to assert is an unbound variable");
             }
             else
             {
@@ -1166,7 +1648,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 throw new PrologException
                     (new Functor2("type_error", Atom.a("callable"), Head), "Term to assert is not callable");
             object[] args = getFunctorArgs(Head);
-            if (!isDynamic(name, args.Length))
+            if (isSystemPredicate(name, args.Length))
                 throw new PrologException
                     (new Functor3("permission_error", Atom.a("modify"), Atom.a("static_procedure"),
                                   new Functor2(Atom.SLASH, name, args.Length)),
@@ -1174,17 +1656,21 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
 
             if (copyStore.getNUniqueVariables() == 0 && Body == Atom.a("true"))
             {
-                // Debug: Until IndexedAnswers supports prepend, compile the fact so we can prepend it below.
-                if (!prepend)
-                {
-                    // This is a fact with no unbound variables
-                    // assertFact uses IndexedAnswers, so don't we don't need to compile.
+                // This is a fact with no unbound variables
+                // assertFact and prependFact use IndexedAnswers, so don't we don't need to compile.
+                if (prepend)
+                    prependFact(name, args);
+                else
                     assertFact(name, args);
-                    return;
-                }
+
+                return;
             }
 
             IClause clause = YPCompiler.compileAnonymousClause(Head, Body, declaringClass);
+            // We expect clause to be a ClauseHeadAndBody (from Compiler.compileAnonymousFunction)
+            //   so we can set the Head and Body.
+            if (clause is ClauseHeadAndBody)
+                ((ClauseHeadAndBody)clause).setHeadAndBody(Head, Body);
 
             // Add the clause to the entry in _predicatesStore.
             NameArity nameArity = new NameArity(name, args.Length);
@@ -1199,15 +1685,15 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 clauses.Add(clause);
         }
 
-        private static bool isDynamic(Atom name, int arity)
+        private static bool isSystemPredicate(Atom name, int arity)
         {
             if (arity == 2 && (name == Atom.a(",") || name == Atom.a(";") || name == Atom.DOT))
-                return false;
+                return true;
             // Use the same mapping to static predicates in YP as the compiler.
             foreach (bool l1 in YPCompiler.functorCallYPFunctionName(name, arity, new Variable()))
-                return false;
+                return true;
             // Debug: Do we need to check if name._module is null?
-            return true;
+            return false;
         }
 
         /// <summary>
@@ -1224,19 +1710,52 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             IndexedAnswers indexedAnswers;
             if (!_predicatesStore.TryGetValue(nameArity, out clauses))
             {
-                // Create an IndexedAnswers as the first clause of the predicate.
+                // Create an IndexedAnswers as the only clause of the predicate.                
                 _predicatesStore[nameArity] = (clauses = new List<IClause>());
-                clauses.Add(indexedAnswers = new IndexedAnswers());
+                clauses.Add(indexedAnswers = new IndexedAnswers(values.Length));
             }
             else
             {
-                indexedAnswers = clauses[clauses.Count - 1] as IndexedAnswers;
+                indexedAnswers = null;
+                if (clauses.Count >= 1)
+                    indexedAnswers = clauses[clauses.Count - 1] as IndexedAnswers;
                 if (indexedAnswers == null)
                     // The latest clause is not an IndexedAnswers, so add one.
-                    clauses.Add(indexedAnswers = new IndexedAnswers());
+                    clauses.Add(indexedAnswers = new IndexedAnswers(values.Length));
             }
 
             indexedAnswers.addAnswer(values);
+        }
+
+        /// <summary>
+        /// Assert values, prepending to the front of the set of facts for the predicate with the
+        /// name and with arity values.Length.
+        /// </summary>
+        /// <param name="name">must be an Atom</param>
+        /// <param name="values">the array of arguments to the fact predicate.
+        /// It is an error if an value has an unbound variable.</param>
+        public static void prependFact(Atom name, object[] values)
+        {
+            NameArity nameArity = new NameArity(name, values.Length);
+            List<IClause> clauses;
+            IndexedAnswers indexedAnswers;
+            if (!_predicatesStore.TryGetValue(nameArity, out clauses))
+            {
+                // Create an IndexedAnswers as the only clause of the predicate.                
+                _predicatesStore[nameArity] = (clauses = new List<IClause>());
+                clauses.Add(indexedAnswers = new IndexedAnswers(values.Length));
+            }
+            else
+            {
+                indexedAnswers = null;
+                if (clauses.Count >= 1)
+                    indexedAnswers = clauses[0] as IndexedAnswers;
+                if (indexedAnswers == null)
+                    // The first clause is not an IndexedAnswers, so prepend one.
+                    clauses.Insert(0, indexedAnswers = new IndexedAnswers(values.Length));
+            }
+
+            indexedAnswers.prependAnswer(values);
         }
 
         /// <summary>
@@ -1251,9 +1770,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         {
             List<IClause> clauses;
             if (!_predicatesStore.TryGetValue(new NameArity(name, arguments.Length), out clauses))
-                throw new UndefinedPredicateException
-                    ("Undefined fact: " + name + "/" + arguments.Length, name,
-                    arguments.Length);
+                throw new PrologException
+                    (new Functor2
+                     (Atom.a("existence_error"), Atom.a("procedure"), 
+                      new Functor2(Atom.SLASH, name, arguments.Length)), 
+                     "Undefined predicate: " + name + "/" + arguments.Length);
 
             if (clauses.Count == 1)
                 // Usually there is only one clause, so return it without needing to wrap it in an iterator.
@@ -1271,7 +1792,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         /// <returns></returns>
         private static IEnumerable<bool> matchAllClauses(List<IClause> clauses, object[] arguments)
         {
-            // Debug: If the clause asserts another clause into this same predicate, the iterator
+            // Debug: If the caller asserts another clause into this same predicate during yield, the iterator
             //   over clauses will be corrupted.  Should we take the time to copy clauses?
             foreach (IClause clause in clauses)
             {
@@ -1297,16 +1818,122 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             return matchDynamic(name, arguments);
         }
 
+        public static IEnumerable<bool> clause(object Head, object Body)
+        {
+            Head = getValue(Head);
+            Body = getValue(Body);
+            if (Head is Variable)
+                throw new PrologException("instantiation_error", "Head is an unbound variable");
+
+            Atom name = getFunctorName(Head) as Atom;
+            if (name == null)
+                // name is a non-Atom, such as a number.
+                throw new PrologException
+                    (new Functor2("type_error", Atom.a("callable"), Head), "Head is not callable");
+            object[] args = getFunctorArgs(Head);
+            if (isSystemPredicate(name, args.Length))
+                throw new PrologException
+                    (new Functor3("permission_error", Atom.a("access"), Atom.a("private_procedure"),
+                                  new Functor2(Atom.SLASH, name, args.Length)),
+                     "clause cannot access private predicate " + name + "/" + args.Length);
+            if (!(Body is Variable) && !(YP.getFunctorName(Body) is Atom))
+                throw new PrologException
+                    (new Functor2("type_error", Atom.a("callable"), Body), "Body is not callable");
+
+            List<IClause> clauses;
+            if (!_predicatesStore.TryGetValue(new NameArity(name, args.Length), out clauses))
+                yield break;
+            // The caller can assert another clause into this same predicate during yield, so we have to
+            //   make a copy of the clauses.
+            foreach (IClause predicateClause in clauses.ToArray())
+            {
+                foreach (bool l1 in predicateClause.clause(Head, Body))
+                    yield return false;
+            }
+        }
+
+        public static IEnumerable<bool> retract(object Term)
+        {
+            Term = getValue(Term);
+            if (Term is Variable)
+                throw new PrologException("instantiation_error", "Term to retract is an unbound variable");
+
+            object Head, Body;
+            if (Term is Functor2 && ((Functor2)Term)._name == Atom.RULE)
+            {
+                Head = YP.getValue(((Functor2)Term)._arg1);
+                Body = YP.getValue(((Functor2)Term)._arg2);
+            }
+            else
+            {
+                Head = Term;
+                Body = Atom.a("true");
+            }
+            if (Head is Variable)
+                throw new PrologException("instantiation_error", "Head is an unbound variable");
+
+            Atom name = getFunctorName(Head) as Atom;
+            if (name == null)
+                // name is a non-Atom, such as a number.
+                throw new PrologException
+                    (new Functor2("type_error", Atom.a("callable"), Head), "Head is not callable");
+            object[] args = getFunctorArgs(Head);
+            if (isSystemPredicate(name, args.Length))
+                throw new PrologException
+                    (new Functor3("permission_error", Atom.a("modify"), Atom.a("static_procedure"),
+                        new Functor2(Atom.SLASH, name, args.Length)),
+                     "clause cannot access private predicate " + name + "/" + args.Length);
+            if (!(Body is Variable) && !(YP.getFunctorName(Body) is Atom))
+                throw new PrologException
+                    (new Functor2("type_error", Atom.a("callable"), Body), "Body is not callable");
+
+            List<IClause> clauses;
+            if (!_predicatesStore.TryGetValue(new NameArity(name, args.Length), out clauses))
+                yield break;
+            // The caller can assert another clause into this same predicate during yield, so we have to
+            //   make a copy of the clauses.
+            foreach (IClause predicateClause in clauses.ToArray())
+            {
+                if (predicateClause is IndexedAnswers)
+                {
+                    // IndexedAnswers handles its own retract.  Even if it removes all of its
+                    //   answers, it is OK to leave it empty as one of the elements in clauses.
+                    foreach (bool l1 in ((IndexedAnswers)predicateClause).retract(Head, Body))
+                        yield return false;
+                }
+                else
+                {
+                    foreach (bool l1 in predicateClause.clause(Head, Body))
+                    {
+                        clauses.Remove(predicateClause);
+                        yield return false;
+                    }
+                }
+            }
+        }
+
         /// <summary>
-        /// This actually searches all clauses, not just
-        /// the ones defined with assertFact, but we keep the name for 
-        /// backwards compatibility.
+        /// This is deprecated for backward compatibility.  You should use retractall.
         /// </summary>
         /// <param name="name">must be an Atom</param>
         /// <param name="arguments">an array of arity number of arguments</param>
         public static void retractFact(Atom name, object[] arguments)
         {
-            NameArity nameArity = new NameArity(name, arguments.Length);
+            retractall(Functor.make(name, arguments));
+        }
+
+        /// <summary>
+        /// Retract all dynamic clauses which unify with Head.  If this matches all clauses in a predicate,
+        /// the predicate is still defined.  To completely remove the predicate, see abolish.
+        /// </summary>
+        /// <param name="Head"></param>
+        public static void retractall(object Head)
+        {
+            object name = YP.getFunctorName(Head);
+            object[] arguments = getFunctorArgs(Head);
+            if (!(name is Atom))
+                return;
+            NameArity nameArity = new NameArity((Atom)name, arguments.Length);
             List<IClause> clauses;
             if (!_predicatesStore.TryGetValue(nameArity, out clauses))
                 // Can't find, so ignore.
@@ -1315,11 +1942,11 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             foreach (object arg in arguments)
             {
                 if (!YP.var(arg))
-                    throw new InvalidOperationException("All arguments must be unbound");
+                    throw new InvalidOperationException
+                        ("Until matching retractall is supported, all arguments must be unbound to retract all clauses");
             }
-            // Set to a fresh empty IndexedAnswers.
-            _predicatesStore[nameArity] = (clauses = new List<IClause>());
-            clauses.Add(new IndexedAnswers());
+            // Clear all clauses.
+            _predicatesStore[nameArity] = new List<IClause>();
         }
 
         public static IEnumerable<bool> current_predicate(object NameSlashArity)
@@ -1328,57 +1955,99 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             // First check if Name and Arity are nonvar so we can do a direct lookup.
             if (YP.ground(NameSlashArity))
             {
-                if (NameSlashArity is Functor2)
-                {
-                    Functor2 NameArityFunctor = (Functor2)NameSlashArity;
-                    if (NameArityFunctor._name == Atom.SLASH)
-                    {
-                        if (_predicatesStore.ContainsKey(new NameArity
-                             ((Atom)YP.getValue(NameArityFunctor._arg1),
-                              (int)YP.getValue(NameArityFunctor._arg2))))
-                            // The predicate is defined.
-                            yield return false;
-                    }
-                }
-                yield break;
-            }
+                Functor2 NameArityFunctor = NameSlashArity as Functor2;
+                if (!(NameArityFunctor != null && NameArityFunctor._name == Atom.SLASH))
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("predicate_indicator"), NameSlashArity), 
+                         "Must be a name/arity predicate indicator");
+                object name = YP.getValue(NameArityFunctor._arg1);
+                object arity = YP.getValue(NameArityFunctor._arg2);
+                if (name is Variable || arity is Variable)
+                    throw new PrologException
+                        ("instantiation_error", "Predicate indicator name or arity is an unbound variable");
+                if (!(name is Atom && arity is int))
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("predicate_indicator"), NameSlashArity),
+                         "Must be a name/arity predicate indicator");
+                if ((int)arity < 0)
+                    throw new PrologException
+                        (new Functor2("domain_error", Atom.a("not_less_than_zero"), arity),
+                         "Arity may not be less than zero");
 
-            foreach (NameArity key in _predicatesStore.Keys)
-            {
-                foreach (bool l1 in YP.unify
-                    (new Functor2(Atom.SLASH, key._name, key._arity), NameSlashArity))
+                if (_predicatesStore.ContainsKey(new NameArity((Atom)name, (int)arity)))
+                    // The predicate is defined.
                     yield return false;
+            }
+            else
+            {
+                foreach (NameArity key in _predicatesStore.Keys)
+                {
+                    foreach (bool l1 in YP.unify
+                        (new Functor2(Atom.SLASH, key._name, key._arity), NameSlashArity))
+                        yield return false;
+                }
             }
         }
 
+        public static void abolish(object NameSlashArity)
+        {
+            NameSlashArity = YP.getValue(NameSlashArity);
+            if (NameSlashArity is Variable)
+                throw new PrologException
+                    ("instantiation_error", "Predicate indicator is an unbound variable");
+            Functor2 NameArityFunctor = NameSlashArity as Functor2;
+            if (!(NameArityFunctor != null && NameArityFunctor._name == Atom.SLASH))
+                throw new PrologException
+                    (new Functor2("type_error", Atom.a("predicate_indicator"), NameSlashArity),
+                     "Must be a name/arity predicate indicator");
+            object name = YP.getValue(NameArityFunctor._arg1);
+            object arity = YP.getValue(NameArityFunctor._arg2);
+            if (name is Variable || arity is Variable)
+                throw new PrologException
+                    ("instantiation_error", "Predicate indicator name or arity is an unbound variable");
+            if (!(name is Atom))
+                throw new PrologException
+                    (new Functor2("type_error", Atom.a("atom"), name),
+                     "Predicate indicator name must be an atom");
+            if (!(arity is int))
+                throw new PrologException
+                    (new Functor2("type_error", Atom.a("integer"), arity),
+                     "Predicate indicator arity must be an integer");
+            if ((int)arity < 0)
+                throw new PrologException
+                    (new Functor2("domain_error", Atom.a("not_less_than_zero"), arity),
+                     "Arity may not be less than zero");
+
+            if (isSystemPredicate((Atom)name, (int)arity))
+                throw new PrologException
+                    (new Functor3("permission_error", Atom.a("modify"), Atom.a("static_procedure"),
+                                  new Functor2(Atom.SLASH, name, arity)),
+                     "Abolish cannot modify static predicate " + name + "/" + arity);
+            _predicatesStore.Remove(new NameArity((Atom)name, (int)arity));
+        }
+
         /// <summary>
-        /// Use YP.getFunctorName(Goal) and invoke the static method of this name in the
-        /// declaringClass, using arguments from YP.getFunctorArgs(Goal).
-        /// Note that Goal must be a simple functor, not a complex expression.
-        /// If not found, this throws UndefinedPredicateException.
+        /// If Goal is a simple predicate, call YP.getFunctorName(Goal) using arguments from 
+        /// YP.getFunctorArgs(Goal). If not found, this throws a PrologException for existence_error.
+        /// Otherwise, compile the goal as a single clause predicate and invoke it. 
         /// </summary>
         /// <param name="Goal"></param>
-        /// <param name="contextClass">the class for looking up default function references</param>
+        /// <param name="declaringClass">if not null, used to resolve references to the default 
+        /// module Atom.a("")</param>
         /// <returns></returns>
         public static IEnumerable<bool> getIterator(object Goal, Type declaringClass)
         {
-            Goal = YP.getValue(Goal);
-            if (Goal is Variable)
-                throw new PrologException("instantiation_error", "Goal to call is an unbound variable");
-#if true
-            List<Variable> variableSetList = new List<Variable>();
-            addUniqueVariables(Goal, variableSetList);
-            Variable[] variableSet = variableSetList.ToArray();
-
-            // Use Atom.F since it is ignored.
-            return YPCompiler.compileAnonymousClause
-                (Functor.make(Atom.F, variableSet), Goal, declaringClass).match(variableSet);
-#else
             Atom name;
             object[] args;
             while (true)
             {
-                name = (Atom)YP.getFunctorName(Goal);
+                Goal = YP.getValue(Goal);
+                if (Goal is Variable)
+                    throw new PrologException("instantiation_error", "Goal to call is an unbound variable");
+                name = YP.getFunctorName(Goal) as Atom;
+                if (name == null)
+                    throw new PrologException
+                        (new Functor2("type_error", Atom.a("callable"), Goal), "Goal to call is not callable");
                 args = YP.getFunctorArgs(Goal);
                 if (name == Atom.HAT && args.Length == 2)
                     // Assume this is called from a bagof operation.  Skip the leading qualifiers.
@@ -1386,22 +2055,20 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 else
                     break;
             }
-            try
-            {
-                return (IEnumerable<bool>)declaringClass.InvokeMember
-                  (name._name, BindingFlags.InvokeMethod, null, null, args);
-            }
-            catch (TargetInvocationException exception)
-            {
-                throw exception.InnerException;
-            }
-            catch (MissingMethodException)
-            {
-                throw new UndefinedPredicateException
-                    ("Cannot find predicate function: " + name + "/" + args.Length + " in " +
-                     declaringClass.FullName, name, args.Length);
-            }
-#endif
+
+            IEnumerable<bool> simpleIterator = YPCompiler.getSimpleIterator(name, args, declaringClass);
+            if (simpleIterator != null)
+                // We don't need to compile since the goal is a simple predicate which we call directly.
+                return simpleIterator;
+
+            // Compile the goal as a clause.
+            List<Variable> variableSetList = new List<Variable>();
+            addUniqueVariables(Goal, variableSetList);
+            Variable[] variableSet = variableSetList.ToArray();
+
+            // Use Atom.F since it is ignored.
+            return YPCompiler.compileAnonymousClause
+                (Functor.make(Atom.F, variableSet), Goal, declaringClass).match(variableSet);
         }
 
         public static void throwException(object Term)
@@ -1415,12 +2082,12 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         /// <param name="script_event"></param>
         /// <param name="script_params"></param>
         /// <returns></returns>
-        public static void script_event(object script_event, object script_params)
+        public static IEnumerable<bool> script_event(object script_event, object script_params)
         {
             // string function = ((Atom)YP.getValue(script_event))._name;
             object[] array = ListPair.toArray(script_params);
             if (array == null)
-                return; // YP.fail();
+                yield return false;  // return; // YP.fail();
             if (array.Length > 1)
             {
                 //m_CmdManager.m_ScriptEngine.m_EventQueManager.AddToScriptQueue
@@ -1428,8 +2095,76 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 // sortArray(array);
             }
             //return YP.unify(Sorted, ListPair.makeWithoutRepeatedTerms(array));
+            yield return false;
         }
 
+        /* Non-prolog-ish functions for inline coding */
+        public static string regexString(string inData, string inPattern, string presep,string postsep)
+        {
+            //string str=cycMessage;
+            //string strMatch = @"\. \#\$(.*)\)";
+            string results = "";
+            for (Match m = Regex.Match(inData,inPattern); m.Success; m=m.NextMatch())
+            {
+            	//Console.WriteLine( m );	
+                results += presep+ m + postsep;
+            }
+            return results;
+        }
+
+        public static string cycComm(object msgobj)
+        {
+            string cycInputString = msgobj.ToString();
+            string cycOutputString="";
+            TcpClient socketForServer;
+
+            try
+            {
+                socketForServer = new TcpClient("localHost", 3601);
+            }
+            catch
+            {
+                Console.WriteLine("Failed to connect to server at {0}:999", "localhost");
+                return "";
+            }
+
+            NetworkStream networkStream = socketForServer.GetStream();
+
+            System.IO.StreamReader streamReader = new System.IO.StreamReader(networkStream);
+
+            System.IO.StreamWriter streamWriter = new System.IO.StreamWriter(networkStream);
+
+            try
+            {
+                // read the data from the host and display it
+
+                {
+
+                    streamWriter.WriteLine(cycInputString);
+                    streamWriter.Flush();
+
+                    cycOutputString = streamReader.ReadLine();
+                    Console.WriteLine("Cycoutput:" + cycOutputString);
+                    //streamWriter.WriteLine("Client Message");
+                    //Console.WriteLine("Client Message");
+                    streamWriter.Flush();
+                }
+
+            }
+            catch
+            {
+                Console.WriteLine("Exception reading from Server");
+                return "";
+            }
+            // tidy up
+            networkStream.Close();
+            return cycOutputString;
+
+        }
+        //public static void throwException(object Term)
+        //{
+        //    throw new PrologException(Term);
+        //}
         /// <summary>
         /// An enumerator that does zero loops.
         /// </summary>
@@ -1644,5 +2379,32 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
             }
         }
         #pragma warning restore 0168
+        /// <summary>
+        /// A ClauseHeadAndBody is used in Compiler.compileAnonymousFunction as a base class
+        /// in order to implement YP.IClause.  After creating the object, you must call setHeadAndBody.
+        /// </summary>
+        public class ClauseHeadAndBody
+        {
+            private object _Head;
+            private object _Body;
+
+            public void setHeadAndBody(object Head, object Body)
+            {
+                _Head = Head;
+                _Body = Body;
+            }
+
+            public IEnumerable<bool> clause(object Head, object Body)
+            {
+                if (_Head == null || _Body == null)
+                    yield break;
+
+                foreach (bool l1 in YP.unify(Head, _Head))
+                {
+                    foreach (bool l2 in YP.unify(Body, _Body))
+                        yield return false;
+                }
+            }
+        }
     }
 }

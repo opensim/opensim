@@ -1,20 +1,20 @@
 /*
  * Copyright (C) 2007-2008, Jeff Thompson
- *
+ * 
  * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
+ * 
+ * Redistribution and use in source and binary forms, with or without 
  * modification, are permitted provided that the following conditions are met:
- *
- *     * Redistributions of source code must retain the above copyright
+ * 
+ *     * Redistributions of source code must retain the above copyright 
  *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
+ *     * Redistributions in binary form must reproduce the above copyright 
+ *       notice, this list of conditions and the following disclaimer in the 
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its contributors
- *       may be used to endorse or promote products derived from this software
+ *     * Neither the name of the copyright holder nor the names of its contributors 
+ *       may be used to endorse or promote products derived from this software 
  *       without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -34,6 +34,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.CodeDom.Compiler;
+using System.Reflection;
 
 namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
 {
@@ -41,7 +42,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
     {
         private class CompilerState
         {
-            public IndexedAnswers _pred = new IndexedAnswers();
+            public IndexedAnswers _pred = new IndexedAnswers(4);
             public Dictionary<YP.NameArity, Atom> _moduleForNameArity = new Dictionary<YP.NameArity, Atom>();
             public int _gensymCounter;
             public bool _useFinalCutCode;
@@ -81,11 +82,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 Module = YP.getValue(Module);
                 // If the Module Atom comes from the parser, it always has null _declaringClass.
                 if (Module is Atom && ((Atom)Module)._module == null && Name is Atom && Arity is int)
-                {
                     // Replace a previous entry if it exists.
                     ((CompilerState)State)._moduleForNameArity[new YP.NameArity((Atom)Name, (int)Arity)] =
                         (Atom)Module;
-                }
             }
 
             public static void startFunction(object State, object Head)
@@ -204,7 +203,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
 
             // disable warning on l1, don't see how we can
             // code this differently
-            #pragma warning disable 0168
+            #pragma warning disable 0168,0164,0162
             public static bool isDetNoneOut(object State, object Term)
             {
                 State = YP.getValue(State);
@@ -242,7 +241,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
 
                 return false;
             }
-            #pragma warning restore 0168
+            #pragma warning restore 0168,0164,0162
 
             /// <summary>
             /// Return false if any of args is out, otherwise true.
@@ -281,7 +280,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
 
         // disable warning on l1, don't see how we can
         // code this differently
-        #pragma warning disable 0168, 0219
+        #pragma warning disable 0168, 0219,0164,0162
 
         /// <summary>
         /// Use makeFunctionPseudoCode, convertFunctionCSharp and compileAnonymousFunction
@@ -313,15 +312,14 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 try
                 {
                     YP.tell(functionCode);
-                    Variable FunctionCode = new Variable();
-                    foreach (bool l2 in makeFunctionPseudoCode(RuleList, FunctionCode))
+                    Variable PseudoCode = new Variable();
+                    foreach (bool l2 in makeFunctionPseudoCode(RuleList, PseudoCode))
                     {
-                        if (YP.termEqual(FunctionCode, Atom.a("getDeclaringClass")))
+                        if (YP.termEqual(PseudoCode, Atom.a("getDeclaringClass")))
                             // Ignore getDeclaringClass since we have access to the one passed in.
                             continue;
 
-                        // Debug: should check if FunctionCode is a single call.
-                        convertFunctionCSharp(FunctionCode);
+                        convertFunctionCSharp(PseudoCode);
                     }
                     YP.told();
                 }
@@ -336,7 +334,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         }
 
         /// <summary>
-        /// Use CodeDomProvider to compile the functionCode and return a YP.IClause.
+        /// Use CodeDomProvider to compile the functionCode and return a YP.ClauseHeadAndBody
+        ///   which implements YP.IClause.
         /// The function name must be "function" and have nArgs arguments.
         /// </summary>
         /// <param name="functionCode">the code for the iterator, such as
@@ -366,8 +365,16 @@ using System.Collections.Generic;
 using YieldProlog;
 
 namespace Temporary {
-  public class Temporary : YP.IClause {
-    public class Inner" + (declaringClass == null ? "" : " : " + declaringClass.FullName) + @" {
+  public class Temporary : YP.ClauseHeadAndBody, YP.IClause {");
+            if (declaringClass == null)
+                // We don't extend a class with getDeclaringClass, so define it.
+                sourceCode.Append(@"
+    public class Inner {
+      public static System.Type getDeclaringClass() { return null; }
+");
+            else
+                sourceCode.Append(@"
+    public class Inner : " + declaringClass.FullName + @" {
 ");
             sourceCode.Append(functionCode);
             // Basically, match applies the args to function.
@@ -395,6 +402,102 @@ namespace Temporary {
                 ("Temporary.Temporary").GetConstructor(Type.EmptyTypes).Invoke(null);
         }
 
+        /// <summary>
+        /// If the functor with name and args can be called directly as determined by
+        ///   functorCallFunctionName, then call it and return its iterator.  If the predicate is
+        ///   dynamic and undefined, or if static and the method cannot be found, throw
+        ///   a PrologException for existence_error.
+        /// This returns null if the functor has a special form than needs to be compiled 
+        ///   (including ,/2 and ;/2).
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="args"></param>
+        /// <param name="declaringClass">used to resolve references to the default 
+        /// module Atom.a(""). If a declaringClass is needed to resolve the reference but it is
+        ///   null, this throws a PrologException for existence_error</param>
+        /// <returns></returns>
+        public static IEnumerable<bool> getSimpleIterator(Atom name, object[] args, Type declaringClass)
+        {
+            CompilerState state = new CompilerState();
+            Variable FunctionName = new Variable();
+            foreach (bool l1 in functorCallFunctionName(state, name, args.Length, FunctionName))
+            {
+                Atom functionNameAtom = ((Atom)FunctionName.getValue());
+                if (functionNameAtom == Atom.NIL)
+                {
+                    // name is for a dynamic predicate.
+                    return YP.matchDynamic(name, args);
+                }
+
+                // Set the default for the method to call.
+                string methodName = functionNameAtom._name;
+                Type methodClass = declaringClass;
+
+                bool checkMode = false;
+                if (methodName.StartsWith("YP."))
+                {
+                    // Assume we only check mode in calls to standard Prolog predicates in YP.
+                    checkMode = true;
+
+                    // Use the method in class YP.
+                    methodName = methodName.Substring(3);
+                    methodClass = typeof(YP);
+                }
+                if (methodName.Contains("."))
+                    // We don't support calling inner classes, etc.
+                    return null;
+
+                if (methodClass == null)
+                    throw new PrologException
+                        (new Functor2
+                         (Atom.a("existence_error"), Atom.a("procedure"),
+                          new Functor2(Atom.a("/"), name, args.Length)),
+                         "Cannot find predicate function for: " + name + "/" + args.Length + 
+                         " because declaringClass is null.  Set declaringClass to the class containing " +
+                         methodName);
+                try
+                {
+                    if (checkMode)
+                    {
+                        assertYPPred(state);
+                        object functor = Functor.make(name, args);
+                        if (CompilerState.isDetNoneOut(state, functor))
+                        {
+                            methodClass.InvokeMember
+                                (methodName, BindingFlags.InvokeMethod, null, null, args);
+                            return YP.succeed();
+                        }
+                        if (CompilerState.isSemidetNoneOut(state, functor))
+                        {
+                            if ((bool)methodClass.InvokeMember
+                                 (methodName, BindingFlags.InvokeMethod, null, null, args))
+                                return YP.succeed();
+                            else
+                                return YP.fail();
+                        }
+
+                    }
+                    return (IEnumerable<bool>)methodClass.InvokeMember
+                      (methodName, BindingFlags.InvokeMethod, null, null, args);
+                }
+                catch (TargetInvocationException exception)
+                {
+                    throw exception.InnerException;
+                }
+                catch (MissingMethodException)
+                {
+                    throw new PrologException
+                        (new Functor2
+                         (Atom.a("existence_error"), Atom.a("procedure"),
+                          new Functor2(Atom.a("/"), name, args.Length)),
+                         "Cannot find predicate function " + methodName + " for " + name + "/" + args.Length + 
+                         " in " + methodClass.FullName);
+                }
+            }
+
+            return null;
+        }
+
         // Compiler output follows.
 
         public class YPInnerClass { }
@@ -403,7 +506,7 @@ namespace Temporary {
         public static void repeatWrite(object arg1, object N)
         {
             {
-                // object _Value = arg1;
+                object _Value = arg1;
                 if (YP.termEqual(N, 0))
                 {
                     return;
@@ -444,26 +547,9 @@ namespace Temporary {
                 Variable State = new Variable();
                 foreach (bool l2 in CompilerState.make(State))
                 {
-                    CompilerState.assertPred(State, Atom.a(@"nl"), Atom.a(@"det"));
-                    CompilerState.assertPred(State, new Functor1(@"write", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"det"));
-                    CompilerState.assertPred(State, new Functor1(@"put_code", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"det"));
-                    CompilerState.assertPred(State, new Functor1(@"throw", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"det"));
-                    CompilerState.assertPred(State, new Functor1(@"var", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
-                    CompilerState.assertPred(State, new Functor1(@"nonvar", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
-                    CompilerState.assertPred(State, new Functor1(@"atom", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
-                    CompilerState.assertPred(State, new Functor1(@"integer", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
-                    CompilerState.assertPred(State, new Functor1(@"float", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
-                    CompilerState.assertPred(State, new Functor1(@"number", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
-                    CompilerState.assertPred(State, new Functor1(@"atomic", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
-                    CompilerState.assertPred(State, new Functor1(@"compound", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
-                    CompilerState.assertPred(State, new Functor2(@"==", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in")), new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
-                    CompilerState.assertPred(State, new Functor2(@"\==", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in")), new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
-                    CompilerState.assertPred(State, new Functor2(@"@<", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in")), new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
-                    CompilerState.assertPred(State, new Functor2(@"@=<", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in")), new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
-                    CompilerState.assertPred(State, new Functor2(@"@>", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in")), new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
-                    CompilerState.assertPred(State, new Functor2(@"@>=", new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in")), new Functor2(@"::", Atom.a(@"univ"), Atom.a(@"in"))), Atom.a(@"semidet"));
+                    assertYPPred(State);
                     processCompilerDirectives(RuleList, State);
-                    foreach (bool l3 in YP.unify(FunctionCode, Atom.a(@"getDeclaringClass")))
+                    foreach (bool l3 in YP.unify(FunctionCode, Atom.a("getDeclaringClass")))
                     {
                         yield return false;
                     }
@@ -475,10 +561,37 @@ namespace Temporary {
             }
         }
 
+        public static void assertYPPred(object State)
+        {
+            {
+                CompilerState.assertPred(State, Atom.a("nl"), Atom.a("det"));
+                CompilerState.assertPred(State, new Functor1("write", new Functor2("::", Atom.a("univ"), Atom.a("in"))), Atom.a("det"));
+                CompilerState.assertPred(State, new Functor1("put_code", new Functor2("::", Atom.a("univ"), Atom.a("in"))), Atom.a("det"));
+                CompilerState.assertPred(State, new Functor1("throw", new Functor2("::", Atom.a("univ"), Atom.a("in"))), Atom.a("det"));
+                CompilerState.assertPred(State, new Functor1("abolish", new Functor2("::", Atom.a("univ"), Atom.a("in"))), Atom.a("det"));
+                CompilerState.assertPred(State, new Functor1("retractall", new Functor2("::", Atom.a("univ"), Atom.a("in"))), Atom.a("det"));
+                CompilerState.assertPred(State, new Functor1("var", new Functor2("::", Atom.a("univ"), Atom.a("in"))), Atom.a("semidet"));
+                CompilerState.assertPred(State, new Functor1("nonvar", new Functor2("::", Atom.a("univ"), Atom.a("in"))), Atom.a("semidet"));
+                CompilerState.assertPred(State, new Functor1("atom", new Functor2("::", Atom.a("univ"), Atom.a("in"))), Atom.a("semidet"));
+                CompilerState.assertPred(State, new Functor1("integer", new Functor2("::", Atom.a("univ"), Atom.a("in"))), Atom.a("semidet"));
+                CompilerState.assertPred(State, new Functor1("float", new Functor2("::", Atom.a("univ"), Atom.a("in"))), Atom.a("semidet"));
+                CompilerState.assertPred(State, new Functor1("number", new Functor2("::", Atom.a("univ"), Atom.a("in"))), Atom.a("semidet"));
+                CompilerState.assertPred(State, new Functor1("atomic", new Functor2("::", Atom.a("univ"), Atom.a("in"))), Atom.a("semidet"));
+                CompilerState.assertPred(State, new Functor1("compound", new Functor2("::", Atom.a("univ"), Atom.a("in"))), Atom.a("semidet"));
+                CompilerState.assertPred(State, new Functor2("==", new Functor2("::", Atom.a("univ"), Atom.a("in")), new Functor2("::", Atom.a("univ"), Atom.a("in"))), Atom.a("semidet"));
+                CompilerState.assertPred(State, new Functor2("\\==", new Functor2("::", Atom.a("univ"), Atom.a("in")), new Functor2("::", Atom.a("univ"), Atom.a("in"))), Atom.a("semidet"));
+                CompilerState.assertPred(State, new Functor2("@<", new Functor2("::", Atom.a("univ"), Atom.a("in")), new Functor2("::", Atom.a("univ"), Atom.a("in"))), Atom.a("semidet"));
+                CompilerState.assertPred(State, new Functor2("@=<", new Functor2("::", Atom.a("univ"), Atom.a("in")), new Functor2("::", Atom.a("univ"), Atom.a("in"))), Atom.a("semidet"));
+                CompilerState.assertPred(State, new Functor2("@>", new Functor2("::", Atom.a("univ"), Atom.a("in")), new Functor2("::", Atom.a("univ"), Atom.a("in"))), Atom.a("semidet"));
+                CompilerState.assertPred(State, new Functor2("@>=", new Functor2("::", Atom.a("univ"), Atom.a("in")), new Functor2("::", Atom.a("univ"), Atom.a("in"))), Atom.a("semidet"));
+                return;
+            }
+        }
+
         public static void processCompilerDirectives(object arg1, object arg2)
         {
             {
-                // object _State = arg2;
+                object _State = arg2;
                 foreach (bool l2 in YP.unify(arg1, Atom.NIL))
                 {
                     return;
@@ -490,7 +603,7 @@ namespace Temporary {
                 Variable Determinism = new Variable();
                 Variable x3 = new Variable();
                 Variable RestRules = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"f", new Functor1(@":-", new Functor1(@"pred", new Functor2(@"is", Pred, Determinism))), x3), RestRules)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("f", new Functor1(":-", new Functor1("pred", new Functor2("is", Pred, Determinism))), x3), RestRules)))
                 {
                     CompilerState.assertPred(State, Pred, Determinism);
                     processCompilerDirectives(RestRules, State);
@@ -503,7 +616,7 @@ namespace Temporary {
                 Variable PredicateList = new Variable();
                 Variable x3 = new Variable();
                 Variable RestRules = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"f", new Functor1(@":-", new Functor2(@"import", Module, PredicateList)), x3), RestRules)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("f", new Functor1(":-", new Functor2("import", Module, PredicateList)), x3), RestRules)))
                 {
                     foreach (bool l3 in importPredicateList(State, Module, PredicateList))
                     {
@@ -517,7 +630,7 @@ namespace Temporary {
                 Variable x1 = new Variable();
                 Variable x2 = new Variable();
                 Variable RestRules = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"f", new Functor1(@":-", x1), x2), RestRules)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("f", new Functor1(":-", x1), x2), RestRules)))
                 {
                     processCompilerDirectives(RestRules, State);
                     return;
@@ -531,11 +644,11 @@ namespace Temporary {
                 Variable RestRules = new Variable();
                 Variable Name = new Variable();
                 Variable Arity = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"f", new Functor2(@":-", Head, _Body), x3), RestRules)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("f", new Functor2(":-", Head, _Body), x3), RestRules)))
                 {
                     foreach (bool l3 in YP.functor(Head, Name, Arity))
                     {
-                        CompilerState.assertModuleForNameArity(State, Name, Arity, Atom.a(@""));
+                        CompilerState.assertModuleForNameArity(State, Name, Arity, Atom.a(""));
                         processCompilerDirectives(RestRules, State);
                         return;
                     }
@@ -548,11 +661,11 @@ namespace Temporary {
                 Variable RestRules = new Variable();
                 Variable Name = new Variable();
                 Variable Arity = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"f", Fact, x2), RestRules)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("f", Fact, x2), RestRules)))
                 {
                     foreach (bool l3 in YP.functor(Fact, Name, Arity))
                     {
-                        CompilerState.assertModuleForNameArity(State, Name, Arity, Atom.a(@""));
+                        CompilerState.assertModuleForNameArity(State, Name, Arity, Atom.a(""));
                         processCompilerDirectives(RestRules, State);
                         return;
                     }
@@ -587,7 +700,7 @@ namespace Temporary {
                 Variable Name = new Variable();
                 Variable Arity = new Variable();
                 Variable Rest = new Variable();
-                foreach (bool l2 in YP.unify(arg3, new ListPair(new Functor2(@"/", Name, Arity), Rest)))
+                foreach (bool l2 in YP.unify(arg3, new ListPair(new Functor2("/", Name, Arity), Rest)))
                 {
                     CompilerState.assertModuleForNameArity(State, Name, Arity, Module);
                     foreach (bool l3 in importPredicateList(State, Module, Rest))
@@ -659,17 +772,17 @@ namespace Temporary {
                 Variable BodyCode = new Variable();
                 Variable ReturnType = new Variable();
                 Variable BodyWithReturn = new Variable();
-                foreach (bool l2 in YP.unify(new ListPair(new Functor2(@"f", FirstRule, x5), x6), SamePredicateRuleList))
+                foreach (bool l2 in YP.unify(new ListPair(new Functor2("f", FirstRule, x5), x6), SamePredicateRuleList))
                 {
-                    foreach (bool l3 in YP.unify(FirstRule, new Functor1(@":-", x7)))
+                    foreach (bool l3 in YP.unify(FirstRule, new Functor1(":-", x7)))
                     {
                         goto cutIf1;
                     }
-                    foreach (bool l3 in YP.unify(new Functor2(@":-", Head, x9), FirstRule))
+                    foreach (bool l3 in YP.unify(new Functor2(":-", Head, x9), FirstRule))
                     {
                         CompilerState.startFunction(State, Head);
-                        FindallAnswers findallAnswers3 = new FindallAnswers(new Functor2(@"f", ArgAssignments, Calls));
-                        foreach (bool l4 in member(new Functor2(@"f", Rule, VariableNameSuggestions), SamePredicateRuleList))
+                        FindallAnswers findallAnswers3 = new FindallAnswers(new Functor2("f", ArgAssignments, Calls));
+                        foreach (bool l4 in member(new Functor2("f", Rule, VariableNameSuggestions), SamePredicateRuleList))
                         {
                             foreach (bool l5 in compileBodyWithHeadBindings(Rule, VariableNameSuggestions, State, ArgAssignments, Calls))
                             {
@@ -703,26 +816,26 @@ namespace Temporary {
                                         {
                                             foreach (bool l9 in maplist_compileClause(ClauseBag, MergedArgNames, BodyCode))
                                             {
-                                                if (CompilerState.determinismEquals(State, Atom.a(@"detNoneOut")))
+                                                if (CompilerState.determinismEquals(State, Atom.a("detNoneOut")))
                                                 {
-                                                    foreach (bool l11 in YP.unify(ReturnType, Atom.a(@"void")))
+                                                    foreach (bool l11 in YP.unify(ReturnType, Atom.a("void")))
                                                     {
-                                                        if (CompilerState.determinismEquals(State, Atom.a(@"semidetNoneOut")))
+                                                        if (CompilerState.determinismEquals(State, Atom.a("semidetNoneOut")))
                                                         {
-                                                            foreach (bool l13 in append(BodyCode, new ListPair(Atom.a(@"returnfalse"), Atom.NIL), BodyWithReturn))
+                                                            foreach (bool l13 in append(BodyCode, new ListPair(Atom.a("returnfalse"), Atom.NIL), BodyWithReturn))
                                                             {
-                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                                 {
                                                                     yield return false;
                                                                 }
                                                             }
                                                             goto cutIf7;
                                                         }
-                                                        if (CompilerState.determinismEquals(State, Atom.a(@"detNoneOut")))
+                                                        if (CompilerState.determinismEquals(State, Atom.a("detNoneOut")))
                                                         {
                                                             foreach (bool l13 in YP.unify(BodyWithReturn, BodyCode))
                                                             {
-                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                                 {
                                                                     yield return false;
                                                                 }
@@ -733,16 +846,16 @@ namespace Temporary {
                                                         {
                                                             foreach (bool l13 in YP.unify(BodyWithReturn, BodyCode))
                                                             {
-                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                                 {
                                                                     yield return false;
                                                                 }
                                                             }
                                                             goto cutIf9;
                                                         }
-                                                        foreach (bool l12 in append(BodyCode, new ListPair(new Functor2(@"foreach", new Functor2(@"call", Atom.a(@"YP.fail"), Atom.NIL), new ListPair(Atom.a(@"yieldfalse"), Atom.NIL)), Atom.NIL), BodyWithReturn))
+                                                        foreach (bool l12 in append(BodyCode, new ListPair(new Functor2("foreach", new Functor2("call", Atom.a("YP.fail"), Atom.NIL), new ListPair(Atom.a("yieldfalse"), Atom.NIL)), Atom.NIL), BodyWithReturn))
                                                         {
-                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                             {
                                                                 yield return false;
                                                             }
@@ -754,26 +867,26 @@ namespace Temporary {
                                                     }
                                                     goto cutIf6;
                                                 }
-                                                if (CompilerState.determinismEquals(State, Atom.a(@"semidetNoneOut")))
+                                                if (CompilerState.determinismEquals(State, Atom.a("semidetNoneOut")))
                                                 {
-                                                    foreach (bool l11 in YP.unify(ReturnType, Atom.a(@"bool")))
+                                                    foreach (bool l11 in YP.unify(ReturnType, Atom.a("bool")))
                                                     {
-                                                        if (CompilerState.determinismEquals(State, Atom.a(@"semidetNoneOut")))
+                                                        if (CompilerState.determinismEquals(State, Atom.a("semidetNoneOut")))
                                                         {
-                                                            foreach (bool l13 in append(BodyCode, new ListPair(Atom.a(@"returnfalse"), Atom.NIL), BodyWithReturn))
+                                                            foreach (bool l13 in append(BodyCode, new ListPair(Atom.a("returnfalse"), Atom.NIL), BodyWithReturn))
                                                             {
-                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                                 {
                                                                     yield return false;
                                                                 }
                                                             }
                                                             goto cutIf11;
                                                         }
-                                                        if (CompilerState.determinismEquals(State, Atom.a(@"detNoneOut")))
+                                                        if (CompilerState.determinismEquals(State, Atom.a("detNoneOut")))
                                                         {
                                                             foreach (bool l13 in YP.unify(BodyWithReturn, BodyCode))
                                                             {
-                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                                 {
                                                                     yield return false;
                                                                 }
@@ -784,16 +897,16 @@ namespace Temporary {
                                                         {
                                                             foreach (bool l13 in YP.unify(BodyWithReturn, BodyCode))
                                                             {
-                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                                 {
                                                                     yield return false;
                                                                 }
                                                             }
                                                             goto cutIf13;
                                                         }
-                                                        foreach (bool l12 in append(BodyCode, new ListPair(new Functor2(@"foreach", new Functor2(@"call", Atom.a(@"YP.fail"), Atom.NIL), new ListPair(Atom.a(@"yieldfalse"), Atom.NIL)), Atom.NIL), BodyWithReturn))
+                                                        foreach (bool l12 in append(BodyCode, new ListPair(new Functor2("foreach", new Functor2("call", Atom.a("YP.fail"), Atom.NIL), new ListPair(Atom.a("yieldfalse"), Atom.NIL)), Atom.NIL), BodyWithReturn))
                                                         {
-                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                             {
                                                                 yield return false;
                                                             }
@@ -805,24 +918,24 @@ namespace Temporary {
                                                     }
                                                     goto cutIf10;
                                                 }
-                                                foreach (bool l10 in YP.unify(ReturnType, Atom.a(@"IEnumerable<bool>")))
+                                                foreach (bool l10 in YP.unify(ReturnType, Atom.a("IEnumerable<bool>")))
                                                 {
-                                                    if (CompilerState.determinismEquals(State, Atom.a(@"semidetNoneOut")))
+                                                    if (CompilerState.determinismEquals(State, Atom.a("semidetNoneOut")))
                                                     {
-                                                        foreach (bool l12 in append(BodyCode, new ListPair(Atom.a(@"returnfalse"), Atom.NIL), BodyWithReturn))
+                                                        foreach (bool l12 in append(BodyCode, new ListPair(Atom.a("returnfalse"), Atom.NIL), BodyWithReturn))
                                                         {
-                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                             {
                                                                 yield return false;
                                                             }
                                                         }
                                                         goto cutIf14;
                                                     }
-                                                    if (CompilerState.determinismEquals(State, Atom.a(@"detNoneOut")))
+                                                    if (CompilerState.determinismEquals(State, Atom.a("detNoneOut")))
                                                     {
                                                         foreach (bool l12 in YP.unify(BodyWithReturn, BodyCode))
                                                         {
-                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                             {
                                                                 yield return false;
                                                             }
@@ -833,16 +946,16 @@ namespace Temporary {
                                                     {
                                                         foreach (bool l12 in YP.unify(BodyWithReturn, BodyCode))
                                                         {
-                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                             {
                                                                 yield return false;
                                                             }
                                                         }
                                                         goto cutIf16;
                                                     }
-                                                    foreach (bool l11 in append(BodyCode, new ListPair(new Functor2(@"foreach", new Functor2(@"call", Atom.a(@"YP.fail"), Atom.NIL), new ListPair(Atom.a(@"yieldfalse"), Atom.NIL)), Atom.NIL), BodyWithReturn))
-                                                            {
-                                                        foreach (bool l12 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                    foreach (bool l11 in append(BodyCode, new ListPair(new Functor2("foreach", new Functor2("call", Atom.a("YP.fail"), Atom.NIL), new ListPair(Atom.a("yieldfalse"), Atom.NIL)), Atom.NIL), BodyWithReturn))
+                                                    {
+                                                        foreach (bool l12 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                         {
                                                             yield return false;
                                                         }
@@ -866,8 +979,8 @@ namespace Temporary {
                     foreach (bool l3 in YP.unify(Head, FirstRule))
                     {
                         CompilerState.startFunction(State, Head);
-                        FindallAnswers findallAnswers17 = new FindallAnswers(new Functor2(@"f", ArgAssignments, Calls));
-                        foreach (bool l4 in member(new Functor2(@"f", Rule, VariableNameSuggestions), SamePredicateRuleList))
+                        FindallAnswers findallAnswers17 = new FindallAnswers(new Functor2("f", ArgAssignments, Calls));
+                        foreach (bool l4 in member(new Functor2("f", Rule, VariableNameSuggestions), SamePredicateRuleList))
                         {
                             foreach (bool l5 in compileBodyWithHeadBindings(Rule, VariableNameSuggestions, State, ArgAssignments, Calls))
                             {
@@ -901,26 +1014,26 @@ namespace Temporary {
                                         {
                                             foreach (bool l9 in maplist_compileClause(ClauseBag, MergedArgNames, BodyCode))
                                             {
-                                                if (CompilerState.determinismEquals(State, Atom.a(@"detNoneOut")))
+                                                if (CompilerState.determinismEquals(State, Atom.a("detNoneOut")))
                                                 {
-                                                    foreach (bool l11 in YP.unify(ReturnType, Atom.a(@"void")))
+                                                    foreach (bool l11 in YP.unify(ReturnType, Atom.a("void")))
                                                     {
-                                                        if (CompilerState.determinismEquals(State, Atom.a(@"semidetNoneOut")))
+                                                        if (CompilerState.determinismEquals(State, Atom.a("semidetNoneOut")))
                                                         {
-                                                            foreach (bool l13 in append(BodyCode, new ListPair(Atom.a(@"returnfalse"), Atom.NIL), BodyWithReturn))
+                                                            foreach (bool l13 in append(BodyCode, new ListPair(Atom.a("returnfalse"), Atom.NIL), BodyWithReturn))
                                                             {
-                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                                 {
                                                                     yield return false;
                                                                 }
                                                             }
                                                             goto cutIf21;
                                                         }
-                                                        if (CompilerState.determinismEquals(State, Atom.a(@"detNoneOut")))
+                                                        if (CompilerState.determinismEquals(State, Atom.a("detNoneOut")))
                                                         {
                                                             foreach (bool l13 in YP.unify(BodyWithReturn, BodyCode))
                                                             {
-                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                                 {
                                                                     yield return false;
                                                                 }
@@ -931,16 +1044,16 @@ namespace Temporary {
                                                         {
                                                             foreach (bool l13 in YP.unify(BodyWithReturn, BodyCode))
                                                             {
-                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                                 {
                                                                     yield return false;
                                                                 }
                                                             }
                                                             goto cutIf23;
                                                         }
-                                                        foreach (bool l12 in append(BodyCode, new ListPair(new Functor2(@"foreach", new Functor2(@"call", Atom.a(@"YP.fail"), Atom.NIL), new ListPair(Atom.a(@"yieldfalse"), Atom.NIL)), Atom.NIL), BodyWithReturn))
+                                                        foreach (bool l12 in append(BodyCode, new ListPair(new Functor2("foreach", new Functor2("call", Atom.a("YP.fail"), Atom.NIL), new ListPair(Atom.a("yieldfalse"), Atom.NIL)), Atom.NIL), BodyWithReturn))
                                                         {
-                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                             {
                                                                 yield return false;
                                                             }
@@ -952,26 +1065,26 @@ namespace Temporary {
                                                     }
                                                     goto cutIf20;
                                                 }
-                                                if (CompilerState.determinismEquals(State, Atom.a(@"semidetNoneOut")))
+                                                if (CompilerState.determinismEquals(State, Atom.a("semidetNoneOut")))
                                                 {
-                                                    foreach (bool l11 in YP.unify(ReturnType, Atom.a(@"bool")))
+                                                    foreach (bool l11 in YP.unify(ReturnType, Atom.a("bool")))
                                                     {
-                                                        if (CompilerState.determinismEquals(State, Atom.a(@"semidetNoneOut")))
+                                                        if (CompilerState.determinismEquals(State, Atom.a("semidetNoneOut")))
                                                         {
-                                                            foreach (bool l13 in append(BodyCode, new ListPair(Atom.a(@"returnfalse"), Atom.NIL), BodyWithReturn))
+                                                            foreach (bool l13 in append(BodyCode, new ListPair(Atom.a("returnfalse"), Atom.NIL), BodyWithReturn))
                                                             {
-                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                                 {
                                                                     yield return false;
                                                                 }
                                                             }
                                                             goto cutIf25;
                                                         }
-                                                        if (CompilerState.determinismEquals(State, Atom.a(@"detNoneOut")))
+                                                        if (CompilerState.determinismEquals(State, Atom.a("detNoneOut")))
                                                         {
                                                             foreach (bool l13 in YP.unify(BodyWithReturn, BodyCode))
                                                             {
-                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                                 {
                                                                     yield return false;
                                                                 }
@@ -982,16 +1095,16 @@ namespace Temporary {
                                                         {
                                                             foreach (bool l13 in YP.unify(BodyWithReturn, BodyCode))
                                                             {
-                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                                foreach (bool l14 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                                 {
                                                                     yield return false;
                                                                 }
                                                             }
                                                             goto cutIf27;
                                                         }
-                                                        foreach (bool l12 in append(BodyCode, new ListPair(new Functor2(@"foreach", new Functor2(@"call", Atom.a(@"YP.fail"), Atom.NIL), new ListPair(Atom.a(@"yieldfalse"), Atom.NIL)), Atom.NIL), BodyWithReturn))
+                                                        foreach (bool l12 in append(BodyCode, new ListPair(new Functor2("foreach", new Functor2("call", Atom.a("YP.fail"), Atom.NIL), new ListPair(Atom.a("yieldfalse"), Atom.NIL)), Atom.NIL), BodyWithReturn))
                                                         {
-                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                             {
                                                                 yield return false;
                                                             }
@@ -1003,24 +1116,24 @@ namespace Temporary {
                                                     }
                                                     goto cutIf24;
                                                 }
-                                                foreach (bool l10 in YP.unify(ReturnType, Atom.a(@"IEnumerable<bool>")))
+                                                foreach (bool l10 in YP.unify(ReturnType, Atom.a("IEnumerable<bool>")))
                                                 {
-                                                    if (CompilerState.determinismEquals(State, Atom.a(@"semidetNoneOut")))
+                                                    if (CompilerState.determinismEquals(State, Atom.a("semidetNoneOut")))
                                                     {
-                                                        foreach (bool l12 in append(BodyCode, new ListPair(Atom.a(@"returnfalse"), Atom.NIL), BodyWithReturn))
+                                                        foreach (bool l12 in append(BodyCode, new ListPair(Atom.a("returnfalse"), Atom.NIL), BodyWithReturn))
                                                         {
-                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                             {
                                                                 yield return false;
                                                             }
                                                         }
                                                         goto cutIf28;
                                                     }
-                                                    if (CompilerState.determinismEquals(State, Atom.a(@"detNoneOut")))
+                                                    if (CompilerState.determinismEquals(State, Atom.a("detNoneOut")))
                                                     {
                                                         foreach (bool l12 in YP.unify(BodyWithReturn, BodyCode))
                                                         {
-                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                             {
                                                                 yield return false;
                                                             }
@@ -1031,16 +1144,16 @@ namespace Temporary {
                                                     {
                                                         foreach (bool l12 in YP.unify(BodyWithReturn, BodyCode))
                                                         {
-                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                            foreach (bool l13 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                             {
                                                                 yield return false;
                                                             }
                                                         }
                                                         goto cutIf30;
                                                     }
-                                                    foreach (bool l11 in append(BodyCode, new ListPair(new Functor2(@"foreach", new Functor2(@"call", Atom.a(@"YP.fail"), Atom.NIL), new ListPair(Atom.a(@"yieldfalse"), Atom.NIL)), Atom.NIL), BodyWithReturn))
+                                                    foreach (bool l11 in append(BodyCode, new ListPair(new Functor2("foreach", new Functor2("call", Atom.a("YP.fail"), Atom.NIL), new ListPair(Atom.a("yieldfalse"), Atom.NIL)), Atom.NIL), BodyWithReturn))
                                                     {
-                                                        foreach (bool l12 in YP.unify(FunctionCode, new Functor(@"function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
+                                                        foreach (bool l12 in YP.unify(FunctionCode, new Functor("function", new object[] { ReturnType, Name, FunctionArgs, BodyWithReturn })))
                                                         {
                                                             yield return false;
                                                         }
@@ -1115,13 +1228,13 @@ namespace Temporary {
                 Variable RestSamePredicates = new Variable();
                 foreach (bool l2 in YP.unify(arg1, new ListPair(First, Rest)))
                 {
-                    foreach (bool l3 in YP.unify(new Functor2(@"f", FirstRule, x6), First))
+                    foreach (bool l3 in YP.unify(new Functor2("f", FirstRule, x6), First))
                     {
-                        foreach (bool l4 in YP.unify(new ListPair(new Functor2(@"f", SecondRule, x8), x9), Rest))
+                        foreach (bool l4 in YP.unify(new ListPair(new Functor2("f", SecondRule, x8), x9), Rest))
                         {
-                            foreach (bool l5 in YP.unify(new Functor2(@":-", FirstHead, x11), FirstRule))
+                            foreach (bool l5 in YP.unify(new Functor2(":-", FirstHead, x11), FirstRule))
                             {
-                                foreach (bool l6 in YP.unify(new Functor2(@":-", SecondHead, x13), SecondRule))
+                                foreach (bool l6 in YP.unify(new Functor2(":-", SecondHead, x13), SecondRule))
                                 {
                                     foreach (bool l7 in YP.functor(FirstHead, Name, Arity))
                                     {
@@ -1183,7 +1296,7 @@ namespace Temporary {
                             }
                             foreach (bool l5 in YP.unify(FirstHead, FirstRule))
                             {
-                                foreach (bool l6 in YP.unify(new Functor2(@":-", SecondHead, x13), SecondRule))
+                                foreach (bool l6 in YP.unify(new Functor2(":-", SecondHead, x13), SecondRule))
                                 {
                                     foreach (bool l7 in YP.functor(FirstHead, Name, Arity))
                                     {
@@ -1271,9 +1384,9 @@ namespace Temporary {
                 Variable Rest = new Variable();
                 Variable ClauseCode = new Variable();
                 Variable RestResults = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"f", ArgAssignments, Calls), Rest)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("f", ArgAssignments, Calls), Rest)))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor1(@"blockScope", ClauseCode), RestResults)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor1("blockScope", ClauseCode), RestResults)))
                     {
                         foreach (bool l4 in prependArgAssignments(ArgAssignments, Calls, MergedArgNames, ClauseCode))
                         {
@@ -1312,7 +1425,7 @@ namespace Temporary {
                 Variable VariableName = new Variable();
                 Variable ArgName = new Variable();
                 Variable RestArgAssignments = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"f", VariableName, ArgName), RestArgAssignments)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("f", VariableName, ArgName), RestArgAssignments)))
                 {
                     foreach (bool l3 in member(VariableName, MergedArgNames))
                     {
@@ -1323,7 +1436,7 @@ namespace Temporary {
                         }
                         goto cutIf1;
                     }
-                    foreach (bool l3 in prependArgAssignments(RestArgAssignments, new ListPair(new Functor3(@"declare", Atom.a(@"object"), VariableName, new Functor1(@"var", ArgName)), In), MergedArgNames, ClauseCode))
+                    foreach (bool l3 in prependArgAssignments(RestArgAssignments, new ListPair(new Functor3("declare", Atom.a("object"), VariableName, new Functor1("var", ArgName)), In), MergedArgNames, ClauseCode))
                     {
                         yield return true;
                         yield break;
@@ -1352,9 +1465,9 @@ namespace Temporary {
                 Variable ArgAssignments = new Variable();
                 Variable _Calls = new Variable();
                 Variable RestClauseBag = new Variable();
-                foreach (bool l2 in YP.unify(arg2, new ListPair(new Functor2(@"f", ArgAssignments, _Calls), RestClauseBag)))
+                foreach (bool l2 in YP.unify(arg2, new ListPair(new Functor2("f", ArgAssignments, _Calls), RestClauseBag)))
                 {
-                    foreach (bool l3 in member(new Functor2(@"f", VariableName, ArgName), ArgAssignments))
+                    foreach (bool l3 in member(new Functor2("f", VariableName, ArgName), ArgAssignments))
                     {
                         foreach (bool l4 in argAssignedAll(ArgName, RestClauseBag, VariableName))
                         {
@@ -1383,7 +1496,7 @@ namespace Temporary {
                 Variable RestResults = new Variable();
                 foreach (bool l2 in YP.unify(arg1, new ListPair(First, Rest)))
                 {
-                    foreach (bool l3 in YP.unify(arg2, new ListPair(new Functor1(@"arg", First), RestResults)))
+                    foreach (bool l3 in YP.unify(arg2, new ListPair(new Functor1("arg", First), RestResults)))
                     {
                         foreach (bool l4 in maplist_arg(Rest, RestResults))
                         {
@@ -1425,7 +1538,7 @@ namespace Temporary {
                         {
                             foreach (bool l5 in YP.atom_codes(NumberAtom, NumberCodes))
                             {
-                                foreach (bool l6 in YP.atom_concat(Atom.a(@"arg"), NumberAtom, ArgName))
+                                foreach (bool l6 in YP.atom_concat(Atom.a("arg"), NumberAtom, ArgName))
                                 {
                                     foreach (bool l7 in YP.unify(NextArgNumber, YP.add(StartArgNumber, 1)))
                                     {
@@ -1454,7 +1567,7 @@ namespace Temporary {
                 Variable BodyCode = new Variable();
                 Variable VariableNamesList = new Variable();
                 Variable ArgUnifications = new Variable();
-                foreach (bool l2 in YP.unify(new Functor2(@":-", Head, Body), Rule))
+                foreach (bool l2 in YP.unify(new Functor2(":-", Head, Body), Rule))
                 {
                     CompilerState.newVariableNames(State, Rule, VariableNameSuggestions);
                     foreach (bool l3 in YP.univ(Head, new ListPair(x8, HeadArgs)))
@@ -1480,7 +1593,7 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in compileBodyWithHeadBindings(new Functor2(@":-", Rule, Atom.a(@"true")), VariableNameSuggestions, State, ArgAssignments, Calls))
+                foreach (bool l2 in compileBodyWithHeadBindings(new Functor2(":-", Rule, Atom.a("true")), VariableNameSuggestions, State, ArgAssignments, Calls))
                 {
                     yield return true;
                     yield break;
@@ -1553,13 +1666,13 @@ namespace Temporary {
                 {
                     foreach (bool l3 in YP.unify(arg2, new ListPair(CompiledHeadArg, RestCompiledHeadArgs)))
                     {
-                        foreach (bool l4 in YP.unify(arg6, new ListPair(new Functor2(@"foreach", new Functor2(@"call", Atom.a(@"YP.unify"), new ListPair(new Functor1(@"var", ArgName), new ListPair(CompiledHeadArg, Atom.NIL))), RestArgUnifications), Atom.NIL)))
+                        foreach (bool l4 in YP.unify(arg6, new ListPair(new Functor2("foreach", new Functor2("call", Atom.a("YP.unify"), new ListPair(new Functor1("var", ArgName), new ListPair(CompiledHeadArg, Atom.NIL))), RestArgUnifications), Atom.NIL)))
                         {
                             foreach (bool l5 in YP.number_codes(Index, NumberCodes))
                             {
                                 foreach (bool l6 in YP.atom_codes(NumberAtom, NumberCodes))
                                 {
-                                    foreach (bool l7 in YP.atom_concat(Atom.a(@"arg"), NumberAtom, ArgName))
+                                    foreach (bool l7 in YP.atom_concat(Atom.a("arg"), NumberAtom, ArgName))
                                     {
                                         foreach (bool l8 in YP.unify(NextIndex, YP.add(Index, 1)))
                                         {
@@ -1615,7 +1728,7 @@ namespace Temporary {
                 Variable NumberCodes = new Variable();
                 Variable NumberAtom = new Variable();
                 Variable ArgName = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"=", VariableName, Var), RestVariableNames)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("=", VariableName, Var), RestVariableNames)))
                 {
                     foreach (bool l3 in getVariableArgIndex1(Var, HeadArgs, ArgIndex1))
                     {
@@ -1623,9 +1736,9 @@ namespace Temporary {
                         {
                             foreach (bool l5 in YP.atom_codes(NumberAtom, NumberCodes))
                             {
-                                foreach (bool l6 in YP.atom_concat(Atom.a(@"arg"), NumberAtom, ArgName))
+                                foreach (bool l6 in YP.atom_concat(Atom.a("arg"), NumberAtom, ArgName))
                                 {
-                                    foreach (bool l7 in compileDeclarations(RestVariableNames, HeadArgs, new ListPair(new Functor2(@"f", VariableName, ArgName), ArgAssignmentsIn), ArgAssignmentsOut, DeclarationsIn, DeclarationsOut))
+                                    foreach (bool l7 in compileDeclarations(RestVariableNames, HeadArgs, new ListPair(new Functor2("f", VariableName, ArgName), ArgAssignmentsIn), ArgAssignmentsOut, DeclarationsIn, DeclarationsOut))
                                     {
                                         yield return true;
                                         yield break;
@@ -1645,9 +1758,9 @@ namespace Temporary {
                 Variable _Var = new Variable();
                 Variable RestVariableNames = new Variable();
                 Variable DeclarationsOut = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"=", VariableName, _Var), RestVariableNames)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("=", VariableName, _Var), RestVariableNames)))
                 {
-                    foreach (bool l3 in YP.unify(arg6, new ListPair(new Functor3(@"declare", Atom.a(@"Variable"), VariableName, new Functor2(@"new", Atom.a(@"Variable"), Atom.NIL)), DeclarationsOut)))
+                    foreach (bool l3 in YP.unify(arg6, new ListPair(new Functor3("declare", Atom.a("Variable"), VariableName, new Functor2("new", Atom.a("Variable"), Atom.NIL)), DeclarationsOut)))
                     {
                         foreach (bool l4 in compileDeclarations(RestVariableNames, HeadArgs, ArgAssignmentsIn, ArgAssignmentsOut, DeclarationsIn, DeclarationsOut))
                         {
@@ -1709,100 +1822,8 @@ namespace Temporary {
                 object PseudoCode = arg3;
                 if (YP.var(A))
                 {
-                    foreach (bool l3 in compileRuleBody(new Functor2(@",", new Functor1(@"call", A), Atom.a(@"true")), State, PseudoCode))
+                    foreach (bool l3 in compileRuleBody(new Functor2(",", new Functor1("call", A), Atom.a("true")), State, PseudoCode))
                     {
-                        yield return true;
-                        yield break;
-                    }
-                }
-            }
-            {
-                object State = arg2;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"!")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a(@"return"), Atom.NIL)))
-                    {
-                        if (CompilerState.determinismEquals(State, Atom.a(@"detNoneOut")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object State = arg2;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"!")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a(@"returntrue"), Atom.NIL)))
-                    {
-                        if (CompilerState.determinismEquals(State, Atom.a(@"semidetNoneOut")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object State = arg2;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"!")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a(@"yieldtrue"), new ListPair(Atom.a(@"yieldbreak"), Atom.NIL))))
-                    {
-                        CompilerState.setCodeUsesYield(State);
-                        yield return true;
-                        yield break;
-                    }
-                }
-            }
-            {
-                object _State = arg2;
-                Variable Name = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"$CUTIF", Name)))
-                {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor1(@"breakBlock", Name), Atom.NIL)))
-                    {
-                        yield return true;
-                        yield break;
-                    }
-                }
-            }
-            {
-                object State = arg2;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"true")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a(@"return"), Atom.NIL)))
-                    {
-                        if (CompilerState.determinismEquals(State, Atom.a(@"detNoneOut")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object State = arg2;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"true")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a(@"returntrue"), Atom.NIL)))
-                    {
-                        if (CompilerState.determinismEquals(State, Atom.a(@"semidetNoneOut")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                object State = arg2;
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"true")))
-                {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a(@"yieldfalse"), Atom.NIL)))
-                    {
-                        CompilerState.setCodeUsesYield(State);
                         yield return true;
                         yield break;
                     }
@@ -1813,14 +1834,58 @@ namespace Temporary {
                 object PseudoCode = arg3;
                 Variable A = new Variable();
                 Variable B = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", A, B)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", A, B)))
                 {
                     if (YP.var(A))
                     {
-                        foreach (bool l4 in compileRuleBody(new Functor2(@",", new Functor1(@"call", A), B), State, PseudoCode))
+                        foreach (bool l4 in compileRuleBody(new Functor2(",", new Functor1("call", A), B), State, PseudoCode))
                         {
                             yield return true;
                             yield break;
+                        }
+                    }
+                }
+            }
+            {
+                object State = arg2;
+                object PseudoCode = arg3;
+                Variable A = new Variable();
+                Variable B = new Variable();
+                Variable ACode = new Variable();
+                Variable BCode = new Variable();
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", A, B)))
+                {
+                    foreach (bool l3 in compileFunctorCall(A, State, ACode))
+                    {
+                        if (CompilerState.isDetNoneOut(State, A))
+                        {
+                            foreach (bool l5 in compileRuleBody(B, State, BCode))
+                            {
+                                foreach (bool l6 in YP.unify(PseudoCode, new ListPair(ACode, BCode)))
+                                {
+                                    yield return true;
+                                    yield break;
+                                }
+                            }
+                        }
+                        if (CompilerState.isSemidetNoneOut(State, A))
+                        {
+                            foreach (bool l5 in compileRuleBody(B, State, BCode))
+                            {
+                                foreach (bool l6 in YP.unify(PseudoCode, new ListPair(new Functor2("if", ACode, BCode), Atom.NIL)))
+                                {
+                                    yield return true;
+                                    yield break;
+                                }
+                            }
+                        }
+                        foreach (bool l4 in compileRuleBody(B, State, BCode))
+                        {
+                            foreach (bool l5 in YP.unify(PseudoCode, new ListPair(new Functor2("foreach", ACode, BCode), Atom.NIL)))
+                            {
+                                yield return true;
+                                yield break;
+                            }
                         }
                     }
                 }
@@ -1832,9 +1897,9 @@ namespace Temporary {
                 Variable T = new Variable();
                 Variable B = new Variable();
                 Variable C = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor2(@";", new Functor2(@"->", A, T), B), C)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", new Functor2(";", new Functor2("->", A, T), B), C)))
                 {
-                    foreach (bool l3 in compileRuleBody(new Functor2(@";", new Functor2(@"->", A, new Functor2(@",", T, C)), new Functor2(@",", B, C)), State, PseudoCode))
+                    foreach (bool l3 in compileRuleBody(new Functor2(";", new Functor2("->", A, new Functor2(",", T, C)), new Functor2(",", B, C)), State, PseudoCode))
                     {
                         yield return true;
                         yield break;
@@ -1847,9 +1912,9 @@ namespace Temporary {
                 Variable A = new Variable();
                 Variable B = new Variable();
                 Variable C = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor2(@";", A, B), C)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", new Functor2(";", A, B), C)))
                 {
-                    foreach (bool l3 in compileRuleBody(new Functor2(@";", new Functor2(@",", A, C), new Functor2(@",", B, C)), State, PseudoCode))
+                    foreach (bool l3 in compileRuleBody(new Functor2(";", new Functor2(",", A, C), new Functor2(",", B, C)), State, PseudoCode))
                     {
                         yield return true;
                         yield break;
@@ -1862,9 +1927,9 @@ namespace Temporary {
                 Variable B = new Variable();
                 Variable ACode = new Variable();
                 Variable BCode = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor1(@"\+", A), B)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", new Functor1("\\+", A), B)))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2(@"if", new Functor1(@"not", ACode), BCode), Atom.NIL)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2("if", new Functor1("not", ACode), BCode), Atom.NIL)))
                     {
                         if (CompilerState.isSemidetNoneOut(State, A))
                         {
@@ -1885,9 +1950,9 @@ namespace Temporary {
                 object PseudoCode = arg3;
                 Variable A = new Variable();
                 Variable B = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor1(@"\+", A), B)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", new Functor1("\\+", A), B)))
                 {
-                    foreach (bool l3 in compileRuleBody(new Functor2(@",", new Functor2(@";", new Functor2(@"->", A, Atom.a(@"fail")), Atom.a(@"true")), B), State, PseudoCode))
+                    foreach (bool l3 in compileRuleBody(new Functor2(",", new Functor2(";", new Functor2("->", A, Atom.a("fail")), Atom.a("true")), B), State, PseudoCode))
                     {
                         yield return true;
                         yield break;
@@ -1899,9 +1964,9 @@ namespace Temporary {
                 object PseudoCode = arg3;
                 Variable A = new Variable();
                 Variable B = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor1(@"once", A), B)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", new Functor1("once", A), B)))
                 {
-                    foreach (bool l3 in compileRuleBody(new Functor2(@",", new Functor2(@";", new Functor2(@"->", A, Atom.a(@"true")), Atom.a(@"fail")), B), State, PseudoCode))
+                    foreach (bool l3 in compileRuleBody(new Functor2(",", new Functor2(";", new Functor2("->", A, Atom.a("true")), Atom.a("fail")), B), State, PseudoCode))
                     {
                         yield return true;
                         yield break;
@@ -1914,9 +1979,9 @@ namespace Temporary {
                 Variable A = new Variable();
                 Variable T = new Variable();
                 Variable B = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor2(@"->", A, T), B)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", new Functor2("->", A, T), B)))
                 {
-                    foreach (bool l3 in compileRuleBody(new Functor2(@",", new Functor2(@";", new Functor2(@"->", A, T), Atom.a(@"fail")), B), State, PseudoCode))
+                    foreach (bool l3 in compileRuleBody(new Functor2(",", new Functor2(";", new Functor2("->", A, T), Atom.a("fail")), B), State, PseudoCode))
                     {
                         yield return true;
                         yield break;
@@ -1929,9 +1994,9 @@ namespace Temporary {
                 Variable A = new Variable();
                 Variable B = new Variable();
                 Variable C = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor2(@"\=", A, B), C)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", new Functor2("\\=", A, B), C)))
                 {
-                    foreach (bool l3 in compileRuleBody(new Functor2(@",", new Functor1(@"\+", new Functor2(@"=", A, B)), C), State, PseudoCode))
+                    foreach (bool l3 in compileRuleBody(new Functor2(",", new Functor1("\\+", new Functor2("=", A, B)), C), State, PseudoCode))
                     {
                         yield return true;
                         yield break;
@@ -1943,11 +2008,11 @@ namespace Temporary {
                 object PseudoCode = arg3;
                 Variable A = new Variable();
                 Variable ACode = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", Atom.a(@"!"), A)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", Atom.a("!"), A)))
                 {
                     foreach (bool l3 in compileRuleBody(A, State, ACode))
                     {
-                        foreach (bool l4 in append(ACode, new ListPair(Atom.a(@"yieldbreak"), Atom.NIL), PseudoCode))
+                        foreach (bool l4 in append(ACode, new ListPair(Atom.a("yieldbreak"), Atom.NIL), PseudoCode))
                         {
                             yield return true;
                             yield break;
@@ -1961,11 +2026,11 @@ namespace Temporary {
                 Variable Name = new Variable();
                 Variable A = new Variable();
                 Variable ACode = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor1(@"$CUTIF", Name), A)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", new Functor1("$CUTIF", Name), A)))
                 {
                     foreach (bool l3 in compileRuleBody(A, State, ACode))
                     {
-                        foreach (bool l4 in append(ACode, new ListPair(new Functor1(@"breakBlock", Name), Atom.NIL), PseudoCode))
+                        foreach (bool l4 in append(ACode, new ListPair(new Functor1("breakBlock", Name), Atom.NIL), PseudoCode))
                         {
                             yield return true;
                             yield break;
@@ -1976,7 +2041,7 @@ namespace Temporary {
             {
                 object _State = arg2;
                 Variable x1 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", Atom.a(@"fail"), x1)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", Atom.a("fail"), x1)))
                 {
                     foreach (bool l3 in YP.unify(arg3, Atom.NIL))
                     {
@@ -1989,7 +2054,7 @@ namespace Temporary {
                 object State = arg2;
                 object PseudoCode = arg3;
                 Variable A = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", Atom.a(@"true"), A)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", Atom.a("true"), A)))
                 {
                     foreach (bool l3 in compileRuleBody(A, State, PseudoCode))
                     {
@@ -2006,9 +2071,9 @@ namespace Temporary {
                 Variable ACode = new Variable();
                 Variable TermCode = new Variable();
                 Variable BCode = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor2(@"is", A, Term), B)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", new Functor2("is", A, Term), B)))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2(@"foreach", new Functor2(@"call", Atom.a(@"YP.unify"), new ListPair(ACode, new ListPair(TermCode, Atom.NIL))), BCode), Atom.NIL)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2("foreach", new Functor2("call", Atom.a("YP.unify"), new ListPair(ACode, new ListPair(TermCode, Atom.NIL))), BCode), Atom.NIL)))
                     {
                         foreach (bool l4 in compileTerm(A, State, ACode))
                         {
@@ -2026,58 +2091,10 @@ namespace Temporary {
             }
             {
                 object State = arg2;
-                Variable A = new Variable();
-                Variable B = new Variable();
-                Variable ACode = new Variable();
-                Variable BCode = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", A, B)))
-                {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(ACode, BCode)))
-                    {
-                        if (CompilerState.isDetNoneOut(State, A))
-                        {
-                            foreach (bool l5 in compileFunctorCall(A, State, ACode))
-                            {
-                                foreach (bool l6 in compileRuleBody(B, State, BCode))
-                                {
-                                    yield return true;
-                                    yield break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            {
-                object State = arg2;
-                Variable A = new Variable();
-                Variable B = new Variable();
-                Variable ACode = new Variable();
-                Variable BCode = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", A, B)))
-                {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2(@"if", ACode, BCode), Atom.NIL)))
-                    {
-                        if (CompilerState.isSemidetNoneOut(State, A))
-                        {
-                            foreach (bool l5 in compileFunctorCall(A, State, ACode))
-                            {
-                                foreach (bool l6 in compileRuleBody(B, State, BCode))
-                                {
-                                    yield return true;
-                                    yield break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            {
-                object State = arg2;
                 Variable ACode = new Variable();
                 Variable B = new Variable();
                 Variable BCode = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor1(@"$DET_NONE_OUT", ACode), B)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", new Functor1("$DET_NONE_OUT", ACode), B)))
                 {
                     foreach (bool l3 in YP.unify(arg3, new ListPair(ACode, BCode)))
                     {
@@ -2100,9 +2117,9 @@ namespace Temporary {
                 Variable Name = new Variable();
                 Variable X1 = new Variable();
                 Variable X2 = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", A, B)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", A, B)))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2(@"if", new Functor2(@"call", FunctionName, new ListPair(X1Code, new ListPair(X2Code, Atom.NIL))), BCode), Atom.NIL)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2("if", new Functor2("call", FunctionName, new ListPair(X1Code, new ListPair(X2Code, Atom.NIL))), BCode), Atom.NIL)))
                     {
                         foreach (bool l4 in YP.univ(A, new ListPair(Name, new ListPair(X1, new ListPair(X2, Atom.NIL)))))
                         {
@@ -2127,21 +2144,6 @@ namespace Temporary {
             {
                 object State = arg2;
                 object PseudoCode = arg3;
-                Variable A = new Variable();
-                Variable B = new Variable();
-                Variable C = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor2(@",", A, B), C)))
-                {
-                    foreach (bool l3 in compileRuleBody(new Functor2(@",", A, new Functor2(@",", B, C)), State, PseudoCode))
-                    {
-                        yield return true;
-                        yield break;
-                    }
-                }
-            }
-            {
-                object State = arg2;
-                object PseudoCode = arg3;
                 Variable Template = new Variable();
                 Variable Goal = new Variable();
                 Variable Bag = new Variable();
@@ -2151,19 +2153,19 @@ namespace Temporary {
                 Variable GoalAndAddCode = new Variable();
                 Variable BagCode = new Variable();
                 Variable BCode = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor3(@"findall", Template, Goal, Bag), B)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", new Functor3("findall", Template, Goal, Bag), B)))
                 {
                     foreach (bool l3 in compileTerm(Template, State, TemplateCode))
                     {
-                        foreach (bool l4 in CompilerState.gensym(State, Atom.a(@"findallAnswers"), FindallAnswers))
+                        foreach (bool l4 in CompilerState.gensym(State, Atom.a("findallAnswers"), FindallAnswers))
                         {
-                            foreach (bool l5 in compileRuleBody(new Functor2(@",", Goal, new Functor2(@",", new Functor1(@"$DET_NONE_OUT", new Functor3(@"callMember", new Functor1(@"var", FindallAnswers), Atom.a(@"add"), Atom.NIL)), Atom.a(@"fail"))), State, GoalAndAddCode))
+                            foreach (bool l5 in compileRuleBody(new Functor2(",", Goal, new Functor2(",", new Functor1("$DET_NONE_OUT", new Functor3("callMember", new Functor1("var", FindallAnswers), Atom.a("add"), Atom.NIL)), Atom.a("fail"))), State, GoalAndAddCode))
                             {
                                 foreach (bool l6 in compileTerm(Bag, State, BagCode))
                                 {
                                     foreach (bool l7 in compileRuleBody(B, State, BCode))
                                     {
-                                        foreach (bool l8 in append(new ListPair(new Functor3(@"declare", Atom.a(@"FindallAnswers"), FindallAnswers, new Functor2(@"new", Atom.a(@"FindallAnswers"), new ListPair(TemplateCode, Atom.NIL))), GoalAndAddCode), new ListPair(new Functor2(@"foreach", new Functor3(@"callMember", new Functor1(@"var", FindallAnswers), Atom.a(@"result"), new ListPair(BagCode, Atom.NIL)), BCode), Atom.NIL), PseudoCode))
+                                        foreach (bool l8 in append(new ListPair(new Functor3("declare", Atom.a("FindallAnswers"), FindallAnswers, new Functor2("new", Atom.a("FindallAnswers"), new ListPair(TemplateCode, Atom.NIL))), GoalAndAddCode), new ListPair(new Functor2("foreach", new Functor3("callMember", new Functor1("var", FindallAnswers), Atom.a("result"), new ListPair(BagCode, Atom.NIL)), BCode), Atom.NIL), PseudoCode))
                                         {
                                             yield return true;
                                             yield break;
@@ -2182,9 +2184,9 @@ namespace Temporary {
                 Variable Goal = new Variable();
                 Variable Bag = new Variable();
                 Variable B = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor3(@"bagof", Template, Goal, Bag), B)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", new Functor3("bagof", Template, Goal, Bag), B)))
                 {
-                    foreach (bool l3 in compileBagof(Atom.a(@"result"), Template, Goal, Bag, B, State, PseudoCode))
+                    foreach (bool l3 in compileBagof(Atom.a("result"), Template, Goal, Bag, B, State, PseudoCode))
                     {
                         yield return true;
                         yield break;
@@ -2198,9 +2200,9 @@ namespace Temporary {
                 Variable Goal = new Variable();
                 Variable Bag = new Variable();
                 Variable B = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor3(@"setof", Template, Goal, Bag), B)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", new Functor3("setof", Template, Goal, Bag), B)))
                 {
-                    foreach (bool l3 in compileBagof(Atom.a(@"resultSet"), Template, Goal, Bag, B, State, PseudoCode))
+                    foreach (bool l3 in compileBagof(Atom.a("resultSet"), Template, Goal, Bag, B, State, PseudoCode))
                     {
                         yield return true;
                         yield break;
@@ -2213,9 +2215,9 @@ namespace Temporary {
                 Variable B = new Variable();
                 Variable ATermCode = new Variable();
                 Variable BCode = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor1(@"call", A), B)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", new Functor1("call", A), B)))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2(@"foreach", new Functor2(@"call", Atom.a(@"YP.getIterator"), new ListPair(ATermCode, new ListPair(new Functor2(@"call", Atom.a(@"getDeclaringClass"), Atom.NIL), Atom.NIL))), BCode), Atom.NIL)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2("foreach", new Functor2("call", Atom.a("YP.getIterator"), new ListPair(ATermCode, new ListPair(new Functor2("call", Atom.a("getDeclaringClass"), Atom.NIL), Atom.NIL))), BCode), Atom.NIL)))
                     {
                         foreach (bool l4 in compileTerm(A, State, ATermCode))
                         {
@@ -2234,9 +2236,9 @@ namespace Temporary {
                 Variable B = new Variable();
                 Variable ATermCode = new Variable();
                 Variable BCode = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor1(@"asserta", A), B)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", new Functor1("asserta", A), B)))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2(@"call", Atom.a(@"YP.asserta"), new ListPair(ATermCode, new ListPair(new Functor2(@"call", Atom.a(@"getDeclaringClass"), Atom.NIL), Atom.NIL))), BCode)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2("call", Atom.a("YP.asserta"), new ListPair(ATermCode, new ListPair(new Functor2("call", Atom.a("getDeclaringClass"), Atom.NIL), Atom.NIL))), BCode)))
                     {
                         foreach (bool l4 in compileTerm(A, State, ATermCode))
                         {
@@ -2255,9 +2257,9 @@ namespace Temporary {
                 Variable B = new Variable();
                 Variable ATermCode = new Variable();
                 Variable BCode = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor1(@"assertz", A), B)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", new Functor1("assertz", A), B)))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2(@"call", Atom.a(@"YP.assertz"), new ListPair(ATermCode, new ListPair(new Functor2(@"call", Atom.a(@"getDeclaringClass"), Atom.NIL), Atom.NIL))), BCode)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2("call", Atom.a("YP.assertz"), new ListPair(ATermCode, new ListPair(new Functor2("call", Atom.a("getDeclaringClass"), Atom.NIL), Atom.NIL))), BCode)))
                     {
                         foreach (bool l4 in compileTerm(A, State, ATermCode))
                         {
@@ -2275,9 +2277,9 @@ namespace Temporary {
                 object PseudoCode = arg3;
                 Variable A = new Variable();
                 Variable B = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor1(@"assert", A), B)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", new Functor1("assert", A), B)))
                 {
-                    foreach (bool l3 in compileRuleBody(new Functor2(@",", new Functor1(@"assertz", A), B), State, PseudoCode))
+                    foreach (bool l3 in compileRuleBody(new Functor2(",", new Functor1("assertz", A), B), State, PseudoCode))
                     {
                         yield return true;
                         yield break;
@@ -2295,11 +2297,11 @@ namespace Temporary {
                 Variable BCode = new Variable();
                 Variable CatcherTermCode = new Variable();
                 Variable HandlerAndBCode = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", new Functor3(@"catch", Goal, Catcher, Handler), B)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", new Functor3("catch", Goal, Catcher, Handler), B)))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor3(@"declare", Atom.a(@"YP.Catch"), CatchGoal, new Functor2(@"new", Atom.a(@"YP.Catch"), new ListPair(new Functor2(@"call", Atom.a(@"YP.getIterator"), new ListPair(GoalTermCode, new ListPair(new Functor2(@"call", Atom.a(@"getDeclaringClass"), Atom.NIL), Atom.NIL))), Atom.NIL))), new ListPair(new Functor2(@"foreach", new Functor1(@"var", CatchGoal), BCode), new ListPair(new Functor2(@"foreach", new Functor3(@"callMember", new Functor1(@"var", CatchGoal), Atom.a(@"unifyExceptionOrThrow"), new ListPair(CatcherTermCode, Atom.NIL)), HandlerAndBCode), Atom.NIL)))))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor3("declare", Atom.a("YP.Catch"), CatchGoal, new Functor2("new", Atom.a("YP.Catch"), new ListPair(new Functor2("call", Atom.a("YP.getIterator"), new ListPair(GoalTermCode, new ListPair(new Functor2("call", Atom.a("getDeclaringClass"), Atom.NIL), Atom.NIL))), Atom.NIL))), new ListPair(new Functor2("foreach", new Functor1("var", CatchGoal), BCode), new ListPair(new Functor2("foreach", new Functor3("callMember", new Functor1("var", CatchGoal), Atom.a("unifyExceptionOrThrow"), new ListPair(CatcherTermCode, Atom.NIL)), HandlerAndBCode), Atom.NIL)))))
                     {
-                        foreach (bool l4 in CompilerState.gensym(State, Atom.a(@"catchGoal"), CatchGoal))
+                        foreach (bool l4 in CompilerState.gensym(State, Atom.a("catchGoal"), CatchGoal))
                         {
                             foreach (bool l5 in compileTerm(Goal, State, GoalTermCode))
                             {
@@ -2307,7 +2309,7 @@ namespace Temporary {
                                 {
                                     foreach (bool l7 in compileRuleBody(B, State, BCode))
                                     {
-                                        foreach (bool l8 in compileRuleBody(new Functor2(@",", Handler, B), State, HandlerAndBCode))
+                                        foreach (bool l8 in compileRuleBody(new Functor2(",", Handler, B), State, HandlerAndBCode))
                                         {
                                             yield return true;
                                             yield break;
@@ -2321,22 +2323,16 @@ namespace Temporary {
             }
             {
                 object State = arg2;
+                object PseudoCode = arg3;
                 Variable A = new Variable();
                 Variable B = new Variable();
-                Variable ACode = new Variable();
-                Variable BCode = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@",", A, B)))
+                Variable C = new Variable();
+                foreach (bool l2 in YP.unify(arg1, new Functor2(",", new Functor2(",", A, B), C)))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2(@"foreach", ACode, BCode), Atom.NIL)))
+                    foreach (bool l3 in compileRuleBody(new Functor2(",", A, new Functor2(",", B, C)), State, PseudoCode))
                     {
-                        foreach (bool l4 in compileFunctorCall(A, State, ACode))
-                        {
-                            foreach (bool l5 in compileRuleBody(B, State, BCode))
-                            {
-                                yield return true;
-                                yield break;
-                            }
-                        }
+                        yield return true;
+                        yield break;
                     }
                 }
             }
@@ -2345,11 +2341,11 @@ namespace Temporary {
                 object PseudoCode = arg3;
                 Variable A = new Variable();
                 Variable B = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@";", A, B)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(";", A, B)))
                 {
                     if (YP.var(A))
                     {
-                        foreach (bool l4 in compileRuleBody(new Functor2(@";", new Functor1(@"call", A), B), State, PseudoCode))
+                        foreach (bool l4 in compileRuleBody(new Functor2(";", new Functor1("call", A), B), State, PseudoCode))
                         {
                             yield return true;
                             yield break;
@@ -2364,13 +2360,13 @@ namespace Temporary {
                 Variable B = new Variable();
                 Variable CutIfLabel = new Variable();
                 Variable Code = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@";", new Functor2(@"->", A, T), B)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(";", new Functor2("->", A, T), B)))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2(@"breakableBlock", CutIfLabel, Code), Atom.NIL)))
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor2("breakableBlock", CutIfLabel, Code), Atom.NIL)))
                     {
-                        foreach (bool l4 in CompilerState.gensym(State, Atom.a(@"cutIf"), CutIfLabel))
+                        foreach (bool l4 in CompilerState.gensym(State, Atom.a("cutIf"), CutIfLabel))
                         {
-                            foreach (bool l5 in compileRuleBody(new Functor2(@";", new Functor2(@",", A, new Functor2(@",", new Functor1(@"$CUTIF", CutIfLabel), T)), B), State, Code))
+                            foreach (bool l5 in compileRuleBody(new Functor2(";", new Functor2(",", A, new Functor2(",", new Functor1("$CUTIF", CutIfLabel), T)), B), State, Code))
                             {
                                 yield return true;
                                 yield break;
@@ -2382,11 +2378,24 @@ namespace Temporary {
             {
                 object State = arg2;
                 object PseudoCode = arg3;
+                Variable _B = new Variable();
+                foreach (bool l2 in YP.unify(arg1, new Functor2(";", Atom.a("!"), _B)))
+                {
+                    foreach (bool l3 in compileRuleBody(Atom.a("!"), State, PseudoCode))
+                    {
+                        yield return true;
+                        yield break;
+                    }
+                }
+            }
+            {
+                object State = arg2;
+                object PseudoCode = arg3;
                 Variable A = new Variable();
                 Variable B = new Variable();
                 Variable ACode = new Variable();
                 Variable BCode = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@";", A, B)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2(";", A, B)))
                 {
                     foreach (bool l3 in compileRuleBody(A, State, ACode))
                     {
@@ -2402,10 +2411,102 @@ namespace Temporary {
                 }
             }
             {
+                object State = arg2;
+                foreach (bool l2 in YP.unify(arg1, Atom.a("!")))
+                {
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a("return"), Atom.NIL)))
+                    {
+                        if (CompilerState.determinismEquals(State, Atom.a("detNoneOut")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                object State = arg2;
+                foreach (bool l2 in YP.unify(arg1, Atom.a("!")))
+                {
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a("returntrue"), Atom.NIL)))
+                    {
+                        if (CompilerState.determinismEquals(State, Atom.a("semidetNoneOut")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                object State = arg2;
+                foreach (bool l2 in YP.unify(arg1, Atom.a("!")))
+                {
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a("yieldtrue"), new ListPair(Atom.a("yieldbreak"), Atom.NIL))))
+                    {
+                        CompilerState.setCodeUsesYield(State);
+                        yield return true;
+                        yield break;
+                    }
+                }
+            }
+            {
+                object _State = arg2;
+                Variable Name = new Variable();
+                foreach (bool l2 in YP.unify(arg1, new Functor1("$CUTIF", Name)))
+                {
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(new Functor1("breakBlock", Name), Atom.NIL)))
+                    {
+                        yield return true;
+                        yield break;
+                    }
+                }
+            }
+            {
+                object State = arg2;
+                foreach (bool l2 in YP.unify(arg1, Atom.a("true")))
+                {
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a("return"), Atom.NIL)))
+                    {
+                        if (CompilerState.determinismEquals(State, Atom.a("detNoneOut")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                object State = arg2;
+                foreach (bool l2 in YP.unify(arg1, Atom.a("true")))
+                {
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a("returntrue"), Atom.NIL)))
+                    {
+                        if (CompilerState.determinismEquals(State, Atom.a("semidetNoneOut")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                object State = arg2;
+                foreach (bool l2 in YP.unify(arg1, Atom.a("true")))
+                {
+                    foreach (bool l3 in YP.unify(arg3, new ListPair(Atom.a("yieldfalse"), Atom.NIL)))
+                    {
+                        CompilerState.setCodeUsesYield(State);
+                        yield return true;
+                        yield break;
+                    }
+                }
+            }
+            {
                 object A = arg1;
                 object State = arg2;
                 object PseudoCode = arg3;
-                foreach (bool l2 in compileRuleBody(new Functor2(@",", A, Atom.a(@"true")), State, PseudoCode))
+                foreach (bool l2 in compileRuleBody(new Functor2(",", A, Atom.a("true")), State, PseudoCode))
                 {
                     yield return true;
                     yield break;
@@ -2429,15 +2530,15 @@ namespace Temporary {
                     {
                         foreach (bool l4 in unqualifiedGoal(Goal, UnqualifiedGoal))
                         {
-                            foreach (bool l5 in CompilerState.gensym(State, Atom.a(@"bagofAnswers"), BagofAnswers))
+                            foreach (bool l5 in CompilerState.gensym(State, Atom.a("bagofAnswers"), BagofAnswers))
                             {
-                                foreach (bool l6 in compileRuleBody(new Functor2(@",", UnqualifiedGoal, new Functor2(@",", new Functor1(@"$DET_NONE_OUT", new Functor3(@"callMember", new Functor1(@"var", BagofAnswers), Atom.a(@"add"), Atom.NIL)), Atom.a(@"fail"))), State, GoalAndAddCode))
+                                foreach (bool l6 in compileRuleBody(new Functor2(",", UnqualifiedGoal, new Functor2(",", new Functor1("$DET_NONE_OUT", new Functor3("callMember", new Functor1("var", BagofAnswers), Atom.a("add"), Atom.NIL)), Atom.a("fail"))), State, GoalAndAddCode))
                                 {
                                     foreach (bool l7 in compileTerm(Bag, State, BagCode))
                                     {
                                         foreach (bool l8 in compileRuleBody(B, State, BCode))
                                         {
-                                            foreach (bool l9 in append(new ListPair(new Functor3(@"declare", Atom.a(@"BagofAnswers"), BagofAnswers, new Functor2(@"new", Atom.a(@"BagofAnswers"), new ListPair(TemplateCode, new ListPair(GoalTermCode, Atom.NIL)))), GoalAndAddCode), new ListPair(new Functor2(@"foreach", new Functor3(@"callMember", new Functor1(@"var", BagofAnswers), ResultMethod, new ListPair(BagCode, Atom.NIL)), BCode), Atom.NIL), PseudoCode))
+                                            foreach (bool l9 in append(new ListPair(new Functor3("declare", Atom.a("BagofAnswers"), BagofAnswers, new Functor2("new", Atom.a("BagofAnswers"), new ListPair(TemplateCode, new ListPair(GoalTermCode, Atom.NIL)))), GoalAndAddCode), new ListPair(new Functor2("foreach", new Functor3("callMember", new Functor1("var", BagofAnswers), ResultMethod, new ListPair(BagCode, Atom.NIL)), BCode), Atom.NIL), PseudoCode))
                                             {
                                                 yield return true;
                                                 yield break;
@@ -2456,7 +2557,7 @@ namespace Temporary {
         {
             {
                 object Goal = arg1;
-                foreach (bool l2 in YP.unify(arg2, new Functor1(@"call", Goal)))
+                foreach (bool l2 in YP.unify(arg2, new Functor1("call", Goal)))
                 {
                     if (YP.var(Goal))
                     {
@@ -2469,7 +2570,7 @@ namespace Temporary {
                 object UnqualifiedGoal = arg2;
                 Variable x1 = new Variable();
                 Variable Goal = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"^", x1, Goal)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("^", x1, Goal)))
                 {
                     foreach (bool l3 in unqualifiedGoal(Goal, UnqualifiedGoal))
                     {
@@ -2494,9 +2595,9 @@ namespace Temporary {
         public static IEnumerable<bool> binaryExpressionConditional(object arg1, object arg2)
         {
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"=:=")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("=:=")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.equal")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.equal")))
                     {
                         yield return true;
                         yield break;
@@ -2504,9 +2605,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"=\=")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("=\\=")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.notEqual")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.notEqual")))
                     {
                         yield return true;
                         yield break;
@@ -2514,9 +2615,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@">")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a(">")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.greaterThan")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.greaterThan")))
                     {
                         yield return true;
                         yield break;
@@ -2524,9 +2625,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"<")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("<")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.lessThan")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.lessThan")))
                     {
                         yield return true;
                         yield break;
@@ -2534,9 +2635,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@">=")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a(">=")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.greaterThanOrEqual")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.greaterThanOrEqual")))
                     {
                         yield return true;
                         yield break;
@@ -2544,9 +2645,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"=<")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("=<")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.lessThanOrEqual")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.lessThanOrEqual")))
                     {
                         yield return true;
                         yield break;
@@ -2562,26 +2663,26 @@ namespace Temporary {
                 Variable FunctorArgs = new Variable();
                 Variable x6 = new Variable();
                 Variable Arity = new Variable();
-                Variable CompiledArgs = new Variable();
                 Variable FunctionName = new Variable();
+                Variable CompiledArgs = new Variable();
                 foreach (bool l2 in YP.univ(Functor_1, new ListPair(FunctorName, FunctorArgs)))
                 {
                     foreach (bool l3 in YP.functor(Functor_1, x6, Arity))
                     {
-                        foreach (bool l4 in maplist_compileTerm(FunctorArgs, State, CompiledArgs))
+                        foreach (bool l4 in functorCallFunctionName(State, FunctorName, Arity, FunctionName))
                         {
-                            foreach (bool l5 in functorCallFunctionName(State, FunctorName, Arity, FunctionName))
+                            foreach (bool l5 in maplist_compileTerm(FunctorArgs, State, CompiledArgs))
                             {
                                 if (YP.termEqual(FunctionName, Atom.NIL))
                                 {
-                                    foreach (bool l7 in YP.unify(PseudoCode, new Functor2(@"call", Atom.a(@"YP.matchDynamic"), new ListPair(new Functor2(@"call", Atom.a(@"Atom.a"), new ListPair(new Functor1(@"object", FunctorName), Atom.NIL)), new ListPair(new Functor1(@"objectArray", CompiledArgs), Atom.NIL)))))
-                                {
-                                    yield return true;
-                                    yield break;
-                                }
+                                    foreach (bool l7 in YP.unify(PseudoCode, new Functor2("call", Atom.a("YP.matchDynamic"), new ListPair(new Functor2("call", Atom.a("Atom.a"), new ListPair(new Functor1("object", FunctorName), Atom.NIL)), new ListPair(new Functor1("objectArray", CompiledArgs), Atom.NIL)))))
+                                    {
+                                        yield return true;
+                                        yield break;
+                                    }
                                     goto cutIf1;
                                 }
-                                foreach (bool l6 in YP.unify(PseudoCode, new Functor2(@"call", FunctionName, CompiledArgs)))
+                                foreach (bool l6 in YP.unify(PseudoCode, new Functor3("functorCall", FunctionName, FunctorArgs, CompiledArgs)))
                                 {
                                     yield return true;
                                     yield break;
@@ -2597,6 +2698,16 @@ namespace Temporary {
 
         public static IEnumerable<bool> functorCallFunctionName(object arg1, object arg2, object arg3, object arg4)
         {
+            {
+                object _State = arg1;
+                object Name = arg2;
+                object Arity = arg3;
+                object x4 = arg4;
+                if (functorCallIsSpecialForm(Name, Arity))
+                {
+                    yield break;
+                }
+            }
             {
                 object x1 = arg1;
                 object Name = arg2;
@@ -2616,7 +2727,7 @@ namespace Temporary {
                 {
                     foreach (bool l3 in YP.unify(arg4, Name))
                     {
-                        if (CompilerState.nameArityHasModule(State, Name, Arity, Atom.a(@"")))
+                        if (CompilerState.nameArityHasModule(State, Name, Arity, Atom.a("")))
                         {
                             yield return true;
                             yield break;
@@ -2632,7 +2743,7 @@ namespace Temporary {
                 {
                     foreach (bool l3 in YP.unify(arg4, Name))
                     {
-                        foreach (bool l4 in Atom.module(Name, Atom.a(@"")))
+                        foreach (bool l4 in Atom.module(Name, Atom.a("")))
                         {
                             yield return true;
                             yield break;
@@ -2643,7 +2754,7 @@ namespace Temporary {
             {
                 object _State = arg1;
                 object Name = arg2;
-                object Arity = arg3;
+                object _Arity = arg3;
                 foreach (bool l2 in YP.unify(arg4, Atom.NIL))
                 {
                     foreach (bool l3 in Atom.module(Name, Atom.NIL))
@@ -2662,33 +2773,137 @@ namespace Temporary {
                 Variable Message = new Variable();
                 foreach (bool l2 in Atom.module(Name, Module))
                 {
-                    foreach (bool l3 in YP.atom_concat(Atom.a(@"Not supporting calls to external module: "), Module, Message))
+                    foreach (bool l3 in YP.atom_concat(Atom.a("Not supporting calls to external module: "), Module, Message))
                     {
-                        YP.throwException(new Functor2(@"error", new Functor2(@"type_error", Atom.a(@"callable"), new Functor2(@"/", Name, Arity)), Message));
+                        YP.throwException(new Functor2("error", new Functor2("type_error", Atom.a("callable"), new Functor2("/", Name, Arity)), Message));
                         yield return true;
                         yield break;
                     }
                 }
             }
-                {
+            {
                 object _State = arg1;
                 object Name = arg2;
                 object _Arity = arg3;
                 object x4 = arg4;
-                YP.throwException(new Functor2(@"error", new Functor2(@"type_error", Atom.a(@"callable"), Name), Atom.a(@"Term is not callable")));
+                YP.throwException(new Functor2("error", new Functor2("type_error", Atom.a("callable"), Name), Atom.a("Term is not callable")));
                 yield return true;
                 yield break;
             }
         }
 
+        public static bool functorCallIsSpecialForm(object Name, object Arity)
+        {
+            {
+                Variable x3 = new Variable();
+                if (YP.termEqual(Arity, 0))
+                {
+                    if (YP.termEqual(Name, Atom.a("!")))
+                    {
+                        return true;
+                    }
+                    if (YP.termEqual(Name, Atom.a("fail")))
+                    {
+                        return true;
+                    }
+                    if (YP.termEqual(Name, Atom.a("true")))
+                    {
+                        return true;
+                    }
+                }
+                if (YP.termEqual(Arity, 1))
+                {
+                    if (YP.termEqual(Name, Atom.a("\\+")))
+                    {
+                        return true;
+                    }
+                    if (YP.termEqual(Name, Atom.a("once")))
+                    {
+                        return true;
+                    }
+                    if (YP.termEqual(Name, Atom.a("$CUTIF")))
+                    {
+                        return true;
+                    }
+                    if (YP.termEqual(Name, Atom.a("$DET_NONE_OUT")))
+                    {
+                        return true;
+                    }
+                    if (YP.termEqual(Name, Atom.a("call")))
+                    {
+                        return true;
+                    }
+                    if (YP.termEqual(Name, Atom.a("asserta")))
+                    {
+                        return true;
+                    }
+                    if (YP.termEqual(Name, Atom.a("assertz")))
+                    {
+                        return true;
+                    }
+                    if (YP.termEqual(Name, Atom.a("assert")))
+                    {
+                        return true;
+                    }
+                }
+                if (YP.termEqual(Arity, 2))
+                {
+                    if (YP.termEqual(Name, Atom.a(";")))
+                    {
+                        return true;
+                    }
+                    if (YP.termEqual(Name, Atom.a(",")))
+                    {
+                        return true;
+                    }
+                    if (YP.termEqual(Name, Atom.a("->")))
+                    {
+                        return true;
+                    }
+                    if (YP.termEqual(Name, Atom.a("\\=")))
+                    {
+                        return true;
+                    }
+                    if (YP.termEqual(Name, Atom.a("is")))
+                    {
+                        return true;
+                    }
+                    foreach (bool l3 in binaryExpressionConditional(Name, x3))
+                    {
+                        return true;
+                    }
+                }
+                if (YP.termEqual(Arity, 3))
+                {
+                    if (YP.termEqual(Name, Atom.a("findall")))
+                    {
+                        return true;
+                    }
+                    if (YP.termEqual(Name, Atom.a("bagof")))
+                    {
+                        return true;
+                    }
+                    if (YP.termEqual(Name, Atom.a("setof")))
+                    {
+                        return true;
+                    }
+                    if (YP.termEqual(Name, Atom.a("catch")))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         public static IEnumerable<bool> functorCallYPFunctionName(object arg1, object arg2, object arg3)
         {
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"=")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("=")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 2))
                     {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.unify")))
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.unify")))
                         {
                             yield return true;
                             yield break;
@@ -2697,11 +2912,11 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"=..")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("=..")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 2))
                     {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.univ")))
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.univ")))
                         {
                             yield return true;
                             yield break;
@@ -2710,11 +2925,11 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"var")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("var")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 1))
                     {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.var")))
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.var")))
                         {
                             yield return true;
                             yield break;
@@ -2723,11 +2938,11 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"nonvar")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("nonvar")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 1))
                     {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.nonvar")))
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.nonvar")))
                         {
                             yield return true;
                             yield break;
@@ -2736,11 +2951,11 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"arg")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("arg")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 3))
                     {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.arg")))
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.arg")))
                         {
                             yield return true;
                             yield break;
@@ -2749,11 +2964,11 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"functor")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("functor")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 3))
                     {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.functor")))
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.functor")))
                         {
                             yield return true;
                             yield break;
@@ -2762,11 +2977,11 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"repeat")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("repeat")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 0))
                     {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.repeat")))
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.repeat")))
                         {
                             yield return true;
                             yield break;
@@ -2775,11 +2990,11 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"get_code")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("get_code")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 1))
                     {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.get_code")))
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.get_code")))
                         {
                             yield return true;
                             yield break;
@@ -2788,11 +3003,11 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"current_op")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("current_op")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 3))
                     {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.current_op")))
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.current_op")))
                         {
                             yield return true;
                             yield break;
@@ -2801,11 +3016,24 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"atom_length")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("current_predicate")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.current_predicate")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a("atom_length")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 2))
                     {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.atom_length")))
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.atom_length")))
                         {
                             yield return true;
                             yield break;
@@ -2814,11 +3042,11 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"atom_concat")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("atom_concat")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 3))
                     {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.atom_concat")))
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.atom_concat")))
                         {
                             yield return true;
                             yield break;
@@ -2827,11 +3055,11 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"sub_atom")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("sub_atom")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 5))
                     {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.sub_atom")))
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.sub_atom")))
                         {
                             yield return true;
                             yield break;
@@ -2840,11 +3068,11 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"atom_codes")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("atom_chars")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 2))
                     {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.atom_codes")))
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.atom_chars")))
                         {
                             yield return true;
                             yield break;
@@ -2853,11 +3081,11 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"number_codes")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("atom_codes")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 2))
                     {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.number_codes")))
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.atom_codes")))
                         {
                             yield return true;
                             yield break;
@@ -2866,11 +3094,11 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"copy_term")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("char_code")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 2))
                     {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.copy_term")))
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.char_code")))
                         {
                             yield return true;
                             yield break;
@@ -2879,11 +3107,50 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"sort")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("number_chars")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 2))
                     {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.sort")))
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.number_chars")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a("number_codes")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.number_codes")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a("copy_term")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.copy_term")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a("sort")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.sort")))
                         {
                             yield return true;
                             yield break;
@@ -2908,11 +3175,11 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"nl")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("nl")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 0))
                     {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.nl")))
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.nl")))
                         {
                             yield return true;
                             yield break;
@@ -2921,11 +3188,11 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"write")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("write")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 1))
                     {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.write")))
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.write")))
                         {
                             yield return true;
                             yield break;
@@ -2934,11 +3201,11 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"put_code")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("put_code")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 1))
                     {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.put_code")))
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.put_code")))
                         {
                             yield return true;
                             yield break;
@@ -2947,89 +3214,11 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"atom")))
-                {
-                    foreach (bool l3 in YP.unify(arg2, 1))
-                    {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.atom")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"integer")))
-                {
-                    foreach (bool l3 in YP.unify(arg2, 1))
-                    {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.integer")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"float")))
-                {
-                    foreach (bool l3 in YP.unify(arg2, 1))
-                    {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.isFloat")))
-                {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"number")))
-                {
-                    foreach (bool l3 in YP.unify(arg2, 1))
-                    {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.number")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"atomic")))
-                {
-                    foreach (bool l3 in YP.unify(arg2, 1))
-                    {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.atomic")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"compound")))
-                {
-                    foreach (bool l3 in YP.unify(arg2, 1))
-                    {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.compound")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"==")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("clause")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 2))
                     {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.termEqual")))
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.clause")))
                         {
                             yield return true;
                             yield break;
@@ -3038,83 +3227,213 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"\==")))
-                {
-                    foreach (bool l3 in YP.unify(arg2, 2))
-                    {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.termNotEqual")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"@<")))
-                {
-                    foreach (bool l3 in YP.unify(arg2, 2))
-                    {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.termLessThan")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"@=<")))
-                {
-                    foreach (bool l3 in YP.unify(arg2, 2))
-                    {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.termLessThanOrEqual")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"@>")))
-                {
-                    foreach (bool l3 in YP.unify(arg2, 2))
-                    {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.termGreaterThan")))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
-                }
-            }
-            {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"@>=")))
-                {
-                    foreach (bool l3 in YP.unify(arg2, 2))
-                    {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.termGreaterThanOrEqual")))
-                {
-                    yield return true;
-                    yield break;
-                }
-            }
-                }
-            }
-            {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"throw")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("retract")))
                 {
                     foreach (bool l3 in YP.unify(arg2, 1))
-                {
-                        foreach (bool l4 in YP.unify(arg3, Atom.a(@"YP.throwException")))
                     {
-                        yield return true;
-                        yield break;
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.retract")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
                     }
                 }
             }
-        }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a("abolish")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.abolish")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a("retractall")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.retractall")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a("atom")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.atom")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a("integer")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.integer")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a("float")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.isFloat")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a("number")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.number")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a("atomic")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.atomic")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a("compound")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.compound")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a("==")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.termEqual")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a("\\==")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.termNotEqual")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a("@<")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.termLessThan")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a("@=<")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.termLessThanOrEqual")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a("@>")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.termGreaterThan")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a("@>=")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 2))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.termGreaterThanOrEqual")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a("throw")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, 1))
+                    {
+                        foreach (bool l4 in YP.unify(arg3, Atom.a("YP.throwException")))
+                        {
+                            yield return true;
+                            yield break;
+                        }
+                    }
+                }
+            }
         }
 
         public static IEnumerable<bool> compileTerm(object arg1, object arg2, object arg3)
@@ -3123,7 +3442,7 @@ namespace Temporary {
                 object Term = arg1;
                 object State = arg2;
                 Variable VariableName = new Variable();
-                foreach (bool l2 in YP.unify(arg3, new Functor1(@"var", VariableName)))
+                foreach (bool l2 in YP.unify(arg3, new Functor1("var", VariableName)))
                 {
                     if (YP.var(Term))
                     {
@@ -3139,7 +3458,7 @@ namespace Temporary {
                 object _State = arg2;
                 foreach (bool l2 in YP.unify(arg1, Atom.NIL))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new Functor1(@"var", Atom.a(@"Atom.NIL"))))
+                    foreach (bool l3 in YP.unify(arg3, new Functor1("var", Atom.a("Atom.NIL"))))
                     {
                         yield return true;
                         yield break;
@@ -3155,14 +3474,14 @@ namespace Temporary {
                 {
                     foreach (bool l3 in compileAtomModule(Term, 0, State, ModuleCode))
                     {
-                        foreach (bool l4 in YP.unify(Code, new Functor2(@"call", Atom.a(@"Atom.a"), new ListPair(new Functor1(@"object", Term), new ListPair(ModuleCode, Atom.NIL)))))
-                {
+                        foreach (bool l4 in YP.unify(Code, new Functor2("call", Atom.a("Atom.a"), new ListPair(new Functor1("object", Term), new ListPair(ModuleCode, Atom.NIL)))))
+                        {
                             yield return true;
                             yield break;
                         }
                         goto cutIf1;
                     }
-                    foreach (bool l3 in YP.unify(Code, new Functor2(@"call", Atom.a(@"Atom.a"), new ListPair(new Functor1(@"object", Term), Atom.NIL))))
+                    foreach (bool l3 in YP.unify(Code, new Functor2("call", Atom.a("Atom.a"), new ListPair(new Functor1("object", Term), Atom.NIL))))
                     {
                         yield return true;
                         yield break;
@@ -3179,7 +3498,7 @@ namespace Temporary {
                 Variable Arg2 = new Variable();
                 foreach (bool l2 in YP.unify(arg1, new ListPair(First, Rest)))
                 {
-                    foreach (bool l3 in YP.unify(arg3, new Functor2(@"new", Atom.a(@"ListPair"), new ListPair(Arg1, new ListPair(Arg2, Atom.NIL)))))
+                    foreach (bool l3 in YP.unify(arg3, new Functor2("new", Atom.a("ListPair"), new ListPair(Arg1, new ListPair(Arg2, Atom.NIL)))))
                     {
                         foreach (bool l4 in compileTerm(First, State, Arg1))
                         {
@@ -3213,7 +3532,7 @@ namespace Temporary {
                 {
                     if (YP.termEqual(TermArgs, Atom.NIL))
                     {
-                        foreach (bool l4 in YP.unify(Result, new Functor1(@"object", Name)))
+                        foreach (bool l4 in YP.unify(Result, new Functor1("object", Name)))
                         {
                             yield return true;
                             yield break;
@@ -3224,55 +3543,55 @@ namespace Temporary {
                     {
                         foreach (bool l4 in compileAtomModule(Name, Arity, State, ModuleCode))
                         {
-                            foreach (bool l5 in YP.unify(NameCode, new Functor2(@"call", Atom.a(@"Atom.a"), new ListPair(new Functor1(@"object", Name), new ListPair(ModuleCode, Atom.NIL)))))
+                            foreach (bool l5 in YP.unify(NameCode, new Functor2("call", Atom.a("Atom.a"), new ListPair(new Functor1("object", Name), new ListPair(ModuleCode, Atom.NIL)))))
                             {
                                 foreach (bool l6 in YP.unify(TermArgs, new ListPair(X1, Atom.NIL)))
                                 {
                                     foreach (bool l7 in compileTerm(X1, State, Arg1))
                                     {
-                                        foreach (bool l8 in YP.unify(Result, new Functor2(@"new", Atom.a(@"Functor1"), new ListPair(NameCode, new ListPair(Arg1, Atom.NIL)))))
+                                        foreach (bool l8 in YP.unify(Result, new Functor2("new", Atom.a("Functor1"), new ListPair(NameCode, new ListPair(Arg1, Atom.NIL)))))
                                         {
                                             yield return true;
                                             yield break;
                                         }
                                     }
                                     goto cutIf4;
-                    }
+                                }
                                 foreach (bool l6 in YP.unify(TermArgs, new ListPair(X1, new ListPair(X2, Atom.NIL))))
-                    {
+                                {
                                     foreach (bool l7 in compileTerm(X1, State, Arg1))
                                     {
                                         foreach (bool l8 in compileTerm(X2, State, Arg2))
-                        {
-                                            foreach (bool l9 in YP.unify(Result, new Functor2(@"new", Atom.a(@"Functor2"), new ListPair(NameCode, new ListPair(Arg1, new ListPair(Arg2, Atom.NIL))))))
-                            {
-                                yield return true;
-                                yield break;
-                            }
-                        }
-                    }
+                                        {
+                                            foreach (bool l9 in YP.unify(Result, new Functor2("new", Atom.a("Functor2"), new ListPair(NameCode, new ListPair(Arg1, new ListPair(Arg2, Atom.NIL))))))
+                                            {
+                                                yield return true;
+                                                yield break;
+                                            }
+                                        }
+                                    }
                                     goto cutIf5;
                                 }
                                 foreach (bool l6 in YP.unify(TermArgs, new ListPair(X1, new ListPair(X2, new ListPair(X3, Atom.NIL)))))
                                 {
                                     foreach (bool l7 in compileTerm(X1, State, Arg1))
-                    {
+                                    {
                                         foreach (bool l8 in compileTerm(X2, State, Arg2))
-                        {
+                                        {
                                             foreach (bool l9 in compileTerm(X3, State, Arg3))
-                            {
-                                                foreach (bool l10 in YP.unify(Result, new Functor2(@"new", Atom.a(@"Functor3"), new ListPair(NameCode, new ListPair(Arg1, new ListPair(Arg2, new ListPair(Arg3, Atom.NIL)))))))
-                                {
-                                    yield return true;
-                                    yield break;
-                                }
-                            }
-                        }
+                                            {
+                                                foreach (bool l10 in YP.unify(Result, new Functor2("new", Atom.a("Functor3"), new ListPair(NameCode, new ListPair(Arg1, new ListPair(Arg2, new ListPair(Arg3, Atom.NIL)))))))
+                                                {
+                                                    yield return true;
+                                                    yield break;
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                                 foreach (bool l6 in maplist_compileTerm(TermArgs, State, Args))
                                 {
-                                    foreach (bool l7 in YP.unify(Result, new Functor2(@"new", Atom.a(@"Functor"), new ListPair(NameCode, new ListPair(new Functor1(@"objectArray", Args), Atom.NIL)))))
+                                    foreach (bool l7 in YP.unify(Result, new Functor2("new", Atom.a("Functor"), new ListPair(NameCode, new ListPair(new Functor1("objectArray", Args), Atom.NIL)))))
                                     {
                                         yield return true;
                                         yield break;
@@ -3282,15 +3601,15 @@ namespace Temporary {
                             cutIf4:
                                 { }
                             }
-                        goto cutIf3;
-                    }
-                        foreach (bool l4 in YP.unify(NameCode, new Functor1(@"object", Name)))
+                            goto cutIf3;
+                        }
+                        foreach (bool l4 in YP.unify(NameCode, new Functor1("object", Name)))
                         {
                             foreach (bool l5 in YP.unify(TermArgs, new ListPair(X1, Atom.NIL)))
-                    {
+                            {
                                 foreach (bool l6 in compileTerm(X1, State, Arg1))
                                 {
-                                    foreach (bool l7 in YP.unify(Result, new Functor2(@"new", Atom.a(@"Functor1"), new ListPair(NameCode, new ListPair(Arg1, Atom.NIL)))))
+                                    foreach (bool l7 in YP.unify(Result, new Functor2("new", Atom.a("Functor1"), new ListPair(NameCode, new ListPair(Arg1, Atom.NIL)))))
                                     {
                                         yield return true;
                                         yield break;
@@ -3304,7 +3623,7 @@ namespace Temporary {
                                 {
                                     foreach (bool l7 in compileTerm(X2, State, Arg2))
                                     {
-                                        foreach (bool l8 in YP.unify(Result, new Functor2(@"new", Atom.a(@"Functor2"), new ListPair(NameCode, new ListPair(Arg1, new ListPair(Arg2, Atom.NIL))))))
+                                        foreach (bool l8 in YP.unify(Result, new Functor2("new", Atom.a("Functor2"), new ListPair(NameCode, new ListPair(Arg1, new ListPair(Arg2, Atom.NIL))))))
                                         {
                                             yield return true;
                                             yield break;
@@ -3316,33 +3635,33 @@ namespace Temporary {
                             foreach (bool l5 in YP.unify(TermArgs, new ListPair(X1, new ListPair(X2, new ListPair(X3, Atom.NIL)))))
                             {
                                 foreach (bool l6 in compileTerm(X1, State, Arg1))
-                        {
-                                    foreach (bool l7 in compileTerm(X2, State, Arg2))
-                            {
-                                        foreach (bool l8 in compileTerm(X3, State, Arg3))
                                 {
-                                            foreach (bool l9 in YP.unify(Result, new Functor2(@"new", Atom.a(@"Functor3"), new ListPair(NameCode, new ListPair(Arg1, new ListPair(Arg2, new ListPair(Arg3, Atom.NIL)))))))
+                                    foreach (bool l7 in compileTerm(X2, State, Arg2))
                                     {
-                                        yield return true;
-                                        yield break;
+                                        foreach (bool l8 in compileTerm(X3, State, Arg3))
+                                        {
+                                            foreach (bool l9 in YP.unify(Result, new Functor2("new", Atom.a("Functor3"), new ListPair(NameCode, new ListPair(Arg1, new ListPair(Arg2, new ListPair(Arg3, Atom.NIL)))))))
+                                            {
+                                                yield return true;
+                                                yield break;
+                                            }
+                                        }
                                     }
                                 }
                             }
-                        }
-                    }
                             foreach (bool l5 in maplist_compileTerm(TermArgs, State, Args))
-                    {
-                                foreach (bool l6 in YP.unify(Result, new Functor2(@"new", Atom.a(@"Functor"), new ListPair(NameCode, new ListPair(new Functor1(@"objectArray", Args), Atom.NIL)))))
-                        {
-                            yield return true;
-                            yield break;
-                        }
-                    }
+                            {
+                                foreach (bool l6 in YP.unify(Result, new Functor2("new", Atom.a("Functor"), new ListPair(NameCode, new ListPair(new Functor1("objectArray", Args), Atom.NIL)))))
+                                {
+                                    yield return true;
+                                    yield break;
+                                }
+                            }
                         cutIf7:
                         cutIf6:
                             { }
                         }
-                cutIf3:
+                    cutIf3:
                         { }
                     }
                 cutIf2:
@@ -3351,15 +3670,33 @@ namespace Temporary {
             }
         }
 
-        public static IEnumerable<bool> compileAtomModule(object Name, object Arity, object State, object ModuleCode)
+        public static IEnumerable<bool> compileAtomModule(object Name, object arg2, object arg3, object ModuleCode)
         {
             {
-                if (CompilerState.nameArityHasModule(State, Name, Arity, Atom.a(@"")))
+                object Arity = arg2;
+                object State = arg3;
+                if (CompilerState.nameArityHasModule(State, Name, Arity, Atom.a("")))
                 {
-                    foreach (bool l3 in YP.unify(ModuleCode, new Functor2(@"call", Atom.a(@"Atom.a"), new ListPair(new Functor1(@"object", Atom.a(@"")), Atom.NIL))))
+                    foreach (bool l3 in YP.unify(ModuleCode, new Functor2("call", Atom.a("Atom.a"), new ListPair(new Functor1("object", Atom.a("")), Atom.NIL))))
                     {
                         yield return true;
                         yield break;
+                    }
+                }
+            }
+            {
+                object _Arity = arg2;
+                object _State = arg3;
+                Variable Module = new Variable();
+                foreach (bool l2 in Atom.module(Name, Module))
+                {
+                    if (YP.termNotEqual(Module, Atom.NIL))
+                    {
+                        foreach (bool l4 in YP.unify(ModuleCode, new Functor2("call", Atom.a("Atom.a"), new ListPair(new Functor1("object", Module), Atom.NIL))))
+                        {
+                            yield return true;
+                            yield break;
+                        }
                     }
                 }
             }
@@ -3426,7 +3763,7 @@ namespace Temporary {
                                 {
                                     foreach (bool l7 in compileExpression(X1, State, Arg1))
                                     {
-                                        foreach (bool l8 in YP.unify(Result, new Functor2(@"call", FunctionName, new ListPair(Arg1, Atom.NIL))))
+                                        foreach (bool l8 in YP.unify(Result, new Functor2("call", FunctionName, new ListPair(Arg1, Atom.NIL))))
                                         {
                                             yield return true;
                                             yield break;
@@ -3452,7 +3789,7 @@ namespace Temporary {
                                     {
                                         foreach (bool l8 in compileExpression(X2, State, Arg2))
                                         {
-                                            foreach (bool l9 in YP.unify(Result, new Functor2(@"call", FunctionName, new ListPair(Arg1, new ListPair(Arg2, Atom.NIL)))))
+                                            foreach (bool l9 in YP.unify(Result, new Functor2("call", FunctionName, new ListPair(Arg1, new ListPair(Arg2, Atom.NIL)))))
                                             {
                                                 yield return true;
                                                 yield break;
@@ -3464,8 +3801,8 @@ namespace Temporary {
                             }
                             foreach (bool l5 in YP.functor(Term, x12, Arity))
                             {
-                                YP.throwException(new Functor2(@"error", new Functor2(@"type_error", Atom.a(@"evaluable"), new Functor2(@"/", Name, Arity)), Atom.a(@"Not an expression function")));
-                            yield return false;
+                                YP.throwException(new Functor2("error", new Functor2("type_error", Atom.a("evaluable"), new Functor2("/", Name, Arity)), Atom.a("Not an expression function")));
+                                yield return false;
                             }
                         cutIf3:
                         cutIf2:
@@ -3487,9 +3824,9 @@ namespace Temporary {
         public static IEnumerable<bool> unaryFunction(object arg1, object arg2)
         {
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"-")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("-")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.negate")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.negate")))
                     {
                         yield return true;
                         yield break;
@@ -3497,9 +3834,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"abs")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("abs")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.abs")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.abs")))
                     {
                         yield return true;
                         yield break;
@@ -3507,9 +3844,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"sign")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("sign")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.sign")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.sign")))
                     {
                         yield return true;
                         yield break;
@@ -3517,9 +3854,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"floor")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("float")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.floor")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.toFloat")))
                     {
                         yield return true;
                         yield break;
@@ -3527,9 +3864,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"truncate")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("floor")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.truncate")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.floor")))
                     {
                         yield return true;
                         yield break;
@@ -3537,9 +3874,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"round")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("truncate")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.round")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.truncate")))
                     {
                         yield return true;
                         yield break;
@@ -3547,9 +3884,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"floor")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("round")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.ceiling")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.round")))
                     {
                         yield return true;
                         yield break;
@@ -3557,9 +3894,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"sin")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("ceiling")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.sin")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.ceiling")))
                     {
                         yield return true;
                         yield break;
@@ -3567,9 +3904,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"cos")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("sin")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.cos")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.sin")))
                     {
                         yield return true;
                         yield break;
@@ -3577,9 +3914,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"atan")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("cos")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.atan")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.cos")))
                     {
                         yield return true;
                         yield break;
@@ -3587,9 +3924,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"exp")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("atan")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.exp")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.atan")))
                     {
                         yield return true;
                         yield break;
@@ -3597,9 +3934,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"log")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("exp")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.log")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.exp")))
                     {
                         yield return true;
                         yield break;
@@ -3607,9 +3944,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"sqrt")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("log")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.sqrt")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.log")))
                     {
                         yield return true;
                         yield break;
@@ -3617,9 +3954,19 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"\")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("sqrt")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.bitwiseComplement")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.sqrt")))
+                    {
+                        yield return true;
+                        yield break;
+                    }
+                }
+            }
+            {
+                foreach (bool l2 in YP.unify(arg1, Atom.a("\\")))
+                {
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.bitwiseComplement")))
                     {
                         yield return true;
                         yield break;
@@ -3631,9 +3978,9 @@ namespace Temporary {
         public static IEnumerable<bool> binaryFunction(object arg1, object arg2)
         {
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"+")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("+")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.add")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.add")))
                     {
                         yield return true;
                         yield break;
@@ -3641,9 +3988,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"-")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("-")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.subtract")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.subtract")))
                     {
                         yield return true;
                         yield break;
@@ -3651,9 +3998,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"*")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("*")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.multiply")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.multiply")))
                     {
                         yield return true;
                         yield break;
@@ -3661,9 +4008,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"/")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("/")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.divide")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.divide")))
                     {
                         yield return true;
                         yield break;
@@ -3671,9 +4018,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"//")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("//")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.intDivide")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.intDivide")))
                     {
                         yield return true;
                         yield break;
@@ -3681,9 +4028,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"mod")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("mod")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.mod")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.mod")))
                     {
                         yield return true;
                         yield break;
@@ -3691,9 +4038,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"**")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("**")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.pow")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.pow")))
                     {
                         yield return true;
                         yield break;
@@ -3701,9 +4048,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@">>")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a(">>")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.bitwiseShiftRight")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.bitwiseShiftRight")))
                     {
                         yield return true;
                         yield break;
@@ -3711,9 +4058,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"<<")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("<<")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.bitwiseShiftLeft")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.bitwiseShiftLeft")))
                     {
                         yield return true;
                         yield break;
@@ -3721,9 +4068,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"/\")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("/\\")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.bitwiseAnd")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.bitwiseAnd")))
                     {
                         yield return true;
                         yield break;
@@ -3731,9 +4078,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"\/")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("\\/")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.bitwiseOr")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.bitwiseOr")))
                     {
                         yield return true;
                         yield break;
@@ -3741,9 +4088,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"min")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("min")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.min")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.min")))
                     {
                         yield return true;
                         yield break;
@@ -3751,9 +4098,9 @@ namespace Temporary {
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"max")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("max")))
                 {
-                    foreach (bool l3 in YP.unify(arg2, Atom.a(@"YP.max")))
+                    foreach (bool l3 in YP.unify(arg2, Atom.a("YP.max")))
                     {
                         yield return true;
                         yield break;
@@ -3765,11 +4112,11 @@ namespace Temporary {
         public static void convertFunctionCSharp(object arg1)
         {
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"getDeclaringClass")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("getDeclaringClass")))
                 {
-                    YP.write(Atom.a(@"public class YPInnerClass {}"));
+                    YP.write(Atom.a("public class YPInnerClass {}"));
                     YP.nl();
-                    YP.write(Atom.a(@"public static System.Type getDeclaringClass() { return typeof(YPInnerClass).DeclaringType; }"));
+                    YP.write(Atom.a("public static System.Type getDeclaringClass() { return typeof(YPInnerClass).DeclaringType; }"));
                     YP.nl();
                     YP.nl();
                     return;
@@ -3781,20 +4128,20 @@ namespace Temporary {
                 Variable ArgList = new Variable();
                 Variable Body = new Variable();
                 Variable Level = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor(@"function", new object[] { ReturnType, Name, ArgList, Body })))
+                foreach (bool l2 in YP.unify(arg1, new Functor("function", new object[] { ReturnType, Name, ArgList, Body })))
                 {
-                    YP.write(Atom.a(@"public static "));
+                    YP.write(Atom.a("public static "));
                     YP.write(ReturnType);
-                    YP.write(Atom.a(@" "));
+                    YP.write(Atom.a(" "));
                     YP.write(Name);
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertArgListCSharp(ArgList);
-                    YP.write(Atom.a(@") {"));
+                    YP.write(Atom.a(") {"));
                     YP.nl();
                     foreach (bool l3 in YP.unify(Level, 1))
                     {
                         convertStatementListCSharp(Body, Level);
-                        YP.write(Atom.a(@"}"));
+                        YP.write(Atom.a("}"));
                         YP.nl();
                         YP.nl();
                         return;
@@ -3821,9 +4168,9 @@ namespace Temporary {
                 Variable Body = new Variable();
                 Variable RestStatements = new Variable();
                 Variable NewStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"breakableBlock", Name, Body), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("breakableBlock", Name, Body), RestStatements)))
                 {
-                    foreach (bool l3 in append(Body, new ListPair(new Functor1(@"label", Name), RestStatements), NewStatements))
+                    foreach (bool l3 in append(Body, new ListPair(new Functor1("label", Name), RestStatements), NewStatements))
                     {
                         convertStatementListCSharp(NewStatements, Level);
                         return;
@@ -3835,15 +4182,15 @@ namespace Temporary {
                 Variable Name = new Variable();
                 Variable Expression = new Variable();
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor3(@"declare", Type, Name, Expression), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor3("declare", Type, Name, Expression), RestStatements)))
                 {
                     convertIndentationCSharp(Level);
                     YP.write(Type);
-                    YP.write(Atom.a(@" "));
+                    YP.write(Atom.a(" "));
                     YP.write(Name);
-                    YP.write(Atom.a(@" = "));
+                    YP.write(Atom.a(" = "));
                     convertExpressionCSharp(Expression);
-                    YP.write(Atom.a(@";"));
+                    YP.write(Atom.a(";"));
                     YP.nl();
                     convertStatementListCSharp(RestStatements, Level);
                     return;
@@ -3853,13 +4200,13 @@ namespace Temporary {
                 Variable Name = new Variable();
                 Variable Expression = new Variable();
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"assign", Name, Expression), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("assign", Name, Expression), RestStatements)))
                 {
                     convertIndentationCSharp(Level);
                     YP.write(Name);
-                    YP.write(Atom.a(@" = "));
+                    YP.write(Atom.a(" = "));
                     convertExpressionCSharp(Expression);
-                    YP.write(Atom.a(@";"));
+                    YP.write(Atom.a(";"));
                     YP.nl();
                     convertStatementListCSharp(RestStatements, Level);
                     return;
@@ -3867,10 +4214,10 @@ namespace Temporary {
             }
             {
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(@"yieldtrue"), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a("yieldtrue"), RestStatements)))
                 {
                     convertIndentationCSharp(Level);
-                    YP.write(Atom.a(@"yield return true;"));
+                    YP.write(Atom.a("yield return true;"));
                     YP.nl();
                     convertStatementListCSharp(RestStatements, Level);
                     return;
@@ -3878,10 +4225,10 @@ namespace Temporary {
             }
             {
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(@"yieldfalse"), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a("yieldfalse"), RestStatements)))
                 {
                     convertIndentationCSharp(Level);
-                    YP.write(Atom.a(@"yield return false;"));
+                    YP.write(Atom.a("yield return false;"));
                     YP.nl();
                     convertStatementListCSharp(RestStatements, Level);
                     return;
@@ -3889,10 +4236,10 @@ namespace Temporary {
             }
             {
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(@"yieldbreak"), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a("yieldbreak"), RestStatements)))
                 {
                     convertIndentationCSharp(Level);
-                    YP.write(Atom.a(@"yield break;"));
+                    YP.write(Atom.a("yield break;"));
                     YP.nl();
                     convertStatementListCSharp(RestStatements, Level);
                     return;
@@ -3900,10 +4247,10 @@ namespace Temporary {
             }
             {
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(@"return"), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a("return"), RestStatements)))
                 {
                     convertIndentationCSharp(Level);
-                    YP.write(Atom.a(@"return;"));
+                    YP.write(Atom.a("return;"));
                     YP.nl();
                     convertStatementListCSharp(RestStatements, Level);
                     return;
@@ -3911,10 +4258,10 @@ namespace Temporary {
             }
             {
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(@"returntrue"), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a("returntrue"), RestStatements)))
                 {
                     convertIndentationCSharp(Level);
-                    YP.write(Atom.a(@"return true;"));
+                    YP.write(Atom.a("return true;"));
                     YP.nl();
                     convertStatementListCSharp(RestStatements, Level);
                     return;
@@ -3922,10 +4269,10 @@ namespace Temporary {
             }
             {
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(@"returnfalse"), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a("returnfalse"), RestStatements)))
                 {
                     convertIndentationCSharp(Level);
-                    YP.write(Atom.a(@"return false;"));
+                    YP.write(Atom.a("return false;"));
                     YP.nl();
                     convertStatementListCSharp(RestStatements, Level);
                     return;
@@ -3934,36 +4281,36 @@ namespace Temporary {
             {
                 Variable Name = new Variable();
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1(@"label", Name), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1("label", Name), RestStatements)))
                 {
                     convertIndentationCSharp(Level);
                     YP.write(Name);
-                    YP.write(Atom.a(@":"));
+                    YP.write(Atom.a(":"));
                     YP.nl();
                     if (YP.termEqual(RestStatements, Atom.NIL))
                     {
                         convertIndentationCSharp(Level);
-                        YP.write(Atom.a(@"{}"));
+                        YP.write(Atom.a("{}"));
                         YP.nl();
                         convertStatementListCSharp(RestStatements, Level);
                         return;
-                        // goto cutIf1;
+                        goto cutIf1;
                     }
                     convertStatementListCSharp(RestStatements, Level);
                     return;
-                // cutIf1:
-                //     { }
+                cutIf1:
+                    { }
                 }
             }
             {
                 Variable Name = new Variable();
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1(@"breakBlock", Name), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1("breakBlock", Name), RestStatements)))
                 {
                     convertIndentationCSharp(Level);
-                    YP.write(Atom.a(@"goto "));
+                    YP.write(Atom.a("goto "));
                     YP.write(Name);
-                    YP.write(Atom.a(@";"));
+                    YP.write(Atom.a(";"));
                     YP.nl();
                     convertStatementListCSharp(RestStatements, Level);
                     return;
@@ -3973,15 +4320,26 @@ namespace Temporary {
                 Variable Name = new Variable();
                 Variable ArgList = new Variable();
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"call", Name, ArgList), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("call", Name, ArgList), RestStatements)))
                 {
                     convertIndentationCSharp(Level);
                     YP.write(Name);
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertArgListCSharp(ArgList);
-                    YP.write(Atom.a(@");"));
+                    YP.write(Atom.a(");"));
                     YP.nl();
                     convertStatementListCSharp(RestStatements, Level);
+                    return;
+                }
+            }
+            {
+                Variable Name = new Variable();
+                Variable _FunctorArgs = new Variable();
+                Variable ArgList = new Variable();
+                Variable RestStatements = new Variable();
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor3("functorCall", Name, _FunctorArgs, ArgList), RestStatements)))
+                {
+                    convertStatementListCSharp(new ListPair(new Functor2("call", Name, ArgList), RestStatements), Level);
                     return;
                 }
             }
@@ -3990,15 +4348,15 @@ namespace Temporary {
                 Variable Name = new Variable();
                 Variable ArgList = new Variable();
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor3(@"callMember", new Functor1(@"var", Obj), Name, ArgList), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor3("callMember", new Functor1("var", Obj), Name, ArgList), RestStatements)))
                 {
                     convertIndentationCSharp(Level);
                     YP.write(Obj);
-                    YP.write(Atom.a(@"."));
+                    YP.write(Atom.a("."));
                     YP.write(Name);
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertArgListCSharp(ArgList);
-                    YP.write(Atom.a(@");"));
+                    YP.write(Atom.a(");"));
                     YP.nl();
                     convertStatementListCSharp(RestStatements, Level);
                     return;
@@ -4008,16 +4366,16 @@ namespace Temporary {
                 Variable Body = new Variable();
                 Variable RestStatements = new Variable();
                 Variable NextLevel = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1(@"blockScope", Body), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1("blockScope", Body), RestStatements)))
                 {
                     convertIndentationCSharp(Level);
-                    YP.write(Atom.a(@"{"));
+                    YP.write(Atom.a("{"));
                     YP.nl();
                     foreach (bool l3 in YP.unify(NextLevel, YP.add(Level, 1)))
                     {
                         convertStatementListCSharp(Body, NextLevel);
                         convertIndentationCSharp(Level);
-                        YP.write(Atom.a(@"}"));
+                        YP.write(Atom.a("}"));
                         YP.nl();
                         convertStatementListCSharp(RestStatements, Level);
                         return;
@@ -4029,18 +4387,18 @@ namespace Temporary {
                 Variable Body = new Variable();
                 Variable RestStatements = new Variable();
                 Variable NextLevel = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"if", Expression, Body), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("if", Expression, Body), RestStatements)))
                 {
                     convertIndentationCSharp(Level);
-                    YP.write(Atom.a(@"if ("));
+                    YP.write(Atom.a("if ("));
                     convertExpressionCSharp(Expression);
-                    YP.write(Atom.a(@") {"));
+                    YP.write(Atom.a(") {"));
                     YP.nl();
                     foreach (bool l3 in YP.unify(NextLevel, YP.add(Level, 1)))
                     {
                         convertStatementListCSharp(Body, NextLevel);
                         convertIndentationCSharp(Level);
-                        YP.write(Atom.a(@"}"));
+                        YP.write(Atom.a("}"));
                         YP.nl();
                         convertStatementListCSharp(RestStatements, Level);
                         return;
@@ -4052,20 +4410,20 @@ namespace Temporary {
                 Variable Body = new Variable();
                 Variable RestStatements = new Variable();
                 Variable NextLevel = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"foreach", Expression, Body), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("foreach", Expression, Body), RestStatements)))
                 {
                     convertIndentationCSharp(Level);
-                    YP.write(Atom.a(@"foreach (bool l"));
+                    YP.write(Atom.a("foreach (bool l"));
                     YP.write(Level);
-                    YP.write(Atom.a(@" in "));
+                    YP.write(Atom.a(" in "));
                     convertExpressionCSharp(Expression);
-                    YP.write(Atom.a(@") {"));
+                    YP.write(Atom.a(") {"));
                     YP.nl();
                     foreach (bool l3 in YP.unify(NextLevel, YP.add(Level, 1)))
                     {
                         convertStatementListCSharp(Body, NextLevel);
                         convertIndentationCSharp(Level);
-                        YP.write(Atom.a(@"}"));
+                        YP.write(Atom.a("}"));
                         YP.nl();
                         convertStatementListCSharp(RestStatements, Level);
                         return;
@@ -4075,12 +4433,12 @@ namespace Temporary {
             {
                 Variable Expression = new Variable();
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1(@"throw", Expression), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1("throw", Expression), RestStatements)))
                 {
                     convertIndentationCSharp(Level);
-                    YP.write(Atom.a(@"throw "));
+                    YP.write(Atom.a("throw "));
                     convertExpressionCSharp(Expression);
-                    YP.write(Atom.a(@";"));
+                    YP.write(Atom.a(";"));
                     YP.nl();
                     convertStatementListCSharp(RestStatements, Level);
                     return;
@@ -4094,7 +4452,7 @@ namespace Temporary {
                 Variable N = new Variable();
                 foreach (bool l2 in YP.unify(N, YP.multiply(Level, 2)))
                 {
-                    repeatWrite(Atom.a(@" "), N);
+                    repeatWrite(Atom.a(" "), N);
                     return;
                 }
             }
@@ -4116,15 +4474,15 @@ namespace Temporary {
                     convertExpressionCSharp(Head);
                     if (YP.termNotEqual(Tail, Atom.NIL))
                     {
-                        YP.write(Atom.a(@", "));
+                        YP.write(Atom.a(", "));
                         convertArgListCSharp(Tail);
                         return;
-                        // goto cutIf1;
+                        goto cutIf1;
                     }
                     convertArgListCSharp(Tail);
                     return;
-                // cutIf1:
-                //     { }
+                cutIf1:
+                    { }
                 }
             }
         }
@@ -4133,9 +4491,9 @@ namespace Temporary {
         {
             {
                 Variable X = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"arg", X)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("arg", X)))
                 {
-                    YP.write(Atom.a(@"object "));
+                    YP.write(Atom.a("object "));
                     YP.write(X);
                     return;
                 }
@@ -4143,12 +4501,22 @@ namespace Temporary {
             {
                 Variable Name = new Variable();
                 Variable ArgList = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"call", Name, ArgList)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("call", Name, ArgList)))
                 {
                     YP.write(Name);
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertArgListCSharp(ArgList);
-                    YP.write(Atom.a(@")"));
+                    YP.write(Atom.a(")"));
+                    return;
+                }
+            }
+            {
+                Variable Name = new Variable();
+                Variable _FunctorArgs = new Variable();
+                Variable ArgList = new Variable();
+                foreach (bool l2 in YP.unify(arg1, new Functor3("functorCall", Name, _FunctorArgs, ArgList)))
+                {
+                    convertExpressionCSharp(new Functor2("call", Name, ArgList));
                     return;
                 }
             }
@@ -4156,90 +4524,90 @@ namespace Temporary {
                 Variable Obj = new Variable();
                 Variable Name = new Variable();
                 Variable ArgList = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor3(@"callMember", new Functor1(@"var", Obj), Name, ArgList)))
+                foreach (bool l2 in YP.unify(arg1, new Functor3("callMember", new Functor1("var", Obj), Name, ArgList)))
                 {
                     YP.write(Obj);
-                    YP.write(Atom.a(@"."));
+                    YP.write(Atom.a("."));
                     YP.write(Name);
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertArgListCSharp(ArgList);
-                    YP.write(Atom.a(@")"));
+                    YP.write(Atom.a(")"));
                     return;
                 }
             }
             {
                 Variable Name = new Variable();
                 Variable ArgList = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"new", Name, ArgList)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("new", Name, ArgList)))
                 {
-                    YP.write(Atom.a(@"new "));
+                    YP.write(Atom.a("new "));
                     YP.write(Name);
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertArgListCSharp(ArgList);
-                    YP.write(Atom.a(@")"));
+                    YP.write(Atom.a(")"));
                     return;
                 }
             }
             {
                 Variable Name = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"var", Name)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("var", Name)))
                 {
                     YP.write(Name);
                     return;
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"null")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("null")))
                 {
-                    YP.write(Atom.a(@"null"));
+                    YP.write(Atom.a("null"));
                     return;
                 }
             }
             {
                 Variable X = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"not", X)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("not", X)))
                 {
-                    YP.write(Atom.a(@"!("));
+                    YP.write(Atom.a("!("));
                     convertExpressionCSharp(X);
-                    YP.write(Atom.a(@")"));
+                    YP.write(Atom.a(")"));
                     return;
                 }
             }
             {
                 Variable X = new Variable();
                 Variable Y = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"and", X, Y)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("and", X, Y)))
                 {
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertExpressionCSharp(X);
-                    YP.write(Atom.a(@") && ("));
+                    YP.write(Atom.a(") && ("));
                     convertExpressionCSharp(Y);
-                    YP.write(Atom.a(@")"));
+                    YP.write(Atom.a(")"));
                     return;
                 }
             }
             {
                 Variable ArgList = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"objectArray", ArgList)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("objectArray", ArgList)))
                 {
-                    YP.write(Atom.a(@"new object[] {"));
+                    YP.write(Atom.a("new object[] {"));
                     convertArgListCSharp(ArgList);
-                    YP.write(Atom.a(@"}"));
+                    YP.write(Atom.a("}"));
                     return;
                 }
             }
             {
                 Variable X = new Variable();
                 Variable Codes = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"object", X)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("object", X)))
                 {
                     if (YP.atom(X))
                     {
-                        YP.write(Atom.a(@"@"""));
+                        YP.write(Atom.a("\""));
                         foreach (bool l4 in YP.atom_codes(X, Codes))
                         {
                             convertStringCodesCSharp(Codes);
-                            YP.write(Atom.a(@""""));
+                            YP.write(Atom.a("\""));
                             return;
                         }
                     }
@@ -4247,7 +4615,7 @@ namespace Temporary {
             }
             {
                 Variable X = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"object", X)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("object", X)))
                 {
                     YP.write(X);
                     return;
@@ -4268,19 +4636,11 @@ namespace Temporary {
                 Variable RestCodes = new Variable();
                 foreach (bool l2 in YP.unify(arg1, new ListPair(Code, RestCodes)))
                 {
-                    if (YP.termEqual(Code, 34))
+                    foreach (bool l3 in putCStringCode(Code))
                     {
-                        YP.put_code(34);
-                        YP.put_code(Code);
                         convertStringCodesCSharp(RestCodes);
                         return;
-                        // goto cutIf1;
                     }
-                    YP.put_code(Code);
-                    convertStringCodesCSharp(RestCodes);
-                    return;
-                // cutIf1:
-                //     { }
                 }
             }
         }
@@ -4288,9 +4648,10 @@ namespace Temporary {
         public static void convertFunctionJavascript(object arg1)
         {
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"getDeclaringClass")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("getDeclaringClass")))
                 {
-                    YP.write(Atom.a(@"function getDeclaringClass() { return null; }"));
+                    YP.write(Atom.a("function getDeclaringClass() { return null; }"));
+                    YP.nl();
                     YP.nl();
                     return;
                 }
@@ -4300,16 +4661,16 @@ namespace Temporary {
                 Variable Name = new Variable();
                 Variable ArgList = new Variable();
                 Variable Body = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor(@"function", new object[] { x1, Name, ArgList, Body })))
+                foreach (bool l2 in YP.unify(arg1, new Functor("function", new object[] { x1, Name, ArgList, Body })))
                 {
-                    YP.write(Atom.a(@"function "));
+                    YP.write(Atom.a("function "));
                     YP.write(Name);
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertArgListJavascript(ArgList);
-                    YP.write(Atom.a(@") {"));
+                    YP.write(Atom.a(") {"));
                     YP.nl();
                     convertStatementListJavascript(Body, 1);
-                    YP.write(Atom.a(@"}"));
+                    YP.write(Atom.a("}"));
                     YP.nl();
                     YP.nl();
                     return;
@@ -4332,20 +4693,20 @@ namespace Temporary {
                 Variable Body = new Variable();
                 Variable RestStatements = new Variable();
                 Variable NextLevel = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"breakableBlock", Name, Body), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("breakableBlock", Name, Body), RestStatements)))
                 {
                     convertIndentationJavascript(Level);
                     YP.write(Name);
-                    YP.write(Atom.a(@":"));
+                    YP.write(Atom.a(":"));
                     YP.nl();
                     convertIndentationJavascript(Level);
-                    YP.write(Atom.a(@"{"));
+                    YP.write(Atom.a("{"));
                     YP.nl();
                     foreach (bool l3 in YP.unify(NextLevel, YP.add(Level, 1)))
                     {
                         convertStatementListJavascript(Body, NextLevel);
                         convertIndentationJavascript(Level);
-                        YP.write(Atom.a(@"}"));
+                        YP.write(Atom.a("}"));
                         YP.nl();
                         convertStatementListJavascript(RestStatements, Level);
                         return;
@@ -4358,14 +4719,14 @@ namespace Temporary {
                 Variable Name = new Variable();
                 Variable Expression = new Variable();
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor3(@"declare", _Type, Name, Expression), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor3("declare", _Type, Name, Expression), RestStatements)))
                 {
                     convertIndentationJavascript(Level);
-                    YP.write(Atom.a(@"var "));
+                    YP.write(Atom.a("var "));
                     YP.write(Name);
-                    YP.write(Atom.a(@" = "));
+                    YP.write(Atom.a(" = "));
                     convertExpressionJavascript(Expression);
-                    YP.write(Atom.a(@";"));
+                    YP.write(Atom.a(";"));
                     YP.nl();
                     convertStatementListJavascript(RestStatements, Level);
                     return;
@@ -4376,13 +4737,13 @@ namespace Temporary {
                 Variable Name = new Variable();
                 Variable Expression = new Variable();
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"assign", Name, Expression), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("assign", Name, Expression), RestStatements)))
                 {
                     convertIndentationJavascript(Level);
                     YP.write(Name);
-                    YP.write(Atom.a(@" = "));
+                    YP.write(Atom.a(" = "));
                     convertExpressionJavascript(Expression);
-                    YP.write(Atom.a(@";"));
+                    YP.write(Atom.a(";"));
                     YP.nl();
                     convertStatementListJavascript(RestStatements, Level);
                     return;
@@ -4391,10 +4752,10 @@ namespace Temporary {
             {
                 object Level = arg2;
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(@"yieldtrue"), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a("yieldtrue"), RestStatements)))
                 {
                     convertIndentationJavascript(Level);
-                    YP.write(Atom.a(@"yield true;"));
+                    YP.write(Atom.a("yield true;"));
                     YP.nl();
                     convertStatementListJavascript(RestStatements, Level);
                     return;
@@ -4403,10 +4764,10 @@ namespace Temporary {
             {
                 object Level = arg2;
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(@"yieldfalse"), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a("yieldfalse"), RestStatements)))
                 {
                     convertIndentationJavascript(Level);
-                    YP.write(Atom.a(@"yield false;"));
+                    YP.write(Atom.a("yield false;"));
                     YP.nl();
                     convertStatementListJavascript(RestStatements, Level);
                     return;
@@ -4415,10 +4776,10 @@ namespace Temporary {
             {
                 object Level = arg2;
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(@"yieldbreak"), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a("yieldbreak"), RestStatements)))
                 {
                     convertIndentationJavascript(Level);
-                    YP.write(Atom.a(@"return;"));
+                    YP.write(Atom.a("return;"));
                     YP.nl();
                     convertStatementListJavascript(RestStatements, Level);
                     return;
@@ -4427,10 +4788,10 @@ namespace Temporary {
             {
                 object Level = arg2;
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(@"return"), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a("return"), RestStatements)))
                 {
                     convertIndentationJavascript(Level);
-                    YP.write(Atom.a(@"return;"));
+                    YP.write(Atom.a("return;"));
                     YP.nl();
                     convertStatementListJavascript(RestStatements, Level);
                     return;
@@ -4439,10 +4800,10 @@ namespace Temporary {
             {
                 object Level = arg2;
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(@"returntrue"), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a("returntrue"), RestStatements)))
                 {
                     convertIndentationJavascript(Level);
-                    YP.write(Atom.a(@"return true;"));
+                    YP.write(Atom.a("return true;"));
                     YP.nl();
                     convertStatementListJavascript(RestStatements, Level);
                     return;
@@ -4451,10 +4812,10 @@ namespace Temporary {
             {
                 object Level = arg2;
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(@"returnfalse"), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a("returnfalse"), RestStatements)))
                 {
                     convertIndentationJavascript(Level);
-                    YP.write(Atom.a(@"return false;"));
+                    YP.write(Atom.a("return false;"));
                     YP.nl();
                     convertStatementListJavascript(RestStatements, Level);
                     return;
@@ -4464,12 +4825,12 @@ namespace Temporary {
                 object Level = arg2;
                 Variable Name = new Variable();
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1(@"breakBlock", Name), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1("breakBlock", Name), RestStatements)))
                 {
                     convertIndentationJavascript(Level);
-                    YP.write(Atom.a(@"break "));
+                    YP.write(Atom.a("break "));
                     YP.write(Name);
-                    YP.write(Atom.a(@";"));
+                    YP.write(Atom.a(";"));
                     YP.nl();
                     convertStatementListJavascript(RestStatements, Level);
                     return;
@@ -4480,15 +4841,27 @@ namespace Temporary {
                 Variable Name = new Variable();
                 Variable ArgList = new Variable();
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"call", Name, ArgList), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("call", Name, ArgList), RestStatements)))
                 {
                     convertIndentationJavascript(Level);
                     YP.write(Name);
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertArgListJavascript(ArgList);
-                    YP.write(Atom.a(@");"));
+                    YP.write(Atom.a(");"));
                     YP.nl();
                     convertStatementListJavascript(RestStatements, Level);
+                    return;
+                }
+            }
+            {
+                object Level = arg2;
+                Variable Name = new Variable();
+                Variable _FunctorArgs = new Variable();
+                Variable ArgList = new Variable();
+                Variable RestStatements = new Variable();
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor3("functorCall", Name, _FunctorArgs, ArgList), RestStatements)))
+                {
+                    convertStatementListJavascript(new ListPair(new Functor2("call", Name, ArgList), RestStatements), Level);
                     return;
                 }
             }
@@ -4498,15 +4871,15 @@ namespace Temporary {
                 Variable Name = new Variable();
                 Variable ArgList = new Variable();
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor3(@"callMember", new Functor1(@"var", Obj), Name, ArgList), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor3("callMember", new Functor1("var", Obj), Name, ArgList), RestStatements)))
                 {
                     convertIndentationJavascript(Level);
                     YP.write(Obj);
-                    YP.write(Atom.a(@"."));
+                    YP.write(Atom.a("."));
                     YP.write(Name);
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertArgListJavascript(ArgList);
-                    YP.write(Atom.a(@");"));
+                    YP.write(Atom.a(");"));
                     YP.nl();
                     convertStatementListJavascript(RestStatements, Level);
                     return;
@@ -4517,16 +4890,16 @@ namespace Temporary {
                 Variable Body = new Variable();
                 Variable RestStatements = new Variable();
                 Variable NextLevel = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1(@"blockScope", Body), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1("blockScope", Body), RestStatements)))
                 {
                     convertIndentationJavascript(Level);
-                    YP.write(Atom.a(@"{"));
+                    YP.write(Atom.a("{"));
                     YP.nl();
                     foreach (bool l3 in YP.unify(NextLevel, YP.add(Level, 1)))
                     {
                         convertStatementListJavascript(Body, NextLevel);
                         convertIndentationJavascript(Level);
-                        YP.write(Atom.a(@"}"));
+                        YP.write(Atom.a("}"));
                         YP.nl();
                         convertStatementListJavascript(RestStatements, Level);
                         return;
@@ -4539,18 +4912,18 @@ namespace Temporary {
                 Variable Body = new Variable();
                 Variable RestStatements = new Variable();
                 Variable NextLevel = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"if", Expression, Body), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("if", Expression, Body), RestStatements)))
                 {
                     convertIndentationJavascript(Level);
-                    YP.write(Atom.a(@"if ("));
+                    YP.write(Atom.a("if ("));
                     convertExpressionJavascript(Expression);
-                    YP.write(Atom.a(@") {"));
+                    YP.write(Atom.a(") {"));
                     YP.nl();
                     foreach (bool l3 in YP.unify(NextLevel, YP.add(Level, 1)))
                     {
                         convertStatementListJavascript(Body, NextLevel);
                         convertIndentationJavascript(Level);
-                        YP.write(Atom.a(@"}"));
+                        YP.write(Atom.a("}"));
                         YP.nl();
                         convertStatementListJavascript(RestStatements, Level);
                         return;
@@ -4563,20 +4936,20 @@ namespace Temporary {
                 Variable Body = new Variable();
                 Variable RestStatements = new Variable();
                 Variable NextLevel = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"foreach", Expression, Body), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("foreach", Expression, Body), RestStatements)))
                 {
                     convertIndentationJavascript(Level);
-                    YP.write(Atom.a(@"for each (var l"));
+                    YP.write(Atom.a("for each (var l"));
                     YP.write(Level);
-                    YP.write(Atom.a(@" in "));
+                    YP.write(Atom.a(" in "));
                     convertExpressionJavascript(Expression);
-                    YP.write(Atom.a(@") {"));
+                    YP.write(Atom.a(") {"));
                     YP.nl();
                     foreach (bool l3 in YP.unify(NextLevel, YP.add(Level, 1)))
                     {
                         convertStatementListJavascript(Body, NextLevel);
                         convertIndentationJavascript(Level);
-                        YP.write(Atom.a(@"}"));
+                        YP.write(Atom.a("}"));
                         YP.nl();
                         convertStatementListJavascript(RestStatements, Level);
                         return;
@@ -4587,12 +4960,12 @@ namespace Temporary {
                 object Level = arg2;
                 Variable Expression = new Variable();
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1(@"throw", Expression), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1("throw", Expression), RestStatements)))
                 {
                     convertIndentationJavascript(Level);
-                    YP.write(Atom.a(@"throw "));
+                    YP.write(Atom.a("throw "));
                     convertExpressionJavascript(Expression);
-                    YP.write(Atom.a(@";"));
+                    YP.write(Atom.a(";"));
                     YP.nl();
                     convertStatementListJavascript(RestStatements, Level);
                     return;
@@ -4606,7 +4979,7 @@ namespace Temporary {
                 Variable N = new Variable();
                 foreach (bool l2 in YP.unify(N, YP.multiply(Level, 2)))
                 {
-                    repeatWrite(Atom.a(@" "), N);
+                    repeatWrite(Atom.a(" "), N);
                     return;
                 }
             }
@@ -4628,15 +5001,15 @@ namespace Temporary {
                     convertExpressionJavascript(Head);
                     if (YP.termNotEqual(Tail, Atom.NIL))
                     {
-                        YP.write(Atom.a(@", "));
+                        YP.write(Atom.a(", "));
                         convertArgListJavascript(Tail);
                         return;
-                        // goto cutIf1;
+                        goto cutIf1;
                     }
                     convertArgListJavascript(Tail);
                     return;
-                // cutIf1:
-                //     { }
+                cutIf1:
+                    { }
                 }
             }
         }
@@ -4645,7 +5018,7 @@ namespace Temporary {
         {
             {
                 Variable X = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"arg", X)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("arg", X)))
                 {
                     YP.write(X);
                     return;
@@ -4654,12 +5027,22 @@ namespace Temporary {
             {
                 Variable Name = new Variable();
                 Variable ArgList = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"call", Name, ArgList)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("call", Name, ArgList)))
                 {
                     YP.write(Name);
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertArgListJavascript(ArgList);
-                    YP.write(Atom.a(@")"));
+                    YP.write(Atom.a(")"));
+                    return;
+                }
+            }
+            {
+                Variable Name = new Variable();
+                Variable _FunctorArgs = new Variable();
+                Variable ArgList = new Variable();
+                foreach (bool l2 in YP.unify(arg1, new Functor3("functorCall", Name, _FunctorArgs, ArgList)))
+                {
+                    convertExpressionJavascript(new Functor2("call", Name, ArgList));
                     return;
                 }
             }
@@ -4667,90 +5050,90 @@ namespace Temporary {
                 Variable Obj = new Variable();
                 Variable Name = new Variable();
                 Variable ArgList = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor3(@"callMember", new Functor1(@"var", Obj), Name, ArgList)))
+                foreach (bool l2 in YP.unify(arg1, new Functor3("callMember", new Functor1("var", Obj), Name, ArgList)))
                 {
                     YP.write(Obj);
-                    YP.write(Atom.a(@"."));
+                    YP.write(Atom.a("."));
                     YP.write(Name);
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertArgListJavascript(ArgList);
-                    YP.write(Atom.a(@")"));
+                    YP.write(Atom.a(")"));
                     return;
                 }
             }
             {
                 Variable Name = new Variable();
                 Variable ArgList = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"new", Name, ArgList)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("new", Name, ArgList)))
                 {
-                    YP.write(Atom.a(@"new "));
+                    YP.write(Atom.a("new "));
                     YP.write(Name);
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertArgListJavascript(ArgList);
-                    YP.write(Atom.a(@")"));
+                    YP.write(Atom.a(")"));
                     return;
                 }
             }
             {
                 Variable Name = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"var", Name)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("var", Name)))
                 {
                     YP.write(Name);
                     return;
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"null")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("null")))
                 {
-                    YP.write(Atom.a(@"null"));
+                    YP.write(Atom.a("null"));
                     return;
                 }
             }
             {
                 Variable X = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"not", X)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("not", X)))
                 {
-                    YP.write(Atom.a(@"!("));
+                    YP.write(Atom.a("!("));
                     convertExpressionJavascript(X);
-                    YP.write(Atom.a(@")"));
+                    YP.write(Atom.a(")"));
                     return;
                 }
             }
             {
                 Variable X = new Variable();
                 Variable Y = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"and", X, Y)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("and", X, Y)))
                 {
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertExpressionJavascript(X);
-                    YP.write(Atom.a(@") && ("));
+                    YP.write(Atom.a(") && ("));
                     convertExpressionJavascript(Y);
-                    YP.write(Atom.a(@")"));
+                    YP.write(Atom.a(")"));
                     return;
                 }
             }
             {
                 Variable ArgList = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"objectArray", ArgList)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("objectArray", ArgList)))
                 {
-                    YP.write(Atom.a(@"["));
+                    YP.write(Atom.a("["));
                     convertArgListJavascript(ArgList);
-                    YP.write(Atom.a(@"]"));
+                    YP.write(Atom.a("]"));
                     return;
                 }
             }
             {
                 Variable X = new Variable();
                 Variable Codes = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"object", X)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("object", X)))
                 {
                     if (YP.atom(X))
                     {
-                        YP.write(Atom.a(@""""));
+                        YP.write(Atom.a("\""));
                         foreach (bool l4 in YP.atom_codes(X, Codes))
                         {
                             convertStringCodesJavascript(Codes);
-                            YP.write(Atom.a(@""""));
+                            YP.write(Atom.a("\""));
                             return;
                         }
                     }
@@ -4758,7 +5141,7 @@ namespace Temporary {
             }
             {
                 Variable X = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"object", X)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("object", X)))
                 {
                     YP.write(X);
                     return;
@@ -4779,27 +5162,11 @@ namespace Temporary {
                 Variable RestCodes = new Variable();
                 foreach (bool l2 in YP.unify(arg1, new ListPair(Code, RestCodes)))
                 {
-                    if (YP.termEqual(Code, 34))
+                    foreach (bool l3 in putCStringCode(Code))
                     {
-                        YP.put_code(92);
-                        YP.put_code(Code);
                         convertStringCodesJavascript(RestCodes);
                         return;
-                        // goto cutIf1;
                     }
-                    if (YP.termEqual(Code, 92))
-                    {
-                        YP.put_code(92);
-                        YP.put_code(Code);
-                        convertStringCodesJavascript(RestCodes);
-                        return;
-                        // goto cutIf1;
-                    }
-                    YP.put_code(Code);
-                    convertStringCodesJavascript(RestCodes);
-                    return;
-                // cutIf1:
-                //     { }
                 }
             }
         }
@@ -4807,11 +5174,11 @@ namespace Temporary {
         public static void convertFunctionPython(object arg1)
         {
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"getDeclaringClass")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("getDeclaringClass")))
                 {
-                    YP.write(Atom.a(@"def getDeclaringClass():"));
+                    YP.write(Atom.a("def getDeclaringClass():"));
                     YP.nl();
-                    YP.write(Atom.a(@"  return None"));
+                    YP.write(Atom.a("  return None"));
                     YP.nl();
                     YP.nl();
                     return;
@@ -4824,13 +5191,13 @@ namespace Temporary {
                 Variable Body = new Variable();
                 Variable Level = new Variable();
                 Variable HasBreakableBlock = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor(@"function", new object[] { x1, Name, ArgList, Body })))
+                foreach (bool l2 in YP.unify(arg1, new Functor("function", new object[] { x1, Name, ArgList, Body })))
                 {
-                    YP.write(Atom.a(@"def "));
+                    YP.write(Atom.a("def "));
                     YP.write(Name);
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertArgListPython(ArgList);
-                    YP.write(Atom.a(@"):"));
+                    YP.write(Atom.a("):"));
                     YP.nl();
                     foreach (bool l3 in YP.unify(Level, 1))
                     {
@@ -4841,7 +5208,7 @@ namespace Temporary {
                                 if (YP.termEqual(HasBreakableBlock, 1))
                                 {
                                     convertIndentationPython(Level);
-                                    YP.write(Atom.a(@"doBreak = False"));
+                                    YP.write(Atom.a("doBreak = False"));
                                     YP.nl();
                                     foreach (bool l7 in convertStatementListPython(Body, Level, HasBreakableBlock))
                                     {
@@ -4865,7 +5232,7 @@ namespace Temporary {
                             if (YP.termEqual(HasBreakableBlock, 1))
                             {
                                 convertIndentationPython(Level);
-                                YP.write(Atom.a(@"doBreak = False"));
+                                YP.write(Atom.a("doBreak = False"));
                                 YP.nl();
                                 foreach (bool l6 in convertStatementListPython(Body, Level, HasBreakableBlock))
                                 {
@@ -4895,7 +5262,7 @@ namespace Temporary {
                 Variable _Name = new Variable();
                 Variable _Body = new Variable();
                 Variable _RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"breakableBlock", _Name, _Body), _RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("breakableBlock", _Name, _Body), _RestStatements)))
                 {
                     return true;
                 }
@@ -4903,7 +5270,7 @@ namespace Temporary {
             {
                 Variable Body = new Variable();
                 Variable _RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1(@"blockScope", Body), _RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1("blockScope", Body), _RestStatements)))
                 {
                     if (hasBreakableBlockPython(Body))
                     {
@@ -4915,7 +5282,7 @@ namespace Temporary {
                 Variable _Expression = new Variable();
                 Variable Body = new Variable();
                 Variable _RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"if", _Expression, Body), _RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("if", _Expression, Body), _RestStatements)))
                 {
                     if (hasBreakableBlockPython(Body))
                     {
@@ -4927,7 +5294,7 @@ namespace Temporary {
                 Variable _Expression = new Variable();
                 Variable Body = new Variable();
                 Variable _RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"foreach", _Expression, Body), _RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("foreach", _Expression, Body), _RestStatements)))
                 {
                     if (hasBreakableBlockPython(Body))
                     {
@@ -4967,32 +5334,32 @@ namespace Temporary {
                 Variable Body = new Variable();
                 Variable RestStatements = new Variable();
                 Variable NextLevel = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"breakableBlock", Name, Body), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("breakableBlock", Name, Body), RestStatements)))
                 {
                     convertIndentationPython(Level);
                     YP.write(Name);
-                    YP.write(Atom.a(@" = False"));
+                    YP.write(Atom.a(" = False"));
                     YP.nl();
                     convertIndentationPython(Level);
-                    YP.write(Atom.a(@"for _ in [1]:"));
+                    YP.write(Atom.a("for _ in [1]:"));
                     YP.nl();
                     foreach (bool l3 in YP.unify(NextLevel, YP.add(Level, 1)))
                     {
                         foreach (bool l4 in convertStatementListPython(Body, NextLevel, HasBreakableBlock))
                         {
                             convertIndentationPython(Level);
-                            YP.write(Atom.a(@"if "));
+                            YP.write(Atom.a("if "));
                             YP.write(Name);
-                            YP.write(Atom.a(@":"));
+                            YP.write(Atom.a(":"));
                             YP.nl();
                             convertIndentationPython(NextLevel);
-                            YP.write(Atom.a(@"doBreak = False"));
+                            YP.write(Atom.a("doBreak = False"));
                             YP.nl();
                             convertIndentationPython(Level);
-                            YP.write(Atom.a(@"if doBreak:"));
+                            YP.write(Atom.a("if doBreak:"));
                             YP.nl();
                             convertIndentationPython(NextLevel);
-                            YP.write(Atom.a(@"break"));
+                            YP.write(Atom.a("break"));
                             YP.nl();
                             foreach (bool l5 in convertStatementListPython(RestStatements, Level, HasBreakableBlock))
                             {
@@ -5010,11 +5377,11 @@ namespace Temporary {
                 Variable Name = new Variable();
                 Variable Expression = new Variable();
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor3(@"declare", _Type, Name, Expression), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor3("declare", _Type, Name, Expression), RestStatements)))
                 {
                     convertIndentationPython(Level);
                     YP.write(Name);
-                    YP.write(Atom.a(@" = "));
+                    YP.write(Atom.a(" = "));
                     convertExpressionPython(Expression);
                     YP.nl();
                     foreach (bool l3 in convertStatementListPython(RestStatements, Level, HasBreakableBlock))
@@ -5030,11 +5397,11 @@ namespace Temporary {
                 Variable Name = new Variable();
                 Variable Expression = new Variable();
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"assign", Name, Expression), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("assign", Name, Expression), RestStatements)))
                 {
                     convertIndentationPython(Level);
                     YP.write(Name);
-                    YP.write(Atom.a(@" = "));
+                    YP.write(Atom.a(" = "));
                     convertExpressionPython(Expression);
                     YP.nl();
                     foreach (bool l3 in convertStatementListPython(RestStatements, Level, HasBreakableBlock))
@@ -5048,10 +5415,10 @@ namespace Temporary {
                 object Level = arg2;
                 object HasBreakableBlock = arg3;
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(@"yieldtrue"), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a("yieldtrue"), RestStatements)))
                 {
                     convertIndentationPython(Level);
-                    YP.write(Atom.a(@"yield True"));
+                    YP.write(Atom.a("yield True"));
                     YP.nl();
                     foreach (bool l3 in convertStatementListPython(RestStatements, Level, HasBreakableBlock))
                     {
@@ -5064,10 +5431,10 @@ namespace Temporary {
                 object Level = arg2;
                 object HasBreakableBlock = arg3;
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(@"yieldfalse"), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a("yieldfalse"), RestStatements)))
                 {
                     convertIndentationPython(Level);
-                    YP.write(Atom.a(@"yield False"));
+                    YP.write(Atom.a("yield False"));
                     YP.nl();
                     foreach (bool l3 in convertStatementListPython(RestStatements, Level, HasBreakableBlock))
                     {
@@ -5080,10 +5447,10 @@ namespace Temporary {
                 object Level = arg2;
                 object HasBreakableBlock = arg3;
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(@"yieldbreak"), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a("yieldbreak"), RestStatements)))
                 {
                     convertIndentationPython(Level);
-                    YP.write(Atom.a(@"return"));
+                    YP.write(Atom.a("return"));
                     YP.nl();
                     foreach (bool l3 in convertStatementListPython(RestStatements, Level, HasBreakableBlock))
                     {
@@ -5096,10 +5463,10 @@ namespace Temporary {
                 object Level = arg2;
                 object HasBreakableBlock = arg3;
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(@"return"), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a("return"), RestStatements)))
                 {
                     convertIndentationPython(Level);
-                    YP.write(Atom.a(@"return"));
+                    YP.write(Atom.a("return"));
                     YP.nl();
                     foreach (bool l3 in convertStatementListPython(RestStatements, Level, HasBreakableBlock))
                     {
@@ -5112,10 +5479,10 @@ namespace Temporary {
                 object Level = arg2;
                 object HasBreakableBlock = arg3;
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(@"returntrue"), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a("returntrue"), RestStatements)))
                 {
                     convertIndentationPython(Level);
-                    YP.write(Atom.a(@"return True"));
+                    YP.write(Atom.a("return True"));
                     YP.nl();
                     foreach (bool l3 in convertStatementListPython(RestStatements, Level, HasBreakableBlock))
                     {
@@ -5128,10 +5495,10 @@ namespace Temporary {
                 object Level = arg2;
                 object HasBreakableBlock = arg3;
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a(@"returnfalse"), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(Atom.a("returnfalse"), RestStatements)))
                 {
                     convertIndentationPython(Level);
-                    YP.write(Atom.a(@"return False"));
+                    YP.write(Atom.a("return False"));
                     YP.nl();
                     foreach (bool l3 in convertStatementListPython(RestStatements, Level, HasBreakableBlock))
                     {
@@ -5145,17 +5512,17 @@ namespace Temporary {
                 object HasBreakableBlock = arg3;
                 Variable Name = new Variable();
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1(@"breakBlock", Name), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1("breakBlock", Name), RestStatements)))
                 {
                     convertIndentationPython(Level);
                     YP.write(Name);
-                    YP.write(Atom.a(@" = True"));
+                    YP.write(Atom.a(" = True"));
                     YP.nl();
                     convertIndentationPython(Level);
-                    YP.write(Atom.a(@"doBreak = True"));
+                    YP.write(Atom.a("doBreak = True"));
                     YP.nl();
                     convertIndentationPython(Level);
-                    YP.write(Atom.a(@"break"));
+                    YP.write(Atom.a("break"));
                     YP.nl();
                     foreach (bool l3 in convertStatementListPython(RestStatements, Level, HasBreakableBlock))
                     {
@@ -5170,15 +5537,31 @@ namespace Temporary {
                 Variable Name = new Variable();
                 Variable ArgList = new Variable();
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"call", Name, ArgList), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("call", Name, ArgList), RestStatements)))
                 {
                     convertIndentationPython(Level);
                     YP.write(Name);
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertArgListPython(ArgList);
-                    YP.write(Atom.a(@")"));
+                    YP.write(Atom.a(")"));
                     YP.nl();
                     foreach (bool l3 in convertStatementListPython(RestStatements, Level, HasBreakableBlock))
+                    {
+                        yield return true;
+                        yield break;
+                    }
+                }
+            }
+            {
+                object Level = arg2;
+                object HasBreakableBlock = arg3;
+                Variable Name = new Variable();
+                Variable _FunctorArgs = new Variable();
+                Variable ArgList = new Variable();
+                Variable RestStatements = new Variable();
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor3("functorCall", Name, _FunctorArgs, ArgList), RestStatements)))
+                {
+                    foreach (bool l3 in convertStatementListPython(new ListPair(new Functor2("call", Name, ArgList), RestStatements), Level, HasBreakableBlock))
                     {
                         yield return true;
                         yield break;
@@ -5192,15 +5575,15 @@ namespace Temporary {
                 Variable Name = new Variable();
                 Variable ArgList = new Variable();
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor3(@"callMember", new Functor1(@"var", Obj), Name, ArgList), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor3("callMember", new Functor1("var", Obj), Name, ArgList), RestStatements)))
                 {
                     convertIndentationPython(Level);
                     YP.write(Obj);
-                    YP.write(Atom.a(@"."));
+                    YP.write(Atom.a("."));
                     YP.write(Name);
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertArgListPython(ArgList);
-                    YP.write(Atom.a(@")"));
+                    YP.write(Atom.a(")"));
                     YP.nl();
                     foreach (bool l3 in convertStatementListPython(RestStatements, Level, HasBreakableBlock))
                     {
@@ -5215,12 +5598,12 @@ namespace Temporary {
                 Variable Body = new Variable();
                 Variable RestStatements = new Variable();
                 Variable NextLevel = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1(@"blockScope", Body), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1("blockScope", Body), RestStatements)))
                 {
                     if (YP.termEqual(HasBreakableBlock, 1))
                     {
                         convertIndentationPython(Level);
-                        YP.write(Atom.a(@"for _ in [1]:"));
+                        YP.write(Atom.a("for _ in [1]:"));
                         YP.nl();
                         foreach (bool l4 in YP.unify(NextLevel, YP.add(Level, 1)))
                         {
@@ -5231,10 +5614,10 @@ namespace Temporary {
                                     if (YP.greaterThan(Level, 1))
                                     {
                                         convertIndentationPython(Level);
-                                        YP.write(Atom.a(@"if doBreak:"));
+                                        YP.write(Atom.a("if doBreak:"));
                                         YP.nl();
                                         convertIndentationPython(NextLevel);
-                                        YP.write(Atom.a(@"break"));
+                                        YP.write(Atom.a("break"));
                                         YP.nl();
                                         foreach (bool l8 in convertStatementListPython(RestStatements, Level, HasBreakableBlock))
                                         {
@@ -5271,10 +5654,10 @@ namespace Temporary {
                                 if (YP.greaterThan(Level, 1))
                                 {
                                     convertIndentationPython(Level);
-                                    YP.write(Atom.a(@"if doBreak:"));
+                                    YP.write(Atom.a("if doBreak:"));
                                     YP.nl();
                                     convertIndentationPython(NextLevel);
-                                    YP.write(Atom.a(@"break"));
+                                    YP.write(Atom.a("break"));
                                     YP.nl();
                                     foreach (bool l7 in convertStatementListPython(RestStatements, Level, HasBreakableBlock))
                                     {
@@ -5311,12 +5694,12 @@ namespace Temporary {
                 Variable Body = new Variable();
                 Variable RestStatements = new Variable();
                 Variable NextLevel = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"if", Expression, Body), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("if", Expression, Body), RestStatements)))
                 {
                     convertIndentationPython(Level);
-                    YP.write(Atom.a(@"if "));
+                    YP.write(Atom.a("if "));
                     convertExpressionPython(Expression);
-                    YP.write(Atom.a(@":"));
+                    YP.write(Atom.a(":"));
                     YP.nl();
                     foreach (bool l3 in YP.unify(NextLevel, YP.add(Level, 1)))
                     {
@@ -5338,14 +5721,14 @@ namespace Temporary {
                 Variable Body = new Variable();
                 Variable RestStatements = new Variable();
                 Variable NextLevel = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2(@"foreach", Expression, Body), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor2("foreach", Expression, Body), RestStatements)))
                 {
                     convertIndentationPython(Level);
-                    YP.write(Atom.a(@"for l"));
+                    YP.write(Atom.a("for l"));
                     YP.write(Level);
-                    YP.write(Atom.a(@" in "));
+                    YP.write(Atom.a(" in "));
                     convertExpressionPython(Expression);
-                    YP.write(Atom.a(@":"));
+                    YP.write(Atom.a(":"));
                     YP.nl();
                     foreach (bool l3 in YP.unify(NextLevel, YP.add(Level, 1)))
                     {
@@ -5354,10 +5737,10 @@ namespace Temporary {
                             if (YP.termEqual(HasBreakableBlock, 1))
                             {
                                 convertIndentationPython(Level);
-                                YP.write(Atom.a(@"if doBreak:"));
+                                YP.write(Atom.a("if doBreak:"));
                                 YP.nl();
                                 convertIndentationPython(NextLevel);
-                                YP.write(Atom.a(@"break"));
+                                YP.write(Atom.a("break"));
                                 YP.nl();
                                 foreach (bool l6 in convertStatementListPython(RestStatements, Level, HasBreakableBlock))
                                 {
@@ -5382,10 +5765,10 @@ namespace Temporary {
                 object HasBreakableBlock = arg3;
                 Variable Expression = new Variable();
                 Variable RestStatements = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1(@"throw", Expression), RestStatements)))
+                foreach (bool l2 in YP.unify(arg1, new ListPair(new Functor1("throw", Expression), RestStatements)))
                 {
                     convertIndentationPython(Level);
-                    YP.write(Atom.a(@"raise "));
+                    YP.write(Atom.a("raise "));
                     convertExpressionPython(Expression);
                     YP.nl();
                     foreach (bool l3 in convertStatementListPython(RestStatements, Level, HasBreakableBlock))
@@ -5403,7 +5786,7 @@ namespace Temporary {
                 Variable N = new Variable();
                 foreach (bool l2 in YP.unify(N, YP.multiply(Level, 2)))
                 {
-                    repeatWrite(Atom.a(@" "), N);
+                    repeatWrite(Atom.a(" "), N);
                     return;
                 }
             }
@@ -5425,15 +5808,15 @@ namespace Temporary {
                     convertExpressionPython(Head);
                     if (YP.termNotEqual(Tail, Atom.NIL))
                     {
-                        YP.write(Atom.a(@", "));
+                        YP.write(Atom.a(", "));
                         convertArgListPython(Tail);
                         return;
-                        // goto cutIf1;
+                        goto cutIf1;
                     }
                     convertArgListPython(Tail);
                     return;
-                // cutIf1:
-                //     { }
+                cutIf1:
+                    { }
                 }
             }
         }
@@ -5442,7 +5825,7 @@ namespace Temporary {
         {
             {
                 Variable X = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"arg", X)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("arg", X)))
                 {
                     YP.write(X);
                     return;
@@ -5451,12 +5834,22 @@ namespace Temporary {
             {
                 Variable Name = new Variable();
                 Variable ArgList = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"call", Name, ArgList)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("call", Name, ArgList)))
                 {
                     YP.write(Name);
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertArgListPython(ArgList);
-                    YP.write(Atom.a(@")"));
+                    YP.write(Atom.a(")"));
+                    return;
+                }
+            }
+            {
+                Variable Name = new Variable();
+                Variable _FunctorArgs = new Variable();
+                Variable ArgList = new Variable();
+                foreach (bool l2 in YP.unify(arg1, new Functor3("functorCall", Name, _FunctorArgs, ArgList)))
+                {
+                    convertExpressionPython(new Functor2("call", Name, ArgList));
                     return;
                 }
             }
@@ -5464,89 +5857,89 @@ namespace Temporary {
                 Variable Obj = new Variable();
                 Variable Name = new Variable();
                 Variable ArgList = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor3(@"callMember", new Functor1(@"var", Obj), Name, ArgList)))
+                foreach (bool l2 in YP.unify(arg1, new Functor3("callMember", new Functor1("var", Obj), Name, ArgList)))
                 {
                     YP.write(Obj);
-                    YP.write(Atom.a(@"."));
+                    YP.write(Atom.a("."));
                     YP.write(Name);
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertArgListPython(ArgList);
-                    YP.write(Atom.a(@")"));
+                    YP.write(Atom.a(")"));
                     return;
                 }
             }
             {
                 Variable Name = new Variable();
                 Variable ArgList = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"new", Name, ArgList)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("new", Name, ArgList)))
                 {
                     YP.write(Name);
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertArgListPython(ArgList);
-                    YP.write(Atom.a(@")"));
+                    YP.write(Atom.a(")"));
                     return;
                 }
             }
             {
                 Variable Name = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"var", Name)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("var", Name)))
                 {
                     YP.write(Name);
                     return;
                 }
             }
             {
-                foreach (bool l2 in YP.unify(arg1, Atom.a(@"null")))
+                foreach (bool l2 in YP.unify(arg1, Atom.a("null")))
                 {
-                    YP.write(Atom.a(@"None"));
+                    YP.write(Atom.a("None"));
                     return;
                 }
             }
             {
                 Variable X = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"not", X)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("not", X)))
                 {
-                    YP.write(Atom.a(@"not ("));
+                    YP.write(Atom.a("not ("));
                     convertExpressionPython(X);
-                    YP.write(Atom.a(@")"));
+                    YP.write(Atom.a(")"));
                     return;
                 }
             }
             {
                 Variable X = new Variable();
                 Variable Y = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor2(@"and", X, Y)))
+                foreach (bool l2 in YP.unify(arg1, new Functor2("and", X, Y)))
                 {
-                    YP.write(Atom.a(@"("));
+                    YP.write(Atom.a("("));
                     convertExpressionPython(X);
-                    YP.write(Atom.a(@") and ("));
+                    YP.write(Atom.a(") and ("));
                     convertExpressionPython(Y);
-                    YP.write(Atom.a(@")"));
+                    YP.write(Atom.a(")"));
                     return;
                 }
             }
             {
                 Variable ArgList = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"objectArray", ArgList)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("objectArray", ArgList)))
                 {
-                    YP.write(Atom.a(@"["));
+                    YP.write(Atom.a("["));
                     convertArgListPython(ArgList);
-                    YP.write(Atom.a(@"]"));
+                    YP.write(Atom.a("]"));
                     return;
                 }
             }
             {
                 Variable X = new Variable();
                 Variable Codes = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"object", X)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("object", X)))
                 {
                     if (YP.atom(X))
                     {
-                        YP.write(Atom.a(@""""));
+                        YP.write(Atom.a("\""));
                         foreach (bool l4 in YP.atom_codes(X, Codes))
                         {
                             convertStringCodesPython(Codes);
-                            YP.write(Atom.a(@""""));
+                            YP.write(Atom.a("\""));
                             return;
                         }
                     }
@@ -5554,7 +5947,7 @@ namespace Temporary {
             }
             {
                 Variable X = new Variable();
-                foreach (bool l2 in YP.unify(arg1, new Functor1(@"object", X)))
+                foreach (bool l2 in YP.unify(arg1, new Functor1("object", X)))
                 {
                     YP.write(X);
                     return;
@@ -5581,7 +5974,7 @@ namespace Temporary {
                         YP.put_code(Code);
                         convertStringCodesPython(RestCodes);
                         return;
-                        // goto cutIf1;
+                        goto cutIf1;
                     }
                     if (YP.termEqual(Code, 92))
                     {
@@ -5589,14 +5982,98 @@ namespace Temporary {
                         YP.put_code(Code);
                         convertStringCodesPython(RestCodes);
                         return;
-                        // goto cutIf1;
+                        goto cutIf1;
                     }
                     YP.put_code(Code);
                     convertStringCodesPython(RestCodes);
                     return;
-                // cutIf1:
-                //     { }
+                cutIf1:
+                    { }
                 }
+            }
+        }
+
+        public static IEnumerable<bool> putCStringCode(object Code)
+        {
+            {
+                Variable HexDigit = new Variable();
+                Variable HexChar = new Variable();
+                if (YP.lessThanOrEqual(Code, 31))
+                {
+                    if (YP.lessThanOrEqual(Code, 15))
+                    {
+                        YP.write(Atom.a("\\u000"));
+                        foreach (bool l4 in YP.unify(HexDigit, Code))
+                        {
+                            if (YP.lessThanOrEqual(HexDigit, 9))
+                            {
+                                foreach (bool l6 in YP.unify(HexChar, YP.add(HexDigit, 48)))
+                                {
+                                    YP.put_code(HexChar);
+                                    yield return true;
+                                    yield break;
+                                }
+                                goto cutIf2;
+                            }
+                            foreach (bool l5 in YP.unify(HexChar, YP.add(HexDigit, 55)))
+                            {
+                                YP.put_code(HexChar);
+                                yield return true;
+                                yield break;
+                            }
+                        cutIf2:
+                            { }
+                        }
+                        goto cutIf1;
+                    }
+                    YP.write(Atom.a("\\u001"));
+                    foreach (bool l3 in YP.unify(HexDigit, YP.subtract(Code, 16)))
+                    {
+                        if (YP.lessThanOrEqual(HexDigit, 9))
+                        {
+                            foreach (bool l5 in YP.unify(HexChar, YP.add(HexDigit, 48)))
+                            {
+                                YP.put_code(HexChar);
+                                yield return true;
+                                yield break;
+                            }
+                            goto cutIf3;
+                        }
+                        foreach (bool l4 in YP.unify(HexChar, YP.add(HexDigit, 55)))
+                        {
+                            YP.put_code(HexChar);
+                            yield return true;
+                            yield break;
+                        }
+                    cutIf3:
+                        { }
+                    }
+                cutIf1:
+                    { }
+                }
+            }
+            {
+                if (YP.termEqual(Code, 34))
+                {
+                    YP.put_code(92);
+                    YP.put_code(34);
+                    yield return true;
+                    yield break;
+                }
+            }
+            {
+                if (YP.termEqual(Code, 92))
+                {
+                    YP.put_code(92);
+                    YP.put_code(92);
+                    yield return true;
+                    yield break;
+                }
+            }
+            {
+                YP.put_code(Code);
+                yield return true;
+                yield break;
             }
         }
 
@@ -5654,6 +6131,6 @@ namespace Temporary {
                 }
             }
         }
-        #pragma warning restore 0168, 0219
+        #pragma warning restore 0168, 0219, 0164,0162
     }
 }

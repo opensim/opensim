@@ -97,6 +97,10 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                                         @"this.$1(",
                                         RegexOptions.Compiled | RegexOptions.Singleline);
             finalcode = Regex.Replace(finalcode,
+                                        @"YP.script_event\(Atom.a\(\""(.*?)""\)\,",
+                                        @"this.$1(",
+                                        RegexOptions.Compiled | RegexOptions.Singleline);
+            finalcode = Regex.Replace(finalcode,
                             @" static ",
                             @" ",
                             RegexOptions.Compiled | RegexOptions.Singleline);

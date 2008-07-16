@@ -544,6 +544,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.CodeTools
                         ", Error Number: " + CompErr.ErrorNumber +
                         ", '" + CompErr.ErrorText + "'\r\n";
                 }
+                Console.WriteLine("[COMPILER ERROR]:" + errtext);
                 if (!File.Exists(OutFile))
                 {
                     throw new Exception(errtext);

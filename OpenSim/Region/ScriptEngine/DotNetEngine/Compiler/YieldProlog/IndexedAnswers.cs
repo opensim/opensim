@@ -39,6 +39,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
     /// </summary>
     public class IndexedAnswers : YP.IClause
     {
+        private int _arity;
         // addAnswer adds the answer here and indexes it later.
         private List<object[]> _allAnswers = new List<object[]>();
         // The key has the arity of answers with non-null values for each indexed arg.  The value
@@ -49,17 +50,43 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
         private Dictionary<int, object> _gotAnswersForSignature = new Dictionary<int, object>();
         private const int MAX_INDEX_ARGS = 31;
 
-        public IndexedAnswers()
+        public IndexedAnswers(int arity)
         {
+            _arity = arity;
         }
-
+        
         /// <summary>
+        /// Append the answer to the list and update the indexes, if any.
         /// Elements of answer must be ground, since arguments with unbound variables make this
         /// into a dynamic rule which we don't index.
         /// </summary>
         /// <param name="answer"></param>
         public void addAnswer(object[] answer)
         {
+            addOrPrependAnswer(answer, false);
+        }
+
+        /// <summary>
+        /// Prepend the answer to the list and clear the indexes so that they must be re-computed
+        /// on the next call to match.  (Only addAnswer will maintain the indexes while adding answers.)
+        /// Elements of answer must be ground, since arguments with unbound variables make this
+        /// into a dynamic rule which we don't index.
+        /// </summary>
+        /// <param name="answer"></param>
+        public void prependAnswer(object[] answer)
+        {
+            addOrPrependAnswer(answer, true);
+        }
+
+        /// <summary>
+        /// Do the work of addAnswer or prependAnswer.
+        /// </summary>
+        /// <param name="answer"></param>
+        private void addOrPrependAnswer(object[] answer, bool prepend)
+        {
+            if (answer.Length != _arity)
+                return;
+
             // Store a copy of the answer array.
             object[] answerCopy = new object[answer.Length];
             Variable.CopyStore copyStore = new Variable.CopyStore();
@@ -69,12 +96,20 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                 throw new InvalidOperationException
                     ("Elements of answer must be ground, but found " + copyStore.getNUniqueVariables() +
                      " unbound variables");
-            _allAnswers.Add(answerCopy);
 
-            // If match has already indexed answers for a signature, we need to add
-            //   this to the existing indexed answers.
-            foreach (int signature in _gotAnswersForSignature.Keys)
-                indexAnswerForSignature(answerCopy, signature);
+            if (prepend)
+            {
+                _allAnswers.Insert(0, answerCopy);
+                clearIndexes();
+            }
+            else
+            {
+                _allAnswers.Add(answerCopy);
+                // If match has already indexed answers for a signature, we need to add
+                //   this to the existing indexed answers.
+                foreach (int signature in _gotAnswersForSignature.Keys)
+                    indexAnswerForSignature(answerCopy, signature);
+            }
         }
 
         private void indexAnswerForSignature(object[] answer, int signature)
@@ -119,6 +154,9 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
 
         public IEnumerable<bool> match(object[] arguments)
         {
+            if (arguments.Length != _arity)
+                yield break;
+
             // Set up indexArgs, up to arg position MAX_INDEX_ARGS.  The signature has a 1 bit for
             //   each non-null index arg.
             HashedList indexArgs = new HashedList(arguments.Length);
@@ -166,6 +204,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
 
             // Find matches in answers.
             IEnumerator<bool>[] iterators = new IEnumerator<bool>[arguments.Length];
+            // Debug: If the caller asserts another answer into this same predicate during yield, the iterator
+            //   over clauses will be corrupted.  Should we take the time to copy answers?
             foreach (object[] answer in answers)
             {
                 bool gotMatch = true;
@@ -199,6 +239,59 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.YieldProlog
                         iterators[i].Dispose();
                 }
             }
+        }
+
+        public IEnumerable<bool> clause(object Head, object Body)
+        {
+            Head = YP.getValue(Head);
+            if (Head is Variable)
+                throw new PrologException("instantiation_error", "Head is an unbound variable");
+            object[] arguments = YP.getFunctorArgs(Head);
+
+            // We always match Head from _allAnswers, and the Body is Atom.a("true").
+            foreach (bool l1 in YP.unify(Body, Atom.a("true")))
+            {
+                // The caller can assert another answer into this same predicate during yield, so we have to
+                //   make a copy of the answers.
+                foreach (object[] answer in _allAnswers.ToArray())
+                {
+                    foreach (bool l2 in YP.unifyArrays(arguments, answer))
+                        yield return false;
+                }
+            }
+        }
+
+        public IEnumerable<bool> retract(object Head, object Body)
+        {
+            Head = YP.getValue(Head);
+            if (Head is Variable)
+                throw new PrologException("instantiation_error", "Head is an unbound variable");
+            object[] arguments = YP.getFunctorArgs(Head);
+
+            // We always match Head from _allAnswers, and the Body is Atom.a("true").
+            foreach (bool l1 in YP.unify(Body, Atom.a("true")))
+            {
+                // The caller can assert another answer into this same predicate during yield, so we have to
+                //   make a copy of the answers.
+                foreach (object[] answer in _allAnswers.ToArray())
+                {
+                    foreach (bool l2 in YP.unifyArrays(arguments, answer))
+                    {
+                        _allAnswers.Remove(answer);
+                        clearIndexes();
+                        yield return false;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// After retracting or prepending an answer in _allAnswers, the indexes are invalid, so clear them.
+        /// </summary>
+        private void clearIndexes()
+        {
+            _indexedAnswers.Clear();
+            _gotAnswersForSignature.Clear();
         }
 
         /// <summary>

@@ -59,6 +59,8 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
             dataTypes.Add("rotation", "LSL_Types.Quaternion");
             dataTypes.Add("list", "LSL_Types.list");
             dataTypes.Add("null", "null");
+            dataTypes.Add("Int32", "LSL_Types.LSLInteger");
+            dataTypes.Add("int", "LSL_Types.LSLInteger");
         }
 
         public string Convert(string Script)

@@ -486,6 +486,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine.Compiler.LSL
                                ", Error Number: " + CompErr.ErrorNumber +
                                ", '" + CompErr.ErrorText + "'\r\n";
                 }
+                Console.WriteLine("[COMPILER ERROR]:" + errtext);
                 if (!File.Exists(OutFile))
                 {
                     throw new Exception(errtext);

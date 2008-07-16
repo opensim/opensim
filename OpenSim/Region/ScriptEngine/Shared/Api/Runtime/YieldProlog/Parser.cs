@@ -44,9 +44,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
             yield return false;
         }
 
-// disable warning: don't see how we can code this differently short
-// of rewriting the whole thing
-#pragma warning disable 0168, 0219
+        // disable warning on l1, don't see how we can
+        // code this differently
+        #pragma warning disable 0168, 0219
 
         // Debug: Hand-modify this central predicate to do tail recursion.
         public static IEnumerable<bool> read_tokens(object arg1, object arg2, object arg3)
@@ -228,12 +228,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                                 if (YP.termEqual(Term, Atom.a(@"end_of_file")))
                                 {
                                     yield break;
-                                    // unreachable code:
                                     // goto cutIf1;
                                 }
                                 yield return false;
                             // cutIf1:
-                                { }
+                            //     { }
                             }
                         }
                     }
@@ -4457,6 +4456,6 @@ namespace OpenSim.Region.ScriptEngine.Shared.YieldProlog
                 { }
             }
         }
-#pragma warning restore 0168
+        #pragma warning restore 0168, 0219
     }
 }
