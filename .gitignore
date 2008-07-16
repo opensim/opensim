@@ -4,6 +4,7 @@
 *.mdb
 *.mdp
 *.mds
+*.pidb
 *.dll.build
 */*/bin
 */*/*/bin
