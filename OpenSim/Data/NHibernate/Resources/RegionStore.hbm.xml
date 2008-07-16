@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <hibernate-mapping xmlns="urn:nhibernate-mapping-2.2">
     <class name="OpenSim.Region.Environment.Scenes.SceneObjectPart, OpenSim.Region.Environment" table="Prims" lazy="false">
-        <id name="UUID" column="ID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
+        <id name="UUID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
             <generator class="assigned" /> 
         </id>
         <property name="ParentID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" /> 
@@ -56,9 +56,9 @@
         </property>
 
         <property name="SitTargetPositionLL" type="OpenSim.Data.NHibernate.LLVector3UserType, OpenSim.Data.NHibernate" >
-          <column name="SitTargetPosX" />
-          <column name="SitTargetPosY" />
-          <column name="SitTargetPosZ" />
+          <column name="SitTargetOffsetX" />
+          <column name="SitTargetOffsetY" />
+          <column name="SitTargetOffsetZ" />
         </property>
 
         <property name="RotationOffset" type="OpenSim.Data.NHibernate.LLQuaternionUserType, OpenSim.Data.NHibernate" >

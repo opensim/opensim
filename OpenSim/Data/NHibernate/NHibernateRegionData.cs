@@ -34,6 +34,7 @@ using libsecondlife;
 using log4net;
 using NHibernate;
 using NHibernate.Cfg;
+using NHibernate.Expression;
 using NHibernate.Mapping.Attributes;
 using NHibernate.Tool.hbm2ddl;
 using OpenSim.Framework;
@@ -123,12 +124,15 @@ namespace OpenSim.Data.NHibernate
             {
                 try 
                 {
+                    m_log.InfoFormat("Storing part {0}", part.UUID);
                     session.SaveOrUpdate(part);
+                    session.Flush();
                 } 
                 catch (Exception e) 
                 {
                     m_log.Error("Can't save: ", e);
                 }
+
             }
 
         }
@@ -151,8 +155,33 @@ namespace OpenSim.Data.NHibernate
         /// <returns>List of loaded groups</returns>
         public List<SceneObjectGroup> LoadObjects(LLUUID regionUUID)
         {
-            List<SceneObjectGroup> prims = new List<SceneObjectGroup>();
-            return prims;
+            Dictionary<LLUUID, SceneObjectGroup> SOG = new Dictionary<LLUUID, SceneObjectGroup>();
+            List<SceneObjectGroup> ret = new List<SceneObjectGroup>();
+            
+            ICriteria criteria = session.CreateCriteria(typeof(SceneObjectPart));
+            criteria.Add(Expression.Eq("RegionID", regionUUID));
+            criteria.AddOrder( Order.Asc("ParentID") );
+            foreach (SceneObjectPart p in criteria.List())
+            {
+                // root part
+                if (p.UUID == p.ParentUUID)
+                {
+                    SceneObjectGroup group = new SceneObjectGroup();
+                    group.AddPart(p);
+                    group.RootPart = p;
+                    SOG.Add(p.ParentUUID, group);
+                }
+                else 
+                {
+                    SOG[p.ParentUUID].AddPart(p);
+                }
+            }
+            foreach (SceneObjectGroup g in SOG.Values) 
+            {
+                ret.Add(g);
+            }
+
+            return ret;
         }
 
         /// <summary>
@@ -215,7 +244,7 @@ namespace OpenSim.Data.NHibernate
         /// </summary>
         public void Shutdown()
         {
-            
+            session.Flush();
         }
         
         /// <summary>
