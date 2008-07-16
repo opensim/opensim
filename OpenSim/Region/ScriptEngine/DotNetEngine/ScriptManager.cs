@@ -152,7 +152,7 @@ namespace OpenSim.Region.ScriptEngine.DotNetEngine
                     // DISPLAY ERROR INWORLD
                     string text = "Error compiling script:\r\n" + e.Message.ToString();
                     if (text.Length > 1500)
-                        text = text.Substring(0, 1500);
+                        text = text.Substring(0, 1499); // 0-1499 is 1500 characters
                     World.SimChat(Helpers.StringToField(text), ChatTypeEnum.DebugChannel, 2147483647,
                                   m_host.AbsolutePosition, m_host.Name, m_host.UUID, false);
                 }
