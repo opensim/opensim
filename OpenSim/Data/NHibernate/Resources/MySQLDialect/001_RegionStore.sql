@@ -45,12 +45,7 @@ CREATE TABLE `Prims` (
   `OwnerID` char(36) default NULL,
   `GroupID` char(36) default NULL,
   `LastOwnerID` char(36) default NULL,
-  PRIMARY KEY  (`UUID`),
-  KEY `prims_regionuuid` (`RegionID`),
-  KEY 'prims_parentuuid' ('ParentUUID')
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE `PrimShapes` (
+  -- this is the shape
   `Shape` int(11) default NULL,
   `ScaleX` float default NULL,
   `ScaleY` float default NULL,
@@ -77,6 +72,8 @@ CREATE TABLE `PrimShapes` (
   `State` int(11) default NULL,
   `Texture` longblob,
   `ExtraParams` longblob,
-  `UUID` char(36) NOT NULL default '',
-  PRIMARY KEY  (`UUID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;           
+  PRIMARY KEY  (`UUID`),
+  KEY `prims_regionuuid` (`RegionID`),
+  KEY 'prims_parentuuid' ('ParentUUID')
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+

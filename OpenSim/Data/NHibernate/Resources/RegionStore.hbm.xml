@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <hibernate-mapping xmlns="urn:nhibernate-mapping-2.2">
-    <class name="OpenSim.Region.Environment.Scene.SceneObjectPart, OpenSim.Region.Environment.Scene" table="Prims" lazy="false">
+    <class name="OpenSim.Region.Environment.Scenes.SceneObjectPart, OpenSim.Region.Environment" table="Prims" lazy="false">
         <id name="UUID" column="ID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
             <generator class="assigned" /> 
         </id>
@@ -75,9 +75,14 @@
           <column name="SitTargetOrientW" />
         </property>
         
-        <class name="PrimShape" type="OpenSim.Framework.PrimitiveBaseShape, OpenSim.Framework">
-          <property name="
-        </class>
+        <component name="Shape">
+          <property name="Scale" type="OpenSim.Data.NHibernate.LLVector3UserType, OpenSim.Data.NHibernate" >
+            <column name="ScaleX" />
+            <column name="ScaleY" />
+            <column name="ScaleZ" />
+          </property>
+          
+        </component>
 
     </class>
 </hibernate-mapping>
