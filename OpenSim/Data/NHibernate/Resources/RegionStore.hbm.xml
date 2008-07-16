@@ -4,7 +4,8 @@
         <id name="UUID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
             <generator class="assigned" /> 
         </id>
-        <property name="ParentID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" /> 
+        <property name="ParentID" type="System.UInt32"/>
+        <property name="ParentUUID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" /> 
         <property name="RegionID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" /> 
         <property name="CreationDate" type="System.Int32" />
         <property name="Name" type="String" length="255" />
