@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <hibernate-mapping xmlns="urn:nhibernate-mapping-2.2">
-    <class name="OpenSim.Data.NHibernate.NHPrim, OpenSim.Data.NHibernate" table="Prims" lazy="false">
+    <class name="OpenSim.Region.Environment.Scene.SceneObjectPart, OpenSim.Region.Environment.Scene" table="Prims" lazy="false">
         <id name="UUID" column="ID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
             <generator class="assigned" /> 
         </id>
-        <property name="ParentID" type="System.UInt32" />
+        <property name="ParentID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" /> 
         <property name="RegionID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate" /> 
         <property name="CreationDate" type="System.Int32" />
         <property name="Name" type="String" length="255" />
@@ -74,5 +74,11 @@
           <column name="SitTargetOrientZ" />
           <column name="SitTargetOrientW" />
         </property>
+    </class>
+
+    <class name="OpenSim.Framework.PrimitiveBaseShape, OpenSim.Framework" table="PrimShapes" lazy="false">
+        <id name="UUID" column="ID" type="OpenSim.Data.NHibernate.LLUUIDUserType, OpenSim.Data.NHibernate"> 
+            <generator class="assigned" /> 
+        </id>
     </class>
 </hibernate-mapping>

@@ -1,4 +1,4 @@
-CREATE TABLE `prims` (
+CREATE TABLE `Prims` (
   `ParentID` int(11) default NULL,
   `CreationDate` int(11) default NULL,
   `Name` varchar(255) default NULL,
@@ -48,4 +48,35 @@ CREATE TABLE `prims` (
   PRIMARY KEY  (`UUID`),
   KEY `prims_regionuuid` (`RegionID`),
   KEY 'prims_parentuuid' ('ParentUUID')
-) ENGINE=InnoDB DEFAULT CHARSET=utf8
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `PrimShapes` (
+  `Shape` int(11) default NULL,
+  `ScaleX` float default NULL,
+  `ScaleY` float default NULL,
+  `ScaleZ` float default NULL,
+  `PCode` int(11) default NULL,
+  `PathBegin` int(11) default NULL,
+  `PathEnd` int(11) default NULL,
+  `PathScaleX` int(11) default NULL,
+  `PathScaleY` int(11) default NULL,
+  `PathShearX` int(11) default NULL,
+  `PathShearY` int(11) default NULL,
+  `PathSkew` int(11) default NULL,
+  `PathCurve` int(11) default NULL,
+  `PathRadiusOffset` int(11) default NULL,
+  `PathRevolutions` int(11) default NULL,
+  `PathTaperX` int(11) default NULL,
+  `PathTaperY` int(11) default NULL,
+  `PathTwist` int(11) default NULL,
+  `PathTwistBegin` int(11) default NULL,
+  `ProfileBegin` int(11) default NULL,
+  `ProfileEnd` int(11) default NULL,
+  `ProfileCurve` int(11) default NULL,
+  `ProfileHollow` int(11) default NULL,
+  `State` int(11) default NULL,
+  `Texture` longblob,
+  `ExtraParams` longblob,
+  `UUID` char(36) NOT NULL default '',
+  PRIMARY KEY  (`UUID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;           
