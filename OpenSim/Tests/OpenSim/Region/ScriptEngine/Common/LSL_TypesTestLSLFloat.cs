@@ -133,7 +133,7 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
 
             foreach (KeyValuePair<double, int> number in numberSet)
             {
-                testNumber = new LSL_Types.LSLFloat(number.Key);
+                testNumber = (int)(new LSL_Types.LSLFloat(number.Key));
                 Assert.AreEqual(number.Value, testNumber, "Converting double " + number.Key + ", expecting int " + number.Value);
             }
         }
@@ -170,7 +170,7 @@ namespace OpenSim.Region.ScriptEngine.Common.Tests
 
             foreach (KeyValuePair<double, int> number in numberSet)
             {
-                testNumber = new LSL_Types.LSLFloat(number.Key);
+                testNumber = (uint)(new LSL_Types.LSLFloat(number.Key));
                 Assert.AreEqual(number.Value, testNumber, "Converting double " + number.Key + ", expecting uint " + number.Value);
             }
         }

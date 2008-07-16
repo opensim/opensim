@@ -1276,11 +1276,11 @@ namespace OpenSim.Region.ScriptEngine.Common
                 return new LSLInteger(int.Parse(s));
             }
 
-            static public implicit operator LSLInteger(double d)
+            static public implicit operator LSLInteger(uint u)
             {
-                return new LSLInteger(d);
+                return new LSLInteger(u);
             }
-
+            
             static public bool operator ==(LSLInteger i1, LSLInteger i2)
             {
                 bool ret = i1.value == i2.value;
@@ -1311,6 +1311,31 @@ namespace OpenSim.Region.ScriptEngine.Common
             static public LSLInteger operator /(LSLInteger i1, int i2)
             {
                 return new LSLInteger(i1.value / i2);
+            }
+            
+            static public LSLFloat operator +(LSLInteger i1, double f)
+            {
+                return new LSLFloat((double)i1.value + f);
+            }
+            
+            static public LSLFloat operator -(LSLInteger i1, double f)
+            {
+                return new LSLFloat((double)i1.value - f);
+            }
+            
+            static public LSLFloat operator *(LSLInteger i1, double f)
+            {
+                return new LSLFloat((double)i1.value * f);
+            }
+            
+            static public LSLFloat operator /(LSLInteger i1, double f)
+            {
+                return new LSLFloat((double)i1.value / f);
+            }
+            
+            static public LSLInteger operator -(LSLInteger i)
+            {
+                return new LSLInteger(-i.value);
             }
 
             public override bool Equals(Object o)
@@ -1392,16 +1417,6 @@ namespace OpenSim.Region.ScriptEngine.Common
 
             #region Operators
 
-            static public implicit operator int(LSLFloat f)
-            {
-                return (int)f.value;
-            }
-
-            static public implicit operator uint(LSLFloat f)
-            {
-                return (uint) Math.Abs(f.value);
-            }
-
             static public implicit operator Boolean(LSLFloat f)
             {
                 if (f.value == 0.0)
@@ -1450,16 +1465,36 @@ namespace OpenSim.Region.ScriptEngine.Common
                 f.value--;
                 return f;
             }
+            
+            static public LSLFloat operator +(LSLFloat f, int i)
+            {
+                return new LSLFloat(f.value + (double)i);
+            }
+            
+            static public LSLFloat operator -(LSLFloat f, int i)
+            {
+                return new LSLFloat(f.value - (double)i);
+            }
+            
+            static public LSLFloat operator *(LSLFloat f, int i)
+            {
+                return new LSLFloat(f.value * (double)i);
+            }
+
+            static public LSLFloat operator /(LSLFloat f, int i)
+            {
+                return new LSLFloat(f.value / (double)i);
+            }
+            
+            static public LSLFloat operator -(LSLFloat f)
+            {
+                return new LSLFloat(-f.value);
+            }
 
             static public implicit operator System.Double(LSLFloat f)
             {
                 return f.value;
             }
-
-            //static public implicit operator System.Int32(LSLFloat f)
-            //{
-            //    return (int)f.value;
-            //}
 
             #endregion
 
