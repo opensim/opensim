@@ -197,7 +197,13 @@ namespace OpenSim.Framework
         {
             get { return m_textureEntry; }
 
-            set { m_textureEntry = value; }
+            set 
+            { 
+                if (value == null) 
+                    m_textureEntry = new byte[1];
+                else 
+                    m_textureEntry = value; 
+            }
         }
 
 
