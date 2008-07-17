@@ -49,8 +49,16 @@ namespace OpenSim.Data.NHibernate
 
         public object DeepCopy(object texture)
         {
-            byte[] bytes = ((LLObject.TextureEntry)texture).ToBytes();
-            return new LLObject.TextureEntry(bytes, 0, bytes.Length);
+            if (texture == null) 
+            {
+                // TODO: should parametrize this texture out
+                return new LLObject.TextureEntry(new LLUUID("89556747-24cb-43ed-920b-47caed15465f"));
+            }
+            else 
+            {
+                byte[] bytes = ((LLObject.TextureEntry)texture).ToBytes();
+                return new LLObject.TextureEntry(bytes, 0, bytes.Length);
+            }
         }
 
         public object Disassemble(object texture)
