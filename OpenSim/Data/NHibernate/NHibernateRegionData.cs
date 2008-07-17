@@ -26,7 +26,6 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -113,33 +112,6 @@ namespace OpenSim.Data.NHibernate
         {
             return null;
         }
-        
-        private void SaveOrUpdate(SceneObjectPart p)
-        {
-            try
-            {
-                ICriteria criteria = session.CreateCriteria(typeof(SceneObjectPart));
-                criteria.Add(Expression.Eq("UUID", p.UUID));
-                if (criteria.List().Count < 1) 
-                {
-                    session.Save(p);
-                }
-                else if (criteria.List().Count == 1)
-                {
-                    SceneObjectPart old = (SceneObjectPart)criteria.List()[0];
-                    session.Evict(old);
-                    session.Update(p);
-                }
-                else 
-                {
-                    m_log.Error("Not unique");
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.Error("[NHIBERNATE] issue saving asset", e);
-            }
-        }
 
         /// <summary>
         /// Adds an object into region storage
@@ -153,7 +125,7 @@ namespace OpenSim.Data.NHibernate
                 foreach (SceneObjectPart part in obj.Children.Values)
                 {
                     m_log.InfoFormat("Storing part {0}", part.UUID);
-                    SaveOrUpdate(part);
+                    session.SaveOrUpdate(part);
                 }
                 session.Flush();
             }

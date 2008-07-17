@@ -82,26 +82,7 @@
             <column name="ScaleY" />
             <column name="ScaleZ" />
           </property>
-          <property name="PCode" type="System.Byte" />
-          <property name="PathBegin" type="System.UInt16" />
-          <property name="PathEnd" type="System.UInt16" />
-          <property name="PathScaleX" type="System.Byte" />
-          <property name="PathScaleY" type="System.Byte" />
-          <property name="PathShearX" type="System.Byte" />
-          <property name="PathShearY" type="System.Byte" />
-          <property name="PathSkew" type="System.SByte" />
-          <property name="PathCurve" type="System.Byte" />
-          <property name="PathRadiusOffset" type="System.SByte" />
-          <property name="PathRevolutions" type="System.Byte" />
-          <property name="PathTaperX" type="System.SByte" />
-          <property name="PathTwist" type="System.SByte" />
-          <property name="ProfileBegin" type="System.UInt16" />
-          <property name="ProfileEnd" type="System.UInt16" />
-          <property name="ProfileCurve" type="System.Byte" />
-          <property name="ProfileHollow" type="System.UInt16" />    
-          <property name="TextureEntry" column="Texture" type="System.Byte[]" />
-          <property name="ExtraParams" type="System.Byte[]" />
-          <property name="State" type="System.Byte" />
+          
         </component>
 
     </class>
