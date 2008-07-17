@@ -298,13 +298,10 @@ namespace OpenSim.Data.NHibernate
                 Terrain t = session.Load(typeof(Terrain), regionID) as Terrain;
                 return t.Doubles;
             }
-            catch (Exception e)
+            catch (NHibernate.ObjectNotFoundException e)
             {
-                m_log.Error("[NHIBERNATE] issue loading terrain", e);
-                
-                double[,] terret = new double[256,256];
-                terret.Initialize();
-                return terret;
+                m_log.Info("No terrain yet");
+                return null;
             }
         }
 

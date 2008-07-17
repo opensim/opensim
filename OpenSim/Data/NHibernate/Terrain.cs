@@ -27,13 +27,17 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 using OpenSim.Framework;
+using log4net;
 using libsecondlife;
 
 namespace OpenSim.Data.NHibernate 
 {
     public class Terrain
     {
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        
         private double[,] map;
         private LLUUID regionID;
         
@@ -70,29 +74,36 @@ namespace OpenSim.Data.NHibernate
 
         private static double[,] parseTerrain(byte[] data)
         {
-            double[,] terret = new double[Constants.RegionSize,Constants.RegionSize];
+            double[,] terret = new double[256,256];
             terret.Initialize();
             
             MemoryStream str = new MemoryStream(data);
             BinaryReader br = new BinaryReader(str);
-            for (int x = 0; x < Constants.RegionSize; x++)
-            {
-                for (int y = 0; y < Constants.RegionSize; y++)
+            try {
+                for (int x = 0; x < 256; x++)
                 {
-                    terret[x, y] = br.ReadDouble();
+                    for (int y = 0; y < 256; y++)
+                    {
+                        terret[x, y] = br.ReadDouble();
+                    }
                 }
+            } 
+            catch (Exception e)
+            {
+                m_log.Error("Issue parsing Map", e);
             }
             return terret;
         }
 
         private static byte[] serializeTerrain(double[,] val)
         {
-            MemoryStream str = new MemoryStream((int)(Constants.RegionSize * Constants.RegionSize * sizeof (double)));
+            MemoryStream str = new MemoryStream((int)(65536 * sizeof (double)));
             BinaryWriter bw = new BinaryWriter(str);
             
             // TODO: COMPATIBILITY - Add byte-order conversions
-            for (int x = 0; x < Constants.RegionSize; x++)
-                for (int y = 0; y < Constants.RegionSize; y++)
+            for (int x = 0; x < 256; x++)
+            {
+                for (int y = 0; y < 256; y++)
                 {
                     double height = val[x, y];
                     if (height <= 0.0)
@@ -100,8 +111,8 @@ namespace OpenSim.Data.NHibernate
                     
                     bw.Write(height);
                 }
-            
-            return (byte[])str.ToArray();
+            }
+            return str.ToArray();
         }
     }
 }
