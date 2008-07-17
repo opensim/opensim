@@ -120,21 +120,45 @@ namespace OpenSim.Data.NHibernate
         /// <param name="regionUUID">the region UUID</param>
         public void StoreObject(SceneObjectGroup obj, LLUUID regionUUID)
         {
-            foreach (SceneObjectPart part in obj.Children.Values)
+            try 
             {
-                try 
+                foreach (SceneObjectPart part in obj.Children.Values)
                 {
                     m_log.InfoFormat("Storing part {0}", part.UUID);
                     session.SaveOrUpdate(part);
-                    session.Flush();
-                } 
-                catch (Exception e) 
-                {
-                    m_log.Error("Can't save: ", e);
                 }
+                session.Flush();
+            }
+            catch (Exception e) 
+            {
+                m_log.Error("Can't save: ", e);
+            }
+        }
 
+        private SceneObjectGroup LoadObject(LLUUID uuid, LLUUID region)
+        {
+            SceneObjectGroup group = new SceneObjectGroup();
+
+            ICriteria criteria = session.CreateCriteria(typeof(SceneObjectPart));
+            criteria.Add(Expression.Eq("RegionID", region));
+            criteria.Add(Expression.Eq("ParentUUID", uuid));
+            criteria.AddOrder( Order.Asc("ParentID") );
+
+            foreach (SceneObjectPart p in criteria.List())
+            {
+                // root part
+                if (p.UUID == uuid)
+                {
+                    group.AddPart(p);
+                    group.RootPart = p;
+                }
+                else 
+                {
+                    group.AddPart(p);
+                }
             }
 
+            return group;
         }
 
         /// <summary>
@@ -144,6 +168,13 @@ namespace OpenSim.Data.NHibernate
         /// <param name="regionUUID">the region UUID</param>
         public void RemoveObject(LLUUID obj, LLUUID regionUUID)
         {
+            SceneObjectGroup g = LoadObject(obj, regionUUID);
+            foreach (SceneObjectPart p in g.Children.Values)
+            {
+                session.Delete(p);
+            }
+            session.Flush();
+
             m_log.InfoFormat("[REGION DB]: Removing obj: {0} from region: {1}", obj.UUID, regionUUID);
 
         }
