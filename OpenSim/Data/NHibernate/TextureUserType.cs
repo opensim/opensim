@@ -28,6 +28,7 @@
 using System;
 using System.Data;
 using libsecondlife;
+using OpenSim.Framework;
 using NHibernate;
 using NHibernate.SqlTypes;
 using NHibernate.UserTypes;
@@ -52,7 +53,7 @@ namespace OpenSim.Data.NHibernate
             if (texture == null) 
             {
                 // TODO: should parametrize this texture out
-                return new LLObject.TextureEntry(new LLUUID("89556747-24cb-43ed-920b-47caed15465f"));
+                return new LLObject.TextureEntry(new LLUUID(Constants.DefaultTexture));
             }
             else 
             {
