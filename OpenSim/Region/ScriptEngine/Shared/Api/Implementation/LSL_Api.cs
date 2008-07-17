@@ -341,46 +341,72 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return new LSL_Types.Vector3(0.0, -Math.PI / 2, NormalizeAngle(Math.Atan2((r.z * r.s + r.x * r.y), 0.5 - t.x - t.z)));
         }
 
-        // Xantor's newer llEuler2Rot() *try the second* inverted quaternions (-x,-y,-z,w) as LL seems to like
-        // New and improved, now actually works as described. Prim rotates as expected as does llRot2Euler.
-
         /* From wiki:
         The Euler angle vector (in radians) is converted to a rotation by doing the rotations around the 3 axes
         in Z, Y, X order. So llEuler2Rot(<1.0, 2.0, 3.0> * DEG_TO_RAD) generates a rotation by taking the zero rotation,
         a vector pointing along the X axis, first rotating it 3 degrees around the global Z axis, then rotating the resulting
         vector 2 degrees around the global Y axis, and finally rotating that 1 degree around the global X axis.
         */
+        
+        /* How we arrived at this llEuler2Rot
+         * 
+         * Experiment in SL to determine conventions:
+         *   llEuler2Rot(<PI,0,0>)=<1,0,0,0>
+         *   llEuler2Rot(<0,PI,0>)=<0,1,0,0>
+         *   llEuler2Rot(<0,0,PI>)=<0,0,1,0>
+         * 
+         * Important facts about Quaternions
+         *  - multiplication is non-commutative (a*b != b*a)
+         *  - http://en.wikipedia.org/wiki/Quaternion#Basis_multiplication
+         * 
+         * Above SL experiment gives (c1,c2,c3,s1,s2,s3 as defined in our llEuler2Rot):
+         *   Qx = c1+i*s1
+         *   Qy = c2+j*s2;
+         *   Qz = c3+k*s3;
+         * 
+         * Rotations applied in order (from above) Z, Y, X
+         * Q = (Qz * Qy) * Qx
+         * ((c1+i*s1)*(c2+j*s2))*(c3+k*s3)
+         * (c1*c2+i*s1*c2+j*c1*s2+ij*s1*s2)*(c3+k*s3)
+         * (c1*c2+i*s1*c2+j*c1*s2+k*s1*s2)*(c3+k*s3)
+         * c1*c2*c3+i*s1*c2*c3+j*c1*s2*c3+k*s1*s2*c3+k*c1*c2*s3+ik*s1*c2*s3+jk*c1*s2*s3+kk*s1*s2*s3
+         * c1*c2*c3+i*s1*c2*c3+j*c1*s2*c3+k*s1*s2*c3+k*c1*c2*s3 -j*s1*c2*s3 +i*c1*s2*s3   -s1*s2*s3
+         * regroup: x=i*(s1*c2*c3+c1*s2*s3)
+         *          y=j*(c1*s2*c3-s1*c2*s3)
+         *          z=k*(s1*s2*c3+c1*c2*s3)
+         *          s=   c1*c2*c3-s1*s2*s3
+         * 
+         * This implementation agrees with the functions found here:
+         * http://lslwiki.net/lslwiki/wakka.php?wakka=LibraryRotationFunctions
+         * And with the results in SL.
+         * 
+         * It's also possible to calculate llEuler2Rot by direct multiplication of
+         * the Qz, Qy, and Qx vectors (as above - and done in the "accurate" function
+         * from the wiki). 
+         * Apparently in some cases this is better from a numerical precision perspective? 
+         */ 
 
         public LSL_Types.Quaternion llEuler2Rot(LSL_Types.Vector3 v)
         {
             m_host.AddScriptLPS(1);
 
-            double x,y,z,s,s_i;
+            double x,y,z,s;
+            
+            double c1 = Math.Cos(v.x/2.0);
+            double c2 = Math.Cos(v.y/2.0);
+            double c3 = Math.Cos(v.z/2.0);
+            double s1 = Math.Sin(v.x/2.0);
+            double s2 = Math.Sin(v.y/2.0);
+            double s3 = Math.Sin(v.z/2.0);
 
-            double cosX = Math.Cos(v.x);
-            double cosY = Math.Cos(v.y);
-            double cosZ = Math.Cos(v.z);
-            double sinX = Math.Sin(v.x);
-            double sinY = Math.Sin(v.y);
-            double sinZ = Math.Sin(v.z);
-
-            s = Math.Sqrt(cosY * cosZ - sinX * sinY * sinZ + cosX * cosZ + cosX * cosY + 1.0f) * 0.5f;
-            if (Math.Abs(s) < 0.00001) // null rotation
-            {
-                   x = 0.0f;
-                y = 1.0f;
-                z = 0.0f;
-            }
-            else
-            {
-                s_i = 1.0f / (4.0f * s);
-                x = - (-sinX * cosY - cosX * sinY * sinZ - sinX * cosZ) * s_i;
-                y = - (-cosX * sinY * cosZ + sinX * sinZ - sinY) * s_i;
-                z = - (-cosY * sinZ - sinX * sinY * cosZ - cosX * sinZ) * s_i;
-            }
+            x = s1*c2*c3+c1*s2*s3;
+            y = c1*s2*c3-s1*c2*s3;
+            z = s1*s2*c3+c1*c2*s3;
+            s = c1*c2*c3-s1*s2*s3;
+            
             return new LSL_Types.Quaternion(x, y, z, s);
         }
-
+        
         public LSL_Types.Quaternion llAxes2Rot(LSL_Types.Vector3 fwd, LSL_Types.Vector3 left, LSL_Types.Vector3 up)
         {
             m_host.AddScriptLPS(1);
