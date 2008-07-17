@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Net;
@@ -37,131 +38,150 @@ namespace OpenSim.Framework.Servers
 {
     public class OSHttpRequest
     {
-        /// <remarks>
-        /// soon to be deprecated
-        /// </remarks>
-        private string[] _acceptTypes;
-        private Encoding _contentEncoding;
-        private long _contentLength64;
-        private string _contentType;
-        // private CookieCollection _cookies;
-        private NameValueCollection _headers;
-        private string _httpMethod;
-        private Stream _inputStream;
-        // private bool _isSecureConnection;
-        // private bool _isAuthenticated;
-        private bool _keepAlive;
-        private bool _hasbody;
-        private string _rawUrl;
-        private Uri _url;
-        private NameValueCollection _queryString;
-        private string _userAgent;
-        private IPEndPoint _ipEndPoint;
 
-        private HttpRequest _request;
-        private HttpClientContext _context;
 
         public string[] AcceptTypes
         {
             get { return _acceptTypes; }
         }
+        private string[] _acceptTypes;
+
 
         public Encoding ContentEncoding
         {
             get { return _contentEncoding; }
         }
+        private Encoding _contentEncoding;
+
 
         public long ContentLength
         {
             get { return _contentLength64; }
         }
+        private long _contentLength64;
+
 
         public long ContentLength64
         {
             get { return ContentLength; }
         }
 
+
         public string ContentType
         {
             get { return _contentType; }
         }
+        private string _contentType;
 
 
         // public CookieCollection Cookies
         // {
         //     get { return _cookies; }
         // }
+        // private CookieCollection _cookies;
 
         public NameValueCollection Headers
         {
             get { return _headers; }
         }
+        private NameValueCollection _headers;
 
         public string HttpMethod
         {
             get { return _httpMethod; }
         }
+        private string _httpMethod;
+
 
         public Stream InputStream
         {
             get { return _inputStream; }
         }
+        private Stream _inputStream;
+
 
         // public bool IsSecureConnection
         // {
         //     get { return _isSecureConnection; }
         // }
+        // private bool _isSecureConnection;
+
 
         // public bool IsAuthenticated
         // {
         //     get { return _isAuthenticated; }
         // }
+        // private bool _isAuthenticated;
+
 
         public bool HasEntityBody
         {
             get { return _hasbody; }
         }
+        private bool _hasbody;
+
 
         public bool KeepAlive
         {
             get { return _keepAlive; }
         }
+        private bool _keepAlive;
+
 
         public string RawUrl
         {
             get { return _rawUrl; }
         }
+        private string _rawUrl;
+
 
         public Uri Url
         {
             get { return _url; }
         }
+        private Uri _url;
+
 
         public string UserAgent
         {
             get { return _userAgent; }
         }
+        private string _userAgent;
+
 
         public NameValueCollection QueryString
         {
             get { return _queryString; }
         }
+        private NameValueCollection _queryString;
+
+        public Hashtable Query
+        {
+            get { return _query; }
+        }
+        private Hashtable _query;
+
 
         public IPEndPoint RemoteIPEndPoint
         {
             get { return _ipEndPoint; }
         }
+        private IPEndPoint _ipEndPoint;
 
 
         internal HttpRequest HttpRequest
         {
             get { return _request; }
         }
+        private HttpRequest _request;
+
 
         internal HttpClientContext HttpClientContext
         {
             get { return _context; }
         }
+        private HttpClientContext _context;
+
         
         /// <summary>
         /// Internal whiteboard for handlers to store temporary stuff
@@ -177,6 +197,7 @@ namespace OpenSim.Framework.Servers
         public OSHttpRequest()
         {
         }
+
 
         public OSHttpRequest(HttpListenerRequest req)
         {
@@ -221,9 +242,11 @@ namespace OpenSim.Framework.Servers
             if (null != req.Headers["user-agent"])
                 _userAgent = req.Headers["user-agent"];
             _queryString = new NameValueCollection();
+            _query = new Hashtable();
             foreach (KeyValuePair<string, HttpInputItem> q in req.QueryString)
             {
                 _queryString.Add(q.Key, q.Value.Value);
+                _query[q.Key] = q.Value.Value;
             }
             // TODO: requires change to HttpServer.HttpRequest
             _ipEndPoint = null;
