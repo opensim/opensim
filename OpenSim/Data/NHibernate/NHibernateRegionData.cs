@@ -298,7 +298,7 @@ namespace OpenSim.Data.NHibernate
                 Terrain t = session.Load(typeof(Terrain), regionID) as Terrain;
                 return t.Doubles;
             }
-            catch (NHibernate.ObjectNotFoundException e)
+            catch (ObjectNotFoundException e)
             {
                 m_log.Info("No terrain yet");
                 return null;
